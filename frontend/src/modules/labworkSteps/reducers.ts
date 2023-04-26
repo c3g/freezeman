@@ -3,8 +3,21 @@ import { clearFiltersReducer, setFilterOptionsReducer, setFilterReducer } from '
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
-import { CLEAR_FILTERS, CLEAR_SELECTION_CHANGED_MESSAGE, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE } from './actions'
 import { LabworkStepSamples, LabworkStepsState } from './models'
+import { createNetworkActionTypes } from '../../utils/actions'
+
+export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
+export const LIST = createNetworkActionTypes('LABWORK_STEP')
+export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
+export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
+export const SET_FILTER = 'SAMPLES_AT_STEP:SET_FILTER'
+export const SET_FILTER_OPTION = 'SAMPLES_AT_STEP:SET_FILTER_OPTION'
+export const CLEAR_FILTERS = 'SAMPLES_AT_STEP:CLEAR_FILTERS'
+export const SET_SORT_BY = 'SAMPLES_AT_STEP:SET_SORT_BY'
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES_AT_STEP.LIST_TEMPLATE_ACTIONS")
+export const SHOW_SELECTION_CHANGED_MESSAGE = 'SAMPLES_AT_STEP:SHOW_SELECTION_CHANGED_MESSAGE'
+export const SET_SELECTED_SAMPLES_SORT_DIRECTION = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES_SORT_DIRECTION'
+
 
 const INTIAL_STATE: LabworkStepsState = {
 	steps: {},
@@ -136,6 +149,7 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 				},
 				displayedSamples: [],
 				selectedSamples: [],
+				selectedSamplesSortDirection: 'column',
 				prefill: {
 					templates
 				},
@@ -237,6 +251,18 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 							order: sortBy.order
 						}
 					}
+				})
+			}
+			break
+		}
+
+		case SET_SELECTED_SAMPLES_SORT_DIRECTION: {
+			const { stepID, direction } = action
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				return updateStepSamples(state, {
+					...stepSamples,
+					selectedSamplesSortDirection: direction
 				})
 			}
 			break

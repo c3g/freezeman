@@ -2,7 +2,7 @@ from decimal import Decimal
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, Library, SampleMetadata
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, Library, SampleMetadata, Coordinate
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -58,13 +58,14 @@ def create_full_sample(name, volume, creation_date, container, sample_kind,
 
             derived_sample = DerivedSample.objects.create(**derived_sample_data)
 
+            coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
             sample_data = dict(
                 name=name,
                 volume=volume,
                 creation_date=creation_date,
                 container=container,
                 comment=(comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")),
-                **(dict(coordinates=coordinates) if coordinates is not None else dict()),
+                **(dict(coordinate=coordinate) if coordinate is not None else dict()),
                 **(dict(concentration=concentration) if concentration is not None else dict()),
             )
 
@@ -73,7 +74,8 @@ def create_full_sample(name, volume, creation_date, container, sample_kind,
             DerivedBySample.objects.create(derived_sample_id=derived_sample.id,
                                            sample_id=sample.id,
                                            volume_ratio=1)
-
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates} are not valid (Coordinates format example: A01).")
         except ValidationError as e:
             errors.append(';'.join(e.messages))
 
@@ -99,11 +101,11 @@ def get_sample_from_container(barcode, coordinates=None):
                 container=container
             )
             if coordinates:
-                sample_info['coordinates'] = coordinates
+                sample_info['coordinate__name'] = coordinates
             try:
                 sample = Sample.objects.get(**sample_info)
             except Sample.DoesNotExist as e:
-                errors.append(f"Sample from container with barcode {barcode} at coordinates {coordinates} not found.")
+                errors.append(f"Sample from container with barcode {barcode}{f' at coordinates {coordinates}' if coordinates is not None else ''} not found.")
             except Sample.MultipleObjectsReturned  as e:
                 if coordinates:
                     errors.append(f"More than one sample in container with barcode {barcode} found at coordinates {coordinates}.")
@@ -193,9 +195,10 @@ def transfer_sample(process: Process,
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
+            coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
             sample_destination_data = dict(
                 container_id=container_destination.id,
-                coordinates=coordinates_destination if coordinates_destination else "",
+                coordinate_id=coordinate_destination.id if coordinate_destination is not None else None,
                 creation_date=execution_date,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
@@ -217,7 +220,8 @@ def transfer_sample(process: Process,
                                                                                    workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
-
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
         except Exception as e:
             errors.append(e)
 
@@ -246,6 +250,8 @@ def extract_sample(process: Process,
         errors.append(f"Source sample for extraction is required.")
     if not container_destination:
         errors.append(f"Destination container for extraction is required.")
+    if sample_kind_destination is None:
+        errors.append(f"Sample kind of the extracted sample is required.")
 
     if volume_used is None:
         errors.append(f"Volume used is required.")
@@ -265,9 +271,10 @@ def extract_sample(process: Process,
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
+            coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
             sample_destination_data = dict(
                 container_id=container_destination.id,
-                coordinates=coordinates_destination if coordinates_destination else "",
+                coordinate_id=coordinate_destination.id if coordinate_destination is not None else None,
                 creation_date=execution_date,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
@@ -301,6 +308,8 @@ def extract_sample(process: Process,
                                                                                    workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
         except Exception as e:
             errors.append(e)
 
@@ -331,6 +340,7 @@ def pool_samples(process: Process,
                        "Source Container Coordinate",
                        "Source Depleted",
                        "Volume Used",
+                       "Volume In Pool",
                        "Comment",
                        "Workflow"}
                       Workflow contains step_action and step to manage workflow.
@@ -361,23 +371,33 @@ def pool_samples(process: Process,
         errors.append(f"Execution date is not valid.")
     
     if not errors:
-        volume = decimal_rounded_to_precision(Decimal(sum(sample["Volume Used"] for sample in samples_info))) # Calculate the total volume of the pool
+        volume = decimal_rounded_to_precision(Decimal(sum(sample["Volume In Pool"] for sample in samples_info))) # Calculate the total volume of the pool
         for sample in samples_info:
             volume_used = decimal_rounded_to_precision(Decimal(sample["Volume Used"]))
+            volume_in_pool = decimal_rounded_to_precision(Decimal(sample["Volume In Pool"]))
             sample_obj = sample["Source Sample"]
             if volume_used is None:
                 errors.append(f"Volume used is required.")
             else:
                 if volume_used <= 0:
-                    errors.append(f"Volume used ({volume_used}) is invalid.")
+                    errors.append(f"Volume used ({volume_used}) is invalid. Volume used needs to be greater than 0.")
                 if sample_obj and volume_used > sample_obj.volume:
                     errors.append(f"Volume used ({volume_used} uL) exceeds the current volume of the sample ({sample_obj.volume} uL).")
+            if volume_in_pool is None:
+                errors.append(f"Volume in pool is required.")
+            elif volume_in_pool <= 0:
+                    errors.append(f"Volume in pool ({volume_in_pool}) is invalid. Volume in pool needs to be greater than 0.")
 
-            sample["Volume Ratio"] = volume_used / volume # Calculate the volume ratio of each sample in the pool
+            sample["Volume Ratio"] = volume_in_pool / volume # Calculate the volume ratio of each sample in the pool
             sample_obj.volume = sample_obj.volume - volume_used  # Reduce the volume of source samples by the volume used
             if sample["Source Depleted"]:
                 sample_obj.depleted=sample["Source Depleted"]
             sample_obj.save()
+
+        try:
+            coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
         # Create a a new sample - Concentration value is not set (need a QC to set it)
         pool_data = dict(
                 name=pool_name,
@@ -385,7 +405,7 @@ def pool_samples(process: Process,
                 creation_date=execution_date,
                 container=container_destination,
                 comment=f"Automatically generated by sample pooling on {datetime.utcnow().isoformat()}Z",
-                **(dict(coordinates=coordinates_destination) if coordinates_destination is not None else dict()),
+                **(dict(coordinate=coordinate_destination) if coordinate_destination is not None else dict()),
             )
         try:
             sample_destination = Sample.objects.create(**pool_data)
@@ -411,8 +431,8 @@ def pool_samples(process: Process,
                     else:
                         try:  # catch duplicates integrity errors
                             DerivedBySample.objects.create(sample=sample_destination,
-                                                          derived_sample=derived_sample,
-                                                          volume_ratio=final_volume_ratio)
+                                                           derived_sample=derived_sample,
+                                                           volume_ratio=final_volume_ratio)
                         except Exception as e:
                             errors.append(e)
 
@@ -428,7 +448,6 @@ def pool_samples(process: Process,
                                                                                          comment=comment)
                 errors.extend(errors_pm)
                 warnings.extend(warnings_pm)
-
 
                 if process_measurement: # Need to be executed after DerivedBySample are created because of lineage validations
                     _, errors_sample_lineage, warnings_sample_lineage = create_sample_lineage(parent_sample=source_sample,
@@ -510,6 +529,11 @@ def pool_submitted_samples(samples_info,
             sample_volume = sample["volume"]
             # Calculate the volume ratio of each sample in the pool
             sample["volume_ratio"] = decimal_rounded_to_precision(sample_volume / pool_volume)
+
+        try:
+            coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
         # Create a a new sample - Concentration value is not set (need a QC to set it)
         pool_data = dict(
             name=pool_name,
@@ -517,7 +541,7 @@ def pool_submitted_samples(samples_info,
             creation_date=reception_date,
             container=container_destination,
             comment=comment if comment is not None else f"Automatically generated by pooling submission on {datetime.utcnow().isoformat()}Z",
-            **(dict(coordinates=coordinates_destination) if coordinates_destination is not None else dict()),
+            **(dict(coordinate=coordinate_destination) if coordinate_destination is not None else dict()),
         )
         try:
             pool_sample_obj = Sample.objects.create(**pool_data)
@@ -632,9 +656,10 @@ def prepare_library(process: Process,
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
+            coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
             sample_destination_data = dict(
                 container_id=container_destination.id,
-                coordinates=coordinates_destination if coordinates_destination else "",
+                coordinate_id=coordinate_destination.id if coordinate_destination is not None else None,
                 creation_date=execution_date,
                 concentration=None,
                 volume=volume_destination if volume_destination is not None else volume_used,
@@ -643,7 +668,6 @@ def prepare_library(process: Process,
                 quantity_flag=None,
                 quality_flag=None
             )
-
 
             derived_samples_destination = []
             volume_ratios = {}
@@ -673,7 +697,8 @@ def prepare_library(process: Process,
                                                                                    workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
-
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
         except Exception as e:
             errors.append(e)
 

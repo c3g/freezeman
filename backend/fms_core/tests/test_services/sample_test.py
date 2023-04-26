@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure,
                              Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage,
-                             SampleMetadata)
+                             SampleMetadata, Coordinate)
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
 
 from fms_core.services.sample import (create_full_sample, get_sample_from_container, update_sample,
@@ -26,9 +26,13 @@ from fms_core.services.index import get_or_create_index_set, create_indices_3pri
 
 class SampleServicesTestCase(TestCase):
     def setUp(self) -> None:
+
+        self.coord_A04 = Coordinate.objects.get(name="A04")
+        self.coord_B02 = Coordinate.objects.get(name="B02")
+
         TEST_CONTAINERS = [
-            {"barcode": "BARCODECONTAINER1", "name":"CONTAINER1", "kind": "96-well plate", "location": "", "coordinates": ""},
-            {"barcode": "BARCODECONTAINER2", "name":"CONTAINER2", "kind": "tube rack 8x12", "location": "", "coordinates": ""},
+            {"barcode": "BARCODECONTAINER1", "name":"CONTAINER1", "kind": "96-well plate", "location": "", "coordinates": None},
+            {"barcode": "BARCODECONTAINER2", "name":"CONTAINER2", "kind": "tube rack 8x12", "location": "", "coordinates": None},
             {"barcode": "BARCODECONTAINER3", "name":"CONTAINER3", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A01"},
             {"barcode": "BARCODECONTAINER8", "name":"CONTAINER8", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A02"},
         ]
@@ -37,10 +41,10 @@ class SampleServicesTestCase(TestCase):
         for container in TEST_CONTAINERS:
             parent, _, _ = get_container(container["location"])
             new_container, _, _ = create_container(barcode=container["barcode"],
-                                                           kind=container["kind"],
-                                                           name=container["name"],
-                                                           coordinates=container["coordinates"],
-                                                           container_parent=parent)
+                                                   kind=container["kind"],
+                                                   name=container["name"],
+                                                   coordinates=container["coordinates"],
+                                                   container_parent=parent)
             self.test_containers.append(new_container)
 
         TEST_INDIVIDUALS = [
@@ -216,7 +220,7 @@ class SampleServicesTestCase(TestCase):
     def test_inherit_sample(self):
         new_sample_data = {"volume": 100,
                            "container": self.test_containers[0],
-                           "coordinates": "A04"}
+                           "coordinate_id": self.coord_A04.id}
         derived_samples_destination = []
         volume_ratios = {}
         for derived_sample in self.samples[0].derived_samples.all():
@@ -229,7 +233,7 @@ class SampleServicesTestCase(TestCase):
                                                       volume_ratios=volume_ratios)
         self.assertEqual(new_sample.volume, new_sample_data["volume"])
         self.assertEqual(new_sample.container, new_sample_data["container"])
-        self.assertEqual(new_sample.coordinates, new_sample_data["coordinates"])
+        self.assertEqual(new_sample.coordinates, self.coord_A04.name)
         self.assertEqual(new_sample.concentration, self.samples[0].concentration)
         for derived_sample in new_sample.derived_samples.all():
             self.assertIn(derived_sample, self.samples[0].derived_samples.all())
@@ -336,6 +340,7 @@ class SampleServicesTestCase(TestCase):
                 "Source Container Coordinate": sample.coordinates,
                 "Source Depleted": False,
                 "Volume Used": 20,
+                "Volume In Pool": 20,
                 "Comment": "Comment " + str(i),
             }
             samples_info.append(sample_info)
@@ -343,7 +348,7 @@ class SampleServicesTestCase(TestCase):
                                               samples_info=samples_info,
                                               pool_name=POOL_NAME,
                                               container_destination=self.test_containers[2],
-                                              coordinates_destination="",
+                                              coordinates_destination=None,
                                               execution_date=EXECUTION_DATE)
 
         self.assertFalse(errors)
@@ -355,7 +360,7 @@ class SampleServicesTestCase(TestCase):
         self.assertIn(self.samples[0], [sample for sample in pool.parents.all()])
         self.assertIn(self.samples[1], [sample for sample in pool.parents.all()])
         self.assertEqual(pool.container, self.test_containers[2])
-        self.assertEqual(pool.coordinates, "")
+        self.assertIsNone(pool.coordinates)
         self.assertEqual(pool.creation_date, EXECUTION_DATE)
 
         derived_sample_1 = DerivedSample.objects.get(derived_by_samples__sample__id=self.samples[0].id)
@@ -439,7 +444,7 @@ class SampleServicesTestCase(TestCase):
         process_by_protocol, _, _ = create_process(protocol_obj)
         sample_destination_data = dict(
             container_id=self.test_containers[0].id,
-            coordinates="B02",
+            coordinate_id=self.coord_B02.id,
             creation_date=EXECUTION_DATE,
             concentration=None,
             volume=150,
@@ -667,7 +672,7 @@ class SampleServicesTestCase(TestCase):
         pool, errors, warnings = pool_submitted_samples(samples_info=self.SUBMITTED_SAMPLES_TO_POOL,
                                                         pool_name=POOL_NAME,
                                                         container_destination=self.test_containers[2],
-                                                        coordinates_destination="",
+                                                        coordinates_destination=None,
                                                         reception_date=EXECUTION_DATE,
                                                         comment="Submitted Pool")
 
@@ -678,7 +683,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(pool.volume, Decimal("40"))
         self.assertIsNone(pool.concentration)
         self.assertEqual(pool.container, self.test_containers[2])
-        self.assertEqual(pool.coordinates, "")
+        self.assertIsNone(pool.coordinates)
         self.assertEqual(pool.creation_date, EXECUTION_DATE)
         self.assertEqual(pool.comment, "Submitted Pool")
 

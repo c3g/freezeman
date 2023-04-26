@@ -1,4 +1,4 @@
-import { FMSStepSpecification } from './fms_api_models'
+import { FMSStepSpecification } from '../../models/fms_api_models'
 
 /*
 	Labwork Summary Module

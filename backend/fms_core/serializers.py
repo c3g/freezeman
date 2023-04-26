@@ -39,6 +39,7 @@ from .models import (
     StepOrder,
     SampleNextStepByStudy,
     StepHistory,
+    Coordinate,
 )
 
 from .models._constants import ReleaseStatus
@@ -93,6 +94,7 @@ __all__ = [
     "StepSerializer",
     "SampleNextStepByStudySerializer",
     "StepHistorySerializer",
+    "CoordinateSerializer",
 ]
 
 
@@ -118,10 +120,11 @@ class ContainerExportSerializer(serializers.ModelSerializer):
     container_kind = serializers.CharField(source='kind')
     children_containers_count = serializers.SerializerMethodField()
     samples_contained_count = serializers.SerializerMethodField()
+    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
 
     class Meta:
         model = Container
-        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'children_containers_count', 'samples_contained_count', 'comment')
+        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinate', 'children_containers_count', 'samples_contained_count', 'comment')
 
     def get_children_containers_count(self, obj):
         return obj.children.all().count()
@@ -370,15 +373,17 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
 class SampleSerializer(serializers.Serializer):
     class Meta:
         fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
-                  'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'is_pool', 'project',
+                  'extracted_from', 'individual', 'container', 'coordinate', 'sample_kind', 'is_library', 'is_pool', 'project',
                   'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
                   'quality_flag', 'quantity_flag', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted', 
                   'comment')
 
 class SampleExportSerializer(serializers.Serializer):
+    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
+
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
-                  'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
+                  'container', 'container_kind', 'container_name', 'container_barcode', 'coordinate',
                   'location_barcode', 'location_coord', 'container_full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
@@ -387,14 +392,15 @@ class SampleExportSerializer(serializers.Serializer):
 
 class LibrarySerializer(serializers.Serializer):
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool',
                   'concentration', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
 
 class LibraryExportSerializer(serializers.Serializer):
+    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
@@ -744,4 +750,9 @@ class StepHistorySerializer(serializers.ModelSerializer):
     sample = serializers.IntegerField(read_only=True, source='process_measurement.source_sample_id')
     class Meta:
         model = StepHistory
-        fields = ("id", "study", "step_order", "process_measurement", "sample")
+        fields = ("id", "study", "step_order", "process_measurement", "sample", "workflow_action")
+
+class CoordinateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coordinate
+        fields = "__all__"

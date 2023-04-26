@@ -52,13 +52,19 @@ export interface FMSContainer extends FMSTrackedModel {
     kind: string                        // The type of container (eg. 96-well-plate)
     name: string                        // Container name
     barcode: string                     // Container barcode
-    coordinates: string                 // Coordinates of this container in it's parent container (eg "A01")
+    coordinate: FMSId                   // ID of the coordinates of this container in it's parent container (eg "A01")
     comment: string                     // User comment
     update_comment: string              // User update comment
     location?: FMSId                    // ID of parent container (if any)
     children: FMSId[]                   // ID's of child containers, contained by this container
     samples: FMSId[]                    // ID's of samples contained in the container
     experiment_run?: FMSId              // Experiment run associate with the container (if any)
+}
+
+export interface FMSCoordinate extends FMSTrackedModel {
+  name: string                       // Coordinates
+  column: number                     // Column ordinal starting at 0
+  row: number                        // Row ordinal starting at 0
 }
 
 export interface FMSImportedFile {
@@ -112,7 +118,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     concentration_nm?: number           // Concentration in nanomolar
     quantity_ng?: number                // Quantity in nanograms
     container: FMSId                    // Container ID
-    coordinates: string                 // Coords in container
+    coordinate: FMSId                   // Coords ID of position in container
     is_pool: boolean                    // Pool flag (false for plain sample)
     project: FMSId                      // Project ID
     creation_date: string               // Date library was created (YYYY-MM-DD)
@@ -163,6 +169,27 @@ export interface FMSPooledSample extends FMSTrackedModel {
     strandedness?: string,              // "Double stranded" (for DNA) or "Single stranded" (for RNA)
 }
 
+export interface FMSProcess extends FMSTrackedModel {
+    children_properties: FMSId[]        // ID's of child property values of the process
+    children_processes: FMSId[]         // ID's of child processes
+    parent_process?: FMSId              // Parent process ID, if any
+    protocol: FMSId                     // ID of protocol for process
+    imported_template?: FMSId           // Imported template ID, if any
+}
+
+export interface FMSProcessMeasurement extends FMSTrackedModel {
+    source_sample: FMSId                // Sample that was processed
+    child_sample?: FMSId                // Sample created by process (if any)
+
+    protocol: FMSId                     // Protocol ID
+    process: FMSId                      // Parent process ID
+    properties: FMSId[]                 // ID's of any property values recorded for the sample
+    
+    volume_used?: number                // Volume of sample consumed by process
+    execution_date: string              // Date that sample was processed
+    comment?: string                    // User comment
+}
+
 /**
  * Freezeman project model
  */
@@ -178,6 +205,19 @@ export interface FMSProject extends FMSTrackedModel {
     comment: string                     // Other relevant information about the project
 }
 
+/**
+ * PropertyValue
+ * 
+ * Both Processes and ProcessMeasurements can have properties, and the same model
+ * is shared for both cases.
+ */
+export interface FMSPropertyValue extends FMSTrackedModel {
+    content_type: FMSId                 // An ID to indicate if this is property of a process or of a process measurement
+    object_id: FMSId                    // Either a process ID or a process measurement ID
+    property_name: string               // The name of the property
+    property_type: FMSId                // The property type ID
+    value: any                          // The property value - stored as JSON, so it can be anything
+}
 
 export interface ProtocolPropertyType {             // Subfield of FMSProtocol
     id: FMSId                                       // PropertyType object id
@@ -211,7 +251,7 @@ export interface FMSSample extends FMSTrackedModel {
     extracted_from?: FMSId              // If extraction, ID of original sample
     individual?: FMSId                  // Individual ID, if any
     container: FMSId                    // Container holding sample
-    coordinates: string                 // Coordinates in container, if applicable
+    coordinate: FMSId                   // Coordinate ID of position in container, if applicable
     sample_kind: FMSId                  // Sample kind ID
     is_library: boolean                 // Library flag
     is_pool: boolean                    // Pool flag
@@ -239,6 +279,19 @@ export interface FMSSampleNextStepByStudy extends FMSTrackedModel {
     step_order: FMSId
 }
 
+// Data type returned by summary_by_study for samples and step histories.
+// api/sample-next-step-by-study/summary_by_study/?study__id__in
+// api/step-histories/summary_by_study/?study__id__in
+export interface FMSStudySamplesCounts {
+    study_id: FMSId
+    steps: [{
+        step_order_id: FMSId
+        order: number
+        step_name: string
+        count: number
+    }]
+}
+
 export interface FMSSampleNextStep extends FMSTrackedModel {
   sample: FMSId,
   studies: FMSId[],
@@ -249,6 +302,13 @@ export interface FMSStep extends FMSTrackedModel {
     name: string
     protocol_id: FMSId
     step_specifications: FMSStepSpecification[]
+}
+
+export interface FMSStepHistory extends FMSTrackedModel {
+    study: FMSId
+    step_order: number
+    process_measurement: FMSId
+    sample: FMSId
 }
 
 export interface FMSStepSpecification extends FMSTrackedModel {
@@ -309,8 +369,7 @@ export interface FMSWorkflow extends FMSTrackedModel {
 export interface WorkflowStep {         // Not a tracked model - just a simple serialized object
     id: FMSId                           // Step Order ID
     order: number                       // Step order value
-    step_id : FMSId                     // Step ID
+    step_id: FMSId                     // Step ID
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }
-

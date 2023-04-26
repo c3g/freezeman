@@ -73,7 +73,6 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         )
     )
 
-
     serializer_class = LibrarySerializer
 
     ordering_fields = (
@@ -85,7 +84,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         **_library_filterset_fields,
     }
 
-    filter_class = LibraryFilter
+    filterset_class = LibraryFilter
 
     template_action_list = [
         {

@@ -82,15 +82,6 @@ select:-webkit-autofill:focus {
   text-align: left;
 }
 
-
-.ContainerEditContent__coordinates {
-  display: inline-flex;
-  flex-direction: row;
-}
-.ContainerEditContent__coordinates .ant-form-item-control {
-  display: inline-flex;
-}
-
 abbr.--time {
   text-decoration: none;
 }

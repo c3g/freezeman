@@ -1,12 +1,8 @@
 import { Project, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { AppDispatch, RootState } from '../../store'
-import { createNetworkActionTypes, networkAction } from '../../utils/actions'
+import { networkAction } from '../../utils/actions'
 import api from '../../utils/api'
-
-export const GET = createNetworkActionTypes('STUDIES.GET')
-export const ADD = createNetworkActionTypes('STUDIES.ADD')
-export const UPDATE = createNetworkActionTypes('STUDIES.UPDATE')
-export const LIST_PROJECT_STUDIES = createNetworkActionTypes('STUDIES.LIST_PROJECT_STUDIES')
+import { ADD, GET, LIST, LIST_PROJECT_STUDIES, UPDATE } from './reducers'
 
 export const get = (id: number) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	const study = getState().studies.itemsByID[id]
@@ -14,6 +10,14 @@ export const get = (id: number) => async (dispatch: AppDispatch, getState: () =>
 
 	return await dispatch(networkAction(GET, api.studies.get(id), { meta: { id } }))
 }
+
+export const list = (options) => async (dispatch) => {
+    const params = { limit: 100000, ...options }
+    return await dispatch(networkAction(LIST,
+        api.studies.list(params),
+        { meta: params }
+    ));
+};
 
 export const add =
 	(study: { project: Project, workflow: Workflow, stepRange: WorkflowStepRange }) =>

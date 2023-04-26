@@ -88,7 +88,7 @@ class FetchSampleData(FetchData):
             'id',
             'name',
             'container_id',
-            'coordinates',
+            'coordinate_id',
             'volume',
             'concentration',
             'creation_date',
@@ -147,7 +147,7 @@ class FetchSampleData(FetchData):
             childs_of = {}
             for sample_parent in samples_parent:
                 childs_of[sample_parent["child_id"]] = sample_parent["parent_id"]
-            
+
             # Checking for extracted_from
             samples_extracted_from = samples_parent.filter(process_measurement__process__protocol__name="Extraction")
             extract_by_sample = {}
@@ -174,7 +174,7 @@ class FetchSampleData(FetchData):
                     'extracted_from': extracted_from if not is_pool else None,
                     'individual': derived_sample["biosample__individual_id"] if not is_pool or not is_library else None,
                     'container': sample["container_id"],
-                    'coordinates': sample["coordinates"],
+                    'coordinate': sample["coordinate_id"],
                     'sample_kind': derived_sample["sample_kind__id"] if not is_pool or not is_library else None,
                     'is_library': is_library,
                     'is_pool': is_pool,
@@ -215,27 +215,29 @@ class FetchSampleData(FetchData):
         sample_ids = tuple(self.queryset.values_list('id', flat=True))
         samples_with_full_location = tuple()
         if sample_ids: # Query crashes on empty tuple
-            samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinates, full_location) AS (                                                   
-                                                               SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') '
-                                                               FROM fms_core_container AS container 
+            samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinate_id, coordinates, full_location) AS (                                                   
+                                                               SELECT container.id, container.location_id, coordinate.id, coordinate.name, container.barcode::varchar || ' (' || container.kind::varchar || ') '
+                                                               FROM fms_core_container AS container
+                                                               LEFT OUTER JOIN fms_core_coordinate AS coordinate ON container.coordinate_id=coordinate.id
                                                                WHERE container.location_id IS NULL
 
                                                                UNION ALL
 
-                                                               SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
+                                                               SELECT container.id, container.location_id, coordinate.id, coordinate.name, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
                                                                CASE 
-                                                               WHEN (container.coordinates = '') THEN ''
-                                                               ELSE 'at ' || container.coordinates::varchar || ' '
+                                                               WHEN (container.coordinate_id IS NULL) THEN ''
+                                                               ELSE 'at ' || coordinate.name::varchar || ' '
                                                                END
 
                                                                || 'in ' ||container_hierarchy.full_location::varchar
                                                                FROM container_hierarchy
-                                                               JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
+                                                               JOIN fms_core_container AS container ON container_hierarchy.id=container.location_id
+                                                               LEFT OUTER JOIN fms_core_coordinate AS coordinate ON container.coordinate_id=coordinate.id
                                                                ) 
 
                                                                SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
                                                                WHERE sample.id IN  %s;''', params=[sample_ids])
-        
+
         location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
 
         self.queryset = self.queryset.values(
@@ -245,9 +247,9 @@ class FetchSampleData(FetchData):
             'container__kind',
             'container__name',
             'container__barcode',
-            'coordinates',
+            'coordinate__name',
             'container__location__barcode',
-            'container__coordinates',
+            'container__coordinate',
             'volume',
             'concentration',
             'creation_date',
@@ -305,9 +307,9 @@ class FetchSampleData(FetchData):
                 'container_kind': sample["container__kind"],
                 'container_name': sample["container__name"],
                 'container_barcode': sample["container__barcode"],
-                'coordinates': sample["coordinates"],
+                'coordinates': sample["coordinate__name"],
                 'location_barcode': sample["container__location__barcode"] or "",
-                'location_coord': sample["container__coordinates"] or "",
+                'location_coord': sample["container__coordinate"] or "",
                 'container_full_location': location_by_sample[sample["id"]] or "",
                 'current_volume': sample["volume"],
                 'concentration': sample["concentration"],
@@ -352,7 +354,7 @@ class FetchSampleData(FetchData):
             'name',
             'container__name',
             'container__barcode',
-            'coordinates',
+            'coordinate__name',
             'derived_samples'
         )
         samples_by_derived = {s["derived_samples"]: s for s in self.queryset}
@@ -399,7 +401,7 @@ class FetchSampleData(FetchData):
                 'sample_name': sample["name"],   
                 'container_name': sample["container__name"],
                 'container_barcode': sample["container__barcode"],
-                'coordinates': sample["coordinates"], 
+                'coordinates': sample["coordinate__name"], 
                 'project': derived_sample["project__name"],
                 **(dict((item["name"], item["value"]) for item in metadata) if metadata else dict())
             }
@@ -440,7 +442,7 @@ class FetchLibraryData(FetchData):
             'id',
             'name',
             'container_id',
-            'coordinates',
+            'coordinate_id',
             'volume',
             'concentration',
             'quantity_ng',
@@ -497,7 +499,7 @@ class FetchLibraryData(FetchData):
                     'concentration_nm': concentration_nm,
                     'quantity_ng': decimal_rounded_to_precision(sample["quantity_ng"]) if sample["concentration"] else None,
                     'container': sample["container_id"],
-                    'coordinates': sample["coordinates"],
+                    'coordinate': sample["coordinate_id"],
                     'is_pool': is_pool,
                     'project': derived_sample["project_id"] if not is_pool else None,
                     'creation_date': sample["creation_date"],
@@ -532,7 +534,7 @@ class FetchLibraryData(FetchData):
             'id',
             'name',
             'container__barcode',
-            'coordinates',
+            'coordinate__name',
             'volume',
             'concentration',
             'quantity_ng',
@@ -584,7 +586,7 @@ class FetchLibraryData(FetchData):
                     'concentration_nm': concentration_nm,
                     'quantity_ng': decimal_rounded_to_precision(sample["quantity_ng"]) if sample["concentration"] else None,
                     'container': sample["container__barcode"],
-                    'coordinates': sample["coordinates"],
+                    'coordinates': sample["coordinate__name"],
                     'is_pool': is_pool,
                     'project': derived_sample["project__name"] if not is_pool else None,
                     'creation_date': sample["creation_date"],

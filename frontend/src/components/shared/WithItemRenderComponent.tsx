@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { Container, FetchedObject, Index, Individual, ItemsByID, Project, Sample, User } from '../../models/frontend_models'
-import { selectContainersByID, selectIndicesByID, selectIndividualsByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
-import { createWithItem, withContainer, withIndex, withIndividual, withProject, withSample, withUser } from '../../utils/withItem'
+import { FMSTrackedModel } from '../../models/fms_api_models'
+import { Container, Coordinate, Index, Individual, ItemsByID, Process, Project, Sample, User } from '../../models/frontend_models'
+import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
+import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProject, withSample, withUser } from '../../utils/withItem'
 
 /**
  * WithItemRenderComponent
@@ -42,8 +43,8 @@ import { createWithItem, withContainer, withIndex, withIndividual, withProject, 
 
 
 type WithItemFunc = ReturnType<typeof createWithItem>
-type ItemRenderFunc<T extends FetchedObject> = (item: T) => React.ReactElement
-type ItemsByIDSelectorFunc<T extends FetchedObject> = (state: any) => ItemsByID<T>
+type ItemRenderFunc<T extends FMSTrackedModel> = (item: T) => React.ReactElement
+type ItemsByIDSelectorFunc<T extends FMSTrackedModel> = (state: any) => ItemsByID<T>
 
 /**
  * This factory function returns a component function for rendering a specific type of object (Sample, Container, etc.).
@@ -53,9 +54,9 @@ type ItemsByIDSelectorFunc<T extends FetchedObject> = (state: any) => ItemsByID<
  * @param selector The selector function for the `itemsByID` state that matches the object type (eg selectSamplesByID)
  * @returns A pure React component function.
  */
-function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FetchedObject> (withItem : W, selector: ItemsByIDSelectorFunc<T>) {
+function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTrackedModel> (withItem : W, selector: ItemsByIDSelectorFunc<T>) {
 
-	interface WithItemRenderComponentProps<T extends FetchedObject> {
+	interface WithItemRenderComponentProps<T extends FMSTrackedModel> {
 		objectID: string | number
 		render: ItemRenderFunc<T>
 		placeholder?: React.ReactElement
@@ -66,9 +67,11 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends Fetche
         const [object, setObject] = useState<T>()
 
         useEffect(() => {
-            const result: T = withItem(objectsByID , `${objectID}`, (object : T) => object, undefined)
-            if (result) {
-                setObject(result)
+            if(objectID && objectsByID) {
+                const result: T = withItem(objectsByID , `${objectID}`, (object : T) => object, undefined)
+                if (result) {
+                    setObject(result)
+                }
             }
         }, [objectsByID, objectID])
         
@@ -86,10 +89,11 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends Fetche
 	return WithItemRenderComponent
 }
 
-
+export const WithCoordinateRenderComponent = WithItemRenderComponentFactory<typeof withCoordinate, Coordinate>(withCoordinate, selectCoordinatesByID)
 export const WithContainerRenderComponent = WithItemRenderComponentFactory<typeof withContainer, Container>(withContainer, selectContainersByID)
 export const WithIndexRenderComponent = WithItemRenderComponentFactory<typeof withIndex, Index>(withIndex, selectIndicesByID)
 export const WithIndividualRenderComponent = WithItemRenderComponentFactory<typeof withIndividual, Individual>(withIndividual, selectIndividualsByID)
+export const WithProcessRenderComponent = WithItemRenderComponentFactory<typeof withProcess, Process>(withProcess, selectProcessesByID)
 export const WithProjectRenderComponent = WithItemRenderComponentFactory<typeof withProject, Project>(withProject, selectProjectsByID)
 export const WithSampleRenderComponent = WithItemRenderComponentFactory<typeof withSample, Sample>(withSample, selectSamplesByID)
 export const WithUserRenderComponent = WithItemRenderComponentFactory<typeof withUser, User>(withUser, selectUsersByID)

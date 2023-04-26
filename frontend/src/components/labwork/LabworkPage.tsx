@@ -28,7 +28,7 @@ const LabworkPage = () => {
 				dispatch(getLabworkSummary())
 			}
 		}
-	}, [appInitialized, labworkSummaryState])
+	}, [loading, appInitialized, labworkSummaryState, dispatch])
 
 	useEffect(() => {
 		// Flush the labwork state when the user navigates away from the
@@ -36,7 +36,7 @@ const LabworkPage = () => {
 		return () => {
 			dispatch(flushLabworkSummary())
 		}
-	}, [])
+	}, [dispatch])
 
 	return (
 		<PageContainer>

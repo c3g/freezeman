@@ -1,8 +1,9 @@
-import { Collapse, List, Table } from 'antd'
+import { Collapse, List, Table, Typography } from 'antd'
 import React from 'react'
 import { Workflow } from '../../models/frontend_models'
 import { createStructuredWorkflows } from './StructuredWorkflows'
 import './WorkflowCollapsableList.scss'
+const { Text } = Typography
 
 interface WorkflowCollapsableListProps {
 	workflows: Workflow[]
@@ -20,7 +21,13 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 	}
 
 	function createWorkflowCard(workflow: Workflow) {
-		const stepNames = workflow.steps_order.map((step) => step.step_name)
+		const stepNames = workflow.steps_order.map((step) => {
+			return {
+				stepName: step.step_name,
+				stepOrder: step.order
+
+			}
+		})
 		return (
 			<Collapse accordion>
 				<Collapse.Panel header={workflow.name} key={workflow.name} style={{ width: '100%' }}>
@@ -28,7 +35,12 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 						dataSource={stepNames}
 						size="small"
 						renderItem={(item) => {
-							return <List.Item key={item}>{item}</List.Item>
+							return <List.Item key={item.stepName}>
+								<span>
+									<Text strong={true} style={{fontSize: 16, marginRight: "0.6rem"}}>{item.stepOrder}</Text>
+									<Text>{item.stepName}</Text>
+								</span>
+							</List.Item>
 						}}
 					></List>
 				</Collapse.Panel>

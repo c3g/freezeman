@@ -13,5 +13,6 @@
     "@babel/proposal-class-properties",
     "@babel/proposal-object-rest-spread"
   ],
-  "sourceMaps": "inline"
+  "inputSourceMap": true,
+  "sourceMaps": true
 }

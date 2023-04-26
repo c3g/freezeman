@@ -19,6 +19,7 @@ class ContainerCreationImporter(GenericImporter):
                 'name': str_cast_and_normalize(row_data['Container Name']),
                 'barcode': str_cast_and_normalize(row_data['Container Barcode']),
                 'coordinates': str_cast_and_normalize(row_data['Parent Container Coordinates']),
+                'comment': str_cast_and_normalize(row_data['Comment']),
             }
             parent_container = {
                 'barcode': str_cast_and_normalize(row_data['Parent Container Barcode']),

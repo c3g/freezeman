@@ -7,7 +7,7 @@ from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.instrument import get_instrument_type
 from fms_core.services.index import validate_indices
 
-from fms_core.template_importer._constants import DEFAULT_INDEX_VALIDATION_THRESHOLD
+from fms_core.template_importer._constants import DEFAULT_INDEX_VALIDATION_THRESHOLD, INDEX_COLLISION_THRESHOLD
 
 class PoolsRowHandler(GenericRowHandler):
     def __init__(self):
@@ -49,11 +49,14 @@ class PoolsRowHandler(GenericRowHandler):
 
                 # Add a warning if the concentration of the libraries are not within a tolerance
                 TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
-                concentrations = [sample["Source Sample"].concentration for sample in samples_info]
-                avg_concentration = sum(concentrations) / len(concentrations)
-                if any(abs(concentration - avg_concentration) > TOLERANCE for concentration in concentrations):
-                    self.warnings["concentration"] = [(f"Source samples in pool {pool['name']} have concentrations that are more than "
-                                                       f"{TOLERANCE} ng/uL away from the average concentration of the pool.")]
+                for sample_tested in samples_info:
+                    concentrations = [((sample["Source Sample"].concentration * sample["Volume Used"]) / sample["Volume In Pool"]) for sample in samples_info if sample["Source Sample"].id != sample_tested["Source Sample"].id]
+                    avg_concentration = sum(concentrations) / len(concentrations)
+                    tested_concentration = (sample_tested["Source Sample"].concentration * sample_tested["Volume Used"]) / sample_tested["Volume In Pool"]
+                    if abs(tested_concentration - avg_concentration) > TOLERANCE:
+                        self.warnings["concentration"] = [(f"Source sample {sample_tested['Source Sample'].name} in pool {pool['name']} have concentration that is more than "
+                                                          f"{TOLERANCE} ng/uL away from the average concentration of the other samples in the pool. "
+                                                          f"This is likely normal if the sample is a negative control.")]
             
             # Validate indices from the samples being pooled
             if pool_is_library and seq_instrument_type is not None:
@@ -69,13 +72,20 @@ class PoolsRowHandler(GenericRowHandler):
                 results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
 
                 if not results["is_valid"]:
+                    index_errors = []
                     index_warnings = []
                     for i, index_ref in enumerate(indices):
                         for j, index_val in enumerate(indices):
                             index_distance = results["distances"][i][j]
-                            if index_distance is not None and all(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
+                            # Errors if collision
+                            if index_distance is not None and all(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
+                                index_errors.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
+                                                    f"Index {index_val.name} for sample {samples_name[j]} are colliding.")
+                            # Warnings if too close
+                            elif index_distance is not None and all(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
                                 index_warnings.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
                                                       f"Index {index_val.name} for sample {samples_name[j]} are not different enough {index_distance}.")
+                    self.errors["index_colision"] = index_errors
                     self.warnings["index_colision"] = index_warnings
 
             # Create a process for each pool created

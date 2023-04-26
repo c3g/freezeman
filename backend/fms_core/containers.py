@@ -46,6 +46,7 @@ __all__ = [
     "CONTAINER_SPEC_FREEZER_RACK_10X5",
     "CONTAINER_SPEC_FREEZER_RACK_8X6",
     "CONTAINER_SPEC_FREEZER_RACK_11X6",
+    "CONTAINER_SPEC_FREEZER_RACK_16X6",
     "CONTAINER_SPEC_FREEZER_RACK_11X7",
     "CONTAINER_SPEC_FREEZER_3_SHELVES",
     "CONTAINER_SPEC_FREEZER_4_SHELVES",
@@ -528,6 +529,14 @@ CONTAINER_SPEC_FREEZER_RACK_11X6 = ContainerSpec(
     is_run_container=False,
 )
 
+CONTAINER_SPEC_FREEZER_RACK_16X6 = ContainerSpec(
+    container_kind_id="freezer rack 16x6",
+    coordinate_spec=(alphas(16), ints(6, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+    is_run_container=False,
+)
+
 CONTAINER_SPEC_FREEZER_RACK_11X7 = ContainerSpec(
     container_kind_id="freezer rack 11x7",
     coordinate_spec=(alphas(11), ints(7, pad_to=2)),
@@ -547,6 +556,7 @@ FREEZER_RACK_SPECS = (
     CONTAINER_SPEC_FREEZER_RACK_10X5,
     CONTAINER_SPEC_FREEZER_RACK_8X6,
     CONTAINER_SPEC_FREEZER_RACK_11X6,
+    CONTAINER_SPEC_FREEZER_RACK_16X6,
     CONTAINER_SPEC_FREEZER_RACK_11X7,
 )
 

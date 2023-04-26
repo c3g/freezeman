@@ -1,6 +1,6 @@
 import { List, Typography } from 'antd'
 import React from 'react'
-import { LabworkStepGroup } from '../../../models/labwork_summary'
+import { LabworkStepGroup } from '../../../modules/labwork/models'
 import LabworkOverviewStep from './LabworkOverviewStep'
 
 const { Title } = Typography

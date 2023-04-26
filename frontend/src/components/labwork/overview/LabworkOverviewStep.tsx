@@ -1,7 +1,7 @@
 import { Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { LabworkSummaryStep } from '../../../models/labwork_summary'
+import { LabworkSummaryStep } from '../../../modules/labwork/models'
 
 interface LabworkStepProps {
 	step: LabworkSummaryStep

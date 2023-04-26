@@ -47,7 +47,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_1_0.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_2_0.xlsx')
 
         self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_1_0.xlsx')
 
@@ -101,7 +101,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             expected_sex= "M",
             ncbi_taxon_id= 9606,
             taxon_name= "Homo sapiens",
-            library_type= "miRNA",
+            library_type= "PCR-free",
             library_size= 500,
             index_set_obj_id= IndexSet.objects.get(name='_10x_Genomics_scRNA_V1').id,
             index_set_name= "_10x_Genomics_scRNA_V1",

@@ -17,7 +17,7 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/samples/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withIndividual, withProject} from "../../utils/withItem";
+import {withContainer, withCoordinate, withIndividual, withProject} from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -26,7 +26,7 @@ import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {TOGGLE_OPTIONS} from "../../constants.js"
 
-const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds, toggleOption) => [
+const getTableColumns = (containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds, toggleOption) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -98,8 +98,9 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     },
     {
       title: "Coords",
-      dataIndex: "coordinates",
+      dataIndex: "coordinate__name",
       sorter: true,
+      render: (_, sample) => (sample.coordinate && withCoordinate(coordinatesByID, sample.coordinate, coordinate => coordinate.name, "loading...")),
       width: 70,
     },
     {
@@ -159,6 +160,7 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   individualsByID: state.individuals.itemsByID,
   projectsByID: state.projects.itemsByID,
+  coordinatesByID: state.coordinates.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
@@ -178,6 +180,7 @@ const SamplesListContent = ({
   containersByID,
   individualsByID,
   projectsByID,
+  coordinatesByID,
   sortBy,
   listTable,
   setFilter,
@@ -203,7 +206,7 @@ const SamplesListContent = ({
   }
   // Show both samples and pools as default
   const [toggleOption, setToggleOption] = useState(getCurrentToggleOption());
-  const [columns, setColumns] = useState(getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds, toggleOption));
+  const [columns, setColumns] = useState(getTableColumns(containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds, toggleOption));
 
   const listExport = () =>
     withToken(token, api.samples.listExport)
@@ -225,7 +228,7 @@ const SamplesListContent = ({
   // Listen to the changes in toggle to get new columns and set filters accordingly
   useEffect(() => {
     // Get the new columns depending on the new option
-    setColumns(getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds, toggleOption))
+    setColumns(getTableColumns(containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds, toggleOption))
 
     // Only apply filters if the new selected option is different from the current one
     if (getCurrentToggleOption() !== toggleOption){
@@ -237,7 +240,7 @@ const SamplesListContent = ({
       else
         setFilter(isPooledFilterKey, '')
     }
-  }, [toggleOption, containersByID, individualsByID, projectsByID, sampleKinds])
+  }, [toggleOption, containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds])
 
   const handleToggleOptionChange = (e) => {
       setToggleOption(e.target.value);

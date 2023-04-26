@@ -9,6 +9,7 @@ import Index from "../modules/indices/actions.js"
 import Library from "../modules/libraries/actions.js"
 import Taxon from "../modules/taxons/actions.js"
 import ReferenceGenome from "../modules/referenceGenomes/actions.js"
+import Coordinate from "../modules/coordinates/actions.js"
 
 import {networkAction} from "./actions";
 import api from ".//api"
@@ -91,6 +92,7 @@ export const withContainer = createWithItem(Container, api.containers)
 export const withSample = createWithItem(Sample, api.samples)
 export const withIndividual = createWithItem(Individual, api.individuals)
 export const withUser = createWithItem(User, api.users)
+export const withProcess = createWithItem(Process, api.processes)
 export const withProcessMeasurement = createWithItem(Process, api.processMeasurements)
 export const withProject = createWithItem(Project, api.projects)
 export const withSequence = createWithItem(Sequence, api.sequences)
@@ -98,12 +100,14 @@ export const withIndex = createWithItem(Index, api.indices)
 export const withLibrary = createWithItem(Library, api.libraries)
 export const withTaxon = createWithItem(Taxon, api.taxons)
 export const withReferenceGenome = createWithItem(ReferenceGenome, api.referenceGenomes)
+export const withCoordinate = createWithItem(Coordinate, api.coordinates)
 
 export default {
   withContainer,
   withSample,
   withIndividual,
   withUser,
+  withProcess,
   withProcessMeasurement,
   withProject,
   withSequence,
@@ -111,4 +115,5 @@ export default {
   withLibrary,
   withTaxon,
   withReferenceGenome,
+  withCoordinate,
 };

@@ -58,7 +58,7 @@ const WithItemComponent = <T extends FMSTrackedModel>({ withItem, objectsByID, o
 		if (result) {
 			setValue(fn(result))
 		}
-	}, [objectsByID, objectID])
+	}, [objectsByID, objectID, withItem, fn, defaultValue])
 
 	return value ? <>{value}</> : defaultValue ? <>{defaultValue}</> : null
 }

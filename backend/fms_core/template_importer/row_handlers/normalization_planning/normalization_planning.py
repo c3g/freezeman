@@ -17,7 +17,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
              The errors and warnings of the row in question after validation.
     """
 
-    def process_row_inner(self, source_sample, destination_sample, measurements, robot, pool):
+    def process_row_inner(self, source_sample, destination_sample, measurements, robot):
         concentration_nguL = None
         concentration_nm = None
         combined_concentration_nguL = None
@@ -117,26 +117,6 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             volume_used = decimal_rounded_to_precision(volume_used)
             adjusted_volume = decimal_rounded_to_precision(adjusted_volume)
 
-            adjusted_pooled_volume = None
-            if bool(pool["pool_name"]) != bool(pool["volume_pooled"]):
-                self.errors["pool"].append(f"Incomplete information provided for pooling libraries after normalization.")
-
-            if pool["pool_name"] is not None and pool["volume_pooled"] is not None:
-                if pool["pool_name"] not in pool["pool_list"]:
-                    self.errors["pool"].append(f"Pool {pool['pool_name']} is not listed in the pools sheet.")
-                if not source_sample_obj.is_library:
-                    self.errors["pool"].append(f"Only libraries can be pooled after normalization.")
-
-                # ensure the volume for pooling does not surpass the volume after normalization
-                if pool["volume_pooled"] and pool["volume_pooled"] > adjusted_volume:
-                    adjusted_pooled_volume = adjusted_volume
-                    self.warnings['volume_pooled'] = f'Insufficient normalized sample volume to comply. ' \
-                                                     f'Requested pooled volume ({pool["volume_pooled"]} uL) ' \
-                                                     f'will be adjusted to {adjusted_pooled_volume} uL to ' \
-                                                     f'complete the pooling operation successfully.'
-                else:
-                    adjusted_pooled_volume = pool["volume_pooled"]
-
             if not self.has_errors():
                 self.row_object = {
                     'Type': '',
@@ -161,7 +141,5 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     'Conc. (ng/uL)': str(concentration_nguL) if concentration_nguL is not None else '',
                     'Conc. (nM)': str(concentration_nm) if concentration_nm is not None else '',
                     'Normalization Date (YYYY-MM-DD)': '',
-                    'Pool Name': pool['pool_name'] if pool['pool_name'] is not None else '',
-                    'Pooled Volume (uL)': str(adjusted_pooled_volume) if adjusted_pooled_volume is not None else '',
                     'Comment': '',
                 }

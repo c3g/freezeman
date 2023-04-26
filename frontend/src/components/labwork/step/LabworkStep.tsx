@@ -1,22 +1,23 @@
-import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
-import { Alert, Button, Select, Space, Tabs, Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { InfoCircleOutlined } from '@ant-design/icons'
+import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography } from 'antd'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
+import { setPageSize } from '../../../modules/pagination'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
+import RefreshButton from '../../RefreshButton'
 import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
-import { setPageSize } from '../../../modules/pagination'
-import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 
 const { Text } = Typography
 
@@ -27,11 +28,28 @@ interface LabworkStepPageProps {
 }
 
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
-	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
+
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	// Set the currently selected template to the first template available, not already set.
+	// Keep track of the currently selected tab so that we can tweak the UX
+	const SAMPLES_TAB_KEY = 'samples'
+	const SELECTION_TAB_KEY = 'selection'
+	const [selectedTab, setSelectedTab] = useState<string>(SAMPLES_TAB_KEY)
+
+	// ** Refresh **
+
+	const isRefreshing = stepSamples.pagedItems.isFetching
+	const handleRefresh = useCallback(
+		() => {dispatch(refreshSamplesAtStep(step.id))}	
+	, [step, dispatch])
+
+	// ** Template handling **
+
+	// A selected template picker is used if protocol supports more than one template
+	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
+
+	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if(!selectedTemplate) {
 			if (stepSamples.prefill.templates.length > 0) {
@@ -41,58 +59,112 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error('No templates are associated with step!')
 			}
 		}
-	}, [stepSamples])
-
-	function handleSetFilter(filterKey: string, value: FilterValue, description: FilterDescription) {
-		if(typeof description === 'undefined') {
-			return
-		}
-		dispatch(setFilter(step.id, description, value))
-	}
-
-	function handleSetFilterOptions(filterKey: string, property: string, value: boolean, description: FilterDescription) {
-		if(typeof description === 'undefined') {
-			return
-		}
-		dispatch(setFilterOptions(step.id, description, {[property]: value}))
-	}
-
-	function handleSetSortBy(sortBy: SortBy) {
-		dispatch(setSortBy(step.id, sortBy))
-	}
-
-	const isRefreshing = stepSamples.pagedItems.isFetching
-	function handleRefresh() {
-		dispatch(refreshSamplesAtStep(step.id))
-	}
+	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
 	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
 
-	async function handlePrefillTemplate() {
-		// Generate a prefilled template containing the list of selected values.		
-		if (selectedTemplate) {
-			try {
-				const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id))
-				if (result) {
-					downloadFromFile(result.filename, result.data)
+	const handlePrefillTemplate = useCallback(
+		async () => {
+			if (selectedTemplate) {
+				try {
+					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id))
+					if (result) {
+						downloadFromFile(result.filename, result.data)
+					}
+				} catch(err) {
+					console.error(err)
 				}
-			} catch(err) {
-				console.error(err)
 			}
 		}
-	}
-	
+	, [step, selectedTemplate, dispatch])
+
 	// Submit Template handler
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
-	function handleSubmitTemplate() {
-		dispatch(flushSamplesAtStep(step.id))
-		if (selectedTemplate && selectedTemplate.submissionURL) {
-			navigate(selectedTemplate.submissionURL)
+	const handleSubmitTemplate = useCallback(
+		() => {
+			dispatch(flushSamplesAtStep(step.id))
+			if (selectedTemplate && selectedTemplate.submissionURL) {
+				navigate(selectedTemplate.submissionURL)
+			}
 		}
+	, [step, selectedTemplate, navigate, dispatch])
+
+	/** Table columns **/
+
+	// Memoizing these cuts down on table re-renders. Without it, the samples tables render 6 times
+	// when they are initially visible.
+	const columnsForSamples = useMemo(() => {
+		return getColumnsForStep(step, protocol)
+	}, [step, protocol])
+
+	const filterDefinitions = useMemo(() => {
+		return {...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS}
+	}, [])
+
+	const filterKeys = useMemo(() => {
+		return {...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS}
+	}, [])
+
+	// Columns for selected samples table
+	const columnsForSelection = useMemo(() => {
+		const columns = getColumnsForStep(step, protocol)
+		return columns
+	}, [step, protocol])
+
+	// ** Table filtering and sorting ***
+
+	const handleSetFilter = useCallback(
+		(filterKey: string, value: FilterValue, description: FilterDescription) => {
+			if(typeof description === 'undefined') {
+				return
+			}
+			dispatch(setFilter(step.id, description, value))
+		}, [step, dispatch]
+	)
+
+	const handleSetFilterOptions = useCallback(
+		(filterKey: string, property: string, value: boolean, description: FilterDescription) => {
+			if(typeof description === 'undefined') {
+				return
+			}
+			dispatch(setFilterOptions(step.id, description, {[property]: value}))
+		}
+	, [step, dispatch])
+		
+	const handleSetSortBy = useCallback(
+		(sortBy: SortBy) => {
+			dispatch(setSortBy(step.id, sortBy))
+		},
+		[step, dispatch]
+	)
+
+	// ** Pagination for samples table **
+
+	const handlePageNumber = useCallback(
+		(pageNumber: number) => {
+			dispatch(loadSamplesAtStep(step.id, pageNumber))
+		}
+	, [step, dispatch])
+
+	const handlePageSize = useCallback(
+		(pageSize: number) => {
+			dispatch(setPageSize(pageSize))
+			dispatch(loadSamplesAtStep(step.id, stepSamples.pagedItems.page?.pageNumber ?? 1))
+		}
+	, [step, stepSamples, dispatch])
+
+	const pagination: PaginationParameters = {
+		pageNumber: stepSamples.pagedItems.page?.pageNumber ?? 1,
+		totalCount: stepSamples.pagedItems.totalCount,
+		pageSize: stepSamples.pagedItems.page?.limit ?? DEFAULT_PAGINATION_LIMIT,
+		onChangePageNumber: handlePageNumber,
+		onChangePageSize: handlePageSize
 	}
 
+	/** Selection Handling **/
+	
 	// When the user selects or deselects samples in the table, the table gives us the new selection.
 	// The selection, however, only covers the page of samples that are currently displayed in the table.
 	// It does not include samples that were selected on any other page of samples.
@@ -119,7 +191,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Selection handler for sample selection checkboxes
 	const selectionProps = {
 		selectedSampleIDs: stepSamples.selectedSamples,
-		onSelectionChanged: (selectedSamples) => {
+		onSelectionChanged: useCallback((selectedSamples) => {
 			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
 					acc.push(selected.sample.id)
@@ -128,80 +200,106 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}, [] as FMSId[])
 			const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
 			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
-		},
+		}, [step, stepSamples, dispatch]),
 	}
 
 	const canClearSelection = stepSamples.selectedSamples.length !== 0
-	function handleClearSelection() {
-		dispatch(clearSelectedSamples(step.id))
-	}
+	const handleClearSelection = useCallback(
+		() => {
+			dispatch(clearSelectedSamples(step.id))
+		}
+	, [step, dispatch])
+	
+	/** Sorting by coordinate **/
+
+	const handleCoordinateSortDirection = useCallback((value : string) => {
+		switch(value) {
+			case 'row': {
+				dispatch(setSelectedSamplesSortDirection(step.id, 'row'))
+				break
+			}
+			case 'column': {
+				dispatch(setSelectedSamplesSortDirection(step.id, 'column'))
+				break
+			}
+		}
+	}, [dispatch, step])
+
+	/** UX **/
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
 
 	const buttonBar = (
 		<Space>
+			{stepSamples.prefill.templates.length > 1 &&
+			<>
+				<Text strong>Template:</Text>
+				<Select 
+					defaultActiveFirstOption
+					style={{width: '24em'}}
+					value={selectedTemplate?.id ?? 0}
+					options={stepSamples.prefill.templates.map(template => {
+						return {
+							value: template.id,
+							label: template.description
+						}
+					})}
+					onChange={value => {
+						const template = stepSamples.prefill.templates.find(template => template.id === value)
+						if (template) {
+							setSelectedTemplate(template)
+						}
+					}}
+				/>
+			</>
+			}
 			<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
 			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
-			<Button icon={<SyncOutlined spin={isRefreshing}/>}title='Refresh the list of samples' disabled={isRefreshing} onClick={() => handleRefresh()}>Refresh</Button>
+			<RefreshButton 
+				refreshing={isRefreshing}
+				onRefresh={handleRefresh}
+				title='Refresh the list of samples'
+			/>
 		</Space>
 	)
 
-	function handlePageNumber(pageNumber: number) {
-		dispatch(loadSamplesAtStep(step.id, pageNumber))
-	}
-
-	function handlePageSize(pageSize: number) {
-		dispatch(setPageSize(pageSize))
-		dispatch(loadSamplesAtStep(step.id, stepSamples.pagedItems.page?.pageNumber ?? 1))
-	}
-
-	const pagination: PaginationParameters = {
-		pageNumber: stepSamples.pagedItems.page?.pageNumber ?? 1,
-		totalCount: stepSamples.pagedItems.totalCount,
-		pageSize: stepSamples.pagedItems.page?.limit ?? DEFAULT_PAGINATION_LIMIT,
-		onChangePageNumber: handlePageNumber,
-		onChangePageSize: handlePageSize
-	}
-
 	return (
 		<>
-			<AppPageHeader title={step.name} extra={buttonBar}>
-				{stepSamples.prefill.templates.length > 1 &&
-					<div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'left'}}>
-						<Space>
-							<Text strong>Template:</Text>
-								<Select 
-									defaultActiveFirstOption
-									style={{width: '24em'}}
-									value={selectedTemplate?.id ?? 0}
-									options={stepSamples.prefill.templates.map(template => {
-										return {
-											value: template.id,
-											label: template.description
-										}
-									})}
-									onChange={value => {
-										const template = stepSamples.prefill.templates.find(template => template.id === value)
-										if (template) {
-											setSelectedTemplate(template)
-										}
-									}}
-								/>
-						</Space>
-					</div>
-				}		
-			</AppPageHeader>
+			<AppPageHeader title={step.name} extra={buttonBar}/>
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<Tabs defaultActiveKey='samples' tabBarExtraContent={
-					<Button onClick={() => handleClearSelection()} disabled={!canClearSelection} title='Deselect all samples'>Clear Selection</Button>
-				}>
-					<Tabs.TabPane tab='Samples' key='samples'>
+				<Tabs defaultActiveKey={SAMPLES_TAB_KEY} activeKey={selectedTab} tabBarExtraContent={
+					<Space>
+						{selectedTab === SELECTION_TAB_KEY && 
+							<>
+							<Typography.Text>Sort Coordinates: </Typography.Text>
+							<Radio.Group 
+								value={stepSamples.selectedSamplesSortDirection} 
+								onChange={(evt) => {evt.target && handleCoordinateSortDirection(evt.target.value)}} 
+							>
+								<Radio.Button value='row'>by Row</Radio.Button>
+								<Radio.Button value='column'>by Column</Radio.Button>
+							</Radio.Group>
+							</>
+						}
+						<Popconfirm
+							title={'Clear the entire selection?'}
+							okText={'Yes'}
+							cancelText={'No'}
+							placement={'rightTop'}
+							onConfirm={() => handleClearSelection()}
+						>
+							<Button disabled={!canClearSelection} title='Deselect all samples'>Clear Selection</Button>
+						</Popconfirm>
+						
+					</Space>
+				} onChange={tabKey => setSelectedTab(tabKey)}>
+					<Tabs.TabPane tab='Samples' key={SAMPLES_TAB_KEY}>
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.displayedSamples} 
-							columns={getColumnsForStep(step, protocol)}
-							filterDefinitions={{...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS}}
-							filterKeys={{...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS}}
+							columns={columnsForSamples}
+							filterDefinitions={filterDefinitions}
+							filterKeys={filterKeys}
 							filters={stepSamples.pagedItems.filters}
 							setFilter={handleSetFilter}
 							setFilterOptions={handleSetFilterOptions}
@@ -210,7 +308,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							pagination={pagination}
 						/>
 					</Tabs.TabPane>
-					<Tabs.TabPane tab={selectedTabTitle} key='selection'>
+					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
 						{ stepSamples.showSelectionChangedWarning && 
 							<Alert
 								type='warning'
@@ -225,7 +323,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.selectedSamples}
-							columns={getColumnsForStep(step, protocol)}
+							columns={columnsForSelection}
 							filterDefinitions={{}}
 							filterKeys={{}}
 							filters={{}}

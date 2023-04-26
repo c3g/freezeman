@@ -7,7 +7,7 @@ from fms_core.tests.test_template_importers._utils import load_template, APP_DAT
 
 from fms_core.models._constants import DOUBLE_STRANDED, DSDNA_MW
 
-from fms_core.models import Sample, SampleKind, ProcessMeasurement, SampleLineage, PropertyType, PropertyValue, Protocol, Process
+from fms_core.models import Sample, SampleKind, ProcessMeasurement, SampleLineage, PropertyType, PropertyValue, Protocol, Process, Coordinate
 
 from fms_core.services.container import get_or_create_container
 from fms_core.services.sample import create_full_sample, pool_samples, update_sample
@@ -41,12 +41,17 @@ class NormalizationTestCase(TestCase):
                                                        strandedness=DOUBLE_STRANDED,
                                                        library_size=150)
 
+        self.coord_A01 = Coordinate.objects.get(name="A01")
+        self.coord_A02 = Coordinate.objects.get(name="A02")
+        self.coord_A03 = Coordinate.objects.get(name="A03")
+        self.coord_A04 = Coordinate.objects.get(name="A04")
+
         samples_info = [
-            {'name': 'Sample1Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A01', 'library': None},
-            {'name': 'Sample2Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A02', 'library': None},
-            {'name': 'Sample3Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A03', 'library': library_1},
-            {'name': 'Sample1Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': 'A01', 'library': None},
-            {'name': 'Sample2Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': 'A02', 'library': None},
+            {'name': 'Sample1Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A01", 'library': None},
+            {'name': 'Sample2Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A02", 'library': None},
+            {'name': 'Sample3Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A03", 'library': library_1},
+            {'name': 'Sample1Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': "A01", 'library': None},
+            {'name': 'Sample2Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': "A02", 'library': None},
 
         ]
 
@@ -71,15 +76,17 @@ class NormalizationTestCase(TestCase):
         samples_to_pool_info = [
             {
                 'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
-                                                    coordinates="A01"),
+                                                    coordinate=self.coord_A01),
                 'Volume Used': Decimal(3.5),
+                'Volume In Pool': Decimal(3.5),
                 'Source Depleted': False,
                 'Comment': ''
             },
             {
                 'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
-                                                    coordinates="A02"),
+                                                    coordinate=self.coord_A02),
                 'Volume Used': Decimal(5.0),
+                'Volume In Pool': Decimal(5.0),
                 'Source Depleted': False,
                 'Comment': '',
             }
@@ -108,17 +115,17 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         # Source sample 1 tests
-        ss1 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinates="A01")
+        ss1 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinate=self.coord_A01)
         self.assertEqual(ss1.volume, 25)
         self.assertFalse(ss1.depleted)
 
         # Source sample 2 tests
-        ss2 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinates="A02")
+        ss2 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinate=self.coord_A02)
         self.assertEqual(ss2.volume, 25)
         self.assertFalse(ss2.depleted)
 
         # Source sample 3 tests
-        ss3 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinates="A03")
+        ss3 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinate=self.coord_A03)
         self.assertEqual(ss3.volume, 25)
         self.assertTrue(ss3.depleted)
 
@@ -128,11 +135,11 @@ class NormalizationTestCase(TestCase):
         self.assertFalse(ss4.depleted)
 
         # Destination sample 1 test
-        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A01").exists())
+        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A01).exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss1).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss1).exists())
 
-        cs1 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinates="A01")
+        cs1 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A01)
         sl1 = SampleLineage.objects.get(parent=ss1)
         pm1 = ProcessMeasurement.objects.get(source_sample=ss1)
 
@@ -157,11 +164,11 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(p_2.value, '12.500')
 
         # Destination sample 2 test
-        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A02").exists())
+        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A02).exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss2).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss2).exists())
 
-        cs2 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinates="A02")
+        cs2 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A02)
         sl2 = SampleLineage.objects.get(parent=ss2)
         pm2 = ProcessMeasurement.objects.get(source_sample=ss2)
 
@@ -186,11 +193,11 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(p_2.value, '10.000')
 
         # Destination sample 3 test
-        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A03").exists())
+        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A03).exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss3).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss3).exists())
 
-        cs3 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinates="A03")
+        cs3 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A03)
         sl3 = SampleLineage.objects.get(parent=ss3)
         pm3 = ProcessMeasurement.objects.get(source_sample=ss3)
 
@@ -215,11 +222,11 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(Decimal(p_2.value), decimal_rounded_to_precision(convert_concentration_from_nm_to_ngbyul(Decimal(108), Decimal(DSDNA_MW), Decimal(150))))
 
         # Destination sample 4 test
-        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A04").exists())
+        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A04).exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss4).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss4).exists())
 
-        cs4 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinates="A04")
+        cs4 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinate=self.coord_A04)
         sl4 = SampleLineage.objects.get(parent=ss4)
         pm4 = ProcessMeasurement.objects.get(source_sample=ss4)
 
