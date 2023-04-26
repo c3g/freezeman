@@ -18,10 +18,10 @@ import fms_core.services.dataset as service
 class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
     queryset = queryset.annotate(
-        latest_release_update=Max("files__release_status_timestamp")
+        latest_release_update=Max("readsets__files__release_status_timestamp")
     )
     queryset = queryset.annotate(
-        released_status_count=Count("files", filter=Q(files__release_status=ReleaseStatus.RELEASED), distinct=True)
+        released_status_count=Count("readsets__files", filter=Q(readsets__files__release_status=ReleaseStatus.RELEASED), distinct=True)
     )
 
     serializer_class = DatasetSerializer
@@ -54,7 +54,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         exceptions = data.get("exceptions")
         filters = data.get("filters")
 
-        filtered_files = DatasetFile.objects.filter(dataset=pk).exclude(validation_status=ValidationStatus.AVAILABLE)
+        filtered_files = DatasetFile.objects.filter(readset__dataset=pk).exclude(validation_status=ValidationStatus.AVAILABLE)
         if not filtered_files.exists():
             return HttpResponseBadRequest(f"Run must first be validated before release status can be changed.")
         if filters:

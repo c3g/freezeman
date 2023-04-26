@@ -3,10 +3,9 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .metric import Metric
 from .derived_sample import DerivedSample
 from .experiment_run import ExperimentRun
-from .dataset_file import DatasetFile
+from .readset import Readset
 from .tracked_model import TrackedModel
 
 from ._utils import add_error as _add_error
@@ -16,14 +15,11 @@ __all__ = ["SampleRunMetric"]
 
 @reversion.register()
 class SampleRunMetric(TrackedModel):
-    experiment_run = models.ForeignKey(ExperimentRun, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Experiment run for the sample metric.")
-    derived_sample = models.ForeignKey(DerivedSample, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Derived sample matching the metrics.")
-    lane = models.IntegerField(help_text="Lane on which the sample was run.")
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["experiment_run_id", "dataset_file_id", "metric_id"], name="Samplerunmetric_derivedsampleid_experimentrunid_datasetfileid_metricid_key")
-        ]
+    # experiment_run is not set for experiments that were not recorded on Freezeman, dataset run_name may be used
+    experiment_run = models.ForeignKey(ExperimentRun, blank=True, null=True, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Experiment run for the sample metrics.")
+    # derived_sample is not set for experiments that were not recorded on Freezeman, Reaset sample_name may be used    
+    derived_sample = models.ForeignKey(DerivedSample, blank=True, null=True, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Derived sample matching the metrics.")
+    readset = models.OneToOneField(Readset, on_delete=models.PROTECT, related_name="sample_run_metric", help_text="Readset from which were taken the sample metrics.")
 
     def clean(self):
         super().clean()

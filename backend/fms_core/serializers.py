@@ -526,25 +526,26 @@ class ImportedFileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class DatasetSerializer(serializers.ModelSerializer):
-    files = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    files = serializers.PrimaryKeyRelatedField(many=True, read_only=True, source='readsets.files'),
     released_status_count = serializers.SerializerMethodField()
     latest_release_update = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "metric_report_url", "files", "released_status_count", "latest_release_update")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
 
     def get_released_status_count(self, obj):
-        return DatasetFile.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
+        return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
     
     def get_latest_release_update(self, obj):
-        return DatasetFile.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
+        return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
 
 class DatasetFileSerializer(serializers.ModelSerializer):
-
+    dataset = serializers.PrimaryKeyRelatedField(many=False, read_only=True, source='readset.dataset'),
+    sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
     class Meta:
         model = DatasetFile
-        fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp", "validation_status", "validation_status_timestamp")
+        fields = ("id", "readset", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp", "validation_status", "validation_status_timestamp")
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 

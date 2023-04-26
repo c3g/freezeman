@@ -235,9 +235,9 @@ _dataset_filterset_fields: FiltersetFields = {
 
 _dataset_file_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "dataset": FK_FILTERS,
+    "readset__dataset": FK_FILTERS,
+    "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
     "file_path": CATEGORICAL_FILTERS_LOOSE,
-    "sample_name": CATEGORICAL_FILTERS_LOOSE,
     "release_status": CATEGORICAL_FILTERS,
     "release_status_timestamp": DATE_FILTERS,
     "validation_status": CATEGORICAL_FILTERS,
