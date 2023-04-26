@@ -54,7 +54,9 @@ class DatasetViewSet(viewsets.ModelViewSet):
         exceptions = data.get("exceptions")
         filters = data.get("filters")
 
-        filtered_files = DatasetFile.objects.filter(dataset=pk)
+        filtered_files = DatasetFile.objects.filter(dataset=pk).exclude(validation_status=ValidationStatus.AVAILABLE)
+        if not filtered_files.exists():
+            return HttpResponseBadRequest(f"Run must first be validated before release status can be changed.")
         if filters:
             filtered_files = filtered_files.filter(**filters)
 
@@ -71,34 +73,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
         for excluded_file in excluded_files:
             excluded_file.release_status = opposite_status
             excluded_file.release_status_timestamp=timezone.now()
-            excluded_file.save()
-
-        return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)
-
-    @action(detail=True, methods=["patch"])
-    def set_validation_status(self, request, pk):
-        data = request.data
-        validation_status = data.get("validation_status")
-        exceptions = data.get("exceptions")
-        filters = data.get("filters")
-
-        filtered_files = DatasetFile.objects.filter(dataset=pk)
-        if filters:
-            filtered_files = filtered_files.filter(**filters)
-
-        # set release flag of all files except exceptions
-        included_files = filtered_files.filter(~Q(id__in=exceptions))
-        for included_file in included_files:
-            included_file.validation_status = validation_status
-            included_file.validation_status_timestamp=timezone.now()
-            included_file.save()
-
-        # set release flag of exceptions to the opposite flag
-        excluded_files = DatasetFile.objects.filter(id__in=exceptions)
-        opposite_status = [ValidationStatus.AVAILABLE, ValidationStatus.FAILED, ValidationStatus.PASSED][validation_status]
-        for excluded_file in excluded_files:
-            excluded_file.validation_status = opposite_status
-            excluded_file.validation_status_timestamp = timezone.now()
             excluded_file.save()
 
         return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)

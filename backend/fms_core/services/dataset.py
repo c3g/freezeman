@@ -183,17 +183,18 @@ def ingest_run_validation_report(report_json):
     if errors:
         return (datasets, dataset_files, errors, warnings)
 
+    metric_report_url = None
     for readset_key, readset in report_json["readsets"].items():
         external_project_id = readset["barcodes"][0]["PROJECT"]
         run_name = report_json["run"]
         lane = int(report_json["lane"])
-        metric_report_url = report_json["run_metrics_report_url"]
+        if metric_report_url is None: # Same report for all datasets of the experiment run
+            metric_report_url = report_json["run_metrics_report_url"]
         dataset_key = (external_project_id, run_name, lane)
         if dataset_key not in datasets:
             dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
                                                        run_name=run_name,
                                                        lane=lane,
-                                                       metric_report_url=metric_report_url,
                                                        replace=True)
         if errors:
             return (datasets, dataset_files, errors, warnings)
@@ -218,16 +219,16 @@ def ingest_run_validation_report(report_json):
                     dataset_files_by_readset[readset_key].append(dataset_file)
                     dataset_files.append(dataset_file)
 
-        # Get the experiment run object related to the run name
-        experiment_run_obj, newerrors, _ = get_experiment_run(run_name)
-        warnings.extend(newerrors)  # Downgrade error on experiment run to warnings. This may change once Freezeman only accept Freezeman runs.
-
-    for run_validation in report_json["run_validation"]:
-        for dataset_file in dataset_files_by_readset[run_validation["sample"]]:
-            _, newerrors, newwarnings = create_sample_run_metrics(dataset_file=dataset_file,
-                                                                  run_validation_data=run_validation,
-                                                                  experiment_run=experiment_run_obj,)
-            errors.extend(newerrors)
-            warnings.extend(newwarnings)
+    # Get the experiment run object related to the run name
+    experiment_run_obj, newerrors, _ = get_experiment_run(run_name)
+    if experiment_run_obj is not None: # Only capture metrics for run that were started from freezeman
+        experiment_run_obj.metric_report_url = metric_report_url # update the run metrics report URL
+        experiment_run_obj.save()
+        for run_validation in report_json["run_validation"]:
+            for dataset_file in dataset_files_by_readset[run_validation["sample"]]:
+                _, newerrors, newwarnings = create_sample_run_metrics(experiment_run=experiment_run_obj,
+                                                                      run_validation_data=run_validation,)
+                errors.extend(newerrors)
+                warnings.extend(newwarnings)
 
     return (datasets, dataset_files, errors, warnings)

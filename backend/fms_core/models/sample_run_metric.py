@@ -16,9 +16,9 @@ __all__ = ["SampleRunMetric"]
 
 @reversion.register()
 class SampleRunMetric(TrackedModel):
-    experiment_run = models.ForeignKey(ExperimentRun, null=True, blank=True, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Experiment run for the sample metric.")
-    dataset_file = models.ForeignKey(DatasetFile, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="The dataset for the sample run.")
-    metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Metric for the sample run.")
+    experiment_run = models.ForeignKey(ExperimentRun, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Experiment run for the sample metric.")
+    derived_sample = models.ForeignKey(DerivedSample, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Derived sample matching the metrics.")
+    lane = models.IntegerField(help_text="Lane on which the sample was run.")
 
     class Meta:
         constraints = [
