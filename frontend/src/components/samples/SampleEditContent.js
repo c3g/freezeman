@@ -143,26 +143,29 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     })
   }
 
+  const sampleValue = sample || EMPTY_SAMPLE
   const [form] = Form.useForm()
   const [formErrors, setFormErrors] = useState({})
+  const newData = deserialize(sampleValue)
   /*
      * Form Data submission
      */
 
 
-  const sampleValue = sample || EMPTY_SAMPLE
   useEffect(() => {
-    const newData = deserialize(sampleValue)
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual, { exact_match: true })
     onSearchContainer(newData.container, { exact_match: true })
     onSearchCoordinate(newData.coordinate, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
+  }, [id])
+
+  useEffect(() => {
     if (!isAdding) {
       form.setFieldsValue({ ...newData })
-      checkContainer(form.getFieldValue("container"))
+      checkContainer(newData.container)
     }
-  }, [sampleValue])
+  }, [containers])
 
   const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
 
@@ -200,9 +203,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
         add(data).then(sample => { history(`/samples/${sample.id}`) }) :
         update(id, data).then(() => { history(`/samples/${id}`) })
     action
-      .then(() => { setFormErrors({}) })
+      .then(() => { setFormErrors({}); Promise.all([listTable(), summary()]) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(() => Promise.all([listTable(), summary()]))
   }
 
   const onCancel = useCallback(() => {
@@ -405,9 +407,9 @@ function serializeFormData(form) {
   if (form.getFieldValue("depleted") != null || form.getFieldValue("depleted") != undefined)
     newValues.depleted = form.getFieldValue("depleted")
 
-  if (!form.getFieldValue("concentration")){
+  if (!form.getFieldValue("concentration")) {
     newValues.concentration = null
-  }else{
+  } else {
     newValues.concentration = form.getFieldValue("concentration")
   }
 
