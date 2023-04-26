@@ -11,13 +11,12 @@ export const renderMenuItem = (i) => {
 			<Menu.SubMenu
 				style={i.style || {}}
 				title={
-          <span>
-            {i.icon || null}
-						<span>{i.text || null}</span>
-          </span>
+					<span>
+						{i.icon || null}
+									<span>{i.text || null}</span>
+					</span>
 				}
 				key={i.key || ''}
-        inlineCollapsed={false}
 			>
 				{(i.children || []).map((ii) => renderMenuItem(ii))}
 			</Menu.SubMenu>
