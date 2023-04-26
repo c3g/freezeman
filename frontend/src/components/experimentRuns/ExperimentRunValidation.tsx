@@ -26,6 +26,8 @@ interface FakeReadsPerSample {
 	reads: {[key: FMSId] : number}
 }
 
+const FAKE_METRICS_URL = "https://datahub-297-p25.p.genap.ca/MGI_validation/2023/10173MG01B.report.html"
+
 const fakeLanes : ReadonlyArray<FakeExperimentRunLane>= [
 	{
 		lane_number: 1,
@@ -130,7 +132,7 @@ function LanePanel({experimentRun, lane} : LanePanelProps) {
 	return (
 		<Collapse.Panel key={`${experimentRun.id}-${lane.lane_number}`} header={`${lane.lane_number}`} extra={getValidationStatusExtra(lane)}>
 			<FlexBar >
-				<Link to={'#'}>ViewMetrics</Link>
+				<Link to={FAKE_METRICS_URL}>ViewMetrics</Link>
 				<Space>
 					<Button>Passed</Button>
 					<Button>Failed</Button>
