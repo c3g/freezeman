@@ -16,9 +16,9 @@ function WorkflowDefintions({workflows}: WorkflowDefinitionsProps) {
 		<PageContainer>
 			<AppPageHeader title={'Workflow Definitions'}/>
 			<PageContent>
-				<Space>
+				<Space style={{marginBottom: '1em'}}>
 					<InfoCircleOutlined/>
-					<Typography.Text italic>The workflows supported by Freezeman are listed here. To use a workflow, you add a study to a project and select a workflow for the study.</Typography.Text>
+					<Typography.Text italic>This reference lists the workflows supported by Freezeman.</Typography.Text>
 				</Space>
 				<WorkflowCollapsableList workflows={workflows} />
 			</PageContent>
