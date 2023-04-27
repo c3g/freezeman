@@ -1,13 +1,15 @@
 import React from "react";
 import { FILTER_TYPE } from "../../constants";
+import { FilterSet, FilterValue, RangeFilterValue } from "../../models/paged_items";
 
+interface FiltersInfosProps {
+    filters: FilterSet
+}
 
-const FiltersInfos = ({
-    filters,
-}) => {
+const FiltersInfos = ({ filters }: FiltersInfosProps) => {
     const appliedFilters = Object.keys(filters).filter((key: any) => filters[key]?.value)
     const getValue = (key: any) => {
-        const filterValue = filters[key].value
+        const filterValue: FilterValue = filters[key].value ?? {}
         const description: any = filters[key].description
         let valueJSX: any;
         const descriptionJSX: any = (
@@ -17,32 +19,36 @@ const FiltersInfos = ({
                 }
             </>
         );
-        const valuesArray = [].concat(filterValue)
+        const valuesArray = [filterValue]
         let labels: any = [];
         let value = ""
         switch (description.type) {
-            case FILTER_TYPE.SELECT:
+            case FILTER_TYPE.SELECT: {
                 labels = valuesArray.map((val: any) => {
                     if (description.options) {
                         const option = description.options.find((option: { value: any }) => option.value === val)
-                        valueJSX = option.label
+                        return option.label
                     } else {
-                        valueJSX = val
+                        return val
                     }
                 }
                 )
                 valueJSX = labels.join(', ')
                 break;
+            }
             case FILTER_TYPE.RANGE:
-            case FILTER_TYPE.DATE_RANGE:
-                if (filterValue.min !== undefined) { value += ` min: ${filterValue.min}` }
-                if (filterValue.max !== undefined) { value += ` max: ${filterValue.max}` }
-                if (value !== ""){
+            case FILTER_TYPE.DATE_RANGE: {
+                const filterRange: RangeFilterValue = filterValue as RangeFilterValue;
+                if (filterRange.min !== undefined) { value += ` min: ${filterRange.min}` }
+                if (filterRange.max !== undefined) { value += ` max: ${filterRange.max}` }
+                if (value !== "") {
                     valueJSX = value
                     break;
                 }
                 throw new Error('MIN and MAX values not defined for Filter range')
-            case FILTER_TYPE.METADATA:
+            }
+            case FILTER_TYPE.METADATA: {
+
                 valueJSX = valuesArray.reduce((metadataString: any, metadata: any) => {
                     return (
                         <>
@@ -51,9 +57,11 @@ const FiltersInfos = ({
                     )
                 }, '')
                 break;
-            default:
+            }
+            default: {
                 valueJSX = valuesArray.join(', ')
                 break;
+            }
         }
         return (
             <>

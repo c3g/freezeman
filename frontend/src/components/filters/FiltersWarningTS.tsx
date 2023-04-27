@@ -2,14 +2,15 @@ import React from "react";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { Tooltip, Typography } from "antd";
 import FiltersInfo from "./FiltersInfoTS";
+import { FilterSet } from "../../models/paged_items";
 const { Text } = Typography
 
-interface FiltersWarning {
-    filters: any,
+interface FiltersWarningProps {
+    filters: FilterSet,
     nFilters: number
 }
 
-const FiltersWarning = ({ filters, nFilters }: FiltersWarning) => {
+const FiltersWarning = ({ filters, nFilters }: FiltersWarningProps) => {
     if (nFilters === 0)
         return null
     return (

@@ -64,7 +64,6 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 		<WorkflowSamplesTable
 			clearFilters={localClearFilters}
 			hasFilter={true}
-			stepNumber={step.stepID}
 			sampleIDs={step.samples ?? []}
 			columns={columns}
 			filterDefinitions={{ ...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS }}

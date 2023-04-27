@@ -304,7 +304,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						<WorkflowSamplesTable
 							clearFilters={localClearFilters}
 							hasFilter={true}
-							stepNumber={step.id}
 							sampleIDs={stepSamples.displayedSamples}
 							columns={columnsForSamples}
 							filterDefinitions={filterDefinitions}
@@ -331,7 +330,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						}
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable
-							stepNumber={step.id}
 							hasFilter={false}
 							sampleIDs={stepSamples.selectedSamples}
 							columns={columnsForSelection}
