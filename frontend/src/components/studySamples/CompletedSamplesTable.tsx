@@ -12,7 +12,8 @@ const SOURCE_SAMPLE : CompletedSampleColumn = {
 	render: (sampleID) => {
 		return (
 			<WithSampleRenderComponent objectID={sampleID} render={
-				sample => <Link to={`/samples/${sample.id}`}>{sample.name}</Link>
+				sample => 
+					<Link to={`/samples/${sample.id}`}>{sample.name}</Link>
 			}/>
 		)
 	}

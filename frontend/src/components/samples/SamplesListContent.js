@@ -1,30 +1,29 @@
-import React, {useRef, useState, useEffect} from "react";
-import {connect} from "react-redux";
-import {Link} from "react-router-dom";
-import {Button, Tag, Radio} from "antd";
+import { Button, Radio, Tag } from "antd";
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 
+import AddButton from "../AddButton";
 import AppPageHeader from "../AppPageHeader";
+import { Depletion } from "../Depletion";
+import ExportDropdown from "../ExportDropdown";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import {Depletion} from "../Depletion";
-import {QCFlag} from "../QCFlag";
-import AddButton from "../AddButton";
-import ExportButton from "../ExportButton";
-import ExportDropdown from "../ExportDropdown"
+import { QCFlag } from "../QCFlag";
 
-import api, {withToken}  from "../../utils/api"
+import api, { withToken } from "../../utils/api";
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/samples/actions";
-import {actionDropdown} from "../../utils/templateActions";
-import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withCoordinate, withIndividual, withProject} from "../../utils/withItem";
-import {SAMPLE_FILTERS} from "../filters/descriptions";
+import { TOGGLE_OPTIONS } from "../../constants.js";
+import { clearFilters, clearSortBy, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/samples/actions";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates";
+import { ActionDropdown } from "../../utils/templateActions";
+import { withContainer, withCoordinate, withIndividual, withProject } from "../../utils/withItem";
+import FiltersWarning from "../filters/FiltersWarning";
+import { SAMPLE_FILTERS } from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
-import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
-import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import {TOGGLE_OPTIONS} from "../../constants.js"
 
 const getTableColumns = (containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds, toggleOption) => [
     {
@@ -263,8 +262,8 @@ const SamplesListContent = ({
   return <>
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
-      actionDropdown("/samples", actions),
-      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
+      <ActionDropdown key='actions' urlBase={"/samples"} actions={actions}/>,
+      <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportDropdown key='export' listExport={listExport} listExportMetadata={listExportMetadata} itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

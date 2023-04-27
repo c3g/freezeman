@@ -11,8 +11,8 @@ import ExportButton from "../ExportButton";
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
-import {actionDropdown} from "../../utils/templateActions";
-import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
+import {ActionDropdown} from "../../utils/templateActions";
+import {PrefilledTemplatesDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withSample, withCoordinate} from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
@@ -155,8 +155,8 @@ const ContainersListContent = ({
   return <>
     <AppPageHeader title="Containers" extra={[
       <AddButton key='add' url="/containers/add" />,
-      actionDropdown("/containers", actions),
-      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
+      <ActionDropdown key='actions' urlBase={"/containers"} actions={actions}/>,
+      <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportButton key='export' exportFunction={listExport} filename="containers" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

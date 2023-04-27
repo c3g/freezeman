@@ -13,7 +13,7 @@ import api, { withToken } from "../../utils/api";
 
 import { clearFilters, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/projects/actions";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { actionDropdown } from "../../utils/templateActions";
+import { ActionDropdown } from "../../utils/templateActions";
 import { PROJECT_FILTERS } from "../filters/descriptions";
 import FiltersWarning from "../filters/FiltersWarning";
 import getFilterProps from "../filters/getFilterProps";
@@ -121,7 +121,7 @@ const ProjectsListContent = ({
   return <>
     <AppPageHeader title="Projects" extra={[
       <AddButton key='add' url="/projects/add" />,
-      actionDropdown("/projects", actions),
+      <ActionDropdown key='actions' urlBase={'/projects'} actions={actions}/>,
       <ExportButton key='export' exportFunction={listExport} filename="projects" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

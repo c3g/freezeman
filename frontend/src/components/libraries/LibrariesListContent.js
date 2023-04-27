@@ -12,13 +12,13 @@ import { QCFlag } from "../QCFlag";
 
 import api, { withToken } from "../../utils/api";
 
-import { clearFilters, clearSortBy, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/libraries/actions";
-import { prefillTemplatesToButtonDropdown } from "../../utils/prefillTemplates";
-import { actionDropdown } from "../../utils/templateActions";
 import { TOGGLE_OPTIONS } from "../../constants.js";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import FiltersWarning from "../filters/FiltersWarning";
 import { LIBRARY_FILTERS } from "../filters/descriptions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/libraries/actions";
+import {ActionDropdown} from "../../utils/templateActions";
+import {PrefilledTemplatesDropdown} from "../../utils/prefillTemplates";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndexRenderComponent } from '../shared/WithItemRenderComponent';
@@ -282,8 +282,8 @@ const LibrariesListContent = ({
 
   return <>
     <AppPageHeader title="Libraries" extra={[
-      actionDropdown("/libraries", actions),
-      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
+      <ActionDropdown key='actions' urlBase={"/libraries"} actions={actions}/>,
+      <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportButton key='export' exportFunction={listExport} filename="libraries" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
