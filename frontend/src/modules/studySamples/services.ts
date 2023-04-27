@@ -4,7 +4,7 @@ import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
 import { selectStudySettingsByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
-import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "./cache"
+import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models"
 
 

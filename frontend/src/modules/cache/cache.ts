@@ -1,7 +1,7 @@
 import { Dispatch } from "redux"
 import { FMSId, FMSTrackedModel } from "../../models/fms_api_models"
-import { ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Sample, Study, User, Workflow } from "../../models/frontend_models"
-import { selectLibrariesByID, selectProcessesByID, selectProcessMeasurementsByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
+import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Sample, Study, User, Workflow } from "../../models/frontend_models"
+import { selectContainersByID, selectLibrariesByID, selectProcessesByID, selectProcessMeasurementsByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
 import { listPropertyValues } from "../experimentRuns/actions"
 import { list as listProcessMeasurements } from "../processMeasurements/actions"
@@ -11,6 +11,7 @@ import { list as listUsers } from "../users/actions"
 import { list as listLibraries } from '../libraries/actions'
 import { list as listWorkflows } from '../workflows/actions'
 import { list as listStudies } from '../studies/actions'
+import { list as listContainers } from '../containers/actions'
 
 
 type ListByIDFunction = (ids: FMSId[]) => (dispatch: Dispatch, getState: () => any) => Promise<any>
@@ -59,6 +60,11 @@ function id__in(ids: FMSId[]) {
 		id__in: ids.join(',')
 	}
 }
+
+export const fetchContainers = createFetchItems<Container>(selectContainersByID, ids => {
+	const options = id__in(ids)
+	return listContainers(options)
+})
 
 export const fetchLibraries = createFetchItems<Library>(selectLibrariesByID, ids => {
 	const options = id__in(ids)

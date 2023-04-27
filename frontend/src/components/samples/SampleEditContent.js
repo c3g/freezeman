@@ -20,15 +20,19 @@ const { TextArea } = Input
 import { nameRules, requiredRules } from "../../constants";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import { add, listTable, summary, update } from "../../modules/samples/actions";
-import { selectAppInitialzed, selectContainerKindsByID, selectContainersByID, selectSampleKindsState, selectSamplesByID, selectToken } from "../../selectors";
+import { selectAppInitialzed, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID, selectToken } from "../../selectors";
 import api, { withToken } from "../../utils/api";
 import * as Options from "../../utils/options";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import { fetchContainers, fetchSamples } from "../../modules/cache/cache";
 
 export const AddSampleRoute = () => {
   const [sample] = useState({...EMPTY_SAMPLE})
   const isAppReady = useAppSelector(selectAppInitialzed)
+
+  // The form requires the sampleKinds state, so we have to wait until
+  // the app has initialized before loading the form.
   return (
     isAppReady && <SampleEditContent sample={sample} isAdding={true}/>
   )
@@ -40,12 +44,18 @@ export function EditSampleRoute() {
   const [sample, setSample] = useState()
   const isAppReady = useAppSelector(selectAppInitialzed)
 
+  // To handle a page reload, we have to fetch the sample, as it won't be in redux.
+  // We also have to wait until the sampleKinds state has been loaded at startup.
   useEffect(() => {
-    if(isAppReady && !sample) {
-      const sampleWithID = samplesByID[id]
-      if (sampleWithID) {
-        setSample({...sampleWithID})
+    async function getSample(id) {
+      const samples= await fetchSamples([id])
+      if (samples.length > 0) {
+        setSample(samples[0])
       }
+    }
+
+    if(isAppReady && !sample) {
+      getSample(id)
     }
   }, [id, isAppReady, sample, samplesByID])
 
@@ -73,23 +83,14 @@ const SampleEditContent = ({ sample, isAdding}) => {
 
   const token = useAppSelector(selectToken)
   const sampleKinds = useAppSelector(selectSampleKindsState)
-  const containersByID = useAppSelector(selectContainersByID)
   const containerKinds = useAppSelector(selectContainerKindsByID);
 
   const [form] = Form.useForm()
   const [formErrors, setFormErrors] = useState({})
-  
-  useEffect(() => {
-    const sampleData = deserialize(sample)
-    onSearchSite(sampleData.collection_site)
-    onSearchIndividual(sampleData.individual, { exact_match: true })
-    onSearchContainer(sampleData.container, { exact_match: true })
-    onSearchCoordinate(sampleData.coordinate, { exact_match: true })
-    onSearchSampleKind(sampleData.sample_kind)
-  }, [sample, onSearchSite, onSearchIndividual, onSearchContainer, onSearchCoordinate, onSearchSampleKind])
-
 
   // Initialize the form with the sample values only once, when the component is mounted.
+  // Once the form has been loaded with data we have to keep the form data, and not
+  // override it every time some dependency changes.
   useEffect(() => {
       const sampleData = deserialize(sample)
       form.setFieldsValue({ ...sampleData })
@@ -102,27 +103,29 @@ const SampleEditContent = ({ sample, isAdding}) => {
   // We need to know if the selected container requires coordinates, and to know that we
   // have to fetch the container.
   const checkContainer = useCallback(async (containerId) => {
-    async function fetchContainer(containerID) {
-      let container = containersByID[containerID]
-      if (!container) {
-        const response = await dispatch(api.containers.get(containerId))
-        if (response.ok) {
-          container = response.data
+    if (containerId) {
+      const containers = await fetchContainers([containerId])
+      if (containers.length > 0) {
+        const container = containers[0]
+        if (containerKinds[container.kind]?.coordinate_spec.length > 0) {
+          setIsCoordRequired(true)
+        } else {
+          setIsCoordRequired(false)
+          form.setFieldValue('coordinate', '')
         }
       }
-      return container
     }
+    
+  }, [containerKinds, form])
 
-    const container = await fetchContainer(containerId)
-    if (container) {
-      if (containerKinds[container.kind]?.coordinate_spec.length > 0) {
-        setIsCoordRequired(true)
-      } else {
-        setIsCoordRequired(false)
-        form.setFieldValue('coordinate', '')
-      }
-    }
-  }, [containersByID, containerKinds, form, dispatch])
+  useEffect(() => {
+    const sampleData = deserialize(sample)
+    onSearchSite(sampleData.collection_site)
+    onSearchIndividual(sampleData.individual, { exact_match: true })
+    onSearchContainer(sampleData.container, { exact_match: true })
+    onSearchCoordinate(sampleData.coordinate, { exact_match: true })
+    onSearchSampleKind(sampleData.sample_kind)
+  }, [sample, onSearchSite, onSearchIndividual, onSearchContainer, onSearchCoordinate, onSearchSampleKind])
 
   /*
    * Collection site autocomplete
@@ -219,7 +222,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
     const action =
       isAdding ?
         dispatch(add(data).then(sample => { history(`/samples/${sample.id}`) })) :
-        dispatch(update(sample.id, data).then(() => { history(`/samples/${sample.id}`) }))
+        dispatch(update(sample.id, data)).then(() => { history(`/samples/${sample.id}`) })
     action
       .then(() => { setFormErrors({}); Promise.all([dispatch(listTable()), dispatch(summary())]) })
       .catch(err => { setFormErrors(err.data || {}) })
@@ -482,8 +485,6 @@ function serializeFormData(form) {
 
   newValues.volume = form.getFieldValue("volume")
   newValues.name = form.getFieldValue("name")
-
-
 
   return newValues
 }
