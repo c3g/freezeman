@@ -3,22 +3,20 @@ import { useAppSelector } from '../../hooks';
 import { selectTaxonsByID } from '../../selectors';
 import { Table } from 'antd';
 import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns';
-import { ObjectWithDefinition } from '../shared/DefinitionsTable/DefinitionTableColumns';
-import { getColumnsForDefinition } from '../shared/DefinitionsTable/ColumnSets';
+import { ObjectWithTaxon, getColumnsForTaxon } from '../shared/DefinitionsTable/TaxonTableColumns';
 import AppPageHeader from '../AppPageHeader';
 import AddButton from '../AddButton';
-
 const DefinitionPage = () => {
 
-    const [taxons, setTaxons] = useState<ObjectWithDefinition[]>();
+    const [taxons, setTaxons] = useState<ObjectWithTaxon[]>();
     const taxonsByID = useAppSelector(selectTaxonsByID)
-    const columns: IdentifiedTableColumnType<ObjectWithDefinition>[] = getColumnsForDefinition("Taxon")
+    const columns: IdentifiedTableColumnType<ObjectWithTaxon>[] = getColumnsForTaxon()
 
     useEffect(() => {
         const tax = Object.keys(taxonsByID).map((key) => {
-            const taxonObject: ObjectWithDefinition = {
-                definition: {
-                    id: key,
+            const taxonObject: ObjectWithTaxon = {
+                taxon: {
+                    id: Number(key),
                     name: taxonsByID[key].name,
                     ncbi_id: taxonsByID[key].ncbi_id
                 }
