@@ -231,13 +231,20 @@ const api = {
   },
 
   sampleNextStepByStudy: {
-    getStudySamples: (studyId) => get('/sample-next-step-by-study/', {study__id__in : studyId}),
+    getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
+    getStudySamplesForStep: (studyId, stepId, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__step__id__in : stepId }),
+    countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
   },
 
   sequences: {
     get: sequenceId => get(`/sequences/${sequenceId}/`),
     list: (options, abort) => get("/sequences/", options, { abort }),
+  },
+
+  stepHistory: {
+    getCompletedSamplesForStudy: (studyId) => get('/step-histories/', {study__id__in: studyId}),
+    countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, {study__id__in: studyId})
   },
 
   steps: {
@@ -248,6 +255,7 @@ const api = {
     get: studyId => get(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
+    list: (options, abort) => get('/studies', options, {abort}),
     listProjectStudies: projectId => get('/studies', { project__id: projectId})
   },
 

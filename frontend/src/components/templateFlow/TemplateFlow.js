@@ -1,8 +1,8 @@
-import React, {useState} from "react";
-import {connect} from "react-redux"
+import React, { useState } from "react";
+import { connect } from "react-redux"
 import PropTypes from "prop-types";
-import {Button, Steps, Row, Col} from "antd";
-import {downloadFromFile} from "../../utils/download";
+import { Button, Steps, Row, Col } from "antd";
+import { downloadFromFile } from "../../utils/download";
 
 import {
   ArrowRightOutlined,
@@ -10,11 +10,11 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 
-import {fetchListedData} from "../../modules/shared/actions";
+import { fetchListedData, fetchSummariesData } from "../../modules/shared/actions";
 
-import {UploadStep} from "./steps/UploadStep";
-import {ReviewStep} from "./steps/ReviewStep";
-import {ConfirmationStep} from "./steps/ConfirmationStep";
+import { UploadStep } from "./steps/UploadStep";
+import { ReviewStep } from "./steps/ReviewStep";
+import { ConfirmationStep } from "./steps/ConfirmationStep";
 
 
 const STEPS = [
@@ -34,13 +34,13 @@ const STEPS = [
     content: ConfirmationStep,
   },
 ]
-STEPS.UPLOAD  = 0
-STEPS.REVIEW  = 1
+STEPS.UPLOAD = 0
+STEPS.REVIEW = 1
 STEPS.CONFIRM = 2
 
-const actionCreators = {fetchListedData};
+const actionCreators = { fetchListedData, fetchSummariesData };
 
-const TemplateFlow = ({fetchListedData, ...props}) => {
+const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
   const [step, setStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
@@ -50,25 +50,25 @@ const TemplateFlow = ({fetchListedData, ...props}) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitResult, setSubmitResult] = useState(null);
 
-  const {action, actionIndex, checkRequest, submitRequest, goBack} = props;
+  const { action, actionIndex, checkRequest, submitRequest, goBack } = props;
   const StepContent = STEPS[step].content;
 
   if (file && !isChecked && !isChecking) {
     setIsChecking(true)
     checkRequest(actionIndex, file)
-    .then(response => {
-      setCheckResult(response.data)
-    })
-    .catch(error => {
-      setCheckResult({
-        valid: false,
-        error,
+      .then(response => {
+        setCheckResult(response.data)
       })
-    })
-    .then(() => {
-      setIsChecked(true)
-      setIsChecking(false)
-    })
+      .catch(error => {
+        setCheckResult({
+          valid: false,
+          error,
+        })
+      })
+      .then(() => {
+        setIsChecked(true)
+        setIsChecking(false)
+      })
   }
 
   const onChangeFile = file => {
@@ -81,22 +81,23 @@ const TemplateFlow = ({fetchListedData, ...props}) => {
   const onSubmit = () => {
     setIsSubmitting(true)
     submitRequest(actionIndex, file)
-    .then(response => {
-      if(response.filename)
-        downloadFromFile(response.filename, response.data)
-      setSubmitResult({ valid: true });
-    })
-    .catch(error => {
-      setSubmitResult({
-        valid: false,
-        error,
+      .then(response => {
+        if (response.filename)
+          downloadFromFile(response.filename, response.data)
+        setSubmitResult({ valid: true });
       })
-    })
-    .then(fetchListedData)
-    .finally(() => {
-      setIsSubmitted(true)
-      setIsSubmitting(false)
-    })
+      .catch(error => {
+        setSubmitResult({
+          valid: false,
+          error,
+        })
+      })
+      .then(fetchListedData)
+      .then(fetchSummariesData)
+      .finally(() => {
+        setIsSubmitted(true)
+        setIsSubmitting(false)
+      })
     setStep(step + 1)
   }
 
@@ -111,7 +112,7 @@ const TemplateFlow = ({fetchListedData, ...props}) => {
       )}
     </Steps>
 
-    <div style={{padding: "24px 0", minHeight: "150px"}}>
+    <div style={{ padding: "24px 0", minHeight: "150px" }}>
       <StepContent
         file={file}
         isChecked={isChecked}
@@ -129,7 +130,7 @@ const TemplateFlow = ({fetchListedData, ...props}) => {
       <Col>
         <Button
           disabled={step === 0}
-          onClick={() => setStep(step - 1)} style={{marginRight: "8px"}}
+          onClick={() => setStep(step - 1)} style={{ marginRight: "8px" }}
         >
           <ArrowLeftOutlined /> Previous
         </Button>
@@ -138,35 +139,35 @@ const TemplateFlow = ({fetchListedData, ...props}) => {
       <Col>
         {
           step === STEPS.UPLOAD &&
-            <Button
-              type="primary"
-              disabled={
-                step === STEPS.length - 1 ||
-                (step === STEPS.UPLOAD && !file)
-              }
-              onClick={() => setStep(step + 1)}
-            >
-              Next <ArrowRightOutlined />
-            </Button>
+          <Button
+            type="primary"
+            disabled={
+              step === STEPS.length - 1 ||
+              (step === STEPS.UPLOAD && !file)
+            }
+            onClick={() => setStep(step + 1)}
+          >
+            Next <ArrowRightOutlined />
+          </Button>
         }
         {
           step === STEPS.REVIEW &&
-            <Button
-              type="primary"
-              disabled={!checkResult || !checkResult.valid}
-              onClick={onSubmit}
-            >
-              <CheckOutlined /> Submit
-            </Button>
+          <Button
+            type="primary"
+            disabled={!checkResult || !checkResult.valid}
+            onClick={onSubmit}
+          >
+            <CheckOutlined /> Submit
+          </Button>
         }
         {
           step === STEPS.CONFIRM &&
-            <Button
-              type="primary"
-              onClick={goBack}
-            >
-              <CheckOutlined /> Go Back
-            </Button>
+          <Button
+            type="primary"
+            onClick={goBack}
+          >
+            <CheckOutlined /> Go Back
+          </Button>
         }
       </Col>
     </Row>

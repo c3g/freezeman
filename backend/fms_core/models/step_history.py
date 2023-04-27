@@ -3,6 +3,8 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from fms_core._constants import WorkflowAction
+
 from .tracked_model import TrackedModel
 from .step_order import StepOrder
 from .process_measurement import ProcessMeasurement
@@ -18,6 +20,10 @@ class StepHistory(TrackedModel):
     study = models.ForeignKey(Study, on_delete=models.PROTECT, related_name="StepHistory", help_text="Study associated to the process measurement.")
     step_order = models.ForeignKey(StepOrder, on_delete=models.PROTECT, related_name="StepHistory", help_text="Step order in the study that is associated to the process measurement.")
     process_measurement = models.ForeignKey(ProcessMeasurement, on_delete=models.PROTECT, related_name="StepHistory", help_text="Process measurement associated to the study step.")
+    workflow_action = models.CharField(max_length=30,
+                                       choices=WorkflowAction.choices,
+                                       default=WorkflowAction.NEXT_STEP,
+                                       help_text="Workflow action that was performed on the sample after step completion.")
     
 
     class Meta:

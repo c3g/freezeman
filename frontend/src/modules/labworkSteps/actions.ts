@@ -2,25 +2,12 @@ import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "..
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
 import { selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectToken } from "../../selectors"
-import { createNetworkActionTypes, networkAction } from "../../utils/actions"
+import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import Sample from "../samples/actions.js"
-import { LabworkPrefilledTemplateDescriptor } from "./models"
-import { PREFILLED_TEMPLATE_DEFAULT_ORDERING, refreshSelectedSamplesAtStep } from "./services"
-
-
-export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
-export const LIST = createNetworkActionTypes('LABWORK_STEP')
-export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
-export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
-export const SET_FILTER = 'SAMPLES_AT_STEP:SET_FILTER'
-export const SET_FILTER_OPTION = 'SAMPLES_AT_STEP:SET_FILTER_OPTION'
-export const CLEAR_FILTERS = 'SAMPLES_AT_STEP:CLEAR_FILTERS'
-export const SET_SORT_BY = 'SAMPLES_AT_STEP:SET_SORT_BY'
-export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES_AT_STEP.LIST_TEMPLATE_ACTIONS")
-export const SHOW_SELECTION_CHANGED_MESSAGE = 'SAMPLES_AT_STEP:SHOW_SELECTION_CHANGED_MESSAGE'
-
-
+import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE } from "./reducers"
+import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
 
 
 // Initialize the redux state for samples at step
@@ -121,18 +108,18 @@ export function refreshSamplesAtStep(stepID: FMSId) {
 			dispatch(loadSamplesAtStep(stepID, pageNumber))
 
 			if (step.selectedSamples.length > 0) {
-				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples)
+				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples, step.selectedSamplesSortDirection)
 				if (refreshedSelection.length !== step.selectedSamples.length) {
 					dispatch(showSelectionChangedMessage(stepID, true))
-					dispatch(setSelectedSamples(stepID, refreshedSelection))
 				}
+				dispatch(setSelectedSamples(stepID, refreshedSelection))
 			}
 		}
 	}
 }
 
 /**
- * When changes the current selection of samples we need to ask the backend to sort the samples
+ * When the current selection of samples changes we need to ask the backend to sort the samples
  * for us according to the current sorting criteria. This ensures that when the user generates
  * a prefilled template, the samples will be listed in the template in the same order.
  * 
@@ -149,7 +136,27 @@ export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step) {
-			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs)
+			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs, step.selectedSamplesSortDirection)
+			dispatch(setSelectedSamples(stepID, sortedSelection))
+		}
+	}
+}
+
+/**
+ * Reload the selected samples. This is used to get a freshly sorted list of selected samples
+ * whenever the sort order may have changed.
+ * 
+ * Does nothing if there are no selected samples.
+ * @param stepID Step ID
+ * @returns 
+ */
+function reloadSelectedSamplesAtStep(stepID: FMSId) {
+	return async (dispatch, getState) => {
+		const token = selectToken(getState())
+		const labworkStepsState = selectLabworkStepsState(getState())
+		const step = labworkStepsState.steps[stepID]
+		if (token && step && step.selectedSamples.length > 0) {
+			const sortedSelection = await refreshSelectedSamplesAtStep(token, step.stepID, step.selectedSamples, step.selectedSamplesSortDirection)
 			dispatch(setSelectedSamples(stepID, sortedSelection))
 		}
 	}
@@ -222,6 +229,17 @@ export function setSortBy(stepID: FMSId, sortBy: SortBy) {
 	}
 }
 
+export function setSelectedSamplesSortDirection(stepID: FMSId, direction: CoordinateSortDirection) {
+	return ((dispatch) => {
+		dispatch({
+			type: SET_SELECTED_SAMPLES_SORT_DIRECTION,
+			stepID,
+			direction
+		})
+		dispatch(reloadSelectedSamplesAtStep(stepID))
+	})
+}
+
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().sampleNextStepTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.sampleNextStep.template.actions()));
@@ -241,7 +259,7 @@ export const requestPrefilledTemplate = (templateID : FMSId, stepID: FMSId) => {
 			const options = {
 				step__id__in: stepID, 
 				sample__id__in: step.selectedSamples.join(','),
-				ordering: PREFILLED_TEMPLATE_DEFAULT_ORDERING,
+				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}
 			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, options))
 			return fileData

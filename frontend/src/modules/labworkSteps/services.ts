@@ -1,10 +1,16 @@
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
 import api, { withToken } from "../../utils/api"
+import { CoordinateSortDirection } from "./models"
 
 // Default sorting keys for a prefilled template. By default, the lab wants samples grouped
 // by plate and sorted by coordinate.
  
-export const PREFILLED_TEMPLATE_DEFAULT_ORDERING = 'sample__container__barcode,sample__coordinate__column'
+export function getCoordinateOrderingParams(direction: CoordinateSortDirection) {
+	const ordering = direction === 'column' ? 
+				'sample__container__barcode,sample__coordinate__column,sample__coordinate__row' : 
+				'sample__container__barcode,sample__coordinate__row,sample__coordinate__column'
+	return ordering
+}
 
 /**
  * Refresh the list of selected samples in a labwork step.
@@ -22,13 +28,14 @@ export const PREFILLED_TEMPLATE_DEFAULT_ORDERING = 'sample__container__barcode,s
  * @param sampleIDs 
  * @returns 
  */
-export async function refreshSelectedSamplesAtStep(token: string, stepID: FMSId, sampleIDs: FMSId[]) {
+export async function refreshSelectedSamplesAtStep(token: string, stepID: FMSId, sampleIDs: FMSId[], direction: CoordinateSortDirection) {
 	if (sampleIDs.length > 0) {
 		try {
-			const options = {
+			// Sort by container, then by column/row, or by row/column depending on the sort direction.
+ 			const options = {
 				sample__id__in: sampleIDs.join(','),
 				limit: sampleIDs.length,
-				ordering: PREFILLED_TEMPLATE_DEFAULT_ORDERING,
+				ordering: getCoordinateOrderingParams(direction)
 			}
 			const reply = await withToken(token, api.sampleNextStep.listSamplesAtStep)(stepID, options)
 			const response : FMSPagedResultsReponse<FMSSampleNextStep> = reply.data

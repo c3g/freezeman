@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from fms_core.models import PropertyValue
 from fms_core.serializers import PropertyValueSerializer
 
-from ._constants import FK_FILTERS, CATEGORICAL_FILTERS
+from ._constants import FK_FILTERS, PK_FILTERS, CATEGORICAL_FILTERS
 
 class PropertyValueViewSet(viewsets.ModelViewSet):
     queryset = PropertyValue.objects.all()
@@ -13,6 +13,7 @@ class PropertyValueViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     filterset_fields = {
+        "id": PK_FILTERS,
         "object_id": FK_FILTERS,
         # Content type filters
         "content_type": FK_FILTERS,

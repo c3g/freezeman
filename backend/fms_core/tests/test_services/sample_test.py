@@ -340,6 +340,7 @@ class SampleServicesTestCase(TestCase):
                 "Source Container Coordinate": sample.coordinates,
                 "Source Depleted": False,
                 "Volume Used": 20,
+                "Volume In Pool": 20,
                 "Comment": "Comment " + str(i),
             }
             samples_info.append(sample_info)

@@ -1,15 +1,15 @@
-import { Descriptions, Space, Switch, Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Descriptions, Space, Spin, Typography } from 'antd'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Study, Workflow } from '../../models/frontend_models'
-import { StudySampleList } from '../../models/study_samples'
 import { get as getStudy } from '../../modules/studies/actions'
-import { flushStudySamples, getStudySamples, setHideEmptySteps } from '../../modules/studySamples/actions'
+import { flushStudySamples, getStudySamples, refreshStudySamples } from '../../modules/studySamples/actions'
+import { StudySampleList } from '../../modules/studySamples/models'
 import { get as getWorkflow } from '../../modules/workflows/actions'
-import { selectHideEmptySteps, selectProjectsByID, selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
+import { selectProjectsByID, selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
 import StudySamples from '../studySamples/StudySamples'
 
-const { Title, Text } = Typography
+const { Title } = Typography
 
 interface StudyDetailsProps {
     studyId: number
@@ -26,8 +26,6 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
     const [workflow, setWorkflow] = useState<Workflow>()
     const [studySamples, setStudySamples] = useState<StudySampleList>()
 
-    const hideEmpty = useAppSelector(selectHideEmptySteps)
-
     useEffect(() => {
         if (!studyId) {
             return
@@ -41,28 +39,39 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 setWorkflow(workflowInstance)
             } else {
                 dispatch(getWorkflow(studyInstance.workflow_id))
+                return
             }
         } else {
             dispatch(getStudy(studyId))
+            return
         }
 
-        if (!studySamples) {
-            const studyState = studySamplesState[studyId]
-            if (studyState) {
-                if (!studyState.isFetching) {
-                    setStudySamples(studyState.data)
-                }
-            } else {
-                dispatch(getStudySamples(studyId))
+        const studyState = studySamplesState[studyId]
+        if (!studyState && study && workflow) {
+            dispatch(getStudySamples(studyId))
+        } 
+    }, [studyId, studiesById, workflowsById, projectsById, studySamplesState, study, workflow, dispatch])
+
+    useEffect(() => {
+        // The effect ensure that whenever the study samples state changes we display
+        // the most recent state. The state will change if changes in labwork are detected
+        // and the study samples are refreshed.
+        const studyState = studySamplesState[studyId]
+        if (studyState) {
+            if (!studyState.isFetching) {
+                setStudySamples(studyState.data)
             }
-        }
-
+        } 
     }, [studyId, studiesById, workflowsById, projectsById, studySamplesState, studySamples, dispatch])
 
     useEffect(() => {
         return () => {
             dispatch(flushStudySamples(studyId))
         }
+    }, [studyId, dispatch])
+
+    const refreshSamples = useCallback(() => {
+        dispatch(refreshStudySamples(studyId))
     }, [studyId, dispatch])
 
     function getStepWithOrder(order?: number) {
@@ -75,10 +84,6 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         return null
     }
 
-    function handleHideEmptySteps(hide: boolean) {
-        dispatch(setHideEmptySteps(hide))
-    }
-
     return (
         <>
             <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
@@ -87,20 +92,17 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 <Descriptions.Item label="Start Step" span={2}>{getStepWithOrder(study?.start)}</Descriptions.Item>
                 <Descriptions.Item label="End Step" span={2}>{getStepWithOrder(study?.end)}</Descriptions.Item>
             </Descriptions>
-            
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingRight: '0.5rem'}}>
-                <Title level={4} style={{marginTop: '1.5rem'}}>Samples</Title>
-                <Space>
-                    <Text>Hide empty steps</Text>
-                    <Switch checked={hideEmpty} onChange={handleHideEmptySteps}></Switch>
+            { study && studySamples ? 
+                <StudySamples studyID={study.id} studySamples={studySamples} refreshSamples={refreshSamples}/>
+                :
+                // Display the "Samples" title with a spinner until data is ready.
+                // Afterward, StudySamples displays the title (along with the Hide Empty Steps button)
+                <Space align='baseline'>
+                    <Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
+                    { !studySamples && <Spin spinning={true}/> }
                 </Space>
-            </div>
-            
-            { studySamples && 
-                <StudySamples studySamples={studySamples} hideEmptySteps={hideEmpty}/>
             }
         </>
-        
     )
 }
 
