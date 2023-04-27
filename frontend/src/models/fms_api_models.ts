@@ -304,11 +304,14 @@ export interface FMSStep extends FMSTrackedModel {
     step_specifications: FMSStepSpecification[]
 }
 
+export type WorkflowActionType = 'NEXT_STEP' | 'DEQUEUE_SAMPLE' | 'IGNORE_WORKFLOW'
+
 export interface FMSStepHistory extends FMSTrackedModel {
     study: FMSId
     step_order: number
     process_measurement: FMSId
     sample: FMSId
+    workflow_action: WorkflowActionType
 }
 
 export interface FMSStepSpecification extends FMSTrackedModel {

@@ -1,7 +1,7 @@
-import React, {useRef, useState, useEffect} from "react";
+import React, {useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Button, Tag, Radio} from "antd";
+import {Button, Radio} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -13,8 +13,8 @@ import ExportButton from "../ExportButton";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/libraries/actions";
-import {actionDropdown} from "../../utils/templateActions";
-import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
+import {ActionDropdown} from "../../utils/templateActions";
+import {PrefilledTemplatesDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withCoordinate, withIndex} from "../../utils/withItem";
 import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -284,8 +284,8 @@ const LibrariesListContent = ({
 
   return <>
     <AppPageHeader title="Libraries" extra={[
-      actionDropdown("/libraries", actions),
-      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
+      <ActionDropdown key='actions' urlBase={"/libraries"} actions={actions}/>,
+      <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportButton key='export' exportFunction={listExport} filename="libraries" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

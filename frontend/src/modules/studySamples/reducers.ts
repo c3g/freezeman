@@ -159,7 +159,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 		case SET_STUDY_STEP_SAMPLES_TAB: {
 			const { studyID, stepID, selectedSamplesTab } = action
 
-			if (selectedSamplesTab === 'ready' || selectedSamplesTab === 'completed') {
+			if (selectedSamplesTab === 'ready' || selectedSamplesTab === 'completed' || selectedSamplesTab === 'removed') {
 				const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
 				if (step) {
 					step.selectedSamplesTab = selectedSamplesTab
