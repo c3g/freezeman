@@ -16,8 +16,8 @@ import api, { withToken } from "../../utils/api";
 import { TOGGLE_OPTIONS } from "../../constants.js";
 import { clearFilters, clearSortBy, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/samples/actions";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { prefillTemplatesToButtonDropdown } from "../../utils/prefillTemplates";
-import { actionDropdown } from "../../utils/templateActions";
+import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates";
+import { ActionDropdown } from "../../utils/templateActions";
 import FiltersWarning from "../filters/FiltersWarning";
 import { SAMPLE_FILTERS } from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -257,8 +257,8 @@ const SamplesListContent = ({
   return <>
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
-      actionDropdown("/samples", actions),
-      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
+      <ActionDropdown key='actions' urlBase={"/samples"} actions={actions}/>,
+      <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportDropdown key='export' listExport={listExport} listExportMetadata={listExportMetadata} itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
