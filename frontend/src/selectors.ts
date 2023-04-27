@@ -39,6 +39,7 @@ export const selectProjectsByID = (state: RootState) => state.projects.itemsByID
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
+export const selectSampleKindsState = (state: RootState) => state.sampleKinds
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions

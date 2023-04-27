@@ -1,8 +1,3 @@
-import React, { useCallback, useEffect, useState } from "react";
-import moment from "moment";
-import { connect } from "react-redux";
-import { useAppSelector } from "../../hooks";
-import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
   AutoComplete,
@@ -15,22 +10,49 @@ import {
   Space,
   Switch,
 } from "antd";
+import moment from "moment";
+import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 const { Item } = Form
 const { TextArea } = Input
 
+import { nameRules, requiredRules } from "../../constants";
+import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
+import { add, listTable, summary, update } from "../../modules/samples/actions";
+import { selectAppInitialzed, selectContainerKindsByID, selectContainersByID, selectSampleKindsState, selectSamplesByID, selectToken } from "../../selectors";
+import api, { withToken } from "../../utils/api";
+import * as Options from "../../utils/options";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import * as Options from "../../utils/options";
-import { add, update, listTable, summary } from "../../modules/samples/actions";
-import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
-import api, { withToken } from "../../utils/api";
-import { requiredRules, nameRules } from "../../constants";
-import { selectContainerKindsByID } from "../../selectors";
+
+export const AddSampleRoute = () => {
+  const [sample] = useState({...EMPTY_SAMPLE})
+  const isAppReady = useAppSelector(selectAppInitialzed)
+  return (
+    isAppReady && <SampleEditContent sample={sample} isAdding={true}/>
+  )
+}
+
+export function EditSampleRoute() {
+  const { id } = useParams();
+  const samplesByID = useAppSelector(selectSamplesByID)
+  const [sample, setSample] = useState()
+  const isAppReady = useAppSelector(selectAppInitialzed)
+
+  useEffect(() => {
+    if(isAppReady && !sample) {
+      const sampleWithID = samplesByID[id]
+      if (sampleWithID) {
+        setSample({...sampleWithID})
+      }
+    }
+  }, [id, isAppReady, sample, samplesByID])
+
+  return sample && <SampleEditContent sample={sample} isAdding={false}/>
+}
 
 // API functions
-
-const searchSamples = (token, input) =>
-  withToken(token, api.samples.search)(input).then(res => res.data.results)
 
 const searchCoordinates = (token, input, options) =>
   withToken(token, api.coordinates.search)(input, options).then(res => res.data.results)
@@ -44,33 +66,75 @@ const searchIndividuals = (token, input, options) =>
 const listCollectionSites = (token, input) =>
   withToken(token, api.samples.listCollectionSites)(input).then(res => res.data)
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  sampleKinds: state.sampleKinds,
-});
 
-const actionCreators = { add, update, listTable, summary };
+const SampleEditContent = ({ sample, isAdding}) => {
+  const history = useNavigate()
+  const dispatch = useAppDispatch()
 
-const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listTable, summary }) => {
-  const history = useNavigate();
-  const { id } = useParams();
-  const isAdding = id === undefined
-
-  const sample = samplesByID[id];
-  const [containers, setContainers] = useState([])
+  const token = useAppSelector(selectToken)
+  const sampleKinds = useAppSelector(selectSampleKindsState)
+  const containersByID = useAppSelector(selectContainersByID)
   const containerKinds = useAppSelector(selectContainerKindsByID);
+
+  const [form] = Form.useForm()
+  const [formErrors, setFormErrors] = useState({})
+  
+  useEffect(() => {
+    const sampleData = deserialize(sample)
+    onSearchSite(sampleData.collection_site)
+    onSearchIndividual(sampleData.individual, { exact_match: true })
+    onSearchContainer(sampleData.container, { exact_match: true })
+    onSearchCoordinate(sampleData.coordinate, { exact_match: true })
+    onSearchSampleKind(sampleData.sample_kind)
+  }, [sample, onSearchSite, onSearchIndividual, onSearchContainer, onSearchCoordinate, onSearchSampleKind])
+
+
+  // Initialize the form with the sample values only once, when the component is mounted.
+  useEffect(() => {
+      const sampleData = deserialize(sample)
+      form.setFieldsValue({ ...sampleData })
+      if (!isAdding) {
+        checkContainer(sampleData.container)
+      }
+  }, [])  // Do not specify dependencies - this should only run once.
+
+
+  // We need to know if the selected container requires coordinates, and to know that we
+  // have to fetch the container.
+  const checkContainer = useCallback(async (containerId) => {
+    async function fetchContainer(containerID) {
+      let container = containersByID[containerID]
+      if (!container) {
+        const response = await dispatch(api.containers.get(containerId))
+        if (response.ok) {
+          container = response.data
+        }
+      }
+      return container
+    }
+
+    const container = await fetchContainer(containerId)
+    if (container) {
+      if (containerKinds[container.kind]?.coordinate_spec.length > 0) {
+        setIsCoordRequired(true)
+      } else {
+        setIsCoordRequired(false)
+        form.setFieldValue('coordinate', '')
+      }
+    }
+  }, [containersByID, containerKinds, form, dispatch])
+
   /*
    * Collection site autocomplete
    */
 
   const [siteOptions, setSiteOptions] = useState([]);
   const onFocusSite = ev => { onSearchSite(ev.target.value) }
-  const onSearchSite = (input) => {
+  const onSearchSite = useCallback((input) => {
     listCollectionSites(token, input).then(sites => {
       setSiteOptions(sites.map(Options.render))
     })
-  }
+  }, [token])
 
   /*
    * Individual autocomplete
@@ -78,11 +142,11 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
 
   const [individualOptions, setIndividualOptions] = useState([]);
   const onFocusIndividual = ev => { onSearchIndividual(ev.target.value) }
-  const onSearchIndividual = (input, options) => {
+  const onSearchIndividual = useCallback((input, options) => {
     searchIndividuals(token, input, options).then(individuals => {
       setIndividualOptions(individuals.map(Options.renderIndividual))
     })
-  }
+  },[token])
 
   /*
    * Sample Kind autocomplete
@@ -90,10 +154,10 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const sampleKindsSorted = sampleKinds.items.sort((a, b) => ('' + a.name).localeCompare(b.name))
   const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
   const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
-  const onSearchSampleKind = input => {
+  const onSearchSampleKind = useCallback(input => {
     const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
     setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
-  }
+  }, [sampleKinds])
 
   /*
    * Tissue Source autocomplete
@@ -112,12 +176,12 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
 
   const [containerOptions, setContainerOptions] = useState([]);
   const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
-  const onSearchContainer = (input, options) => {
+  const onSearchContainer = useCallback((input, options) => {
     searchContainers(token, input, options).then(containers => {
       setContainerOptions(containers.map(Options.renderContainer));
-      setContainers(containers);
+      // setContainers(containers);
     })
-  }
+  }, [token])
 
   /*
     * Coordinate autocomplete
@@ -125,59 +189,13 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
 
   const [coordinateOptions, setCoordinateOptions] = useState([]);
   const onFocusCoordinate = ev => { onSearchCoordinate(ev.target.value) }
-  const onSearchCoordinate = (input, options) => {
+  const onSearchCoordinate = useCallback((input, options) => {
     searchCoordinates(token, input, options).then(coordinates => {
       setCoordinateOptions(coordinates.map(Options.renderCoordinate))
     })
-  }
-
-  /*
-   * Sample autocomplete
-   */
-
-  const [sampleOptions, setSampleOptions] = useState([]);
-  const onFocusSample = ev => { onSearchSample(ev.target.value) }
-  const onSearchSample = input => {
-    searchSamples(token, input).then(samples => {
-      setSampleOptions(samples.map(Options.renderSample))
-    })
-  }
-
-  const sampleValue = sample || EMPTY_SAMPLE
-  const [form] = Form.useForm()
-  const [formErrors, setFormErrors] = useState({})
-  const newData = deserialize(sampleValue)
-  /*
-     * Form Data submission
-     */
-
-
-  useEffect(() => {
-    onSearchSite(newData.collection_site)
-    onSearchIndividual(newData.individual, { exact_match: true })
-    onSearchContainer(newData.container, { exact_match: true })
-    onSearchCoordinate(newData.coordinate, { exact_match: true })
-    onSearchSampleKind(newData.sample_kind)
-  }, [id])
-
-  useEffect(() => {
-    if (!isAdding) {
-      form.setFieldsValue({ ...newData })
-      checkContainer(newData.container)
-    }
-  }, [containers])
+  }, [token])
 
   const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
-
-  const checkContainer = (containerId) => {
-    const container = containers.filter(c => c.id == containerId)[0]
-    if (container && containerKinds[container.kind].coordinate_spec.length > 0) {
-      setIsCoordRequired(true)
-    } else {
-      setIsCoordRequired(false)
-      form.setFieldValue('coordinate', '')
-    }
-  }
 
   const onValuesChange = (values) => {
     const key = Object.keys(values)[0];
@@ -197,13 +215,13 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const onSubmit = () => {
     var data = serializeFormData(form)
     if (!isAdding)
-      data.id = id
+      data.id = sample.id
     const action =
       isAdding ?
-        add(data).then(sample => { history(`/samples/${sample.id}`) }) :
-        update(id, data).then(() => { history(`/samples/${id}`) })
+        dispatch(add(data).then(sample => { history(`/samples/${sample.id}`) })) :
+        dispatch(update(sample.id, data).then(() => { history(`/samples/${sample.id}`) }))
     action
-      .then(() => { setFormErrors({}); Promise.all([listTable(), summary()]) })
+      .then(() => { setFormErrors({}); Promise.all([dispatch(listTable()), dispatch(summary())]) })
       .catch(err => { setFormErrors(err.data || {}) })
   }
 
@@ -216,9 +234,9 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
    * Render
    */
 
-  const title = id === undefined ?
+  const title = isAdding ?
     'Add Sample' :
-    `Update Sample ${sample ? sample.name : id}`
+    `Update Sample ${sample?.name}`
 
   const props = name =>
     !formErrors[name] ? { name } : {
@@ -469,5 +487,3 @@ function serializeFormData(form) {
 
   return newValues
 }
-
-export default connect(mapStateToProps, actionCreators)(SampleEditContent);
