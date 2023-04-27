@@ -139,7 +139,7 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
         errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
 
     for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
-        for dataset_file in dataset.files.all():
+        for dataset_file in dataset.readsets.files.all():
             dataset_file.validation_status = validation_status
             dataset_file.validation_status_timestamp = timestamp
             dataset_file.save()

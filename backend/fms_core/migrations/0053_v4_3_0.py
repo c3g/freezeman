@@ -26,6 +26,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('name', models.CharField(help_text='The external name that identifies the readset if the run did not come from Freezeman.', max_length=200)),
                 ('sample_name', models.CharField(help_text='The sample name that identifies the readset if the run did not come from Freezeman.', max_length=200)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_readset_creation', to=settings.AUTH_USER_MODEL)),
                 ('dataset', models.ForeignKey(help_text='The dataset of the readfile.', on_delete=django.db.models.deletion.PROTECT, related_name='readsets', to='fms_core.dataset')),

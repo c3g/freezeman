@@ -40,6 +40,10 @@ class Metric(TrackedModel):
 
         self.normalize()
 
+        # Ensure there is only one type on value tied to the metric
+        if self.value_string is not None and self.value_numeric is not None:
+            add_error("value", f"Metric value must either be stored as a number or as a string, not both.")
+
         if errors:
             raise ValidationError(errors)
 
