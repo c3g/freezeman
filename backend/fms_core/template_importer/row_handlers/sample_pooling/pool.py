@@ -47,7 +47,7 @@ class PoolsRowHandler(GenericRowHandler):
                 if len(set_platform) > 1:
                     self.errors["source_sample"] = (f"Libraries in pool {pool['name']} must have the same platform.")
 
-                if len(samples_info > 1): # Calculation invalid not relevant for pools of 1
+                if len(samples_info) > 1: # Calculation invalid not relevant for pools of 1
                     # Add a warning if the concentration of the libraries are not within a tolerance
                     TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
                     for sample_tested in samples_info:

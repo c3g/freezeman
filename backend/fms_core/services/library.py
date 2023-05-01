@@ -80,7 +80,7 @@ def convert_library(process, platform, sample_source, container_destination, coo
     """
     Creates the internal representation required when doing a single library conversion. The process need to be passed as a parameter.
     The source sample volume is updated with the volume used. A new destination sample is created. The new sample library is a copy
-    of the library from the source sample with QC flags and concentration reset. The new library platform is added to the new sample library.
+    of the library from the source sample with QC flags, concentration and fragment_size reset. The new library platform is added to the new sample library.
     A sample lineage and process measurement are created as well as derived_samples and derived_by_sample.
 
     Args:
@@ -140,7 +140,7 @@ def capture_library(process, library_selection, sample_source, container_destina
     """
     Creates the internal representation required when doing a single library capture. The process need to be passed as a parameter.
     The source sample volume is updated with the volume used. A new destination sample is created. The new sample library is a copy
-    of the library from the source sample with QC flags and concentration reset. The library selection is added to the new sample library.
+    of the library from the source sample with QC flags, concentration and fragment size reset. The library selection is added to the new sample library.
     A sample lineage and process measurement are created as well as derived_samples and derived_by_sample.
 
     Args:
@@ -202,7 +202,7 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
     """
     Creates the internal representation required when changing a part of an existing library. The process need to be passed as a parameter.
     The source sample volume is updated with the volume used. A new destination sample is created. The new sample library is a copy
-    of the library from the source sample with QC flags and concentration reset. The new_library_info provides the new library changes
+    of the library from the source sample with QC flags, concentration and frament_size reset. The new_library_info provides the new library changes
     compared to its parent that are applied. A sample lineage and process measurement are created as well as 
     derived samples and derived by sample.
 
@@ -263,7 +263,7 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
                 creation_date=execution_date,
                 concentration=None,
                 volume=volume_destination,
-                fragment_size=sample_source.fragment_size,
+                fragment_size=None,
                 depleted=False,
                 # Reset QC flags
                 quantity_flag=None,

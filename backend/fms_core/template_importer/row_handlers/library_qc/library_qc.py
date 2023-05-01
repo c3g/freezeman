@@ -81,7 +81,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             # update sample library size before calculating concentration (uses the new value)
             _, self.errors['library_size'], self.warnings['library_size'] = update_sample(sample_to_update=source_sample_obj,
                                                                                           fragment_size=library_size)
-            
+
         # concentration
         if measures['concentration_nm'] is None and measures['concentration_uL'] is None:
             self.errors['concentration'] = 'A concentration in either nM or ng/uL must be specified.'

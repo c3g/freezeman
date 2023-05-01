@@ -11,7 +11,7 @@ from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today,
 
 def create_full_sample(name, volume, creation_date, container, sample_kind,
                        collection_site=None, library=None, project=None, individual=None,
-                       coordinates=None, alias=None, concentration=None, tissue_source=None,
+                       coordinates=None, alias=None, concentration=None, fragment_size=None, tissue_source=None,
                        experimental_group=None, comment=None):
     sample = None
     errors = []
@@ -67,6 +67,7 @@ def create_full_sample(name, volume, creation_date, container, sample_kind,
                 comment=(comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")),
                 **(dict(coordinate=coordinate) if coordinate is not None else dict()),
                 **(dict(concentration=concentration) if concentration is not None else dict()),
+                **(dict(fragment_size=fragment_size) if fragment_size is not None else dict()),
             )
 
             sample = Sample.objects.create(**sample_data)
@@ -217,6 +218,7 @@ def transfer_sample(process: Process,
                 coordinate_id=coordinate_destination.id if coordinate_destination is not None else None,
                 creation_date=execution_date,
                 volume=volume_destination if volume_destination is not None else volume_used,
+                fragment_size=sample_source.fragment_size,
                 depleted=False
             )
 
@@ -678,6 +680,7 @@ def prepare_library(process: Process,
                 coordinate_id=coordinate_destination.id if coordinate_destination is not None else None,
                 creation_date=execution_date,
                 concentration=None,
+                fragment_size=None,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False,
                 # Reset QC flags

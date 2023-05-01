@@ -566,7 +566,6 @@ class PooledSampleSerializer(serializers.Serializer):
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
     index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
     index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
-    library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='sample.fragment_size')
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
     library_selection = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.name')
     library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
@@ -585,7 +584,6 @@ class PooledSampleSerializer(serializers.Serializer):
             'index',
             'individual_id',
             'individual_name',
-            'library_size',
             'library_type',
             'library_selection',
             'library_selection_target',

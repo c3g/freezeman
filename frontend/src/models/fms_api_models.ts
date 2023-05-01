@@ -163,7 +163,6 @@ export interface FMSPooledSample extends FMSTrackedModel {
     index?: string,                     // Name of index
     index_id?: FMSId,                   // ID of index
     index_set?: string,                 // Name of index set containing library index
-    library_size?: number,              // Library size in base pairs (integer)
     library_type?: string,              // Library Type (eg. PCR-free) (pre-defined)
     platform?: string,                  // Platform name (eg. ILLUMINA)
     strandedness?: string,              // "Double stranded" (for DNA) or "Single stranded" (for RNA)

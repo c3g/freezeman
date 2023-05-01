@@ -282,7 +282,7 @@ const SampleDetailsContent = ({
                     {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
                   </Link>}
                 </Descriptions.Item>
-                <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>
+                <Descriptions.Item label="Library Size (bp)">{sample?.library_size}</Descriptions.Item>
                 <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
                 <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
               </Descriptions>

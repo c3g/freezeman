@@ -68,7 +68,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		dataIndex: ['library', 'library_size'],
 		align: 'right',
 		className: 'table-column-numbers',
-		render: (_, { library }) => library && library.library_size && <span>{library.library_size}</span>,
+		render: (library_size) => library_size && <span>{library_size}</span>,
 	},
 
 	[LibraryColumnID.LIBRARY_TYPE]: {
@@ -181,7 +181,7 @@ export const SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS = {
 	[LibraryColumnID.PLATFORM_NAME]: 'sample__derived_samples__library__platform__name',
 	[LibraryColumnID.PROJECT_NAME]: 'sample__derived_samples__project__name',
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',	// annotated property of viewset
-	[LibraryColumnID.LIBRARY_SIZE]: 'sample__derived_samples__library__library_size',
+	[LibraryColumnID.LIBRARY_SIZE]: 'sample__fragment_size',
 }
 
 export const SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS = {
@@ -191,5 +191,5 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS = {
 	[LibraryColumnID.PLATFORM_NAME]: 'sample_next_step__sample__derived_samples__library__platform__name',
 	[LibraryColumnID.PROJECT_NAME]: 'sample_next_step__sample__derived_samples__project__name',
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',	// TODO annotated property of viewset 
-	[LibraryColumnID.LIBRARY_SIZE]: 'sample_next_step__sample__derived_samples__library__library_size',
+	[LibraryColumnID.LIBRARY_SIZE]: 'sample_next_step__sample__fragment_size',
 }
