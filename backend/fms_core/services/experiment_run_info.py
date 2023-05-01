@@ -249,7 +249,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         index: Index = library.index
         
         row.library_type = library.library_type.name
-        row.library_size = int(library.library_size) if library.library_size is not None else None 
+        row.library_size = int(sample.fragment_size) if sample.fragment_size is not None else None 
 
         row.index_obj_id = index.pk
         row.index_name = index.name

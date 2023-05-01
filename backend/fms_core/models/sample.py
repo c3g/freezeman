@@ -38,6 +38,8 @@ class Sample(TrackedModel):
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL.")
     concentration = models.DecimalField("concentration in ng/µL", max_digits=20, decimal_places=3, null=True, blank=True,
                                         help_text="Concentration in ng/µL. Required for DNA).")
+    fragment_size = models.DecimalField(max_digits=20, decimal_places=0, null=True, blank=True,
+                                        help_text="Average size of the nucleic acid strands in base pairs.")
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
     creation_date = models.DateField(help_text="Date of the sample reception or extraction.")
     container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="samples", limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS},
@@ -162,7 +164,7 @@ class Sample(TrackedModel):
 
     @property
     def library_size(self) -> Decimal:
-        return self.derived_samples.first().library.library_size if not self.is_pool and self.is_library else None
+        return self.fragment_size
 
     @property
     def strandedness(self) -> Optional[str]:
@@ -225,6 +227,9 @@ class Sample(TrackedModel):
         # Set depleted when volume = 0
         if self.volume is not None and self.volume == Decimal("0"):
             self.depleted = True
+
+        if self.fragment_size and self.fragment_size < 0:
+            add_error("fragment_size", f"Fragment size must be a positive number.")
 
         # Make sure the creation date is not in the future 
         if is_date_or_time_after_today(self.creation_date):

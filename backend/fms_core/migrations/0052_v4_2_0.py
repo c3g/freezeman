@@ -219,4 +219,13 @@ class Migration(migrations.Migration):
             name='workflow_action',
             field=models.CharField(choices=[('NEXT_STEP', 'Step complete - Move to next step'), ('DEQUEUE_SAMPLE', 'Sample failed - Remove sample from study workflow'), ('IGNORE_WORKFLOW', 'Ignore workflow - Do not register as part of a workflow')], default='NEXT_STEP', help_text='Workflow action that was performed on the sample after step completion.', max_length=30),
         ),
+        migrations.AddField(
+            model_name='sample',
+            name='fragment_size',
+            field=models.DecimalField(blank=True, decimal_places=0, help_text='Average size of the nucleic acid strands in base pairs.', max_digits=20, null=True),
+        ),
+        migrations.RemoveField(
+            model_name='library',
+            name='library_size',
+        ),
     ]

@@ -47,16 +47,17 @@ class PoolsRowHandler(GenericRowHandler):
                 if len(set_platform) > 1:
                     self.errors["source_sample"] = (f"Libraries in pool {pool['name']} must have the same platform.")
 
-                # Add a warning if the concentration of the libraries are not within a tolerance
-                TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
-                for sample_tested in samples_info:
-                    concentrations = [((sample["Source Sample"].concentration * sample["Volume Used"]) / sample["Volume In Pool"]) for sample in samples_info if sample["Source Sample"].id != sample_tested["Source Sample"].id]
-                    avg_concentration = sum(concentrations) / len(concentrations)
-                    tested_concentration = (sample_tested["Source Sample"].concentration * sample_tested["Volume Used"]) / sample_tested["Volume In Pool"]
-                    if abs(tested_concentration - avg_concentration) > TOLERANCE:
-                        self.warnings["concentration"] = [(f"Source sample {sample_tested['Source Sample'].name} in pool {pool['name']} have concentration that is more than "
-                                                          f"{TOLERANCE} ng/uL away from the average concentration of the other samples in the pool. "
-                                                          f"This is likely normal if the sample is a negative control.")]
+                if len(samples_info > 1): # Calculation invalid not relevant for pools of 1
+                    # Add a warning if the concentration of the libraries are not within a tolerance
+                    TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
+                    for sample_tested in samples_info:
+                        concentrations = [((sample["Source Sample"].concentration * sample["Volume Used"]) / sample["Volume In Pool"]) for sample in samples_info if sample["Source Sample"].id != sample_tested["Source Sample"].id]
+                        avg_concentration = sum(concentrations) / len(concentrations)
+                        tested_concentration = (sample_tested["Source Sample"].concentration * sample_tested["Volume Used"]) / sample_tested["Volume In Pool"]
+                        if abs(tested_concentration - avg_concentration) > TOLERANCE:
+                            self.warnings["concentration"] = [(f"Source sample {sample_tested['Source Sample'].name} in pool {pool['name']} have concentration that is more than "
+                                                              f"{TOLERANCE} ng/uL away from the average concentration of the other samples in the pool. "
+                                                              f"This is likely normal if the sample is a negative control.")]
             
             # Validate indices from the samples being pooled
             if pool_is_library and seq_instrument_type is not None:

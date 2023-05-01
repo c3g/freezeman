@@ -115,7 +115,21 @@ def get_sample_from_container(barcode, coordinates=None):
     return (sample, errors, warnings)
 
 
-def update_sample(sample_to_update, volume=None, concentration=None, depleted=None):
+def update_sample(sample_to_update, volume=None, concentration=None, depleted=None, fragment_size=None):
+    """
+    Updates a sample's attributes
+    
+    Args:
+    `sample_to_update`: Sample object to be updated
+    `volume`: New volume, if not None
+    `concentration`: New concentration, if not None
+    `depleted`: New depleted status, if not None
+    `fragment_size`: New fragment_size, if not None
+    
+    Returns:
+    Tuple with the updated sample, errors and warnings
+    
+    """
     errors = []
     warnings = []
 
@@ -125,6 +139,8 @@ def update_sample(sample_to_update, volume=None, concentration=None, depleted=No
         sample_to_update.concentration = float_to_decimal(concentration)
     if depleted is not None:
         sample_to_update.depleted = depleted
+    if fragment_size is not None:
+        sample_to_update.fragment_size = fragment_size
 
     try:
         sample_to_update.save()
