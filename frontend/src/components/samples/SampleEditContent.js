@@ -114,6 +114,9 @@ const SampleEditContent = ({ sample, isAdding}) => {
           form.setFieldValue('coordinate', '')
         }
       }
+    } else {
+      setIsCoordRequired(false)
+      form.setFieldValue('coordinate', '')
     }
     
   }, [containerKinds, form])
@@ -221,7 +224,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
       data.id = sample.id
     const action =
       isAdding ?
-        dispatch(add(data).then(sample => { history(`/samples/${sample.id}`) })) :
+        dispatch(add(data)).then(sample => { history(`/samples/${sample.id}`) }) :
         dispatch(update(sample.id, data)).then(() => { history(`/samples/${sample.id}`) })
     action
       .then(() => { setFormErrors({}); Promise.all([dispatch(listTable()), dispatch(summary())]) })
