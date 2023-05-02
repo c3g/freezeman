@@ -116,7 +116,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID, coordinatesB
     },
     {
       title: "Library Size",
-      dataIndex: "fragment_size",
+      dataIndex: "library_size",
       sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       align: "right",
       className: "table-column-numbers",

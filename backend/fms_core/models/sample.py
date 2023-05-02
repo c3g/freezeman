@@ -38,8 +38,7 @@ class Sample(TrackedModel):
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL.")
     concentration = models.DecimalField("concentration in ng/µL", max_digits=20, decimal_places=3, null=True, blank=True,
                                         help_text="Concentration in ng/µL. Required for DNA).")
-    fragment_size = models.DecimalField(max_digits=20, decimal_places=0, null=True, blank=True,
-                                        help_text="Average size of the nucleic acid strands in base pairs.")
+    fragment_size = models.PositiveIntegerField(null=True, blank=True, help_text="Average size of the nucleic acid strands in base pairs.")
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
     creation_date = models.DateField(help_text="Date of the sample reception or extraction.")
     container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="samples", limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS},

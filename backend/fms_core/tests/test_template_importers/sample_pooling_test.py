@@ -252,7 +252,5 @@ class SamplePoolingTestCase(TestCase):
             result = {}
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
-            print(f)
-            print(result)
             self.assertEqual(result['valid'], False)
             transaction.savepoint_rollback(s)

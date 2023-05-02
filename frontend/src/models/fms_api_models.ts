@@ -246,6 +246,7 @@ export interface FMSSample extends FMSTrackedModel {
     volume: number                      // Volume in uL
     depleted: boolean                   // Depleted flag
     concentration?: number              // Concentration in ng/uL, if applicable
+    fragment_size?: number              // average size in bp of the sample dna fragment, if applicable
     child_of?: FMSId[]                  // Sample lineage
     extracted_from?: FMSId              // If extraction, ID of original sample
     individual?: FMSId                  // Individual ID, if any

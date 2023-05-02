@@ -222,7 +222,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sample',
             name='fragment_size',
-            field=models.DecimalField(blank=True, decimal_places=0, help_text='Average size of the nucleic acid strands in base pairs.', max_digits=20, null=True),
+            field=models.PositiveIntegerField(blank=True, help_text='Average size of the nucleic acid strands in base pairs.', null=True),
         ),
         migrations.RemoveField(
             model_name='library',
