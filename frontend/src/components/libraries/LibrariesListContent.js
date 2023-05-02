@@ -1,27 +1,27 @@
-import React, {useState, useEffect} from "react";
-import {connect} from "react-redux";
-import {Link} from "react-router-dom";
-import {Button, Radio} from "antd";
+import { Button, Radio } from "antd";
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 
 import AppPageHeader from "../AppPageHeader";
+import { Depletion } from "../Depletion";
+import ExportButton from "../ExportButton";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import {Depletion} from "../Depletion";
-import {QCFlag} from "../QCFlag";
-import ExportButton from "../ExportButton";
+import { QCFlag } from "../QCFlag";
 
-import api, {withToken}  from "../../utils/api"
+import api, { withToken } from "../../utils/api";
 
+import { TOGGLE_OPTIONS } from "../../constants.js";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import FiltersWarning from "../filters/FiltersWarning";
+import { LIBRARY_FILTERS } from "../filters/descriptions";
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/libraries/actions";
 import {ActionDropdown} from "../../utils/templateActions";
 import {PrefilledTemplatesDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withCoordinate, withIndex} from "../../utils/withItem";
-import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
-import FiltersWarning from "../filters/FiltersWarning";
-import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import {TOGGLE_OPTIONS} from "../../constants.js"
+import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndexRenderComponent } from '../shared/WithItemRenderComponent';
 
 const getTableColumns = (containersByID, indicesByID, projectsByID, coordinatesByID, toggleOption) => [
     {
@@ -69,14 +69,14 @@ const getTableColumns = (containersByID, indicesByID, projectsByID, coordinatesB
       sorter: true,
       render: (_, library) => (library.container &&
         <Link to={`/containers/${library.container}`}>
-          {withContainer(containersByID, library.container, container => container.barcode, "loading...")}
+          <WithContainerRenderComponent objectID={library.container} placeholder={"loading..."} render={container => container.barcode}/>
         </Link>),
     },
     {
       title: "Coords",
       dataIndex: "coordinate__name",
       sorter: true,
-      render: (_, library) => (library.coordinate && withCoordinate(coordinatesByID, library.coordinate, coordinate => coordinate.name, "loading...")),
+      render: (_, library) => (library.coordinate && <WithCoordinateRenderComponent objectID={library.coordinate} placeholder={"loading..."} render={coordinate => coordinate.name} /> ),
       width: 70,
     },
     {
@@ -103,7 +103,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID, coordinatesB
       sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       render: (_, library) => (library.index &&
         <Link to={`/indices/${library.index}`}>
-          {withIndex(indicesByID, library.index, index => index.name, "loading...")}
+          <WithIndexRenderComponent objectID={library.index} placeholder={"loading...."} render={index => index.name} />
         </Link>),
     },
     {
@@ -223,10 +223,8 @@ const LibrariesListContent = ({
     switch(filters[isPooledFilterKey]?.value){
       case "true":
         return TOGGLE_OPTIONS.POOLS
-        break;
       case "false":
         return TOGGLE_OPTIONS.LIBRARIES
-        break;
       default:
         return TOGGLE_OPTIONS.ALL
     }
