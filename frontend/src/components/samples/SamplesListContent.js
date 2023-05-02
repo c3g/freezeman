@@ -1,5 +1,5 @@
 import { Button, Radio, Tag } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -18,14 +18,14 @@ import { clearFilters, clearSortBy, listTable, setFilter, setFilterOption, setSo
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates";
 import { ActionDropdown } from "../../utils/templateActions";
-import { withContainer, withCoordinate, withIndividual, withProject } from "../../utils/withItem";
 import FiltersWarning from "../filters/FiltersWarning";
 import { SAMPLE_FILTERS } from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
+import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndividualRenderComponent, WithProjectRenderComponent } from "../shared/WithItemRenderComponent";
 import SamplesFilters from "./SamplesFilters";
 
-const getTableColumns = (containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds, toggleOption) => [
+const getTableColumns = (sampleKinds, toggleOption) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -65,7 +65,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, coordina
         const individual = sample.individual
         return (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
+            <WithIndividualRenderComponent objectID={individual} placeholder={'loading...'} render={individual => individual.name} />
           </Link>)
       }
     },
@@ -75,7 +75,8 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, coordina
       sorter: true,
       render: (_, sample) =>
         (sample.container &&
-          withContainer(containersByID, sample.container, container => container.name, "loading...")),
+         <WithContainerRenderComponent objectID={sample.container} placeholder={'loading...'} render={(container) => container.name}/>
+        )
     },
     {
       title: "Container Barcode",
@@ -83,7 +84,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, coordina
       sorter: true,
       render: (_, sample) => (sample.container &&
         <Link to={`/containers/${sample.container}`}>
-          {withContainer(containersByID, sample.container, container => container.barcode, "loading...")}
+          <WithContainerRenderComponent objectID={sample.container} placeholder={'loading...'} render={(container) => container.barcode}/>
         </Link>),
     },
     {
@@ -92,14 +93,17 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, coordina
       sorter: toggleOption === TOGGLE_OPTIONS.SAMPLES ? true : false,
       render: (_, sample) => (sample.project &&
         <Link to={`/projects/${sample.project}`}>
-          {withProject(projectsByID, sample.project, project => project.name, "loading...")}
+          <WithProjectRenderComponent objectID={sample.project} placeholder={'loading...'} render={(project) => project.name}/>
         </Link>)
     },
     {
       title: "Coords",
       dataIndex: "coordinate__name",
       sorter: true,
-      render: (_, sample) => (sample.coordinate && withCoordinate(coordinatesByID, sample.coordinate, coordinate => coordinate.name, "loading...")),
+      render: (_, sample) => (
+          sample.coordinate && 
+          <WithCoordinateRenderComponent objectID={sample.coordinate} placeholder={'loading...'} render={coordinate => coordinate.name}/>
+        ),
       width: 70,
     },
     {
@@ -156,14 +160,23 @@ const mapStateToProps = state => ({
   totalCount: state.samples.totalCount,
   isFetching: state.samples.isFetching,
   filters: state.samples.filters,
-  containersByID: state.containers.itemsByID,
-  individualsByID: state.individuals.itemsByID,
-  projectsByID: state.projects.itemsByID,
-  coordinatesByID: state.coordinates.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
 const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy};
+
+const isPooledFilterKey = SAMPLE_FILTERS.is_pooled.key
+
+function getCurrentToggleOption(filters) {
+  switch(filters[isPooledFilterKey]?.value){
+    case "true":
+      return TOGGLE_OPTIONS.POOLS
+    case "false":
+      return TOGGLE_OPTIONS.SAMPLES
+    default:
+      return TOGGLE_OPTIONS.ALL
+  }
+}
 
 const SamplesListContent = ({
   token,
@@ -176,10 +189,6 @@ const SamplesListContent = ({
   page,
   totalCount,
   filters,
-  containersByID,
-  individualsByID,
-  projectsByID,
-  coordinatesByID,
   sortBy,
   listTable,
   setFilter,
@@ -189,48 +198,34 @@ const SamplesListContent = ({
   clearSortBy,
 }) => {
 
-  const isPooledFilterKey = SAMPLE_FILTERS.is_pooled.key
-
-  function getCurrentToggleOption(){
-    switch(filters[isPooledFilterKey]?.value){
-      case "true":
-        return TOGGLE_OPTIONS.POOLS
-        break;
-      case "false":
-        return TOGGLE_OPTIONS.SAMPLES
-        break;
-      default:
-        return TOGGLE_OPTIONS.ALL
-    }
-  }
   // Show both samples and pools as default
-  const [toggleOption, setToggleOption] = useState(getCurrentToggleOption());
-  const [columns, setColumns] = useState(getTableColumns(containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds, toggleOption));
+  const [toggleOption, setToggleOption] = useState(getCurrentToggleOption(filters));
+  const [columns, setColumns] = useState(getTableColumns(sampleKinds, toggleOption));
 
-  const listExport = () =>
-    withToken(token, api.samples.listExport)
-    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
+  const listExport = useCallback(() =>
+    withToken(token, api.samples.listExport)(mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
+  , [token, filters, sortBy])
   
-  const listExportMetadata = () =>
-    withToken(token, api.samples.listExportMetadata)
-    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
+  const listExportMetadata = useCallback(() =>
+    withToken(token, api.samples.listExportMetadata)(mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
+  , [token, filters, sortBy])
 
-  const prefillTemplate = ({template}) =>
-    withToken(token, api.samples.prefill.request)
-    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
+  const prefillTemplate = useCallback(({template}) =>
+    withToken(token, api.samples.prefill.request)(mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
       .then(response => response)
+  , [token, filters, sortBy])
 
   const nFilters = getNFilters(filters)
 
   // Listen to the changes in toggle to get new columns and set filters accordingly
   useEffect(() => {
     // Get the new columns depending on the new option
-    setColumns(getTableColumns(containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds, toggleOption))
+    setColumns(getTableColumns(sampleKinds, toggleOption))
 
     // Only apply filters if the new selected option is different from the current one
-    if (getCurrentToggleOption() !== toggleOption){
+    if (getCurrentToggleOption(filters) !== toggleOption){
       // Need to reset the sortBy when there's a new toggle option to avoid problems
       clearSortBy()
 
@@ -239,25 +234,25 @@ const SamplesListContent = ({
       else
         setFilter(isPooledFilterKey, '')
     }
-  }, [toggleOption, containersByID, individualsByID, projectsByID, coordinatesByID, sampleKinds])
+  }, [toggleOption, sampleKinds, filters, clearSortBy, setFilter])
 
-  const handleToggleOptionChange = (e) => {
+  const handleToggleOptionChange = useCallback((e) => {
       setToggleOption(e.target.value);
-  };
+  }, [])
 
   // Design decision: If the user clears all filters return to displaying all
-  const localClearFilters = () => {
+  const localClearFilters = useCallback(() => {
     clearFilters()
     setToggleOption(TOGGLE_OPTIONS.ALL)
-  }
+  }, [clearFilters])
 
-  const mappedColumns = columns.map(c => Object.assign(c, getFilterProps(
+  const mappedColumns = useMemo(() => columns.map(c => Object.assign(c, getFilterProps(
     c,
     SAMPLE_FILTERS,
     filters,
     setFilter,
     setFilterOption
-  )))
+  ))), [columns, filters, setFilter, setFilterOption])
 
   return <>
     <AppPageHeader title="Samples" extra={[
