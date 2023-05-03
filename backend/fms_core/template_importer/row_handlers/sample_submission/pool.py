@@ -35,7 +35,7 @@ class PoolsRowHandler(GenericRowHandler):
 
             container_destination, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
                 barcode=pool_container_dict['barcode'],
-                kind=pool_container_dict['kind'].lower(),
+                kind=pool_container_dict['kind'],
                 name=pool_container_dict['name'],
                 coordinates=pool_container_dict['coordinates'],
                 container_parent=container_parent)

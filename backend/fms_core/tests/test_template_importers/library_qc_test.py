@@ -331,14 +331,13 @@ class LibraryQCTestCase(TestCase):
 
         # Sample values
         self.assertEqual(sample.volume, expected_values.final_volume)
+        self.assertEqual(sample.fragment_size, expected_values.library_size)
 
         # Library values
         library: Library
         for derived_sample in sample.derived_samples.all():
             library = derived_sample.library
             self.assertIsNotNone(library)
-
-            self.assertEqual(library.library_size, expected_values.library_size)
 
         # Process measurement
         process_measurement: ProcessMeasurement
