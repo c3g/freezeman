@@ -116,11 +116,11 @@ const getTableColumns = (containersByID, indicesByID, projectsByID, coordinatesB
     },
     {
       title: "Library Size",
-      dataIndex: "derived_samples__library__library_size",
+      dataIndex: "library_size",
       sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       align: "right",
       className: "table-column-numbers",
-      render: (_, library) => library.library_size !== null ? parseInt(library.library_size) : null,
+      render: library_size => library_size !== null ? parseInt(library_size) : null,
       width: 80,
     },
     {

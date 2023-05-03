@@ -21,6 +21,7 @@ from fms_core.models import (
     SampleLineage,
 )
 
+from fms_core.services.sample_lineage import get_library_size_for_derived_sample
 
 # Obj_Id = Optional[int]
 Obj_Id = Optional[int]
@@ -249,7 +250,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         index: Index = library.index
         
         row.library_type = library.library_type.name
-        row.library_size = int(library.library_size) if library.library_size is not None else None 
+        row.library_size = get_library_size_for_derived_sample(derived_sample.id)
 
         row.index_obj_id = index.pk
         row.index_name = index.name

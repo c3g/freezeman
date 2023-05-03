@@ -38,8 +38,7 @@ class NormalizationTestCase(TestCase):
         (library_1, errors, warnings) = create_library(index=index_1,
                                                        library_type=library_type,
                                                        platform=platform_illumina,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+                                                       strandedness=DOUBLE_STRANDED)
 
         self.coord_A01 = Coordinate.objects.get(name="A01")
         self.coord_A02 = Coordinate.objects.get(name="A02")
@@ -47,11 +46,11 @@ class NormalizationTestCase(TestCase):
         self.coord_A04 = Coordinate.objects.get(name="A04")
 
         samples_info = [
-            {'name': 'Sample1Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A01", 'library': None},
-            {'name': 'Sample2Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A02", 'library': None},
-            {'name': 'Sample3Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A03", 'library': library_1},
-            {'name': 'Sample1Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': "A01", 'library': None},
-            {'name': 'Sample2Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': "A02", 'library': None},
+            {'name': 'Sample1Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A01", 'library': None, "fragment_size": None},
+            {'name': 'Sample2Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A02", 'library': None, "fragment_size": None},
+            {'name': 'Sample3Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': "A03", 'library': library_1, "fragment_size": 150},
+            {'name': 'Sample1Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': "A01", 'library': None, "fragment_size": None},
+            {'name': 'Sample2Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': "A02", 'library': None, "fragment_size": None},
 
         ]
 
@@ -64,7 +63,8 @@ class NormalizationTestCase(TestCase):
                                                             concentration=10,
                                                             container=container, coordinates=info['coordinates'],
                                                             sample_kind=sample_kind_DNA,
-                                                            library=info['library'])
+                                                            library=info['library'],
+                                                            fragment_size=info['fragment_size'])
 
         destination_containers_info = [
             {'barcode': 'DESTINATION_CONTAINER', 'name': 'DESTINATION_CONTAINER', 'kind': '96-well plate'},

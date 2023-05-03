@@ -175,24 +175,24 @@ class LibraryConversionTestCase(TestCase):
         (source_sample_1, errors, warnings) = \
             create_full_sample(name=self.source_sample_name_1, volume=self.source_sample_initial_volume, concentration=20,
                                collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
-                               container=container_1, sample_kind=sample_kind, library=library_1)
+                               container=container_1, sample_kind=sample_kind, library=library_1, fragment_size=self.library_1["library_size"])
 
         (source_sample_2, errors, warnings) = \
             create_full_sample(name=self.source_sample_name_2, volume=self.source_sample_initial_volume, concentration=25,
                                collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
-                               container=container_2, sample_kind=sample_kind, library=library_2)
+                               container=container_2, sample_kind=sample_kind, library=library_2, fragment_size=self.library_2["library_size"])
 
         (source_sample_to_pool_1, errors, warnings) = \
             create_full_sample(name="LibraryToPool1", volume=self.source_sample_initial_volume,
                                concentration=25,
                                collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
-                               container=container_3, sample_kind=sample_kind, library=library_to_pool_1)
+                               container=container_3, sample_kind=sample_kind, library=library_to_pool_1, fragment_size=self.library_3["library_size"])
 
         (source_sample_to_pool_2, errors, warnings) = \
             create_full_sample(name="LibraryToPool2", volume=self.source_sample_initial_volume,
                                concentration=25,
                                collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
-                               container=container_4, sample_kind=sample_kind, library=library_to_pool_2)
+                               container=container_4, sample_kind=sample_kind, library=library_to_pool_2, fragment_size=self.library_4["library_size"])
 
         # Create objects for the pooling test
         samples_to_pool_info = [
@@ -242,9 +242,10 @@ class LibraryConversionTestCase(TestCase):
         converted_library_1, _, _ = get_sample_from_container(barcode='Container4LibraryDest1')
 
         self.assertEqual(converted_library_1.volume, self.library_1['library_volume'])
-        self.assertEqual(converted_library_1.concentration, None)
-        self.assertEqual(converted_library_1.quality_flag, None)
-        self.assertEqual(converted_library_1.quantity_flag, None)
+        self.assertIsNone(converted_library_1.fragment_size)
+        self.assertIsNone(converted_library_1.concentration)
+        self.assertIsNone(converted_library_1.quality_flag)
+        self.assertIsNone(converted_library_1.quantity_flag)
 
         # Library info tests
         for (derived_sample_source, derived_sample_converted) in zip(source_sample_1.derived_samples.all(),
@@ -288,9 +289,10 @@ class LibraryConversionTestCase(TestCase):
         converted_library_2, _, _ = get_sample_from_container(barcode='Container4LibraryDest2')
 
         self.assertEqual(converted_library_2.volume, self.library_2['library_volume'])
-        self.assertEqual(converted_library_2.concentration, None)
-        self.assertEqual(converted_library_2.quality_flag, None)
-        self.assertEqual(converted_library_2.quantity_flag, None)
+        self.assertIsNone(converted_library_2.fragment_size)
+        self.assertIsNone(converted_library_2.concentration)
+        self.assertIsNone(converted_library_2.quality_flag)
+        self.assertIsNone(converted_library_2.quantity_flag)
 
         # Library info tests
         for (derived_sample_source, derived_sample_converted) in zip(source_sample_1.derived_samples.all(),
@@ -342,9 +344,10 @@ class LibraryConversionTestCase(TestCase):
         converted_library_3, _, _ = get_sample_from_container(barcode='Container4LibraryDest3')
 
         self.assertEqual(converted_library_3.volume, self.library_3['library_volume'])
-        self.assertEqual(converted_library_3.concentration, None)
-        self.assertEqual(converted_library_3.quality_flag, None)
-        self.assertEqual(converted_library_3.quantity_flag, None)
+        self.assertIsNone(converted_library_3.fragment_size)
+        self.assertIsNone(converted_library_3.concentration)
+        self.assertIsNone(converted_library_3.quality_flag)
+        self.assertIsNone(converted_library_3.quantity_flag)
 
         # Library info tests
         for (derived_sample_source, derived_sample_converted) in zip(source_sample_2.derived_samples.all(),
@@ -396,9 +399,10 @@ class LibraryConversionTestCase(TestCase):
         converted_libraries_4, _, _ = get_sample_from_container(barcode='Container4LibraryDest4')
 
         self.assertEqual(converted_libraries_4.volume, self.library_4['library_volume'])
-        self.assertEqual(converted_libraries_4.concentration, None)
-        self.assertEqual(converted_libraries_4.quality_flag, None)
-        self.assertEqual(converted_libraries_4.quantity_flag, None)
+        self.assertIsNone(converted_libraries_4.fragment_size)
+        self.assertIsNone(converted_libraries_4.concentration)
+        self.assertIsNone(converted_libraries_4.quality_flag)
+        self.assertIsNone(converted_libraries_4.quantity_flag)
 
         # Library info tests
         for (derived_sample_source, derived_sample_converted) in zip(source_sample_pool.derived_samples.all(),
