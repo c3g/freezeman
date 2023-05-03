@@ -5,7 +5,23 @@ import fms_core.services.dataset as service
 from fms_core.models._constants import ReleaseStatus, ValidationStatus
 
 class DatasetServicesTestCase(TestCase):
+    def setUp(self) -> None:
+        self.METRIC_REPORT_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        
+
     def test_create_dataset(self):
+        dataset, errors, warnings = service.create_dataset(external_project_id="project", run_name="run", lane=1, metric_report_url=self.METRIC_REPORT_URL)
+        self.assertFalse(errors, "errors occured while creating a valid dataset with create_dataset")
+        self.assertFalse(warnings, "warnings is expected to be empty")
+        self.assertIsNotNone(dataset)
+
+        self.assertEqual(Dataset.objects.count(), 1)
+        self.assertEqual(dataset.external_project_id, "project")
+        self.assertEqual(dataset.run_name, "run")
+        self.assertEqual(dataset.lane, 1)
+        self.assertEqual(dataset.metric_report_url, self.METRIC_REPORT_URL)
+    
+    def test_create_dataset_without_metric_report(self):
         dataset, errors, warnings = service.create_dataset(external_project_id="project", run_name="run", lane=1)
         self.assertFalse(errors, "errors occured while creating a valid dataset with create_dataset")
         self.assertFalse(warnings, "warnings is expected to be empty")
@@ -15,6 +31,7 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset.external_project_id, "project")
         self.assertEqual(dataset.run_name, "run")
         self.assertEqual(dataset.lane, 1)
+        self.assertIsNone(dataset.metric_report_url)
 
     def test_create_dataset_without_replace(self):
         dataset, errors, warnings = service.create_dataset(external_project_id="project", run_name="run", lane=1)
@@ -26,11 +43,15 @@ class DatasetServicesTestCase(TestCase):
 
         dataset_file, errors, warnings = service.create_dataset_file(dataset, file_path="file_path", sample_name="sample_name", release_status=3)
 
-        dataset, errors, warnings = service.create_dataset(external_project_id="project", run_name="run", lane=1, replace=True)
+        dataset, errors, warnings = service.create_dataset(external_project_id="project", run_name="run", lane=1, metric_report_url=self.METRIC_REPORT_URL, replace=True)
         self.assertIsNotNone(dataset)
         self.assertCountEqual(errors, [])
         if dataset:
             self.assertCountEqual(DatasetFile.objects.filter(dataset=dataset.id), [])
+            self.assertEqual(dataset.metric_report_url, self.METRIC_REPORT_URL)
+
+    def test_reset_dataset_content(self):
+        self.assertFalse(True) # Need a proper test
 
     def test_create_dataset_file(self):
         dataset, errors, warnings = service.create_dataset(external_project_id="project", run_name="run", lane=1)

@@ -9,6 +9,7 @@ from collections import defaultdict
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
+from fms_core.models.readset import Readset
 from fms_core.models.sample_run_metric import SampleRunMetric
 from fms_core.models._constants import ReleaseStatus, ValidationStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
@@ -21,6 +22,7 @@ from fms_core.utils import blank_str_to_none
 def create_dataset(external_project_id: str,
                    run_name: str,
                    lane: int,
+                   metric_report_url: str = None,
                    replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
     Create a new dataset and return it. If an dataset exists already with the same natural key (external_project_id, run_name and lane),
@@ -29,9 +31,10 @@ def create_dataset(external_project_id: str,
     Option ignore (replace=False): the existing dataset is returned.
 
     Args:
-        `external_project_id`: The project id from the external system that generate projects.
-        `run_name`: The name or id of the experiment run.
-        `lane`: The lane (coordinate) on the experiment container.
+        `external_project_id`: Project id from the external system that generate projects.
+        `run_name`: Name or id of the experiment run.
+        `lane`: Lane (coordinate) on the experiment container.
+        `metric_report_url`: Run processing report URL.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
 
     Returns:
@@ -51,17 +54,12 @@ def create_dataset(external_project_id: str,
             run_name=run_name,
             lane=lane,
         )
-        dataset_list = Dataset.objects.filter(**kwargs)
-        if not dataset_list:  # There is no dataset with this signature
-            dataset = Dataset.objects.create(**kwargs)
-        elif replace:  # There is already a dataset with this signature but we replace it's content.
-            for sample_run_metric in SampleRunMetric.objects.filter(experiment_run__name=run_name, lane=lane).all(): # Remove metrics related to the dataset
-                metric = sample_run_metric.metric
-                sample_run_metric.delete()
-                metric.delete()
-            dataset = dataset_list.first()
-            for dataset_file in DatasetFile.objects.filter(dataset=dataset).all():
-                dataset_file.delete()
+        dataset, created = Dataset.objects.get_or_create(**kwargs, defaults={"metric_report_url": metric_report_url})
+        if not created and replace:  # There is already a dataset with this signature but we replace it's content.
+            reset_error, _ = reset_dataset_content(dataset)
+            errors.extend(reset_error)
+            dataset.metric_report_url = metric_report_url
+            dataset.save()
         else:  # There is already a dataset with this signature and it is not expected
             errors.append(f"There is already a dataset with external_project_id {kwargs['external_project_id']}, "
                           f"run_name {kwargs['run_name']} and lane {kwargs['lane']}.")
@@ -70,6 +68,32 @@ def create_dataset(external_project_id: str,
         errors.extend(e.messages)
 
     return dataset, errors, warnings
+
+def reset_dataset_content(dataset: Dataset):
+    """
+    When a new run processing json is submitted that match the signature of an existing dataset, the related objects
+    to that dataset need to be deleted to be recreated afterward. It means the dataset was regenerated. The function
+    deletes all existing metrics, all sample_run_metrics, all readsets and all dataset_files.
+
+    Args:
+        dataset: Dataset object that need to be reset.
+    Returns:
+        Tuple with errors and warnings.
+    """
+    errors = []
+    warnings = []
+    try:
+        for readset in Readset.objects.filter(dataset=dataset).all():
+            for sample_run_metric in SampleRunMetric.objects.filter(readset=readset).all():
+                for metric in sample_run_metric.metrics.all():
+                    metric.delete()
+                sample_run_metric.delete()
+            for dataset_file in DatasetFile.objects.filter(readset=readset).all():
+                dataset_file.delete()
+            readset.delete()
+    except Exception as err:
+        errors.append(f"Unexpected error while regenerating dataset.")
+    return errors, warnings
 
 def create_dataset_file(dataset: Dataset,
                         file_path: str,
@@ -184,12 +208,12 @@ def ingest_run_validation_report(report_json):
         return (datasets, dataset_files, errors, warnings)
 
     metric_report_url = None
+
+    run_name = report_json["run"]
+    lane = int(report_json["lane"])
+    metric_report_url = report_json["run_metrics_report_url"]
     for readset_key, readset in report_json["readsets"].items():
         external_project_id = readset["barcodes"][0]["PROJECT"]
-        run_name = report_json["run"]
-        lane = int(report_json["lane"])
-        if metric_report_url is None: # Same report for all datasets of the experiment run
-            metric_report_url = report_json["run_metrics_report_url"]
         dataset_key = (external_project_id, run_name, lane)
         if dataset_key not in datasets:
             dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
