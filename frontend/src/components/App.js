@@ -153,6 +153,8 @@ const MENU_ITEMS = [
   },
 ]
 
+const notProdBanner = "repeating-linear-gradient(45deg, #696104, #696104 10px, #000000 10px, #000000 20px)";
+
 const colorStyle = {
   color: "white",
 }
@@ -164,6 +166,7 @@ const titleStyle = {
   lineHeight: "unset",
   padding: 0,
   margin: 0,
+  textAlign: 'center'
 };
 
 export const mapStateToProps = state => ({
@@ -174,6 +177,7 @@ export const mapStateToProps = state => ({
 export const actionCreators = {logOut, get};
 
 const App = ({userID, usersByID, logOut, get}) => {
+  const env = FMS_ENV
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
@@ -228,15 +232,15 @@ const App = ({userID, usersByID, logOut, get}) => {
             width={'17em'} 
             style={{overflow: 'auto'}}
           >
-            <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
+            <div style={{alignContent: 'baseline', justifyContent: 'left', textAlign: 'center', background: env !== 'PROD' ? notProdBanner : undefined}}>
               <Title style={titleStyle} className="App__title">
                 <div>
-                  <b>F</b><span>reeze</span><b>M</b><span>an</span>
+                  <span>FreezeMan</span>{env !== 'PROD' && <span style={{color: 'red'}}>&nbsp;{env}</span>}
                 </div>
               </Title>
               { // Display a spinner while the initial data is being fetched at startup 
                 !isInitialized &&
-                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  <div style={{position: 'absolute', left: '0', right: '0', top: env !== 'PROD' ? '3.25rem' : '3.5rem'}}>
                     <Spin size="small" indicator={loadingIcon}/>
                   </div>
               }
