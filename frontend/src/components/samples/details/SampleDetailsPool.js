@@ -66,11 +66,6 @@ const getTableColumns = (sampleKinds) => {
           sorter: true
         },
         {
-            title: "Library Size",
-            dataIndex: "library_size",
-            sorter: true
-        },
-        {
             title: "Index",
             dataIndex: "index",
             sorter: true,

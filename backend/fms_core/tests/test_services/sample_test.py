@@ -84,12 +84,12 @@ class SampleServicesTestCase(TestCase):
 
 
         TEST_LIBRARIES = [
-            {"library_type": "WGBS", "index": test_indices[0], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED, "library_size": 150},
-            {"library_type": "PCR-free", "index": test_indices[1], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED, "library_size": 150},
-            {"library_type": "PCR-enriched", "index": test_indices[1], "platform": platform_dnbseq, "strandedness": SINGLE_STRANDED, "library_size": 100},
-            {"library_type": "PCR-enriched", "index": test_indices[1], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED, "library_size": 100},
-            {"library_type": "PCR-free", "index": test_indices[0], "platform": platform_illumina, "strandedness": SINGLE_STRANDED, "library_size": 100},
-            {"library_type": "PCR-free", "index": test_indices[1], "platform": platform_illumina, "strandedness": SINGLE_STRANDED, "library_size": 100},
+            {"library_type": "WGBS", "index": test_indices[0], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED},
+            {"library_type": "PCR-free", "index": test_indices[1], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED},
+            {"library_type": "PCR-enriched", "index": test_indices[1], "platform": platform_dnbseq, "strandedness": SINGLE_STRANDED},
+            {"library_type": "PCR-enriched", "index": test_indices[1], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED},
+            {"library_type": "PCR-free", "index": test_indices[0], "platform": platform_illumina, "strandedness": SINGLE_STRANDED},
+            {"library_type": "PCR-free", "index": test_indices[1], "platform": platform_illumina, "strandedness": SINGLE_STRANDED},
         ]
 
         self.test_libraries = []
@@ -97,8 +97,7 @@ class SampleServicesTestCase(TestCase):
             new_library, _, _ = create_library(library_type=LibraryType.objects.get(name=library["library_type"]),
                                                index=library["index"],
                                                platform=library["platform"],
-                                               strandedness=library["strandedness"],
-                                               library_size=library["library_size"])
+                                               strandedness=library["strandedness"])
             self.test_libraries.append(new_library)
 
         self.project_testouille, _, _ = create_project(name="Testouille")
@@ -106,8 +105,8 @@ class SampleServicesTestCase(TestCase):
 
         # Create samples for testing
         SUBMITTED_SAMPLES = [
-            {"name": "1FORPOOL1", "volume": 100, "concentration": 5, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 10, 0, 0), "container": self.test_containers[0], "coordinates": "A01", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[0], "project": self.project_testouille},
-            {"name": "2FORPOOL1", "volume": 200, "concentration": 6, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 15, 0, 0), "container": self.test_containers[0], "coordinates": "A02", "individual": self.test_individuals[1], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[1], "project": self.project_projecto},
+            {"name": "1FORPOOL1", "volume": 100, "concentration": 5, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 10, 0, 0), "container": self.test_containers[0], "coordinates": "A01", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[0], "project": self.project_testouille, "fragment_size": 150},
+            {"name": "2FORPOOL1", "volume": 200, "concentration": 6, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 15, 0, 0), "container": self.test_containers[0], "coordinates": "A02", "individual": self.test_individuals[1], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[1], "project": self.project_projecto, "fragment_size": 150},
         ]
 
         self.samples = []
@@ -122,20 +121,21 @@ class SampleServicesTestCase(TestCase):
                                                   individual=sample["individual"],
                                                   sample_kind=sample["sample_kind"],
                                                   library=sample["library"],
-                                                  project=sample["project"])
+                                                  project=sample["project"],
+                                                  fragment_size=sample["fragment_size"])
             self.samples.append(new_sample)
         
         # Create samples for testing
         self.TEST_SAMPLES = [
-            {"name": "TESTCREATEFULLSAMPLE", "volume": 1000, "concentration": 2, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A03", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[2], "project": self.project_testouille},
+            {"name": "TESTCREATEFULLSAMPLE", "volume": 1000, "concentration": 2, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A03", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[2], "project": self.project_testouille, "fragment_size": 100},
             {"name": "TESTEXTRACTSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A08", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_blood, "library": None, "project": self.project_testouille},
             {"name": "TESTPREPARELIBRARYSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A10", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": None, "project": self.project_testouille},
         ]
 
         # Create samples for testing
         self.SUBMITTED_SAMPLES_TO_POOL = [
-            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "studies": [], "volume": Decimal(10), "experimental_group": None},
-            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "studies": [], "volume": Decimal(30), "experimental_group": None},
+            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "studies": [], "volume": Decimal(10), "experimental_group": None, "fragment_size": 100},
+            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "studies": [], "volume": Decimal(30), "experimental_group": None, "fragment_size": 100},
         ]
 
     def test_create_full_sample(self):
@@ -149,7 +149,8 @@ class SampleServicesTestCase(TestCase):
                                                           individual=self.TEST_SAMPLES[0]["individual"],
                                                           sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                                           library=self.TEST_SAMPLES[0]["library"],
-                                                          project=self.TEST_SAMPLES[0]["project"])
+                                                          project=self.TEST_SAMPLES[0]["project"],
+                                                          fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         self.assertEqual(new_sample.name, self.TEST_SAMPLES[0]["name"])
         self.assertEqual(new_sample.volume, self.TEST_SAMPLES[0]["volume"])
         self.assertEqual(new_sample.concentration, self.TEST_SAMPLES[0]["concentration"])
@@ -161,6 +162,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(new_sample.derived_samples.first().sample_kind, self.TEST_SAMPLES[0]["sample_kind"])
         self.assertEqual(new_sample.derived_samples.first().library, self.TEST_SAMPLES[0]["library"])
         self.assertEqual(new_sample.derived_samples.first().project, self.TEST_SAMPLES[0]["project"])
+        self.assertEqual(new_sample.fragment_size, self.TEST_SAMPLES[0]["fragment_size"])
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -175,7 +177,8 @@ class SampleServicesTestCase(TestCase):
                                                           individual=self.TEST_SAMPLES[0]["individual"],
                                                           sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                                           library=self.TEST_SAMPLES[0]["library"],
-                                                          project=self.TEST_SAMPLES[0]["project"])
+                                                          project=self.TEST_SAMPLES[0]["project"],
+                                                          fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         self.assertEqual(new_sample.name, self.TEST_SAMPLES[0]["name"])
         self.assertEqual(new_sample.volume, self.TEST_SAMPLES[0]["volume"])
         self.assertEqual(new_sample.concentration, self.TEST_SAMPLES[0]["concentration"])
@@ -187,6 +190,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(new_sample.derived_samples.first().sample_kind, self.TEST_SAMPLES[0]["sample_kind"])
         self.assertEqual(new_sample.derived_samples.first().library, self.TEST_SAMPLES[0]["library"])
         self.assertEqual(new_sample.derived_samples.first().project, self.TEST_SAMPLES[0]["project"])
+        self.assertEqual(new_sample.fragment_size, self.TEST_SAMPLES[0]["fragment_size"])
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -208,12 +212,14 @@ class SampleServicesTestCase(TestCase):
                                                           individual=self.TEST_SAMPLES[0]["individual"],
                                                           sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                                           library=self.TEST_SAMPLES[0]["library"],
-                                                          project=self.TEST_SAMPLES[0]["project"])
-        sample, errors, warnings = update_sample(new_sample, volume=0, concentration=10, depleted=True)
+                                                          project=self.TEST_SAMPLES[0]["project"],
+                                                          fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
+        sample, errors, warnings = update_sample(new_sample, volume=0, concentration=10, depleted=True, fragment_size=200)
         self.assertEqual(sample, new_sample)
         self.assertEqual(sample.volume, 0)
         self.assertEqual(sample.concentration, 10)
         self.assertTrue(sample.depleted)
+        self.assertEqual(sample.fragment_size, 200)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -235,6 +241,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(new_sample.container, new_sample_data["container"])
         self.assertEqual(new_sample.coordinates, self.coord_A04.name)
         self.assertEqual(new_sample.concentration, self.samples[0].concentration)
+        self.assertEqual(new_sample.fragment_size, self.samples[0].fragment_size)
         for derived_sample in new_sample.derived_samples.all():
             self.assertIn(derived_sample, self.samples[0].derived_samples.all())
             self.assertEqual(volume_ratios[derived_sample.id], DerivedBySample.objects.get(sample=new_sample, derived_sample=derived_sample).volume_ratio)
@@ -252,7 +259,8 @@ class SampleServicesTestCase(TestCase):
                                                  individual=self.TEST_SAMPLES[0]["individual"],
                                                  sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                                  library=self.TEST_SAMPLES[0]["library"],
-                                                 project=self.TEST_SAMPLES[0]["project"])
+                                                 project=self.TEST_SAMPLES[0]["project"],
+                                                 fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol_name = "Transfer"
         protocol_obj = Protocol.objects.get(name=protocol_name)
@@ -267,6 +275,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(source_sample.volume, self.TEST_SAMPLES[0]["volume"]-100)
         self.assertEqual(new_sample.volume, 400)
         self.assertEqual(new_sample.concentration, self.TEST_SAMPLES[0]["concentration"])
+        self.assertEqual(new_sample.fragment_size, self.TEST_SAMPLES[0]["fragment_size"])
         container_sample, _, _ = get_sample_from_container(self.test_containers[0].barcode, "A06")
         self.assertEqual(new_sample, container_sample)
         for derived_sample in new_sample.derived_samples.all():
@@ -289,8 +298,7 @@ class SampleServicesTestCase(TestCase):
                                                  coordinates=self.TEST_SAMPLES[1]["coordinates"],
                                                  individual=self.TEST_SAMPLES[1]["individual"],
                                                  sample_kind=self.TEST_SAMPLES[1]["sample_kind"],
-                                                 project=self.TEST_SAMPLES[1]["project"]
-                                                 )
+                                                 project=self.TEST_SAMPLES[1]["project"],)
         EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol_name = "Extraction"
         protocol_obj = Protocol.objects.get(name=protocol_name)
@@ -310,6 +318,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(extracted_sample.volume, 200)
         self.assertEqual(extracted_sample.concentration, 10)
         self.assertTrue(source_sample.depleted)
+        self.assertIsNone(extracted_sample.fragment_size)
         self.assertFalse(extracted_sample.depleted)
         self.assertEqual(extracted_sample.derived_samples.first().sample_kind, self.sample_kind_dna)
         self.assertEqual(extracted_sample.derived_samples.first().tissue_source, source_sample.derived_samples.first().sample_kind)
@@ -357,6 +366,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(pool.name, POOL_NAME)
         self.assertEqual(pool.volume, Decimal("40"))
         self.assertIsNone(pool.concentration)
+        self.assertIsNone(pool.fragment_size)
         self.assertIn(self.samples[0], [sample for sample in pool.parents.all()])
         self.assertIn(self.samples[1], [sample for sample in pool.parents.all()])
         self.assertEqual(pool.container, self.test_containers[2])
@@ -393,7 +403,7 @@ class SampleServicesTestCase(TestCase):
                                                  coordinates=self.TEST_SAMPLES[2]["coordinates"],
                                                  individual=self.TEST_SAMPLES[2]["individual"],
                                                  sample_kind=self.TEST_SAMPLES[2]["sample_kind"],
-                                                 project=self.TEST_SAMPLES[2]["project"])
+                                                 project=self.TEST_SAMPLES[2]["project"],)
         EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol_name = "Library Preparation"
         protocol_obj = Protocol.objects.get(name=protocol_name)
@@ -412,6 +422,7 @@ class SampleServicesTestCase(TestCase):
                                                              comment="Preparing library")
         self.assertEqual(source_sample.volume, self.TEST_SAMPLES[2]["volume"]-100)
         self.assertEqual(prepared_library.volume, 150)
+        self.assertIsNone(prepared_library.fragment_size)
         self.assertEqual(prepared_library.derived_samples.first().sample_kind, self.sample_kind_dna)
         self.assertEqual(prepared_library.derived_samples.first().library, self.test_libraries[3])
         container_sample, _, _ = get_sample_from_container(self.test_containers[0].barcode, "A11")
@@ -447,6 +458,7 @@ class SampleServicesTestCase(TestCase):
             coordinate_id=self.coord_B02.id,
             creation_date=EXECUTION_DATE,
             concentration=None,
+            fragment_size=None,
             volume=150,
             depleted=False,
             # Reset QC flags
@@ -474,6 +486,7 @@ class SampleServicesTestCase(TestCase):
                                                              comment="Internal function test")
         self.assertEqual(source_sample.volume, self.TEST_SAMPLES[2]["volume"])
         self.assertEqual(processed_sample.volume, 150)
+        self.assertIsNone(processed_sample.fragment_size)
         self.assertEqual(processed_sample.derived_samples.first().sample_kind, self.sample_kind_dna)
         self.assertEqual(processed_sample.derived_samples.first().library, self.test_libraries[3])
         container_sample, _, _ = get_sample_from_container(self.test_containers[0].barcode, "B02")
@@ -500,7 +513,8 @@ class SampleServicesTestCase(TestCase):
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                               library=self.TEST_SAMPLES[0]["library"],
-                                              project=self.TEST_SAMPLES[0]["project"])
+                                              project=self.TEST_SAMPLES[0]["project"],
+                                              fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         updated_sample, errors, warnings = update_qc_flags(sample=new_sample,
                                                            quantity_flag="Passed",
                                                            quality_flag="Failed")
@@ -521,7 +535,8 @@ class SampleServicesTestCase(TestCase):
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                               library=self.TEST_SAMPLES[0]["library"],
-                                              project=self.TEST_SAMPLES[0]["project"])
+                                              project=self.TEST_SAMPLES[0]["project"],
+                                              fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         updated_sample, _, _ = update_qc_flags(sample=new_sample,
                                                quantity_flag="Passed",
                                                quality_flag="Failed")
@@ -545,7 +560,8 @@ class SampleServicesTestCase(TestCase):
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                               library=self.TEST_SAMPLES[0]["library"],
-                                              project=self.TEST_SAMPLES[0]["project"])
+                                              project=self.TEST_SAMPLES[0]["project"],
+                                              fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         metadata = {
           "TestField1": "I am a potato.",
           "TestField2": "You are a tomato.",
@@ -569,7 +585,8 @@ class SampleServicesTestCase(TestCase):
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                               library=self.TEST_SAMPLES[0]["library"],
-                                              project=self.TEST_SAMPLES[0]["project"])
+                                              project=self.TEST_SAMPLES[0]["project"],
+                                              fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         metadata = {
           "TestField__Invalid": "You are a tomato.",
         }
@@ -588,7 +605,8 @@ class SampleServicesTestCase(TestCase):
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                               library=self.TEST_SAMPLES[0]["library"],
-                                              project=self.TEST_SAMPLES[0]["project"])
+                                              project=self.TEST_SAMPLES[0]["project"],
+                                              fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         metadata = {
           "TestField1": "I am a potato.",
           "TestField2": "You are a tomato.",
@@ -621,7 +639,8 @@ class SampleServicesTestCase(TestCase):
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
                                               library=self.TEST_SAMPLES[0]["library"],
-                                              project=self.TEST_SAMPLES[0]["project"])
+                                              project=self.TEST_SAMPLES[0]["project"],
+                                              fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         metadata = {
           "TestField1": "I am a potato.",
           "TestField2": "You are a tomato.",
@@ -682,6 +701,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(pool.name, POOL_NAME)
         self.assertEqual(pool.volume, Decimal("40"))
         self.assertIsNone(pool.concentration)
+        self.assertIsNone(pool.fragment_size)
         self.assertEqual(pool.container, self.test_containers[2])
         self.assertIsNone(pool.coordinates)
         self.assertEqual(pool.creation_date, EXECUTION_DATE)
