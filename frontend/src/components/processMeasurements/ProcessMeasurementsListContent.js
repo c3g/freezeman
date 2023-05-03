@@ -11,7 +11,7 @@ import ExportButton from "../ExportButton";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processMeasurements/actions";
-import {actionDropdown} from "../../utils/templateActions";
+import {ActionDropdown} from "../../utils/templateActions";
 import {withSample} from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
@@ -140,7 +140,7 @@ const ProcessMeasurementsListContent = ({
 
   return <>
     <AppPageHeader title="Protocols" extra={[
-      actionDropdown("/process-measurements", actions),
+      <ActionDropdown key='actions' urlBase={"/process-measurements"} actions={actions}/>,
       <ExportButton key='export' exportFunction={listExport} filename="processes"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
