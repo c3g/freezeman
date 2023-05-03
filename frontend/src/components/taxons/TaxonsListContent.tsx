@@ -1,23 +1,49 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Taxon } from '../../models/frontend_models'
-import PageContainer from '../PageContainer'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
+import AddButton from '../AddButton'
+import { Table } from 'antd'
+import { ObjectWithTaxon, getColumnsForTaxon } from '../shared/DefinitionsTable/TaxonTableColumns'
+import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns'
 
 export interface TaxonsListContentProps {
-	taxons: Taxon[]
+	taxons: Taxon[],
+	editTaxon: (taxon: Taxon) => void
 }
 
-function TaxonsListContent({taxons} : TaxonsListContentProps) {
+function TaxonsListContent({ taxons }: TaxonsListContentProps) {
+	const [taxonColumns, setTaxonColumnss] = useState<ObjectWithTaxon[]>();
+	const columns: IdentifiedTableColumnType<ObjectWithTaxon>[] = getColumnsForTaxon()
+
+	useEffect(() => {
+		const tax = (taxons).map((taxon) => {
+			const taxonObject: ObjectWithTaxon = {
+				taxon: {
+					id: taxon.id,
+					name: taxon.name,
+					ncbi_id: taxon.ncbi_id
+				}
+			};
+			return taxonObject;
+		})
+		setTaxonColumnss(tax)
+	}, [taxons])
+
 	return (
-		<PageContainer>
-			<AppPageHeader title='Taxons'/>
+		<>
+			<AppPageHeader title="Taxons" extra={[
+				<AddButton key='add' url="/taxons/add" />,]} />
 			<PageContent>
-				<div>Coming Soon</div>
+				<Table
+					bordered={true}
+					dataSource={taxonColumns}
+					columns={columns}
+					style={{ overflowX: 'auto' }}>
+				</Table>
 			</PageContent>
-		</PageContainer>
-	)
+		</>
+	);
 }
 
 export default TaxonsListContent
-

@@ -34,7 +34,7 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { fetchInitialData, fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
+import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
@@ -150,13 +150,6 @@ const MENU_ITEMS = [
     url: "/users",
     icon: <AuditOutlined />,
     text: "Users",
-  },
-  {
-    text: "Definitions",
-    children: [{
-      url: "/definitions/taxons",
-      text: "Taxons"
-    }]
   },
 ]
 

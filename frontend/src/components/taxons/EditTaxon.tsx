@@ -12,7 +12,7 @@ export interface Taxon {
     ncbi_id: number
     name: string
 }
-interface EditTaxonProps {
+export interface EditTaxonProps {
     taxon: Taxon
 }
 
@@ -55,13 +55,13 @@ const EditTaxon = ({ taxon }: EditTaxonProps) => {
             await dispatch(
                 add({ new_taxon })
             ).then(() => {
-                navigate('/taxonList')
+                navigate('/taxons')
             })
         } else {
             await dispatch(
                 update(new_taxon.id, new_taxon)
             ).then(() => {
-                navigate('/ taxonList')
+                navigate('/taxons')
             })
         }
     }
