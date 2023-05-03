@@ -12,12 +12,12 @@ import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processMeasurements/actions";
 import {ActionDropdown} from "../../utils/templateActions";
-import {withSample} from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
+import { WithSampleRenderComponent} from '../shared/WithItemRenderComponent'
 
 const getTableColumns = (samplesByID, protocols) => [
     {
@@ -53,7 +53,7 @@ const getTableColumns = (samplesByID, protocols) => [
         const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSample(samplesByID, sample, sample => sample.name, "loading...")}
+            <WithSampleRenderComponent objectID={sample} placeholder={"loading..."} render={sample => sample.name}/>
           </Link>)
       }
     },
@@ -65,7 +65,7 @@ const getTableColumns = (samplesByID, protocols) => [
         const sample = processMeasurement.child_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSample(samplesByID, sample, sample => sample.name, "loading...")}
+            <WithSampleRenderComponent objectID={sample} placeholder={"loading..."} render={sample => sample.name}/>
           </Link>)
       }
     },
