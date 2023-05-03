@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(help_text='The readset of the file', on_delete=django.db.models.deletion.PROTECT, related_name='files', to='fms_core.readset'),
         ),
         migrations.AddField(
-            model_name='experimentrun',
+            model_name='dataset',
             name='metric_report_url',
             field=models.CharField(blank=True, help_text='URL to the run processing metrics report.', max_length=4096, null=True),
         ),

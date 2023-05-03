@@ -12,7 +12,7 @@ from .process import Process
 
 from ..containers import RUN_CONTAINER_KINDS
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._validators import name_validator
 from ._utils import add_error as _add_error
 
@@ -45,7 +45,6 @@ class ExperimentRun(TrackedModel):
     run_processing_launch_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing was launched, if it has been launched for the experiment run.")
     run_processing_start_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing actually started for the experiment run.")
     run_processing_end_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing completed for the experiment run.")
-    metric_report_url = models.CharField(null=True, blank=True, max_length=STANDARD_FILE_PATH_LENGTH, help_text="URL to the run processing metrics report.")
 
     def clean(self):
         super().clean()

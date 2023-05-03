@@ -4,7 +4,7 @@ import reversion
 
 from .tracked_model import TrackedModel
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH
 
 @reversion.register()
 class Dataset(TrackedModel):
@@ -12,6 +12,7 @@ class Dataset(TrackedModel):
     external_project_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project id.")
     run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Run name.")
     lane = models.PositiveIntegerField(help_text="Coordinates of the lane in a container")
+    metric_report_url = models.CharField(null=True, blank=True, max_length=STANDARD_FILE_PATH_LENGTH, help_text="URL to the run processing metrics report.")
 
     class Meta:
         constraints = [
