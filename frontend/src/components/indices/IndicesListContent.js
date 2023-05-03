@@ -16,7 +16,7 @@ import api, {withToken}  from "../../utils/api"
 import {withSequence} from "../../utils/withItem";
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/indices/actions";
-import {actionDropdown} from "../../utils/templateActions";
+import {ActionDropdown} from "../../utils/templateActions";
 import {INDEX_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -133,10 +133,10 @@ const IndicesListContent = ({
 
   return <>
     <AppPageHeader title="Indices" extra={[
-      <Button onClick={() => history("/indices/validate")}>
+      <Button key='validate' onClick={() => history("/indices/validate")}>
         <CheckOutlined /> Validate Indices
       </Button>,
-      actionDropdown("/indices", actions),
+      <ActionDropdown key='actions' urlBase={"/indices"} actions={actions}/>,
       <ExportButton key='export' exportFunction={listExport} filename="indices" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

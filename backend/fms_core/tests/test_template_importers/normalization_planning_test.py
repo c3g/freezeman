@@ -53,8 +53,7 @@ class NormalizationplanningTestCase(TestCase):
             libraries[i], _, _ = create_library(index=indices[i],
                                                 library_type=library_type,
                                                 platform=platform_illumina,
-                                                strandedness=DOUBLE_STRANDED,
-                                                library_size=150)
+                                                strandedness=DOUBLE_STRANDED)
 
         containers_info = [
             {'barcode': 'PARENT_RACK_NORM', 'name': 'PARENT_RACK_NORM', 'kind': 'tube rack 8x12', 'location': None, 'coordinates': None,},
@@ -67,18 +66,18 @@ class NormalizationplanningTestCase(TestCase):
         ]
 
         samples_info = [
-            {'name': 'Sample1NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'B01', 'library': None},
-            {'name': 'Sample2NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'B02', 'library': None},
-            {'name': 'Sample3NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'C01', 'library': None},
-            {'name': 'Sample4NormPlanning', 'volume': 100, 'conc.': 60, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A01', 'library': libraries[0]},
-            {'name': 'Sample5NormPlanning', 'volume': 100, 'conc.': 40, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A02', 'library': libraries[1]},
-            {'name': 'Sample6NormPlanning', 'volume': 100, 'conc.': 80, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A03', 'library': libraries[2]},
-            {'name': 'Sample7NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_1', 'coordinates': None, 'library': None},
-            {'name': 'Sample8NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_2', 'coordinates': None, 'library': None},
-            {'name': 'Sample9NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_3', 'coordinates': None, 'library': None},
-            {'name': 'Sample10NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D01', 'library': None},
-            {'name': 'Sample11NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D02', 'library': None},
-            {'name': 'Sample12NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D03', 'library': None},
+            {'name': 'Sample1NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'B01', 'library': None, 'fragment_size': None},
+            {'name': 'Sample2NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'B02', 'library': None, 'fragment_size': None},
+            {'name': 'Sample3NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'C01', 'library': None, 'fragment_size': None},
+            {'name': 'Sample4NormPlanning', 'volume': 100, 'conc.': 60, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A01', 'library': libraries[0], 'fragment_size': 150},
+            {'name': 'Sample5NormPlanning', 'volume': 100, 'conc.': 40, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A02', 'library': libraries[1], 'fragment_size': 150},
+            {'name': 'Sample6NormPlanning', 'volume': 100, 'conc.': 80, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A03', 'library': libraries[2], 'fragment_size': 150},
+            {'name': 'Sample7NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_1', 'coordinates': None, 'library': None, 'fragment_size': None},
+            {'name': 'Sample8NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_2', 'coordinates': None, 'library': None, 'fragment_size': None},
+            {'name': 'Sample9NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_3', 'coordinates': None, 'library': None, 'fragment_size': None},
+            {'name': 'Sample10NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D01', 'library': None, 'fragment_size': None},
+            {'name': 'Sample11NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D02', 'library': None, 'fragment_size': None},
+            {'name': 'Sample12NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D03', 'library': None, 'fragment_size': None},
         ]
 
         for info in containers_info:
@@ -96,7 +95,8 @@ class NormalizationplanningTestCase(TestCase):
                                               container=container,
                                               coordinates=info['coordinates'],
                                               sample_kind=sample_kind_DNA,
-                                              library=info['library'])
+                                              library=info['library'],
+                                              fragment_size=info['fragment_size'])
 
     def test_import(self):
         for file in self.files:

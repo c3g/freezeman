@@ -4,7 +4,7 @@ import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
 import { selectStudySettingsByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
-import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "./cache"
+import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models"
 
 
@@ -175,7 +175,8 @@ export async function buildStudySamplesFromWorkflow(
 				processMeasurementID: stepHistory.process_measurement,
 				executionDate: processMeasurement?.execution_date,
 				executedBy: user?.username,
-				comment: processMeasurement?.comment
+				comment: processMeasurement?.comment,
+				removedFromWorkflow: stepHistory.workflow_action === 'DEQUEUE_SAMPLE'
 			}
 			step.completed.push(completedSample)
 		}

@@ -3,6 +3,8 @@ import React from 'react'
 import { Workflow } from '../../models/frontend_models'
 import { createStructuredWorkflows } from './StructuredWorkflows'
 import './WorkflowCollapsableList.scss'
+import { TableRowSelection } from 'antd/lib/table/interface'
+
 const { Text } = Typography
 
 interface WorkflowCollapsableListProps {
@@ -12,6 +14,7 @@ interface WorkflowCollapsableListProps {
 }
 
 const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: WorkflowCollapsableListProps) => {
+
 	const structuredWorkflows = createStructuredWorkflows(workflows)
 
 	function workflowWasSelected(workflow?: Workflow) {
@@ -67,23 +70,30 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 			},
 		]
 
-		const selectedRowKeys: number[] = []
-		if (selectedWorkflow) {
-			selectedRowKeys.push(selectedWorkflow.id)
-		}
+		// Workflows are selectable if an onChange callback is provided, in which
+		// case the table displays selection radio controls.
+		let rowSelection: TableRowSelection<any> | undefined
+		if (onChange) {
+			const selectedRowKeys: number[] = []
+			if (selectedWorkflow) {
+				selectedRowKeys.push(selectedWorkflow.id)
+			}
 
+			rowSelection = {
+				type: 'radio',
+				selectedRowKeys,
+				onChange: (_, selectedRows: Workflow[]) => {
+					const selectedWorkflow = selectedRows[0] ?? undefined
+					workflowWasSelected(selectedWorkflow)
+				},
+			}
+		}
+		
 		return (
 			<Table
 				dataSource={keyedWorkflows}
 				showHeader={false}
-				rowSelection={{
-					type: 'radio',
-					selectedRowKeys,
-					onChange: (_, selectedRows: Workflow[]) => {
-						const selectedWorkflow = selectedRows[0] ?? undefined
-						workflowWasSelected(selectedWorkflow)
-					},
-				}}
+				rowSelection={rowSelection}
 				columns={columns}
 				pagination={false}
 				size="small"
@@ -98,7 +108,7 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 
 			const table = createWorkflowTable(workflows)
 			panels.push(
-				<Collapse.Panel header={structureName} key={structureName}>
+				<Collapse.Panel header={<Text strong>{structureName}</Text>} key={structureName} style={{backgroundColor: '#f0f0f0'}}>
 					{table}
 				</Collapse.Panel>
 			)

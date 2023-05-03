@@ -74,16 +74,13 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         # library size
         library_size = measures['library_size']
-        # If it is a pool of libraries that was previously QC'cd then we skip the updating (if none of the libraries have library size it was not QC'ed)
-        if not source_sample_obj.is_pool or all([derived_sample.library and derived_sample.library.library_size is None for derived_sample in source_sample_obj.derived_samples.all()]):
-            if library_size is None:
-                self.errors['library_size'] = 'Library size must be specified'
-            else:
-                # Set the library size on the library
-                # Send all the derived samples related to the sample source
-                for derived_sample in source_sample_obj.derived_samples.all():
-                    _, self.errors['library-size'], self.warnings['library-size'] = \
-                        update_library(derived_sample, **{'library_size': library_size})
+        
+        if library_size is None:
+            self.errors['library_size'] = 'Library size must be specified'
+        else:
+            # update sample library size before calculating concentration (uses the new value)
+            _, self.errors['library_size'], self.warnings['library_size'] = update_sample(sample_to_update=source_sample_obj,
+                                                                                          fragment_size=library_size)
 
         # concentration
         if measures['concentration_nm'] is None and measures['concentration_uL'] is None:
@@ -131,15 +128,13 @@ class LibraryQCRowHandler(GenericRowHandler):
             return
 
         # update the sample volume and concentration
-        _, self.errors['sample_update'], self.warnings['sample_update'] = \
-            update_sample(sample_to_update=source_sample_obj,
-                            volume=final_volume,
-                            concentration=concentration)
+        _, self.errors['sample_update'], self.warnings['sample_update'] = update_sample(sample_to_update=source_sample_obj,
+                                                                                        volume=final_volume,
+                                                                                        concentration=concentration)
 
-        _, self.errors['flags'], self.warnings['flags'] = \
-            update_qc_flags(sample=source_sample_obj,
-                            quantity_flag=measures['quantity_flag'],
-                            quality_flag=measures['quality_flag'])
+        _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=source_sample_obj,
+                                                                          quantity_flag=measures['quantity_flag'],
+                                                                          quality_flag=measures['quality_flag'])
             
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \

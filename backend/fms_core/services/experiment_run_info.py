@@ -21,6 +21,7 @@ from fms_core.models import (
     SampleLineage,
 )
 
+from fms_core.services.sample_lineage import get_library_size_for_derived_sample
 
 # Obj_Id = Optional[int]
 Obj_Id = Optional[int]
@@ -54,7 +55,7 @@ class RunInfoSample:
     ncbi_taxon_id: Optional[int] = None
     taxon_name: Optional[str] = None
     reference_genome: Optional[str] = None
-    
+
     # library fields
     library_type: Optional[str] = None
     library_size: Optional[float] = None
@@ -72,7 +73,7 @@ class RunInfoSample:
 
     #ChIP-Seq
     chip_seq_mark: Optional[str] = None
-    
+
 
 @dataclass
 class RunInfo:
@@ -148,7 +149,7 @@ def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSam
         A list of RunInfoSample objects for all of the samples in the experiment run.
     '''
     generated_rows: List[RunInfoSample] = []
-   
+
     # Get the samples contained in the experiment run container (normally
     # a flow cell with 2 or 4 lanes).
     samples = Sample.objects.filter(container=experiment_run.container)
@@ -175,7 +176,7 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
         A list of RunInfoSample objects for the derived samples in the pool.
     '''
     run_info_samples: List[RunInfoSample] = []
-    
+
     derived_samples: Iterable[DerivedSample] = pool.derived_samples.all()
     for derived_sample in derived_samples:
         run_info_sample = _generate_sample(experiment_run, pool, derived_sample)
@@ -216,7 +217,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     project: Optional[Project] = derived_sample.project
     if project is None:
         raise Exception(f'Sample {sample.pk} has no project.')
-    
+
     row.project_obj_id = project.id
     row.project_name = project.name
     row.hercules_project_id = project.external_id
@@ -230,7 +231,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         raise Exception(f'Cannot convert coord {sample.coordinates} to lane number. No ContainerSpec found for container kind "{sample.container.kind}".')
 
     row.lane = convert_alpha_digit_coord_to_ordinal(sample.coordinates, container_spec.coordinate_spec)
-    
+
     # INDIVIDUAL
     if biosample.individual is not None:
         individual: Individual = biosample.individual
@@ -239,7 +240,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         if individual.taxon is not None:
             row.ncbi_taxon_id = individual.taxon.ncbi_id
             row.taxon_name = individual.taxon.name
-        
+
         if individual.reference_genome is not None:
             row.reference_genome = individual.reference_genome.assembly_name
 
@@ -247,9 +248,9 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     if derived_sample.library is not None:
         library: Library = derived_sample.library
         index: Index = library.index
-        
+
         row.library_type = library.library_type.name
-        row.library_size = int(library.library_size) if library.library_size is not None else None 
+        row.library_size = get_library_size_for_derived_sample(derived_sample.id)
 
         row.index_obj_id = index.pk
         row.index_name = index.name
@@ -298,7 +299,7 @@ def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
     Returns:
         A Library Preparation process, or None.
     '''
-    
+
     library_prep: Optional[ProcessMeasurement] = None
     library_to_find : Library = library
 
@@ -325,7 +326,7 @@ def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
                 library_to_find = Library.objects.get(derived_sample__samples=capture_lineage.parent, derived_sample__biosample=library.derived_sample.biosample)
             except Library.DoesNotExist:
                 raise Exception(f'Cannot find library sample prior to capture. Library ID: {library.pk}')
-            
+  
     # Find the library preparation process measurement
     try: 
         lineage: SampleLineage = SampleLineage.objects.get(
@@ -373,7 +374,7 @@ def _get_capture_details(library: Library) -> Dict[str, Optional[str]]:
             baits = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Baits Used').value
         except PropertyValue.DoesNotExist:
             pass
-       
+
     return dict(capture_kit=kit, capture_baits=baits)
 
 

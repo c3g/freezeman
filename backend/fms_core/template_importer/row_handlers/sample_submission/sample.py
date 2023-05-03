@@ -111,7 +111,7 @@ class SampleRowHandler(GenericRowHandler):
 
         # Library are submitted
         library_obj = None
-        is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness'], library['library_size']])
+        is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness']])
         if is_library:
             # Create library objects
             library_type_obj, self.errors['library_type'], self.warnings['library_type'] = get_library_type(library['library_type'])
@@ -128,7 +128,6 @@ class SampleRowHandler(GenericRowHandler):
                                                                                            index=index_obj,
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'],
-                                                                                           library_size=library['library_size'],
                                                                                            library_selection=library_selection_obj)
 
         # Project related section
@@ -191,9 +190,9 @@ class SampleRowHandler(GenericRowHandler):
                     self.errors['queue_to_study'].extend(queue_errors)
                     self.warnings['queue_to_study'].extend(queue_warnings)
 
-        # If this sample belongs to a pool but the library obj was not created or sizeless raise an error
-        elif library['pool_name'] and (not library_obj or library_obj.library_size is None):
-            self.errors['pooling'] = [f"A valid library with a measured library size is necessary to pool this sample."]
+        # If this sample belongs to a pool but the library obj was not created
+        elif library['pool_name'] and not library_obj:
+            self.errors['pooling'] = [f"A valid library is necessary to pool this sample."]
         # for pools
         else:
             sample['alias'] = sample['alias'] or sample['name']

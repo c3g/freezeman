@@ -194,7 +194,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
       ("Library", "Library Source Container Barcode", "container__barcode", "container_barcode"),
       ("Library", "Library Source Container Coordinates", "coordinate__name", "coordinates"),
       ("Library", "Library Source Concentration (ng/uL)", "concentration", "concentration"),
-      ("Library", "Library Size (bp)", "derived_samples__library__library_size", "library_size"),
+      ("Library", "Library Size (bp)", "fragment_size", "library_size"),
 
   ],
 }
@@ -358,19 +358,19 @@ SAMPLE_POOLING_TEMPLATE = {
       ("LabInput", "Plate Barcode (Library)", "container__barcode", "container_barcode"),
       ("LabInput", "Well Coord", "coordinate__name", "coordinates"),
       ("LabInput", "Concentration (qPCR in nM)", None, "concentration_as_nm"),
-      ("LabInput", "Library Size (bp)", None, "library_size"),],
+      ("LabInput", "Library Size (bp)", "fragment_size", "library_size"),],
 
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_1_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_2_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
           'headers': ['Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
                       'Location Barcode', 'Container Coord', 'Project', 'Study', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Reference Genome', 'Volume (uL)', 'Conc. (ng/uL)',
-                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
+                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness',
                       'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Comment'],
           'stitch_column': 'Pool Name',
           'batch': False,

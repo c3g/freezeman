@@ -67,15 +67,3 @@ class LibraryTest(TestCase):
             except ValidationError as e:
                 self.assertTrue("strandedness" in e.message_dict)
                 raise e
-
-    def test_library_with_negative_library_size(self):
-        with self.assertRaises(ValidationError):
-            try:
-                library_with_negative_library_size = Library.objects.create(library_type=self.library_type,
-                                                                            platform=self.platform,
-                                                                            index=self.index,
-                                                                            strandedness=self.strandedness,
-                                                                            library_size=-1,)
-            except ValidationError as e:
-                self.assertTrue("library_size" in e.message_dict)
-                raise e

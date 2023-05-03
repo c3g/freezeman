@@ -1,6 +1,6 @@
 import {
   AuditOutlined, BarcodeOutlined, DashboardOutlined,
-  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SyncOutlined, TableOutlined,
+  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SettingOutlined, SyncOutlined, TableOutlined,
   TeamOutlined,
   UserOutlined
 } from "@ant-design/icons";
@@ -39,6 +39,9 @@ import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
+import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
+import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
+import TaxonsRoute from "./taxons/TaxonsRoute";
  
 
 const { Title } = Typography;
@@ -112,14 +115,36 @@ const MENU_ITEMS = [
     text: "Experiments",
   },
   {
-    url: "/indices",
-    icon: <BarcodeOutlined />,
-    text: "Indices",
-  },
-  {
     url: "/datasets",
     icon: <FileZipOutlined />,
     text: "Datasets",
+  },
+  {
+    icon: <SettingOutlined/>,
+    text: "Definitions",
+    key: "definitions",
+    children: [
+      {
+        url: "/indices",
+        icon: <BarcodeOutlined />,
+        text: "Indices", 
+      },
+      {
+        url: "/taxons",
+        icon: <BarcodeOutlined />,
+        text: "Taxons", 
+      },
+      {
+        url: "/genomes",
+        icon: <BarcodeOutlined />,
+        text: "Reference Genomes", 
+      },
+      {
+        url: "/workflows",
+        icon: <BarcodeOutlined />,
+        text: "Workflows", 
+      }
+    ]
   },
   {
     url: "/users",
@@ -225,6 +250,7 @@ const App = ({userID, usersByID, logOut, get}) => {
                 mode="inline"
                 selectedKeys={matchingMenuKeys(MENU_ITEMS)}
                 style={{flex: 1}}
+                defaultOpenKeys={['definitions']} // Submenus should be open by default
               >
                   {MENU_ITEMS.map(renderMenuItem)}
               </Menu>
@@ -315,6 +341,21 @@ const App = ({userID, usersByID, logOut, get}) => {
             <Route path="/datasets/*" element={
               <PrivateNavigate>
                 <DatasetsPage/>
+              </PrivateNavigate>
+            }/>
+            <Route path="/workflows/*" element={
+              <PrivateNavigate>
+                <WorkflowDefinitionsRoute/>
+              </PrivateNavigate>
+            }/>
+            <Route path="/taxons/*" element={
+              <PrivateNavigate>
+                <TaxonsRoute/>
+              </PrivateNavigate>
+            }/>
+            <Route path="/genomes/*" element={
+              <PrivateNavigate>
+                <ReferenceGenomesRoute/>
               </PrivateNavigate>
             }/>
             <Route path="*" element={<Navigate to="/dashboard" replace />}/>

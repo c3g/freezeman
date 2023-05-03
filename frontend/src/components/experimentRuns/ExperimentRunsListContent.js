@@ -16,7 +16,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
-import {actionDropdown} from "../../utils/templateActions";
+import {ActionDropdown} from "../../utils/templateActions";
 import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard"
 
 
@@ -142,7 +142,7 @@ const ExperimentRunsListContent = ({
 
   return <>
     <AppPageHeader title="Experiments" extra={[
-        actionDropdown("/experiment-runs", actions),
+        <ActionDropdown key='actions' urlBase={"/experiment-runs"} actions={actions}/>,
         <ExportButton key='export' exportFunction={listExport} filename="experiments"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
