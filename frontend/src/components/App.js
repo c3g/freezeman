@@ -14,7 +14,6 @@ import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
 import IndicesPage from "./indices/IndicesPage";
-import TaxonList from "./definitions/TaxonList";
 import IndividualsPage from "./individuals/IndividualsPage";
 import JumpBar from "./JumpBar";
 import LibrariesPage from "./libraries/LibrariesPage";
@@ -323,11 +322,6 @@ const App = ({ userID, usersByID, logOut, get }) => {
             <Route path="/datasets/*" element={
               <PrivateNavigate>
                 <DatasetsPage />
-              </PrivateNavigate>
-            } />
-            <Route path="/definitions/taxons" element={
-              <PrivateNavigate>
-                <TaxonList></TaxonList>
               </PrivateNavigate>
             } />
 

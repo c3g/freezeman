@@ -1,8 +1,9 @@
 from django.db.models import Q
-
+from django.core.exceptions import ValidationError
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from fms_core.models import Taxon
 from fms_core.serializers import TaxonSerializer
@@ -18,6 +19,29 @@ class TaxonViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_taxon_filterset_fields,
     }
+
+
+    def create(self, request, *args, **kwargs):
+        taxon_data = request.data
+        taxon, errors_service, _ = Taxon.objects.create(ncbi_id = taxon_data["ncbi_id"], name = taxon_data["name"])
+        serializer = TaxonSerializer(taxon)
+        return Response(serializer.data)
+    
+    def update(self, request, *args, **kwargs):
+        taxon_data = request.data
+        try:
+            taxon_to_update = Taxon.objects.select_for_update().get(pk=taxon_data.id)
+            taxon_to_update.__dict__.update(taxon_data)
+        except Exception as err:
+            raise ValidationError(dict(non_field_errors=err))
+        
+        try:
+            taxon_to_update.save()
+        except Exception as err:
+            raise ValidationError(err)
+        #to-do find return type
+        serializer = TaxonSerializer(taxon_to_update)
+        return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def search(self, _request):

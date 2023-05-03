@@ -261,6 +261,7 @@ const api = {
 
   taxons: {
     get: taxonId => get(`/taxons/${taxonId}/`),
+    add: taxon => post("/taxons/", taxon),
     list: (options, abort) => get("/taxons/", options, { abort }),
     search: q => get("/taxons/search/", { q }),
   },

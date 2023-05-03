@@ -1,5 +1,6 @@
 import React from "react"
 import { IdentifiedTableColumnType } from "../WorkflowSamplesTable/SampleTableColumns"
+import { Link } from "react-router-dom"
 
 export interface Taxon {
     id: number,
@@ -34,7 +35,9 @@ export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
         dataIndex: ['taxon', 'id'],
         render: (_, { taxon }) =>
             taxon && (
-                <div>{taxon.id}</div>
+                <Link to={`/taxon/id/${taxon.id}`}>
+                    <div>{taxon.id}</div>
+                </Link>
             ),
     },
     [TaxonColumnID.NCBI_ID]: {
@@ -43,7 +46,9 @@ export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
         dataIndex: ['taxon', 'ncbi_id'],
         render: (_, { taxon }) =>
             taxon && (
-                <div>{taxon.ncbi_id}</div>
+                <Link to={`/taxon/NCBI_ID/${taxon.ncbi_id}`}>
+                    <div>{taxon.ncbi_id}</div>
+                </Link>
             ),
     },
     [TaxonColumnID.NAME]: {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppSelector } from '../../hooks';
 import { selectTaxonsByID } from '../../selectors';
 import { Table } from 'antd';
@@ -6,7 +6,8 @@ import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/Sample
 import { ObjectWithTaxon, getColumnsForTaxon } from '../shared/DefinitionsTable/TaxonTableColumns';
 import AppPageHeader from '../AppPageHeader';
 import AddButton from '../AddButton';
-const DefinitionPage = () => {
+import PageContent from '../PageContent';
+const TaxonList = () => {
 
     const [taxons, setTaxons] = useState<ObjectWithTaxon[]>();
     const taxonsByID = useAppSelector(selectTaxonsByID)
@@ -30,11 +31,14 @@ const DefinitionPage = () => {
         <>
             <AppPageHeader title="Taxons" extra={[
                 <AddButton key='add' url="/taxons/add" />,]} />
-            <Table
-                dataSource={taxons}
-                columns={columns}>
-            </Table>
+            <PageContent>
+                <Table
+                    dataSource={taxons}
+                    columns={columns}
+                    style={{overflowX: 'auto'}}>
+                </Table>
+            </PageContent>
         </>
     );
 }
-export default DefinitionPage
+export default TaxonList
