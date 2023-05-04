@@ -1,6 +1,6 @@
 import React from "react";
 import { FILTER_TYPE } from "../../constants";
-import { FilterDescription, FilterSet, FilterValue, RangeFilterValue } from "../../models/paged_items";
+import { FilterDescription, FilterOption, FilterSet, FilterValue, RangeFilterValue, StringArrayFilterValue } from "../../models/paged_items";
 
 interface FiltersInfosProps {
     filters: FilterSet
@@ -20,15 +20,17 @@ const FiltersInfos = ({ filters }: FiltersInfosProps) => {
                     }
                 </>
             );
-            const valuesArray = [filterValue]
+            const valuesArray: FilterValue[] = [filterValue]
             let labels: any = [];
             let value = ""
             switch (description.type) {
                 case FILTER_TYPE.SELECT: {
-                    labels = valuesArray.map((val: any) => {
+                    labels = (valuesArray as StringArrayFilterValue[]).map((val: StringArrayFilterValue) => {
                         if (description.options) {
-                            const option = description.options.find((option: { value: any }) => option.value === val)
-                            return option ? option.label : {}
+                            const options = description.options.filter((option: FilterOption) => {
+                                return val.find(value => option.value === value)
+                            })
+                            return options ? options.map((opt: FilterOption) => opt.label) : null
                         } else {
                             return val
                         }
