@@ -57,13 +57,11 @@ class LibraryServicesTestCase(TestCase):
         library_obj, errors, warnings = create_library(library_type=self.library_type_obj,
                                                        index=self.index,
                                                        platform=self.platform_obj,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+                                                       strandedness=DOUBLE_STRANDED)
         self.assertEqual(library_obj.library_type.name, self.library_type_name)
         self.assertEqual(library_obj.index.name, self.index_name)
         self.assertEqual(library_obj.platform.name, self.platform_name)
         self.assertEqual(library_obj.strandedness, DOUBLE_STRANDED)
-        self.assertEqual(library_obj.library_size, 150)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -78,8 +76,7 @@ class LibraryServicesTestCase(TestCase):
         library_obj, errors, warnings = create_library(library_type=self.library_type_obj,
                                                        index=self.index,
                                                        platform=self.platform_obj,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+                                                       strandedness=DOUBLE_STRANDED)
         src_container = Container.objects.create(barcode="TESTBARCODE1",
                                                  name="TestName1",
                                                  kind="tube")
@@ -94,7 +91,8 @@ class LibraryServicesTestCase(TestCase):
                                                  container=src_container,
                                                  sample_kind=kind_dna,
                                                  library=library_obj,
-                                                 concentration=10)
+                                                 concentration=10,
+                                                 fragment_size=150)
         # test
         library_converted, errors, warnings = convert_library(process=process_by_protocol[protocol_obj.id],
                                                               platform=platform_conversion_obj,
@@ -128,8 +126,7 @@ class LibraryServicesTestCase(TestCase):
         library_obj, errors, warnings = create_library(library_type=self.library_type_obj,
                                                        index=self.index,
                                                        platform=self.platform_obj,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+                                                       strandedness=DOUBLE_STRANDED)
         src_container = Container.objects.create(barcode="TESTBARCODE1",
                                                  name="TestName1",
                                                  kind="tube")
@@ -144,7 +141,8 @@ class LibraryServicesTestCase(TestCase):
                                                  container=src_container,
                                                  sample_kind=kind_dna,
                                                  library=library_obj,
-                                                 concentration=10)
+                                                 concentration=10,
+                                                 fragment_size=150)
         # test
         library_captured, errors, warnings = capture_library(process=process_by_protocol[protocol_obj.id],
                                                              library_selection=library_selection_obj,
@@ -172,8 +170,7 @@ class LibraryServicesTestCase(TestCase):
         library_obj, errors, warnings = create_library(library_type=self.library_type_obj,
                                                        index=self.index,
                                                        platform=self.platform_obj,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+                                                       strandedness=DOUBLE_STRANDED)
         src_container = Container.objects.create(barcode="TESTBARCODE1",
                                                  name="TestName1",
                                                  kind="tube")
@@ -185,7 +182,8 @@ class LibraryServicesTestCase(TestCase):
                                                  container=src_container,
                                                  sample_kind=kind_dna,
                                                  library=library_obj,
-                                                 concentration=10)
+                                                 concentration=10,
+                                                 fragment_size=150)
         # update values
         new_library_type_obj, _, _ = get_library_type("PCR-enriched")
         new_platform_obj, _, _ = get_platform(self.convertion_platform_name)
@@ -193,12 +191,10 @@ class LibraryServicesTestCase(TestCase):
         derived_sample, errors, warnings = update_library(derived_sample=sample_source.derived_samples.first(),
                                                           library_type=new_library_type_obj,
                                                           platform=new_platform_obj,
-                                                          strandedness=SINGLE_STRANDED,
-                                                          library_size=100)
+                                                          strandedness=DOUBLE_STRANDED)
         self.assertEqual(derived_sample.library.library_type, new_library_type_obj)
         self.assertEqual(derived_sample.library.platform, new_platform_obj)
-        self.assertEqual(derived_sample.library.strandedness, SINGLE_STRANDED)
-        self.assertEqual(derived_sample.library.library_size, 100)
+        self.assertEqual(derived_sample.library.strandedness, DOUBLE_STRANDED)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -208,8 +204,7 @@ class LibraryServicesTestCase(TestCase):
         library_obj, _, _ = create_library(library_type=self.library_type_obj,
                                                        index=self.index,
                                                        platform=self.platform_obj,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+                                                       strandedness=DOUBLE_STRANDED)
         src_container = Container.objects.create(barcode="TESTBARCODE1",
                                                  name="TestName1",
                                                  kind="tube")
@@ -221,7 +216,8 @@ class LibraryServicesTestCase(TestCase):
                                                  container=src_container,
                                                  sample_kind=kind_dna,
                                                  library=library_obj,
-                                                 concentration=10)
+                                                 concentration=10,
+                                                 fragment_size=150)
         # test
         nm_concentration, errors, warnings = convert_library_concentration_from_ngbyul_to_nm(sample_source, 10)
         self.assertEqual(nm_concentration, Decimal('107.892'))
@@ -234,8 +230,7 @@ class LibraryServicesTestCase(TestCase):
         library_obj, _, _ = create_library(library_type=self.library_type_obj,
                                                        index=self.index,
                                                        platform=self.platform_obj,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+                                                       strandedness=DOUBLE_STRANDED)
         src_container = Container.objects.create(barcode="TESTBARCODE1",
                                                  name="TestName1",
                                                  kind="tube")
@@ -247,7 +242,8 @@ class LibraryServicesTestCase(TestCase):
                                                  container=src_container,
                                                  sample_kind=kind_dna,
                                                  library=library_obj,
-                                                 concentration=10)
+                                                 concentration=10,
+                                                 fragment_size=150)
         # test
         ngbyul_concentration, errors, warnings = convert_library_concentration_from_nm_to_ngbyul(sample_source, 107.892)
         self.assertEqual(ngbyul_concentration, Decimal('10'))

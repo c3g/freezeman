@@ -61,3 +61,11 @@ class SampleTest(TestCase):
         self.assertEqual(Sample.objects.count(), 1)
         self.assertEqual(sample.is_depleted, "yes")
         self.assertEqual(sample.volume, Decimal("0"))
+
+    def test_sample_with_negative_fragment_size(self):
+        with self.assertRaises(ValidationError):
+            try:
+                sample_with_negative_fragment_size = sample = Sample.objects.create(**create_sample(container=self.valid_container, comment="This is a sample.", fragment_size=-1))
+            except ValidationError as e:
+                self.assertTrue("fragment_size" in e.message_dict)
+                raise e

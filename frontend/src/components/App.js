@@ -42,7 +42,7 @@ import LabworkPage from "./labwork/LabworkPage";
 import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
 import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
 import TaxonsRoute from "./taxons/TaxonsRoute";
- 
+
 
 const { Title } = Typography;
 
@@ -120,29 +120,29 @@ const MENU_ITEMS = [
     text: "Datasets",
   },
   {
-    icon: <SettingOutlined/>,
+    icon: <SettingOutlined />,
     text: "Definitions",
     key: "definitions",
     children: [
       {
         url: "/indices",
         icon: <BarcodeOutlined />,
-        text: "Indices", 
+        text: "Indices",
       },
       {
         url: "/taxons",
         icon: <BarcodeOutlined />,
-        text: "Taxons", 
+        text: "Taxons",
       },
       {
         url: "/genomes",
         icon: <BarcodeOutlined />,
-        text: "Reference Genomes", 
+        text: "Reference Genomes",
       },
       {
         url: "/workflows",
         icon: <BarcodeOutlined />,
-        text: "Workflows", 
+        text: "Workflows",
       }
     ]
   },
@@ -223,7 +223,9 @@ const App = ({ userID, usersByID, logOut, get }) => {
             className="App__sidebar"
             breakpoint="md"
             collapsedWidth={80}
-            width={224}
+            // Ant requires a width, so pick one relative to the sidebar font-size. You can use 'auto' but then
+            // the sidebar width changes whenever a submenu is expanded or collapsed.
+            width={'17em'}
             style={{ overflow: 'auto' }}
           >
             <div style={{ display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center' }}>
@@ -258,7 +260,7 @@ const App = ({ userID, usersByID, logOut, get }) => {
                 theme="dark"
                 mode="inline"
                 selectedKeys={matchingMenuKeys(MENU_ITEMS)}
-                style={{flex: 1}}
+                style={{ flex: 1 }}
                 defaultOpenKeys={['definitions']} // Submenus should be open by default
               >
                 {menuItems.map(renderMenuItem)}
@@ -343,23 +345,23 @@ const App = ({ userID, usersByID, logOut, get }) => {
               <PrivateNavigate>
                 <DatasetsPage />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/workflows/*" element={
               <PrivateNavigate>
-                <WorkflowDefinitionsRoute/>
+                <WorkflowDefinitionsRoute />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/taxons/*" element={
               <PrivateNavigate>
-                <TaxonsRoute/>
+                <TaxonsRoute />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/genomes/*" element={
               <PrivateNavigate>
-                <ReferenceGenomesRoute/>
+                <ReferenceGenomesRoute />
               </PrivateNavigate>
-            }/>
-            <Route path="*" element={<Navigate to="/dashboard" replace />}/>
+            } />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout.Content>
       </Layout>

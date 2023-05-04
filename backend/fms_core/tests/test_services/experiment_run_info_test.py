@@ -41,7 +41,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(IndexCreationImporter(), 'Index_creation_v3_7_0.xlsx')
 
-        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_1_0.xlsx')
+        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_2_0.xlsx')
         
         self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_1_0.xlsx')
 
@@ -50,6 +50,10 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_2_0.xlsx')
 
         self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_1_0.xlsx')
+
+        self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0_after_capture.xlsx')
+        
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_2_0_after_capture.xlsx')
 
         # MGI Experiment
         self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_1_0.xlsx')

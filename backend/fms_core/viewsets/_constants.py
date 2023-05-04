@@ -209,6 +209,7 @@ _library_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
     "volume": SCALAR_FILTERS,
     "concentration": SCALAR_FILTERS,
+    "fragment_size": SCALAR_FILTERS,
     "depleted": ["exact"],
     "creation_date": DATE_FILTERS,
     **_prefix_keys("coordinate__", _coordinate_filterset_fields),
@@ -223,7 +224,6 @@ _library_filterset_fields: FiltersetFields = {
     **_prefix_keys("derived_samples__library__library_selection__", _library_selection_filterset_fields),
     **_prefix_keys("derived_samples__library__platform__", _platform_filterset_fields),
     **_prefix_keys("derived_samples__library__index__", _index_filterset_fields),
-    "derived_samples__library__library_size": SCALAR_FILTERS,
 }
 
 _dataset_filterset_fields: FiltersetFields = {
@@ -244,12 +244,12 @@ _dataset_file_filterset_fields: FiltersetFields = {
 
 _pooled_sample_filterset_fields: FiltersetFields = {
     "sample__id": PK_FILTERS,
+    "sample__fragment_size": SCALAR_FILTERS,
     "derived_sample__project__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
     "volume_ratio": SCALAR_FILTERS,
     **_prefix_keys("derived_sample__library__library_type__", _library_type_filterset_fields),
     **_prefix_keys("derived_sample__library__library_selection__", _library_selection_filterset_fields),
-    "derived_sample__library__library_size": SCALAR_FILTERS,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("derived_sample__sample_kind__", _sample_kind_filterset_fields),
     "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,
@@ -289,6 +289,7 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     **_prefix_keys("sample__coordinate__", _coordinate_filterset_fields),
     "sample__volume": SCALAR_FILTERS,
     "sample__concentration": SCALAR_FILTERS,
+    "sample__fragment_size": SCALAR_FILTERS,
     "sample__creation_date": DATE_FILTERS,
     "sample__depleted": ["exact"],
     "sample__derived_samples__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
@@ -296,7 +297,6 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     "sample__derived_samples__library__index__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__derived_samples__library__platform__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__derived_samples__project__name": CATEGORICAL_FILTERS_LOOSE,
-    "sample__derived_samples__library__library_size": SCALAR_FILTERS,
     **_prefix_keys("step__", _step_filterset_fields),
 }
 

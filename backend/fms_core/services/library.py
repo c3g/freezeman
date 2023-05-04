@@ -42,7 +42,7 @@ def get_library_selection(name, target=None):
     return library_selection, errors, warnings
 
 
-def create_library(library_type, index, platform, strandedness, library_size=None, library_selection=None):
+def create_library(library_type, index, platform, strandedness, library_selection=None):
     library = None
     errors = []
     warnings = []
@@ -65,7 +65,6 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
 
     try:
         library = Library.objects.create(library_type=library_type,
-                                         library_size=library_size,
                                          index=index,
                                          platform=platform,
                                          strandedness=strandedness,
@@ -81,7 +80,7 @@ def convert_library(process, platform, sample_source, container_destination, coo
     """
     Creates the internal representation required when doing a single library conversion. The process need to be passed as a parameter.
     The source sample volume is updated with the volume used. A new destination sample is created. The new sample library is a copy
-    of the library from the source sample with QC flags and concentration reset. The new library platform is added to the new sample library.
+    of the library from the source sample with QC flags, concentration and fragment_size reset. The new library platform is added to the new sample library.
     A sample lineage and process measurement are created as well as derived_samples and derived_by_sample.
 
     Args:
@@ -141,7 +140,7 @@ def capture_library(process, library_selection, sample_source, container_destina
     """
     Creates the internal representation required when doing a single library capture. The process need to be passed as a parameter.
     The source sample volume is updated with the volume used. A new destination sample is created. The new sample library is a copy
-    of the library from the source sample with QC flags and concentration reset. The library selection is added to the new sample library.
+    of the library from the source sample with QC flags, concentration and fragment size reset. The library selection is added to the new sample library.
     A sample lineage and process measurement are created as well as derived_samples and derived_by_sample.
 
     Args:
@@ -203,7 +202,7 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
     """
     Creates the internal representation required when changing a part of an existing library. The process need to be passed as a parameter.
     The source sample volume is updated with the volume used. A new destination sample is created. The new sample library is a copy
-    of the library from the source sample with QC flags and concentration reset. The new_library_info provides the new library changes
+    of the library from the source sample with QC flags, concentration and frament_size reset. The new_library_info provides the new library changes
     compared to its parent that are applied. A sample lineage and process measurement are created as well as 
     derived samples and derived by sample.
 
@@ -264,6 +263,7 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
                 creation_date=execution_date,
                 concentration=None,
                 volume=volume_destination,
+                fragment_size=None,
                 depleted=False,
                 # Reset QC flags
                 quantity_flag=None,
@@ -283,7 +283,6 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
                 # Tried to make it genereic with model_to_dict and queryset.values() but the function create_library() takes objects.
                 library_info = {
                     "library_type": library_source_obj.library_type,
-                    "library_size": library_source_obj.library_size,
                     "index": library_source_obj.index,
                     "platform": library_source_obj.platform,
                     "strandedness": library_source_obj.strandedness,
@@ -355,12 +354,6 @@ def update_library(derived_sample, **kwargs):
                 else:
                     errors.append(f'Unexpected value for strandedness ({strandedness})')
 
-            if 'library_size' in kwargs:
-                library_size = kwargs['library_size']
-                if library_size is not None:
-                    library_size = Decimal(kwargs['library_size'])
-                library.library_size = library_size
-
             library.save()
             
         except Exception as e:
@@ -395,11 +388,11 @@ def convert_library_concentration_from_nm_to_ngbyul(source_sample, concentration
             # Compute the size of each library and its volume ratio
             library = derived_sample.library
             volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
-            if library.library_size and library.strandedness:
+            if source_sample.fragment_size and library.strandedness:
                 # Convert the concentration
                 partial_concentration = convert_concentration_from_nm_to_ngbyul(concentration_nm,
                                                                                 library.molecular_weight_approx,
-                                                                                library.library_size)
+                                                                                source_sample.fragment_size)
                 if partial_concentration is None:
                     errors.append(f'Failed to convert the concentration of this library {source_sample.name}.')
                     return None, errors, warnings
@@ -442,9 +435,9 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
             # Compute the size of each library and its volume ratio
             library = derived_sample.library
             volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
-            if library.library_size and library.strandedness:
+            if source_sample.fragment_size and library.strandedness:
                 # Convert the concentration
-                adjusted_factor = (library.library_size * library.molecular_weight_approx * volume_ratio)
+                adjusted_factor = (source_sample.fragment_size * library.molecular_weight_approx * volume_ratio)
                 sum_adjusted_factor += adjusted_factor
             else:
                 errors.append(f'Either library size or strandedness has not been set for this library.')
