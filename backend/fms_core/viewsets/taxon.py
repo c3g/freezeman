@@ -22,26 +22,45 @@ class TaxonViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request, *args, **kwargs):
-        taxon_data = request.data
-        taxon, errors_service, _ = Taxon.objects.create(ncbi_id = taxon_data["ncbi_id"], name = taxon_data["name"])
-        serializer = TaxonSerializer(taxon)
-        return Response(serializer.data)
+        taxon_data = request.data.get("new_taxon")
+        errors = {}
+        errors_to_raise = {}
+        try:
+            taxon = Taxon.objects.create(ncbi_id = taxon_data["ncbi_id"], name = taxon_data["name"])
+            serializer = TaxonSerializer(taxon)
+        except ValidationError as err:
+            errors = { **errors, **err.message_dict }
+        
+        for key, value in errors.items():
+                errors_to_raise[key].append(value)
+    
+        if any(bool(error) for error in errors_to_raise.values()):
+            raise ValidationError(errors)
+        else:
+            return Response(serializer.data)
+    
     
     def update(self, request, *args, **kwargs):
         taxon_data = request.data
+        errors = {}
+        errors_to_raise = {}
+        
         try:
-            taxon_to_update = Taxon.objects.select_for_update().get(pk=taxon_data.id)
+            taxon_to_update = Taxon.objects.select_for_update().get(pk=taxon_data['id'])
             taxon_to_update.__dict__.update(taxon_data)
+            serializer = TaxonSerializer(taxon_to_update)
         except Exception as err:
-            raise ValidationError(dict(non_field_errors=err))
+            errors_to_raise = { **errors, **err.message_dict }
         
         try:
             taxon_to_update.save()
         except Exception as err:
-            raise ValidationError(err)
-        #to-do find return type
-        serializer = TaxonSerializer(taxon_to_update)
-        return Response(serializer.data)
+            errors_to_raise = { **errors, **err.message_dict }
+        
+        if any(bool(error) for error in errors_to_raise.values()):
+            raise ValidationError(errors)
+        else:
+            return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def search(self, _request):

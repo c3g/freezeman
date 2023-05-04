@@ -35,7 +35,7 @@ export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
         dataIndex: ['taxon', 'id'],
         render: (_, { taxon }) =>
             taxon && (
-                <Link to={`/taxon/id/${taxon.id}`}>
+                <Link to={`/taxons/update/${taxon.id}`}>
                     <div>{taxon.id}</div>
                 </Link>
             ),
@@ -46,7 +46,7 @@ export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
         dataIndex: ['taxon', 'ncbi_id'],
         render: (_, { taxon }) =>
             taxon && (
-                <Link to={`/taxon/NCBI_ID/${taxon.ncbi_id}`}>
+                <Link to={`/taxons/update/${taxon.id}`}>
                     <div>{taxon.ncbi_id}</div>
                 </Link>
             ),

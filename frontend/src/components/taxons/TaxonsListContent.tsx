@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react'
-import { Taxon } from '../../models/frontend_models'
+import { Taxon, getAllItems } from '../../models/frontend_models'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import AddButton from '../AddButton'
 import { Table } from 'antd'
 import { ObjectWithTaxon, getColumnsForTaxon } from '../shared/DefinitionsTable/TaxonTableColumns'
 import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns'
+import { useAppSelector } from '../../hooks'
+import { selectTaxonsByID } from '../../selectors'
 
 export interface TaxonsListContentProps {
 	taxons: Taxon[],
-	editTaxon: (taxon: Taxon) => void
 }
 
-function TaxonsListContent({ taxons }: TaxonsListContentProps) {
+function TaxonsListContent() {
+	const taxonsState = useAppSelector(selectTaxonsByID)
+	const taxons: Taxon[] = getAllItems(taxonsState)
 	const [taxonColumns, setTaxonColumnss] = useState<ObjectWithTaxon[]>();
 	const columns: IdentifiedTableColumnType<ObjectWithTaxon>[] = getColumnsForTaxon()
 
@@ -33,7 +36,7 @@ function TaxonsListContent({ taxons }: TaxonsListContentProps) {
 	return (
 		<>
 			<AppPageHeader title="Taxons" extra={[
-				<AddButton key='add' url="/taxons/add" />,]} />
+				<AddButton key='add' url="/taxons/add"/>,]} />
 			<PageContent>
 				<Table
 					bordered={true}

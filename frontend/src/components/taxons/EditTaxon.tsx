@@ -1,15 +1,16 @@
-import { Form, Input } from "antd";
-import React, { useState } from "react";
+import { Button, Form, Input, Space } from "antd";
+import React, { useCallback, useState } from "react";
 import { requiredRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectAppInitialzed, selectTaxonsByID } from "../../selectors";
-import { useNavigate } from "react-router-dom";
-import { useIDParam } from "../../hooks/useIDParams";
+import { useNavigate, useParams } from "react-router-dom";
 import { add, update } from "../../modules/taxons/actions";
+import AppPageHeader from "../AppPageHeader";
+import PageContent from "../PageContent";
 
 export interface Taxon {
-    id: number
-    ncbi_id: number
+    id?: number | null
+    ncbi_id: string
     name: string
 }
 export interface EditTaxonProps {
@@ -17,24 +18,26 @@ export interface EditTaxonProps {
 }
 
 export const AddTaxonRoute = () => {
-    const emptyTaxon = { id: -1, ncbi_id: -1, name: "" }
+    const emptyTaxon = { ncbi_id: "", name: "" }
     const appInitialzed = useAppSelector(selectAppInitialzed)
 
-    return (appInitialzed && <EditTaxon taxon={emptyTaxon} />)
+    return appInitialzed ? <EditTaxon taxon={emptyTaxon} /> : null
+
 }
-export const EditConstRoute = () => {
+export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
-    const taxonID = useIDParam("id");
+    const { id } = useParams();
     const appInitialzed = useAppSelector(selectAppInitialzed)
 
-    return (appInitialzed && <EditTaxon taxon={taxons[taxonID ?? -1]} />)
+    return appInitialzed ? <EditTaxon taxon={taxons[id ?? -1]} /> : null
+
 }
 
 const EditTaxon = ({ taxon }: EditTaxonProps) => {
     const { Item } = Form
     const [formErrors, setFormErrors] = useState({})
     const [form] = Form.useForm()
-    const isAdding = taxon.id === -1
+    const isAdding = taxon.id === undefined
     const navigate = useNavigate();
     const dispatch = useAppDispatch()
 
@@ -45,40 +48,61 @@ const EditTaxon = ({ taxon }: EditTaxonProps) => {
             // validateStatus: "error", 
             help: formErrors[name],
         }
-    const onFinish = async () => {
+    const onFinish = () => {
         const new_taxon: Taxon = taxon;
         const fieldValues = form.getFieldsValue();
-        fieldValues.forEach((fieldName: string) => {
+        Object.keys(fieldValues).forEach((fieldName: string) => {
             new_taxon[fieldName] = fieldValues[fieldName]
         })
         if (isAdding) {
-            await dispatch(
+            dispatch(
                 add({ new_taxon })
-            ).then(() => {
+            )
+            .then(() => {
                 navigate('/taxons')
             })
         } else {
-            await dispatch(
+            dispatch(
                 update(new_taxon.id, new_taxon)
             ).then(() => {
                 navigate('/taxons')
             })
         }
     }
+    const onCancel = useCallback(() => {
+        navigate(-1)
+      }, [navigate])
 
     return (
         <>
-            <Form
-                onFinish={onFinish}
-                form={form}
-                initialValues={taxon}>
-                <Item label={"ncbi_id"} {...props("ncbi_id")} rules={requiredRules}>
-                    <Input />
-                </Item>
-                <Item label={"name"} {...props("name")} rules={requiredRules}>
-                    <Input />
-                </Item>
-            </Form>
+            <AppPageHeader
+                title={isAdding ? "Add" : "Edit"}
+            />
+            <PageContent>
+
+                <Form
+                    labelCol={{ span: 4 }}
+                    wrapperCol={{ span: 14 }}
+                    layout="horizontal"
+                    onFinish={onFinish}
+                    form={form}
+                    initialValues={taxon}>
+                    <Item label={"ncbi_id"} {...props("ncbi_id")} rules={requiredRules}>
+                        <Input />
+                    </Item>
+                    <Item label={"name"} {...props("name")} rules={requiredRules}>
+                        <Input />
+                    </Item>
+                    <Item>
+                        <Space>
+                            <Button type="primary" htmlType="submit">
+                                Submit
+                            </Button>
+                            <Button onClick={onCancel}>Cancel</Button>
+                        </Space>
+                    </Item>
+                </Form>
+            </PageContent>
         </>
     );
 }
