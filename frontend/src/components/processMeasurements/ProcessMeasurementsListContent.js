@@ -19,7 +19,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import { WithSampleRenderComponent} from '../shared/WithItemRenderComponent'
 
-const getTableColumns = (samplesByID, protocols) => [
+const getTableColumns = (protocols) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -94,7 +94,6 @@ const mapStateToProps = state => ({
   totalCount: state.processMeasurements.totalCount,
   isFetching: state.processMeasurements.isFetching,
   filters: state.processMeasurements.filters,
-  samplesByID: state.samples.itemsByID,
   sortBy: state.processMeasurements.sortBy,
 });
 
@@ -110,7 +109,6 @@ const ProcessMeasurementsListContent = ({
   page,
   totalCount,
   filters,
-  samplesByID,
   sortBy,
   listTable,
   setFilter,
@@ -127,7 +125,7 @@ const ProcessMeasurementsListContent = ({
   protocols.items = protocols.items
   .filter(protocol => protocol.child_of?.length === 0)
 
-  const columns = getTableColumns(samplesByID, protocols)
+  const columns = getTableColumns(protocols)
   .map(c => Object.assign(c, getFilterProps(
     c,
     PROCESS_MEASUREMENT_FILTERS,
