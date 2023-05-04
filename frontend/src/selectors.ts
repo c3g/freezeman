@@ -24,6 +24,7 @@ export const selectAppInitialzed = (state: RootState) => state.app.initialized
 export const selectAuthState = (state: RootState) => state.auth
 export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
+export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
@@ -41,6 +42,7 @@ export const selectPropertyValuesByID = (state: RootState) => state.propertyValu
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
+export const selectSampleKindsState = (state: RootState) => state.sampleKinds
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions

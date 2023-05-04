@@ -493,9 +493,9 @@ export const LIBRARY_FILTERS = {
     key: "quantity_ng",
     label: "Qty (ng)",
   },
-  derived_samples__library__library_size: {
+  fragment_size: {
     type: FILTER_TYPE.RANGE,
-    key: "derived_samples__library__library_size",
+    key: "fragment_size",
     label: "Library Size",
   },
   creation_date: {
@@ -640,7 +640,7 @@ export const POOLED_SAMPLES_FILTERS = {
     },
     library_size: {
       type: FILTER_TYPE.RANGE,
-      key: "derived_sample__library__library_size",
+      key: "sample__fragment_size",
       label: "Library Size",
     },
     index: {

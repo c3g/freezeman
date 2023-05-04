@@ -57,7 +57,6 @@ class SampleSubmissionImporter(GenericImporter):
                 'index': str_cast_and_normalize(row_data['Index']),
                 'platform': str_cast_and_normalize(row_data['Platform']),
                 'strandedness': str_cast_and_normalize(row_data['Strandedness']),
-                'library_size': float_to_decimal_and_none(row_data['Library Size (bp)'], 0),
                 'selection_name': str_cast_and_normalize(row_data['Selection']),
                 'selection_target': str_cast_and_normalize(row_data['Selection Target']),
                 'pool_name': pool_name
