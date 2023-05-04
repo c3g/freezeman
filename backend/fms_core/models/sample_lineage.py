@@ -11,8 +11,8 @@ from ._utils import add_error as _add_error
 
 @reversion.register()
 class SampleLineage(TrackedModel):
-    child = models.ForeignKey("Sample", on_delete=models.CASCADE, related_name="child_sample", help_text="Child sample.")
-    parent = models.ForeignKey("Sample", on_delete=models.CASCADE, related_name="parent_sample", help_text="Parent sample.")
+    child = models.ForeignKey("Sample", on_delete=models.PROTECT, related_name="child_sample", help_text="Child sample.")
+    parent = models.ForeignKey("Sample", on_delete=models.PROTECT, related_name="parent_sample", help_text="Parent sample.")
     process_measurement = models.ForeignKey("ProcessMeasurement", on_delete=models.PROTECT, related_name="lineage",
                                             help_text="process used for sample creation.")
 

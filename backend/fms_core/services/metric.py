@@ -1,11 +1,7 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple
 
-from decimal import Decimal
-
-from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.metric import Metric
-from fms_core.models.experiment_run import ExperimentRun
-from fms_core.models.sample_run_metric import SampleRunMetric
+from fms_core.models.readset import Readset
 
 VALUE_TYPE_NUMERIC = "NUMERIC"
 VALUE_TYPE_STRING = "STRING"
@@ -38,38 +34,38 @@ METRICS = {
                   ("aligned_dup_rate", VALUE_TYPE_NUMERIC)]
 }
 
-def create_sample_run_metrics(dataset_file, run_validation_data, experiment_run = None):
+def create_metrics_from_run_validation_data(readset: Readset, run_validation_data: Dict) -> Tuple[List[Metric], List[str], List[str]]:
     """
-    Create the sample run metric for the dataset_file and experiment_run as well as the metrics found in the run_validation_data.
-    The run_validation_data received is the same for all dataset_file of a single derived_sample.
+    Create the metrics for the readset using the run_validation_data received as parameter (taken from run_processing JSON).
 
     Args:
-        `dataset_file`: One of the dataset file related to these metrics.
-        `run_validation_data`: The json data object from which the metrics are extracted.
-        `experiment_run`: Experiment run object. Defaults to None if the run was not launched from Freezeman.
+        `readset`: Readset mathing the metrics.
+        `run_validation_data`: JSON data object from which the metrics are extracted (run_validation_data[metric_group][metric]).
     
     Returns:
-        Tuple with the sample_run_metrics object list created ([] if none were created and None if there was an error), errors and warnings
+        Tuple with a list of metric object created ([] if none were created and None if there was an error), errors and warnings
     """
-    sample_run_metrics = []
+    metrics_obj = []
     errors = []
     warnings = []
 
-    if not isinstance(dataset_file, DatasetFile):
-        errors.append(f"Missing dataset_file. Cannot create sample run metrics.")
+    if not isinstance(readset, Readset):
+        errors.append(f"Missing valid readset. Cannot create metrics.")
+
     if not errors:
         for metric_group, metrics in METRICS.items():
             for metric, value_type in metrics:
                 try:
                     value = run_validation_data[metric_group][metric]
                 except Exception as err:
-                    errors.append(f"Could not find metrics {metric} from metric group {metric_group} for sample {dataset_file.sample_name}.")
+                    errors.append(f"Could not find metrics {metric} from metric group {metric_group} for sample {readset.sample_name}.")
                 if not errors:
                     if value == "null" or value == "N/A":  # Replace string empty values
                         value = None
                     if value_type is VALUE_TYPE_NUMERIC and value is not None:
                         value = str(value).strip(' "')
                     metric_data = dict(
+                        readset=readset,
                         name=metric,
                         metric_group=metric_group,
                         **(dict(value_numeric=value) if value_type is VALUE_TYPE_NUMERIC else dict()),
@@ -78,20 +74,11 @@ def create_sample_run_metrics(dataset_file, run_validation_data, experiment_run 
                     metric_obj = None
                     try:
                         metric_obj = Metric.objects.create(**metric_data)
+                        metrics_obj.append(metric_obj)
                     except Exception as err:
                         errors.append(err)
-
-                    sample_run_metric = None
-                    try:
-                        sample_run_metric = SampleRunMetric.objects.create(dataset_file=dataset_file,
-                                                                           experiment_run=experiment_run,
-                                                                           metric=metric_obj)
-                    except Exception as err:
-                        errors.append(err)
-            
-                    sample_run_metrics.append(sample_run_metric)
 
     if errors:
-        sample_run_metrics = None
+        metrics_obj = None
     
-    return sample_run_metrics, errors, warnings
+    return metrics_obj, errors, warnings

@@ -48,6 +48,8 @@ def create_experiment_run(experiment_run_name,
     errors = []
     warnings = []
 
+    if experiment_run_name is None:
+        errors.append('Run name is required to create an experiment run.')
     if run_type_obj is None:
         errors.append('Run type is required to create an experiment run.')
     if process_properties is None:

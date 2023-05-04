@@ -12,6 +12,7 @@ class Dataset(TrackedModel):
     external_project_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project id.")
     run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Run name.")
     lane = models.PositiveIntegerField(help_text="Coordinates of the lane in a container")
+    experiment_run = models.ForeignKey(blank=True, null=True, help_text='Experiment run matching the dataset.', on_delete=models.PROTECT, related_name='datasets', to='fms_core.experimentrun')
     metric_report_url = models.CharField(null=True, blank=True, max_length=STANDARD_FILE_PATH_LENGTH, help_text="URL to the run processing metrics report.")
 
     class Meta:

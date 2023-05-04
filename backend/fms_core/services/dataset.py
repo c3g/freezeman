@@ -1,27 +1,21 @@
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db.models import Q
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from datetime import datetime, date
-from typing import Any, Dict, List, Optional, Tuple, Union
-from collections import defaultdict
-
+from typing import List, Tuple, Union
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
-from fms_core.models.sample_run_metric import SampleRunMetric
 from fms_core.models._constants import ReleaseStatus, ValidationStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
-from fms_core.services.experiment_run import get_experiment_run
-from fms_core.services.metric import create_sample_run_metrics
-
-from fms_core.utils import blank_str_to_none
+from fms_core.services.readset import create_readset
+from fms_core.services.metric import create_metrics_from_run_validation_data
 
 def create_dataset(external_project_id: str,
                    run_name: str,
                    lane: int,
+                   experiment_run_id: int = None,
                    metric_report_url: str = None,
                    replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
@@ -34,6 +28,7 @@ def create_dataset(external_project_id: str,
         `external_project_id`: Project id from the external system that generate projects.
         `run_name`: Name or id of the experiment run.
         `lane`: Lane (coordinate) on the experiment container.
+        `experiment_run_id`: Experiment run ID, None if not recorded on Freezeman.
         `metric_report_url`: Run processing report URL.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
 
@@ -54,10 +49,14 @@ def create_dataset(external_project_id: str,
             run_name=run_name,
             lane=lane,
         )
-        dataset, created = Dataset.objects.get_or_create(**kwargs, defaults={"metric_report_url": metric_report_url})
+        dataset, created = Dataset.objects.get_or_create(**kwargs,
+                                                         defaults={"experiment_run_id": experiment_run_id,
+                                                                   "metric_report_url": metric_report_url})
         if not created and replace:  # There is already a dataset with this signature but we replace it's content.
             reset_error, _ = reset_dataset_content(dataset)
             errors.extend(reset_error)
+            # update optional content
+            dataset.experiment_run_id = experiment_run_id
             dataset.metric_report_url = metric_report_url
             dataset.save()
         else:  # There is already a dataset with this signature and it is not expected
@@ -73,7 +72,7 @@ def reset_dataset_content(dataset: Dataset):
     """
     When a new run processing json is submitted that match the signature of an existing dataset, the related objects
     to that dataset need to be deleted to be recreated afterward. It means the dataset was regenerated. The function
-    deletes all existing metrics, all sample_run_metrics, all readsets and all dataset_files.
+    deletes all existing metrics, all dataset_files and all readsets.
 
     Args:
         dataset: Dataset object that need to be reset.
@@ -84,32 +83,28 @@ def reset_dataset_content(dataset: Dataset):
     warnings = []
     try:
         for readset in Readset.objects.filter(dataset=dataset).all():
-            for sample_run_metric in SampleRunMetric.objects.filter(readset=readset).all():
-                for metric in sample_run_metric.metrics.all():
-                    metric.delete()
-                sample_run_metric.delete()
-            for dataset_file in DatasetFile.objects.filter(readset=readset).all():
+            for metric in readset.metrics.all():
+                metric.delete()
+            for dataset_file in readset.files.all():
                 dataset_file.delete()
             readset.delete()
     except Exception as err:
-        errors.append(f"Unexpected error while regenerating dataset.")
+        errors.append(str(err))
     return errors, warnings
 
-def create_dataset_file(dataset: Dataset,
+def create_dataset_file(readset: Readset,
                         file_path: str,
-                        sample_name: str,
                         validation_status: ValidationStatus = ValidationStatus.AVAILABLE,
                         release_status: ReleaseStatus = ReleaseStatus.AVAILABLE
-                        ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
+                       ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     """
-    Create a new dataset_file and return it. A dataset must be creted beforehand.
+    Create a new dataset_file and return it. A dataset and readset must be created beforehand.
 
     Args:
-        `dataset`: The dataset to which the file is related.
-        `file_path`: The path to the file on disk.
-        `sample_name`: The name of the sample for which the file was created.
-        `validation_status`: The validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
-        `release_status`: The release status of the file (choices : Available - 0 (default), Released - 1, Blocked - 2).
+        `readset`: Readset to which the file is related.
+        `file_path`: Path to the file on disk.
+        `validation_status`: Validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
+        `release_status`: Release status of the file (choices : Available - 0 (default), Released - 1, Blocked - 2).
 
     Returns:
         Tuple containing the created dataset_file, the error messages and the warning messages.
@@ -117,6 +112,12 @@ def create_dataset_file(dataset: Dataset,
     dataset_file = None
     errors = []
     warnings = []
+
+    if not isinstance(readset, Readset):
+        errors.append(f"Dataset file creation requires a valid readset instance.")
+    
+    if not file_path:
+        errors.append(f"Missing file path for dataset file.")
 
     if release_status not in [value for value, _ in ReleaseStatus.choices]:
         errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
@@ -128,15 +129,12 @@ def create_dataset_file(dataset: Dataset,
         return dataset_file, errors, warnings
 
     try:
-        dataset_file = DatasetFile.objects.create(
-            dataset=dataset,
-            file_path=file_path,
-            sample_name=sample_name,
-            validation_status=validation_status,
-            validation_status_timestamp=timezone.now if validation_status != ValidationStatus.AVAILABLE else None, # Set timestamp if setting Status to non-default
-            release_status=release_status,
-            release_status_timestamp=timezone.now if release_status != ReleaseStatus.AVAILABLE else None, # Set timestamp if setting Status to non-default
-        )
+        dataset_file = DatasetFile.objects.create(readset=readset,
+                                                  file_path=file_path,
+                                                  validation_status=validation_status,
+                                                  validation_status_timestamp=timezone.now if validation_status != ValidationStatus.AVAILABLE else None, # Set timestamp if setting Status to non-default
+                                                  release_status=release_status,
+                                                  release_status_timestamp=timezone.now if release_status != ReleaseStatus.AVAILABLE else None) # Set timestamp if setting Status to non-default
     except ValidationError as e:
         errors.extend(e.messages)
 
@@ -193,7 +191,7 @@ def ingest_run_validation_report(report_json):
     """
     datasets = {}
     dataset_files = []
-    dataset_files_by_readset = defaultdict(list)
+    readset_by_name = {}
     errors = []
     warnings = []
 
@@ -211,48 +209,46 @@ def ingest_run_validation_report(report_json):
 
     run_name = report_json["run"]
     lane = int(report_json["lane"])
-    metric_report_url = report_json["run_metrics_report_url"]
-    for readset_key, readset in report_json["readsets"].items():
+    experiment_run_id = report_json.get("run_obj_id", None)
+    metric_report_url = report_json.get("run_metrics_report_url", None)
+    for readset_name, readset in report_json["readsets"].items():
         external_project_id = readset["barcodes"][0]["PROJECT"]
         dataset_key = (external_project_id, run_name, lane)
         if dataset_key not in datasets:
             dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
                                                        run_name=run_name,
                                                        lane=lane,
+                                                       experiment_run_id=experiment_run_id,
+                                                       metric_report_url=metric_report_url,
                                                        replace=True)
-        if errors:
-            return (datasets, dataset_files, errors, warnings)
-        else:
-            datasets[dataset_key] = dataset
+            if errors:
+                return (datasets, dataset_files, errors, warnings)
+            else:
+                datasets[dataset_key] = dataset
+        else:    
+            dataset = datasets[dataset_key]
 
-        dataset = datasets[dataset_key]
-
+        sample_name = readset["sample_name"]
+        derived_sample_id = readset["derived_sample_obj_id"]
+        readset, errors, warnings = create_readset(dataset, readset_name, sample_name, derived_sample_id)
+        readset_by_name[readset_name] = readset
         for key in readset:
             if key not in ["sample_name", "barcodes"] and readset[key]:
-                dataset_file, newerrors, newwarnings = create_dataset_file(
-                    dataset=dataset,
-                    file_path=readset[key],
-                    sample_name=readset["sample_name"],
-                )
+                dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset,
+                                                                           file_path=readset[key])
                 errors.extend(newerrors)
                 warnings.extend(newwarnings)
 
                 if errors:
                     return (datasets, dataset_files, errors, warnings)
                 else:
-                    dataset_files_by_readset[readset_key].append(dataset_file)
                     dataset_files.append(dataset_file)
 
-    # Get the experiment run object related to the run name
-    experiment_run_obj, newerrors, _ = get_experiment_run(run_name)
-    if experiment_run_obj is not None: # Only capture metrics for run that were started from freezeman
-        experiment_run_obj.metric_report_url = metric_report_url # update the run metrics report URL
-        experiment_run_obj.save()
-        for run_validation in report_json["run_validation"]:
-            for dataset_file in dataset_files_by_readset[run_validation["sample"]]:
-                _, newerrors, newwarnings = create_sample_run_metrics(experiment_run=experiment_run_obj,
-                                                                      run_validation_data=run_validation,)
-                errors.extend(newerrors)
-                warnings.extend(newwarnings)
+    for run_validation in report_json["run_validation"]:
+        readset = readset_by_name[run_validation["sample"]]
+        _, newerrors, newwarnings = create_metrics_from_run_validation_data(readset=readset,
+                                                                            run_validation_data=run_validation)
+        errors.extend(newerrors)
+        warnings.extend(newwarnings)
 
     return (datasets, dataset_files, errors, warnings)

@@ -16,6 +16,14 @@ class DatasetTest(TestCase):
         self.assertEqual(dataset.run_name, "run")
         self.assertEqual(dataset.lane, 1)
 
+    def test_dataset_with_report(self):
+        dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane=1, metric_report_url="https://www.FakeMetricReport.com")
+        self.assertEqual(Dataset.objects.count(), 1)
+        self.assertEqual(dataset.external_project_id, "project")
+        self.assertEqual(dataset.run_name, "run")
+        self.assertEqual(dataset.lane, 1)
+        self.assertEqual(dataset.metric_report_url, "https://www.FakeMetricReport.com")
+
     def test_valid_lane(self):
         valid_lanes = [1, 0, 10]
         for valid_lane in valid_lanes:
