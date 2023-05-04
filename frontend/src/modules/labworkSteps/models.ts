@@ -12,7 +12,6 @@ export interface LabworkPrefilledTemplateDescriptor {
 	submissionURL?: string
 }
 
-// export type CoordinateSortDirection = 'column' | 'row'
 export interface CoordinateSortDirection {
 	orientation: 'column' | 'row'
 	order: 'ascend' | 'descend'
