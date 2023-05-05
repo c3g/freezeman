@@ -232,19 +232,19 @@ const App = ({userID, usersByID, logOut, get}) => {
             width={'17em'} 
             style={{overflow: 'auto'}}
           >
-            <div style={{alignContent: 'baseline', justifyContent: 'left', textAlign: 'center', background: env !== 'PROD' ? notProdBanner : undefined}}>
+            <div style={{alignContent: 'baseline', textAlign: 'center', background: env !== 'PROD' ? notProdBanner : undefined}}>
               <Title style={titleStyle} className="App__title">
-                <div>
-                  <span>FreezeMan</span>{env !== 'PROD' && <span style={{color: 'red'}}>&nbsp;{env}</span>}
-                </div>
+                <span>FreezeMan</span>
+                {env !== 'PROD' && <span style={{ color: 'red' }}>&nbsp;{env}</span>}
               </Title>
-              { // Display a spinner while the initial data is being fetched at startup 
-                !isInitialized &&
-                  <div style={{position: 'absolute', left: '0', right: '0', top: env !== 'PROD' ? '3.25rem' : '3.5rem'}}>
-                    <Spin size="small" indicator={loadingIcon}/>
+              {/* Display a spinner while the initial data is being fetched at startup */}
+              <Spin
+                size="small"
+                indicator={loadingIcon}
+                style={{ visibility: !isInitialized ? undefined : 'hidden', paddingBottom: '0.2rem' }}
+              />
                   </div>
-              }
-            </div>
+
             {isLoggedIn &&
                 <div className='App__jumpBar'>
                   <JumpBar />
