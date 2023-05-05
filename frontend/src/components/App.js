@@ -236,7 +236,7 @@ const App = ({userID, usersByID, logOut, get}) => {
           >
             <div style={{alignContent: 'baseline', textAlign: 'center', background: env !== 'PROD' ? notProdBanner : undefined}}>
               <Title style={titleStyle} className="App__title">
-                <span>FreezeMan</span>
+                <b>F</b><span>reeze</span><b>M</b><span>an</span>
                 {env !== 'PROD' && <span style={{ color: 'red' }}>&nbsp;{env}</span>}
               </Title>
               {/* Display a spinner while the initial data is being fetched at startup */}
