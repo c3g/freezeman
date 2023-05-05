@@ -34,7 +34,7 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { fetchInitialData, fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
+import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
@@ -166,7 +166,8 @@ const titleStyle = {
   lineHeight: "unset",
   padding: 0,
   margin: 0,
-  textAlign: 'center'
+  textAlign: 'center',
+  paddingTop: '1.5rem'
 };
 
 export const mapStateToProps = state => ({
@@ -177,6 +178,7 @@ export const mapStateToProps = state => ({
 export const actionCreators = {logOut, get};
 
 const App = ({userID, usersByID, logOut, get}) => {
+  /* global FMS_ENV */
   const env = FMS_ENV
 
   const dispatch = useAppDispatch()
@@ -200,7 +202,7 @@ const App = ({userID, usersByID, logOut, get}) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, [dispatch, token]);
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
@@ -243,7 +245,7 @@ const App = ({userID, usersByID, logOut, get}) => {
                 indicator={loadingIcon}
                 style={{ visibility: !isInitialized ? undefined : 'hidden', paddingBottom: '0.2rem' }}
               />
-                  </div>
+            </div>
 
             {isLoggedIn &&
                 <div className='App__jumpBar'>
@@ -385,6 +387,7 @@ function onDidMount() {
 }
 
 function withRouter(Child) {
+  // eslint-disable-next-line react/display-name
   return (props) => {
     const location = useLocation();
     const navigate = useNavigate();
