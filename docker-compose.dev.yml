@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+ web:
+  build:
+   context: .
+  ports:
+   - 8000:8000
+   - 9000:9000
+  environment:
+   - PG_HOST=database
+  stdin_open: true
+  tty: true
+  volumes:
+   - ./:/root/freezeman
+   - /Users/nislam/.ssh:/root/.ssh
+   - vscode-server:/root/.vscode-server
+
+ database:
+  build:
+   context: ./backend/dependencies
+  ports:
+   - 5432:5432
+  environment:
+   - POSTGRES_USER=admin
+   - POSTGRES_PASSWORD=admin
+   - POSTGRES_DB=fms
+  volumes:
+   - ./backend/dependencies/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+   - data:/var/lib/postgresql/data
+volumes:
+ vscode-server:
+ data:

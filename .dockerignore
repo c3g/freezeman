@@ -1,0 +1,14 @@
+# freezeman gitignore
+# env/
+# node_modules/
+# .env
+.DS_Store
+backend/fms.log
+launch.json
+fms.log
+.python-version
+.coverage
+TODO.txt
+
+# avoid overlap with db container
+backend/dependencies
