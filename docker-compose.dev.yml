@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+ web:
+  image: ubuntu:20.04
+  ports:
+   - 8000:8000
+   - 9000:9000
+   - 2222:22
+  environment:
+   - PG_HOST=database
+  stdin_open: true
+  tty: true
+  working_dir: /root/freezeman
+  command: /bin/bash
+  volumes:
+   - ../freezeman:/root/freezeman
+   - vscode-server:/root/.vscode-server
+   - ${HOME}/.ssh:/root/.ssh
+
+ database:
+  build:
+   context: ./backend/dependencies
+  ports:
+   - 5432:5432
+  environment:
+   - POSTGRES_PASSWORD=postgres
+  volumes:
+   - ./backend/dependencies/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+   - data:/var/lib/postgresql/data
+  shm_size: 1g
+volumes:
+ vscode-server:
+ data:

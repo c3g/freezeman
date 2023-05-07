@@ -6,7 +6,7 @@ CacheControl==0.12.6
 certifi==2020.6.20
 cffi==1.15.0
 chardet==3.0.4
-codecov==2.1.8
+# codecov==2.1.8
 colorama==0.4.3
 contextlib2==0.6.0
 coreapi==2.3.3
@@ -56,7 +56,7 @@ pdoc3==0.10.0
 pep517==0.8.2
 pluggy==1.0.0
 progress==1.5
-psycopg2==2.9.3
+psycopg2-binary==2.9.3
 py==1.11.0
 pycodestyle==2.6.0
 pycparser==2.20

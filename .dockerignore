@@ -1,0 +1,13 @@
+# freezeman gitignore
+.DS_Store
+backend/
+frontend/
+launch.json
+fms.log
+.python-version
+.coverage
+TODO.txt
+
+# docker stuff ignore
+docker-compose.dev.yml
+dev-init.sh
