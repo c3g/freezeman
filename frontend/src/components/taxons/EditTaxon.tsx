@@ -7,9 +7,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { Taxon } from "../../models/frontend_models";
+import { ObjectWithTaxon } from "../shared/DefinitionsTable/TaxonTableColumns";
 
-type EditTaxonProps = Partial<Pick<Taxon, 'id' | 'ncbi_id' | 'name'>>
 
 export const AddTaxonRoute = () => {
     const appInitialzed = useAppSelector(selectAppInitialzed)
@@ -20,18 +19,16 @@ export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
     const { id } = useParams();
     const appInitialzed = useAppSelector(selectAppInitialzed)
-    return (id && taxons[id] && appInitialzed) ? <EditTaxon id={Number(id)} name={taxons[id]['name']} ncbi_id={taxons[id]['ncbi_id']} /> : null
-
+    return (id && taxons[id] && appInitialzed) ? <EditTaxon taxon={{ ...taxons[id] }} /> : null
 }
 
-const EditTaxon = ({ id, name, ncbi_id }: EditTaxonProps) => {
+const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
     const { Item } = Form
     const [formErrors, setFormErrors] = useState({})
     const [form] = Form.useForm()
-    const isAdding = id === undefined
+    const isAdding = taxon === undefined
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const taxon: EditTaxonProps = { id: isAdding ? undefined : id, name: isAdding ? '' : name, ncbi_id: isAdding ? undefined : ncbi_id }
 
     const props = (name: string) =>
         !formErrors[name] ? { name } : {
@@ -41,7 +38,7 @@ const EditTaxon = ({ id, name, ncbi_id }: EditTaxonProps) => {
         }
     const onFinish = () => {
         const fieldValues = form.getFieldsValue();
-        const new_taxon: EditTaxonProps = { id: id, name: fieldValues['name'], ncbi_id: fieldValues['ncbi_id'] };
+        const new_taxon = { taxon: { id: taxon ? taxon.id : undefined, name: fieldValues['name'], ncbi_id: fieldValues['ncbi_id'] } };
         if (isAdding) {
             dispatch(
                 add({ new_taxon })
@@ -50,7 +47,7 @@ const EditTaxon = ({ id, name, ncbi_id }: EditTaxonProps) => {
             }).then(() => { dispatch(list()) })
         } else {
             dispatch(
-                update(id, new_taxon)
+                update(taxon.id, new_taxon)
             ).then(() => {
                 navigate('/taxons')
             }).then(() => { dispatch(list()) })
