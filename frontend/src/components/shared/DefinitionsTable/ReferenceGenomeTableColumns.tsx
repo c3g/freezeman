@@ -30,7 +30,7 @@ export const getColumnsForReferenceGenome = (): IdentifiedTableColumnType<Object
         REFERENCE_GENOME_COLUMNS.REFSEQ_ID,
 
     ]
-    return REFERENCE_GENOME_DEFINITIONS.map((column: any) => { return { ...column } });
+    return REFERENCE_GENOME_DEFINITIONS.map((column: ReferenceGenomeColumn) => { return { ...column } });
 }
 
 const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeColumn } = {
