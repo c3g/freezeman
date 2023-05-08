@@ -4,9 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import HttpResponseServerError
+from django.db.models import OuterRef, Subquery
 
-from fms_core.models import ExperimentRun
-from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
+from fms_core.models import ExperimentRun, Dataset
+from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer, ExternalExperimentRunSerializer
 from fms_core.services.experiment_run import (start_experiment_run_processing,
                                               get_run_info_for_experiment,
                                               set_run_processing_start_time,
@@ -48,6 +49,13 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
         serializer = self.serializer_export_class(self.filter_queryset(self.get_queryset()), many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def list_external_experiment_run(self, _request):
+        subquery_timestamp=Subquery(Dataset.objects.filter(OuterRef("run_name")).values("modified_at").order_by("-modified_at")[:1])
+        queryset = Dataset.objects.values("run_name").distinct().annotate(latest_submission_timestamp=subquery_timestamp)
+        serializer = ExternalExperimentRunSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"])

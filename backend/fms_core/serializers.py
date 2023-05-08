@@ -52,6 +52,7 @@ __all__ = [
     "DatasetFileSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
+    "ExternalExperimentRunSerializer",
     "RunTypeSerializer",
     "SimpleContainerSerializer",
     "IndexSerializer",
@@ -176,6 +177,17 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
                   'run_processing_launch_time',
                   'run_processing_start_time',
                   'run_processing_end_time',)
+
+
+class ExternalExperimentRunSerializer(serializers.Serializer):
+    lanes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Dataset
+        fields = ["run_name", "lanes", "latest_submission_timestamp"]
+    
+    def get_lanes(self, obj):
+        return Dataset.objects.filter(run_name=obj.run_name).values_list("lane", flat=True).distinct()
 
 
 class RunTypeSerializer(serializers.ModelSerializer):
