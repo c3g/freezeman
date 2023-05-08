@@ -33,6 +33,8 @@ export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
         columnID: TaxonColumnID.ID,
         title: 'ID',
         dataIndex: ['taxon', 'id'],
+        sorter: (a, b) => a.taxon.id - b.taxon.id,
+        width: '33%',
         render: (_, { taxon }) =>
             taxon && (
                 <Link to={`/taxons/update/${taxon.id}`}>
@@ -44,6 +46,8 @@ export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
         columnID: TaxonColumnID.NCBI_ID,
         title: 'NCBI_ID',
         dataIndex: ['taxon', 'ncbi_id'],
+        sorter: (a, b) => a.taxon.ncbi_id - b.taxon.ncbi_id,
+        width: '33%',
         render: (_, { taxon }) =>
             taxon && (
                 <Link to={`/taxons/update/${taxon.id}`}>
@@ -55,6 +59,8 @@ export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
         columnID: TaxonColumnID.NAME,
         title: 'NAME',
         dataIndex: ['taxon', 'name'],
+        sorter: (a, b) => a.taxon.name.localeCompare(b.taxon.name),
+        width: '33%',
         render: (_, { taxon }) =>
             taxon && (
                 <div>{taxon.name}</div>

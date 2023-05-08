@@ -1,10 +1,10 @@
 import { Button, Form, Input, Space } from "antd";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { requiredRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectAppInitialzed, selectTaxonsByID } from "../../selectors";
 import { useNavigate, useParams } from "react-router-dom";
-import { add, update } from "../../modules/taxons/actions";
+import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { Taxon } from "../../models/frontend_models";
@@ -20,7 +20,6 @@ export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
     const { id } = useParams();
     const appInitialzed = useAppSelector(selectAppInitialzed)
-
     return (id && taxons[id] && appInitialzed) ? <EditTaxon id={Number(id)} name={taxons[id]['name']} ncbi_id={taxons[id]['ncbi_id']} /> : null
 
 }
@@ -42,20 +41,19 @@ const EditTaxon = ({ id, name, ncbi_id }: EditTaxonProps) => {
         }
     const onFinish = () => {
         const fieldValues = form.getFieldsValue();
-        const new_taxon: EditTaxonProps = { id: id, name: fieldValues['fieldName'], ncbi_id: fieldValues['ncbi_id'] };
+        const new_taxon: EditTaxonProps = { id: id, name: fieldValues['name'], ncbi_id: fieldValues['ncbi_id'] };
         if (isAdding) {
             dispatch(
                 add({ new_taxon })
-            )
-                .then(() => {
-                    navigate('/taxons')
-                })
+            ).then(() => {
+                navigate('/taxons')
+            }).then(() => { dispatch(list()) })
         } else {
             dispatch(
                 update(id, new_taxon)
             ).then(() => {
                 navigate('/taxons')
-            })
+            }).then(() => { dispatch(list()) })
         }
     }
     const onCancel = useCallback(() => {

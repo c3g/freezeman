@@ -16,7 +16,7 @@ export interface TaxonsListContentProps {
 function TaxonsListContent() {
 	const taxonsState = useAppSelector(selectTaxonsByID)
 	const taxons: Taxon[] = getAllItems(taxonsState)
-	const [taxonColumns, setTaxonColumnss] = useState<ObjectWithTaxon[]>();
+	const [taxonColumns, setTaxonColumns] = useState<ObjectWithTaxon[]>();
 	const columns: IdentifiedTableColumnType<ObjectWithTaxon>[] = getColumnsForTaxon()
 
 	useEffect(() => {
@@ -30,7 +30,7 @@ function TaxonsListContent() {
 			};
 			return taxonObject;
 		})
-		setTaxonColumnss(tax)
+		setTaxonColumns(tax)
 	}, [taxons])
 
 	return (
