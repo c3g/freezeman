@@ -153,7 +153,7 @@ const MENU_ITEMS = [
   },
 ]
 
-const notProdBanner = "repeating-linear-gradient(45deg, #696104, #696104 10px, #000000 10px, #000000 20px)";
+const DEV_QC_BACKGROUND = "repeating-linear-gradient(45deg, #696104, #696104 10px, #000000 10px, #000000 20px)";
 
 const colorStyle = {
   color: "white",
@@ -234,7 +234,7 @@ const App = ({userID, usersByID, logOut, get}) => {
             width={'17em'} 
             style={{overflow: 'auto'}}
           >
-            <div style={{alignContent: 'baseline', textAlign: 'center', background: env !== 'PROD' ? notProdBanner : undefined}}>
+            <div style={{alignContent: 'baseline', textAlign: 'center', background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined}}>
               <Title style={titleStyle} className="App__title">
                 <b>F</b><span>reeze</span><b>M</b><span>an</span>
                 {env !== 'PROD' && <span style={{ color: 'red' }}>&nbsp;{env}</span>}
@@ -243,7 +243,7 @@ const App = ({userID, usersByID, logOut, get}) => {
               <Spin
                 size="small"
                 indicator={loadingIcon}
-                style={{ visibility: !isInitialized ? undefined : 'hidden', paddingBottom: '0.2rem' }}
+                style={{ visibility: isInitialized ? 'hidden' : undefined, paddingBottom: '0.2rem' }}
               />
             </div>
 
