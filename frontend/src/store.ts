@@ -2,8 +2,25 @@ import { configureStore } from '@reduxjs/toolkit'
 import { createLogger } from 'redux-logger'
 import rootReducer from './reducers'
 
+
 const logger = createLogger({
-	level: 'info'
+	// Note: Ideally, all redux-logger messages would be output in trace (debug) mode,
+	// so that we could turn them off when we don't need them. Unfortunately, each redux
+	// action is logged using a console 'group', and browsers don't support logging groups
+	// in debug mode, so the group message always appears in the console at the info level. 
+	// We would have to drop redux-logger and use something else for logging redux actions if
+	// we wanted to get rid of those group messages from the console.
+
+	// Collapse the action message groups by default, to avoid polluting the console.
+	collapsed: () => true,
+	predicate: (getState, action) => {
+		// Disable redux logging of summary actions, unless there is a summary error.
+		// Summaries pollute the log.
+		if (action.type.includes('.SUMMARY.REQUEST' || action.type.include('.SUMMARY.RECEIVE'))) {
+			return false
+		}
+		return true
+	},
 })
 
 const store = configureStore({

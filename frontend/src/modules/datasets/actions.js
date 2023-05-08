@@ -94,7 +94,6 @@ export const setReleaseStatus = (id, releaseStatus, exceptions = [], filters = {
     const dataset = getState().datasets.itemsByID[id]
     const datasetFiles = getState().datasetFiles.itemsByID
     filters = serializeFilterParams(filters, DATASET_FILE_FILTERS)
-    console.log(filters);
 
     if (dataset && !dataset.isFetching) {
         const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
