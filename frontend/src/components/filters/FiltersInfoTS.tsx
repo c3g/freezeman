@@ -1,6 +1,6 @@
 import React from "react";
 import { FILTER_TYPE } from "../../constants";
-import { FilterDescription, FilterOption, FilterSet, FilterValue, RangeFilterValue, StringArrayFilterValue } from "../../models/paged_items";
+import { FilterDescription, FilterSet, FilterValue, RangeFilterValue, StringArrayFilterValue, isMetadataFilterValue, isRangeFilterValue, isStringArrayFilterValue } from "../../models/paged_items";
 
 interface FiltersInfosProps {
     filters: FilterSet
@@ -20,49 +20,52 @@ const FiltersInfos = ({ filters }: FiltersInfosProps) => {
                     }
                 </>
             );
-            const valuesArray: FilterValue[] = [filterValue]
-            let labels: any = [];
-            let value = ""
+
             switch (description.type) {
                 case FILTER_TYPE.SELECT: {
-                    labels = (valuesArray as StringArrayFilterValue[]).map((val: StringArrayFilterValue) => {
-                        if (description.options) {
-                            const options = description.options.filter((option: FilterOption) => {
-                                return val.find(value => option.value === value)
-                            })
-                            return options ? options.map((opt: FilterOption) => opt.label) : null
-                        } else {
-                            return val
+                    if (isStringArrayFilterValue(filterValue)) {
+                        const arrayValues = filterValue.map((val: string) => {
+                            if (description.options) {
+                                const option = description.options.find(option => option.value === val)
+                                return option ? option.label : null
+                            } else {
+                                return val
+                            }
                         }
+                        )
+                        valueJSX = arrayValues.join(', ')
+                    } else {
+                        valueJSX = filterValue;
                     }
-                    )
-                    valueJSX = labels.join(', ')
                     break;
                 }
                 case FILTER_TYPE.RANGE:
                 case FILTER_TYPE.DATE_RANGE: {
-                    const filterRange: RangeFilterValue = filterValue as RangeFilterValue;
-                    if (filterRange.min !== undefined) { value += ` min: ${filterRange.min}` }
-                    if (filterRange.max !== undefined) { value += ` max: ${filterRange.max}` }
-                    if (value !== "") {
-                        valueJSX = value
-                        break;
+                    if (isRangeFilterValue(filterValue)) {
+                        let value = "";
+                        if (filterValue.min !== undefined) { value += ` min: ${filterValue.min}` }
+                        if (filterValue.max !== undefined) { value += ` max: ${filterValue.max}` }
+                        if (value !== "") {
+                            valueJSX = value
+                            break;
+                        }
+                        throw new Error('MIN and MAX values not defined for Filter range')
                     }
-                    throw new Error('MIN and MAX values not defined for Filter range')
                 }
                 case FILTER_TYPE.METADATA: {
-
-                    valueJSX = valuesArray.reduce((metadataString: any, metadata: any) => {
-                        return (
-                            <>
-                                {metadataString + metadata.name + ": " + (metadata.value ? metadata.value : "*") + ', '}
-                            </>
-                        )
-                    }, '')
+                    if (isMetadataFilterValue(filterValue)) {
+                        valueJSX = filterValue.reduce((metadataString: any, metadata: any) => {
+                            return (
+                                <>
+                                    {metadataString + metadata.name + ": " + (metadata.value ? metadata.value : "*") + ', '}
+                                </>
+                            )
+                        }, '')
+                    }
                     break;
                 }
                 default: {
-                    valueJSX = valuesArray.join(', ')
+                    valueJSX = filterValue
                     break;
                 }
             }
