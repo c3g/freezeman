@@ -324,3 +324,15 @@ _stephistory_filterset_fields: FiltersetFields = {
     **_prefix_keys("process_measurement__", _process_measurement_filterset_fields),
 }
 
+_metric_filteset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "metric_group": CATEGORICAL_FILTERS_LOOSE,
+    "value_numeric": SCALAR_FILTERS,
+    "value_string": CATEGORICAL_FILTERS_LOOSE,
+    "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
+    "readset__derived_sample_id": PK_FILTERS,
+    "readset__dataset__experiment_run_id": PK_FILTERS,
+    "readset__dataset__run_name": CATEGORICAL_FILTERS_LOOSE,
+    "readset__dataset__lane": CATEGORICAL_FILTERS,
+}

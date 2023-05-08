@@ -40,6 +40,7 @@ from .models import (
     SampleNextStepByStudy,
     StepHistory,
     Coordinate,
+    Metric
 )
 
 from .models._constants import ReleaseStatus
@@ -96,6 +97,7 @@ __all__ = [
     "SampleNextStepByStudySerializer",
     "StepHistorySerializer",
     "CoordinateSerializer",
+    "MetricSerializer",
 ]
 
 
@@ -538,13 +540,16 @@ class ImportedFileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class DatasetSerializer(serializers.ModelSerializer):
-    files = serializers.PrimaryKeyRelatedField(many=True, read_only=True, source='readsets.files'),
+    files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
     latest_release_update = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
         fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
+
+    def get_files(self, obj):
+        return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
 
     def get_released_status_count(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
@@ -553,7 +558,7 @@ class DatasetSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
 
 class DatasetFileSerializer(serializers.ModelSerializer):
-    dataset = serializers.PrimaryKeyRelatedField(many=False, read_only=True, source='readset.dataset'),
+    dataset = serializers.IntegerField(read_only=True, source='readset.dataset.id')
     sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
     class Meta:
         model = DatasetFile
@@ -780,3 +785,23 @@ class CoordinateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coordinate
         fields = "__all__"
+
+class MetricSerializer(serializers.ModelSerializer):
+    sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
+    derived_sample_id = serializers.IntegerField(read_only=True, source='readset.derived_sample_id')
+    run_name = serializers.CharField(read_only=True, source='readset.dataset.run_name')
+    experiment_run_id = serializers.IntegerField(read_only=True, source='readset.dataset.exeriment_run_id')
+    lane = serializers.IntegerField(read_only=True, source='readset.dataset.lane')
+
+    class Meta:
+        model = Metric
+        fields = ["id",
+                  "name",
+                  "metric_group",
+                  "sample_name",
+                  "derived_sample_id",
+                  "run_name",
+                  "experiment_run_id",
+                  "lane",
+                  "value_numeric",
+                  "value_string"]

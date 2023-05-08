@@ -59,9 +59,8 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
-    def set_run_processing_start_time(self, _request):
-        name = _request.data.get("run_name", None)
-        _, errors, _ = set_run_processing_start_time(name)
+    def set_run_processing_start_time(self, _request, pk=None):
+        _, errors, _ = set_run_processing_start_time(pk)
         if errors:
             response = HttpResponseServerError("\n".join(errors))
         else:
@@ -69,20 +68,20 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return response
     
     @action(detail=True, methods=["post"])
-    def set_run_processing_end_time(self, _request):
-        run_name = _request.data.get("run_name", None)
-        _, errors, _ = set_run_processing_end_time(run_name)
+    def set_run_processing_end_time(self, _request, pk=None):
+        _, errors, _ = set_run_processing_end_time(pk)
         if errors:
             response = HttpResponseServerError("\n".join(errors))
         else:
             response = Response("Time set successfully.")
         return response
 
-    @action(detail=True, methods=["post"])
+    @action(detail=False, methods=["post"])
     def set_experiment_run_lane_validation_status(self, _request):
         run_name = _request.data.get("run_name", None)
         lane = _request.data.get("lane", None)
         validation_status = _request.data.get("validation_status", None)
+        validation_status = int(validation_status) if validation_status is not None else None
         count, errors, _ = set_experiment_run_lane_validation_status(run_name=run_name, lane=lane, validation_status=validation_status)
         
         if errors:

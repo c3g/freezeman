@@ -120,15 +120,15 @@ def create_experiment_run(experiment_run_name,
     return (experiment_run, errors, warnings)
 
 
-def set_run_processing_start_time(name: str):
+def set_run_processing_start_time(experiment_run_id: int = None):
     """
-    Sets the timers using current time on the experiment run instance matching the name given.
+    Sets the timers using current time on the experiment run instance matching the id given.
     end_time is set if it is unset (captures first time the run processing starts which is the best approximation of when the experiment run completes.
     run_processing_start_time is set each time and replaces the old value.
     run_processing_end_time is reset to None each time to ensure the end time is not set if the run processing is restarted.
 
     Args:
-        `name`: Experiment run unique name
+        `experiment_run_id`: Experiment run id
 
     Returns:
         Returns the modified experiment run object, errors and warnings.
@@ -136,30 +136,30 @@ def set_run_processing_start_time(name: str):
     experiment_run = None
     errors = []
     warnings = []
-    if name is not None:
-        timestamp = timezone.now
+    if experiment_run_id is not None:
+        timestamp = timezone.now()
         try:
-            experiment_run = ExperimentRun.objects.get(name=name)
+            experiment_run = ExperimentRun.objects.get(id=experiment_run_id)
         except ExperimentRun.DoesNotExist as e:
-            errors.append(f"No experiment run named {name} could be found.")
+            errors.append(f"No experiment run with id {experiment_run_id} could be found.")
         if not experiment_run.end_time: # if experiment run end_time is not set, this is likely the first run processing starting
             experiment_run.end_time = timestamp
         experiment_run.run_processing_start_time = timestamp
         experiment_run.run_processing_end_time = None # Make sure the run_processing_end_time is reset in case this is a run processing restart.
         experiment_run.save()
     else:
-        errors.append(f"The name parameter is required.")
+        errors.append(f"The experiment run ID is required.")
     
     return experiment_run, errors, warnings
 
 
-def set_run_processing_end_time(name: str):
+def set_run_processing_end_time(experiment_run_id: int = None):
     """
-    Sets the run processing end timer using current time on the experiment run instance matching the name given.
+    Sets the run processing end timer using current time on the experiment run instance matching the id given.
     run_processing_end_time is set each time and replaces the old value.
 
     Args:
-        `name`: Experiment run unique name
+        `experiment_run_id`: Experiment run id
 
     Returns:
         Returns the modified experiment run object, errors and warnings.
@@ -167,16 +167,16 @@ def set_run_processing_end_time(name: str):
     experiment_run = None
     errors = []
     warnings = []
-    if name is not None:
-        timestamp = timezone.now
+    if experiment_run_id is not None:
+        timestamp = timezone.now()
         try:
-            experiment_run = ExperimentRun.objects.get(name=name)
+            experiment_run = ExperimentRun.objects.get(id=experiment_run_id)
         except ExperimentRun.DoesNotExist as e:
-            errors.append(f"No experiment run named {name} could be found.")
+            errors.append(f"No experiment run with id {experiment_run_id} could be found.")
         experiment_run.run_processing_end_time = timestamp
         experiment_run.save()
     else:
-        errors.append(f"The name parameter is required.")
+        errors.append(f"The experiment run id is required.")
     
     return experiment_run, errors, warnings
 

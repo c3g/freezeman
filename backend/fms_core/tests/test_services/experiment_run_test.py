@@ -158,6 +158,17 @@ class ExperimentRunServicesTestCase(TestCase):
                                                                                    process_properties=self.properties,
                                                                                    start_date=self.start_date
                                                                                    )
+        self.assertEqual(my_experiment_run, None)
+        self.assertTrue('Run name is required to create an experiment run.' in errors)
+
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name="Barbarun",
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=None,
+                                                                                   instrument_obj=None,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date
+                                                                                   )
 
         self.assertEqual(my_experiment_run, None)
         self.assertTrue('container: This field cannot be null.' in errors)

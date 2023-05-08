@@ -59,7 +59,7 @@ def create_dataset(external_project_id: str,
             dataset.experiment_run_id = experiment_run_id
             dataset.metric_report_url = metric_report_url
             dataset.save()
-        else:  # There is already a dataset with this signature and it is not expected
+        elif not created:  # There is already a dataset with this signature and it is not expected
             errors.append(f"There is already a dataset with external_project_id {kwargs['external_project_id']}, "
                           f"run_name {kwargs['run_name']} and lane {kwargs['lane']}.")
     except ValidationError as e:
@@ -128,13 +128,15 @@ def create_dataset_file(readset: Readset,
     if errors:
         return dataset_file, errors, warnings
 
+    dataset_file_data = {}
+
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
                                                   file_path=file_path,
                                                   validation_status=validation_status,
-                                                  validation_status_timestamp=timezone.now if validation_status != ValidationStatus.AVAILABLE else None, # Set timestamp if setting Status to non-default
+                                                  **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
                                                   release_status=release_status,
-                                                  release_status_timestamp=timezone.now if release_status != ReleaseStatus.AVAILABLE else None) # Set timestamp if setting Status to non-default
+                                                  **(dict(release_status_timestamp=timezone.now()) if release_status != ReleaseStatus.AVAILABLE else dict())) # Set timestamp if setting Status to non-default
     except ValidationError as e:
         errors.extend(e.messages)
 
@@ -156,12 +158,12 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
     errors = []
     warnings = []
 
-    timestamp = timezone.now
+    timestamp = timezone.now()
     if validation_status not in [value for value, _ in ValidationStatus.choices]:
         errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
 
     for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
-        for dataset_file in dataset.readsets.files.all():
+        for dataset_file in DatasetFile.objects.filter(readset__dataset=dataset).all():
             dataset_file.validation_status = validation_status
             dataset_file.validation_status_timestamp = timestamp
             dataset_file.save()
@@ -210,7 +212,7 @@ def ingest_run_validation_report(report_json):
     run_name = report_json["run"]
     lane = int(report_json["lane"])
     experiment_run_id = report_json.get("run_obj_id", None)
-    metric_report_url = report_json.get("run_metrics_report_url", None)
+    metric_report_url = report_json["metrics_report_url"]
     for readset_name, readset in report_json["readsets"].items():
         external_project_id = readset["barcodes"][0]["PROJECT"]
         dataset_key = (external_project_id, run_name, lane)
@@ -225,16 +227,16 @@ def ingest_run_validation_report(report_json):
                 return (datasets, dataset_files, errors, warnings)
             else:
                 datasets[dataset_key] = dataset
-        else:    
+        else:
             dataset = datasets[dataset_key]
 
         sample_name = readset["sample_name"]
-        derived_sample_id = readset["derived_sample_obj_id"]
-        readset, errors, warnings = create_readset(dataset, readset_name, sample_name, derived_sample_id)
-        readset_by_name[readset_name] = readset
+        derived_sample_id = readset.get("derived_sample_obj_id", None)
+        readset_obj, errors, warnings = create_readset(dataset, readset_name, sample_name, derived_sample_id)
+        readset_by_name[readset_name] = readset_obj
         for key in readset:
             if key not in ["sample_name", "barcodes"] and readset[key]:
-                dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset,
+                dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
                                                                            file_path=readset[key])
                 errors.extend(newerrors)
                 warnings.extend(newwarnings)
@@ -245,8 +247,8 @@ def ingest_run_validation_report(report_json):
                     dataset_files.append(dataset_file)
 
     for run_validation in report_json["run_validation"]:
-        readset = readset_by_name[run_validation["sample"]]
-        _, newerrors, newwarnings = create_metrics_from_run_validation_data(readset=readset,
+        readset_obj = readset_by_name[run_validation["sample"]]
+        _, newerrors, newwarnings = create_metrics_from_run_validation_data(readset=readset_obj,
                                                                             run_validation_data=run_validation)
         errors.extend(newerrors)
         warnings.extend(newwarnings)

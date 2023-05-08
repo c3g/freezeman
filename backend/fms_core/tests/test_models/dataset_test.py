@@ -55,6 +55,6 @@ class DatasetTest(TestCase):
                 try:
                     Dataset.objects.create(**vd)
                 except ValidationError as e:
-                    self.assertIn(f"There's already a dataset with identical external project id '{vd['external_project_id']}', run name '{vd['run_name']}' and lane '{vd['lane']}'", e.messages)
+                    self.assertIn(f"Dataset with this External project id, Run name and Lane already exists.", e.messages)
                 except Exception as e:
                     self.fail(f"Expected ValidationError exception but got '{repr(e)}'")

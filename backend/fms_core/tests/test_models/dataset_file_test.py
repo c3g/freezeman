@@ -17,7 +17,7 @@ class DatasetFileTest(TestCase):
         self.assertEqual(DatasetFile.objects.count(), 1)
         self.assertEqual(dataset_file.readset.dataset, self.dataset)
         self.assertEqual(dataset_file.file_path, "file_path")
-        self.assertEqual(dataset_file.readset.sample_name, "sample_name")
+        self.assertEqual(dataset_file.readset.sample_name, "My")
         self.assertEqual(dataset_file.release_status, ReleaseStatus.AVAILABLE)
         self.assertEqual(dataset_file.release_status_timestamp, None)
         self.assertEqual(dataset_file.validation_status, ValidationStatus.AVAILABLE)

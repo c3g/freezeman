@@ -98,7 +98,7 @@ export const setReleaseStatus = (id, releaseStatus, exceptions = [], filters = {
 
     if (dataset && !dataset.isFetching) {
         const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
-            { meta: { id, ignoreError: 'APIError' }}));
+            { meta: { id }}));
         
         if (datasetFiles && !datasetFiles.isFetching) {
             await dispatch(listFiles({ id__in: Object.values(datasetFiles).filter((file) => file.dataset === id).map((file) => file.id).join(",") }))
