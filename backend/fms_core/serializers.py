@@ -376,7 +376,7 @@ class SampleSerializer(serializers.Serializer):
                   'extracted_from', 'individual', 'container', 'coordinate', 'sample_kind', 'is_library', 'is_pool', 'project',
                   'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
                   'quality_flag', 'quantity_flag', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted', 
-                  'comment', 'protocol')
+                  'comment')
 
 class SampleExportSerializer(serializers.Serializer):
     coordinate = serializers.CharField(read_only=True, source="coordinate.name")

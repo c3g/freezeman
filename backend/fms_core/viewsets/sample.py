@@ -1,12 +1,12 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch, Count, Subquery, OuterRef, F
+from django.db.models import Q, When, Case, BooleanField, Prefetch, Count, Subquery, OuterRef
 from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata, Coordinate, SampleLineage
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata, Coordinate
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
@@ -55,13 +55,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             DerivedBySample.objects
             .filter(sample=OuterRef("pk"))
             .values_list("derived_sample", flat=True)[:1]
-        )
-    )
-    queryset = queryset.annotate(
-        protocol=Subquery(
-            SampleLineage.objects
-            .filter(child=OuterRef("pk"))
-            .values_list("process_measurement__process__protocol__name", flat=True)[:1]
         )
     )
     serializer_class = SampleSerializer

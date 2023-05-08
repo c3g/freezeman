@@ -152,11 +152,6 @@ export const SAMPLE_FILTERS = {
     label: "Metadata",
     detached:true,
   },
-  protocol: {
-    type: FILTER_TYPE.SELECT,
-    key: "protocol",
-    label: "Protocol",
-  },
 }
 
 export const CONTAINER_FILTERS = {
