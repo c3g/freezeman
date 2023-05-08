@@ -8,9 +8,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AddTaxonRoute, EditTaxonRoute } from './EditTaxon'
 
 const TaxonsRoute = () => {
-	const taxonsState = useAppSelector(selectTaxonsByID)
-	const taxons: Taxon[] = getAllItems(taxonsState)
-
 	return (
 		<PageContainer>
 			<Routes>

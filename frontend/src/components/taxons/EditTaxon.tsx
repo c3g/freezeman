@@ -7,21 +7,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { add, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import { Taxon } from "../../models/frontend_models";
 
-export interface Taxon {
-    id?: number | null
-    ncbi_id: string
-    name: string
-}
-export interface EditTaxonProps {
-    taxon: Taxon
-}
+type EditTaxonProps = Partial<Pick<Taxon, 'id' | 'ncbi_id' | 'name'>>
 
 export const AddTaxonRoute = () => {
-    const emptyTaxon = { ncbi_id: "", name: "" }
     const appInitialzed = useAppSelector(selectAppInitialzed)
-
-    return appInitialzed ? <EditTaxon taxon={emptyTaxon} /> : null
+    return appInitialzed ? <EditTaxon /> : null
 
 }
 export const EditTaxonRoute = () => {
@@ -29,41 +21,38 @@ export const EditTaxonRoute = () => {
     const { id } = useParams();
     const appInitialzed = useAppSelector(selectAppInitialzed)
 
-    return appInitialzed ? <EditTaxon taxon={taxons[id ?? -1]} /> : null
+    return (id && taxons[id] && appInitialzed) ? <EditTaxon id={Number(id)} name={taxons[id]['name']} ncbi_id={taxons[id]['ncbi_id']} /> : null
 
 }
 
-const EditTaxon = ({ taxon }: EditTaxonProps) => {
+const EditTaxon = ({ id, name, ncbi_id }: EditTaxonProps) => {
     const { Item } = Form
     const [formErrors, setFormErrors] = useState({})
     const [form] = Form.useForm()
-    const isAdding = taxon.id === undefined
+    const isAdding = id === undefined
     const navigate = useNavigate();
-    const dispatch = useAppDispatch()
+    const dispatch = useAppDispatch();
+    const taxon: EditTaxonProps = { id: isAdding ? undefined : id, name: isAdding ? '' : name, ncbi_id: isAdding ? undefined : ncbi_id }
 
     const props = (name: string) =>
         !formErrors[name] ? { name } : {
             name,
             hasFeedback: true,
-            // validateStatus: "error", 
             help: formErrors[name],
         }
     const onFinish = () => {
-        const new_taxon: Taxon = taxon;
         const fieldValues = form.getFieldsValue();
-        Object.keys(fieldValues).forEach((fieldName: string) => {
-            new_taxon[fieldName] = fieldValues[fieldName]
-        })
+        const new_taxon: EditTaxonProps = { id: id, name: fieldValues['fieldName'], ncbi_id: fieldValues['ncbi_id'] };
         if (isAdding) {
             dispatch(
                 add({ new_taxon })
             )
-            .then(() => {
-                navigate('/taxons')
-            })
+                .then(() => {
+                    navigate('/taxons')
+                })
         } else {
             dispatch(
-                update(new_taxon.id, new_taxon)
+                update(id, new_taxon)
             ).then(() => {
                 navigate('/taxons')
             })
@@ -71,7 +60,7 @@ const EditTaxon = ({ taxon }: EditTaxonProps) => {
     }
     const onCancel = useCallback(() => {
         navigate(-1)
-      }, [navigate])
+    }, [navigate])
 
     return (
         <>
