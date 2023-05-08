@@ -153,7 +153,7 @@ const MENU_ITEMS = [
   },
 ]
 
-const DEV_QC_BACKGROUND = "repeating-linear-gradient(45deg, #696104, #696104 10px, #000000 10px, #000000 20px)";
+const DEV_QC_BACKGROUND = "repeating-linear-gradient(45deg, #423d01, #423d01 10px, #000000 10px, #000000 20px)";
 
 const colorStyle = {
   color: "white",
@@ -166,8 +166,6 @@ const titleStyle = {
   lineHeight: "unset",
   padding: 0,
   margin: 0,
-  textAlign: 'center',
-  paddingTop: '1.5rem'
 };
 
 export const mapStateToProps = state => ({
@@ -234,19 +232,22 @@ const App = ({userID, usersByID, logOut, get}) => {
             width={'17em'} 
             style={{overflow: 'auto'}}
           >
-            <div style={{alignContent: 'baseline', textAlign: 'center', background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined}}>
-              <Title style={titleStyle} className="App__title">
-                <b>F</b><span>reeze</span><b>M</b><span>an</span>
-                {env !== 'PROD' && <span style={{ color: 'red' }}>&nbsp;{env}</span>}
-              </Title>
-              {/* Display a spinner while the initial data is being fetched at startup */}
-              <Spin
-                size="small"
-                indicator={loadingIcon}
-                style={{ visibility: isInitialized ? 'hidden' : undefined, paddingBottom: '0.2rem' }}
-              />
+            <div style={{background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined, padding: 0, margin: 0}}>
+              <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
+                <Title style={titleStyle} className="App__title">
+                  <div style={{marginRight: '0.25rem', paddingRight: '0.25rem'}}>
+                    <b>F</b><span>reeze</span><b>M</b><span>an</span>
+                    {env !== 'PROD' && <span style={{ color: 'red', fontSize: '14px' }}>&nbsp;{env}</span>}
+                  </div>
+                </Title>
+                { // Display a spinner while the initial data is being fetched at startup 
+                  !isInitialized &&
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                      <Spin size="small" indicator={loadingIcon}/>
+                    </div>
+                }
+              </div>
             </div>
-
             {isLoggedIn &&
                 <div className='App__jumpBar'>
                   <JumpBar />
