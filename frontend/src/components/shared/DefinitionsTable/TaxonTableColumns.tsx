@@ -1,22 +1,18 @@
 import React from "react"
 import { IdentifiedTableColumnType } from "../WorkflowSamplesTable/SampleTableColumns"
 import { Link } from "react-router-dom"
+import { Taxon } from "../../../models/frontend_models"
 
-export interface Taxon {
-    id: number,
-    name: string,
-    ncbi_id: number,
 
-}
 export interface ObjectWithTaxon {
-    taxon: Taxon
+    taxon: Pick<Taxon, 'id' | 'name' | 'ncbi_id'>
 }
-export enum TaxonColumnID {
+enum TaxonColumnID {
     ID = 'ID',
     NCBI_ID = 'NCBI_ID',
     NAME = 'NAME',
 }
-export type TaxonColumn = IdentifiedTableColumnType<ObjectWithTaxon>
+type TaxonColumn = IdentifiedTableColumnType<ObjectWithTaxon>
 
 export const getColumnsForTaxon = (): IdentifiedTableColumnType<ObjectWithTaxon>[] => {
     const TAXON_COLUMN_DEFINITIONS = [
@@ -24,10 +20,10 @@ export const getColumnsForTaxon = (): IdentifiedTableColumnType<ObjectWithTaxon>
         TAXON_COLUMNS.NCBI_ID,
         TAXON_COLUMNS.NAME,
     ]
-    return TAXON_COLUMN_DEFINITIONS.map((column: any) => { return { ...column } })
+    return TAXON_COLUMN_DEFINITIONS.map((column: TaxonColumn) => { return { ...column } })
 }
 
-export const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
+const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
 
     [TaxonColumnID.ID]: {
         columnID: TaxonColumnID.ID,
