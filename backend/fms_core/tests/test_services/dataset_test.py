@@ -1,7 +1,11 @@
 from django.test import TestCase
 
 from fms_core.models import Dataset, DatasetFile, Readset, Metric
-from fms_core.services.dataset import create_dataset, create_dataset_file, reset_dataset_content, set_experiment_run_lane_validation_status
+from fms_core.services.dataset import (create_dataset,
+                                       create_dataset_file,
+                                       reset_dataset_content,
+                                       set_experiment_run_lane_validation_status,
+                                       get_experiment_run_lane_validation_status)
 from fms_core.models._constants import ReleaseStatus, ValidationStatus
 
 class DatasetServicesTestCase(TestCase):
@@ -133,5 +137,32 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(count, 1)
+        self.assertEqual(dataset_file.validation_status, ValidationStatus.FAILED)
+        self.assertIsNotNone(dataset_file.validation_status_timestamp)
+
+    def test_get_experiment_run_lane_validation_status(self):
+        dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1)
+        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
+        dataset_file, _, _ = create_dataset_file(readset=readset, file_path="file_path")
+
+        validation_status, errors, warnings = get_experiment_run_lane_validation_status(run_name=dataset.run_name, lane=dataset.lane)
+
+        dataset_file.refresh_from_db()
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(validation_status, ValidationStatus.AVAILABLE)
+        self.assertEqual(dataset_file.validation_status, ValidationStatus.AVAILABLE)
+        self.assertIsNone(dataset_file.validation_status_timestamp)
+
+        count, errors, warnings = set_experiment_run_lane_validation_status(run_name=dataset.run_name, lane=dataset.lane, validation_status=ValidationStatus.FAILED)
+
+        validation_status, errors, warnings = get_experiment_run_lane_validation_status(run_name=dataset.run_name, lane=dataset.lane)
+
+        dataset_file.refresh_from_db()
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(validation_status, ValidationStatus.FAILED)
         self.assertEqual(dataset_file.validation_status, ValidationStatus.FAILED)
         self.assertIsNotNone(dataset_file.validation_status_timestamp)

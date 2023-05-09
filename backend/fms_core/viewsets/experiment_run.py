@@ -12,7 +12,7 @@ from fms_core.services.experiment_run import (start_experiment_run_processing,
                                               get_run_info_for_experiment,
                                               set_run_processing_start_time,
                                               set_run_processing_end_time)
-from fms_core.services.dataset import  set_experiment_run_lane_validation_status
+from fms_core.services.dataset import  set_experiment_run_lane_validation_status, get_experiment_run_lane_validation_status
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _experiment_run_filterset_fields
@@ -89,6 +89,18 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             response = Response("No validation status was set.")
         else:
             response = Response("Validation status set successfully.")
+        return response
+
+    @action(detail=False, methods=["get"])
+    def get_experiment_run_lane_validation_status(self, _request):
+        run_name = _request.GET.get("run_name", None)
+        lane = _request.GET.get("lane", None)
+        validation_status, errors, _ = get_experiment_run_lane_validation_status(run_name=run_name, lane=lane)
+        
+        if errors:
+            response = HttpResponseServerError("\n".join(errors))
+        else:
+            response = Response(validation_status)
         return response
 
 

@@ -174,6 +174,26 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
 
     return count_status, errors, warnings
 
+def get_experiment_run_lane_validation_status(run_name: str, lane: int):
+    """
+    Get validation_status for dataset_files of the given run and lane. All files are assumed to share the same status.
+
+    Args:
+        `run_name`: The unique experiment run name.
+        `lane`: The integer that describe the lane.
+    
+    Returns:
+        A tuple with the validation status, errors and warnings
+    """
+    validation_status = None
+    errors = []
+    warnings = []
+
+    if DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).exists():
+        validation_status = DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).first().validation_status
+
+    return validation_status, errors, warnings
+
 
 def ingest_run_validation_report(report_json):
     """
