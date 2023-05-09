@@ -324,7 +324,7 @@ _stephistory_filterset_fields: FiltersetFields = {
     **_prefix_keys("process_measurement__", _process_measurement_filterset_fields),
 }
 
-_metric_filteset_fields: FiltersetFields = {
+_metric_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "metric_group": CATEGORICAL_FILTERS_LOOSE,

@@ -187,7 +187,7 @@ class ExperimentRunServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
-        my_experiment_run, errors, warnings = experiment_run.set_run_processing_start_time(my_experiment_run.name)
+        my_experiment_run, errors, warnings = experiment_run.set_run_processing_start_time(my_experiment_run.id)
 
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
@@ -208,7 +208,7 @@ class ExperimentRunServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
-        my_experiment_run, errors, warnings = experiment_run.set_run_processing_end_time(my_experiment_run.name)
+        my_experiment_run, errors, warnings = experiment_run.set_run_processing_end_time(my_experiment_run.id)
         
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])

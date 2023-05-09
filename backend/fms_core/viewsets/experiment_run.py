@@ -53,8 +53,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_external_experiment_run(self, _request):
-        subquery_timestamp=Subquery(Dataset.objects.filter(OuterRef("run_name")).values("modified_at").order_by("-modified_at")[:1])
-        queryset = Dataset.objects.values("run_name").distinct().annotate(latest_submission_timestamp=subquery_timestamp)
+        queryset = Dataset.objects.distinct("run_name")
         serializer = ExternalExperimentRunSerializer(queryset, many=True)
         return Response(serializer.data)
 

@@ -181,15 +181,19 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
                   'run_processing_end_time',)
 
 
-class ExternalExperimentRunSerializer(serializers.Serializer):
+class ExternalExperimentRunSerializer(serializers.ModelSerializer):
     lanes = serializers.SerializerMethodField()
+    latest_submission_timestamp = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ["run_name", "lanes", "latest_submission_timestamp"]
+        fields = ("run_name", "lanes", "latest_submission_timestamp")
     
     def get_lanes(self, obj):
         return Dataset.objects.filter(run_name=obj.run_name).values_list("lane", flat=True).distinct()
+    
+    def get_latest_submission_timestamp(self, obj):
+        return Dataset.objects.filter(run_name=obj.run_name).values_list("updated_at", flat=True).order_by("-updated_at")[:1]
 
 
 class RunTypeSerializer(serializers.ModelSerializer):
