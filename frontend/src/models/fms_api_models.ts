@@ -67,6 +67,22 @@ export interface FMSCoordinate extends FMSTrackedModel {
   row: number                        // Row ordinal starting at 0
 }
 
+export interface FMSDataset extends FMSTrackedModel {
+    external_project_id : FMSId         // External (Hercules) project ID
+    files: FMSId[]                      // List of dataset file ID's
+    lane: number                        // Flowcell lane number of dataset
+    latest_release_update?: string      // ?
+    released_status_count: number       // Number of files released
+    run_name: string                    // The name of the experiment run that generated this dataset
+}
+
+export interface FMSDatasetFile extends FMSTrackedModel {
+    dataset: FMSId                      // The dataset that owns this file
+    file_path: string                   // The path to the dataset file (on Abacus?)
+    release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
+    sample_name: string                 // The name of the sample that was processed to produce this file
+}
+
 export interface FMSExperimentRun extends FMSTrackedModel {
     children_processes: FMSId[]         //Child process ID's
     container: FMSId                    // Experiment run container (flowcell)

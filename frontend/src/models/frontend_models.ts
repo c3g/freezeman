@@ -35,6 +35,8 @@ import {
 	FMSWorkflow,
   FMSCoordinate,
   FMSExperimentRun,
+  FMSDataset,
+  FMSDatasetFile,
 } from './fms_api_models'
 
 // Reducers tack on these two properties to objects that are fetched from
@@ -72,6 +74,8 @@ export function getAllItems<T extends FMSTrackedModel>(itemsByID: ItemsByID<T>) 
 
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {}
+export interface Dataset extends Readonly<FMSDataset>, FetchedObject {}
+export interface DatasetFile extends Readonly<FMSDatasetFile>, FetchedObject {}
 export interface ExperimentRun extends Readonly<FMSExperimentRun>, FetchedObject {}
 export interface ImportedFile extends Readonly<FMSImportedFile>, FetchedObject {}
 export interface Index extends Readonly<FMSIndex>, FetchedObject {}

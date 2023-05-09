@@ -1,4 +1,4 @@
-import { Coordinate, Index, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
+import { Coordinate, Dataset, DatasetFile, Index, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { LabworkStepsState } from "./modules/labworkSteps/models"
 import { StudySamplesByID, StudySettingsByID } from "./modules/studySamples/models"
@@ -26,6 +26,10 @@ export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.a
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
+export const selectDatasetsState = (state: RootState) => state.datasets
+export const selectDatasetsByID = (state: RootState) => state.datasets.itemsByID as ItemsByID<Dataset>
+export const selectDatasetFilesState = (state: RootState) => state.datasetFiles
+export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID

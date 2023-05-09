@@ -1,26 +1,26 @@
-import { Button, Checkbox, Descriptions, Select, Switch, Typography } from "antd";
-const { Option } = Select;
-import Title from "antd/lib/skeleton/Title";
-import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
-import {get, setReleaseStatus} from "../../modules/datasets/actions";
-import {listFilter, update} from "../../modules/datasetFiles/actions"
-import AppPageHeader from "../AppPageHeader";
-import FilteredList from "../FilteredList";
-import { DATASET_FILE_FILTERS } from "../filters/descriptions";
-import PageContent from "../PageContent";
-import moment from "moment";
-import useFilteredList from "../../hooks/useFilteredList";
-import PaginatedList from "../shared/PaginatedList";
+import { Button, Descriptions, Typography } from "antd"
+import moment from "moment"
+import React, { useCallback, useEffect, useReducer } from "react"
+import { useParams } from "react-router-dom"
+import { useAppDispatch, useAppSelector } from '../../hooks'
+import useFilteredList from "../../hooks/useFilteredList"
+import { listFilter, update } from "../../modules/datasetFiles/actions"
+import { get, setReleaseStatus } from "../../modules/datasets/actions"
+import { selectDatasetFilesByID, selectDatasetFilesState, selectDatasetsByID } from "../../selectors"
+import AppPageHeader from "../AppPageHeader"
+import PageContent from "../PageContent"
+import { DATASET_FILE_FILTERS } from "../filters/descriptions"
+import PaginatedList from "../shared/PaginatedList"
+import { Dataset, DatasetFile } from "../../models/frontend_models"
+const { Title } = Typography
 
 const AVAILABLE = 0
 const RELEASED = 1
 const BLOCKED = 2
 const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
-const OPPOSITE_STATUS = [0, 2, 1]
+const OPPOSITE_STATUS = [RELEASED, BLOCKED, RELEASED]
 
-const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
+const getTableColumns = (toggleReleaseStatus, releaseStatusOption) => {
     return [
         {
             title: "ID",
@@ -40,12 +40,12 @@ const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
         {
             title: "Release Status",
             dataIndex: "release_status",
-            render: (release_status, file) => {
+            render: (release_status: number, file) => {
                 const { id } = file;
                 const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? release_status
                 const changed = (releaseStatusOption.all && releaseStatusOption.all !== release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
                 return <>
-                    <Button style={{ color: changed ? "red" : "grey", width: "6em" }} onClick={() => setReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}</Button>
+                    <Button style={{ color: changed ? "red" : "grey", width: "6em" }} onClick={() => toggleReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}</Button>
                 </>
             }
         },
@@ -53,7 +53,7 @@ const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
             title: "Latest Release Update",
             dataIndex: "release_status_timestamp",
             sorter: true,
-            render: (release_status_timestamp, _) => {
+            render: (release_status_timestamp) => {
                 if (release_status_timestamp) {
                     const date = moment(release_status_timestamp)
                     return date.format("YYYY-MM-DD LT")
@@ -66,18 +66,20 @@ const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
 }
 
 const DatasetDetailContent = () => {
-    const datasetsById = useSelector((state) => state.datasets.itemsByID)
-    const filesById = useSelector((state) => state.datasetFiles.itemsByID)
-    const files = useSelector((state) => state.datasetFiles.filteredItems)
-    const isFetching = useSelector((state) => state.datasetFiles.isFetching)
-    const page = useSelector((state) => state.datasetFiles.page)
-    const totalCount = useSelector((state) => state.datasetFiles.filteredItemsCount)
+    const datasetsById = useAppSelector(selectDatasetsByID)
 
-    const dispatch = useDispatch()
+    const datasetFilesState = useAppSelector(selectDatasetFilesState)
+    const filesById = useAppSelector(selectDatasetFilesByID)
+    const files = datasetFilesState.filteredItems as DatasetFile[]
+    const isFetching = datasetFilesState.isFetching
+    const page = datasetFilesState.page
+    const totalCount = datasetFilesState.filteredItemsCount
+
+    const dispatch = useAppDispatch()
     const dispatchListFilter = useCallback((...args) => dispatch(listFilter(...args)), [dispatch])
 
     const {id: datasetId} = useParams();
-    const dataset = datasetsById[datasetId];
+    const dataset: Dataset | undefined = datasetsById[datasetId!];
     const allFilesReleased = dataset?.released_status_count === dataset?.files?.length
     const allFilesBlocked = dataset?.released_status_count === 0
 
@@ -132,9 +134,9 @@ const DatasetDetailContent = () => {
         if (!dataset) {
             dispatch(get(datasetId))
         }
-    }, [datasetsById])
+    }, [dataset, datasetId, datasetsById, dispatch])
 
-    const loading = (value) => {
+    const loading = (value: string | number | undefined) => {
         return value ?? "Loading..."
     }
 
@@ -147,7 +149,6 @@ const DatasetDetailContent = () => {
         totalCount: totalCount,
         filterID: datasetId,
         filterKey: filterKey,
-        rowKey: "id",
         isFetching: isFetching,
         page: page,
     })
@@ -157,7 +158,7 @@ const DatasetDetailContent = () => {
     const extraButtons = <>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 dispatchReleaseStatusOptionTypeAll(RELEASED)
             }}
             disabled={
@@ -167,7 +168,7 @@ const DatasetDetailContent = () => {
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 dispatchReleaseStatusOptionTypeAll(BLOCKED)
             }}
             disabled={
@@ -177,7 +178,7 @@ const DatasetDetailContent = () => {
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 dispatchReleaseStatusOptionTypeAll(undefined)
             }}
             disabled={!releaseStatusOption.all && !specificStatusToggled}>
@@ -185,7 +186,7 @@ const DatasetDetailContent = () => {
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 const { all, specific } = releaseStatusOption
                 if (all) {
                     dispatch(setReleaseStatus(datasetId, all, Object.keys(specific), filters))

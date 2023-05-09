@@ -1,17 +1,17 @@
-import { Button, Checkbox, Select, Spin, Switch } from "antd";
-const { Option } = Select;
-import React, { useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import {setReleaseStatus, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
-import AppPageHeader from "../AppPageHeader";
-import { DATASET_FILTERS } from "../filters/descriptions";
-import FiltersWarning from "../filters/FiltersWarning";
-import getFilterProps from "../filters/getFilterProps";
-import getNFilters from "../filters/getNFilters";
-import PageContent from "../PageContent";
-import PaginatedTable from "../PaginatedTable";
-import moment from "moment";
+import { Button } from "antd"
+import moment from "moment"
+import React, { useCallback } from "react"
+import { Link } from "react-router-dom"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { clearFilters, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/datasets/actions"
+import { selectDatasetsByID, selectDatasetsState } from "../../selectors"
+import AppPageHeader from "../AppPageHeader"
+import PageContent from "../PageContent"
+import PaginatedTable from "../PaginatedTable"
+import FiltersWarning from "../filters/FiltersWarning"
+import { DATASET_FILTERS } from "../filters/descriptions"
+import getFilterProps from "../filters/getFilterProps"
+import getNFilters from "../filters/getNFilters"
 
 const getTableColumns = () => {
     return [
@@ -61,15 +61,17 @@ const getTableColumns = () => {
 }
 
 const DatasetsListContent = () => {
-    const datasets = useSelector((state) => state.datasets.items)
-    const datasetsById = useSelector((state) => state.datasets.itemsByID)
-    const filters = useSelector((state) => state.datasets.filters)
-    const isFetching = useSelector((state) => state.datasets.isFetching)
-    const page = useSelector((state) => state.datasets.page)
-    const sortBy = useSelector((state) => state.datasets.sortBy)
-    const totalCount = useSelector((state) => state.datasets.totalCount)
     
-    const dispatch = useDispatch()
+    const datasets = useAppSelector((state) => state.datasets.items as number[])
+    const datasetsById = useAppSelector(selectDatasetsByID)
+
+    const datasetsState = useAppSelector(selectDatasetsState)
+    const filters = datasetsState.filters
+    const isFetching = datasetsState.isFetching
+    const sortBy = datasetsState.sortBy
+    const totalCount = datasetsState.totalCount
+    
+    const dispatch = useAppDispatch()
     const dispatchSetFilter = useCallback((...args) => dispatch(setFilter(...args)), [dispatch])
     const dispatchSetFilterOption = useCallback((...args) => dispatch(setFilterOption(...args)), [dispatch])
     const dispatchClearFilters = useCallback((...args) => dispatch(clearFilters(...args)), [dispatch])
@@ -110,11 +112,11 @@ const DatasetsListContent = () => {
             rowKey="id"
             loading={isFetching}
             totalCount={totalCount}
-            page={page}
             filters={filters}
             sortBy={sortBy}
             onLoad={dispatchListTable}
             onChangeSort={dispatchSetSortBy}
+            filterKey={undefined}   // TS complains if the filterKey prop is missing
         />
         </PageContent>
     </>;
