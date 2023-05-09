@@ -3,6 +3,7 @@ import Sample from "../modules/samples/actions.js"
 import Individual from "../modules/individuals/actions.js"
 import User from "../modules/users/actions.js"
 import Process from "../modules/processMeasurements/actions.js"
+import Protocol from "../modules/protocols/actions.js"
 import Project from "../modules/projects/actions.js"
 import Sequence from "../modules/sequences/actions.js"
 import Index from "../modules/indices/actions.js"
@@ -95,6 +96,7 @@ export const withUser = createWithItem(User, api.users)
 export const withProcess = createWithItem(Process, api.processes)
 export const withProcessMeasurement = createWithItem(Process, api.processMeasurements)
 export const withProject = createWithItem(Project, api.projects)
+export const withProtocol = createWithItem(Protocol, api.protocols)
 export const withSequence = createWithItem(Sequence, api.sequences)
 export const withIndex = createWithItem(Index, api.indices)
 export const withLibrary = createWithItem(Library, api.libraries)
