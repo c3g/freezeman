@@ -195,7 +195,7 @@ const App = ({userID, usersByID, logOut, get}) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, [token, dispatch]);
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
