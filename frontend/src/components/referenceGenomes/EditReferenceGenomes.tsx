@@ -14,15 +14,17 @@ export const EditReferenceGenomeRoute = () => {
     return <EditReferenceGenomes />
 }
 
-type EditReferenceGenomeProps = Partial<ObjectWithReferenceGenome>
 
-const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomeProps) => {
-    const [form, setForm] = useState();
-    const isAdding = referenceGenome
+const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGenome>) => {
+    const [form] = Form.useForm()
+    const isAdding = referenceGenome === undefined
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const onFinish = () => {
-
+        const newValues = form.getFieldsValue();
+        const newReferenceGenome = {
+            
+        }
     }
     return (
         <>
