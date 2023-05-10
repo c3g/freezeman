@@ -70,53 +70,50 @@ export function setHideEmptySteps(hide: boolean) {
 	}
 }
 
-export function initStudySamplesSettings(studyID: FMSId, stepIDs: FMSId[]) {
+export function initStudySamplesSettings(studyID: FMSId, stepOrderIDs: FMSId[]) {
 	return {
 		type: INIT_STUDY_SAMPLES_SETTINGS,
 		studyID,
-		stepIDs
+		stepOrderIDs
 	}
 }
 
-export function setStudyExpandedSteps(studyID: FMSId, stepIDs: FMSId[]) {
+export function setStudyExpandedSteps(studyID: FMSId, stepOrderIDs: FMSId[]) {
 	return {
 		type: SET_STUDY_EXPANDED_STEPS,
 		studyID,
-		stepIDs
+		stepOrderIDs
 	}
 }
 
-export function setStudyStepSamplesTab(studyID: FMSId, stepID: FMSId, selectedSamplesTab: StudyStepSamplesTabSelection) {
+export function setStudyStepSamplesTab(studyID: FMSId, stepOrderID: FMSId, selectedSamplesTab: StudyStepSamplesTabSelection) {
 	return {
 		type: SET_STUDY_STEP_SAMPLES_TAB,
 		studyID,
-		stepID,
+		stepOrderID,
 		selectedSamplesTab
 	}
 }
 
-export function setStudyStepFilter(studyID: FMSId, stepID: FMSId, description: FilterDescription, value: FilterValue) {
+export function setStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, description: FilterDescription, value: FilterValue) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		dispatch({
 			type: SET_STUDY_STEP_FILTER,
 			studyID,
-			stepID,
+			stepOrderID,
 			description,
 			value
 		})
 		dispatch(refreshSamplesAtStep(studyID, stepID))
-	}
-	
-	// return {
-	
+	}	
 }
 
-export function setStudyStepFilterOptions(studyID: FMSId, stepID: FMSId, description: FilterDescription, options: FilterOptions) {
+export function setStudyStepFilterOptions(studyID: FMSId, stepOrderID: FMSId, description: FilterDescription, options: FilterOptions) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		dispatch({
 			type: SET_STUDY_STEP_FILTER_OPTIONS,
 			studyID,
-			stepID,
+			stepOrderID,
 			description,
 			options
 		})
@@ -124,27 +121,27 @@ export function setStudyStepFilterOptions(studyID: FMSId, stepID: FMSId, descrip
 	}
 }
 
-export function removeStudyStepFilter(studyID: FMSId, stepID: FMSId, description: FilterDescription) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+export function removeStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, description: FilterDescription) {
+	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: REMOVE_STUDY_STEP_FILTER,
 			studyID,
-			stepID,
+			stepOrderID,
 			description
 		})
 		dispatch(refreshSamplesAtStep(studyID, stepID))
 	}
 }
 
-export function setStudyStepSortOrder(studyID: FMSId, stepID: FMSId, sortBy: SortBy) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+export function setStudyStepSortOrder(studyID: FMSId, stepOrderID: FMSId, sortBy: SortBy) {
+	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: SET_STUDY_STEP_SORT_ORDER,
 			studyID,
-			stepID,
+			stepOrderID,
 			sortBy
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStep(studyID, stepOrderID))
 	}
 }
 

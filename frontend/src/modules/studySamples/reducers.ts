@@ -20,7 +20,7 @@ export const INIT_STUDY_SAMPLES_SETTINGS = 'STUDY_SAMPLES.INIT_STUDY_SAMPLES_SET
 export const SET_STUDY_EXPANDED_STEPS = 'STUDY_SAMPLES.SET_STUDY_EXPANDED_STEPS'
 export const SET_STUDY_STEP_SAMPLES_TAB = 'STUDY_SAMPLES.SET_STUDY_SELECTED_SAMPLES_TAB'
 export const SET_STUDY_STEP_FILTER = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTER'
-export const SET_STUDY_STEP_FILTER_OPTIONS = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTER_OPTION'
+export const SET_STUDY_STEP_FILTER_OPTIONS = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTER_OPTIONS'
 export const REMOVE_STUDY_STEP_FILTER = 'STUDY_SAMPLES.REMOVE_STUDY_STEP_FILTER'
 export const SET_STUDY_STEP_SORT_ORDER = 'STUDY_SAMPLES.SET_STUDY_STEP_SORT_ORDER'
 
@@ -121,16 +121,16 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 
 		// Create a new instance of settings for a study if the settings don't already exist.
 		case INIT_STUDY_SAMPLES_SETTINGS: {
-			const { studyID, stepIDs } = action
+			const { studyID, stepOrderIDs } = action
 
 			if (!state.studySettingsByID[studyID]) {
 				const studyUXSettings: StudyUXSettings = {
 					studyID,
 					stepSettings: {},
 				}
-				for (const stepID of stepIDs) {
-					studyUXSettings.stepSettings[stepID] = {
-						stepID,
+				for (const stepOrderID of stepOrderIDs) {
+					studyUXSettings.stepSettings[stepOrderID] = {
+						stepOrderID,
 					}
 				}
 				state.studySettingsByID[studyID] = studyUXSettings
@@ -142,14 +142,14 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			// Ant Design gives us the list of expanded panels in its onChange method.
 			// Go through the list of expanded steps and update the expanded state
 			// of each step.
-			const { studyID, stepIDs } = action
+			const { studyID, stepOrderIDs } = action
 
 			const study = state.studySettingsByID[studyID]
 			if (study) {
-				for (const stepID in study.stepSettings) {
-					const step = study.stepSettings[stepID]
+				for (const stepOrderID in study.stepSettings) {
+					const step = study.stepSettings[stepOrderID]
 					if (step) {
-						const isExpanded = (stepIDs as number[]).includes(parseInt(stepID))
+						const isExpanded = (stepOrderIDs as number[]).includes(parseInt(stepOrderID))
 						step.expanded = isExpanded
 					}
 				}
@@ -157,10 +157,10 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			break
 		}
 		case SET_STUDY_STEP_SAMPLES_TAB: {
-			const { studyID, stepID, selectedSamplesTab } = action
+			const { studyID, stepOrderID, selectedSamplesTab } = action
 
 			if (selectedSamplesTab === 'ready' || selectedSamplesTab === 'completed' || selectedSamplesTab === 'removed') {
-				const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+				const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
 				if (step) {
 					step.selectedSamplesTab = selectedSamplesTab
 				}
@@ -168,8 +168,8 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			break
 		}
 		case SET_STUDY_STEP_FILTER: {
-			const { studyID, stepID, description, value } = action
-			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			const { studyID, stepOrderID, description, value } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
 			if (step) {
 				step.filters = setFilterReducer(step.filters ?? {}, description, value)
 			}
@@ -177,8 +177,8 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 		}
 
 		case SET_STUDY_STEP_FILTER_OPTIONS: {
-			const { studyID, stepID, description, options } = action
-			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			const { studyID, stepOrderID, description, options } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
 			if (step) {
 				step.filters = setFilterOptionsReducer(step.filters ?? {}, description, options)
 			}
@@ -186,8 +186,8 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 		}
 
 		case REMOVE_STUDY_STEP_FILTER: {
-			const { studyID, stepID, description } = action
-			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			const { studyID, stepOrderID, description } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
 			if (step) {
 				step.filters = removeFilterReducer(step.filters ?? {}, description)
 			}
@@ -195,8 +195,8 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 		}
 
 		case SET_STUDY_STEP_SORT_ORDER: {
-			const { studyID, stepID, sortBy } = action
-			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			const { studyID, stepOrderID, sortBy } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
 			if (step) {
 				step.sortBy = {
 					key: sortBy.key,
