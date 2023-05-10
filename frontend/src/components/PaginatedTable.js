@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {connect, useDispatch } from "react-redux";
 import prop from "prop-types";
 import {Pagination, Table} from "antd";
@@ -31,6 +31,7 @@ function PaginatedTable ({
     pageSize,
     onLoad,
     onChangeSort,
+    otherLoading,
   }) {
 
   const dispatch  = useDispatch();
@@ -49,10 +50,19 @@ function PaginatedTable ({
   const isCurrentPageUnloaded = ((endIndex - 1) > items.length) || hasUnloadedItems;
   const shouldLoadNextChunk = !loading && isCurrentPageUnloaded;
 
-  if (shouldLoadNextChunk) {
-    const offset = Math.floor(startIndex / pageSize) * pageSize;
-    setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
-  }
+  useEffect(() => {
+    if (shouldLoadNextChunk) {
+      const offset = Math.floor(startIndex / pageSize) * pageSize;
+      setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
+    }
+  }, [filterKey, filters, onLoad, pageSize, shouldLoadNextChunk, sortBy, startIndex])
+
+  useEffect(() => {
+    if (!otherLoading) {
+      onLoad({filters, sortBy, filterKey});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otherLoading])
 
   if (sortByRef.current !== sortBy) {
     setCurrentPage(1)
