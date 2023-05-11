@@ -22,7 +22,7 @@ class TaxonViewSet(viewsets.ModelViewSet):
 
 
     def create(self, request, *args, **kwargs):
-        taxon_data = request.data.get("new_taxon")
+        taxon_data = request.data
         errors = {}
         errors_to_raise = {}
         try:
@@ -42,25 +42,20 @@ class TaxonViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         taxon_data = request.data
-        errors = {}
-        errors_to_raise = {}
         
         try:
             taxon_to_update = Taxon.objects.select_for_update().get(pk=taxon_data['id'])
             taxon_to_update.__dict__.update(taxon_data)
             serializer = TaxonSerializer(taxon_to_update)
         except Exception as err:
-            errors_to_raise = { **errors, **err.message_dict }
+            raise ValidationError(dict(non_field_errors=err))
         
         try:
             taxon_to_update.save()
         except Exception as err:
-            errors_to_raise = { **errors, **err.message_dict }
+            raise ValidationError(err)
         
-        if any(bool(error) for error in errors_to_raise.values()):
-            raise ValidationError(errors)
-        else:
-            return Response(serializer.data)
+        return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def search(self, _request):

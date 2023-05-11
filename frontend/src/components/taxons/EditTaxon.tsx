@@ -1,4 +1,4 @@
-import { Button, Form, Input, Space } from "antd";
+import { Button, Form, FormItemProps, Input, Space } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
 import { requiredRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -30,27 +30,47 @@ const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const props = (name: string) =>
-        !formErrors[name] ? { name } : {
-            name,
-            hasFeedback: true,
-            help: formErrors[name],
+    const itemValidation = (key: string): FormItemProps => {
+        if (formErrors && formErrors[key]) {
+            return {
+                help: formErrors[key],
+                validateStatus: 'error',
+                name: key
+            }
         }
+        return { name: key }
+    }
+
+    const onValuesChange = (values) => {
+        const key = Object.keys(values)[0];
+        if (formErrors && formErrors[key]) {
+            let copy = { ...formErrors }
+            copy[key] = undefined;
+            setFormErrors({ ...copy })
+        }
+    }
+
     const onFinish = () => {
         const fieldValues = form.getFieldsValue();
-        const new_taxon = { taxon: { id: taxon ? taxon.id : undefined, name: fieldValues['name'], ncbi_id: fieldValues['ncbi_id'] } };
+        const new_taxon = { id: taxon ? taxon.id : undefined, name: fieldValues['name'], ncbi_id: fieldValues['ncbi_id'] };
         if (isAdding) {
             dispatch(
-                add({ new_taxon })
-            ).then(() => {
-                navigate('/taxons')
-            }).then(() => { dispatch(list()) })
+                add({ ...new_taxon })
+            )
+                .then(() => {
+                    navigate('/taxons')
+                })
+                .then(() => { dispatch(list()) })
+                .catch(err => setFormErrors({ ...err.data }))
         } else {
             dispatch(
-                update(taxon.id, new_taxon)
-            ).then(() => {
-                navigate('/taxons')
-            }).then(() => { dispatch(list()) })
+                update(taxon.id, { ...new_taxon })
+            )
+                .then(() => {
+                    navigate('/taxons')
+                })
+                .then(() => { dispatch(list()) })
+                .catch(err => setFormErrors({ ...err.data }))
         }
     }
     const onCancel = useCallback(() => {
@@ -69,12 +89,13 @@ const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
                     wrapperCol={{ span: 14 }}
                     layout="horizontal"
                     onFinish={onFinish}
+                    onValuesChange={onValuesChange}
                     form={form}
                     initialValues={taxon}>
-                    <Item label={"ncbi_id"} {...props("ncbi_id")} rules={requiredRules}>
+                    <Item label={"ncbi_id"} {...itemValidation("ncbi_id")} rules={requiredRules}>
                         <Input />
                     </Item>
-                    <Item label={"name"} {...props("name")} rules={requiredRules}>
+                    <Item label={"name"} {...itemValidation("name")} rules={requiredRules}>
                         <Input />
                     </Item>
                     <Item>
