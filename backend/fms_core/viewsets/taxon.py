@@ -29,15 +29,9 @@ class TaxonViewSet(viewsets.ModelViewSet):
             taxon = Taxon.objects.create(ncbi_id = taxon_data["ncbi_id"], name = taxon_data["name"])
             serializer = TaxonSerializer(taxon)
         except ValidationError as err:
-            errors = { **errors, **err.message_dict }
+            raise ValidationError(err)
         
-        for key, value in errors.items():
-                errors_to_raise[key].append(value)
-    
-        if any(bool(error) for error in errors_to_raise.values()):
-            raise ValidationError(errors)
-        else:
-            return Response(serializer.data)
+        return Response(serializer.data)
     
     
     def update(self, request, *args, **kwargs):
