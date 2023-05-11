@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from fms_core.models import Study, Project, Workflow
+from fms_core.models import Study, Project, Workflow, StepHistory, SampleNextStep, SampleNextStepByStudy
 from fms_core.serializers import StudySerializer
 from fms_core.services.study import create_study
 from django.core.exceptions import ValidationError
@@ -56,3 +56,21 @@ class StudyViewSet(viewsets.ModelViewSet):
             # Serialize study
             serializer = StudySerializer(study)
             return Response(serializer.data)
+
+    def destroy(self, request, pk=None):
+        errors = defaultdict(list)
+
+        if pk is None:
+            errors['Study'].append("pk cannot be None")
+        else:
+            if StepHistory.objects.filter(study=pk).exists():
+                errors['StepHistory'].append("At least one StepHistory is associated with the Study")
+            if SampleNextStep.objects.filter(studies__id=pk).exists():
+                errors['SampleNextStep'].append("At least one SampleNextStep is associated with the Study")
+            if SampleNextStepByStudy.objects.filter(study=pk).exists():
+                errors['SampleNextStepByStudy'].append("At least one SampleNextStepByStudy is associated with the Study")
+        
+        if any(bool(error) for error in errors.values()):
+            raise ValidationError(errors)
+        else:
+            Study.objects.filter(pk=pk).delete()
