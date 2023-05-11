@@ -16,6 +16,7 @@ import { createStudyTabKey } from '../studies/StudyEditContent'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { get as getProject } from '../../modules/projects/actions'
+import api from '../../utils/api'
 
 const { TabPane } = Tabs
 
@@ -53,18 +54,23 @@ const ProjectsDetailedContentRoute = () => {
 	}, [project, studiesByID])
 
 
-	return project && <ProjectsDetailedContent project={project} studies={studies}/>
+	return project && <ProjectsDetailedContent project={project} studies={studies} setStudies={setStudies}/>
 }
 
 interface ProjectsDetailedContentProps {
 	project: Project
 	studies: Study[]
+	setStudies: React.Dispatch<React.SetStateAction<Study[]>>
 }
 
-const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentProps) => {
+const ProjectsDetailedContent = ({project, studies, setStudies} : ProjectsDetailedContentProps) => {
+	const dispatch = useAppDispatch()
+
 	const navigate = useNavigate()
 
 	const [activeKey, setActiveKey] = useHashURL('overview')
+
+	const currentStudy = activeKey.startsWith("study") ? Number(activeKey.split("-")[1]) : null
 
 	const tabsStyle = {
 		marginTop: 8,
@@ -78,12 +84,22 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 
 	const title = `Project ${project ? project.name : ''}`
 
+	const handleRemoveStudy = useCallback(async () => {
+		if (currentStudy !== null) {
+			await dispatch(api.studies.remove(currentStudy))
+			setStudies((studies) => studies.filter(study => study.id !== currentStudy))
+			setActiveKey('overview')
+		}
+	}, [currentStudy, dispatch, setActiveKey, setStudies])
+
 	const handleAddStudy = useCallback(() => {
 		navigate(`/projects/${`${project.id}`}/study/add`)
 	}, [project, navigate])
 
 	// Clicking the Add Study button navigates the user to the study creation form
-	const addStudyButton = <Button onClick={handleAddStudy}>Add Study</Button>
+	const addStudyButton = <Button onClick={handleAddStudy} >Add Study</Button>
+
+	const removeStudyButton = <Button onClick={handleRemoveStudy} disabled={!studies.some((study) => study.id === currentStudy && study.removable)}>Remove Study</Button>
 
 	return (
 		<>
@@ -92,7 +108,7 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 			{project && (
 				<PageContent loading={false} style={undefined}>
 					{ project && 
-						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={addStudyButton}>
+						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={<>{addStudyButton}{removeStudyButton}</>}>
 							<TabPane tab="Overview" key="overview" style={tabStyle}>
 								<ProjectOverview project={project} />
 							</TabPane>
