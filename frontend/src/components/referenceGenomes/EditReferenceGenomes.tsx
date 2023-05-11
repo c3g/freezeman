@@ -16,8 +16,8 @@ export const AddReferenceGenomeRoute = () => {
 };
 
 export const EditReferenceGenomeRoute = () => {
-    const referenceGenomes = useAppSelector(selectReferenceGenomesByID)
     const { id } = useParams()
+    const referenceGenomes = useAppSelector(selectReferenceGenomesByID)
     const appInitialized = useAppSelector(selectAppInitialzed)
     return (id && referenceGenomes[id] && appInitialized) ? <EditReferenceGenomes referenceGenome={{ ...referenceGenomes[id] }} /> : null
 }

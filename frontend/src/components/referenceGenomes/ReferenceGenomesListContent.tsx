@@ -10,9 +10,9 @@ import { ObjectWithReferenceGenome, getColumnsForReferenceGenome } from '../shar
 
 
 function ReferenceGenomesListContent() {
+	const [referenceGenomeColumns, setReferenceGenomeColumns] = useState<ObjectWithReferenceGenome[]>();
 	const referenceGenomesState = useAppSelector(selectReferenceGenomesByID)
 	const referenceGenomes = getAllItems(referenceGenomesState)
-	const [referenceGenomeColumns, setReferenceGenomeColumns] = useState<ObjectWithReferenceGenome[]>();
 	const taxonsByID: any = useAppSelector(selectTaxonsByID)
 	const columns = getColumnsForReferenceGenome(taxonsByID);
 
