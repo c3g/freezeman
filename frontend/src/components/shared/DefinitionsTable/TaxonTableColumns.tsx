@@ -15,17 +15,12 @@ enum TaxonColumnID {
 type TaxonColumn = IdentifiedTableColumnType<ObjectWithTaxon>
 
 export const getColumnsForTaxon = (): IdentifiedTableColumnType<ObjectWithTaxon>[] => {
-    const TAXON_COLUMN_DEFINITIONS = [
-        TAXON_COLUMNS.ID,
-        TAXON_COLUMNS.NCBI_ID,
-        TAXON_COLUMNS.NAME,
-    ]
+    const TAXON_COLUMN_DEFINITIONS = TAXON_COLUMNS();
     return TAXON_COLUMN_DEFINITIONS.map((column: TaxonColumn) => { return { ...column } })
 }
 
-const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
-
-    [TaxonColumnID.ID]: {
+const TAXON_COLUMNS = (): TaxonColumn[] => [
+    {
         columnID: TaxonColumnID.ID,
         title: 'ID',
         dataIndex: ['taxon', 'id'],
@@ -38,7 +33,7 @@ const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
                 </Link>
             ),
     },
-    [TaxonColumnID.NCBI_ID]: {
+    {
         columnID: TaxonColumnID.NCBI_ID,
         title: 'NCBI_ID',
         dataIndex: ['taxon', 'ncbi_id'],
@@ -51,7 +46,7 @@ const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
                 </Link>
             ),
     },
-    [TaxonColumnID.NAME]: {
+    {
         columnID: TaxonColumnID.NAME,
         title: 'NAME',
         dataIndex: ['taxon', 'name'],
@@ -61,6 +56,6 @@ const TAXON_COLUMNS: { [key in TaxonColumnID]: TaxonColumn } = {
             taxon && (
                 <div>{taxon.name}</div>
             ),
-    },
+    }
+]
 
-}

@@ -1,5 +1,5 @@
 import { Button, Form, FormItemProps, Input, Space } from "antd";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { requiredRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectAppInitialzed, selectTaxonsByID } from "../../selectors";
@@ -52,7 +52,11 @@ const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
 
     const onFinish = () => {
         const fieldValues = form.getFieldsValue();
-        const new_taxon = { id: taxon ? taxon.id : undefined, name: fieldValues['name'], ncbi_id: fieldValues['ncbi_id'] };
+        const new_taxon = {
+            id: taxon ? taxon.id : undefined,
+            name: fieldValues['name'],
+            ncbi_id: fieldValues['ncbi_id']
+        };
         if (isAdding) {
             dispatch(
                 add({ ...new_taxon })
