@@ -4,7 +4,7 @@ import { IdentifiedTableColumnType } from "../WorkflowSamplesTable/SampleTableCo
 import React from "react";
 
 export interface ObjectWithReferenceGenome {
-    referenceGenome: Pick<ReferenceGenome, "id" | "assembly_name" | "synonym" | "genbank_id" | "refseq_id" | "taxon_id" | "size">
+    referenceGenome: Required<Pick<ReferenceGenome, "id" | "assembly_name" | "synonym" | "genbank_id" | "refseq_id" | "taxon_id" | "size">>
 }
 
 enum ReferenceGenomeID {
@@ -31,7 +31,6 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         title: 'ID',
         dataIndex: ['referenceGenome', 'id'],
         sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        // width: '33%',
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <Link to={`/genomes/update/${referenceGenome.id}`}>
@@ -43,8 +42,7 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         columnID: ReferenceGenomeID.ASSEMBLY_NAME,
         title: 'ASSEMBLY_NAME',
         dataIndex: ['referenceGenome', 'assembly_name'],
-        // sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        // width: '33%',
+        sorter: (a, b) => a.referenceGenome.assembly_name.localeCompare(b.referenceGenome.assembly_name),
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <Link to={`/genomes/update/${referenceGenome.id}`}>
@@ -56,8 +54,7 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         columnID: ReferenceGenomeID.SYNONYM,
         title: 'SYNONYM',
         dataIndex: ['referenceGenome', 'synonym'],
-        // sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        // width: '33%',
+        sorter: (a, b) => a.referenceGenome.synonym.localeCompare(b.referenceGenome.synonym),
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <div>{referenceGenome.synonym}</div>
@@ -67,8 +64,7 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         columnID: ReferenceGenomeID.GENBANK_ID,
         title: 'GENBANK_ID',
         dataIndex: ['referenceGenome', 'genbank_id'],
-        // sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        // width: '33%',
+        sorter: (a, b) => a.referenceGenome.genbank_id.localeCompare(b.referenceGenome.genbank_id),
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <div>{referenceGenome.genbank_id}</div>
@@ -78,8 +74,7 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         columnID: ReferenceGenomeID.REFSEQ_ID,
         title: 'REFSEQ_ID',
         dataIndex: ['referenceGenome', 'refseq_id'],
-        // sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        // width: '33%',
+        sorter: (a, b) => a.referenceGenome.refseq_id.localeCompare(b.referenceGenome.refseq_id),
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <div>{referenceGenome.refseq_id}</div>
@@ -89,8 +84,7 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         columnID: ReferenceGenomeID.TAXON_ID,
         title: 'TAXON',
         dataIndex: ['referenceGenome', 'taxon_id'],
-        // sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        // width: '33%',
+        sorter: (a, b) => a.referenceGenome.taxon_id - b.referenceGenome.taxon_id,
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <Link to={`/taxons/update/${referenceGenome.taxon_id}`}>
@@ -102,8 +96,7 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         columnID: ReferenceGenomeID.SIZE,
         title: 'SIZE',
         dataIndex: ['referenceGenome', 'size'],
-        // sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        // width: '33%',
+        sorter: (a, b) => a.referenceGenome.size - b.referenceGenome.size,
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <div>{referenceGenome.size}</div>

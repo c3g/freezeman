@@ -1,7 +1,4 @@
 import React from 'react'
-import { useAppSelector } from '../../hooks'
-import { selectReferenceGenomesByID } from '../../selectors'
-import { getAllItems } from '../../models/frontend_models'
 import ReferenceGenomesListContent from './ReferenceGenomesListContent'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import PageContainer from '../PageContainer'

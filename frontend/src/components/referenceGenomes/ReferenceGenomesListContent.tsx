@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ReferenceGenome, getAllItems } from '../../models/frontend_models'
-import PageContainer from '../PageContainer'
+import { getAllItems } from '../../models/frontend_models'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import { useAppSelector } from '../../hooks'
@@ -24,9 +23,9 @@ function ReferenceGenomesListContent() {
 				referenceGenome: {
 					id: ref.id,
 					assembly_name: ref.assembly_name,
-					synonym: ref.synonym,
-					genbank_id: ref.genbank_id,
-					refseq_id: ref.refseq_id,
+					synonym: ref.synonym ?? '',
+					genbank_id: ref.genbank_id ?? '',
+					refseq_id: ref.refseq_id ?? '',
 					size: ref.size,
 					taxon_id: ref.taxon_id
 				}
