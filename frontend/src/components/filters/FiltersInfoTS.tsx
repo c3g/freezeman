@@ -1,6 +1,6 @@
 import React from "react";
 import { FILTER_TYPE } from "../../constants";
-import { FilterDescription, FilterSet, FilterValue, RangeFilterValue, StringArrayFilterValue, isMetadataFilterValue, isRangeFilterValue, isStringArrayFilterValue } from "../../models/paged_items";
+import { FilterDescription, FilterSet, FilterValue, isMetadataFilterValue, isRangeFilterValue, isStringArrayFilterValue } from "../../models/paged_items";
 
 interface FiltersInfosProps {
     filters: FilterSet
@@ -8,6 +8,10 @@ interface FiltersInfosProps {
 
 const FiltersInfos = ({ filters }: FiltersInfosProps) => {
     const appliedFilters = Object.keys(filters).filter(key => filters[key]?.value)
+    const filterValues = (options, value) => {
+        const option = options.find(option => option.value === value)
+        return option ? option.label : null
+    }
     const getValue = (key: string) => {
         const filterValue: FilterValue = filters[key].value ?? {}
         const description: FilterDescription = filters[key].description ?? { type: '', key: '', label: '' }
@@ -23,17 +27,13 @@ const FiltersInfos = ({ filters }: FiltersInfosProps) => {
 
             switch (description.type) {
                 case FILTER_TYPE.SELECT: {
-                    if (isStringArrayFilterValue(filterValue)) {
-                        const arrayValues = filterValue.map((val: string) => {
-                            if (description.options) {
-                                const option = description.options.find(option => option.value === val)
-                                return option ? option.label : null
-                            } else {
-                                return val
-                            }
-                        }
-                        )
-                        valueJSX = arrayValues.join(', ')
+                    if (description.options) {
+                        const value =
+                            isStringArrayFilterValue(filterValue) ?
+                                filterValue.map((val) => filterValues(description.options, val)).join(', ')
+                                :
+                                filterValues(description.options, filterValue)
+                        valueJSX = value;
                     } else {
                         valueJSX = filterValue;
                     }
@@ -51,6 +51,7 @@ const FiltersInfos = ({ filters }: FiltersInfosProps) => {
                         }
                         throw new Error('MIN and MAX values not defined for Filter range')
                     }
+                    break;
                 }
                 case FILTER_TYPE.METADATA: {
                     if (isMetadataFilterValue(filterValue)) {

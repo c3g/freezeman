@@ -5,7 +5,6 @@ import { refreshSamplesAtStep } from '../labworkSteps/actions'
 import { findChangedStepsInSummary, processFMSLabworkSummary } from './services'
 
 export const GET_LABWORK_SUMMARY = createNetworkActionTypes('SAMPLE-NEXT-STEP.GET_LABWORK_SUMMARY')
-export const LIST_TABLE = createNetworkActionTypes("SAMPLE-NEXT-STEP.LIST_TABLE");
 export const SET_HIDE_EMPTY_PROTOCOLS = 'SAMPLE-NEXT-STEP.SET_HIDE_EMPTY_PROTOCOLS'
 export const FLUSH_LABWORK_SUMMARY = 'SAMPLE-NEXT-STEP.FLUSH_LABWORK_SUMMARY'
 
