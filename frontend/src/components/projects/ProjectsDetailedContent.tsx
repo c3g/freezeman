@@ -6,7 +6,7 @@ import useHashURL from '../../hooks/useHashURL'
 import { getAllItems, Project, Study } from '../../models/frontend_models'
 
 import { useIDParam } from '../../hooks/useIDParams'
-import { listProjectStudies } from '../../modules/studies/actions'
+import { listProjectStudies, remove as removeStudy } from '../../modules/studies/actions'
 import { selectProjectsByID, selectStudiesByID } from '../../selectors'
 import AppPageHeader from '../AppPageHeader'
 import EditButton from '../EditButton'
@@ -16,7 +16,6 @@ import { createStudyTabKey } from '../studies/StudyEditContent'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { get as getProject } from '../../modules/projects/actions'
-import api from '../../utils/api'
 
 const { TabPane } = Tabs
 
@@ -54,16 +53,18 @@ const ProjectsDetailedContentRoute = () => {
 	}, [project, studiesByID])
 
 
-	return project && <ProjectsDetailedContent project={project} studies={studies} setStudies={setStudies}/>
+	return project && <ProjectsDetailedContent project={project} studies={studies}/>
 }
 
 interface ProjectsDetailedContentProps {
 	project: Project
 	studies: Study[]
-	setStudies: React.Dispatch<React.SetStateAction<Study[]>>
 }
 
-const ProjectsDetailedContent = ({project, studies, setStudies} : ProjectsDetailedContentProps) => {
+const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentProps) => {
+	console.error(studies);
+	
+
 	const dispatch = useAppDispatch()
 
 	const navigate = useNavigate()
@@ -86,11 +87,10 @@ const ProjectsDetailedContent = ({project, studies, setStudies} : ProjectsDetail
 
 	const handleRemoveStudy = useCallback(async () => {
 		if (currentStudy !== null) {
-			await dispatch(api.studies.remove(currentStudy))
-			setStudies((studies) => studies.filter(study => study.id !== currentStudy))
+			await dispatch(removeStudy(currentStudy))
 			setActiveKey('overview')
 		}
-	}, [currentStudy, dispatch, setActiveKey, setStudies])
+	}, [currentStudy, dispatch, setActiveKey])
 
 	const handleAddStudy = useCallback(() => {
 		navigate(`/projects/${`${project.id}`}/study/add`)

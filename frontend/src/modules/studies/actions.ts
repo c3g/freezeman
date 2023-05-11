@@ -2,7 +2,7 @@ import { Project, Workflow, WorkflowStepRange } from '../../models/frontend_mode
 import { AppDispatch, RootState } from '../../store'
 import { networkAction } from '../../utils/actions'
 import api from '../../utils/api'
-import { ADD, GET, LIST, LIST_PROJECT_STUDIES, UPDATE } from './reducers'
+import { ADD, GET, LIST, LIST_PROJECT_STUDIES, UPDATE, REMOVE } from './reducers'
 
 export const get = (id: number) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	const study = getState().studies.itemsByID[id]
@@ -53,6 +53,12 @@ export const listProjectStudies = (projectId: number) => {
 
 		return await dispatch(networkAction(LIST_PROJECT_STUDIES, api.studies.listProjectStudies(projectId), {}))
 	}
+}
+
+export const remove = (id: number) => async (dispatch: AppDispatch, getState: () => RootState) => {
+	const study = getState().studies.itemsByID[id]
+	if (study && study.isRemoving) return
+	return await dispatch(networkAction(REMOVE, api.studies.remove(id), { meta: { id } } ))
 }
 
 export default {
