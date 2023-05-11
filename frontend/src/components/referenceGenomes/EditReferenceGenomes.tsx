@@ -25,14 +25,16 @@ export const EditReferenceGenomeRoute = () => {
 
 const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGenome>) => {
     const { Item } = Form
+
     const [form] = Form.useForm()
+    const [formErrors, setFormErrors] = useState({})
+    
     const isAdding = referenceGenome === undefined
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const [formErrors, setFormErrors] = useState({})
 
-    let taxonOptions: any = useAppSelector(selectTaxonsByID)
-    taxonOptions = Object.keys(taxonOptions).map((id) => taxonOptions[id])
+    const taxonsByID = useAppSelector(selectTaxonsByID)
+    const taxonOptions = Object.keys(taxonsByID).map((id) => taxonsByID[id])
 
     const itemValidation = (key: string): FormItemProps => {
         if (formErrors && formErrors[key]) {
@@ -107,10 +109,8 @@ const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGe
                         <Select
                             showSearch
                             allowClear
-                            filterOption={false}
+                            filterOption={(input, option) => (option?.label?.props.children ?? '').toString().toLowerCase().includes(input.toString().toLowerCase())}
                             options={taxonOptions.map(Options.renderTaxon) ?? []}
-                            onSearch={() => { }}
-                            onFocus={() => { }}
                         />
                     </Item>
                     <Item label={"Size"} {...itemValidation("size")} rules={requiredRules}>

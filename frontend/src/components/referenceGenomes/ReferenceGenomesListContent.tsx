@@ -13,13 +13,12 @@ function ReferenceGenomesListContent() {
 	const referenceGenomesState = useAppSelector(selectReferenceGenomesByID)
 	const referenceGenomes = getAllItems(referenceGenomesState)
 	const [referenceGenomeColumns, setReferenceGenomeColumns] = useState<ObjectWithReferenceGenome[]>();
-	let taxonOptions: any = useAppSelector(selectTaxonsByID)
-	const columns = getColumnsForReferenceGenome(taxonOptions);
-    taxonOptions = Object.keys(taxonOptions).map((id)=> taxonOptions[id])
+	const taxonsByID: any = useAppSelector(selectTaxonsByID)
+	const columns = getColumnsForReferenceGenome(taxonsByID);
 
 	useEffect(() => {
-		const referenceGenome = referenceGenomes.map((ref) => {
-			const referenceGenomeObject: ObjectWithReferenceGenome = {
+		const refGenomeColumns = referenceGenomes.map((ref): ObjectWithReferenceGenome => {
+			return {
 				referenceGenome: {
 					id: ref.id,
 					assembly_name: ref.assembly_name,
@@ -30,9 +29,8 @@ function ReferenceGenomesListContent() {
 					taxon_id: ref.taxon_id
 				}
 			};
-			return referenceGenomeObject;
 		})
-		setReferenceGenomeColumns(referenceGenome)
+		setReferenceGenomeColumns(refGenomeColumns)
 	}, [referenceGenomes])
 
 	return (
