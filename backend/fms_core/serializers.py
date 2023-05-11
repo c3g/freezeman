@@ -729,10 +729,20 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
         fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size")
 
 class StudySerializer(serializers.ModelSerializer):
+    removable = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Study
-        fields = ("id", "letter", "project_id", "workflow_id", "start", "end")
-    
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "removable")
+
+    def get_removable(self, instance: Study):
+        if StepHistory.objects.filter(study=instance.pk).exists():
+            return False
+        if SampleNextStep.objects.filter(studies__id=instance.pk).exists():
+            return False
+        if SampleNextStepByStudy.objects.filter(study=instance.pk).exists():
+            return False
+        return True
+
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True)
     studies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
