@@ -1,7 +1,7 @@
 import { produce } from 'immer'
 import { WritableDraft } from 'immer/dist/types/types-external'
 import { AnyAction } from 'redux'
-import { removeFilterReducer, setFilterOptionsReducer, setFilterReducer } from '../../components/shared/WorkflowSamplesTable/FilterReducers'
+import { clearFiltersReducer, removeFilterReducer, setFilterOptionsReducer, setFilterReducer } from '../../components/shared/WorkflowSamplesTable/FilterReducers'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { StudySamplesState, StudyUXSettings } from './models'
 
@@ -23,7 +23,7 @@ export const SET_STUDY_STEP_FILTER = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTER'
 export const SET_STUDY_STEP_FILTER_OPTIONS = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTER_OPTIONS'
 export const REMOVE_STUDY_STEP_FILTER = 'STUDY_SAMPLES.REMOVE_STUDY_STEP_FILTER'
 export const SET_STUDY_STEP_SORT_ORDER = 'STUDY_SAMPLES.SET_STUDY_STEP_SORT_ORDER'
-
+export const CLEAR_FILTERS = "STUDY_SAMPLES.CLEAR_FILTERS"
 /* 
 	The studySamples state is used by the study details page to list the
 	workflow steps in a study and the samples that are at each step.
@@ -181,6 +181,14 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
 			if (step) {
 				step.filters = setFilterOptionsReducer(step.filters ?? {}, description, options)
+			}
+			break
+		}
+		case CLEAR_FILTERS: {
+			const { studyID, stepID } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			if (step) {
+				step.filters = clearFiltersReducer()
 			}
 			break
 		}

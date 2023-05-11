@@ -225,7 +225,9 @@ const App = ({userID, usersByID, logOut, get}) => {
             className="App__sidebar"
             breakpoint="md"
             collapsedWidth={80}
-            width={224}
+             // Ant requires a width, so pick one relative to the sidebar font-size. You can use 'auto' but then
+            // the sidebar width changes whenever a submenu is expanded or collapsed.
+            width={'17em'} 
             style={{overflow: 'auto'}}
           >
             <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
