@@ -4,7 +4,7 @@ import PageContainer from '../PageContainer'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import { useAppSelector } from '../../hooks'
-import { selectReferenceGenomesByID } from '../../selectors'
+import { selectReferenceGenomesByID, selectTaxonsByID } from '../../selectors'
 import { Table } from 'antd'
 import AddButton from '../AddButton'
 import { ObjectWithReferenceGenome, getColumnsForReferenceGenome } from '../shared/DefinitionsTable/ReferenceGenomeTableColumns'
@@ -14,7 +14,9 @@ function ReferenceGenomesListContent() {
 	const referenceGenomesState = useAppSelector(selectReferenceGenomesByID)
 	const referenceGenomes = getAllItems(referenceGenomesState)
 	const [referenceGenomeColumns, setReferenceGenomeColumns] = useState<ObjectWithReferenceGenome[]>();
-	const columns = getColumnsForReferenceGenome();
+	let taxonOptions: any = useAppSelector(selectTaxonsByID)
+	const columns = getColumnsForReferenceGenome(taxonOptions);
+    taxonOptions = Object.keys(taxonOptions).map((id)=> taxonOptions[id])
 
 	useEffect(() => {
 		const referenceGenome = referenceGenomes.map((ref) => {

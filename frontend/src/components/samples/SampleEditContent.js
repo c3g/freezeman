@@ -185,7 +185,6 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const onSearchContainer = useCallback((input, options) => {
     searchContainers(token, input, options).then(containers => {
       setContainerOptions(containers.map(Options.renderContainer));
-      // setContainers(containers);
     })
   }, [token])
 

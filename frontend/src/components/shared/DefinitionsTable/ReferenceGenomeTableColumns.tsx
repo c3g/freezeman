@@ -19,22 +19,14 @@ enum ReferenceGenomeID {
 
 type ReferenceGenomeColumn = IdentifiedTableColumnType<ObjectWithReferenceGenome>
 
-export const getColumnsForReferenceGenome = (): IdentifiedTableColumnType<ObjectWithReferenceGenome>[] => {
-    const REFERENCE_GENOME_DEFINITIONS = [
-        REFERENCE_GENOME_COLUMNS.ID,
-        REFERENCE_GENOME_COLUMNS.ASSEMBLY_NAME,
-        REFERENCE_GENOME_COLUMNS.SYNONYM,
-        REFERENCE_GENOME_COLUMNS.TAXON_ID,
-        REFERENCE_GENOME_COLUMNS.SIZE,
-        REFERENCE_GENOME_COLUMNS.GENBANK_ID,
-        REFERENCE_GENOME_COLUMNS.REFSEQ_ID,
-
-    ]
-    return REFERENCE_GENOME_DEFINITIONS.map((column: ReferenceGenomeColumn) => { return { ...column } });
+export const getColumnsForReferenceGenome = (taxonsByID): IdentifiedTableColumnType<ObjectWithReferenceGenome>[] => {
+    const REFERENCE_GENOME_COLUMN_DEFINITIONS = REFERENCE_GENOME_COLUMNS(taxonsByID)
+    return REFERENCE_GENOME_COLUMN_DEFINITIONS.map((column: ReferenceGenomeColumn) => { return { ...column } });
 }
 
-const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeColumn } = {
-    [ReferenceGenomeID.ID]: {
+
+const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
+    {
         columnID: ReferenceGenomeID.ID,
         title: 'ID',
         dataIndex: ['referenceGenome', 'id'],
@@ -42,12 +34,12 @@ const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeCol
         // width: '33%',
         render: (_, { referenceGenome }) =>
             referenceGenome && (
-                <Link to={`/referenceGenome/update/${referenceGenome.id}`}>
+                <Link to={`/genomes/update/${referenceGenome.id}`}>
                     <div>{referenceGenome.id}</div>
                 </Link>
             ),
     },
-    [ReferenceGenomeID.ASSEMBLY_NAME]: {
+    {
         columnID: ReferenceGenomeID.ASSEMBLY_NAME,
         title: 'ASSEMBLY_NAME',
         dataIndex: ['referenceGenome', 'assembly_name'],
@@ -55,12 +47,12 @@ const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeCol
         // width: '33%',
         render: (_, { referenceGenome }) =>
             referenceGenome && (
-                <Link to={`/referenceGenome/update/${referenceGenome.assembly_name}`}>
+                <Link to={`/genomes/update/${referenceGenome.id}`}>
                     <div>{referenceGenome.assembly_name}</div>
                 </Link>
             ),
     },
-    [ReferenceGenomeID.SYNONYM]: {
+    {
         columnID: ReferenceGenomeID.SYNONYM,
         title: 'SYNONYM',
         dataIndex: ['referenceGenome', 'synonym'],
@@ -71,7 +63,7 @@ const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeCol
                 <div>{referenceGenome.synonym}</div>
             ),
     },
-    [ReferenceGenomeID.GENBANK_ID]: {
+    {
         columnID: ReferenceGenomeID.GENBANK_ID,
         title: 'GENBANK_ID',
         dataIndex: ['referenceGenome', 'genbank_id'],
@@ -82,7 +74,7 @@ const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeCol
                 <div>{referenceGenome.genbank_id}</div>
             ),
     },
-    [ReferenceGenomeID.REFSEQ_ID]: {
+    {
         columnID: ReferenceGenomeID.REFSEQ_ID,
         title: 'REFSEQ_ID',
         dataIndex: ['referenceGenome', 'refseq_id'],
@@ -93,7 +85,7 @@ const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeCol
                 <div>{referenceGenome.refseq_id}</div>
             ),
     },
-    [ReferenceGenomeID.TAXON_ID]: {
+    {
         columnID: ReferenceGenomeID.TAXON_ID,
         title: 'TAXON',
         dataIndex: ['referenceGenome', 'taxon_id'],
@@ -102,11 +94,11 @@ const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeCol
         render: (_, { referenceGenome }) =>
             referenceGenome && (
                 <Link to={`/taxons/update/${referenceGenome.taxon_id}`}>
-                    <div>{referenceGenome.taxon_id}</div>
+                    <div>{taxonsByID[referenceGenome.taxon_id].name}</div>
                 </Link>
             ),
     },
-    [ReferenceGenomeID.SIZE]: {
+    {
         columnID: ReferenceGenomeID.SIZE,
         title: 'SIZE',
         dataIndex: ['referenceGenome', 'size'],
@@ -118,4 +110,4 @@ const REFERENCE_GENOME_COLUMNS: { [key in ReferenceGenomeID]: ReferenceGenomeCol
 
             ),
     }
-}
+]

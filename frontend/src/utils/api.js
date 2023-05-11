@@ -181,7 +181,7 @@ const api = {
   referenceGenomes: {
     get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
     add: referenceGenome => post(`/reference-genomes/`, referenceGenome),
-    update: referenceGenome => patch(`reference-genomes/${referenceGenome.id}`, referenceGenome),
+    update: referenceGenome => patch(`/reference-genomes/${referenceGenome.id}/`, referenceGenome),
     list: (options, abort) => get('/reference-genomes/', options, { abort }),
     search: q => get("/reference-genomes/search/", { q }),
   },
