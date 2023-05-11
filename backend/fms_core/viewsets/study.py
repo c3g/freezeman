@@ -5,7 +5,9 @@ from rest_framework.response import Response
 from fms_core.models import Study, Project, Workflow, StepHistory, SampleNextStep, SampleNextStepByStudy
 from fms_core.serializers import StudySerializer
 from fms_core.services.study import create_study
+
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 
 from collections import defaultdict
 
@@ -74,3 +76,4 @@ class StudyViewSet(viewsets.ModelViewSet):
             raise ValidationError(errors)
         else:
             Study.objects.filter(pk=pk).delete()
+            return HttpResponse('')
