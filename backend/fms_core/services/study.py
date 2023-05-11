@@ -36,9 +36,17 @@ def create_study(project, workflow, start, end):
     if errors:
         return study, errors, warnings
 
-    # Generate a sequential letter by counting the number of existing studies tied to the provided project
-    study_count = Study.objects.filter(project=project).count()
-    letter = string.ascii_uppercase[study_count]
+    occupied_letters = sorted(Study.objects.filter(project=project).values_list('letter', flat=True))
+    letter = chr(ord(max(occupied_letters)) + 1) if len(occupied_letters) > 0 else 'A'
+    
+    # Find earlier missing letter
+    for c in range(len(occupied_letters)):
+        expected_letter = chr(ord('A') + c)
+        # assumes occupied_letters is sorted alphabetically
+        if expected_letter != occupied_letters[c]:
+            # expected_letter missing
+            letter = expected_letter
+            break
 
     try:
         study = Study.objects.create(letter=letter,
