@@ -96,10 +96,10 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 		}
 
 		case SET_REFRESHED_STEP_SAMPLES: {
-			const { studyID, stepID, sampleIDs } = action
+			const { studyID, stepOrderID, sampleIDs } = action
 			const studySamples = state.studySamplesByID[studyID]
 			if (studySamples?.data?.steps) {
-				const step = studySamples.data.steps.find((step) => step.stepID === stepID)
+				const step = studySamples.data.steps.find((step) => step.stepOrderID === stepOrderID)
 				if (step) {
 					step.samples = sampleIDs
 				}

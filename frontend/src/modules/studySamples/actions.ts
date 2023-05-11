@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from '../../store'
 import { fetchSamples } from '../cache/cache'
 import { StudyStepSamplesTabSelection } from './models'
 import { FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
-import { fetchSamplesAtStep, loadStudySamples } from './services'
+import { fetchSamplesAtStepOrder, loadStudySamples } from './services'
 
 
 export function getStudySamples(studyID : FMSId) {
@@ -35,11 +35,11 @@ export function refreshAllStudySamples() {
 	}
 }
 
-function refreshSamplesAtStep(studyID: FMSId, stepID: FMSId) {
+function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
 
 		// Get the updated list of SampleNextStep objects for the step
-		const result = await fetchSamplesAtStep(studyID, stepID)
+		const result = await fetchSamplesAtStepOrder(studyID, stepOrderID)
 		const sampleIDs = result.sampleNextSteps.map(nextStep => nextStep.sample)
 
 		// Fetch any samples that need to be loaded
@@ -49,7 +49,7 @@ function refreshSamplesAtStep(studyID: FMSId, stepID: FMSId) {
 		dispatch({
 			type: SET_REFRESHED_STEP_SAMPLES,
 			studyID,
-			stepID,
+			stepOrderID,
 			sampleIDs,
 		})
 		
@@ -104,7 +104,7 @@ export function setStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, descripti
 			description,
 			value
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}	
 }
 
@@ -117,7 +117,7 @@ export function setStudyStepFilterOptions(studyID: FMSId, stepOrderID: FMSId, de
 			description,
 			options
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
@@ -129,7 +129,7 @@ export function removeStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, descri
 			stepOrderID,
 			description
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
@@ -141,7 +141,7 @@ export function setStudyStepSortOrder(studyID: FMSId, stepOrderID: FMSId, sortBy
 			stepOrderID,
 			sortBy
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepOrderID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 

@@ -26,11 +26,12 @@ export interface StudySampleStep {
 	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
 }
 
+// List of steps
 export interface StudySampleList {
 	readonly steps: StudySampleStep[]
 }
 
-export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}
+export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}	// key: Study ID
 
 // UX settings for study samples page, used to keep track of
 // the expanded/collapsed state of steps, the 'ready' vs. 'completed'
