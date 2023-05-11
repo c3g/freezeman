@@ -21,9 +21,8 @@ class ReferenceGenomeViewSet(viewsets.ModelViewSet):
         **_reference_genome_filterset_fields,
     }
     def create(self, request, *args, **kwargs):
-        referenceGenome_data = request.data.get("newReferenceGenome")
-        errors = {}
-        errors_to_raise = {}
+        referenceGenome_data = request.data
+
         try:
             referenceGenome = ReferenceGenome.objects.create(
                 assembly_name = referenceGenome_data["assembly_name"], 
@@ -33,31 +32,23 @@ class ReferenceGenomeViewSet(viewsets.ModelViewSet):
                 genbank_id = referenceGenome_data["genbank_id"],
                 refseq_id = referenceGenome_data["refseq_id"])
             serializer = ReferenceGenomeSerializer(referenceGenome)
-        except ValidationError as err:
-            errors = { **errors, **err.message_dict }
-
-        for key, value in errors.items():
-                errors_to_raise[key].append(value)
-
-        if any(bool(error) for error in errors_to_raise.values()):
-            raise ValidationError(errors)
+        except Exception as err:
+            raise ValidationError(err)
         else:
             return Response(serializer.data)
 
 
     def update(self, request, *args, **kwargs):
         referenceGenome_data = request.data
-        errors = {}
-        errors_to_raise = {}
 
         try:
             referenceGenome_to_update = ReferenceGenome.objects.select_for_update().get(pk=referenceGenome_data['id'])
             referenceGenome_to_update.__dict__.update(referenceGenome_data)
-            serializer = ReferenceGenomeSerializer(referenceGenome_data)
         except Exception as err:
             raise ValidationError(dict(non_field_errors=err))
 
         try:
+            serializer = ReferenceGenomeSerializer(referenceGenome_data)
             referenceGenome_to_update.save()
         except Exception as err:
             raise ValidationError(err)

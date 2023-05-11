@@ -59,11 +59,11 @@ const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGe
         const newReferenceGenome = {
             id: referenceGenome ? referenceGenome.id : undefined,
             assembly_name: newValues["assembly_name"],
-            synonym: newValues["synonym"],
+            synonym: newValues["synonym"] ?? null,
             taxon_id: newValues["taxon_id"],
             size: newValues["size"],
-            genbank_id: newValues["genbank_id"],
-            refseq_id: newValues["refseq_id"]
+            genbank_id: newValues["genbank_id"] ?? null,
+            refseq_id: newValues["refseq_id"] ?? null
         }
 
         if (isAdding) {
@@ -113,7 +113,7 @@ const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGe
                             onFocus={() => { }}
                         />
                     </Item>
-                    <Item label={"Size"} {...itemValidation("size")}>
+                    <Item label={"Size"} {...itemValidation("size")} rules={requiredRules}>
                         <Input />
                     </Item>
                     <Item label={"Genbank ID"} {...itemValidation("genbank_id")}>
