@@ -44,9 +44,9 @@ const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
     const onValuesChange = (values) => {
         const key = Object.keys(values)[0];
         if (formErrors && formErrors[key]) {
-            let copy = { ...formErrors }
-            copy[key] = undefined;
-            setFormErrors({ ...copy })
+            let formErrors_copy = { ...formErrors }
+            formErrors_copy[key] = undefined;
+            setFormErrors({ ...formErrors_copy })
         }
     }
 

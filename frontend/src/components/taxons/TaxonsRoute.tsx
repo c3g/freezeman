@@ -1,7 +1,4 @@
 import React from 'react'
-import { useAppSelector } from '../../hooks'
-import { selectTaxonsByID } from '../../selectors'
-import { Taxon, getAllItems } from '../../models/frontend_models'
 import TaxonsListContent from './TaxonsListContent'
 import PageContainer from '../PageContainer'
 import { Navigate, Route, Routes } from 'react-router-dom'

@@ -23,8 +23,6 @@ class TaxonViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         taxon_data = request.data
-        errors = {}
-        errors_to_raise = {}
         try:
             taxon = Taxon.objects.create(ncbi_id = taxon_data["ncbi_id"], name = taxon_data["name"])
             serializer = TaxonSerializer(taxon)
