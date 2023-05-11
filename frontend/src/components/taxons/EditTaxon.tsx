@@ -24,8 +24,10 @@ export const EditTaxonRoute = () => {
 
 const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
     const { Item } = Form
+    
     const [formErrors, setFormErrors] = useState({})
     const [form] = Form.useForm()
+    
     const isAdding = taxon === undefined
     const navigate = useNavigate();
     const dispatch = useAppDispatch();

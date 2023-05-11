@@ -17,7 +17,7 @@ function TaxonsListContent() {
 	const taxonsState = useAppSelector(selectTaxonsByID)
 	const taxons: Taxon[] = getAllItems(taxonsState)
 	const [taxonColumns, setTaxonColumns] = useState<ObjectWithTaxon[]>();
-	const columns: IdentifiedTableColumnType<ObjectWithTaxon>[] = getColumnsForTaxon()
+	const columns = getColumnsForTaxon()
 
 	useEffect(() => {
 		const tax = (taxons).map((taxon) => {
