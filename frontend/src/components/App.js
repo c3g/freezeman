@@ -242,7 +242,7 @@ const App = ({userID, usersByID, logOut, get}) => {
                 </Title>
                 { // Display a spinner while the initial data is being fetched at startup 
                   !isInitialized &&
-                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className="App__spin">
                       <Spin size="small" indicator={loadingIcon}/>
                     </div>
                 }
