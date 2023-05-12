@@ -26,7 +26,7 @@ const ProjectsDetailedContentRoute = () => {
 	const studiesByID = useAppSelector(selectStudiesByID)
 
 	const [project, setProject] = useState<Project>()
-	const [studies, setStudies] = useState<Study[]>([])
+	const studies = project ? getAllItems(studiesByID).filter(study => study.project_id === project.id) : []
 
 	useEffect(() => {
 		if (projectID) {
@@ -45,14 +45,6 @@ const ProjectsDetailedContentRoute = () => {
 		}
 	}, [project, dispatch])
 
-	useEffect(() => {
-		if (project) {
-			const studies = getAllItems(studiesByID).filter(study => study.project_id === project.id)
-			setStudies(studies)
-		}
-	}, [project, studiesByID])
-
-
 	return project && <ProjectsDetailedContent project={project} studies={studies}/>
 }
 
@@ -62,9 +54,6 @@ interface ProjectsDetailedContentProps {
 }
 
 const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentProps) => {
-	console.error(studies);
-	
-
 	const dispatch = useAppDispatch()
 
 	const navigate = useNavigate()
