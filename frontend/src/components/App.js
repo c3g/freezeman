@@ -182,9 +182,8 @@ const App = ({userID, usersByID, logOut, get}) => {
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
   const token = useAppSelector(selectAuthTokenAccess)
+
   useEffect(() => {
-
-
     async function loadInitialData() {
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
@@ -205,8 +204,11 @@ const App = ({userID, usersByID, logOut, get}) => {
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
 
-  if (!user && isLoggedIn)
-    get(userID);
+  useEffect(() => {
+    if (!user && isLoggedIn) {
+      get(userID)
+    }
+  }, [user, userID, usersByID, get, isLoggedIn])
 
   const menuItems = getMenuItems(user, logOut);
 

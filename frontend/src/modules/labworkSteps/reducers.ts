@@ -149,7 +149,7 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 				},
 				displayedSamples: [],
 				selectedSamples: [],
-				selectedSamplesSortDirection: 'column',
+				selectedSamplesSortDirection: {orientation: 'column', order: 'ascend'},
 				prefill: {
 					templates
 				},
