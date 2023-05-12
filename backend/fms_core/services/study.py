@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import Study, Project
+from fms_core.models import Study, Project, StepHistory, SampleNextStep, SampleNextStepByStudy
 
+from collections import defaultdict
+from typing import Dict, List
 import string
 
 def new_letter(project):
@@ -97,3 +99,15 @@ def get_study(project_obj: Project, study_letter: str):
         errors.append(f"Both a project and a study letter are required to retrieve a study.")
 
     return study, errors, warnings
+
+def delete_study_errors(study: int) -> Dict[str, List[str]]:
+    errors = defaultdict(list)
+
+    if StepHistory.objects.filter(study=study).exists():
+        errors['StepHistory'].append("At least one StepHistory is associated with the Study")
+    if SampleNextStep.objects.filter(studies__id=study).exists():
+        errors['SampleNextStep'].append("At least one SampleNextStep is associated with the Study")
+    if SampleNextStepByStudy.objects.filter(study=study).exists():
+        errors['SampleNextStepByStudy'].append("At least one SampleNextStepByStudy is associated with the Study")
+
+    return errors

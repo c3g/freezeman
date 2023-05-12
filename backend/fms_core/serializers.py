@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db.models import Max, F
+from fms_core.services.study import delete_study_errors
 
 from .models import (
     Container,
@@ -735,13 +736,8 @@ class StudySerializer(serializers.ModelSerializer):
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "removable")
 
     def get_removable(self, instance: Study):
-        if StepHistory.objects.filter(study=instance.pk).exists():
-            return False
-        if SampleNextStep.objects.filter(studies__id=instance.pk).exists():
-            return False
-        if SampleNextStepByStudy.objects.filter(study=instance.pk).exists():
-            return False
-        return True
+        errors = delete_study_errors(instance.pk)
+        return not any(bool(error) for error in errors.values())
 
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True)

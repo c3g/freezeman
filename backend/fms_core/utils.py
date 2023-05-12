@@ -7,8 +7,7 @@ from django.conf import settings
 import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Generator, Iterable, List, Union
-
+from typing import Any, Generator, Iterable, List, Union, Dict, TypeVar
 
 __all__ = [
     "RE_SEPARATOR",
@@ -30,6 +29,7 @@ __all__ = [
 RE_SEPARATOR = re.compile(r"[,;]\s*")
 RE_WHITESPACE = re.compile(r"\s+")
 
+T = TypeVar("T")
 
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
 
@@ -183,3 +183,18 @@ def make_timestamped_filename(file_name: str) -> str:
     os.environ["TZ"] = settings.LOCAL_TZ
     time.tzset()
     return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
+
+def merge_dicts_of_list(*dicts: Dict[str, List[T]]) -> Dict[str, List[T]]:
+    new_dict = {}
+
+    keys = set()
+    for d in dicts:
+        keys.update(d.keys())
+
+    for key in keys:
+        values = []
+        for d in dicts:
+            values.extend(d.setdefault(key, []))
+        new_dict[key] = values
+    
+    return new_dict

@@ -4,7 +4,8 @@ from rest_framework.response import Response
 
 from fms_core.models import Study, Project, Workflow, StepHistory, SampleNextStep, SampleNextStepByStudy
 from fms_core.serializers import StudySerializer
-from fms_core.services.study import create_study
+from fms_core.services.study import create_study, delete_study_errors
+from fms_core.utils import merge_dicts_of_list
 
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -65,13 +66,8 @@ class StudyViewSet(viewsets.ModelViewSet):
         if pk is None:
             errors['Study'].append("pk cannot be None")
         else:
-            if StepHistory.objects.filter(study=pk).exists():
-                errors['StepHistory'].append("At least one StepHistory is associated with the Study")
-            if SampleNextStep.objects.filter(studies__id=pk).exists():
-                errors['SampleNextStep'].append("At least one SampleNextStep is associated with the Study")
-            if SampleNextStepByStudy.objects.filter(study=pk).exists():
-                errors['SampleNextStepByStudy'].append("At least one SampleNextStepByStudy is associated with the Study")
-        
+            errors = merge_dicts_of_list(delete_study_errors(pk), errors)
+
         if any(bool(error) for error in errors.values()):
             raise ValidationError(errors)
         else:
