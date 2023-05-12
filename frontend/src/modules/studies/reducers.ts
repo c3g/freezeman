@@ -1,4 +1,4 @@
-import { merge, del } from 'object-path-immutable'
+import { merge, del, wrap } from 'object-path-immutable'
 import { ItemsByID, Study } from '../../models/frontend_models'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { indexByID } from '../../utils/objects'
@@ -69,8 +69,15 @@ export const studies = (
 		
 		case REMOVE.REQUEST:
 			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { id: action.meta?.id, isRemoving: true })
-		case REMOVE.RECEIVE:
-			return del<StudiesState>(state, ['itemsByID', action.meta.id])
+		case REMOVE.RECEIVE: {
+			return wrap<StudiesState>(state)
+				.del(['itemsByID', action.meta.id])
+				.update('items', (items) => {
+					const { results }: { results: Study[] } = items;
+					return { ...items, results: results.filter((item) => item.id !== action.meta.id) }
+				})
+				.value()
+		}
 		case REMOVE.ERROR:
 			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, isRemoving: false, didFail: true })
 	}
