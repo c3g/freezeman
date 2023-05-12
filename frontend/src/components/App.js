@@ -34,7 +34,7 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { fetchInitialData, fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
+import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
@@ -153,6 +153,8 @@ const MENU_ITEMS = [
   },
 ]
 
+const DEV_QC_BACKGROUND = "repeating-linear-gradient(45deg, #423d01, #423d01 10px, #000000 10px, #000000 20px)";
+
 const colorStyle = {
   color: "white",
 }
@@ -174,6 +176,8 @@ export const mapStateToProps = state => ({
 export const actionCreators = {logOut, get};
 
 const App = ({userID, usersByID, logOut, get}) => {
+  /* global FMS_ENV */
+  const env = FMS_ENV
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
@@ -195,7 +199,7 @@ const App = ({userID, usersByID, logOut, get}) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [token, dispatch]);
+  }, [dispatch, token]);
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
@@ -230,18 +234,21 @@ const App = ({userID, usersByID, logOut, get}) => {
             width={'17em'} 
             style={{overflow: 'auto'}}
           >
-            <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
-              <Title style={titleStyle} className="App__title">
-                <div>
-                  <b>F</b><span>reeze</span><b>M</b><span>an</span>
-                </div>
-              </Title>
-              { // Display a spinner while the initial data is being fetched at startup 
-                !isInitialized &&
-                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                    <Spin size="small" indicator={loadingIcon}/>
+            <div style={{background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined, padding: 0, margin: 0}}>
+              <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
+                <Title style={titleStyle} className="App__title">
+                  <div style={{marginRight: '0.25rem', paddingRight: '0.25rem'}}>
+                    <b>F</b><span>reeze</span><b>M</b><span>an</span>
+                    {env !== 'PROD' && <span style={{ color: 'red', fontSize: '14px' }}>&nbsp;{env}</span>}
                   </div>
-              }
+                </Title>
+                { // Display a spinner while the initial data is being fetched at startup 
+                  !isInitialized &&
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className="App__spin">
+                      <Spin size="small" indicator={loadingIcon}/>
+                    </div>
+                }
+              </div>
             </div>
             {isLoggedIn &&
                 <div className='App__jumpBar'>
@@ -383,6 +390,7 @@ function onDidMount() {
 }
 
 function withRouter(Child) {
+  // eslint-disable-next-line react/display-name
   return (props) => {
     const location = useLocation();
     const navigate = useNavigate();
