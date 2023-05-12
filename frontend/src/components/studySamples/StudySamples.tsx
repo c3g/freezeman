@@ -32,8 +32,8 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 		if(settings) {
 			setUXSettings(settings)
 		} else {
-			const stepIDs = studySamples.steps.map(step => step.stepID)
-			dispatch(initStudySamplesSettings(studyID, stepIDs))
+			const stepOrderIDs = studySamples.steps.map(step => step.stepOrderID)
+			dispatch(initStudySamplesSettings(studyID, stepOrderIDs))
 		}
 	}, [studyID, studySamples, studySettingsByID, dispatch])
 	
@@ -53,7 +53,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 
 	const handleExpand = useCallback((keys: string | string[]) => {
 		if(Array.isArray(keys)) {
-			// keys are Step ID's
+			// keys are StepOrder ID's
 			dispatch(setStudyExpandedSteps(studyID, keys.map(key => parseInt(key))))
 		}
 	}, [studyID, dispatch])
@@ -64,7 +64,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 		for(const stepKey in uxSettings.stepSettings) {
 			const stepSettings = uxSettings.stepSettings[stepKey]
 			if (stepSettings?.expanded === true) {
-				expandedPanelKeys.push(stepSettings.stepID)
+				expandedPanelKeys.push(stepSettings.stepOrderID)
 			}
 		}
 	}
@@ -96,7 +96,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
 				{renderedSteps.map((step) => {
 					// Call StepPanel as a function because the child of Collapse must be a CollapsePanel, not a StepPanel
-					return StepPanel({step, studyID, uxSettings:uxSettings?.stepSettings[step.stepID]})
+					return StepPanel({step, studyID, uxSettings:uxSettings?.stepSettings[step.stepOrderID]})
 				})}
 			</Collapse>
 		</>
@@ -131,12 +131,12 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 	const goToLab = <Link style={{marginRight: '1rem'}} to={`/lab-work/step/${step.stepID}`}>{'Go to Processing'}</Link>
 
 	function handleTabSelection(activeKey: string) {
-		dispatch(setStudyStepSamplesTab(studyID, step.stepID, activeKey as any))
+		dispatch(setStudyStepSamplesTab(studyID, step.stepOrderID, activeKey as any))
 	}
 
 	return (
 		<Collapse.Panel
-			key={step.stepID}
+			key={step.stepOrderID}
 			header={
 				<Space align="baseline">
 					<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>

@@ -5,11 +5,11 @@ import { AppDispatch, RootState } from '../../store'
 import { fetchSamples } from '../cache/cache'
 import { StudyStepSamplesTabSelection } from './models'
 import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
-import { fetchSamplesAtStep, loadStudySamples } from './services'
+import { fetchSamplesAtStepOrder, loadStudySamples } from './services'
 
 
 export function getStudySamples(studyID: FMSId) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+	return async (dispatch: AppDispatch) => {
 		dispatch({ type: GET_STUDY_SAMPLES.REQUEST, meta: { studyID } })
 		try {
 			const studySamples = await loadStudySamples(studyID)
@@ -35,11 +35,11 @@ export function refreshAllStudySamples() {
 	}
 }
 
-function refreshSamplesAtStep(studyID: FMSId, stepID: FMSId) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
+	return async (dispatch: AppDispatch) => {
 
 		// Get the updated list of SampleNextStep objects for the step
-		const result = await fetchSamplesAtStep(studyID, stepID)
+		const result = await fetchSamplesAtStepOrder(studyID, stepOrderID)
 		const sampleIDs = result.sampleNextSteps.map(nextStep => nextStep.sample)
 
 		// Fetch any samples that need to be loaded
@@ -49,7 +49,7 @@ function refreshSamplesAtStep(studyID: FMSId, stepID: FMSId) {
 		dispatch({
 			type: SET_REFRESHED_STEP_SAMPLES,
 			studyID,
-			stepID,
+			stepOrderID,
 			sampleIDs,
 		})
 
@@ -70,93 +70,90 @@ export function setHideEmptySteps(hide: boolean) {
 	}
 }
 
-export function initStudySamplesSettings(studyID: FMSId, stepIDs: FMSId[]) {
+export function initStudySamplesSettings(studyID: FMSId, stepOrderIDs: FMSId[]) {
 	return {
 		type: INIT_STUDY_SAMPLES_SETTINGS,
 		studyID,
-		stepIDs
+		stepOrderIDs
 	}
 }
 
 export function clearFilters(studyID: FMSId, stepID: FMSId) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: CLEAR_FILTERS,
 			studyID,
 			stepID
 		})
 		// Reset the sample list
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepID))
 	}
 }
 
-export function setStudyExpandedSteps(studyID: FMSId, stepIDs: FMSId[]) {
+export function setStudyExpandedSteps(studyID: FMSId, stepOrderIDs: FMSId[]) {
 	return {
 		type: SET_STUDY_EXPANDED_STEPS,
 		studyID,
-		stepIDs
+		stepOrderIDs
 	}
 }
 
-export function setStudyStepSamplesTab(studyID: FMSId, stepID: FMSId, selectedSamplesTab: StudyStepSamplesTabSelection) {
+export function setStudyStepSamplesTab(studyID: FMSId, stepOrderID: FMSId, selectedSamplesTab: StudyStepSamplesTabSelection) {
 	return {
 		type: SET_STUDY_STEP_SAMPLES_TAB,
 		studyID,
-		stepID,
+		stepOrderID,
 		selectedSamplesTab
 	}
 }
 
-export function setStudyStepFilter(studyID: FMSId, stepID: FMSId, description: FilterDescription, value: FilterValue) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+export function setStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, description: FilterDescription, value: FilterValue) {
+	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: SET_STUDY_STEP_FILTER,
 			studyID,
-			stepID,
+			stepOrderID,
 			description,
 			value
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
-	}
-
-	// return {
-
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+	}	
 }
 
-export function setStudyStepFilterOptions(studyID: FMSId, stepID: FMSId, description: FilterDescription, options: FilterOptions) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+export function setStudyStepFilterOptions(studyID: FMSId, stepOrderID: FMSId, description: FilterDescription, options: FilterOptions) {
+	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: SET_STUDY_STEP_FILTER_OPTIONS,
 			studyID,
-			stepID,
+			stepOrderID,
 			description,
 			options
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
-export function removeStudyStepFilter(studyID: FMSId, stepID: FMSId, description: FilterDescription) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+export function removeStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, description: FilterDescription) {
+	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: REMOVE_STUDY_STEP_FILTER,
 			studyID,
-			stepID,
+			stepOrderID,
 			description
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
-export function setStudyStepSortOrder(studyID: FMSId, stepID: FMSId, sortBy: SortBy) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
+export function setStudyStepSortOrder(studyID: FMSId, stepOrderID: FMSId, sortBy: SortBy) {
+	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: SET_STUDY_STEP_SORT_ORDER,
 			studyID,
-			stepID,
+			stepOrderID,
 			sortBy
 		})
-		dispatch(refreshSamplesAtStep(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 

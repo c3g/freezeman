@@ -26,19 +26,19 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 
 	const setFilter = useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
-			dispatch(setStudyStepFilter(studyID, step.stepID, description, value))
+			dispatch(setStudyStepFilter(studyID, step.stepOrderID, description, value))
 		}
 		, [studyID, step, dispatch])
 
 	const setFilterOptions = useCallback(
 		(filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => {
-			dispatch(setStudyStepFilterOptions(studyID, step.stepID, description, { [propertyName]: value }))
+			dispatch(setStudyStepFilterOptions(studyID, step.stepOrderID, description, {[propertyName]: value}))
 		}
 		, [dispatch, studyID, step])
 
 	const setSortBy = useCallback(
 		(sortBy: SortBy) => {
-			dispatch(setStudyStepSortOrder(studyID, step.stepID, sortBy))
+			dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortBy))
 		}
 		, [studyID, step, dispatch])
 
