@@ -21,7 +21,6 @@ const FilteredList = ({
   isFetching,
   page,
   listFilter,
-  isOtherFetching,
 }) => {
 
 
@@ -112,7 +111,6 @@ const FilteredList = ({
         onLoad={listFilter}
         filterKey={filterKey}
         onChangeSort={setSorter}
-        otherLoading={isOtherFetching}
       />
     </PageContent>
   </>;

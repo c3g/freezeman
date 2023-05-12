@@ -1,19 +1,14 @@
-import { Spin, Tag } from "antd";
-import React, { useCallback, useState } from "react";
+import { Tag } from "antd";
+import React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import FilteredList from "../FilteredList";
 import { listFilter } from "../../modules/samples/actions";
-import api from "../../utils/api";
 import { Depletion } from "../Depletion";
 import { SAMPLE_FILTERS } from "../filters/descriptions";
 import { WithIndividualRenderComponent } from "../shared/WithItemRenderComponent";
-import { selectAppInitialzed } from "../../selectors";
-import { useAppSelector } from "../../hooks";
 
-const listProcessMeasurements = api.processMeasurements.list;
-
-const getTableColumns = (sampleKinds, protocolNamesBySampleID) => [
+const getTableColumns = (sampleKinds) => [
     {
       title: "Sample Kind",
       dataIndex: "derived_samples__sample_kind__name",
@@ -64,12 +59,6 @@ const getTableColumns = (sampleKinds, protocolNamesBySampleID) => [
       width: 115,
     },
     {
-    title: "Last Protocol",
-    dataIndex: "id",
-    width: 170,
-    render: (id) => <>{protocolNamesBySampleID[id]}</>
-  },
-  {
       title: "Depleted",
       dataIndex: "depleted",
       sorter: true,
@@ -85,10 +74,9 @@ const mapStateToProps = state => ({
   samples: state.samples.filteredItems,
   totalCount: state.samples.filteredItemsCount,
   isFetching: state.samples.isFetching,
-  protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = { listFilter, listProcessMeasurements };
+const actionCreators = {listFilter};
 
 const ProjectsAssociatedSamples = ({
   projectID,
@@ -98,48 +86,27 @@ const ProjectsAssociatedSamples = ({
   sampleKinds,
   isFetching,
   page,
-  protocolsByID,
   listFilter,
-  listProcessMeasurements,
 }) => {
-  const isInitialized = useAppSelector(selectAppInitialzed)
-  const [protocolNamesBySampleID, setProtocolNamesBySampleID] = useState({})
-  
-  const myListFilter = useCallback(async (...args) => {
-    const response = await listFilter(...args)
-    if (!response) {
-      return response;
-    }
-    const processMeasurements = (await listProcessMeasurements({ lineage__child__id__in: response.results.map(sample => sample.id).join(",") })).data.results
-    const protocolIdsBySampleId = Object.fromEntries(processMeasurements.map((pm) => [pm.child_sample, pm.protocol]))
-    const protocolNamesByProtocolIds = Object.fromEntries(Object.values(protocolIdsBySampleId).map(protocolId => [protocolId, isInitialized ? protocolsByID[protocolId].name : "Loading..."]))
-    setProtocolNamesBySampleID(Object.fromEntries(
-      Object.entries(protocolIdsBySampleId).map(([sampleid, protocolid]) => [sampleid, protocolNamesByProtocolIds[protocolid]])
-    ))
-    return response
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialized, protocolsByID])
 
   const filterKey = SAMPLE_FILTERS.derived_samples__project__id.key
-  const columns = getTableColumns(sampleKinds, protocolNamesBySampleID)
+
+  const columns = getTableColumns(sampleKinds)
 
   return <>
-    {
-      <FilteredList
-        description={SAMPLE_FILTERS}
-        columns={columns}
-        listFilter={myListFilter}
-        items={samples}
-        itemsByID={samplesByID}
-        totalCount={totalCount}
-        filterID={projectID}
-        filterKey={filterKey}
-        rowKey="id"
-        isFetching={isFetching}
-        page={page}
-        isOtherFetching={!isInitialized}
-      />
-   }
+    <FilteredList
+      description={SAMPLE_FILTERS}
+      columns={columns}
+      listFilter={listFilter}
+      items={samples}
+      itemsByID={samplesByID}
+      totalCount={totalCount}
+      filterID={projectID}
+      filterKey={filterKey}
+      rowKey="id"
+      isFetching={isFetching}
+      page={page}
+    />
   </>;
 }
 

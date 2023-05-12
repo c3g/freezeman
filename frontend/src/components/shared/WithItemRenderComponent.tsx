@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { FMSTrackedModel } from '../../models/fms_api_models'
-import { Container, Coordinate, Index, Individual, ItemsByID, Process, ProcessMeasurement, Project, Protocol, Sample, User } from '../../models/frontend_models'
-import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProcessMeasurementsByID, selectProjectsByID, selectProtocolsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
-import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProcessMeasurement, withProject, withProtocol, withSample, withUser } from '../../utils/withItem'
+import { Container, Coordinate, Index, Individual, ItemsByID, Process, Project, Sample, User } from '../../models/frontend_models'
+import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
+import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProject, withSample, withUser } from '../../utils/withItem'
 
 /**
  * WithItemRenderComponent
@@ -94,9 +94,7 @@ export const WithContainerRenderComponent = WithItemRenderComponentFactory<typeo
 export const WithIndexRenderComponent = WithItemRenderComponentFactory<typeof withIndex, Index>(withIndex, selectIndicesByID)
 export const WithIndividualRenderComponent = WithItemRenderComponentFactory<typeof withIndividual, Individual>(withIndividual, selectIndividualsByID)
 export const WithProcessRenderComponent = WithItemRenderComponentFactory<typeof withProcess, Process>(withProcess, selectProcessesByID)
-export const WithProcessMeasurementRenderComponent = WithItemRenderComponentFactory<typeof withProcessMeasurement, ProcessMeasurement>(withProcessMeasurement, selectProcessMeasurementsByID)
 export const WithProjectRenderComponent = WithItemRenderComponentFactory<typeof withProject, Project>(withProject, selectProjectsByID)
-export const WithProtocolRenderComponent = WithItemRenderComponentFactory<typeof withProtocol, Protocol>(withProtocol, selectProtocolsByID)
 export const WithSampleRenderComponent = WithItemRenderComponentFactory<typeof withSample, Sample>(withSample, selectSamplesByID)
 export const WithUserRenderComponent = WithItemRenderComponentFactory<typeof withUser, User>(withUser, selectUsersByID)
 
