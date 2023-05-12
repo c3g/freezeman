@@ -55,7 +55,11 @@ export function addFiltersToColumns<T>(
 			return {
 				...column,
 				...props,
-				sorter: addSorter,
+				// Only set sorter if it is not already defined in the column definition, 
+				// so that components can override this default behaviour. A component can set a value
+				// in the column definition to force sorter to be true or false, or leave it undefined
+				// to get the default behaviour.
+				sorter: column.sorter === undefined ? addSorter : column.sorter,
 				key			// Column key needs to be set for sortBy functionality
 			}
 		}
