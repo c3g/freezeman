@@ -3,6 +3,25 @@ from fms_core.models import Study, Project
 
 import string
 
+def new_letter(project):
+    def skip_char(letter: str, distance: int):
+        return chr(ord(letter) + distance)
+
+    FIRST_LETTER = 'A'
+    occupied_letters = sorted(Study.objects.filter(project=project).values_list('letter', flat=True))
+    new_letter = skip_char(max(occupied_letters), 1) if len(occupied_letters) > 0 else FIRST_LETTER
+    
+    # Find earlier missing letter
+    for c in range(len(occupied_letters)):
+        expected_letter = skip_char(FIRST_LETTER, c)
+        # assumes occupied_letters is sorted alphabetically
+        if expected_letter != occupied_letters[c]:
+            # expected_letter missing
+            new_letter = expected_letter
+            break
+    
+    return new_letter
+
 def create_study(project, workflow, start, end):
     """
      Create a study for a given project. The service generates a sequential letter that serves to identify the study.
@@ -35,18 +54,8 @@ def create_study(project, workflow, start, end):
     
     if errors:
         return study, errors, warnings
-
-    occupied_letters = sorted(Study.objects.filter(project=project).values_list('letter', flat=True))
-    letter = chr(ord(max(occupied_letters)) + 1) if len(occupied_letters) > 0 else 'A'
     
-    # Find earlier missing letter
-    for c in range(len(occupied_letters)):
-        expected_letter = chr(ord('A') + c)
-        # assumes occupied_letters is sorted alphabetically
-        if expected_letter != occupied_letters[c]:
-            # expected_letter missing
-            letter = expected_letter
-            break
+    letter = new_letter(project)
 
     try:
         study = Study.objects.create(letter=letter,
