@@ -18,6 +18,7 @@ import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
+import { SampleColumnID } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import { clearFilters } from '../../../modules/labworkSteps/actions'
 
 const { Text } = Typography
@@ -111,6 +112,16 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Columns for selected samples table
 	const columnsForSelection = useMemo(() => {
 		const columns = getColumnsForStep(step, protocol)
+		// Make the Coordinates column sortable. We have to force the sorter to appear since
+		// the selection table doesn't use column filters - otherwise, WorkflowSamplesTable would
+		// take care of setting the column sortable.
+		const coordsColumn = columns.find(col => col.columnID === SampleColumnID.COORDINATES)
+		if (coordsColumn) {
+			coordsColumn.sorter = true
+			coordsColumn.key = SampleColumnID.COORDINATES
+			coordsColumn.defaultSortOrder = 'ascend'
+			coordsColumn.sortDirections = ['ascend', 'descend', 'ascend']
+		}
 		return columns
 	}, [step, protocol])
 
@@ -213,18 +224,24 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	/** Sorting by coordinate **/
 
-	const handleCoordinateSortDirection = useCallback((value: string) => {
-		switch (value) {
+	const handleCoordinateSortOrientation = useCallback((value : string) => {
+		switch(value) {
 			case 'row': {
-				dispatch(setSelectedSamplesSortDirection(step.id, 'row'))
+				dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, orientation: 'row'}))
 				break
 			}
 			case 'column': {
-				dispatch(setSelectedSamplesSortDirection(step.id, 'column'))
+				dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, orientation: 'column'}))
 				break
 			}
 		}
-	}, [dispatch, step])
+	}, [dispatch, step, stepSamples.selectedSamplesSortDirection])
+
+	const handleSelectionTableSortChange = useCallback((sortBy: SortBy) => {
+		if(sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
+			dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, order: sortBy.order}))
+		}
+	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
 
 	const localClearFilters = () => {
 		if (clearFilters)
@@ -278,14 +295,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY &&
 							<>
-								<Typography.Text>Sort Coordinates: </Typography.Text>
-								<Radio.Group
-									value={stepSamples.selectedSamplesSortDirection}
-									onChange={(evt) => { evt.target && handleCoordinateSortDirection(evt.target.value) }}
-								>
-									<Radio.Button value='row'>by Row</Radio.Button>
-									<Radio.Button value='column'>by Column</Radio.Button>
-								</Radio.Group>
+							<Typography.Text>Sort Coordinates: </Typography.Text>
+							<Radio.Group 
+								value={stepSamples.selectedSamplesSortDirection.orientation} 
+								onChange={(evt) => {evt.target && handleCoordinateSortOrientation(evt.target.value)}} 
+							>
+								<Radio.Button value='row'>by Row</Radio.Button>
+								<Radio.Button value='column'>by Column</Radio.Button>
+							</Radio.Group>
 							</>
 						}
 						<Popconfirm
@@ -334,6 +351,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							sampleIDs={stepSamples.selectedSamples}
 							columns={columnsForSelection}
 							selection={selectionProps}
+							setSortBy={handleSelectionTableSortChange}
 						/>
 						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by container barcode and then by coordinate.</Text></Space>
 					</Tabs.TabPane>
