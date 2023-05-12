@@ -8,6 +8,8 @@ export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 
 
 export function getColumnsForStudySamplesStep(step: Step, protocol: Protocol) {
+	// A study is associated with a single project, so it doesn't make sense to include
+	// a project column in study sample tables, so we filter it out.
 	return getColumnsForStep(step, protocol).filter(column => column.columnID !== SampleColumnID.PROJECT)
 }
 
