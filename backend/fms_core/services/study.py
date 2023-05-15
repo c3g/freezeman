@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from fms_core.models import Study, Project, StepHistory, SampleNextStep, SampleNextStepByStudy
 
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import string
 
 def new_letter(project):
@@ -100,8 +100,10 @@ def get_study(project_obj: Project, study_letter: str):
 
     return study, errors, warnings
 
-def can_remove_study(study: int) -> Dict[str, List[str]]:
+def can_remove_study(study: int) -> Tuple[bool, Dict[str, List[str]], Dict[str, List[str]]]:
+    warnings = {}
     errors = defaultdict(list)
+    is_removable = True
 
     if StepHistory.objects.filter(study=study).exists():
         errors['StepHistory'].append("At least one StepHistory is associated with the Study")
@@ -109,5 +111,7 @@ def can_remove_study(study: int) -> Dict[str, List[str]]:
         errors['SampleNextStep'].append("At least one SampleNextStep is associated with the Study")
     if SampleNextStepByStudy.objects.filter(study=study).exists():
         errors['SampleNextStepByStudy'].append("At least one SampleNextStepByStudy is associated with the Study")
+    
+    is_removable = not any(bool(error) for error in errors.values())
 
-    return errors
+    return is_removable, errors, warnings

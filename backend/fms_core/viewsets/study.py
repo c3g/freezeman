@@ -66,7 +66,8 @@ class StudyViewSet(viewsets.ModelViewSet):
         if pk is None:
             errors['Study'].append("pk cannot be None")
         else:
-            errors = merge_dicts_of_list(can_remove_study(pk), errors)
+            _, newerrors, _ = can_remove_study(pk)
+            errors = merge_dicts_of_list(newerrors, errors)
 
         if any(bool(error) for error in errors.values()):
             raise ValidationError(errors)

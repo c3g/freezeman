@@ -736,8 +736,8 @@ class StudySerializer(serializers.ModelSerializer):
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "removable")
 
     def get_removable(self, instance: Study):
-        errors = can_remove_study(instance.pk)
-        return not any(bool(error) for error in errors.values())
+        is_removable, *_ = can_remove_study(instance.pk)
+        return is_removable
 
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True)
