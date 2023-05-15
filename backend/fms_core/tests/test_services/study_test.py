@@ -131,3 +131,21 @@ class StudyServicesTestCase(TestCase):
         self.assertIn('StepHistory', errors)
         self.assertNotIn('SampleNextStep', errors)
         self.assertNotIn('SampleNextStepByStudy', errors)
+
+    def test_new_letter(self):
+        studyA, *_ = get_study(self.project, self.letter_valid)
+        studyB, *_ = create_study(self.project, self.workflow, self.start, self.end)
+
+        # replace first study
+        studyA.delete()
+        newStudyA, *_ = create_study(self.project, self.workflow, self.start, self.end)
+        self.assertEqual(studyA.letter, newStudyA.letter)
+
+        # add study at the end
+        studyC, *_ = create_study(self.project, self.workflow, self.start, self.end)
+        self.assertEqual('C', studyC.letter)
+
+        # replace middle study
+        studyB.delete()
+        newStudyB, *_ = create_study(self.project, self.workflow, self.start, self.end)
+        self.assertEqual(studyB.letter, newStudyB.letter)
