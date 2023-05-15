@@ -5,7 +5,6 @@ import PageContent from '../PageContent'
 import AddButton from '../AddButton'
 import { Table } from 'antd'
 import { ObjectWithTaxon, getColumnsForTaxon } from './TaxonTableColumns'
-import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns'
 import { useAppSelector } from '../../hooks'
 import { selectTaxonsByID } from '../../selectors'
 
