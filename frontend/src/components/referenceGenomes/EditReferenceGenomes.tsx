@@ -2,13 +2,18 @@ import React, { useCallback, useState } from "react"
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { Button, Form, FormItemProps, Input, Select, Space } from "antd";
-import { ObjectWithReferenceGenome } from "./ReferenceGenomeTableColumns";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { add, list, update } from "../../modules/referenceGenomes/actions";
 import { requiredRules } from "../../constants";
 import { selectAppInitialzed, selectReferenceGenomesByID, selectTaxonsByID } from "../../selectors";
 import * as Options from "../../utils/options";
+import { ReferenceGenome } from "../../models/frontend_models";
+// import { ObjectWithReferenceGenome } from "./ReferenceGenomeTableColumns";
+
+interface EditReferenceGenomesProps {
+    referenceGenome?: ReferenceGenome
+}
 
 export const AddReferenceGenomeRoute = () => {
     const appInitialized = useAppSelector(selectAppInitialzed)
@@ -23,7 +28,7 @@ export const EditReferenceGenomeRoute = () => {
 }
 
 
-const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGenome>) => {
+const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) => {
     const { Item } = Form
 
     const [form] = Form.useForm()
@@ -90,7 +95,7 @@ const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGe
 
     return (
         <>
-            <AppPageHeader title={(isAdding ? `Add Reference Genome` : `Edit Reference Genome ${referenceGenome.assembly_name}`) + " "} />
+            <AppPageHeader title={(isAdding ? `Add Reference Genome` : `Edit Reference Genome ${referenceGenome.assembly_name}`)} />
             <PageContent>
                 <Form
                     labelCol={{ span: 4 }}

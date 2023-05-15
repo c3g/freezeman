@@ -3,9 +3,6 @@ import { ReferenceGenome } from "../../models/frontend_models";
 import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import React from "react";
 
-export interface ObjectWithReferenceGenome {
-    referenceGenome: Required<Pick<ReferenceGenome, "id" | "assembly_name" | "synonym" | "genbank_id" | "refseq_id" | "taxon_id" | "size">>
-}
 
 enum ReferenceGenomeID {
     ID = 'ID',
@@ -17,9 +14,9 @@ enum ReferenceGenomeID {
     SIZE = 'SIZE'
 }
 
-type ReferenceGenomeColumn = IdentifiedTableColumnType<ObjectWithReferenceGenome>
+type ReferenceGenomeColumn = IdentifiedTableColumnType<ReferenceGenome>
 
-export const getColumnsForReferenceGenome = (taxonsByID): IdentifiedTableColumnType<ObjectWithReferenceGenome>[] => {
+export const getColumnsForReferenceGenome = (taxonsByID): IdentifiedTableColumnType<ReferenceGenome>[] => {
     const REFERENCE_GENOME_COLUMN_DEFINITIONS = REFERENCE_GENOME_COLUMNS(taxonsByID)
     return REFERENCE_GENOME_COLUMN_DEFINITIONS.map((column: ReferenceGenomeColumn) => { return { ...column } });
 }
@@ -30,76 +27,94 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         columnID: ReferenceGenomeID.ID,
         title: 'ID',
         dataIndex: ['referenceGenome', 'id'],
-        sorter: (a, b) => a.referenceGenome.id - b.referenceGenome.id,
-        render: (_, { referenceGenome }) =>
-            referenceGenome && (
-                <Link to={`/genomes/update/${referenceGenome.id}`}>
-                    <div>{referenceGenome.id}</div>
+        sorter: (a, b) => a.id - b.id,
+        render: (_, { id }) =>
+            id && (
+                <Link to={`/genomes/update/${id}`}>
+                    <div>{id}</div>
                 </Link>
             ),
     },
     {
         columnID: ReferenceGenomeID.ASSEMBLY_NAME,
-        title: 'ASSEMBLY_NAME',
+        title: 'Assembly Name',
         dataIndex: ['referenceGenome', 'assembly_name'],
-        sorter: (a, b) => a.referenceGenome.assembly_name.localeCompare(b.referenceGenome.assembly_name),
-        render: (_, { referenceGenome }) =>
-            referenceGenome && (
-                <Link to={`/genomes/update/${referenceGenome.id}`}>
-                    <div>{referenceGenome.assembly_name}</div>
+        sorter: (a, b) => a.assembly_name.localeCompare(b.assembly_name),
+        render: (_, { assembly_name, id }) =>
+            assembly_name && id && (
+                <Link to={`/genomes/update/${id}`}>
+                    <div>{assembly_name}</div>
                 </Link>
             ),
     },
     {
         columnID: ReferenceGenomeID.SYNONYM,
-        title: 'SYNONYM',
+        title: 'Synonym',
         dataIndex: ['referenceGenome', 'synonym'],
-        sorter: (a, b) => a.referenceGenome.synonym.localeCompare(b.referenceGenome.synonym),
-        render: (_, { referenceGenome }) =>
-            referenceGenome && (
-                <div>{referenceGenome.synonym}</div>
+        sorter: (a, b) => {
+            if (a && b && a.synonym && b.synonym) {
+
+                return a.synonym.localeCompare(b.synonym);
+            }
+            return 0;
+        },
+        render: (_, { synonym }) =>
+            synonym && (
+                <div>{synonym}</div>
             ),
     },
     {
         columnID: ReferenceGenomeID.GENBANK_ID,
-        title: 'GENBANK_ID',
+        title: 'Genbank ID',
         dataIndex: ['referenceGenome', 'genbank_id'],
-        sorter: (a, b) => a.referenceGenome.genbank_id.localeCompare(b.referenceGenome.genbank_id),
-        render: (_, { referenceGenome }) =>
-            referenceGenome && (
-                <div>{referenceGenome.genbank_id}</div>
+        sorter: (a, b) => {
+            if (a && b && a.genbank_id && b.genbank_id) {
+
+                return a.genbank_id.localeCompare(b.genbank_id);
+            }
+            return 0;
+        },
+        render: (_, { genbank_id }) =>
+            genbank_id && (
+                <div>{genbank_id}</div>
             ),
     },
     {
         columnID: ReferenceGenomeID.REFSEQ_ID,
-        title: 'REFSEQ_ID',
+        title: 'Refseq ID',
         dataIndex: ['referenceGenome', 'refseq_id'],
-        sorter: (a, b) => a.referenceGenome.refseq_id.localeCompare(b.referenceGenome.refseq_id),
-        render: (_, { referenceGenome }) =>
-            referenceGenome && (
-                <div>{referenceGenome.refseq_id}</div>
+        sorter: (a, b) => {
+            if (a && b && a.refseq_id && b.refseq_id) {
+
+                return a.refseq_id.localeCompare(b.refseq_id);
+            }
+            return 0;
+        },
+        render: (_, { refseq_id }) =>
+            refseq_id && (
+                <div>{refseq_id}</div>
             ),
     },
     {
         columnID: ReferenceGenomeID.TAXON_ID,
-        title: 'TAXON',
+        title: 'Taxon',
         dataIndex: ['referenceGenome', 'taxon_id'],
-        sorter: (a, b) => a.referenceGenome.taxon_id - b.referenceGenome.taxon_id,
-        render: (_, { referenceGenome }) =>
-            referenceGenome && (
-                <Link to={`/taxons/update/${referenceGenome.taxon_id}`}>
-                    <div>{taxonsByID[referenceGenome.taxon_id].name}</div>
+        sorter: (a, b) => a.taxon_id - b.taxon_id,
+        render: (_, { taxon_id }) =>
+            taxon_id && (
+                <Link to={`/taxons/update/${taxon_id}`}>
+                    <div>{taxonsByID[taxon_id].name}</div>
                 </Link>
             ),
     },
     {
         columnID: ReferenceGenomeID.SIZE,
-        title: 'SIZE',
+        title: 'Size',
         dataIndex: ['referenceGenome', 'size'],
-        sorter: (a, b) => a.referenceGenome.size - b.referenceGenome.size,
-        render: (_, { referenceGenome }) =>
-            referenceGenome && (
-                <div>{referenceGenome.size}</div>
+        sorter: (a, b) => a.size - b.size,
+        render: (_, { size }) =>
+            size && (
+                <div>{size}</div>
 
             ),
     }
