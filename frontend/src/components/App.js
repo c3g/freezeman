@@ -153,6 +153,8 @@ const MENU_ITEMS = [
   },
 ]
 
+const DEV_QC_BACKGROUND = "repeating-linear-gradient(45deg, #423d01, #423d01 10px, #000000 10px, #000000 20px)";
+
 const colorStyle = {
   color: "white",
 }
@@ -173,14 +175,19 @@ export const mapStateToProps = state => ({
 
 export const actionCreators = { logOut, get };
 
+<<<<<<< HEAD
 const App = ({ userID, usersByID, logOut, get }) => {
+=======
+const App = ({userID, usersByID, logOut, get}) => {
+  /* global FMS_ENV */
+  const env = FMS_ENV
+>>>>>>> origin/master
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
   const token = useAppSelector(selectAuthTokenAccess)
+
   useEffect(() => {
-
-
     async function loadInitialData() {
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
@@ -196,13 +203,16 @@ const App = ({ userID, usersByID, logOut, get }) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, [dispatch, token]);
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
 
-  if (!user && isLoggedIn)
-    get(userID);
+  useEffect(() => {
+    if (!user && isLoggedIn) {
+      get(userID)
+    }
+  }, [user, userID, usersByID, get, isLoggedIn])
 
   const menuItems = getMenuItems(user, logOut);
 
@@ -228,6 +238,7 @@ const App = ({ userID, usersByID, logOut, get }) => {
             width={'17em'}
             style={{ overflow: 'auto' }}
           >
+<<<<<<< HEAD
             <div style={{ display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center' }}>
               <Title style={titleStyle} className="App__title">
                 <div>
@@ -240,6 +251,23 @@ const App = ({ userID, usersByID, logOut, get }) => {
                   <Spin size="small" indicator={loadingIcon} />
                 </div>
               }
+=======
+            <div style={{background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined, padding: 0, margin: 0}}>
+              <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
+                <Title style={titleStyle} className="App__title">
+                  <div style={{marginRight: '0.25rem', paddingRight: '0.25rem'}}>
+                    <b>F</b><span>reeze</span><b>M</b><span>an</span>
+                    {env !== 'PROD' && <span style={{ color: 'red', fontSize: '14px' }}>&nbsp;{env}</span>}
+                  </div>
+                </Title>
+                { // Display a spinner while the initial data is being fetched at startup 
+                  !isInitialized &&
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className="App__spin">
+                      <Spin size="small" indicator={loadingIcon}/>
+                    </div>
+                }
+              </div>
+>>>>>>> origin/master
             </div>
             {isLoggedIn &&
               <div className='App__jumpBar'>
@@ -382,6 +410,7 @@ function onDidMount() {
 }
 
 function withRouter(Child) {
+  // eslint-disable-next-line react/display-name
   return (props) => {
     const location = useLocation();
     const navigate = useNavigate();

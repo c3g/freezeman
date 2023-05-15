@@ -15,9 +15,9 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import {withContainer} from "../../utils/withItem";
 import {ActionDropdown} from "../../utils/templateActions";
 import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard"
+import { WithContainerRenderComponent } from '../shared/WithItemRenderComponent'
 
 
 const getTableColumns = (containersByID, runTypes, instruments, launchesById) => [
@@ -64,7 +64,7 @@ const getTableColumns = (containersByID, runTypes, instruments, launchesById) =>
     sorter: true,
     render: (_, experimentRun) => (experimentRun.container &&
       <Link to={`/containers/${experimentRun.container}`}>
-        {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+        <WithContainerRenderComponent objectID={experimentRun.container} render={container => container.barcode} placeholder={"loading..."}/>
       </Link>),
   },
   {
