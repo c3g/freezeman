@@ -1,9 +1,7 @@
 import { Link } from "react-router-dom";
-// import { ReferenceGenome } from "../../models/frontend_models";
 import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import React from "react";
 import { ReferenceGenome } from "../../models/frontend_models";
-// import { ReferenceGenome } from "../../models/frontend_models";
 
 export interface ObjectWithReferenceGenome {
     referenceGenome: Pick<ReferenceGenome, "id" | "assembly_name" | "synonym" | "genbank_id" | "refseq_id" | "taxon_id" | "size">

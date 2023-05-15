@@ -9,7 +9,6 @@ import { requiredRules } from "../../constants";
 import { selectAppInitialzed, selectReferenceGenomesByID, selectTaxonsByID } from "../../selectors";
 import * as Options from "../../utils/options";
 import { ReferenceGenome } from "../../models/frontend_models";
-// import { ObjectWithReferenceGenome } from "./ReferenceGenomeTableColumns";
 
 interface EditReferenceGenomesProps {
     referenceGenome?: ReferenceGenome
