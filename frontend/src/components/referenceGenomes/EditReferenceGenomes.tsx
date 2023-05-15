@@ -28,7 +28,7 @@ const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGe
 
     const [form] = Form.useForm()
     const [formErrors, setFormErrors] = useState({})
-    
+
     const isAdding = referenceGenome === undefined
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -90,7 +90,7 @@ const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGe
 
     return (
         <>
-            <AppPageHeader title={(isAdding ? "Add" : "Edit") + " Reference Genome"} />
+            <AppPageHeader title={(isAdding ? `Add Reference Genome` : `Edit Reference Genome ${referenceGenome.assembly_name}`) + " "} />
             <PageContent>
                 <Form
                     labelCol={{ span: 4 }}
