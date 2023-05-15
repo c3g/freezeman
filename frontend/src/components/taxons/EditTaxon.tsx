@@ -7,7 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { ObjectWithTaxon } from "../shared/DefinitionsTable/TaxonTableColumns";
+import { ObjectWithTaxon } from "./TaxonTableColumns";
 
 
 export const AddTaxonRoute = () => {
@@ -24,10 +24,10 @@ export const EditTaxonRoute = () => {
 
 const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
     const { Item } = Form
-    
+
     const [formErrors, setFormErrors] = useState({})
     const [form] = Form.useForm()
-    
+
     const isAdding = taxon === undefined
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
@@ -86,7 +86,7 @@ const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
     return (
         <>
             <AppPageHeader
-                title={isAdding ? "Add" : "Edit"}
+                title={(isAdding ? `Add Taxon` : `Edit Taxon ${taxon.ncbi_id}`)}
             />
             <PageContent>
 
