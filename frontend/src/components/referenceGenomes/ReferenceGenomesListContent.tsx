@@ -6,17 +6,17 @@ import { useAppSelector } from '../../hooks'
 import { selectReferenceGenomesByID, selectTaxonsByID } from '../../selectors'
 import { Table } from 'antd'
 import AddButton from '../AddButton'
-import { ObjectWithReferenceGenome, getColumnsForReferenceGenome } from '../shared/DefinitionsTable/ReferenceGenomeTableColumns'
+import { ObjectWithReferenceGenome, getColumnsForReferenceGenome } from './ReferenceGenomeTableColumns'
 
 
 function ReferenceGenomesListContent() {
 	const [referenceGenomeColumns, setReferenceGenomeColumns] = useState<ObjectWithReferenceGenome[]>();
-	const referenceGenomesState = useAppSelector(selectReferenceGenomesByID)
-	const referenceGenomes = getAllItems(referenceGenomesState)
+	const referenceGenomesByID = useAppSelector(selectReferenceGenomesByID)
 	const taxonsByID: any = useAppSelector(selectTaxonsByID)
 	const columns = getColumnsForReferenceGenome(taxonsByID);
 
 	useEffect(() => {
+		const referenceGenomes = getAllItems(referenceGenomesByID)
 		const refGenomeColumns = referenceGenomes.map((ref): ObjectWithReferenceGenome => {
 			return {
 				referenceGenome: {
@@ -31,7 +31,7 @@ function ReferenceGenomesListContent() {
 			};
 		})
 		setReferenceGenomeColumns(refGenomeColumns)
-	}, [referenceGenomes])
+	}, [referenceGenomesByID])
 
 	return (
 		<>

@@ -15,18 +15,12 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const add = referenceGenome => async (dispatch, getState) => {
-    if (getState().referenceGenomes.isFetching)
-        return;
-
     return await dispatch(networkAction(
         ADD, api.referenceGenomes.add(referenceGenome), { meta: { ignoreError: 'APIError' } }
     ));
 };
 
 export const update = (id, referenceGenome) => async (dispatch, getState) => {
-    if (getState().referenceGenomes.itemsByID[id].isFetching)
-        return;
-
     return await dispatch(networkAction(
         UPDATE, api.referenceGenomes.update(referenceGenome), { meta: { id, ignoreError: 'APIError' } }
     ));

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { ReferenceGenome } from "../../../models/frontend_models";
-import { IdentifiedTableColumnType } from "../WorkflowSamplesTable/SampleTableColumns";
+import { ReferenceGenome } from "../../models/frontend_models";
+import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import React from "react";
 
 export interface ObjectWithReferenceGenome {

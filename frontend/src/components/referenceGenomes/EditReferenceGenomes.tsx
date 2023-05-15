@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react"
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { Button, Form, FormItemProps, Input, Select, Space } from "antd";
-import { ObjectWithReferenceGenome } from "../shared/DefinitionsTable/ReferenceGenomeTableColumns";
+import { ObjectWithReferenceGenome } from "./ReferenceGenomeTableColumns";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { add, list, update } from "../../modules/referenceGenomes/actions";
