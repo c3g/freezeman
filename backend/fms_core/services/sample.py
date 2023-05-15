@@ -607,10 +607,10 @@ def pool_submitted_samples(samples_info,
                 except Exception as e:
                     errors.append(e)
 
-            for study_obj in sample['studies']:
-                _, errors_study, warnings_study = queue_sample_to_study_workflow(pool_sample_obj, study_obj)
-                errors.extend(errors_study)
-                warnings.extend(warnings_study)
+                for study_obj in sample['studies']:
+                    _, errors_study, warnings_study = queue_sample_to_study_workflow(pool_sample_obj, study_obj)
+                    errors.extend(errors_study)
+                    warnings.extend(warnings_study)
 
 
     return pool_sample_obj, errors, warnings
