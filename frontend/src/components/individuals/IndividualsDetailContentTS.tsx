@@ -8,21 +8,16 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import IndividualOverview from "./IndividualOverview";
+import { useAppSelector } from "../../hooks";
+import { selectIndividualsByID } from "../../selectors";
 import { get } from "../../modules/individuals/actions";
+import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 
-const mapStateToProps = state => ({
-    individualsByID: state.individuals.itemsByID,
-    taxonsByID: state.taxons.itemsByID,
-    referenceGenomesByID: state.referenceGenomes.itemsByID,
-});
-
-const mapDispatchToProps = dispatch =>
-    bindActionCreators({ get }, dispatch);
-
-const IndividualsDetailContent = ({ individualsByID, taxonsByID, referenceGenomesByID, get }) => {
+const IndividualsDetailContent = () => {
     const { id } = useParams();
-    const isLoaded = id in individualsByID;
-    const individual = individualsByID[id] || {};
+    const individualsByID = useAppSelector(selectIndividualsByID)
+    const isLoaded = id && individualsByID[id];
+    const individual = id && individualsByID[id] || {};
     const [activeKey, setActiveKey] = useHashURL('overview')
 
     if (!isLoaded)
@@ -49,11 +44,14 @@ const IndividualsDetailContent = ({ individualsByID, taxonsByID, referenceGenome
         <PageContent loading={isLoading}>
             <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
                 <Tabs.TabPane tab="Overview" key="overview" style={tabPaneStyle}>
-                    <IndividualOverview individual={individual} individualsByID={individualsByID} taxonsByID={taxonsByID} referenceGenomesByID={referenceGenomesByID} />
+                    <IndividualOverview individual={individual} individualsByID={individualsByID} />
+                </Tabs.TabPane>
+                <Tabs.TabPane tab="Associated Samples" key="samples" style={tabPaneStyle}>
+                    <IndividualAssociatedSamples/>
                 </Tabs.TabPane>
             </Tabs>
         </PageContent>
     </>;
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(IndividualsDetailContent);
+export default IndividualsDetailContent;

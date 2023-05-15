@@ -3,7 +3,7 @@ import {Navigate, Route, Routes} from "react-router-dom";
 
 import IndividualEditContent from "./IndividualEditContent";
 import IndividualsListContent from "./IndividualsListContent";
-import IndividualsDetailContent from "./IndividualsDetailContent";
+import IndividualsDetailContent from "./IndividualsDetailContentTS";
 import PageContainer from "../PageContainer";
 
 const IndividualsPage = () => <PageContainer>

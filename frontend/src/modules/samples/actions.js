@@ -1,25 +1,25 @@
-import {createNetworkActionTypes, networkAction} from "../../utils/actions";
+import { createNetworkActionTypes, networkAction } from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {SAMPLE_FILTERS} from "../../components/filters/descriptions";
-import {DEFAULT_PAGINATION_LIMIT} from "../../config";
+import { SAMPLE_FILTERS } from "../../components/filters/descriptions";
+import { DEFAULT_PAGINATION_LIMIT } from "../../config";
 
-export const GET                   = createNetworkActionTypes("SAMPLES.GET");
-export const ADD                   = createNetworkActionTypes("SAMPLES.ADD");
-export const UPDATE                = createNetworkActionTypes("SAMPLES.UPDATE");
-export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
-export const LIST_TABLE            = createNetworkActionTypes("SAMPLES.LIST_TABLE");
-export const LIST_FILTER           = createNetworkActionTypes("SAMPLES.LIST_FILTER");
-export const SET_SORT_BY           = "SAMPLES.SET_SORT_BY";
-export const SET_FILTER            = "SAMPLES.SET_FILTER";
-export const SET_FILTER_OPTION     = "SAMPLES.SET_FILTER_OPTION"
-export const CLEAR_FILTERS         = "SAMPLES.CLEAR_FILTERS";
-export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
-export const LIST_KINDS            = createNetworkActionTypes("SAMPLES.LIST_KINDS");
+export const GET = createNetworkActionTypes("SAMPLES.GET");
+export const ADD = createNetworkActionTypes("SAMPLES.ADD");
+export const UPDATE = createNetworkActionTypes("SAMPLES.UPDATE");
+export const LIST = createNetworkActionTypes("SAMPLES.LIST");
+export const LIST_TABLE = createNetworkActionTypes("SAMPLES.LIST_TABLE");
+export const LIST_FILTER = createNetworkActionTypes("SAMPLES.LIST_FILTER");
+export const SET_SORT_BY = "SAMPLES.SET_SORT_BY";
+export const SET_FILTER = "SAMPLES.SET_FILTER";
+export const SET_FILTER_OPTION = "SAMPLES.SET_FILTER_OPTION"
+export const CLEAR_FILTERS = "SAMPLES.CLEAR_FILTERS";
+export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
+export const LIST_KINDS = createNetworkActionTypes("SAMPLES.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
 export const LIST_PREFILL_TEMPLATES = createNetworkActionTypes("SAMPLES.LIST_PREFILL_TEMPLATES");
-export const SUMMARY               = createNetworkActionTypes("SAMPLES.SUMMARY");
+export const SUMMARY = createNetworkActionTypes("SAMPLES.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
@@ -42,7 +42,7 @@ export const update = (id, sample) => async (dispatch, getState) => {
         return;
 
     return await dispatch(networkAction(
-        UPDATE, api.samples.update(sample), { meta: { id, ignoreError: 'APIError' }}));
+        UPDATE, api.samples.update(sample), { meta: { id, ignoreError: 'APIError' } }));
 };
 
 export const list = (options) => async (dispatch, getState) => {
@@ -54,17 +54,17 @@ export const list = (options) => async (dispatch, getState) => {
 };
 
 export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy }, abort) => async (dispatch, getState) => {
-    if(getState().samples.isFetching && !abort)
-      return
+    if (getState().samples.isFetching && !abort)
+        return
 
     limit = getState().pagination.pageSize;
     filters = serializeFilterParams(filters, SAMPLE_FILTERS)
     const ordering = serializeSortByParams(sortBy)
-    const options = { limit, offset, ordering, ...filters}
+    const options = { limit, offset, ordering, ...filters }
 
     return await dispatch(networkAction(LIST_FILTER,
         api.samples.list(options, abort),
-        { meta: {...options} }
+        { meta: { ...options } }
     ));
 };
 
@@ -76,13 +76,22 @@ export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {},
     const limit = getState().pagination.pageSize;
     const filters = serializeFilterParams(samples.filters, SAMPLE_FILTERS)
     const ordering = serializeSortByParams(samples.sortBy)
-    const options = { limit, offset, ordering, ...filters}
+    const options = { limit, offset, ordering, ...filters }
 
     return await dispatch(networkAction(LIST_TABLE,
         api.samples.list(options, abort),
         { meta: { ...options, ignoreError: 'AbortError' } }
     ));
 };
+
+export const listByIndividual = (individualId) => async (dispatch, getState) => {
+    return dispatch(
+        networkAction(
+            LIST,
+            api.samples.list({ derived_samples__biosample__individual__id__in: individualId, limit: 100000})
+        )
+    );
+}
 
 export const setSortBy = thenList((key, order) => {
     return {
@@ -94,14 +103,14 @@ export const setSortBy = thenList((key, order) => {
 export const clearSortBy = () => async dispatch => {
     return dispatch({
         type: SET_SORT_BY,
-        data: { }
+        data: {}
     })
 };
 
 export const setFilter = thenList((name, value) => {
     return {
         type: SET_FILTER,
-        data: { name, value}
+        data: { name, value }
     }
 });
 
@@ -132,8 +141,8 @@ export const listTemplateActions = () => (dispatch, getState) => {
 };
 
 export const listPrefillTemplates = () => (dispatch, getState) => {
-  if (getState().samplePrefillTemplates.isFetching) return;
-  return dispatch(networkAction(LIST_PREFILL_TEMPLATES, api.samples.prefill.templates()));
+    if (getState().samplePrefillTemplates.isFetching) return;
+    return dispatch(networkAction(LIST_PREFILL_TEMPLATES, api.samples.prefill.templates()));
 };
 
 export const listVersions = (id) => async (dispatch, getState) => {
