@@ -38,7 +38,7 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 						dataSource={stepNames}
 						size="small"
 						renderItem={(item) => {
-							return <List.Item key={item.stepName}>
+							return <List.Item key={`${item.stepOrder}-${item.stepName}`}>
 								<span>
 									<Text strong={true} style={{fontSize: 16, marginRight: "0.6rem"}}>{item.stepOrder}</Text>
 									<Text>{item.stepName}</Text>

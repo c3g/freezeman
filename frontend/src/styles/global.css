@@ -115,3 +115,7 @@ abbr.--time {
   align-items: baseline;
 }
 
+.ant-layout-sider-collapsed .App__spin {
+  width: 0 !important;
+  opacity: 0;
+}

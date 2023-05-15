@@ -15,7 +15,7 @@ export interface CompletedStudySample {
 }
 
 export interface StudySampleStep {
-	readonly stepID:	FMSId						// step ID
+	readonly stepID:	FMSId					// step ID
 	readonly stepName: string					// step name
 	readonly stepOrderID: FMSId      			// step order ID
 	readonly stepOrder: number					// step order
@@ -26,11 +26,12 @@ export interface StudySampleStep {
 	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
 }
 
+// List of steps
 export interface StudySampleList {
 	readonly steps: StudySampleStep[]
 }
 
-export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}
+export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}	// key: Study ID
 
 // UX settings for study samples page, used to keep track of
 // the expanded/collapsed state of steps, the 'ready' vs. 'completed'
@@ -41,7 +42,7 @@ export type StudyStepSamplesTabSelection = 'ready' | 'completed'
 
 // Settings for one step
 export interface StudyUXStepSettings {
-	readonly stepID: FMSId
+	readonly stepOrderID: FMSId
 	readonly expanded?: boolean
 	readonly selectedSamplesTab?: StudyStepSamplesTabSelection
 	readonly filters?: FilterSet
@@ -51,7 +52,7 @@ export interface StudyUXStepSettings {
 // Settings for one study
 export interface StudyUXSettings {
 	readonly studyID: FMSId
-	readonly stepSettings: {[key : FMSId] : StudyUXStepSettings}	// key: step ID
+	readonly stepSettings: {[key : number] : StudyUXStepSettings}	// key: step order
 }
 
 export type StudySettingsByID = {[key: number] : StudyUXSettings}

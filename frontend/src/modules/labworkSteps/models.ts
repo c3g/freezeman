@@ -12,7 +12,10 @@ export interface LabworkPrefilledTemplateDescriptor {
 	submissionURL?: string
 }
 
-export type CoordinateSortDirection = 'column' | 'row'
+export interface CoordinateSortDirection {
+	orientation: 'column' | 'row'
+	order: 'ascend' | 'descend'
+}
 
 export interface LabworkStepSamples {
 	stepID: FMSId											// Step ID (get the step from the labwork summary state)

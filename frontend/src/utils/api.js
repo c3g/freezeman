@@ -234,7 +234,7 @@ const api = {
 
   sampleNextStepByStudy: {
     getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
-    getStudySamplesForStep: (studyId, stepId, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__step__id__in : stepId }),
+    getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
   },
@@ -263,6 +263,8 @@ const api = {
 
   taxons: {
     get: taxonId => get(`/taxons/${taxonId}/`),
+    add: taxon => post(`/taxons/`, taxon),
+    update: taxon => patch(`/taxons/${taxon.id}/`, taxon),
     list: (options, abort) => get("/taxons/", options, { abort }),
     search: q => get("/taxons/search/", { q }),
   },

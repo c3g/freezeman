@@ -366,13 +366,13 @@ export interface FMSUser extends FMSTrackedModel {
 export interface FMSWorkflow extends FMSTrackedModel {
     name: string                        // Workflow name
     structure: string                   // Workflow structure name
-    steps_order: WorkflowStep[]         // Workflow step order objects
+    steps_order: WorkflowStepOrder[]    // Workflow step order objects
 }
 
-export interface WorkflowStep {         // Not a tracked model - just a simple serialized object
+export interface WorkflowStepOrder {    // Not a tracked model - just a simple serialized object
     id: FMSId                           // Step Order ID
     order: number                       // Step order value
-    step_id: FMSId                     // Step ID
+    step_id: FMSId                      // Step ID
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }

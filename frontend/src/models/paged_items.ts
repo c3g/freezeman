@@ -24,13 +24,13 @@ export interface FilterDescription {
 }
 
 export interface FilterDescriptionSet {
-	[key: string] : FilterDescription
+	[key: string]: FilterDescription
 }
 
 export type StringFilterValue = string
 export type StringArrayFilterValue = string[]
-export type RangeFilterValue = {min?: string | number, max?: string | number}
-export type MetadataFilterValue = {name: string, value?: string}[]
+export type RangeFilterValue = { min?: string | number, max?: string | number }
+export type MetadataFilterValue = { name: string, value?: string }[]
 
 export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilterValue | MetadataFilterValue | undefined
 
@@ -38,7 +38,6 @@ export type SetFilterFunc = (filterKey: string, value: FilterValue, description:
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
 export type FilterValidationFunc = (string) => boolean
 export type SetSortByFunc = (sortBy: SortBy) => void
-
 
 export interface FilterOptions {
 	[key: string]: boolean
@@ -49,7 +48,7 @@ export interface FilterOptions {
 // 3. Write a new version of serializeFilterProps to get description from state rather than from a filter config file
 export interface FilterSetting {
 	value: FilterValue
-  	options?: FilterOptions
+	options?: FilterOptions
 	description?: FilterDescription		// Include filter description in redux state for filter serialization.
 }
 
@@ -64,7 +63,7 @@ export interface SortBy {
 
 // Maps column ID's to filter key string (django keys)
 export interface FilterKeySet {
-	[key: string] : string
+	[key: string]: string
 }
 
 export interface PagedItems<T extends FMSTrackedModel> {
@@ -99,12 +98,12 @@ export function isStringArrayFilterValue(value?: FilterValue): value is StringAr
 	return false
 }
 
-export function isRangeFilterValue(value?: FilterValue) : value is RangeFilterValue {
-  if (value) {
-    const v = value as RangeFilterValue
-    return ('min' in v) || ('max' in v)
-  }
-  return false
+export function isRangeFilterValue(value?: FilterValue): value is RangeFilterValue {
+	if (value) {
+		const v = value as RangeFilterValue
+		return ('min' in v) || ('max' in v)
+	}
+	return false
 }
 
 export function isMetadataFilterValue(value?: FilterValue): value is MetadataFilterValue {

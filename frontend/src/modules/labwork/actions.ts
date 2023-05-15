@@ -8,14 +8,13 @@ export const GET_LABWORK_SUMMARY = createNetworkActionTypes('SAMPLE-NEXT-STEP.GE
 export const SET_HIDE_EMPTY_PROTOCOLS = 'SAMPLE-NEXT-STEP.SET_HIDE_EMPTY_PROTOCOLS'
 export const FLUSH_LABWORK_SUMMARY = 'SAMPLE-NEXT-STEP.FLUSH_LABWORK_SUMMARY'
 
-
 export const getLabworkSummary = () => async (dispatch, getState) => {
 	const summary = selectLabworkSummaryState(getState())
 	if (summary && summary.isFetching) {
 		return
 	}
 
-	dispatch({type: GET_LABWORK_SUMMARY.REQUEST})
+	dispatch({ type: GET_LABWORK_SUMMARY.REQUEST })
 
 	const workflows = Object.values(selectWorkflowsByID(getState()))
 
@@ -26,7 +25,7 @@ export const getLabworkSummary = () => async (dispatch, getState) => {
 			type: GET_LABWORK_SUMMARY.RECEIVE,
 			data: summary
 		})
-	} catch(err) {
+	} catch (err) {
 		dispatch({
 			type: GET_LABWORK_SUMMARY.ERROR,
 			error: err
@@ -56,7 +55,7 @@ export const refreshLabwork = () => {
 	return async (dispatch, getState) => {
 		let labworkChanged = false
 		const oldState = selectLabworkSummaryState(getState())
-		
+
 		await dispatch(refreshLabworkSummary())
 
 		const newState = selectLabworkSummaryState(getState())
@@ -71,7 +70,7 @@ export const refreshLabwork = () => {
 			}
 		}
 		return labworkChanged
- 	}
+	}
 }
 
 export const setHideEmptyProtocols = (hide: boolean) => {
@@ -86,6 +85,7 @@ export const flushLabworkSummary = () => {
 		type: FLUSH_LABWORK_SUMMARY
 	}
 }
+
 
 export default {
 	GET_LABWORK_SUMMARY,
