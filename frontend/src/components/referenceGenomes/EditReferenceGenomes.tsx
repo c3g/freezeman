@@ -50,7 +50,7 @@ const EditReferenceGenomes = ({ referenceGenome }: Partial<ObjectWithReferenceGe
     const onValuesChange = (values) => {
         const key = Object.keys(values)[0];
         if (formErrors && formErrors[key]) {
-            let copy = { ...formErrors }
+            const copy = { ...formErrors }
             copy[key] = undefined;
             setFormErrors({ ...copy })
         }
