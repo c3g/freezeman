@@ -42,7 +42,7 @@ import LabworkPage from "./labwork/LabworkPage";
 import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
 import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
 import TaxonsRoute from "./taxons/TaxonsRoute";
- 
+
 
 const { Title } = Typography;
 
@@ -64,7 +64,7 @@ const getMenuItems = (user, logOut) => [
     icon: <LogoutOutlined />,
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
-    style: {marginBottom: '50px'}
+    style: { marginBottom: '50px' }
   },
 ]
 
@@ -120,29 +120,29 @@ const MENU_ITEMS = [
     text: "Datasets",
   },
   {
-    icon: <SettingOutlined/>,
+    icon: <SettingOutlined />,
     text: "Definitions",
     key: "definitions",
     children: [
       {
         url: "/indices",
         icon: <BarcodeOutlined />,
-        text: "Indices", 
+        text: "Indices",
       },
       {
         url: "/taxons",
         icon: <BarcodeOutlined />,
-        text: "Taxons", 
+        text: "Taxons",
       },
       {
         url: "/genomes",
         icon: <BarcodeOutlined />,
-        text: "Reference Genomes", 
+        text: "Reference Genomes",
       },
       {
         url: "/workflows",
         icon: <BarcodeOutlined />,
-        text: "Workflows", 
+        text: "Workflows",
       }
     ]
   },
@@ -173,7 +173,7 @@ export const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {logOut, get};
+export const actionCreators = { logOut, get };
 
 const App = ({userID, usersByID, logOut, get}) => {
   /* global FMS_ENV */
@@ -217,10 +217,10 @@ const App = ({userID, usersByID, logOut, get}) => {
   // Logout the user after 12 hours in all cases where the tab stays open
   useUserInputExpiration(logOut, 12 * hour);
 
-  const loadingIcon = <SyncOutlined style={{fontSize: '22px', color: 'white'}} spin/>
+  const loadingIcon = <SyncOutlined style={{ fontSize: '22px', color: 'white' }} spin />
 
   return (
-    <Layout style={{height: "100vh"}}>
+    <Layout style={{ height: "100vh" }}>
       <Layout>
         {isLoggedIn &&
           <Layout.Sider
@@ -229,10 +229,10 @@ const App = ({userID, usersByID, logOut, get}) => {
             className="App__sidebar"
             breakpoint="md"
             collapsedWidth={80}
-             // Ant requires a width, so pick one relative to the sidebar font-size. You can use 'auto' but then
+            // Ant requires a width, so pick one relative to the sidebar font-size. You can use 'auto' but then
             // the sidebar width changes whenever a submenu is expanded or collapsed.
-            width={'17em'} 
-            style={{overflow: 'auto'}}
+            width={'17em'}
+            style={{ overflow: 'auto' }}
           >
             <div style={{background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined, padding: 0, margin: 0}}>
               <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
@@ -251,34 +251,35 @@ const App = ({userID, usersByID, logOut, get}) => {
               </div>
             </div>
             {isLoggedIn &&
-                <div className='App__jumpBar'>
-                  <JumpBar />
-                </div>
-              }
-              
+              <div className='App__jumpBar'>
+                <JumpBar />
+              </div>
+            }
+
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={matchingMenuKeys(MENU_ITEMS)}
+              style={{ flex: 1 }}
+              defaultOpenKeys={['definitions']} // Submenus should be open by default
+            >
+              {MENU_ITEMS.map(renderMenuItem)}
+            </Menu>
+            {isLoggedIn &&
               <Menu
                 theme="dark"
                 mode="inline"
                 selectedKeys={matchingMenuKeys(MENU_ITEMS)}
-                style={{flex: 1}}
-                defaultOpenKeys={['definitions']} // Submenus should be open by default
+                style={{ flex: 1 }}
               >
-                  {MENU_ITEMS.map(renderMenuItem)}
+                {menuItems.map(renderMenuItem)}
               </Menu>
-              {isLoggedIn &&
-                <Menu
-                  theme="dark"
-                  mode="inline"
-                  selectedKeys={matchingMenuKeys(menuItems)}
-                >
-                  {menuItems.map(renderMenuItem)}
-                </Menu>
-              }
+            }
           </Layout.Sider>
         }
-        <Layout.Content style={{position: "relative"}}>
+        <Layout.Content style={{ position: "relative" }}>
           <Routes>
-            <Route path="/login/*" element={<LoginPage/>}/>
+            <Route path="/login/*" element={<LoginPage />} />
             <Route path="/dashboard/*" element={
               <PrivateNavigate>
                 <DashboardPage />
@@ -348,28 +349,28 @@ const App = ({userID, usersByID, logOut, get}) => {
               <PrivateNavigate>
                 <About />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/datasets/*" element={
               <PrivateNavigate>
-                <DatasetsPage/>
+                <DatasetsPage />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/workflows/*" element={
               <PrivateNavigate>
-                <WorkflowDefinitionsRoute/>
+                <WorkflowDefinitionsRoute />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/taxons/*" element={
               <PrivateNavigate>
-                <TaxonsRoute/>
+                <TaxonsRoute />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/genomes/*" element={
               <PrivateNavigate>
-                <ReferenceGenomesRoute/>
+                <ReferenceGenomesRoute />
               </PrivateNavigate>
-            }/>
-            <Route path="*" element={<Navigate to="/dashboard" replace />}/>
+            } />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout.Content>
       </Layout>
