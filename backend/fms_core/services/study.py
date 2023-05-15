@@ -100,7 +100,7 @@ def get_study(project_obj: Project, study_letter: str):
 
     return study, errors, warnings
 
-def delete_study_errors(study: int) -> Dict[str, List[str]]:
+def can_remove_study(study: int) -> Dict[str, List[str]]:
     errors = defaultdict(list)
 
     if StepHistory.objects.filter(study=study).exists():

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from fms_core.models import Study, Project, Workflow, StepHistory, SampleNextStep, SampleNextStepByStudy
 from fms_core.serializers import StudySerializer
-from fms_core.services.study import create_study, delete_study_errors
+from fms_core.services.study import create_study, can_remove_study
 from fms_core.utils import merge_dicts_of_list
 
 from django.core.exceptions import ValidationError
@@ -66,7 +66,7 @@ class StudyViewSet(viewsets.ModelViewSet):
         if pk is None:
             errors['Study'].append("pk cannot be None")
         else:
-            errors = merge_dicts_of_list(delete_study_errors(pk), errors)
+            errors = merge_dicts_of_list(can_remove_study(pk), errors)
 
         if any(bool(error) for error in errors.values()):
             raise ValidationError(errors)
