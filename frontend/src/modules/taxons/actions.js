@@ -15,16 +15,12 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const add = taxon => async (dispatch, getState) => {
-
     return await dispatch(networkAction(
         ADD, api.taxons.add(taxon), { meta: { ignoreError: 'APIError' } }
     ));
 };
 
 export const update = (id, taxon) => async (dispatch, getState) => {
-    if (getState().taxons.itemsByID[id].isFetching)
-        return;
-
     return await dispatch(networkAction(
         UPDATE, api.taxons.update(taxon), { meta: { id, ignoreError: 'APIError' } }
     ));
