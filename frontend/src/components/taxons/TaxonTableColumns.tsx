@@ -1,7 +1,7 @@
 import React from "react"
-import { IdentifiedTableColumnType } from "../WorkflowSamplesTable/SampleTableColumns"
+import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns"
 import { Link } from "react-router-dom"
-import { Taxon } from "../../../models/frontend_models"
+import { Taxon } from "../../models/frontend_models"
 
 
 export interface ObjectWithTaxon {
@@ -15,11 +15,11 @@ enum TaxonColumnID {
 type TaxonColumn = IdentifiedTableColumnType<ObjectWithTaxon>
 
 export const getColumnsForTaxon = (): IdentifiedTableColumnType<ObjectWithTaxon>[] => {
-    const TAXON_COLUMN_DEFINITIONS = TAXON_COLUMNS();
+    const TAXON_COLUMN_DEFINITIONS = TAXON_COLUMNS;
     return TAXON_COLUMN_DEFINITIONS.map((column: TaxonColumn) => { return { ...column } })
 }
 
-const TAXON_COLUMNS = (): TaxonColumn[] => [
+const TAXON_COLUMNS: TaxonColumn[] = [
     {
         columnID: TaxonColumnID.ID,
         title: 'ID',

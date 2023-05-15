@@ -4,7 +4,7 @@ import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import AddButton from '../AddButton'
 import { Table } from 'antd'
-import { ObjectWithTaxon, getColumnsForTaxon } from '../shared/DefinitionsTable/TaxonTableColumns'
+import { ObjectWithTaxon, getColumnsForTaxon } from './TaxonTableColumns'
 import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns'
 import { useAppSelector } from '../../hooks'
 import { selectTaxonsByID } from '../../selectors'
@@ -14,12 +14,12 @@ export interface TaxonsListContentProps {
 }
 
 function TaxonsListContent() {
-	const taxonsState = useAppSelector(selectTaxonsByID)
-	const taxons: Taxon[] = getAllItems(taxonsState)
-	const [taxonColumns, setTaxonColumns] = useState<ObjectWithTaxon[]>();
+	const taxonsByID = useAppSelector(selectTaxonsByID)
+	const [taxonsData, setTaxonsData] = useState<ObjectWithTaxon[]>();
 	const columns = getColumnsForTaxon()
-
+	
 	useEffect(() => {
+		const taxons: Taxon[] = getAllItems(taxonsByID)
 		const tax = (taxons).map((taxon) => {
 			const taxonObject: ObjectWithTaxon = {
 				taxon: {
@@ -30,8 +30,8 @@ function TaxonsListContent() {
 			};
 			return taxonObject;
 		})
-		setTaxonColumns(tax)
-	}, [taxons])
+		setTaxonsData(tax)
+	}, [taxonsByID])
 
 	return (
 		<>
@@ -40,7 +40,7 @@ function TaxonsListContent() {
 			<PageContent>
 				<Table
 					bordered={true}
-					dataSource={taxonColumns}
+					dataSource={taxonsData}
 					columns={columns}
 					style={{ overflowX: 'auto' }}>
 				</Table>

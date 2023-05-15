@@ -252,6 +252,7 @@ const App = ({ userID, usersByID, logOut, get }) => {
               mode="inline"
               selectedKeys={matchingMenuKeys(MENU_ITEMS)}
               style={{ flex: 1 }}
+              defaultOpenKeys={['definitions']} // Submenus should be open by default
             >
               {MENU_ITEMS.map(renderMenuItem)}
             </Menu>
@@ -261,7 +262,6 @@ const App = ({ userID, usersByID, logOut, get }) => {
                 mode="inline"
                 selectedKeys={matchingMenuKeys(MENU_ITEMS)}
                 style={{ flex: 1 }}
-                defaultOpenKeys={['definitions']} // Submenus should be open by default
               >
                 {menuItems.map(renderMenuItem)}
               </Menu>

@@ -15,8 +15,6 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const add = taxon => async (dispatch, getState) => {
-    if (getState().taxons.isFetching)
-        return;
 
     return await dispatch(networkAction(
         ADD, api.taxons.add(taxon), { meta: { ignoreError: 'APIError' } }
