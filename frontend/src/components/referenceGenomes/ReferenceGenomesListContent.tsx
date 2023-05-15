@@ -40,6 +40,7 @@ function ReferenceGenomesListContent() {
 
 			<PageContent>
 				<Table
+					rowKey={obj => obj.referenceGenome.id}
 					bordered={true}
 					dataSource={referenceGenomeColumns}
 					columns={columns}
