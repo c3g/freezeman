@@ -175,13 +175,9 @@ export const mapStateToProps = state => ({
 
 export const actionCreators = { logOut, get };
 
-<<<<<<< HEAD
-const App = ({ userID, usersByID, logOut, get }) => {
-=======
 const App = ({userID, usersByID, logOut, get}) => {
   /* global FMS_ENV */
   const env = FMS_ENV
->>>>>>> origin/master
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
@@ -238,20 +234,6 @@ const App = ({userID, usersByID, logOut, get}) => {
             width={'17em'}
             style={{ overflow: 'auto' }}
           >
-<<<<<<< HEAD
-            <div style={{ display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center' }}>
-              <Title style={titleStyle} className="App__title">
-                <div>
-                  <b>F</b><span>reeze</span><b>M</b><span>an</span>
-                </div>
-              </Title>
-              { // Display a spinner while the initial data is being fetched at startup 
-                !isInitialized &&
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Spin size="small" indicator={loadingIcon} />
-                </div>
-              }
-=======
             <div style={{background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined, padding: 0, margin: 0}}>
               <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
                 <Title style={titleStyle} className="App__title">
@@ -267,7 +249,6 @@ const App = ({userID, usersByID, logOut, get}) => {
                     </div>
                 }
               </div>
->>>>>>> origin/master
             </div>
             {isLoggedIn &&
               <div className='App__jumpBar'>
