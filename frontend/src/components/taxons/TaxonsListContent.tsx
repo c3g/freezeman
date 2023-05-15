@@ -17,7 +17,7 @@ function TaxonsListContent() {
 	const taxonsByID = useAppSelector(selectTaxonsByID)
 	const [taxonsData, setTaxonsData] = useState<ObjectWithTaxon[]>();
 	const columns = getColumnsForTaxon()
-	
+
 	useEffect(() => {
 		const taxons: Taxon[] = getAllItems(taxonsByID)
 		const tax = (taxons).map((taxon) => {
@@ -36,9 +36,10 @@ function TaxonsListContent() {
 	return (
 		<>
 			<AppPageHeader title="Taxons" extra={[
-				<AddButton key='add' url="/taxons/add"/>,]} />
+				<AddButton key='add' url="/taxons/add" />,]} />
 			<PageContent>
 				<Table
+					rowKey={obj => obj.taxon.id}
 					bordered={true}
 					dataSource={taxonsData}
 					columns={columns}
