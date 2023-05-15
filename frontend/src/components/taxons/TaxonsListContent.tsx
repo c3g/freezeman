@@ -4,30 +4,23 @@ import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import AddButton from '../AddButton'
 import { Table } from 'antd'
-import { ObjectWithTaxon, getColumnsForTaxon } from './TaxonTableColumns'
+import { getColumnsForTaxon } from './TaxonTableColumns'
 import { useAppSelector } from '../../hooks'
 import { selectTaxonsByID } from '../../selectors'
 
 export interface TaxonsListContentProps {
-	taxons: ObjectWithTaxon[],
+	taxons: Taxon[],
 }
 
 function TaxonsListContent() {
 	const taxonsByID = useAppSelector(selectTaxonsByID)
-	const [taxonsData, setTaxonsData] = useState<ObjectWithTaxon[]>();
+	const [taxonsData, setTaxonsData] = useState<Taxon[]>();
 	const columns = getColumnsForTaxon()
 
 	useEffect(() => {
 		const taxons: Taxon[] = getAllItems(taxonsByID)
 		const tax = (taxons).map((taxon) => {
-			const taxonObject: ObjectWithTaxon = {
-				taxon: {
-					id: taxon.id,
-					name: taxon.name,
-					ncbi_id: taxon.ncbi_id
-				}
-			};
-			return taxonObject;
+			return { ...taxon };
 		})
 		setTaxonsData(tax)
 	}, [taxonsByID])
@@ -38,7 +31,7 @@ function TaxonsListContent() {
 				<AddButton key='add' url="/taxons/add" />,]} />
 			<PageContent>
 				<Table
-					rowKey={obj => obj.taxon.id}
+					rowKey={taxon => taxon.id}
 					bordered={true}
 					dataSource={taxonsData}
 					columns={columns}
