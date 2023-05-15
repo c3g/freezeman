@@ -3,9 +3,8 @@ import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/Sample
 import { Link } from "react-router-dom"
 import { Taxon } from "../../models/frontend_models"
 
-
 export interface ObjectWithTaxon {
-    taxon: Pick<Taxon, 'id' | 'name' | 'ncbi_id'>
+    taxon: Pick<Taxon, "id" | "ncbi_id" | "name">
 }
 enum TaxonColumnID {
     ID = 'ID',

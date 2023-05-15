@@ -6,26 +6,28 @@ import { useAppSelector } from '../../hooks'
 import { selectReferenceGenomesByID, selectTaxonsByID } from '../../selectors'
 import { Table } from 'antd'
 import AddButton from '../AddButton'
-import { getColumnsForReferenceGenome } from './ReferenceGenomeTableColumns'
+import { getColumnsForReferenceGenome, ObjectWithReferenceGenome } from './ReferenceGenomeTableColumns'
 
 
 function ReferenceGenomesListContent() {
-	const [referenceGenomeColumns, setReferenceGenomeColumns] = useState<any>();
+	const [referenceGenomeColumns, setReferenceGenomeColumns] = useState<ObjectWithReferenceGenome[]>();
 	const referenceGenomesByID = useAppSelector(selectReferenceGenomesByID)
-	const taxonsByID: any = useAppSelector(selectTaxonsByID)
+	const taxonsByID = useAppSelector(selectTaxonsByID)
 	const columns = getColumnsForReferenceGenome(taxonsByID);
 
 	useEffect(() => {
 		const referenceGenomes = getAllItems(referenceGenomesByID)
-		const refGenomeColumns = referenceGenomes.map((ref) => {
+		const refGenomeColumns: ObjectWithReferenceGenome[] = referenceGenomes.map((ref) => {
 			return {
-				id: ref.id,
-				assembly_name: ref.assembly_name,
-				synonym: ref.synonym ?? '',
-				genbank_id: ref.genbank_id ?? '',
-				refseq_id: ref.refseq_id ?? '',
-				size: ref.size,
-				taxon_id: ref.taxon_id
+				referenceGenome: {
+					id: ref.id,
+					assembly_name: ref.assembly_name,
+					synonym: ref.synonym ?? '',
+					genbank_id: ref.genbank_id ?? '',
+					refseq_id: ref.refseq_id ?? '',
+					size: ref.size,
+					taxon_id: ref.taxon_id
+				}
 			};
 		})
 		setReferenceGenomeColumns(refGenomeColumns)
@@ -38,7 +40,7 @@ function ReferenceGenomesListContent() {
 
 			<PageContent>
 				<Table
-					rowKey={obj => obj.id}
+					rowKey={obj => obj.referenceGenome.id}
 					bordered={true}
 					dataSource={referenceGenomeColumns}
 					columns={columns}

@@ -9,7 +9,7 @@ import { useAppSelector } from '../../hooks'
 import { selectTaxonsByID } from '../../selectors'
 
 export interface TaxonsListContentProps {
-	taxons: Taxon[],
+	taxons: ObjectWithTaxon[],
 }
 
 function TaxonsListContent() {
