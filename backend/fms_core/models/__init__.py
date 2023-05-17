@@ -93,6 +93,5 @@ __all__ = [
     "SampleNextStepByStudy",
     "Coordinate",
     "Metric",
-    "SampleRunMetric",
     "Readset",
 ]

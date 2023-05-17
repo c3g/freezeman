@@ -1,9 +1,9 @@
 from dataclasses import asdict
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.http import HttpResponseServerError
+from django.http import HttpResponseServerError, HttpResponseNotFound
 from django.db.models import OuterRef, Subquery
 
 from fms_core.models import ExperimentRun, Dataset
@@ -80,11 +80,11 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         run_name = _request.data.get("run_name", None)
         lane = _request.data.get("lane", None)
         validation_status = _request.data.get("validation_status", None)
-        validation_status = int(validation_status) if validation_status is not None else None
+        validation_status = int(validation_status) if validation_status else None
         count, errors, _ = set_experiment_run_lane_validation_status(run_name=run_name, lane=lane, validation_status=validation_status)
         
         if errors:
-            response = HttpResponseServerError("\n".join(errors))
+            response = HttpResponseServerError(errors)
         elif count == 0:
             response = Response("No validation status was set.")
         else:
@@ -98,7 +98,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         validation_status, errors, _ = get_experiment_run_lane_validation_status(run_name=run_name, lane=lane)
         
         if errors:
-            response = HttpResponseServerError("\n".join(errors))
+            response = HttpResponseNotFound(errors)
         else:
             response = Response(validation_status)
         return response

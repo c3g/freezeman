@@ -44,6 +44,7 @@ from .models import (
 )
 
 from .models._constants import ReleaseStatus
+from .containers import CONTAINER_KIND_SPECS
 
 
 __all__ = [
@@ -140,11 +141,12 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     children_processes = serializers.SerializerMethodField()
     instrument_type = serializers.SerializerMethodField()
     platform = serializers.SerializerMethodField()
+    lanes = serializers.SerializerMethodField()
 
     class Meta:
         model = ExperimentRun
         fields = "__all__"
-        extra_fields = ('children_processes', 'instrument_type', 'platform')
+        extra_fields = ('children_processes', 'instrument_type', 'platform', 'lanes')
 
     def get_children_processes(self, obj):
         return Process.objects.filter(parent_process=obj.process).values_list('id', flat=True)
@@ -155,6 +157,12 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     def get_platform(self, obj):
         return obj.instrument.type.platform.name
 
+    def get_lanes(self, obj):
+        container_spec = CONTAINER_KIND_SPECS.get(obj.container.kind, ())
+        nb_lanes = 1
+        for dimension in container_spec.coordinate_spec:
+            nb_lanes = nb_lanes * len(dimension)
+        return list(range(1, nb_lanes + 1))
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
     experiment_run_id = serializers.IntegerField(read_only=True, source="id")
@@ -164,6 +172,7 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
     container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    lanes = serializers.SerializerMethodField()
 
     class Meta:
         model = ExperimentRun
@@ -178,7 +187,15 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
                   'end_time',
                   'run_processing_launch_time',
                   'run_processing_start_time',
-                  'run_processing_end_time',)
+                  'run_processing_end_time',
+                  'lanes')
+
+    def get_lanes(self, obj):
+        container_spec = CONTAINER_KIND_SPECS.get(obj.container.kind, ())
+        nb_lanes = 1
+        for dimension in container_spec.coordinate_spec:
+            nb_lanes = nb_lanes * len(dimension)
+        return ", ".join([str(x) for x in range(1, nb_lanes + 1)])
 
 
 class ExternalExperimentRunSerializer(serializers.ModelSerializer):

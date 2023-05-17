@@ -159,17 +159,22 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
     warnings = []
 
     timestamp = timezone.now()
+
+    if not run_name:
+        errors.append(f"Missing run name.")
+    if not lane:
+        errors.append(f"Missing lane.")
     if validation_status not in [value for value, _ in ValidationStatus.choices]:
         errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
 
-    for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
-        for dataset_file in DatasetFile.objects.filter(readset__dataset=dataset).all():
-            dataset_file.validation_status = validation_status
-            dataset_file.validation_status_timestamp = timestamp
-            dataset_file.save()
-            count_status += 1
-    
-    if errors: # Error returns None, while a non-existant run name or lane will return 0.
+    if not errors:
+        for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
+            for dataset_file in DatasetFile.objects.filter(readset__dataset=dataset).all():
+                dataset_file.validation_status = validation_status
+                dataset_file.validation_status_timestamp = timestamp
+                dataset_file.save()
+                count_status += 1
+    else: # Error returns None, while a non-existant run name or lane will return 0.
         return None, errors, warnings
 
     return count_status, errors, warnings
@@ -189,8 +194,15 @@ def get_experiment_run_lane_validation_status(run_name: str, lane: int):
     errors = []
     warnings = []
 
-    if DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).exists():
+    if not run_name:
+        errors.append(f"Missing run name.")
+    if not lane:
+        errors.append(f"Missing lane.")
+
+    if not errors and DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).exists():
         validation_status = DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).first().validation_status
+    else:
+        errors.append(f"No dataset file found matching the requested run name ({run_name}) and lane ({str(lane)}).")
 
     return validation_status, errors, warnings
 
