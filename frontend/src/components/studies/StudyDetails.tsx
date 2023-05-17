@@ -1,4 +1,4 @@
-import { Descriptions, Space, Spin, Typography } from 'antd'
+import { Button, Descriptions, Popconfirm, Space, Spin, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Study, Workflow } from '../../models/frontend_models'
@@ -8,14 +8,17 @@ import { StudySampleList } from '../../modules/studySamples/models'
 import { get as getWorkflow } from '../../modules/workflows/actions'
 import { selectProjectsByID, selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
 import StudySamples from '../studySamples/StudySamples'
+import FlexBar from '../shared/Flexbar'
+import { FMSId } from '../../models/fms_api_models'
 
 const { Title } = Typography
 
 interface StudyDetailsProps {
     studyId: number
+    handleRemoveStudy: (studyId: FMSId) => void
 }
 
-const StudyDetails = ({studyId} : StudyDetailsProps) => {
+const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
     const dispatch = useAppDispatch()
     const projectsById = useAppSelector(selectProjectsByID)
     const studiesById = useAppSelector(selectStudiesByID)
@@ -86,7 +89,19 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
 
     return (
         <>
-            <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
+            <FlexBar style={{padding: 0}}>
+                <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
+                <Space>
+                    <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies containing samples cannot be removed.</Typography.Text>
+                    <Popconfirm
+                        title={`Are you sure you want to remove study ${study?.letter}? This removal cannot be undone.`}
+                        onConfirm={() => handleRemoveStudy(studyId)}
+                        disabled={!study?.removable}
+                    >
+                        <Button disabled={!study?.removable}>Remove Study {study?.letter ?? ''}</Button>
+                    </Popconfirm>
+                </Space>
+            </FlexBar>
             <Descriptions bordered={true} size="small" column={4}>
                 <Descriptions.Item label="Workflow" span={4}>{workflow?.name ?? ''}</Descriptions.Item>
                 <Descriptions.Item label="Start Step" span={2}>{getStepWithOrder(study?.start)}</Descriptions.Item>

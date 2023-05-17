@@ -1,5 +1,5 @@
-import { Button, Popconfirm, Space, Tabs } from 'antd'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Button, Tabs } from 'antd'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
@@ -16,6 +16,7 @@ import { createStudyTabKey } from '../studies/StudyEditContent'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { get as getProject } from '../../modules/projects/actions'
+import { FMSId } from '../../models/fms_api_models'
 
 const { TabPane } = Tabs
 
@@ -27,13 +28,13 @@ const ProjectsDetailedContentRoute = () => {
 
 	const [project, setProject] = useState<Project>()
 	const studies = project ? getAllItems(studiesByID)
-								.filter(study => study.project_id === project.id)
-								.sort((a, b) => {
-									if (a.letter > b.letter) return 1
-									else if (a.letter < b.letter) return -1
-									else return 0
-								})
-							: []
+			.filter(study => study.project_id === project.id)
+			.sort((a, b) => {
+				if (a.letter > b.letter) return 1
+				else if (a.letter < b.letter) return -1
+				else return 0
+			})
+		: []
 
 	useEffect(() => {
 		if (projectID) {
@@ -52,6 +53,7 @@ const ProjectsDetailedContentRoute = () => {
 		}
 	}, [project, dispatch])
 
+
 	return project && <ProjectsDetailedContent project={project} studies={studies}/>
 }
 
@@ -61,16 +63,10 @@ interface ProjectsDetailedContentProps {
 }
 
 const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentProps) => {
+	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 
-	const navigate = useNavigate()
-
 	const [activeKey, setActiveKey] = useHashURL('overview')
-
-	const studyTabKeyToID = useMemo(() => Object.fromEntries(studies.map((study) => [createStudyTabKey(study.id), study.id])), [studies])
-	const currentStudy = studyTabKeyToID[activeKey]
-	const currentStudyLetter = useMemo(() => studies.find((study) => study.id == currentStudy)?.letter, [currentStudy, studies])
-	const currentStudyRemovable = useMemo(() => studies.some((study) => study.id === currentStudy && study.removable), [currentStudy, studies])
 
 	const tabsStyle = {
 		marginTop: 8,
@@ -84,27 +80,20 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 
 	const title = `Project ${project ? project.name : ''}`
 
-	const handleRemoveStudy = useCallback(async () => {
-		if (currentStudy !== null) {
-			await dispatch(removeStudy(currentStudy))
-			setActiveKey('overview')
-		}
-	}, [currentStudy, dispatch, setActiveKey])
-
 	const handleAddStudy = useCallback(() => {
 		navigate(`/projects/${`${project.id}`}/study/add`)
 	}, [project, navigate])
 
-	// Clicking the Add Study button navigates the user to the study creation form
-	const addStudyButton = <Button onClick={handleAddStudy} >Add Study</Button>
+	const handleRemoveStudy = useCallback((studyId: FMSId) => {
+		(async () => {
+			await dispatch(removeStudy(studyId))
+			setActiveKey('overview')
+		})()
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [dispatch, setActiveKey, studies])
 
-	const removeStudyButton = <Popconfirm
-		title={`Are you sure you want to remove study ${currentStudyLetter}?`}
-		onConfirm={handleRemoveStudy}
-		disabled={!currentStudyRemovable}
-	>
-		<Button disabled={!currentStudyRemovable}>Remove Study</Button>
-	</Popconfirm>
+	// Clicking the Add Study button navigates the user to the study creation form
+	const addStudyButton = <Button onClick={handleAddStudy}>Add Study</Button>
 
 	return (
 		<>
@@ -112,7 +101,7 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 			{project && (
 				<PageContent loading={false} style={undefined}>
 					{ project && 
-						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={<Space>{addStudyButton}{removeStudyButton}</Space>}>
+						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={addStudyButton}>
 							<TabPane tab="Overview" key="overview" style={tabStyle}>
 								<ProjectOverview project={project} />
 							</TabPane>
@@ -122,7 +111,7 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 							{studies.map(study => {
 								return (
 									<TabPane tab={`Study ${study.letter}`} key={createStudyTabKey(study.id)} style={tabStyle}>
-										<StudyDetails studyId={study.id}/>
+										<StudyDetails studyId={study.id} handleRemoveStudy={handleRemoveStudy}/>
 									</TabPane>
 								)
 							})}
