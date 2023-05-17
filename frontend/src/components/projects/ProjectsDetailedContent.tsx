@@ -27,7 +27,8 @@ const ProjectsDetailedContentRoute = () => {
 	const studiesByID = useAppSelector(selectStudiesByID)
 
 	const [project, setProject] = useState<Project>()
-	const studies = project ? getAllItems(studiesByID)
+	const studies = project
+		? getAllItems(studiesByID)
 			.filter(study => study.project_id === project.id)
 			.sort((a, b) => {
 				if (a.letter > b.letter) return 1
