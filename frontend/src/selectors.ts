@@ -1,4 +1,5 @@
 import { Coordinate, Index, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Sequence, Study, Taxon, User, Workflow } from "./models/frontend_models"
+import { IndividualsDetailsById } from "./modules/individualDetails/reducers"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { LabworkStepsState } from "./modules/labworkSteps/models"
 import { StudySamplesByID, StudySettingsByID } from "./modules/studySamples/models"
@@ -28,7 +29,7 @@ export const selectContainerKindsByID = (state: RootState) => state.containerKin
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
-export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
+export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID 
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
@@ -47,6 +48,7 @@ export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.ite
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
 export const selectSequencesByID = (state: RootState) => state.sequences.itemsByID as ItemsByID<Sequence>
+export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails.itemsByID as IndividualsDetailsById
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID

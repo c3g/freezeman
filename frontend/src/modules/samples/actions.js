@@ -84,14 +84,6 @@ export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {},
     ));
 };
 
-export const listByIndividual = (individualId) => async (dispatch, getState) => {
-    return dispatch(
-        networkAction(
-            LIST,
-            api.samples.list({ derived_samples__biosample__individual__id__in: individualId, limit: 100000})
-        )
-    );
-}
 
 export const setSortBy = thenList((key, order) => {
     return {

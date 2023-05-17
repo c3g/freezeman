@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react"
 import { listByIndividual } from "../../modules/samples/actions";
+import { useAppDispatch } from "../../hooks";
 const IndividualAssociatedSamples = () => {
-    const [samplesData, setSamplesState] = useState([]);
+    const [samplesData, setSamplesState] = useState<any>([]);
+    
+
     useEffect(() => {
-        const samples = listByIndividual(1);
-        setSamplesState(samples)
     }, [])
     return <>
-        {
+        {/* {
             samplesData.forEach()
-        }
+        } */}
     </>
 }
 

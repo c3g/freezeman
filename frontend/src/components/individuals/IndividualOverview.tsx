@@ -4,12 +4,13 @@ import { withIndividual, withReferenceGenome, withTaxon } from '../../utils/with
 import { Link } from 'react-router-dom'
 import TrackingFieldsContent from '../TrackingFieldsContent'
 import { useAppSelector } from '../../hooks'
-import { selectReferenceGenomesByID, selectTaxonsByID } from '../../selectors'
+import { selectIndividualsByID, selectReferenceGenomesByID, selectTaxonsByID } from '../../selectors'
 
 
 
-const IndividualOverview = ({ individual, individualsByID }) => {
+const IndividualOverview = ({ individual }) => {
     const taxonsByID = useAppSelector(selectTaxonsByID)
+    const individualsByID = useAppSelector(selectIndividualsByID)
     const referenceGenomesByID = useAppSelector(selectReferenceGenomesByID)
     return (
         <>
