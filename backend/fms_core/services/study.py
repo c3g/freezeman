@@ -11,7 +11,7 @@ def new_letter(project):
 
     FIRST_LETTER = 'A'
     occupied_letters = sorted(Study.objects.filter(project=project).values_list('letter', flat=True))
-    new_letter = skip_char(max(occupied_letters), 1) if len(occupied_letters) > 0 else FIRST_LETTER
+    new_letter = skip_char(occupied_letters[-1], 1) if occupied_letters else FIRST_LETTER
     
     # Find earlier missing letter
     for c in range(len(occupied_letters)):
@@ -100,18 +100,17 @@ def get_study(project_obj: Project, study_letter: str):
 
     return study, errors, warnings
 
-def can_remove_study(study: int) -> Tuple[bool, Dict[str, List[str]], Dict[str, List[str]]]:
-    warnings = {}
-    errors = defaultdict(list)
-    is_removable = True
+def can_remove_study(study_id: int) -> Tuple[bool, List[str], List[str]]:
+    errors = []
+    warnings = []
 
-    if StepHistory.objects.filter(study=study).exists():
-        errors['StepHistory'].append("At least one StepHistory is associated with the Study")
-    if SampleNextStep.objects.filter(studies__id=study).exists():
-        errors['SampleNextStep'].append("At least one SampleNextStep is associated with the Study")
-    if SampleNextStepByStudy.objects.filter(study=study).exists():
-        errors['SampleNextStepByStudy'].append("At least one SampleNextStepByStudy is associated with the Study")
+    if StepHistory.objects.filter(study__id=study_id).exists():
+        errors.append("At least one StepHistory is associated with the Study")
+    if SampleNextStep.objects.filter(studies__id=study_id).exists():
+        errors.append("At least one SampleNextStep is associated with the Study")
+    if SampleNextStepByStudy.objects.filter(study__id=study_id).exists():
+        errors.append("At least one SampleNextStepByStudy is associated with the Study")
     
-    is_removable = not any(bool(error) for error in errors.values())
+    is_removable = len(errors) == 0
 
     return is_removable, errors, warnings

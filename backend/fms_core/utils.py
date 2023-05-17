@@ -7,7 +7,7 @@ from django.conf import settings
 import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, Generator, Iterable, List, TypeVar, Union
+from typing import Any, Generator, Iterable, List, Union
 
 
 __all__ = [
@@ -32,10 +32,6 @@ RE_WHITESPACE = re.compile(r"\s+")
 
 
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
-
-T = TypeVar("T") # generic variable type
-K = TypeVar("K") # generic variable type for key
-V = TypeVar("V") # generic variable type for value
 
 def unique(sequence):
     seen = set()
@@ -187,16 +183,3 @@ def make_timestamped_filename(file_name: str) -> str:
     os.environ["TZ"] = settings.LOCAL_TZ
     time.tzset()
     return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
-
-def merge_dicts_of_list(*dicts: Dict[K, List[T]]) -> Dict[K, List[T]]:
-    keys = set()
-    for d in dicts:
-        keys.update(d.keys())
-    
-    result: Dict[K, List[T]] = {}
-    for key in keys:
-        result[key] = []
-        for d in dicts:
-            result[key].extend(d[key] if key in d else [])
-    
-    return result

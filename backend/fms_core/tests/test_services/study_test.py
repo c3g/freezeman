@@ -103,23 +103,25 @@ class StudyServicesTestCase(TestCase):
         # no dependencies
         is_removable, errors, warnings = can_remove_study(study.pk)
         self.assertEqual(True, is_removable)
-        self.assertDictEqual(dict(), errors)
-        self.assertDictEqual(dict(), warnings)
+        self.assertListEqual([], errors)
+        self.assertListEqual([], warnings)
 
         # SampleNextStep and SampleNextStepByStudy
         self.setup_samplenextsetup()
         queue_sample_to_study_workflow(self.sample_BLOOD, self.study)
         is_removable, errors, warnings = can_remove_study(study.pk)
         self.assertEqual(False, is_removable)
-        self.assertIn('SampleNextStep', errors)
-        self.assertIn('SampleNextStepByStudy', errors)
+        self.assertListEqual([
+            'At least one SampleNextStep is associated with the Study',
+            'At least one SampleNextStepByStudy is associated with the Study'
+        ], errors)
         dequeue_sample_from_specific_step_study_workflow(self.sample_BLOOD, self.study, 1)
         
         # no dependencies
         is_removable, errors, warnings = can_remove_study(study.pk)
         self.assertEqual(True, is_removable)
-        self.assertDictEqual(dict(), errors)
-        self.assertDictEqual(dict(), warnings)
+        self.assertListEqual([], errors)
+        self.assertListEqual([], warnings)
 
         # StepHistory
         self.setup_stephistory()
@@ -128,9 +130,7 @@ class StudyServicesTestCase(TestCase):
             process_measurement=self.process_measurement)
         is_removable, errors, warnings = can_remove_study(study.pk)
         self.assertEqual(False, is_removable)
-        self.assertIn('StepHistory', errors)
-        self.assertNotIn('SampleNextStep', errors)
-        self.assertNotIn('SampleNextStepByStudy', errors)
+        self.assertListEqual(['At least one StepHistory is associated with the Study'], errors)
 
     def test_new_letter(self):
         studyA, *_ = get_study(self.project, self.letter_valid)

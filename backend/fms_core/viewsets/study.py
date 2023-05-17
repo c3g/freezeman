@@ -1,11 +1,10 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from fms_core.models import Study, Project, Workflow, StepHistory, SampleNextStep, SampleNextStepByStudy
 from fms_core.serializers import StudySerializer
 from fms_core.services.study import create_study, can_remove_study
-from fms_core.utils import merge_dicts_of_list
 
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -66,11 +65,10 @@ class StudyViewSet(viewsets.ModelViewSet):
         if pk is None:
             errors['Study'].append("pk cannot be None")
         else:
-            _, newerrors, _ = can_remove_study(pk)
-            errors = merge_dicts_of_list(newerrors, errors)
+            _, errors['Removable'], _ = can_remove_study(pk)
 
         if any(bool(error) for error in errors.values()):
             raise ValidationError(errors)
         else:
             Study.objects.filter(pk=pk).delete()
-            return HttpResponse('')
+            return HttpResponse('Successfully removed the study', status=status.HTTP_200_OK)
