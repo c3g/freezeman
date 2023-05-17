@@ -1,5 +1,5 @@
-import { Button, Tabs } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Button, Popconfirm, Space, Tabs } from 'antd'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
@@ -26,7 +26,14 @@ const ProjectsDetailedContentRoute = () => {
 	const studiesByID = useAppSelector(selectStudiesByID)
 
 	const [project, setProject] = useState<Project>()
-	const studies = project ? getAllItems(studiesByID).filter(study => study.project_id === project.id) : []
+	const studies = project ? getAllItems(studiesByID)
+								.filter(study => study.project_id === project.id)
+								.sort((a, b) => {
+									if (a.letter > b.letter) return 1
+									else if (a.letter < b.letter) return -1
+									else return 0
+								})
+							: []
 
 	useEffect(() => {
 		if (projectID) {
@@ -60,7 +67,10 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 
 	const [activeKey, setActiveKey] = useHashURL('overview')
 
-	const currentStudy = activeKey.startsWith("study") ? Number(activeKey.split("-")[1]) : null
+	const studyTabKeyToID = useMemo(() => Object.fromEntries(studies.map((study) => [createStudyTabKey(study.id), study.id])), [studies])
+	const currentStudy = studyTabKeyToID[activeKey]
+	const currentStudyLetter = useMemo(() => studies.find((study) => study.id == currentStudy)?.letter, [currentStudy, studies])
+	const currentStudyRemovable = useMemo(() => studies.some((study) => study.id === currentStudy && study.removable), [currentStudy, studies])
 
 	const tabsStyle = {
 		marginTop: 8,
@@ -88,16 +98,21 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 	// Clicking the Add Study button navigates the user to the study creation form
 	const addStudyButton = <Button onClick={handleAddStudy} >Add Study</Button>
 
-	const removeStudyButton = <Button onClick={handleRemoveStudy} disabled={!studies.some((study) => study.id === currentStudy && study.removable)}>Remove Study</Button>
+	const removeStudyButton = <Popconfirm
+		title={`Are you sure you want to remove study ${currentStudyLetter}?`}
+		onConfirm={handleRemoveStudy}
+		disabled={!currentStudyRemovable}
+	>
+		<Button disabled={!currentStudyRemovable}>Remove Study</Button>
+	</Popconfirm>
 
 	return (
 		<>
 			<AppPageHeader title={title} extra={<EditButton url={`/projects/${`${project.id}`}/update`} />} />
-
 			{project && (
 				<PageContent loading={false} style={undefined}>
 					{ project && 
-						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={<>{addStudyButton}{removeStudyButton}</>}>
+						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={<Space>{addStudyButton}{removeStudyButton}</Space>}>
 							<TabPane tab="Overview" key="overview" style={tabStyle}>
 								<ProjectOverview project={project} />
 							</TabPane>

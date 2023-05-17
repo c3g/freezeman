@@ -1,3 +1,4 @@
+import { FMSId } from '../../models/fms_api_models'
 import { Project, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { AppDispatch, RootState } from '../../store'
 import { networkAction } from '../../utils/actions'
@@ -55,7 +56,7 @@ export const listProjectStudies = (projectId: number) => {
 	}
 }
 
-export const remove = (id: number) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const remove = (id: FMSId) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	const study = getState().studies.itemsByID[id]
 	if (study && study.isRemoving) return
 	return await dispatch(networkAction(REMOVE, api.studies.remove(id), { meta: { id } } ))
