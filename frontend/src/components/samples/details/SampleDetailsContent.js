@@ -352,7 +352,7 @@ const SampleDetailsContent = ({
           </Descriptions>
         </TabPane>
 
-        <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
+        <TabPane tab={`Lineage`} key="lineage" style={{...tabStyle, minHeight: "100vh", maxheight: "100vh"}}>
           <SampleDetailsLineage sample={sample} 
             handleSampleClick={navigateToSample}
             handleProcessClick={navigateToProcess}
