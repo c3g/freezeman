@@ -379,11 +379,11 @@ class SampleSerializer(serializers.Serializer):
                   'comment')
 
 class SampleExportSerializer(serializers.Serializer):
-    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
+    coordinates = serializers.CharField(read_only=True, source="coordinate.name")
 
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
-                  'container', 'container_kind', 'container_name', 'container_barcode', 'coordinate',
+                  'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
                   'location_barcode', 'location_coord', 'container_full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
@@ -399,10 +399,10 @@ class LibrarySerializer(serializers.Serializer):
 
 
 class LibraryExportSerializer(serializers.Serializer):
-    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
+    coordinates = serializers.CharField(read_only=True, source="coordinate.name")
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
