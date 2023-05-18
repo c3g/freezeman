@@ -1,4 +1,4 @@
-import { Coordinate, Index, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Sequence, Study, Taxon, User, Workflow } from "./models/frontend_models"
+import { Coordinate, Index, Individual, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Sequence, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { IndividualsDetailsById } from "./modules/individualDetails/reducers"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { LabworkStepsState } from "./modules/labworkSteps/models"
@@ -29,7 +29,7 @@ export const selectContainerKindsByID = (state: RootState) => state.containerKin
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
-export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID 
+export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID as ItemsByID<Individual>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>

@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-// import { bindActionCreators } from "redux";
-// import { connect } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Tabs } from 'antd'
 import useHashURL from '../../hooks/useHashURL'
@@ -9,29 +7,35 @@ import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import IndividualOverview from "./IndividualOverview";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectIndividualsByID, selectIndividualsDetailsById } from "../../selectors";
-// import { get } from "../../modules/individuals/actions";
+import { selectIndividualsDetailsById } from "../../selectors";
 import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 import { getIndividualDetails } from "../../modules/individualDetails/actions";
-import { IndividualsDetailsById } from "../../modules/individualDetails/reducers";
-import { get } from "../../modules/individuals/actions";
+import { Individual, IndividualsDetailsById } from "../../modules/individualDetails/reducers";
+import { FetchedState } from "../../modules/common";
 
 const IndividualsDetailContent = () => {
     const { id } = useParams();
     const dispatch = useAppDispatch()
-    const individualsByID = useAppSelector(selectIndividualsByID)
-    const isLoaded = id && individualsByID[id];
-    const individual = id && individualsByID[id] || {};
+    const individualDetailsById: IndividualsDetailsById = useAppSelector(selectIndividualsDetailsById)
+
     const [activeKey, setActiveKey] = useHashURL('overview')
+    const [individual, setIndividual] = useState<FetchedState<Individual>>()
+    // const isLoaded = id && individual;
 
-    if (!isLoaded) {
-        get(Number(id))
+    useEffect(() => {
         dispatch(getIndividualDetails(Number(id)));
-    }
+    }, [id, dispatch])
 
-    const isLoading = !isLoaded || individual.isFetching;
-    const title =
-        `Individual ${[id, individual ? individual.name : undefined].filter(Boolean).join(' - ')}`;
+    useEffect(() => {
+        if (individualDetailsById[Number(id)]) {
+            const individualInstance: FetchedState<Individual> = {
+                ...individualDetailsById[Number(id)]
+            }
+            if (individualInstance) {
+                setIndividual(individualInstance)
+            }
+        }
+    }, [individualDetailsById])
 
     const tabsStyle = {
         marginTop: 8,
@@ -43,26 +47,27 @@ const IndividualsDetailContent = () => {
         height: '100%',
     }
 
-    // useEffect(() => {
-    //     const individualDetails = (useAppSelector(selectIndividualsDetailsById))
-    //     setIndividual(individualDetails[Number(id)])
-    // }, [])
+    // const isLoading = !isLoaded || (individual && individual.isFetching);
+    const title =
+        `Individual ${[id, (individual && individual.data?.individual) ? individual.data.individual.name : undefined].filter(Boolean).join(' - ')}`;
 
     return <>
         <AppPageHeader title={title} extra={
             <EditButton url={`/individuals/${id}/update`} />
         } />
-        <PageContent loading={isLoading}>
+        <PageContent loading={(individual && individual.isFetching)}>
             <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
                 <Tabs.TabPane tab="Overview" key="overview" style={tabPaneStyle}>
-                    <IndividualOverview individual={individual} />
+                    <IndividualOverview individual={individual && individual.data ? individual.data?.individual : {}} />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab="Associated Samples" key="samples" style={tabPaneStyle}>
-                    <IndividualAssociatedSamples />
+                    <IndividualAssociatedSamples samples={individual && individual.data ? individual.data.samplesByIndividual.items : {}} />
                 </Tabs.TabPane>
             </Tabs>
         </PageContent>
     </>;
+
+
 };
 
 export default IndividualsDetailContent;

@@ -4,21 +4,31 @@ import { AnyAction } from "redux";
 import { FetchedState } from "../common";
 import { FMSIndividual, FMSSample } from "../../models/fms_api_models";
 import produce from "immer";
+import { PagedItems } from "../../models/paged_items";
 
 export const GET_INDIVIDUAL_DETAILS = createNetworkActionTypes('INDIVIDUAL_DETAILS.GET_INDIVIDUAL_DETAILS')
 
-interface Individual {
+export interface Individual {
     individual: FMSIndividual,
-    samplesByIndividual: FMSSample[]
+    samplesByIndividual: PagedItems<FMSSample>
 }
 export interface IndividualsDetailsById {
     [key: number]: Readonly<FetchedState<Individual>>
 }
-interface IndividualDetailsState {
-    itemsByID: IndividualsDetailsById
+export interface IndividualDetailsState {
+    individualsDetailsById: IndividualsDetailsById
 }
 const INITIAL_STATE: IndividualDetailsState = {
-    itemsByID: {}
+    individualsDetailsById: {}
+}
+const INITIAL_PAGED_ITEMS = {
+    itemsByID: {},
+    items: [],
+    page: { offset: 0 },
+    totalCount: 0,
+    isFetching: false,
+    filters: {},
+    sortBy: { key: undefined, order: undefined },
 }
 
 export const individualDetails = (inputState: IndividualDetailsState = INITIAL_STATE, action: AnyAction) => {
@@ -32,11 +42,11 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
         case GET_INDIVIDUAL_DETAILS.REQUEST:
             {
                 const { individualID } = action.meta
-                if (state.itemsByID[individualID]) {
-                    state.itemsByID[individualID].isFetching = true
+                if (state.individualsDetailsById[individualID]) {
+                    state.individualsDetailsById[individualID].isFetching = true
                 } else {
                     // Study state gets created on first REQUEST call
-                    state.itemsByID[individualID] = {
+                    state.individualsDetailsById[individualID] = {
                         isFetching: true,
                     }
                 }
@@ -45,13 +55,10 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
         case GET_INDIVIDUAL_DETAILS.RECEIVE:
             {
                 const { individualID, individual, individualSamples } = action.meta
-                if (state.itemsByID[individualID]) {
-                    state.itemsByID[individualID].isFetching = false
-                    state.itemsByID[individualID].data = { ...individual, individualSamples: { ...individualSamples.results } }
+                if (state.individualsDetailsById[individualID]) {
+                    state.individualsDetailsById[individualID].isFetching = false
+                    state.individualsDetailsById[individualID].data = { individual: { ...individual }, samplesByIndividual: { ...INITIAL_PAGED_ITEMS, items: individualSamples.results } }
                 }
-                // const results = individualSamples.results
-                // const itemsByID = merge(state.IndividualsDetailsById[individualID].data?.samplesByIndividual, [], indexByID(results))
-                // return { ...state, itemsByID, isFetching: false, error: undefined }
                 break;
             }
         case GET_INDIVIDUAL_DETAILS.ERROR:
@@ -59,7 +66,7 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
                 const { individualID } = action.meta
                 const { error } = action
 
-                const studySamples = state.itemsByID[individualID]
+                const studySamples = state.individualsDetailsById[individualID]
                 if (studySamples) {
                     studySamples.isFetching = false
                     studySamples.error = error
