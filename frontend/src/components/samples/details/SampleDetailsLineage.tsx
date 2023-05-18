@@ -14,7 +14,7 @@ import { ProcessMeasurement, Sample } from "../../../models/frontend_models";
 import { FMSId } from "../../../models/fms_api_models";
 
 interface SampleDetailsLineageProps {
-  sample?: Sample
+  sample: Partial<Sample>
   handleSampleClick?: (id: FMSId) => void
   handleProcessClick?: (id: FMSId) => void
 }
@@ -86,7 +86,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
   const [nodesToEdges, setNodesToEdges] = useState<{ [key: string]: SampleLineageGraphProcessMeasurement }> ({})
   
   useEffect(() => {
-    if (!sample) {
+    if (sample.id === undefined) {
       return;
     }
     (async () => {
@@ -164,9 +164,9 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
     const { nodes, links } = graphData
     let dx = 0
     let dy = 0
-    if (nodes.length > 0 && sample?.id) {
+    if (nodes.length > 0 && sample.id !== undefined) {
       // Find the node that matches the current sample.
-      const currentNode = nodes.find((n) => n.id === sample.id.toString())
+      const currentNode = nodes.find((n) => n.id === sample.id?.toString())
       if (currentNode) {
         const enclosedWidth = Math.max(...nodes.map((n) => n.x))
         const { x: cx, y: cy } = currentNode
