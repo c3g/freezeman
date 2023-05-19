@@ -78,7 +78,6 @@ function PaginatedTable ({
 
   const onChangeSizeChange = (newPageSize) => {
     dispatch(setPageSize(newPageSize));
-    onLoad({filters, sortBy, filterKey});
   };
 
   return (
