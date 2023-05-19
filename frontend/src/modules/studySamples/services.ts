@@ -203,7 +203,7 @@ export async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId
 		options = {ordering, ...serializedFilters}
 	}
 
-	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, options))
+	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, {...options, limit: 100000}))
 		.then(response => {
 			if (response.data?.results) {
 				return {
