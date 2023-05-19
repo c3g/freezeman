@@ -44,6 +44,8 @@ const JumpBar = (props) => {
   const history = useNavigate();
   const selectRef = useRef();
 
+  const illegalPatterns = ["'", '"', '`']
+
   const search = useMemo(() => debounce(150, query => {
     setValue(null)
     setIsFetching(true)
@@ -75,10 +77,18 @@ const JumpBar = (props) => {
 
   const onSearch = value => {
     setValue(value)
-    if (value)
-      search(value);
-    else
-      clear();
+    
+    if (value) {
+      if (illegalPatterns.some((s) => value.includes(s))) {
+        setError(`Search cannot contain the following symbols: ${illegalPatterns.join(" ")}`)
+        clear()
+      } else {
+        setError(undefined)
+        search(value)
+      }
+    } else {
+      clear()
+    }
   }
 
   useEffect(() => {
