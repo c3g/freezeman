@@ -46,7 +46,7 @@ export async function loadStudySamples(studyID: FMSId) {
 	
 	// Get samples that have completed the process at a step
 	let completedSamplesByStudy : FMSStepHistory[] | undefined
-	const sampleHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID))
+	const sampleHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID, {limit: 100000}))
 	if (sampleHistoryResponse.data.results) {
 		completedSamplesByStudy = sampleHistoryResponse.data.results as FMSStepHistory[]
 	} else {
