@@ -34,7 +34,7 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { fetchInitialData, fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
+import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
@@ -42,7 +42,7 @@ import LabworkPage from "./labwork/LabworkPage";
 import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
 import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
 import TaxonsRoute from "./taxons/TaxonsRoute";
- 
+
 
 const { Title } = Typography;
 
@@ -64,7 +64,7 @@ const getMenuItems = (user, logOut) => [
     icon: <LogoutOutlined />,
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
-    style: {marginBottom: '50px'}
+    style: { marginBottom: '50px' }
   },
 ]
 
@@ -120,29 +120,29 @@ const MENU_ITEMS = [
     text: "Datasets",
   },
   {
-    icon: <SettingOutlined/>,
+    icon: <SettingOutlined />,
     text: "Definitions",
     key: "definitions",
     children: [
       {
         url: "/indices",
         icon: <BarcodeOutlined />,
-        text: "Indices", 
+        text: "Indices",
       },
       {
         url: "/taxons",
         icon: <BarcodeOutlined />,
-        text: "Taxons", 
+        text: "Taxons",
       },
       {
         url: "/genomes",
         icon: <BarcodeOutlined />,
-        text: "Reference Genomes", 
+        text: "Reference Genomes",
       },
       {
         url: "/workflows",
         icon: <BarcodeOutlined />,
-        text: "Workflows", 
+        text: "Workflows",
       }
     ]
   },
@@ -152,6 +152,8 @@ const MENU_ITEMS = [
     text: "Users",
   },
 ]
+
+const DEV_QC_BACKGROUND = "repeating-linear-gradient(45deg, #423d01, #423d01 10px, #000000 10px, #000000 20px)";
 
 const colorStyle = {
   color: "white",
@@ -171,16 +173,17 @@ export const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {logOut, get};
+export const actionCreators = { logOut, get };
 
 const App = ({userID, usersByID, logOut, get}) => {
+  /* global FMS_ENV */
+  const env = FMS_ENV
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
   const token = useAppSelector(selectAuthTokenAccess)
+
   useEffect(() => {
-
-
     async function loadInitialData() {
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
@@ -196,13 +199,16 @@ const App = ({userID, usersByID, logOut, get}) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, [dispatch, token]);
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
 
-  if (!user && isLoggedIn)
-    get(userID);
+  useEffect(() => {
+    if (!user && isLoggedIn) {
+      get(userID)
+    }
+  }, [user, userID, usersByID, get, isLoggedIn])
 
   const menuItems = getMenuItems(user, logOut);
 
@@ -211,10 +217,10 @@ const App = ({userID, usersByID, logOut, get}) => {
   // Logout the user after 12 hours in all cases where the tab stays open
   useUserInputExpiration(logOut, 12 * hour);
 
-  const loadingIcon = <SyncOutlined style={{fontSize: '22px', color: 'white'}} spin/>
+  const loadingIcon = <SyncOutlined style={{ fontSize: '22px', color: 'white' }} spin />
 
   return (
-    <Layout style={{height: "100vh"}}>
+    <Layout style={{ height: "100vh" }}>
       <Layout>
         {isLoggedIn &&
           <Layout.Sider
@@ -223,51 +229,57 @@ const App = ({userID, usersByID, logOut, get}) => {
             className="App__sidebar"
             breakpoint="md"
             collapsedWidth={80}
-            width={224}
-            style={{overflow: 'auto'}}
+            // Ant requires a width, so pick one relative to the sidebar font-size. You can use 'auto' but then
+            // the sidebar width changes whenever a submenu is expanded or collapsed.
+            width={'17em'}
+            style={{ overflow: 'auto' }}
           >
-            <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
-              <Title style={titleStyle} className="App__title">
-                <div>
-                  <b>F</b><span>reeze</span><b>M</b><span>an</span>
-                </div>
-              </Title>
-              { // Display a spinner while the initial data is being fetched at startup 
-                !isInitialized &&
-                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                    <Spin size="small" indicator={loadingIcon}/>
+            <div style={{background: env !== 'PROD' ? DEV_QC_BACKGROUND : undefined, padding: 0, margin: 0}}>
+              <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
+                <Title style={titleStyle} className="App__title">
+                  <div style={{marginRight: '0.25rem', paddingRight: '0.25rem'}}>
+                    <b>F</b><span>reeze</span><b>M</b><span>an</span>
+                    {env !== 'PROD' && <span style={{ color: 'red', fontSize: '14px' }}>&nbsp;{env}</span>}
                   </div>
-              }
+                </Title>
+                { // Display a spinner while the initial data is being fetched at startup 
+                  !isInitialized &&
+                    <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className="App__spin">
+                      <Spin size="small" indicator={loadingIcon}/>
+                    </div>
+                }
+              </div>
             </div>
             {isLoggedIn &&
-                <div className='App__jumpBar'>
-                  <JumpBar />
-                </div>
-              }
-              
+              <div className='App__jumpBar'>
+                <JumpBar />
+              </div>
+            }
+
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={matchingMenuKeys(MENU_ITEMS)}
+              style={{ flex: 1 }}
+              defaultOpenKeys={['definitions']} // Submenus should be open by default
+            >
+              {MENU_ITEMS.map(renderMenuItem)}
+            </Menu>
+            {isLoggedIn &&
               <Menu
                 theme="dark"
                 mode="inline"
                 selectedKeys={matchingMenuKeys(MENU_ITEMS)}
-                style={{flex: 1}}
-                defaultOpenKeys={['definitions']} // Submenus should be open by default
+                style={{ flex: 1 }}
               >
-                  {MENU_ITEMS.map(renderMenuItem)}
+                {menuItems.map(renderMenuItem)}
               </Menu>
-              {isLoggedIn &&
-                <Menu
-                  theme="dark"
-                  mode="inline"
-                  selectedKeys={matchingMenuKeys(menuItems)}
-                >
-                  {menuItems.map(renderMenuItem)}
-                </Menu>
-              }
+            }
           </Layout.Sider>
         }
-        <Layout.Content style={{position: "relative"}}>
+        <Layout.Content style={{ position: "relative" }}>
           <Routes>
-            <Route path="/login/*" element={<LoginPage/>}/>
+            <Route path="/login/*" element={<LoginPage />} />
             <Route path="/dashboard/*" element={
               <PrivateNavigate>
                 <DashboardPage />
@@ -337,28 +349,28 @@ const App = ({userID, usersByID, logOut, get}) => {
               <PrivateNavigate>
                 <About />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/datasets/*" element={
               <PrivateNavigate>
-                <DatasetsPage/>
+                <DatasetsPage />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/workflows/*" element={
               <PrivateNavigate>
-                <WorkflowDefinitionsRoute/>
+                <WorkflowDefinitionsRoute />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/taxons/*" element={
               <PrivateNavigate>
-                <TaxonsRoute/>
+                <TaxonsRoute />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/genomes/*" element={
               <PrivateNavigate>
-                <ReferenceGenomesRoute/>
+                <ReferenceGenomesRoute />
               </PrivateNavigate>
-            }/>
-            <Route path="*" element={<Navigate to="/dashboard" replace />}/>
+            } />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout.Content>
       </Layout>
@@ -379,6 +391,7 @@ function onDidMount() {
 }
 
 function withRouter(Child) {
+  // eslint-disable-next-line react/display-name
   return (props) => {
     const location = useLocation();
     const navigate = useNavigate();

@@ -15,7 +15,6 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import {withContainer} from "../../utils/withItem";
 import {ActionDropdown} from "../../utils/templateActions";
 import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard"
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";

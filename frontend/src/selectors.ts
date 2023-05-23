@@ -1,8 +1,30 @@
-import { Coordinate, Dataset, DatasetFile, ExperimentRun, Index, Instrument, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, RunType, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
-import { LabworkSummaryState } from "./modules/labwork/reducers"
-import { LabworkStepsState } from "./modules/labworkSteps/models"
-import { StudySamplesByID, StudySettingsByID } from "./modules/studySamples/models"
-import { RootState } from "./store"
+import {
+	Coordinate,
+	Dataset,
+	DatasetFile,
+	ExperimentRun,
+	Index,
+	Instrument,
+	ItemsByID,
+	Library,
+	Process,
+	ProcessMeasurement,
+	Project,
+	PropertyValue,
+	Protocol,
+	ReferenceGenome,
+	RunType,
+	Sample,
+	SampleKind,
+	Study,
+	Taxon,
+	User,
+	Workflow,
+} from './models/frontend_models'
+import { LabworkSummaryState } from './modules/labwork/reducers'
+import { LabworkStepsState } from './modules/labworkSteps/models'
+import { StudySamplesByID, StudySettingsByID } from './modules/studySamples/models'
+import { RootState } from './store'
 
 /*
     Selector functions for use with the useSelector() hook from react-redux,
@@ -56,6 +78,7 @@ export const selectSampleKindsState = (state: RootState) => state.sampleKinds
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
+export const selectSequencesByID = (state: RootState) => state.sequences.itemsByID as ItemsByID<Sequence>
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID
