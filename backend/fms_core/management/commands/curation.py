@@ -13,6 +13,8 @@ from django.contrib.auth.models import User
 # Import the functions of the various curations available.
 from ._update_field_value import update_field_value
 from ._delete_individual import delete_individual
+from ._delete_container import delete_container
+from ._delete_sample import delete_sample
 from ._create_entity import create_entity
 
 # This curation module can be called using manage.py :
@@ -24,6 +26,8 @@ from ._create_entity import create_entity
 # Available actions
 ACTION_UPDATE_FIELD_VALUE = "update_field_value"
 ACTION_DELETE_INDIVIDUAL = "delete_individual"
+ACTION_DELETE_CONTAINER = "delete_container"
+ACTION_DELETE_SAMPLE = "delete_sample"
 ACTION_CREATE_ENTITY = "create_entity"
 
 # Curation params template
@@ -44,6 +48,8 @@ class Command(BaseCommand):
     curation_switch = {
         ACTION_UPDATE_FIELD_VALUE: update_field_value,
         ACTION_DELETE_INDIVIDUAL: delete_individual,
+        ACTION_DELETE_CONTAINER: delete_container,
+        ACTION_DELETE_SAMPLE: delete_sample,
         ACTION_CREATE_ENTITY: create_entity,
     }
 
@@ -90,34 +96,35 @@ class Command(BaseCommand):
             error_found = False
             try:
                 with transaction.atomic():
-                    objects_to_delete = []
-                    # Create a curation revision to eventually rollback the current curation
-                    with reversion.create_revision():
-                        # Launch each individual curation
-                        for curation in params:
+                    # Launch each individual curation
+                    for curation in params:
+                        objects_to_delete = []
+                        # Create a curation revision to eventually rollback the current curation
+                        with reversion.create_revision():
                             self.stdout.write(self.style.SUCCESS('Launching action [' + str(curation["curation_index"]) + '] "%s"' % curation["action"]) + '.')
                             action = self.curation_switch.get(curation["action"])
                             if action:
                                 curation_failed = action(curation, objects_to_delete, log)
-                                if curation_failed:
+                                if curation_failed is not None:
                                     self.stdout.write(self.style.ERROR("Action [" + str(curation_failed) + "] failed."))
                                     error_found = True
                                 else:
                                     self.stdout.write(self.style.SUCCESS("Action complete."))
                             else:
                                 self.stdout.write(self.style.ERROR("Curation [" + str(curation["action"]) + "] do not exist."))
-                        reversion.set_user(User.objects.get(username=REVERSION_ADMIN_USER))  # set admin user as creator for revision
-                        reversion.set_comment("Manual curation performed by Administrators.")
-                    if error_found:
-                        raise IntegrityError
-                    else:
-                        # Operate the deletions here instead of inside the revision scope so objects get a version even when deleted
-                        with reversion.create_revision(manage_manually=True):  # Shadowing the revision blocks for deletes to prevent them
-                            for object in objects_to_delete:
-                                log.info(f"Completing deletion of object {object.__class__.__name__} id [{object.id}].")
-                                object.delete()
-                        self.stdout.write(self.style.SUCCESS("Completed curation."))
+                            reversion.set_user(User.objects.get(username=REVERSION_ADMIN_USER))  # set admin user as creator for revision
+                            reversion.set_comment("Manual curation performed by Administrators.")
+                        if error_found:
+                            raise IntegrityError
+                        else:
+                            # Operate the deletions here instead of inside the revision scope so objects get a version even when deleted
+                            with reversion.create_revision(manage_manually=True):  # Shadowing the revision blocks for deletes to prevent them
+                                for object in objects_to_delete:
+                                    log.info(f"Completing deletion of object {object.__class__.__name__} id [{object.id}].")
+                                    object.delete()
+                    self.stdout.write(self.style.SUCCESS("Completed curation."))
             except IntegrityError:
                 log.info("Curation operation transaction rolled back.")
+                self.stdout.write(self.style.ERROR("Curation interrupted. Transaction rolled back."))
 
 
