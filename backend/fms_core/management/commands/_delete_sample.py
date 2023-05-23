@@ -41,8 +41,8 @@ def list_references_to(sample):
 
 # Helper function that flags an entity for deletion and append the itself to the deletion list.
 def set_entity_for_deletion(entity, requester_id, deletion_list, log):
-    log.info(f"Flagging {entity.__class__.__name__} id [{entity.id} for deletion]")
-    entity.delete = True
+    log.info(f"Flagging {entity.__class__.__name__} id [{entity.id}] for deletion")
+    entity.deleted = True
     entity.save(requester_id=requester_id) # save using the id of the requester (using the default admin user if None)
     deletion_list.append(entity) # Delay deletion until after the revision block so the object get a version
 
@@ -70,7 +70,7 @@ def delete_sample(params, objects_to_delete, log):
                     log.error(f"Sample [{str(identifier)}] is still referenced. {links}")
                     error_found = True
                 else:
-                    log.info(f"Deleted [Sample] name [{sample.name}] id [{sample.id}]].")
+                    log.info(f"Deleting [Sample] name [{sample.name}] id [{sample.id}].")
                     # start flagging for deletion object starting by leaves.
                     sample_next_steps = sample.sample_next_steps.all()
                     for sample_next_step in sample_next_steps:
@@ -87,11 +87,11 @@ def delete_sample(params, objects_to_delete, log):
                         metadata = biosample.metadata.all()
                         for metadatum in metadata:
                             set_entity_for_deletion(metadatum, user_id, objects_to_delete, log)                 # sample_metadata
-                        set_entity_for_deletion(biosample, user_id, objects_to_delete, log)                     # biosample
                         derived_by_samples = derived_sample.derived_by_samples.all()
                         for derived_by_sample in derived_by_samples:
                             set_entity_for_deletion(derived_by_sample, user_id, objects_to_delete, log)         # derived_by_sample
                         set_entity_for_deletion(derived_sample, user_id, objects_to_delete, log)                # derived_sample
+                        set_entity_for_deletion(biosample, user_id, objects_to_delete, log)                     # biosample
                     set_entity_for_deletion(sample, user_id, objects_to_delete, log)                            # sample
                     count_deleted += 1
             except sample_model.DoesNotExist:
