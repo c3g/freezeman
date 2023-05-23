@@ -11,7 +11,7 @@ import { nullize } from '../../../utils/nullize'
 
 import { FILTER_TYPE } from '../../../constants'
 import { TableColumnType } from 'antd'
-import { FilterDescription, FilterValidationFunc, FilterSetting, isRangeFilterValue, SetFilterFunc, SetFilterOptionFunc } from '../../../models/paged_items'
+import { FilterDescription, FilterValidationFunc, FilterSetting, isRangeFilterValue, SetFilterFunc, SetFilterOptionFunc, FilterDescriptionSet, FilterSet } from '../../../models/paged_items'
 
 
 
@@ -23,7 +23,37 @@ interface FreezemanColumnType<T> extends TableColumnType<T> {
 	}[]
 }
 
-// TODO - PORT EXISTING JS VERSION OF getFilterProps TO USE THIS VERSION
+/**
+ * Get the filter props for a column, given the column definition and a set of filter descriptions.
+ * This function matches the column's dataIndex property to a key in the filter description set, and if 
+ * found, returns the filter props for the column.
+ * 
+ * This is intended for use by the legacy tables, to replace the JS version of `getFilterProps`. New
+ * tables should be using `addFiltersToColumns` to set up filter props on columns.
+ * @param column 
+ * @param descriptions 
+ * @param filters 
+ * @param setFilter 
+ * @param setFilterOption 
+ * @returns 
+ */
+export function getFilterPropsIncludingDescriptions(
+	column: FreezemanColumnType<any>,
+	descriptions: FilterDescriptionSet, 
+	filters: FilterSet,
+	setFilter: SetFilterFunc,
+	setFilterOption: SetFilterOptionFunc) {
+	
+	const key = column.dataIndex
+	if (key && typeof key === 'string') {
+		const description = descriptions[key]
+		if (description) {
+			const filterSetting = filters[key]	// Note: filterSetting is allowed to be undefined here.
+			return getFilterPropsForDescription(column, description, filterSetting, setFilter, setFilterOption)
+		}
+	}	
+	return undefined
+}
 
 /**
  * Get the filter properties for a column, given a corresponding filter description.

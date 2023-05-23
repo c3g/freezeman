@@ -5,15 +5,19 @@ import mergeArray from "../../utils/mergeArray";
 import {map} from "rambda";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 import {createNetworkActionTypes} from "../../utils/actions";
+import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from "../../models/paged_items_reducers";
+import { createFilterActionTypes } from "../../models/filter_set_actions";
 
 
 export const GET                   = createNetworkActionTypes("EXPERIMENT_RUNS.GET");
 export const LIST                  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST");
 export const LIST_TABLE            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TABLE");
 export const SET_SORT_BY           = "EXPERIMENT_RUNS.SET_SORT_BY";
-export const SET_FILTER            = "EXPERIMENT_RUNS.SET_FILTER";
-export const SET_FILTER_OPTION     = "EXPERIMENT_RUNS.SET_FILTER_OPTION"
-export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
+// export const SET_FILTER            = "EXPERIMENT_RUNS.SET_FILTER";
+// export const SET_FILTER_OPTION     = "EXPERIMENT_RUNS.SET_FILTER_OPTION"
+// export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
+export const FILTER_ACTION_TYPES = createFilterActionTypes('EXPERIMENT_RUNS')
+export const { SET_FILTER, SET_FILTER_OPTION, CLEAR_FILTERS} = FILTER_ACTION_TYPES
 export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
 export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
 export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
@@ -145,33 +149,36 @@ export const experimentRuns = (
         case SET_SORT_BY:
             return { ...state, sortBy: action.data, items: [] };
         case SET_FILTER:
-            return {
-                ...state,
-                filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
+            return reduceSetFilter(state, action.description, action.value)
+            // return {
+            //     ...state,
+            //     filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+            //     items: [],
+            //     totalCount: 0,
+            //     page: set(state.page, ['offset'], 0),
+            // };
         case SET_FILTER_OPTION:
-            return {
-                ...state,
-                filters: set(
-                    state.filters,
-                    [action.data.name, 'options', action.data.option],
-                    action.data.value
-                ),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
+            return reduceSetFilterOptions(state, action.description, action.options)
+            // return {
+            //     ...state,
+            //     filters: set(
+            //         state.filters,
+            //         [action.data.name, 'options', action.data.option],
+            //         action.data.value
+            //     ),
+            //     items: [],
+            //     totalCount: 0,
+            //     page: set(state.page, ['offset'], 0),
+            // };
         case CLEAR_FILTERS:
-            return {
-                ...state,
-                filters: {},
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
+            return reduceClearFilters(state)
+            // return {
+            //     ...state,
+            //     filters: {},
+            //     items: [],
+            //     totalCount: 0,
+            //     page: set(state.page, ['offset'], 0),
+            // };
 
         case LIST.REQUEST:
             return { ...state, isFetching: true, };

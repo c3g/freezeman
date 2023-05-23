@@ -1,26 +1,18 @@
+import { Tag } from "antd";
 import React from "react";
-import {connect} from "react-redux";
-import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
+import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 
-import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import ExportButton from "../ExportButton";
 
-import api, {withToken}  from "../../utils/api"
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/experimentRuns/actions";
-import {EXPERIMENT_RUN_FILTERS} from "../filters/descriptions";
-import getFilterProps from "../filters/getFilterProps";
-import getNFilters from "../filters/getNFilters";
-import FiltersWarning from "../filters/FiltersWarning";
-import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import {ActionDropdown} from "../../utils/templateActions";
-import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard"
+import { clearFilters, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/experimentRuns/actions";
+import { EXPERIMENT_RUN_FILTERS } from "../filters/descriptions";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
+import { getFilterPropsIncludingDescriptions } from '../shared/WorkflowSamplesTable/getFilterPropsTS';
+import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard";
 
 
-const getTableColumns = (containersByID, runTypes, instruments, launchesById) => [
+const getTableColumns = (runTypes, instruments, launchesById) => [
   {
     title: "ID",
     dataIndex: "id",
@@ -86,8 +78,6 @@ const getTableColumns = (containersByID, runTypes, instruments, launchesById) =>
 ];
 
 const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  containersByID: state.containers.itemsByID,
   experimentRunsByID: state.experimentRuns.itemsByID,
   experimentRuns: state.experimentRuns.items,
   launchesById: state.experimentRunLaunches.launchesById,
@@ -104,8 +94,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
 const ExperimentRunsListContent = ({
-  token,
-  containersByID,
   experimentRuns,
   experimentRunsByID,
   launchesById,
@@ -116,21 +104,14 @@ const ExperimentRunsListContent = ({
   totalCount,
   filters,
   sortBy,
-  actions,
   listTable,
   setFilter,
   setFilterOption,
-  clearFilters,
   setSortBy,
 }) => {
 
-  const listExport = () =>
-    withToken(token, api.experimentRuns.listExport)
-    (mergedListQueryParams(EXPERIMENT_RUN_FILTERS, filters, sortBy))
-      .then(response => response.data)
-
-  const columns = getTableColumns(containersByID, runTypes, instruments, launchesById)
-  .map(c => Object.assign(c, getFilterProps(
+  const columns = getTableColumns(runTypes, instruments, launchesById)
+  .map(c => Object.assign(c, getFilterPropsIncludingDescriptions(
     c,
     EXPERIMENT_RUN_FILTERS,
     filters,
@@ -138,25 +119,8 @@ const ExperimentRunsListContent = ({
     setFilterOption
   )))
 
-  const nFilters = getNFilters(filters)
-
   return <>
     <>
-      <div className='filters-warning-bar'>
-        <div style={{ flex: 1 }} />
-        <FiltersWarning
-          nFilters={nFilters}
-          filters={filters}
-          description={EXPERIMENT_RUN_FILTERS}
-        />
-        <Button
-          style={{ margin: 6 }}
-          disabled={nFilters === 0}
-          onClick={clearFilters}
-        >
-          Clear Filters
-        </Button>
-      </div>
       <PaginatedTable
         columns={columns}
         items={experimentRuns}

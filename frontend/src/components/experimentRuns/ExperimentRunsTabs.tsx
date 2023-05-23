@@ -1,5 +1,5 @@
 import { Tabs } from 'antd'
-import React, { useState } from 'react'
+import React, { useCallback } from 'react'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import ExperimentRunsListContent from './ExperimentRunsListContent'
@@ -9,9 +9,11 @@ import ExportButton from '../ExportButton'
 import useHashURL from '../../hooks/useHashURL'
 import api, { withToken } from '../../utils/api'
 import mergedListQueryParams from '../../utils/mergedListQueryParams'
-import { useAppSelector } from '../../hooks'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectAuthTokenAccess, selectExperimentRunsState, selectExperimentRunsTemplateActions } from '../../selectors'
 import { EXPERIMENT_RUN_FILTERS } from '../filters/descriptions'
+import FiltersBar from '../filters/FiltersBar'
+import { clearFilters } from '../../modules/experimentRuns/actions'
 
 const { TabPane } = Tabs
 
@@ -20,10 +22,12 @@ function ExperimentRunsTabs() {
 	const FREEZEMAN_TAB_KEY = 'freezeman'
 	const EXTERNAL_TAB_KEY = 'external'
 
+	const dispatch = useAppDispatch()
 	const [activeKey, setActiveKey] = useHashURL(FREEZEMAN_TAB_KEY)
 	const token = useAppSelector(selectAuthTokenAccess)
 	const experimentRunsState = useAppSelector(selectExperimentRunsState)
 	const actions = useAppSelector(selectExperimentRunsTemplateActions)
+
 
 	function getPageHeaderExtra() {
 		if (activeKey === FREEZEMAN_TAB_KEY) {
@@ -41,13 +45,25 @@ function ExperimentRunsTabs() {
 		} else {
 			return []
 		}
-	} 
+	}
+
+	const handleClearFilters = useCallback(() => {
+		dispatch(clearFilters())
+	}, [dispatch])
+
+	function getTabBarExtraContent() {
+		if (activeKey === FREEZEMAN_TAB_KEY) {
+			return <FiltersBar filters={experimentRunsState.filters} clearFilters={handleClearFilters}></FiltersBar>
+		} else {
+			return null
+		}
+	}
 	
 	return (<>
 			
 		<AppPageHeader title='Experiment Runs'  extra={getPageHeaderExtra()}></AppPageHeader>
 		<PageContent>
-			<Tabs onChange={setActiveKey}>
+			<Tabs onChange={setActiveKey} tabBarExtraContent={getTabBarExtraContent()}>
 				<TabPane tab='Freezeman' key={FREEZEMAN_TAB_KEY}>
 					<ExperimentRunsListContent/>
 				</TabPane>
