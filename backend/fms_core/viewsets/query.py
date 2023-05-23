@@ -52,16 +52,12 @@ class QueryViewSet(viewsets.ViewSet):
         def query_and_score(model, fields):
             scores = list(map(lambda f: FZY(F(f), query), fields))
             scores = scores[0] if len(scores) == 1 else Greatest(*scores)
-            return [{
-                "type": model,
-                "item": s
-            } for s in model.objects
-                .annotate(
-                    score=scores
-                )
-                .filter(score__gt=0)
-                .order_by('-score')[:100]
-            ]
+
+            results = []
+            queryset = model.objects.annotate(score=scores).filter(score__gt=0).order_by('-score')[:100]
+            for s in queryset:
+                results.append({ "type": model, "item": s })
+            return results
 
         containers = query_and_score(Container, ["barcode", "name"])
         individuals = query_and_score(Individual, ["name"])
