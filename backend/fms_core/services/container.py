@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.core.exceptions import ValidationError
-from fms_core.models import Container, Sample, Coordinate
+from fms_core.models import Container, Sample, Coordinate, ExperimentRun
+from typing import Tuple, List
 
 from ..containers import CONTAINER_KIND_SPECS
 from ..coordinates import CoordinateError
@@ -247,3 +248,27 @@ def move_container(container_to_move, destination_barcode,
         errors.append(str(e))
 
     return (container_to_move, errors, warnings)
+
+def can_remove_container(container: Container) -> Tuple[bool, List[str], List[str]]:
+    """
+    Tests the conditions for a container to be removed. The container must not have samples stored on it,
+    it must not store other containers and it must not be used in an experiment run.
+
+    Args:
+        `container`: Container instance to be tested.
+
+    Returns:
+        Tuple with the boolean is_removable, the list of errors and the list of warnings.
+    """
+    is_removable = False
+    errors = []
+    warnings = []
+    if not isinstance(container, Container):
+        errors.append(f"Valid container instance required.")
+    else:
+        has_sample_childs = Sample.objects.filter(container_id=container.id).exists()
+        has_container_childs = Container.objects.filter(location_id=container.id).exists()
+        used_in_experiment_run = ExperimentRun.objects.filter(container_id=container.id).exists()
+        is_removable = not has_sample_childs and not has_container_childs and not used_in_experiment_run
+
+    return is_removable, errors, warnings

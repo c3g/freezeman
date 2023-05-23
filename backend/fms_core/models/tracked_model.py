@@ -53,6 +53,3 @@ class TrackedModel(models.Model):
             reversion.set_comment(f'Deletion of object id ${self.id}')
 
         super().delete()
-
-
-

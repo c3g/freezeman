@@ -32,14 +32,14 @@ def list_references_to(individual):
     father_of = list(individual.father_of.all())
     if father_of:
         links.append(f"Father of {[child.name for child in father_of]}.")
-    samples = list(individual.samples.all())
-    if samples:
-        links.append(f"Has samples {[sample.id for sample in samples]}")
+    biosamples = list(individual.biosamples.all())
+    if biosamples:
+        links.append(f"Has biosamples {[biosample.id for biosample in biosamples]}")
     return links
 
 
 def delete_individual(params, objects_to_delete, log):
-    log.info("Action [" + str(params[CURATION_INDEX]) + "] Update Field Value started.")
+    log.info("Action [" + str(params[CURATION_INDEX]) + "] Delete Individual started.")
     log.info("Comment [" + str(params.get(COMMENT, "None")) + "].")
     log.info("Individual names : " + str(params[INDIVIDUAL_NAMES]) + ".")
     log.info("Requester id : " + str(params.get(USER_ID)))
