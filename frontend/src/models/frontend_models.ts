@@ -37,6 +37,9 @@ import {
   FMSExperimentRun,
   FMSDataset,
   FMSDatasetFile,
+  FMSRunType,
+  FMSInstrument,
+  FMSExternalExperimentRun,
 } from './fms_api_models'
 
 // Reducers tack on these two properties to objects that are fetched from
@@ -44,6 +47,8 @@ import {
 export interface FetchedObject {
 	isFetching: boolean
 	isLoaded: boolean
+	error?: any
+	didFail?: boolean
 }
 
 export interface ItemsByID<T extends FMSTrackedModel> {
@@ -77,9 +82,11 @@ export interface Container extends Readonly<FMSContainer>, FetchedObject {}
 export interface Dataset extends Readonly<FMSDataset>, FetchedObject {}
 export interface DatasetFile extends Readonly<FMSDatasetFile>, FetchedObject {}
 export interface ExperimentRun extends Readonly<FMSExperimentRun>, FetchedObject {}
+export interface ExternalExperimentRun extends Readonly<FMSExternalExperimentRun>, FetchedObject {}
 export interface ImportedFile extends Readonly<FMSImportedFile>, FetchedObject {}
 export interface Index extends Readonly<FMSIndex>, FetchedObject {}
 export interface Individual extends Readonly<FMSIndividual>, FetchedObject {}
+export interface Instrument extends Readonly<FMSInstrument>, FetchedObject {}
 export interface Library extends Readonly<FMSLibrary>, FetchedObject {}
 export interface LibraryType extends Readonly<FMSLibraryType>, FetchedObject {}
 export interface Platform extends Readonly<FMSPlatform>, FetchedObject {}
@@ -90,6 +97,7 @@ export interface Project extends Readonly<FMSProject>, FetchedObject {}
 export interface PropertyValue extends Readonly<FMSPropertyValue>, FetchedObject {}
 export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
 export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
+export interface RunType extends Readonly<FMSRunType>, FetchedObject {}
 export interface Sample extends Readonly<FMSSample>, FetchedObject {}
 export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
 export interface SampleNextStep extends Readonly<FMSSampleNextStep>, FetchedObject {}

@@ -68,18 +68,29 @@ export interface FilterKeySet {
 }
 
 export interface PagedItems<T extends FMSTrackedModel> {
-	isFetching: boolean
-	error?: any
-	itemsByID: ItemsByID<T>
-	items: FMSId[]
-	totalCount: number
-	filters: FilterSet
-	sortBy: SortBy
-	page?: {
-		pageNumber?: number		// Move to using page number instead of offset
-		offset?: number
-		limit?: number
-		ignoreError?: string
+	readonly isFetching: boolean
+	readonly error?: any
+	readonly itemsByID: ItemsByID<T>
+	readonly items: readonly FMSId[]
+	readonly totalCount: number
+	readonly filters: FilterSet
+	readonly sortBy: SortBy
+	readonly page?: {
+		readonly pageNumber?: number		// Move to using page number instead of offset
+		readonly offset?: number
+		readonly limit?: number
+		readonly ignoreError?: string
+	}
+}
+
+export function initPagedItems<T extends FMSTrackedModel>(): PagedItems<T> {
+	return {
+		isFetching: false,
+		itemsByID: {},
+		items: [],
+		totalCount: 0,
+		filters: {},
+		sortBy: {},
 	}
 }
 

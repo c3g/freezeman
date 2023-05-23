@@ -1,9 +1,9 @@
 import { produce } from 'immer'
 import { WritableDraft } from 'immer/dist/types/types-external'
 import { AnyAction } from 'redux'
-import { removeFilterReducer, setFilterOptionsReducer, setFilterReducer } from '../../components/shared/WorkflowSamplesTable/FilterReducers'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { StudySamplesState, StudyUXSettings } from './models'
+import { removeFilter, setFilterOptions, setFilterValue } from '../../models/filter_set_reducers'
 
 // Define action types in the reducer to avoid a circular dependency between
 // the redux store ('store') and the actions. store.ts imports all reducers.
@@ -171,7 +171,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			const { studyID, stepID, description, value } = action
 			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
 			if (step) {
-				step.filters = setFilterReducer(step.filters ?? {}, description, value)
+				step.filters = setFilterValue(step.filters ?? {}, description, value)
 			}
 			break
 		}
@@ -180,7 +180,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			const { studyID, stepID, description, options } = action
 			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
 			if (step) {
-				step.filters = setFilterOptionsReducer(step.filters ?? {}, description, options)
+				step.filters = setFilterOptions(step.filters ?? {}, description, options)
 			}
 			break
 		}
@@ -189,7 +189,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			const { studyID, stepID, description } = action
 			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
 			if (step) {
-				step.filters = removeFilterReducer(step.filters ?? {}, description)
+				step.filters = removeFilter(step.filters ?? {}, description)
 			}
 			break
 		}

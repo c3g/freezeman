@@ -1,10 +1,10 @@
 import { AnyAction } from 'redux'
-import { clearFiltersReducer, setFilterOptionsReducer, setFilterReducer } from '../../components/shared/WorkflowSamplesTable/FilterReducers'
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
+import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from '../../models/paged_items_reducers'
+import { createNetworkActionTypes } from '../../utils/actions'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
 import { LabworkStepSamples, LabworkStepsState } from './models'
-import { createNetworkActionTypes } from '../../utils/actions'
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
@@ -194,13 +194,9 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { stepID, value, description} = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if (stepSamples) {
-				const filters = setFilterReducer(stepSamples.pagedItems.filters, description, value)
 				return updateStepSamples(state, {
 					...stepSamples,
-					pagedItems: {
-						...stepSamples.pagedItems,
-						filters
-					}
+					pagedItems: reduceSetFilter(stepSamples.pagedItems, description, value)
 				})
 			}
 			break
@@ -210,13 +206,9 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { stepID, options, description } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if (stepSamples) {
-				const filters = setFilterOptionsReducer(stepSamples.pagedItems.filters, description, options)
 				return updateStepSamples(state, {
 					...stepSamples,
-					pagedItems: {
-						...stepSamples.pagedItems,
-						filters
-					}
+					pagedItems: reduceSetFilterOptions(stepSamples.pagedItems, description, options)
 				})
 			}
 			break
@@ -226,13 +218,9 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { stepID } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if (stepSamples) {
-				const filters = clearFiltersReducer()
 				return updateStepSamples(state, {
 					...stepSamples,
-					pagedItems: {
-						...stepSamples.pagedItems,
-						filters
-					}
+					pagedItems: reduceClearFilters(stepSamples.pagedItems)
 				})
 			}
 			break

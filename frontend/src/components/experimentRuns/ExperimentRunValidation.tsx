@@ -1,11 +1,15 @@
-import React, { Children } from 'react'
+import React, { Children, useEffect, useState } from 'react'
 import { ExperimentRun } from '../../models/frontend_models'
-import { Button, Collapse, Space, Typography } from 'antd'
+import { Button, Collapse, List, Space, Typography } from 'antd'
 import CollapsePanel from 'antd/lib/collapse/CollapsePanel'
 import { Link } from 'react-router-dom'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { FMSId } from '../../models/fms_api_models'
 import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { useAppDispatch } from '../../hooks'
+import { initExperimentRunLanes } from '../../modules/experimentRunLanes/actions'
+import { ExperimentRunLanes } from '../../modules/experimentRunLanes/models'
+import { loadExternalExperimentRuns } from '../../modules/experimentRuns/externalExperimentsActions'
 
 const { Title } = Typography
 
@@ -18,6 +22,7 @@ interface ExperimentRunValidationProps {
 
 interface FakeExperimentRunLane {
 	lane_number: number
+	metrics_urls : string[]
 	validation_status: 'PASSED' | 'FAILED' | 'NEEDED'
 	readsPerSample: FakeReadsPerSample
 }
@@ -31,6 +36,7 @@ const FAKE_METRICS_URL = "https://datahub-297-p25.p.genap.ca/MGI_validation/2023
 const fakeLanes : ReadonlyArray<FakeExperimentRunLane>= [
 	{
 		lane_number: 1,
+		metrics_urls: [FAKE_METRICS_URL, FAKE_METRICS_URL],
 		validation_status: 'PASSED',
 		readsPerSample: {reads: (() => {
 			const r = {}
@@ -39,37 +45,45 @@ const fakeLanes : ReadonlyArray<FakeExperimentRunLane>= [
 			}
 			return r
 		})()}
-		// readsPerSample: {reads: {
-		// 	1: 10,
-		// 	2: 46,
-		// 	3: 134,
-		// 	4: 945,
-		// 	5: 19,
-		// 	6: 32,
-		// 	7: 144,
-		// 	8: 312,
-		// 	9: 219,
-		// 	10: 44
-		// }}
 	},
 	{
 		lane_number: 2,
+		metrics_urls: [FAKE_METRICS_URL],
 		validation_status: 'FAILED',
 		readsPerSample: {reads: {}}
 	},
 	{
 		lane_number: 3,
+		metrics_urls: [FAKE_METRICS_URL],
 		validation_status: 'NEEDED',
 		readsPerSample: {reads: {}}
 	},
 	{
 		lane_number: 4,
+		metrics_urls: [FAKE_METRICS_URL],
 		validation_status: 'NEEDED',
 		readsPerSample: {reads: {}}
 	},
 ]
 
 function ExperimentRunValidation({experimentRun} : ExperimentRunValidationProps) {
+
+	const dispatch = useAppDispatch()
+	const [initialized, setInitialized] = useState<boolean>(false)
+
+	useEffect(() => {
+		if (!initialized) {
+			dispatch(initExperimentRunLanes('10128MG01A'))
+			setInitialized(true)
+		}
+	}, [dispatch, experimentRun, initialized])
+
+	useEffect(() => {
+		if (!initialized) {
+			dispatch(loadExternalExperimentRuns())
+		}
+	}, [dispatch, initialized])
+
 	return (
 		<Collapse >
 			{
@@ -126,13 +140,18 @@ function getValidationStatusExtra(lane: FakeExperimentRunLane) {
 }
 
 function LanePanel({experimentRun, lane} : LanePanelProps) {
-
-	
-
 	return (
 		<Collapse.Panel key={`${experimentRun.id}-${lane.lane_number}`} header={`${lane.lane_number}`} extra={getValidationStatusExtra(lane)}>
 			<FlexBar >
-				<Link to={FAKE_METRICS_URL}>ViewMetrics</Link>
+				<List>
+					{lane.metrics_urls.map((url, index) => {
+						return (
+							<List.Item key={`URL-${index}`}>
+								<a href={url} rel='external noopener noreferrer' target='_blank'>View Metrics</a>
+							</List.Item>
+						)
+					})}
+				</List>
 				<Space>
 					<Button>Passed</Button>
 					<Button>Failed</Button>

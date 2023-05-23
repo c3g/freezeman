@@ -58,6 +58,7 @@ const api = {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
     list: (options, abort) => get("/experiment-runs/", options, {abort}),
     listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
+    listExternalRuns: (options, abort) => get("/experiment-runs/list_external_experiment_run/", {limit: 100000, ...options}, {abort}),
     template: {
       actions: () => get(`/experiment-runs/template_actions/`),
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
@@ -65,6 +66,8 @@ const api = {
     },
     launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}), 
     fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info`, {}),
+    setLaneValidationStatus: (run_name, lane, validation_status) => post(`/experiment-runs/set_experiment_run_lane_validation_status/`, {run_name, lane, validation_status}),
+    getLaneValidationStatus: (run_name, lane) => get(`/experiment-runs/get_experiment_run_lane_validation_status`, {run_name, lane})
   },
 
   runTypes: {
@@ -126,6 +129,10 @@ const api = {
   libraryTypes: {
     get: libraryTypeId => get(`/library-types/${libraryTypeId}/`),
     list: (options, abort) => get("/library-types/", options, { abort }),
+  },
+
+  metrics: {
+    getReadsPerSampleForLane: (run_name, lane) => get(`/metrics/`, {limit: 100000, name: 'nb_reads', metric_group: 'qc', readset__dataset__run_name: run_name, readset__dataset__lane: lane})
   },
 
   platforms: {

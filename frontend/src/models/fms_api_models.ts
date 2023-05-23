@@ -74,6 +74,7 @@ export interface FMSDataset extends FMSTrackedModel {
     latest_release_update?: string      // ?
     released_status_count: number       // Number of files released
     run_name: string                    // The name of the experiment run that generated this dataset
+    metric_report_url?: string          // An external url to a report containing metrics for the dataset run
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {
@@ -94,6 +95,16 @@ export interface FMSExperimentRun extends FMSTrackedModel {
     run_processing_launch_date?: string // Date when run processing was launched
     run_type: FMSId                     // RunType ID
     start_date: string                  // Date when user started run 
+    end_time?: string                    // Time at which the experiment run completed (set by API call)
+    run_processing_launch_time?: string  // Last time the run processing was launched, if it has been launched for the experiment run
+    run_processing_start_time?: string   // Last time the run processing actually started for the experiment run
+    run_processing_end_time?: string     // Last time the run processing completed for the experiment run
+}
+
+export interface FMSExternalExperimentRun {
+    run_name: string                    // Experiment run name
+    latest_submission_timestamp: string // Date that datasets for run were last submitted
+    lanes: [number]                     // Lane descriptions: Coordinates of the lane in a container
 }
 
 export interface FMSImportedFile {
@@ -171,6 +182,18 @@ export interface FMSLibraryType extends FMSTrackedModel {
     name: string                        // Library type name, eg "PCR-Free"
 }
 
+export interface FMSMetric extends FMSTrackedModel {
+    name: string                        // Metric name
+    metric_group: string                // Named group that metric belongs to
+    sample_name: string                 // Name of sample metric applies to
+    derived_sample_id?: FMSId           // Derived sample id, if metric is from a freezeman experiment run
+    run_name: string                    // Name of run that generated metric
+    experiment_run_id?: FMSId           // Freezeman experiment run (undefined for external experiment runs)
+    lane: number                        // Lane number
+    value_numeric?: number              // Metric value if numeric
+    value_string?: string               // Metric value, if text
+}
+
 export interface FMSPlatform extends FMSTrackedModel {
     name: string                        // Platform name eg "ILLUMINA" or "DNBSEQ"
 }
@@ -209,6 +232,7 @@ export interface FMSProcess extends FMSTrackedModel {
     parent_process?: FMSId              // Parent process ID, if any
     protocol: FMSId                     // ID of protocol for process
     imported_template?: FMSId           // Imported template ID, if any
+    comment?: string                    // User comment
 }
 
 export interface FMSProcessMeasurement extends FMSTrackedModel {

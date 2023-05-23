@@ -48,6 +48,9 @@ import {
   experimentRunLaunches
 } from "./modules/experimentRuns/reducers";
 import {
+  externalExperimentRuns
+} from "./modules/experimentRuns/externalExperimentsReducers"
+import {
   projectsSummary,
   projects,
   projectTemplateActions
@@ -110,6 +113,7 @@ const allReducers = combineReducers({
   datasets,
   datasetFiles,
   experimentRuns,
+  externalExperimentRuns,
   experimentRunLaunches,
   experimentRunTemplateActions,
   runTypes,

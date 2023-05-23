@@ -59,7 +59,7 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTra
 	interface WithItemRenderComponentProps<T extends FMSTrackedModel> {
 		objectID: string | number
 		render: ItemRenderFunc<T>
-		placeholder?: React.ReactElement
+		placeholder?: React.ReactElement | string
 	}
 
     const WithItemRenderComponent = ({objectID, render, placeholder} : WithItemRenderComponentProps<T>) => {
@@ -79,7 +79,9 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTra
             return render(object)
         } else {
             if (placeholder) {
-                return placeholder
+                if (typeof placeholder === 'string') {
+                    return <span>placeholder</span>
+                } else return placeholder
             } else {
                 return null
             }

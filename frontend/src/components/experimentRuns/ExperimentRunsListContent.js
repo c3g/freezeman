@@ -18,6 +18,7 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 import {ActionDropdown} from "../../utils/templateActions";
 import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard"
+import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 
 
 const getTableColumns = (containersByID, runTypes, instruments, launchesById) => [
@@ -64,7 +65,7 @@ const getTableColumns = (containersByID, runTypes, instruments, launchesById) =>
     sorter: true,
     render: (_, experimentRun) => (experimentRun.container &&
       <Link to={`/containers/${experimentRun.container}`}>
-        {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+        <WithContainerRenderComponent objectID={experimentRun.container} placeholder={'loading...'} render={container => <span>{container.barcode}</span>}/>
       </Link>),
   },
   {
@@ -141,11 +142,7 @@ const ExperimentRunsListContent = ({
   const nFilters = getNFilters(filters)
 
   return <>
-    <AppPageHeader title="Experiments" extra={[
-        <ActionDropdown key='actions' urlBase={"/experiment-runs"} actions={actions}/>,
-        <ExportButton key='export' exportFunction={listExport} filename="experiments"  itemsCount={totalCount}/>,
-    ]}/>
-    <PageContent>
+    <>
       <div className='filters-warning-bar'>
         <div style={{ flex: 1 }} />
         <FiltersWarning
@@ -174,7 +171,7 @@ const ExperimentRunsListContent = ({
         onLoad={listTable}
         onChangeSort={setSortBy}
       />
-    </PageContent>
+    </>
   </>;
 };
 
