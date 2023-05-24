@@ -50,7 +50,7 @@ class QueryViewSet(viewsets.ViewSet):
             raise ValueError("unreachable")
 
         def query_and_score(model, fields):
-            scores = list(map(lambda f: FZY(F(f), query), fields))
+            scores = list(map(lambda f: FZY(query, F(f)), fields))
             scores = scores[0] if len(scores) == 1 else Greatest(*scores)
 
             results = []

@@ -34,10 +34,10 @@ class FZY(Func):
     template = "%(function)s(%(expressions)s::cstring)"
     function = "fzy"
 
-    def __init__(self, expression, search_term, **extras):
+    def __init__(self, search_term, search_field, **extras):
         super(FZY, self).__init__(
             Value(search_term, output_field=CharField()),
-            expression,
+            search_field,
             **extras
         )
 
