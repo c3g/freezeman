@@ -61,7 +61,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
     },
     // extra parameters typescript forces me to initialize
     automaticRearrangeAfterDropNode: false,
-    collapsible: true,
+    collapsible: false,
     directed: true,
     focusZoom: 0,
     focusAnimationDuration: 1,
@@ -70,7 +70,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
     highlightDegree: 0,
     highlightOpacity: 0,
     initialZoom: null,
-    staticGraph: true,
+    staticGraph: false,
     d3: {}
   }
   
