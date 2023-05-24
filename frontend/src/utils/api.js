@@ -256,7 +256,8 @@ const api = {
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
     list: (options, abort) => get('/studies', options, {abort}),
-    listProjectStudies: projectId => get('/studies', { project__id: projectId})
+    listProjectStudies: projectId => get('/studies', { project__id: projectId}),
+    remove: (studyId) => remove(`/studies/${studyId}/`)
   },
 
   taxons: {
