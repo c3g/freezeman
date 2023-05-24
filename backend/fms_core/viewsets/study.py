@@ -70,7 +70,8 @@ class StudyViewSet(viewsets.ModelViewSet):
         if any(bool(error) for error in errors.values()):
             raise ValidationError(errors)
         else:
-            if study := Study.objects.filter(pk=pk).first():
+            study = Study.objects.filter(pk=pk).first()
+            if study:
                 study.delete()
 
             return HttpResponse('Successfully removed the study', status=status.HTTP_200_OK)
