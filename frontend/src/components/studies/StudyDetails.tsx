@@ -97,6 +97,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
                         title={`Are you sure you want to remove study ${study?.letter}? This removal cannot be undone.`}
                         onConfirm={() => handleRemoveStudy(studyId)}
                         disabled={!study?.removable}
+                        placement={'bottomLeft'}
                     >
                         <Button disabled={!study?.removable}>Remove Study {study?.letter ?? ''}</Button>
                     </Popconfirm>
