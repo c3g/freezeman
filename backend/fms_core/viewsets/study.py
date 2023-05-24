@@ -73,5 +73,7 @@ class StudyViewSet(viewsets.ModelViewSet):
             study = Study.objects.filter(pk=pk).first()
             if study:
                 study.delete()
+                return HttpResponse('Successfully removed the study', status=status.HTTP_200_OK)
+            else:
+                return HttpResponse(f"Could not find study with id '{pk}'.", status=status.HTTP_404_NOT_FOUND)
 
-            return HttpResponse('Successfully removed the study', status=status.HTTP_200_OK)
