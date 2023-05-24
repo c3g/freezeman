@@ -229,10 +229,9 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
             {
               // graphData must contain at least one node
               // after fetching all nodes and edges
-              graphData.nodes.length > 0
-                ? reset
-                  ? <Spin size={"large"} />
-                  : <Graph
+              graphData.nodes.length == 0 || reset
+                ? <Spin size={"large"} />
+                : <Graph
                     id="graph-id"
                     data={adjustedGraphData}
                     config={graphConfig}
@@ -251,7 +250,6 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
                       }
                     }}
                   />
-                : <Spin size={"large"} />
             }
           </div>
         </div>
