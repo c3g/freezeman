@@ -8,7 +8,7 @@ import { add, list, update } from "../../modules/referenceGenomes/actions";
 import { requiredRules } from "../../constants";
 import { selectAppInitialzed, selectReferenceGenomesByID, selectTaxonsByID } from "../../selectors";
 import * as Options from "../../utils/options";
-import { ReferenceGenome } from "../../models/frontend_models";
+import { ReferenceGenome, getAllItems } from "../../models/frontend_models";
 
 interface EditReferenceGenomesProps {
     referenceGenome?: ReferenceGenome
@@ -38,7 +38,7 @@ const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) =>
     const dispatch = useAppDispatch();
 
     const taxonsByID = useAppSelector(selectTaxonsByID)
-    const taxonOptions = Object.keys(taxonsByID).map((id) => taxonsByID[id])
+    const taxonOptions = getAllItems(taxonsByID)
 
     const itemValidation = (key: string): FormItemProps => {
         if (formErrors && formErrors[key]) {

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import React from "react";
 import { ReferenceGenome } from "../../models/frontend_models";
+import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 
 enum ReferenceGenomeID {
     ID = 'ID',
@@ -101,9 +102,11 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         sorter: (a, b) => a.taxon_id - b.taxon_id,
         render: (_, { taxon_id }) =>
             taxon_id && (
-                <Link to={`/taxons/update/${taxon_id}`}>
-                    <div>{taxonsByID[taxon_id].name}</div>
-                </Link>
+                <WithContainerRenderComponent
+                    objectID={taxon_id}
+                    placeholder={<span>loading...</span>}
+                    render={() => <span>{taxonsByID[taxon_id].name}</span>}
+                />
             ),
     },
     {
