@@ -21,7 +21,6 @@ const IndividualsDetailContent = () => {
 
     const [activeKey, setActiveKey] = useHashURL('overview')
     const [individual, setIndividual] = useState<FetchedState<Individual>>()
-    // const isLoaded = id && individual;
 
     useEffect(() => {
         dispatch(getIndividualDetails(Number(id)));
@@ -48,7 +47,7 @@ const IndividualsDetailContent = () => {
         height: '100%',
     }
 
-    const samples: number[] = individual && individual.data ? getAllItems(individual.data.samplesByIndividual.itemsByID).map((value)=> value.id) : []
+    const samples: number[] = individual && individual.data ? getAllItems(individual.data.samplesByIndividual.itemsByID).map((value) => value.id) : []
     const title =
         `Individual ${[id, (individual && individual.data?.individual) ? individual.data.individual.name : undefined].filter(Boolean).join(' - ')}`;
 
@@ -62,7 +61,10 @@ const IndividualsDetailContent = () => {
                     <IndividualOverview individual={individual && individual.data ? individual.data?.individual : {}} />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab="Associated Samples" key="samples" style={tabPaneStyle}>
-                    <IndividualAssociatedSamples samples={samples} />
+                    {
+                        individual && individual.data &&
+                        <IndividualAssociatedSamples samples={samples} individual={individual.data} />
+                    }
                 </Tabs.TabPane>
             </Tabs>
         </PageContent>

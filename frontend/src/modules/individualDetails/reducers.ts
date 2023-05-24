@@ -6,8 +6,12 @@ import { FMSIndividual, FMSSample } from "../../models/fms_api_models";
 import produce from "immer";
 import { PagedItems } from "../../models/paged_items";
 import { createItemsByID } from "../../models/frontend_models";
+import { clearFiltersReducer, removeFilterReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers";
 
 export const GET_INDIVIDUAL_DETAILS = createNetworkActionTypes('INDIVIDUAL_DETAILS.GET_INDIVIDUAL_DETAILS')
+export const SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER = createNetworkActionTypes('INDIVIDUAL_DETAILS.SET_INDIVIDUAL_SAMPLES_FILTER')
+export const REMOVE_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.REMOVE_INDIVIDUAL_SAMPLES_FILTER'
+export const CLEAR_FILTERS = "INDIVIDUAL_DETAILS.CLEAR_FILTERS"
 
 export interface Individual {
     individual: FMSIndividual,
@@ -25,7 +29,11 @@ const INITIAL_STATE: IndividualDetailsState = {
 const INITIAL_PAGED_ITEMS = {
     itemsByID: {},
     items: [],
-    page: { offset: 0 },
+    page: {
+        pageNumber: 0,
+        offset: 0,
+        limit: 0
+    },
     totalCount: 0,
     isFetching: false,
     filters: {},
@@ -46,7 +54,6 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
                 if (state.individualsDetailsById[individualID]) {
                     state.individualsDetailsById[individualID].isFetching = true
                 } else {
-                    // Study state gets created on first REQUEST call
                     state.individualsDetailsById[individualID] = {
                         isFetching: true,
                     }
@@ -74,6 +81,30 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
                 }
                 break;
             }
+        case SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER: {
+            const { individualID, description, value } = action
+            const samplesByIndividual = state.individualsDetailsById[individualID]?.data?.samplesByIndividual
+            if (samplesByIndividual) {
+                samplesByIndividual.filters = setFilterReducer(samplesByIndividual.filters ?? {}, description, value)
+            }
+            break;
+        }
+        case REMOVE_INDIVIDUAL_DETAILS_SAMPLES_FILTER: {
+            const { individualID, description } = action
+            const samplesByIndividual = state.individualsDetailsById[individualID]?.data?.samplesByIndividual
+            if (samplesByIndividual) {
+                samplesByIndividual.filters = removeFilterReducer(samplesByIndividual.filters ?? {}, description)
+            }
+            break;
+        }
+        case CLEAR_FILTERS: {
+            const { individualID } = action
+            const samplesByIndividual = state.individualsDetailsById[individualID]?.data?.samplesByIndividual
+            if (samplesByIndividual) {
+                samplesByIndividual.filters = clearFiltersReducer()
+            }
+            break;
+        }
         default:
             break
     }
