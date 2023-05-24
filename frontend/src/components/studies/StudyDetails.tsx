@@ -92,7 +92,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
             <FlexBar style={{padding: 0}}>
                 <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
                 <Space>
-                    <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies containing samples cannot be removed.</Typography.Text>
+                    {!study?.removable && <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies containing samples cannot be removed.</Typography.Text>}
                     <Popconfirm
                         title={`Are you sure you want to remove study ${study?.letter}? This removal cannot be undone.`}
                         onConfirm={() => handleRemoveStudy(studyId)}
