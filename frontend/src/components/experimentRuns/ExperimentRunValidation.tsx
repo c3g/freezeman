@@ -197,7 +197,7 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 					<div>{`Sample ID: ${sampleData.sampleID}`}</div>
 					}
 					<div>{`Name: ${sampleData.sampleName}`}</div>
-					<div>{`Count: ${sampleData.nbReads}`}</div>
+					<div>{`Count: ${Number(sampleData.nbReads).toFixed(0)}`}</div>
 				</div>
 			)
 		}
@@ -205,13 +205,16 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 	}
 
 	return (
-		<LineChart width={800} height={280} data={data}>
-			<XAxis dataKey='sample_id'/>
-			<YAxis/>
-			<Tooltip content={<SampleTooltip/>}/>
-			<Line type='stepAfter' dataKey='count' stroke='#DC3A18' activeDot={false}/>
-		</LineChart>
+		<div style={{margin: '2em'}}>
+			<LineChart width={800} height={500} data={data}  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+				<XAxis xAxisId='xreads' dataKey='sampleName'/>
+				<YAxis yAxisId='yreads' dataKey='nbReads' domain={['auto', 'dataMax']}/>
+				<Tooltip content={<SampleTooltip/>}/>
+				<Line type='stepAfter' dataKey='nbReads' stroke='#DC3A18' activeDot={false} xAxisId={'xreads'} yAxisId={'yreads'} />
+			</LineChart>
+		</div>
 	)
+	// 
 }
 
 export default ExperimentRunValidation
