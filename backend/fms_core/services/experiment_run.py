@@ -13,6 +13,27 @@ from .process import create_process
 from .property_value import create_process_properties
 from .sample import transfer_sample
 
+def get_experiment_run(name):
+    """
+    Get an existing experiment run object using its unique name.
+
+    Args:
+        `name`: Experiment run name
+
+    Returns:
+        Tuple with the experiment run object if found (None otherwise), the errors and the warnings.
+    """
+    experiment_run = None
+    errors = []
+    warnings = []
+    try:
+        experiment_run = ExperimentRun.objects.get(name=name)
+    except ExperimentRun.DoesNotExist as e:
+        errors.append(f"No experiment run named {name} could be found.")
+    
+    return experiment_run, errors, warnings
+
+
 def create_experiment_run(experiment_run_name,
                           run_type_obj,
                           instrument_obj,
@@ -27,6 +48,8 @@ def create_experiment_run(experiment_run_name,
     errors = []
     warnings = []
 
+    if experiment_run_name is None:
+        errors.append('Run name is required to create an experiment run.')
     if run_type_obj is None:
         errors.append('Run type is required to create an experiment run.')
     if process_properties is None:
@@ -96,12 +119,74 @@ def create_experiment_run(experiment_run_name,
 
     return (experiment_run, errors, warnings)
 
+
+def set_run_processing_start_time(experiment_run_id: int = None):
+    """
+    Sets the timers using current time on the experiment run instance matching the id given.
+    end_time is set if it is unset (captures first time the run processing starts which is the best approximation of when the experiment run completes.
+    run_processing_start_time is set each time and replaces the old value.
+    run_processing_end_time is reset to None each time to ensure the end time is not set if the run processing is restarted.
+
+    Args:
+        `experiment_run_id`: Experiment run id
+
+    Returns:
+        Returns the modified experiment run object, errors and warnings.
+    """
+    experiment_run = None
+    errors = []
+    warnings = []
+    if experiment_run_id is not None:
+        timestamp = timezone.now()
+        try:
+            experiment_run = ExperimentRun.objects.get(id=experiment_run_id)
+        except ExperimentRun.DoesNotExist as e:
+            errors.append(f"No experiment run with id {experiment_run_id} could be found.")
+        if not experiment_run.end_time: # if experiment run end_time is not set, this is likely the first run processing starting
+            experiment_run.end_time = timestamp
+        experiment_run.run_processing_start_time = timestamp
+        experiment_run.run_processing_end_time = None # Make sure the run_processing_end_time is reset in case this is a run processing restart.
+        experiment_run.save()
+    else:
+        errors.append(f"The experiment run ID is required.")
+    
+    return experiment_run, errors, warnings
+
+
+def set_run_processing_end_time(experiment_run_id: int = None):
+    """
+    Sets the run processing end timer using current time on the experiment run instance matching the id given.
+    run_processing_end_time is set each time and replaces the old value.
+
+    Args:
+        `experiment_run_id`: Experiment run id
+
+    Returns:
+        Returns the modified experiment run object, errors and warnings.
+    """
+    experiment_run = None
+    errors = []
+    warnings = []
+    if experiment_run_id is not None:
+        timestamp = timezone.now()
+        try:
+            experiment_run = ExperimentRun.objects.get(id=experiment_run_id)
+        except ExperimentRun.DoesNotExist as e:
+            errors.append(f"No experiment run with id {experiment_run_id} could be found.")
+        experiment_run.run_processing_end_time = timestamp
+        experiment_run.save()
+    else:
+        errors.append(f"The experiment run id is required.")
+    
+    return experiment_run, errors, warnings
+
+
 def start_experiment_run_processing(pk):
     '''
     Generates a run info file for an experiment and drops it in a spool directory
     watched by Tech Dev, which triggers run processing to be scheduled.
 
-    If the run info file is generated without error then the run_processing_launch_date
+    If the run info file is generated without error then the run_processing_launch_time
     timestamp is updated with the current date and time.
 
     Args:
@@ -137,7 +222,9 @@ def start_experiment_run_processing(pk):
             with open(run_info_file_path, "w", encoding="utf-8") as file:
                 json.dump(run_info, file, indent=4)
 
-            experiment_run.run_processing_launch_date = timezone.now()
+            experiment_run.run_processing_launch_time = timezone.now()
+            experiment_run.run_processing_start_time = None
+            experiment_run.run_processing_end_time = None
             experiment_run.save()
         except Exception as e:
             errors.append(f'Failed to write run info file. {str(e)}')

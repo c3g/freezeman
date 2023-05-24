@@ -3,21 +3,17 @@ from django.core.exceptions import ValidationError
 import reversion
 
 from .tracked_model import TrackedModel
-from .project import Project
-from .experiment_run import ExperimentRun
-from .container import Container
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH
 
 @reversion.register()
 class Dataset(TrackedModel):
     """ Class to store information about the datasets of data deliveries. """
-
     external_project_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project id.")
-
     run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Run name.")
-
     lane = models.PositiveIntegerField(help_text="Coordinates of the lane in a container")
+    experiment_run = models.ForeignKey(blank=True, null=True, help_text='Experiment run matching the dataset.', on_delete=models.PROTECT, related_name='datasets', to='fms_core.experimentrun')
+    metric_report_url = models.CharField(null=True, blank=True, max_length=STANDARD_FILE_PATH_LENGTH, help_text="URL to the run processing metrics report.")
 
     class Meta:
         constraints = [
@@ -35,9 +31,6 @@ class Dataset(TrackedModel):
         except Exception:
             errors["LaneError"] = f"Lane must be a positive integer, and yet it was given {self.lane}."
       
-        if Dataset.objects.filter(external_project_id__iexact=self.external_project_id, run_name__iexact=self.run_name, lane=self.lane).exists():
-            errors["ExistingError"] = f"There's already a dataset with identical external project id '{self.external_project_id}', run name '{self.run_name}' and lane '{self.lane}'"
-
         if errors:
             raise ValidationError(errors)
 

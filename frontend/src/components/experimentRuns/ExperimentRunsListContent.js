@@ -67,7 +67,7 @@ const getTableColumns = (runTypes, instruments, launchesById) => [
   },
   {
     title: "Launch",
-    dataIndex: "run_processing_launch_date",
+    dataIndex: "run_processing_launch_time",
     sorter: true,
     render: (_, experimentRun) => (
       <div style={{minWidth: "12rem"}}>
