@@ -5,7 +5,7 @@ import WorkflowSamplesTable from "../shared/WorkflowSamplesTable/WorkflowSamples
 import { PagedItems } from "../../models/paged_items";
 
 interface IndividualAssociatedSamplesProps {
-    samples: PagedItems<FMSSample>
+    samples: number[]
 }
 
 const IndividualAssociatedSamples = ({ samples }: IndividualAssociatedSamplesProps) => {
@@ -35,7 +35,7 @@ const IndividualAssociatedSamples = ({ samples }: IndividualAssociatedSamplesPro
     return <>
         <WorkflowSamplesTable
             hasFilter={false}
-            sampleIDs={samples ? Object.values(samples).map(sample => sample.id) : []}
+            sampleIDs={samples ? samples : []}
             columns={columnsForSelection}
             setSortBy={() => { }}
         />

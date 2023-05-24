@@ -5,6 +5,7 @@ import { FetchedState } from "../common";
 import { FMSIndividual, FMSSample } from "../../models/fms_api_models";
 import produce from "immer";
 import { PagedItems } from "../../models/paged_items";
+import { createItemsByID } from "../../models/frontend_models";
 
 export const GET_INDIVIDUAL_DETAILS = createNetworkActionTypes('INDIVIDUAL_DETAILS.GET_INDIVIDUAL_DETAILS')
 
@@ -57,7 +58,7 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
                 const { individualID, individual, individualSamples } = action.meta
                 if (state.individualsDetailsById[individualID]) {
                     state.individualsDetailsById[individualID].isFetching = false
-                    state.individualsDetailsById[individualID].data = { individual: { ...individual }, samplesByIndividual: { ...INITIAL_PAGED_ITEMS, items: individualSamples.results } }
+                    state.individualsDetailsById[individualID].data = { individual: { ...individual }, samplesByIndividual: { ...INITIAL_PAGED_ITEMS, items: individualSamples, itemsByID: createItemsByID(individualSamples) } }
                 }
                 break;
             }

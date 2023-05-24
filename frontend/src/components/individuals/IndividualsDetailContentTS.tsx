@@ -12,6 +12,7 @@ import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 import { getIndividualDetails } from "../../modules/individualDetails/actions";
 import { Individual, IndividualsDetailsById } from "../../modules/individualDetails/reducers";
 import { FetchedState } from "../../modules/common";
+import { getAllItems } from "../../models/frontend_models";
 
 const IndividualsDetailContent = () => {
     const { id } = useParams();
@@ -47,7 +48,7 @@ const IndividualsDetailContent = () => {
         height: '100%',
     }
 
-    // const isLoading = !isLoaded || (individual && individual.isFetching);
+    const samples: number[] = individual && individual.data ? getAllItems(individual.data.samplesByIndividual.itemsByID).map((value)=> value.id) : []
     const title =
         `Individual ${[id, (individual && individual.data?.individual) ? individual.data.individual.name : undefined].filter(Boolean).join(' - ')}`;
 
@@ -61,7 +62,7 @@ const IndividualsDetailContent = () => {
                     <IndividualOverview individual={individual && individual.data ? individual.data?.individual : {}} />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab="Associated Samples" key="samples" style={tabPaneStyle}>
-                    <IndividualAssociatedSamples samples={individual && individual.data ? individual.data.samplesByIndividual.items : {}} />
+                    <IndividualAssociatedSamples samples={samples} />
                 </Tabs.TabPane>
             </Tabs>
         </PageContent>

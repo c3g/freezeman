@@ -48,7 +48,7 @@ export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.ite
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
 export const selectSequencesByID = (state: RootState) => state.sequences.itemsByID as ItemsByID<Sequence>
-export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails.itemsByID as IndividualsDetailsById
+export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails.individualsDetailsById as IndividualsDetailsById
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID
