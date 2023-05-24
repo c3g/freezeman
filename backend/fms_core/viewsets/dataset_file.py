@@ -21,6 +21,9 @@ class DatasetFileViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         release_status = request.data.get("release_status")
+        validation_status = request.data.get("validation_status")
         if release_status is not None:
             request.data["release_status_timestamp"] = timezone.now()
+        if validation_status is not None:
+            request.data["validation_status_timestamp"] = timezone.now()
         return super().update(request, *args, **kwargs)

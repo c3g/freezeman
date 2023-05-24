@@ -21,7 +21,7 @@ __all__ = ["ExperimentRun"]
 
 @reversion.register()
 class ExperimentRun(TrackedModel):
-    name = models.CharField(unique=True, blank=True, null=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
+    name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="Name of the run.")
     run_type = models.ForeignKey(RunType,
                                  on_delete=models.PROTECT,
@@ -36,12 +36,15 @@ class ExperimentRun(TrackedModel):
                                    on_delete=models.PROTECT,
                                    related_name="experiment_runs",
                                    help_text="Instrument")
-    start_date = models.DateField(help_text="Date the run was started.")
+    start_date = models.DateField(help_text="Date the experiment run was started (submitted by template).")
+    end_time = models.DateTimeField(null=True, blank=True, help_text="Time at which the experiment run completed (set by API call).")
     process = models.ForeignKey(Process,
                                 on_delete=models.PROTECT,
                                 related_name="experiment_runs",
                                 help_text="Main process associated to this experiment")
-    run_processing_launch_date = models.DateTimeField(null=True, blank=True, help_text="Date on which run processing was launched, if it has been launched.")
+    run_processing_launch_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing was launched, if it has been launched for the experiment run.")
+    run_processing_start_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing actually started for the experiment run.")
+    run_processing_end_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing completed for the experiment run.")
 
     def clean(self):
         super().clean()

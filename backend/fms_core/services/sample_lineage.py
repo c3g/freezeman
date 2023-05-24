@@ -77,10 +77,10 @@ def get_library_size_for_derived_sample(derived_sample_id: int) -> Optional[int]
     Provides the latest measured fragment_size related to a derived_sample
 
     Args:
-    `derived_sample_id`: Derived_sample for which we want the latest measured fragment_size
+        `derived_sample_id`: Derived_sample for which we want the latest measured fragment_size
 
     Returns:
-    An integer that represents the fragment_size (library_size), None if not found or never measured.
+        An integer that represents the fragment_size (library_size), None if not found or never measured.
     """
     samples_with_library_size = DerivedBySample.objects.filter(derived_sample_id=derived_sample_id, sample__fragment_size__isnull=False)
      # Most recent sample in the lineage chain will have a larger id
