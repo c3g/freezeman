@@ -18,9 +18,9 @@ export interface DatasetInfo {
 }
 
 export interface SampleReads {
-	sampleID: FMSId
-	sampleName: string
-	nbReads : number
+	sampleID?: FMSId						// Sample ID if this is from a freezeman experiment run and the sample is in the DB
+	sampleName: string						// Name of the sample
+	nbReads : number						// Number of reads for the sample
 }
 
 export interface ReadsPerSample {

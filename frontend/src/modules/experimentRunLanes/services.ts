@@ -1,10 +1,11 @@
 import store from "../../store"
 import api from "../../utils/api"
-import { DatasetInfo, ExperimentRunLanes, ValidationStatus } from "./models"
+import { DatasetInfo, ExperimentRunLanes, ReadsPerSample, SampleReads, ValidationStatus } from "./models"
 
 
 
 import { Dataset } from "../../models/frontend_models"
+import { FMSMetric } from "../../models/fms_api_models"
 
 
 export async function loadExperimentRunLanes(experimentRunName: string) {
@@ -64,9 +65,21 @@ export async function loadExperimentRunLanes(experimentRunName: string) {
     return experimentRunLanes
 }
 
-export async function fetchReadsPerSample(runName : string, lane: number) {
+export async function fetchReadsPerSample(runName : string, lane: number): Promise<ReadsPerSample> {
     const response = await store.dispatch(api.metrics.getReadsPerSampleForLane(runName, lane))
     if (response.ok) {
-        console.log(response)
+       const metrics = response.data.results as FMSMetric[]
+       const sampleReads : SampleReads[] = metrics.map(metric => {
+            return {
+                sampleID: metric.derived_sample_id ?? undefined,
+                sampleName: metric.sample_name,
+                nbReads: metric.value_numeric ?? 0  // The numeric value should always be defined for this type of metric
+            }
+       })
+       
+       return {sampleReads}
+    } else {
+        throw new Error(`Failed to load reads per sample for lane ${lane} of run ${runName}`)
     }
+
 }

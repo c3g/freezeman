@@ -110,7 +110,6 @@ abbr.--time {
 
 .filters-warning-bar {
   display: flex;
-  margin-bottom: 1rem;
   justify-content: right;
   align-items: baseline;
 }

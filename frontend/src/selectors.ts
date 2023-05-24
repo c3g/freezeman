@@ -54,7 +54,9 @@ export const selectDatasetFilesState = (state: RootState) => state.datasetFiles
 export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
 export const selectExperimentRunsTemplateActions = (state: RootState) => state.experimentRunTemplateActions
 export const selectExperimentRunsByID = (state: RootState) => state.experimentRuns.itemsByID as ItemsByID<ExperimentRun>
+export const selectExperimentRunLanesState = (state: RootState) => state.experimentRunLanes
 export const selectExperimentRunsState = (state: RootState) => state.experimentRuns
+export const selectExternalExperimentRuns = (state: RootState) => state.externalExperimentRuns.runs
 export const selectExternalExperimentRunsState = (state: RootState) => state.externalExperimentRuns
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>

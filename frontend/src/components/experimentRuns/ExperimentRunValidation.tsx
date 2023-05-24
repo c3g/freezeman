@@ -6,10 +6,11 @@ import { Link } from 'react-router-dom'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { FMSId } from '../../models/fms_api_models'
 import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
-import { useAppDispatch } from '../../hooks'
-import { initExperimentRunLanes } from '../../modules/experimentRunLanes/actions'
-import { ExperimentRunLanes } from '../../modules/experimentRunLanes/models'
+import { useAppDispatch, useAppSelector } from '../../hooks'
+import { initExperimentRunLanes, loadReadsPerSample } from '../../modules/experimentRunLanes/actions'
+import { ExperimentRunLanes, LaneInfo, SampleReads } from '../../modules/experimentRunLanes/models'
 import { loadExternalExperimentRuns } from '../../modules/experimentRuns/externalExperimentsActions'
+import { selectExperimentRunLanesState } from '../../selectors'
 
 const { Title } = Typography
 
@@ -17,88 +18,86 @@ const { Title } = Typography
 // https://github.com/recharts/recharts
 
 interface ExperimentRunValidationProps {
-	experimentRun: ExperimentRun
+	experimentRunName: string
 }
 
-interface FakeExperimentRunLane {
-	lane_number: number
-	metrics_urls : string[]
-	validation_status: 'PASSED' | 'FAILED' | 'NEEDED'
-	readsPerSample: FakeReadsPerSample
-}
+// interface FakeExperimentRunLane {
+// 	lane_number: number
+// 	metrics_urls : string[]
+// 	validation_status: 'PASSED' | 'FAILED' | 'NEEDED'
+// 	readsPerSample: FakeReadsPerSample
+// }
 
-interface FakeReadsPerSample {
-	reads: {[key: FMSId] : number}
-}
+// interface FakeReadsPerSample {
+// 	reads: {[key: FMSId] : number}
+// }
 
-const FAKE_METRICS_URL = "https://datahub-297-p25.p.genap.ca/MGI_validation/2023/10173MG01B.report.html"
+// const FAKE_METRICS_URL = "https://datahub-297-p25.p.genap.ca/MGI_validation/2023/10173MG01B.report.html"
 
-const fakeLanes : ReadonlyArray<FakeExperimentRunLane>= [
-	{
-		lane_number: 1,
-		metrics_urls: [FAKE_METRICS_URL, FAKE_METRICS_URL],
-		validation_status: 'PASSED',
-		readsPerSample: {reads: (() => {
-			const r = {}
-			for(let i = 1; i < 100; i++) {
-				r[i] = Math.floor(Math.random() * 2000000)
-			}
-			return r
-		})()}
-	},
-	{
-		lane_number: 2,
-		metrics_urls: [FAKE_METRICS_URL],
-		validation_status: 'FAILED',
-		readsPerSample: {reads: {}}
-	},
-	{
-		lane_number: 3,
-		metrics_urls: [FAKE_METRICS_URL],
-		validation_status: 'NEEDED',
-		readsPerSample: {reads: {}}
-	},
-	{
-		lane_number: 4,
-		metrics_urls: [FAKE_METRICS_URL],
-		validation_status: 'NEEDED',
-		readsPerSample: {reads: {}}
-	},
-]
+// const fakeLanes : ReadonlyArray<FakeExperimentRunLane>= [
+// 	{
+// 		lane_number: 1,
+// 		metrics_urls: [FAKE_METRICS_URL, FAKE_METRICS_URL],
+// 		validation_status: 'PASSED',
+// 		readsPerSample: {reads: (() => {
+// 			const r = {}
+// 			for(let i = 1; i < 100; i++) {
+// 				r[i] = Math.floor(Math.random() * 2000000)
+// 			}
+// 			return r
+// 		})()}
+// 	},
+// 	{
+// 		lane_number: 2,
+// 		metrics_urls: [FAKE_METRICS_URL],
+// 		validation_status: 'FAILED',
+// 		readsPerSample: {reads: {}}
+// 	},
+// 	{
+// 		lane_number: 3,
+// 		metrics_urls: [FAKE_METRICS_URL],
+// 		validation_status: 'NEEDED',
+// 		readsPerSample: {reads: {}}
+// 	},
+// 	{
+// 		lane_number: 4,
+// 		metrics_urls: [FAKE_METRICS_URL],
+// 		validation_status: 'NEEDED',
+// 		readsPerSample: {reads: {}}
+// 	},
+// ]
 
-function ExperimentRunValidation({experimentRun} : ExperimentRunValidationProps) {
+function ExperimentRunValidation({experimentRunName} : ExperimentRunValidationProps) {
 
 	const dispatch = useAppDispatch()
+
 	const [initialized, setInitialized] = useState<boolean>(false)
+	const experimentRunLanesState = useAppSelector(selectExperimentRunLanesState)
 
 	useEffect(() => {
 		if (!initialized) {
-			dispatch(initExperimentRunLanes('10128MG01A'))
+			dispatch(initExperimentRunLanes(experimentRunName))
 			setInitialized(true)
 		}
-	}, [dispatch, experimentRun, initialized])
+	}, [dispatch, experimentRunName, initialized])
 
-	useEffect(() => {
-		if (!initialized) {
-			dispatch(loadExternalExperimentRuns())
-		}
-	}, [dispatch, initialized])
+
+	const runLanes = experimentRunLanesState.runs[experimentRunName]
+	if (!runLanes) {
+		return null
+	}
 
 	return (
 		<Collapse >
 			{
-				fakeLanes.map(lane => {
-					return LanePanel({experimentRun, lane})
-				})
+				// runLanes.lanes.map(lane => <LanePanel key={lane.laneNumber} lane={lane}/>)
+				runLanes.lanes.map(lane => LanePanel({lane: lane}))
 			}
 		</Collapse>
 	)
 }
 
-interface LanePanelProps {
-	experimentRun: ExperimentRun
-	lane: FakeExperimentRunLane
-}
+
 
 
 
@@ -112,9 +111,9 @@ function FlexBar(props) {
 	)
 }
 
-function getValidationStatusExtra(lane: FakeExperimentRunLane) {
-	switch(lane.validation_status) {
-		case 'NEEDED': {
+function getValidationStatusExtra(lane: LaneInfo) {
+	switch(lane.validationStatus) {
+		case 'AVAILABLE': {
 			return (
 				<Typography.Text>Needs validation</Typography.Text>
 				
@@ -139,11 +138,15 @@ function getValidationStatusExtra(lane: FakeExperimentRunLane) {
 	}
 }
 
-function LanePanel({experimentRun, lane} : LanePanelProps) {
+interface LanePanelProps {
+	lane: LaneInfo
+}
+
+function LanePanel({lane} : LanePanelProps) {
 	return (
-		<Collapse.Panel key={`${experimentRun.id}-${lane.lane_number}`} header={`${lane.lane_number}`} extra={getValidationStatusExtra(lane)}>
+		<Collapse.Panel key={`LANE:${lane.laneNumber}`} header={`${lane.laneNumber}`} extra={getValidationStatusExtra(lane)}>
 			<FlexBar >
-				<List>
+				{/* <List>
 					{lane.metrics_urls.map((url, index) => {
 						return (
 							<List.Item key={`URL-${index}`}>
@@ -151,7 +154,7 @@ function LanePanel({experimentRun, lane} : LanePanelProps) {
 							</List.Item>
 						)
 					})}
-				</List>
+				</List> */}
 				<Space>
 					<Button>Passed</Button>
 					<Button>Failed</Button>
@@ -168,26 +171,33 @@ function LanePanel({experimentRun, lane} : LanePanelProps) {
 }
 
 interface ReadsPerSampleGraphProps {
-	lane: FakeExperimentRunLane
+	lane: LaneInfo
 }
 
 function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 
-	const data : any[] = []
-	for(const sample_id in lane.readsPerSample.reads) {
-		data.push({
-			sample_id,
-			count: lane.readsPerSample.reads[sample_id]
-		})
-	}
+	const dispatch = useAppDispatch()
+
+	useEffect(() => {
+		if (!lane.readsPerSample) {
+			dispatch(loadReadsPerSample(lane.runName, lane.laneNumber))
+		} 
+	}, [lane, dispatch])
+
+
+	const data = lane.readsPerSample?.sampleReads ?? []
+	
 
 	const SampleTooltip = ({active, payload, label}) => {
 		if (active && payload && payload.length) {
-			const sampleData = payload[0].payload
+			const sampleData : SampleReads = payload[0].payload
 			return (
 				<div>
-					<div>{`Sample ID: ${sampleData.sample_id}`}</div>
-					<div>{`Count: ${sampleData.count}`}</div>
+					{ sampleData.sampleID && 
+					<div>{`Sample ID: ${sampleData.sampleID}`}</div>
+					}
+					<div>{`Name: ${sampleData.sampleName}`}</div>
+					<div>{`Count: ${sampleData.nbReads}`}</div>
 				</div>
 			)
 		}

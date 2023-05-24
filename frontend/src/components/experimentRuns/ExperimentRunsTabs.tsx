@@ -17,6 +17,21 @@ import { clearFilters } from '../../modules/experimentRuns/actions'
 
 const { TabPane } = Tabs
 
+const pageStyle = {
+	padding: 0,
+	overflow: "hidden",
+}
+
+const tabsStyle = {
+	marginTop: 8,
+}
+
+const tabStyle = {
+	padding: "0 24px 24px 24px",
+	overflow: "auto",
+	height: "100%",
+  }
+
 function ExperimentRunsTabs() {
 
 	const FREEZEMAN_TAB_KEY = 'freezeman'
@@ -62,12 +77,12 @@ function ExperimentRunsTabs() {
 	return (<>
 			
 		<AppPageHeader title='Experiment Runs'  extra={getPageHeaderExtra()}></AppPageHeader>
-		<PageContent>
-			<Tabs onChange={setActiveKey} tabBarExtraContent={getTabBarExtraContent()}>
-				<TabPane tab='Freezeman' key={FREEZEMAN_TAB_KEY}>
+		<PageContent style={pageStyle}>
+			<Tabs onChange={setActiveKey} type='card' tabBarExtraContent={getTabBarExtraContent()} style={tabsStyle}>
+				<TabPane tab='Freezeman' key={FREEZEMAN_TAB_KEY} style={tabStyle}>
 					<ExperimentRunsListContent/>
 				</TabPane>
-				<TabPane tab='External' key={EXTERNAL_TAB_KEY}>
+				<TabPane tab='External' key={EXTERNAL_TAB_KEY}  style={tabStyle}>
 					<ExternalExperimentRunsListContent/>
 				</TabPane>
 			</Tabs>

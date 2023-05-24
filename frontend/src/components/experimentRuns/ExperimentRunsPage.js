@@ -7,6 +7,7 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 import { useAppDispatch } from "../../hooks";
 import ExperimentRunsTabs from "./ExperimentRunsTabs";
+import ExternalExperimentRunDetailContentRoute from "./ExternalExperimentRunDetailContent";
 
 const ExperimentRunsPage = () => { 
 
@@ -18,6 +19,7 @@ const ExperimentRunsPage = () => {
         <Route path="/list/*" element={<ExperimentRunsTabs />}/>
         <Route path="/actions/:action/*" element={<ActionContent templateType="experimentRun" />}/>
         <Route path="/:id/*" element={<ExperimentRunsDetailContentRoute />}/>
+        <Route path="/external/:name/*" element={<ExternalExperimentRunDetailContentRoute/>}/>
         <Route path="*" element={<Navigate to="/experiment-runs/list" replace />}/>
       </Routes>
   </PageContainer>

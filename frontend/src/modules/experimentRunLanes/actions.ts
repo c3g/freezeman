@@ -1,5 +1,5 @@
 import { LaneNumber } from "./models"
-import { SET_EXPERIMENT_LANES } from "./reducers"
+import { SET_EXPERIMENT_LANES, SET_READS_PER_SAMPLE } from "./reducers"
 import { fetchReadsPerSample, loadExperimentRunLanes } from "./services"
 
 

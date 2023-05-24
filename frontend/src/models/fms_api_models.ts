@@ -104,7 +104,7 @@ export interface FMSExperimentRun extends FMSTrackedModel {
 export interface FMSExternalExperimentRun {
     run_name: string                    // Experiment run name
     latest_submission_timestamp: string // Date that datasets for run were last submitted
-    lanes: [number]                     // Lane descriptions: Coordinates of the lane in a container
+    lanes: number[]                     // Lane descriptions: Coordinates of the lane in a container
 }
 
 export interface FMSImportedFile {
