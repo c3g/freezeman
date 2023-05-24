@@ -36,9 +36,10 @@ export const actionsToButtonList = (urlBase, actions, fullWidth = false) =>
 
 export function ActionDropdown({ urlBase, actions, fullWidth = true }) {
   const history = useNavigate();
-  const actionMenu = (
+  const renderActions = actions.items.length > 0;
+  const actionMenu = renderActions ? (
     <Menu>
-      {actions.items ? actions.items.map((a) =>
+      {actions.items.map((a) =>
         <Menu.Item key={a.id.toString()}>
           <Button
             icon={actionIcon(a)}
@@ -47,14 +48,13 @@ export function ActionDropdown({ urlBase, actions, fullWidth = true }) {
           >
             {a.name}
           </Button>
-        </Menu.Item>) :
-        <Menu.Item>Loading ...</Menu.Item>
+        </Menu.Item>)
       }
     </Menu>
-  );
+  ) : null;
 
   return (
-    actions.items.length > 0 ?
+    renderActions ?
       <Dropdown overlay={actionMenu} placement="bottomRight">
         <Button>
           <MonitorOutlined />  Available Actions
