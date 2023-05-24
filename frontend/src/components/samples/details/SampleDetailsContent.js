@@ -73,6 +73,12 @@ const tabStyle = {
   height: "100%",
 }
 
+const linageStyle = {
+  ...tabStyle,
+  overflow: 'hidden',
+  height: '90vh'
+}
+
 const listSampleMetadata = (token, options) =>
   withToken(token, api.sampleMetadata.get)(options).then(res => res.data)
 
@@ -352,7 +358,7 @@ const SampleDetailsContent = ({
           </Descriptions>
         </TabPane>
 
-        <TabPane tab={`Lineage`} key="lineage" style={{...tabStyle, minHeight: "100vh", maxheight: "100vh"}}>
+        <TabPane tab={`Lineage`} key="lineage" style={linageStyle}>
           <SampleDetailsLineage sample={sample} 
             handleSampleClick={navigateToSample}
             handleProcessClick={navigateToProcess}
