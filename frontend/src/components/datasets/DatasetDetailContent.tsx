@@ -128,7 +128,7 @@ const DatasetDetailContent = () => {
         },
         releaseStatusOption
     )
-    const filterKey = DATASET_FILE_FILTERS.dataset.key
+    const filterKey = DATASET_FILE_FILTERS.readset__dataset.key
     
     useEffect(() => {
         if (!dataset) {

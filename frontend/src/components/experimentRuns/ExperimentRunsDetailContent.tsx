@@ -169,7 +169,7 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 					</TabPane>
 
 					<TabPane tab={'Validation'} key="validation" style={tabStyle}>
-						<ExperimentRunValidation experimentRun={experimentRun} />
+						<ExperimentRunValidation experimentRunName={experimentRun.name} />
 					</TabPane>
 				</Tabs>
 			</PageContent>

@@ -566,9 +566,9 @@ export const DATASET_FILE_FILTERS = {
     key: "id",
     label: "Dataset File ID",
   },
-  dataset: {
+  readset__dataset: {
     type: FILTER_TYPE.INPUT_NUMBER,
-    key: "dataset",
+    key: "readset__dataset",
     label: "Dataset ID",
   },
   file_path: {
