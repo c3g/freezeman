@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db.models import Max, F
+from fms_core.services.study import can_remove_study
 
 from .models import (
     Container,
@@ -779,10 +780,15 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
         fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size")
 
 class StudySerializer(serializers.ModelSerializer):
+    removable = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Study
-        fields = ("id", "letter", "project_id", "workflow_id", "start", "end")
-    
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "removable")
+
+    def get_removable(self, instance: Study):
+        is_removable, *_ = can_remove_study(instance.pk)
+        return is_removable
+
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True)
     studies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

@@ -397,6 +397,7 @@ export interface FMSStudy extends FMSTrackedModel {
     workflow_id: FMSId                  // ID of workflow associated with study
     start: number                       // Number of starting step in workflow (usually 1)
     end: number                         // Number of end step in workflow (usually the number of the last step in the workflow)
+    removable: boolean                  // Indicates if the study can be safely removed
 }
 
 export interface FMSTaxon extends FMSTrackedModel {

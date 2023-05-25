@@ -5,7 +5,7 @@ import CollapsePanel from 'antd/lib/collapse/CollapsePanel'
 import { Link } from 'react-router-dom'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { FMSId } from '../../models/fms_api_models'
-import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { initExperimentRunLanes, loadReadsPerSample } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, SampleReads } from '../../modules/experimentRunLanes/models'
@@ -20,52 +20,6 @@ const { Title } = Typography
 interface ExperimentRunValidationProps {
 	experimentRunName: string
 }
-
-// interface FakeExperimentRunLane {
-// 	lane_number: number
-// 	metrics_urls : string[]
-// 	validation_status: 'PASSED' | 'FAILED' | 'NEEDED'
-// 	readsPerSample: FakeReadsPerSample
-// }
-
-// interface FakeReadsPerSample {
-// 	reads: {[key: FMSId] : number}
-// }
-
-// const FAKE_METRICS_URL = "https://datahub-297-p25.p.genap.ca/MGI_validation/2023/10173MG01B.report.html"
-
-// const fakeLanes : ReadonlyArray<FakeExperimentRunLane>= [
-// 	{
-// 		lane_number: 1,
-// 		metrics_urls: [FAKE_METRICS_URL, FAKE_METRICS_URL],
-// 		validation_status: 'PASSED',
-// 		readsPerSample: {reads: (() => {
-// 			const r = {}
-// 			for(let i = 1; i < 100; i++) {
-// 				r[i] = Math.floor(Math.random() * 2000000)
-// 			}
-// 			return r
-// 		})()}
-// 	},
-// 	{
-// 		lane_number: 2,
-// 		metrics_urls: [FAKE_METRICS_URL],
-// 		validation_status: 'FAILED',
-// 		readsPerSample: {reads: {}}
-// 	},
-// 	{
-// 		lane_number: 3,
-// 		metrics_urls: [FAKE_METRICS_URL],
-// 		validation_status: 'NEEDED',
-// 		readsPerSample: {reads: {}}
-// 	},
-// 	{
-// 		lane_number: 4,
-// 		metrics_urls: [FAKE_METRICS_URL],
-// 		validation_status: 'NEEDED',
-// 		readsPerSample: {reads: {}}
-// 	},
-// ]
 
 function ExperimentRunValidation({experimentRunName} : ExperimentRunValidationProps) {
 
@@ -96,8 +50,6 @@ function ExperimentRunValidation({experimentRunName} : ExperimentRunValidationPr
 		</Collapse>
 	)
 }
-
-
 
 
 
@@ -205,14 +157,18 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 	}
 
 	return (
-		<div style={{margin: '2em'}}>
-			<LineChart width={800} height={500} data={data}  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-				<XAxis xAxisId='xreads' dataKey='sampleName'/>
-				<YAxis yAxisId='yreads' dataKey='nbReads' domain={['auto', 'dataMax']}/>
-				<Tooltip content={<SampleTooltip/>}/>
-				<Line type='stepAfter' dataKey='nbReads' stroke='#DC3A18' activeDot={false} xAxisId={'xreads'} yAxisId={'yreads'} />
-			</LineChart>
-		</div>
+		// <LineChart width={800} height={500} data={data}  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+		// 	<XAxis xAxisId='xreads' dataKey='sampleName'/>
+		// 	<YAxis yAxisId='yreads' dataKey='nbReads' domain={['auto', 'dataMax']}/>
+		// 	<Tooltip content={<SampleTooltip/>}/>
+		// 	<Line type='stepAfter' dataKey='nbReads' stroke='#DC3A18' activeDot={false} xAxisId={'xreads'} yAxisId={'yreads'} />
+		// </LineChart>
+		<BarChart width={800} height={500} data={data} margin={{top: 20, right: 20, bottom: 20, left: 20}}>
+			<XAxis/>
+			<YAxis type='number' domain={['dataMin', 'dataMax']}/>
+			<Tooltip content={<SampleTooltip/>}/>
+			<Bar dataKey='nbReads' fill='#8884d8'/>
+		</BarChart>
 	)
 	// 
 }
