@@ -73,7 +73,7 @@ const tabStyle = {
   height: "100%",
 }
 
-const linageStyle = {
+const lineageStyle = {
   ...tabStyle,
   overflow: 'hidden',
   height: '90vh'
@@ -358,7 +358,7 @@ const SampleDetailsContent = ({
           </Descriptions>
         </TabPane>
 
-        <TabPane tab={`Lineage`} key="lineage" style={linageStyle}>
+        <TabPane tab={`Lineage`} key="lineage" style={lineageStyle}>
           <SampleDetailsLineage sample={sample} 
             handleSampleClick={navigateToSample}
             handleProcessClick={navigateToProcess}
