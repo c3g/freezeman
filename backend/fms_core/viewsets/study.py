@@ -1,11 +1,13 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from fms_core.models import Study, Project, Workflow
+from fms_core.models import Study, Project, Workflow, StepHistory, SampleNextStep, SampleNextStepByStudy
 from fms_core.serializers import StudySerializer
-from fms_core.services.study import create_study
+from fms_core.services.study import create_study, can_remove_study
+
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 
 from collections import defaultdict
 
@@ -56,3 +58,22 @@ class StudyViewSet(viewsets.ModelViewSet):
             # Serialize study
             serializer = StudySerializer(study)
             return Response(serializer.data)
+
+    def destroy(self, request, pk=None):
+        errors = defaultdict(list)
+
+        if pk is None:
+            errors['Study'].append("pk cannot be None")
+        else:
+            _, errors['Removable'], _ = can_remove_study(pk)
+
+        if any(bool(error) for error in errors.values()):
+            raise ValidationError(errors)
+        else:
+            study = Study.objects.filter(pk=pk).first()
+            if study:
+                study.delete()
+                return HttpResponse('Successfully removed the study', status=status.HTTP_200_OK)
+            else:
+                return HttpResponse(f"Could not find study with id '{pk}'.", status=status.HTTP_404_NOT_FOUND)
+

@@ -46,6 +46,7 @@ import {
 // the backend when they add the objects to the store.
 export interface FetchedObject {
 	isFetching: boolean
+	isRemoving: boolean
 	isLoaded: boolean
 	error?: any
 	didFail?: boolean
