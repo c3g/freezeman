@@ -229,6 +229,8 @@ def ingest_run_validation_report(report_json):
     errors = []
     warnings = []
 
+    ACCEPTED_DATASET_FILE_TYPES = ["fastq_1", "fastq_2", "bam", "bai"]
+
     for error in RUN_PROCESSING_VALIDATOR.validator.iter_errors(report_json):
         if error.path[0] == "lane":
             errors.append(f'Lane must be a positive integer (e.g. "0", "1", ..., .etc). It was given "{report_json["lane"]}".')
@@ -267,7 +269,7 @@ def ingest_run_validation_report(report_json):
         readset_obj, errors, warnings = create_readset(dataset, readset_name, sample_name, derived_sample_id)
         readset_by_name[readset_name] = readset_obj
         for key in readset:
-            if key not in ["sample_name", "barcodes"] and readset[key]:
+            if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
                 dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
                                                                            file_path=readset[key])
                 errors.extend(newerrors)

@@ -53,7 +53,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_external_experiment_run(self, _request):
-        queryset = Dataset.objects.distinct("run_name")
+        queryset = Dataset.objects.filter(experiment_run__isnull=True).distinct("run_name")
         serializer = ExternalExperimentRunSerializer(queryset, many=True)
         return Response(serializer.data)
 
