@@ -367,11 +367,12 @@ SAMPLE_SUBMISSION_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
-                      'Location Barcode', 'Container Coord', 'Project', 'Study', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
-                      'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Reference Genome', 'Volume (uL)', 'Conc. (ng/uL)',
-                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness',
-                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Comment'],
+          'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name',
+                      'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Name',
+                      'Container Barcode', 'Sample Coord', 'Location Barcode', 'Container Coord', 'Project', 'Study',
+                      'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias', 'Cohort', 'Sex', 'Pedigree',
+                      'Mother ID', 'Father ID', 'Reference Genome', 'Library Type', 'Platform', 'Strandedness',
+                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Comment'],
           'stitch_column': 'Pool Name',
           'batch': False,
       },
