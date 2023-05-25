@@ -10,9 +10,10 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectIndividualsDetailsById } from "../../selectors";
 import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 import { getIndividualDetails } from "../../modules/individualDetails/actions";
-import { Individual, IndividualsDetailsById } from "../../modules/individualDetails/reducers";
+import { Individual, IndividualDetailsState as IndividualsDetailsById } from "../../modules/individualDetails/reducers";
 import { FetchedState } from "../../modules/common";
-import { getAllItems } from "../../models/frontend_models";
+import { Sample, getAllItems } from "../../models/frontend_models";
+import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
 
 const IndividualsDetailContent = () => {
     const { id } = useParams();
@@ -47,7 +48,14 @@ const IndividualsDetailContent = () => {
         height: '100%',
     }
 
-    const samples: number[] = individual && individual.data ? getAllItems(individual.data.samplesByIndividual.itemsByID).map((value) => value.id) : []
+    const samples = individual?.data?.samplesByIndividual.items.reduce((acc, sampleID) => {
+        const sample = individual?.data?.samplesByIndividual.itemsByID[sampleID]
+        if (sample) {
+            acc.push({ sample: sample as Sample })
+        }
+        return acc
+    }, [] as SampleAndLibrary[])
+    
     const title =
         `Individual ${[id, (individual && individual.data?.individual) ? individual.data.individual.name : undefined].filter(Boolean).join(' - ')}`;
 
@@ -63,7 +71,7 @@ const IndividualsDetailContent = () => {
                 <Tabs.TabPane tab="Associated Samples" key="samples" style={tabPaneStyle}>
                     {
                         individual && individual.data &&
-                        <IndividualAssociatedSamples samples={samples} individual={individual.data} />
+                        <IndividualAssociatedSamples samples={samples ?? []} individual={individual.data} />
                     }
                 </Tabs.TabPane>
             </Tabs>

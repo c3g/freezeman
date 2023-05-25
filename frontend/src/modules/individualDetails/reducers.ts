@@ -6,10 +6,11 @@ import { FMSIndividual, FMSSample } from "../../models/fms_api_models";
 import produce from "immer";
 import { PagedItems } from "../../models/paged_items";
 import { createItemsByID } from "../../models/frontend_models";
-import { clearFiltersReducer, removeFilterReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers";
+import { clearFiltersReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers";
 
-export const GET_INDIVIDUAL_DETAILS = createNetworkActionTypes('INDIVIDUAL_DETAILS.GET_INDIVIDUAL_DETAILS')
-export const SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER = createNetworkActionTypes('INDIVIDUAL_DETAILS.SET_INDIVIDUAL_SAMPLES_FILTER')
+export const LIST_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.LIST_TABLE')
+export const REFRESH_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.REFRESH_TABLE')
+export const SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.SET_INDIVIDUAL_SAMPLES_FILTER'
 export const REMOVE_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.REMOVE_INDIVIDUAL_SAMPLES_FILTER'
 export const CLEAR_FILTERS = "INDIVIDUAL_DETAILS.CLEAR_FILTERS"
 
@@ -17,15 +18,11 @@ export interface Individual {
     individual: FMSIndividual,
     samplesByIndividual: PagedItems<FMSSample>
 }
-export interface IndividualsDetailsById {
+export interface IndividualDetailsState {
     [key: number]: Readonly<FetchedState<Individual>>
 }
-export interface IndividualDetailsState {
-    individualsDetailsById: IndividualsDetailsById
-}
-const INITIAL_STATE: IndividualDetailsState = {
-    individualsDetailsById: {}
-}
+
+const INITIAL_STATE: IndividualDetailsState = {}
 const INITIAL_PAGED_ITEMS = {
     itemsByID: {},
     items: [],
@@ -48,58 +45,50 @@ export const individualDetails = (inputState: IndividualDetailsState = INITIAL_S
 
 export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsState>, action: AnyAction) => {
     switch (action.type) {
-        case GET_INDIVIDUAL_DETAILS.REQUEST:
-            {
-                const { individualID } = action.meta
-                if (state.individualsDetailsById[individualID]) {
-                    state.individualsDetailsById[individualID].isFetching = true
-                } else {
-                    state.individualsDetailsById[individualID] = {
-                        isFetching: true,
-                    }
-                }
-                break;
+        case REFRESH_TABLE.RECEIVE: {
+            const { individualID } = action.meta
+            state[individualID] = {
+                isFetching: true
             }
-        case GET_INDIVIDUAL_DETAILS.RECEIVE:
-            {
-                const { individualID, individual, individualSamples } = action.meta
-                if (state.individualsDetailsById[individualID]) {
-                    state.individualsDetailsById[individualID].isFetching = false
-                    state.individualsDetailsById[individualID].data = { individual: { ...individual }, samplesByIndividual: { ...INITIAL_PAGED_ITEMS, items: individualSamples, itemsByID: createItemsByID(individualSamples) } }
+        }
+        case LIST_TABLE.REQUEST: {
+            const { individualID } = action.meta
+            if (!state[individualID]) {
+                state[individualID] = {
+                    ...state,
+                    isFetching: true
                 }
-                break;
             }
-        case GET_INDIVIDUAL_DETAILS.ERROR:
-            {
-                const { individualID } = action.meta
-                const { error } = action
-
-                const studySamples = state.individualsDetailsById[individualID]
-                if (studySamples) {
-                    studySamples.isFetching = false
-                    studySamples.error = error
+            break;
+        }
+        case LIST_TABLE.RECEIVE: {
+            const { individualID, individual } = action.meta
+            state[individualID].isFetching = false
+            state[individualID].data = {
+                ...state,
+                individual: { ...individual },
+                samplesByIndividual: {
+                    ...INITIAL_PAGED_ITEMS,
+                    items: action.data.results.map(r => r.id),
+                    itemsByID: createItemsByID(action.data.results)
                 }
-                break;
             }
+            break;
+        }
+        case LIST_TABLE.ERROR: {
+            return { ...state, isFetching: false, error: action.error, };
+        }
         case SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER: {
             const { individualID, description, value } = action
-            const samplesByIndividual = state.individualsDetailsById[individualID]?.data?.samplesByIndividual
+            const samplesByIndividual = state[individualID]?.data?.samplesByIndividual
             if (samplesByIndividual) {
                 samplesByIndividual.filters = setFilterReducer(samplesByIndividual.filters ?? {}, description, value)
             }
             break;
         }
-        case REMOVE_INDIVIDUAL_DETAILS_SAMPLES_FILTER: {
-            const { individualID, description } = action
-            const samplesByIndividual = state.individualsDetailsById[individualID]?.data?.samplesByIndividual
-            if (samplesByIndividual) {
-                samplesByIndividual.filters = removeFilterReducer(samplesByIndividual.filters ?? {}, description)
-            }
-            break;
-        }
         case CLEAR_FILTERS: {
             const { individualID } = action
-            const samplesByIndividual = state.individualsDetailsById[individualID]?.data?.samplesByIndividual
+            const samplesByIndividual = state[individualID]?.data?.samplesByIndividual
             if (samplesByIndividual) {
                 samplesByIndividual.filters = clearFiltersReducer()
             }

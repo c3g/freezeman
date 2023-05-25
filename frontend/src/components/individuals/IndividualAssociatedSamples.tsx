@@ -5,8 +5,9 @@ import { clearFilters, setIndividualDetailsSamplesFilter } from '../../modules/i
 import { FilterDescription, FilterValue } from "../../models/paged_items";
 import { useAppDispatch } from "../../hooks";
 import { Individual } from "../../modules/individualDetails/reducers";
+import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
 interface IndividualAssociatedSamplesProps {
-    samples: number[],
+    samples: SampleAndLibrary[],
     individual: Individual
 }
 
@@ -59,7 +60,7 @@ const IndividualAssociatedSamples = ({ samples, individual }: IndividualAssociat
             filters={individual.samplesByIndividual.filters}
             filterDefinitions={filterDefinitions}
             filterKeys={filterKeys}
-            sampleIDs={samples ? samples : []}
+            samples={samples ? samples : []}
             setFilter={handleSetFilter}
             columns={columnsForSelection}
             setSortBy={() => { }}
