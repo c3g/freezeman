@@ -24,6 +24,7 @@ import { WithContainerRenderComponent } from '../shared/WithItemRenderComponent'
 import ExperimentRunValidation from './ExperimentRunValidation'
 import ExperimentRunsSamples from './ExperimentRunsSamples'
 import ExperimentRunOverview from './ExperimentRunOverview'
+import DatasetTable from '../datasets/DatasetTable'
 
 const { TabPane } = Tabs
 
@@ -170,6 +171,10 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 
 					<TabPane tab={'Validation'} key="validation" style={tabStyle}>
 						<ExperimentRunValidation experimentRunName={experimentRun.name} />
+					</TabPane>
+
+					<TabPane tab={'Datasets'} key="datasets" style={tabStyle}>
+						<DatasetTable run_name={experimentRun.name}/>
 					</TabPane>
 				</Tabs>
 			</PageContent>
