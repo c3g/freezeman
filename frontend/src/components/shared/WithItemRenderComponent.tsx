@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { FMSTrackedModel } from '../../models/fms_api_models'
-import { Container, Coordinate, Index, Individual, ItemsByID, Process, Project, Sample, Sequence, User } from '../../models/frontend_models'
-import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectSamplesByID, selectSequencesByID, selectUsersByID } from '../../selectors'
-import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProject, withSample, withSequence, withUser } from '../../utils/withItem'
+import { Container, Coordinate, Index, Individual, ItemsByID, Process, Project, Sample, Sequence, Taxon, User } from '../../models/frontend_models'
+import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectSamplesByID, selectSequencesByID, selectTaxonsByID, selectUsersByID } from '../../selectors'
+import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProject, withSample, withSequence, withTaxon, withUser } from '../../utils/withItem'
 
 /**
  * WithItemRenderComponent
@@ -54,27 +54,27 @@ type ItemsByIDSelectorFunc<T extends FMSTrackedModel> = (state: any) => ItemsByI
  * @param selector The selector function for the `itemsByID` state that matches the object type (eg selectSamplesByID)
  * @returns A pure React component function.
  */
-function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTrackedModel> (withItem : W, selector: ItemsByIDSelectorFunc<T>) {
+function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTrackedModel>(withItem: W, selector: ItemsByIDSelectorFunc<T>) {
 
-	interface WithItemRenderComponentProps<T extends FMSTrackedModel> {
-		objectID: string | number
-		render: ItemRenderFunc<T>
-		placeholder?: React.ReactElement
-	}
+    interface WithItemRenderComponentProps<T extends FMSTrackedModel> {
+        objectID: string | number
+        render: ItemRenderFunc<T>
+        placeholder?: React.ReactElement
+    }
 
-    const WithItemRenderComponent = ({objectID, render, placeholder} : WithItemRenderComponentProps<T>) => {
-		const objectsByID = useSelector(selector)
+    const WithItemRenderComponent = ({ objectID, render, placeholder }: WithItemRenderComponentProps<T>) => {
+        const objectsByID = useSelector(selector)
         const [object, setObject] = useState<T>()
 
         useEffect(() => {
-            if(objectID && objectsByID) {
-                const result: T = withItem(objectsByID , `${objectID}`, (object : T) => object, undefined)
+            if (objectID && objectsByID) {
+                const result: T = withItem(objectsByID, `${objectID}`, (object: T) => object, undefined)
                 if (result) {
                     setObject(result)
                 }
             }
         }, [objectsByID, objectID])
-        
+
         if (object) {
             return render(object)
         } else {
@@ -86,7 +86,7 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTra
         }
     }
 
-	return WithItemRenderComponent
+    return WithItemRenderComponent
 }
 
 export const WithCoordinateRenderComponent = WithItemRenderComponentFactory<typeof withCoordinate, Coordinate>(withCoordinate, selectCoordinatesByID)
@@ -98,4 +98,5 @@ export const WithProjectRenderComponent = WithItemRenderComponentFactory<typeof 
 export const WithSampleRenderComponent = WithItemRenderComponentFactory<typeof withSample, Sample>(withSample, selectSamplesByID)
 export const WithSequenceRenderComponent = WithItemRenderComponentFactory<typeof withSequence, Sequence>(withSequence, selectSequencesByID)
 export const WithUserRenderComponent = WithItemRenderComponentFactory<typeof withUser, User>(withUser, selectUsersByID)
+export const WithTaxonRenderComponent = WithItemRenderComponentFactory<typeof withTaxon, Taxon>(withTaxon, selectTaxonsByID)
 
