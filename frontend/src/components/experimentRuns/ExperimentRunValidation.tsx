@@ -11,6 +11,7 @@ import { initExperimentRunLanes, loadReadsPerSample } from '../../modules/experi
 import { ExperimentRunLanes, LaneInfo, SampleReads } from '../../modules/experimentRunLanes/models'
 import { loadExternalExperimentRuns } from '../../modules/experimentRuns/externalExperimentsActions'
 import { selectExperimentRunLanesState } from '../../selectors'
+import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 
 const { Title } = Typography
 
@@ -113,10 +114,12 @@ function LanePanel({lane} : LanePanelProps) {
 				</Space>
 			</FlexBar>
 			
-			<div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-				<ReadsPerSampleGraph lane={lane}/>
-				<Title level={5}>Reads Per Sample</Title>
-			</div>
+			<ReadsPerSampleGraph lane={lane}/>
+			<Title level={5}>Reads Per Sample</Title>
+			{/* <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+				
+				
+			</div> */}
 			
 		</Collapse.Panel>
 	)
@@ -126,51 +129,5 @@ interface ReadsPerSampleGraphProps {
 	lane: LaneInfo
 }
 
-function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
-
-	const dispatch = useAppDispatch()
-
-	useEffect(() => {
-		if (!lane.readsPerSample) {
-			dispatch(loadReadsPerSample(lane.runName, lane.laneNumber))
-		} 
-	}, [lane, dispatch])
-
-
-	const data = lane.readsPerSample?.sampleReads ?? []
-	
-
-	const SampleTooltip = ({active, payload, label}) => {
-		if (active && payload && payload.length) {
-			const sampleData : SampleReads = payload[0].payload
-			return (
-				<div>
-					{ sampleData.sampleID && 
-					<div>{`Sample ID: ${sampleData.sampleID}`}</div>
-					}
-					<div>{`Name: ${sampleData.sampleName}`}</div>
-					<div>{`Count: ${Number(sampleData.nbReads).toFixed(0)}`}</div>
-				</div>
-			)
-		}
-		return null
-	}
-
-	return (
-		// <LineChart width={800} height={500} data={data}  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-		// 	<XAxis xAxisId='xreads' dataKey='sampleName'/>
-		// 	<YAxis yAxisId='yreads' dataKey='nbReads' domain={['auto', 'dataMax']}/>
-		// 	<Tooltip content={<SampleTooltip/>}/>
-		// 	<Line type='stepAfter' dataKey='nbReads' stroke='#DC3A18' activeDot={false} xAxisId={'xreads'} yAxisId={'yreads'} />
-		// </LineChart>
-		<BarChart width={800} height={500} data={data} margin={{top: 20, right: 20, bottom: 20, left: 20}}>
-			<XAxis/>
-			<YAxis type='number' domain={['dataMin', 'dataMax']}/>
-			<Tooltip content={<SampleTooltip/>}/>
-			<Bar dataKey='nbReads' fill='#8884d8'/>
-		</BarChart>
-	)
-	// 
-}
 
 export default ExperimentRunValidation

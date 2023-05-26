@@ -819,6 +819,7 @@ class MetricSerializer(serializers.ModelSerializer):
     run_name = serializers.CharField(read_only=True, source='readset.dataset.run_name')
     experiment_run_id = serializers.IntegerField(read_only=True, source='readset.dataset.exeriment_run_id')
     lane = serializers.IntegerField(read_only=True, source='readset.dataset.lane')
+    value_numeric = serializers.DecimalField(read_only=True, decimal_places=20, max_digits=40, coerce_to_string=False)
 
     class Meta:
         model = Metric
