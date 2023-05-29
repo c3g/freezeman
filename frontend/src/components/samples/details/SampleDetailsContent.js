@@ -63,10 +63,6 @@ const pageStyle = {
   overflow: "hidden",
 }
 
-const tabsStyle = {
-  marginTop: 8,
-}
-
 const tabStyle = {
   padding: "0 24px 24px 24px",
   overflow: "auto",
@@ -183,6 +179,11 @@ const SampleDetailsContent = ({
       setSampleMetadata(metadata)
     })
   }, [sample])
+
+  const tabsStyle = {
+    marginTop: 8,
+    overflow: activeKey === 'lineage' ? 'hidden' : 'auto'
+  }
 
   return <>
     <AppPageHeader

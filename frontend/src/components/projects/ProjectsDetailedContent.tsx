@@ -68,6 +68,7 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 
 	const tabsStyle = {
 		marginTop: 8,
+		overflow: "auto",
 	}
 
 	const tabStyle: React.CSSProperties = {

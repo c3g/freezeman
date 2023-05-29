@@ -56,7 +56,7 @@ const ProcessMeasurementsDetailContent = ({
   return <>
     <AppPageHeader title={title} />
     <PageContent loading={isLoading}>
-      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={{overflow: 'auto'}}>
         <TabPane tab="Overview" key="overview" style={{ marginTop: 8 }}>
           <Descriptions bordered={true} size="small" column={4}>
             <Descriptions.Item label="Protocol" span={4}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>

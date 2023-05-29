@@ -22,6 +22,7 @@ const pageStyle = {
 
 const tabsStyle = {
   marginTop: 8,
+  overflow: 'auto'
 }
 
 const tabStyle = {
