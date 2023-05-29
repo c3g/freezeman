@@ -11,12 +11,12 @@ import api from "../../../utils/api";
 import { useAppDispatch } from '../../../hooks'
 import { useResizeObserver } from "../../../utils/ref"
 import { ProcessMeasurement, Sample } from "../../../models/frontend_models";
-import { FMSId } from "../../../models/fms_api_models";
+import { FMSProcessMeasurement, FMSSample } from "../../../models/fms_api_models";
 
 interface SampleDetailsLineageProps {
   sample: Partial<Sample>
-  handleSampleClick?: (id: FMSId) => void
-  handleProcessClick?: (id: FMSId) => void
+  handleSampleClick?: (id: FMSSample['id']) => void
+  handleProcessClick?: (id: FMSProcessMeasurement['id']) => void
 }
 
 interface PositionedGraphNode extends GraphNode {
