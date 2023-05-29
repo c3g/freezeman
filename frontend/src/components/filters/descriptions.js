@@ -194,6 +194,11 @@ export const CONTAINER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "samples__name",
     label: "Sample name",
+  },
+  comment: {
+    type: FILTER_TYPE.INPUT,
+    key: "comment",
+    label: "Comment"
   }
 }
 
