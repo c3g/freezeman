@@ -9,10 +9,10 @@ import IndividualOverview from "./IndividualOverview";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectIndividualsDetailsById } from "../../selectors";
 import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
-import { getIndividualDetails } from "../../modules/individualDetails/actions";
+import { listTable } from "../../modules/individualDetails/actions";
 import { Individual, IndividualDetailsState as IndividualsDetailsById } from "../../modules/individualDetails/reducers";
 import { FetchedState } from "../../modules/common";
-import { Sample, getAllItems } from "../../models/frontend_models";
+import { Sample } from "../../models/frontend_models";
 import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
 
 const IndividualsDetailContent = () => {
@@ -24,7 +24,7 @@ const IndividualsDetailContent = () => {
     const [individual, setIndividual] = useState<FetchedState<Individual>>()
 
     useEffect(() => {
-        dispatch(getIndividualDetails(Number(id)));
+        dispatch(listTable(Number(id)));
     }, [id, dispatch])
 
     useEffect(() => {
@@ -55,7 +55,7 @@ const IndividualsDetailContent = () => {
         }
         return acc
     }, [] as SampleAndLibrary[])
-    
+
     const title =
         `Individual ${[id, (individual && individual.data?.individual) ? individual.data.individual.name : undefined].filter(Boolean).join(' - ')}`;
 

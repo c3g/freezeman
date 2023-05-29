@@ -1,10 +1,10 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
 import { Protocol } from '../../models/frontend_models'
 import { clearFilters, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepSortOrder } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudyUXStepSettings } from '../../modules/studySamples/models'
-import { selectProtocolsByID, selectStepsByID } from '../../selectors'
+import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID } from '../../selectors'
 import { SampleAndLibrary, getColumnsForStep } from '../shared/WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../shared/WorkflowSamplesTable/LibraryTableColumns'
 import { IdentifiedTableColumnType, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS, SampleColumnID } from '../shared/WorkflowSamplesTable/SampleTableColumns'
@@ -22,6 +22,27 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 	const dispatch = useAppDispatch()
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)
+	const samplesByID = useAppSelector(selectSamplesByID)
+	const librariesByID = useAppSelector(selectLibrariesByID)
+	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
+
+	useEffect(() => {
+		const sampleIDs = step.samples ?? []
+		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
+			const sample = samplesByID[sampleID]
+			if (sample) {
+				if (sample.is_library) {
+					const library = librariesByID[sampleID]
+					acc.push({ sample, library })
+				} else {
+					acc.push({ sample })
+				}
+			}
+			return acc
+		}, [] as SampleAndLibrary[])
+
+		setSamples(availableSamples)
+	}, [samplesByID, librariesByID, step])
 
 
 	const setFilter = useCallback(
@@ -32,7 +53,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 
 	const setFilterOptions = useCallback(
 		(filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => {
-			dispatch(setStudyStepFilterOptions(studyID, step.stepOrderID, description, {[propertyName]: value}))
+			dispatch(setStudyStepFilterOptions(studyID, step.stepOrderID, description, { [propertyName]: value }))
 		}
 		, [dispatch, studyID, step])
 
@@ -64,7 +85,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 		<WorkflowSamplesTable
 			clearFilters={localClearFilters}
 			hasFilter={true}
-			sampleIDs={step.samples ?? []}
+			samples={samples ?? []}
 			columns={columns}
 			filterDefinitions={{ ...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS }}
 			filterKeys={{ ...SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS, ...SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS }}

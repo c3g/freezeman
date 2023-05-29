@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react"
-import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../shared/WorkflowSamplesTable/SampleTableColumns';
+import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../shared/WorkflowSamplesTable/SampleTableColumns';
 import WorkflowSamplesTable from "../shared/WorkflowSamplesTable/WorkflowSamplesTable"
 import { clearFilters, setIndividualDetailsSamplesFilter } from '../../modules/individualDetails/actions'
 import { FilterDescription, FilterValue } from "../../models/paged_items";
@@ -41,7 +41,21 @@ const IndividualAssociatedSamples = ({ samples, individual }: IndividualAssociat
     }, [samples])
 
     const filterKeys = useMemo(() => {
-        return { ...SAMPLE_NEXT_STEP_FILTER_KEYS }
+        return {
+            [SampleColumnID.ID]: 'id',
+            [SampleColumnID.KIND]: 'derived_samples__sample_kind__name',
+            [SampleColumnID.NAME]: 'name',
+            [SampleColumnID.INDIVIDUAL]: 'derived_samples__biosample__individual__name',
+            [SampleColumnID.CONTAINER_NAME]: 'container__name',
+            [SampleColumnID.CONTAINER_BARCODE]: 'container__barcode',
+            [SampleColumnID.COORDINATES]: 'coordinate__name',
+            [SampleColumnID.VOLUME]: 'volume',
+            [SampleColumnID.CONCENTRATION]: 'concentration',
+            [SampleColumnID.CREATION_DATE]: 'creation_date',
+            [SampleColumnID.DEPLETED]: 'depleted',
+            [SampleColumnID.QC_FLAG]: 'qc_flag',
+            [SampleColumnID.PROJECT]: 'derived_samples__project__name',
+        }
     }, [])
 
     const filterDefinitions = useMemo(() => {

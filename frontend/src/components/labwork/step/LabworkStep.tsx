@@ -3,7 +3,7 @@ import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography } fro
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
-import { useAppDispatch } from '../../../hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
@@ -14,12 +14,13 @@ import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import RefreshButton from '../../RefreshButton'
-import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
+import { SampleAndLibrary, getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { SampleColumnID } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import { clearFilters } from '../../../modules/labworkSteps/actions'
+import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
 
 const { Text } = Typography
 
@@ -38,6 +39,29 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
 	const [selectedTab, setSelectedTab] = useState<string>(SAMPLES_TAB_KEY)
+	const samplesByID = useAppSelector(selectSamplesByID)
+	const librariesByID = useAppSelector(selectLibrariesByID)
+	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
+
+	const fetchSamples = (sampleIDs) => {
+		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
+			const sample = samplesByID[sampleID]
+			if (sample) {
+				if (sample.is_library) {
+					const library = librariesByID[sampleID]
+					acc.push({ sample, library })
+				} else {
+					acc.push({ sample })
+				}
+			}
+			return acc
+		}, [] as SampleAndLibrary[])
+
+		setSamples(availableSamples)
+	}
+	useEffect(() => {
+		fetchSamples(stepSamples.displayedSamples)
+	}, [samplesByID, librariesByID, stepSamples])
 
 	// ** Refresh **
 
@@ -224,22 +248,22 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	/** Sorting by coordinate **/
 
-	const handleCoordinateSortOrientation = useCallback((value : string) => {
-		switch(value) {
+	const handleCoordinateSortOrientation = useCallback((value: string) => {
+		switch (value) {
 			case 'row': {
-				dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, orientation: 'row'}))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'row' }))
 				break
 			}
 			case 'column': {
-				dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, orientation: 'column'}))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'column' }))
 				break
 			}
 		}
 	}, [dispatch, step, stepSamples.selectedSamplesSortDirection])
 
 	const handleSelectionTableSortChange = useCallback((sortBy: SortBy) => {
-		if(sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
-			dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, order: sortBy.order}))
+		if (sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
+			dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, order: sortBy.order }))
 		}
 	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
 
@@ -295,14 +319,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY &&
 							<>
-							<Typography.Text>Sort Coordinates: </Typography.Text>
-							<Radio.Group 
-								value={stepSamples.selectedSamplesSortDirection.orientation} 
-								onChange={(evt) => {evt.target && handleCoordinateSortOrientation(evt.target.value)}} 
-							>
-								<Radio.Button value='row'>by Row</Radio.Button>
-								<Radio.Button value='column'>by Column</Radio.Button>
-							</Radio.Group>
+								<Typography.Text>Sort Coordinates: </Typography.Text>
+								<Radio.Group
+									value={stepSamples.selectedSamplesSortDirection.orientation}
+									onChange={(evt) => { evt.target && handleCoordinateSortOrientation(evt.target.value) }}
+								>
+									<Radio.Button value='row'>by Row</Radio.Button>
+									<Radio.Button value='column'>by Column</Radio.Button>
+								</Radio.Group>
 							</>
 						}
 						<Popconfirm
@@ -321,7 +345,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						<WorkflowSamplesTable
 							clearFilters={localClearFilters}
 							hasFilter={true}
-							sampleIDs={stepSamples.displayedSamples}
+							samples={samples}
 							columns={columnsForSamples}
 							filterDefinitions={filterDefinitions}
 							filterKeys={filterKeys}
@@ -348,7 +372,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable
 							hasFilter={false}
-							sampleIDs={stepSamples.selectedSamples}
+							samples={samples}
 							columns={columnsForSelection}
 							selection={selectionProps}
 							setSortBy={handleSelectionTableSortChange}

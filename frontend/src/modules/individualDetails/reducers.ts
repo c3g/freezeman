@@ -65,12 +65,13 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
             const { individualID, individual } = action.meta
             state[individualID].isFetching = false
             state[individualID].data = {
-                ...state,
+                ...state[individualID].data,
                 individual: { ...individual },
                 samplesByIndividual: {
                     ...INITIAL_PAGED_ITEMS,
                     items: action.data.results.map(r => r.id),
-                    itemsByID: createItemsByID(action.data.results)
+                    itemsByID: createItemsByID(action.data.results),
+                    filters: state[individualID].data?.samplesByIndividual.filters ?? {}
                 }
             }
             break;

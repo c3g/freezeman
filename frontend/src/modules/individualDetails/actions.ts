@@ -5,20 +5,10 @@ import { AppDispatch } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { get } from "../individuals/actions"
-import { SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER, CLEAR_FILTERS, LIST_TABLE } from "./reducers"
-
-export const getIndividualDetails = (individualID: FMSId) => {
-	return async (dispatch, getState) => {
-		if (!getState().individuals.itemsByID[individualID]) {
-			await dispatch(get(individualID));
-		}
-		const individual = getState().individuals.itemsByID[individualID]
-		await dispatch(networkAction(LIST_TABLE, api.samples.list({ derived_samples__biosample__individual__id__in: individualID }), { meta: { individual, individualID } }))
-	}
-}
+import { SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER, CLEAR_FILTERS, LIST_TABLE, IndividualDetailsState, Individual } from "./reducers"
 
 
-export const setIndividualDetailsSamplesFilter = thenList((individualID: FMSId, description: FilterDescription, value: FilterValue) => {
+export const setIndividualDetailsSamplesFilter = (individualID: FMSId, description: FilterDescription, value: FilterValue) => {
 	return async (dispatch, getState) => {
 		dispatch({
 			type: SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER,
@@ -26,32 +16,31 @@ export const setIndividualDetailsSamplesFilter = thenList((individualID: FMSId, 
 			description,
 			value
 		})
+
+		dispatch(listTable(individualID))
+	}
+}
+
+export const listTable = (individualID: FMSId) => {
+	return async (dispatch, getState) => {
 		if (!getState().individuals.itemsByID[individualID]) {
 			await dispatch(get(individualID));
 		}
 		const individual = getState().individuals.itemsByID[individualID]
-		const serializedFilters = serializeFilterParamsWithDescriptions(individual.filters)
-		await dispatch(networkAction(LIST_TABLE, api.samples.list({ ...serializedFilters }), { meta: { individualID } }))
-	}
-})
+		const details = getState().individualDetails;
+		const filters = serializeFilterParamsWithDescriptions(details[individualID]?.data?.samplesByIndividual.filters ?? {})
+		const options = { derived_samples__biosample__individual__id__in: individualID, ...filters }
 
-export const clearFilters = thenList((individualID: FMSId) => {
+		return await dispatch(networkAction(LIST_TABLE, api.samples.list(options), { meta: { individualID, individual: individual } }))
+	}
+}
+
+export const clearFilters = (individualID: FMSId) => {
 	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: CLEAR_FILTERS,
 			individualID
 		})
-		// dispatch(refreshSamplesByIndividual(individualID))
-	}
-})
-
-
-export default {
-	getIndividualDetails
-}
-function thenList(fn) {
-	return (...args) => async dispatch => {
-		await dispatch(fn(...args))
-		// await dispatch(list())
+		dispatch(listTable(individualID))
 	}
 }

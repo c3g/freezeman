@@ -98,6 +98,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 					/>
 					{pagination &&
 						<Pagination
+							
 							className="ant-table-pagination ant-table-pagination-right"
 							showSizeChanger={true}
 							showQuickJumper={true}
