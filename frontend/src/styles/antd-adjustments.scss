@@ -57,7 +57,7 @@ $darker-border-color: #e0e0e0;
   max-height: 100%;
   overflow: auto;
 }
-.ant-tabs-content.ant-tabs-content-top .lineage-tab-active {
+.lineage-tab-active .ant-tabs-content.ant-tabs-content-top {
   overflow: hidden;
 }
 .ant-tabs-nav-list {
