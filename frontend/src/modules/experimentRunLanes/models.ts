@@ -1,15 +1,12 @@
 import { FMSId } from "../../models/fms_api_models"
-import { ExperimentRun } from "../../models/frontend_models"
-import { PagedItems } from "../../models/paged_items"
-
 
 type ExperimentRunName = string
 export type LaneNumber = number
 
 export enum ValidationStatus {
-	AVAILABLE = 'AVAILABLE',
-	PASSED = 'PASSED',
-	FAILED = 'FAILED',
+	AVAILABLE = 0,
+	PASSED = 1,
+	FAILED = 2,
 }
 
 export interface DatasetInfo {
@@ -17,8 +14,8 @@ export interface DatasetInfo {
 	metricsURL?: string						// A link to the run metrics associated with this lane
 }
 
-export interface SampleReads {
-	sampleID?: FMSId						// Sample ID if this is from a freezeman experiment run and the sample is in the DB
+export interface NumberOfReads {
+	derivedSampleID?: FMSId						// Sample ID if this is from a freezeman experiment run and the sample is in the DB
 	sampleName: string						// Name of the sample
 	nbReads : number						// Number of reads for the sample
 }
@@ -26,7 +23,7 @@ export interface SampleReads {
 export interface ReadsPerSample {
 	// TODO : Is there some kind of sort order for the samples that would be
 	// helpful to the lab? 
-	sampleReads: SampleReads[]
+	sampleReads: NumberOfReads[]
 }
 
 export interface LaneInfo {
@@ -48,27 +45,6 @@ export interface ExperimentRunLanesState {
 	}
 }
 
-/*
-	const laneData = {
-		experimentRunID: FMSId
-        run_name: 'MY BIG RUN',
-        laneNumber: 1,
-		validationStatus: 'PASSED',
-		datasets: [
-			{
-				datasetID: 1234,
-				metrics_url: 'https://whatever',
-			}
-		],
-        readsPerSample: [
-			{
-				sample_id: 187663,
-				sample_name: 'VCR1976',
-				nb_reads: 2000000                     
-			}
-		],
-    }
-*/
 
 
 

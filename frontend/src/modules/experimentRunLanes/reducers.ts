@@ -1,9 +1,10 @@
 import { AnyAction } from "redux"
-import { ExperimentRunLanes, ExperimentRunLanesState } from "./models"
+import { ExperimentRunLanes, ExperimentRunLanesState, LaneInfo } from "./models"
 import produce, { Draft } from "immer"
 
 export const SET_EXPERIMENT_LANES = 'EXPERIMENT_RUN_LANES:SET_EXPERIMENT_LANES'
 export const SET_READS_PER_SAMPLE = 'EXPERIMENT_RUN_LANES:SET_READS_PER_SAMPLE'
+export const SET_LANE_VALIDATION_STATUS = 'EXPERIMENT_RUN_LANES:SET_LANE_VALIDATION_STATUS'
 
 
 const INITIAL_STATE : ExperimentRunLanesState = {
@@ -37,6 +38,18 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 				}
 			}
 			break
+		}
+
+		case SET_LANE_VALIDATION_STATUS: {
+			const { experimentRunName, laneNumber, status} = action
+			const experimentRunLanes = state.runs[experimentRunName] as ExperimentRunLanes
+			if (experimentRunLanes) {
+				const lane = experimentRunLanes.lanes.find(x => x.laneNumber === laneNumber)
+				if (lane) {
+					lane.validationStatus = status
+				}
+			}
+			break 
 		}
 	}
 

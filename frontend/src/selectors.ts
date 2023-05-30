@@ -16,6 +16,7 @@ import {
 	RunType,
 	Sample,
 	SampleKind,
+	Sequence,
 	Study,
 	Taxon,
 	User,

@@ -1,8 +1,11 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { BarChart, XAxis, YAxis, Bar, Tooltip, LineChart, Line } from 'recharts'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Bar, BarChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { useAppDispatch } from '../../hooks'
+import { FMSId, FMSSample } from '../../models/fms_api_models'
 import { loadReadsPerSample } from '../../modules/experimentRunLanes/actions'
-import { LaneInfo, SampleReads } from '../../modules/experimentRunLanes/models'
+import { LaneInfo, NumberOfReads } from '../../modules/experimentRunLanes/models'
+import { list } from '../../modules/samples/actions'
 import { useResizeObserver } from '../../utils/ref'
 
 
@@ -15,6 +18,7 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 	const DEFAULT_GRAPH_WIDTH = 800
 	const MIN_BAR_WIDTH = 4
 
+	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 	const { ref: resizeRef, size: componentSize } = useResizeObserver(800, 0)
 	const [graphWidth, setGraphWidth] = useState<number>(DEFAULT_GRAPH_WIDTH)
@@ -36,14 +40,46 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 		}
 	}, [componentSize, lane.readsPerSample])
 
+	function handleBarClick(data: NumberOfReads) {
+
+		// TODO confirm that this approach is correct...
+		// Given a derived sample ID, fetch the sample it is associated with, and
+		// navigate to the sample details page. For this to work, there has to be
+		// only a single sample, if we disregard any pools that the derived sample
+		// may belong to. If, somehow, there is more than one sample associated with
+		// the derived sample then this function just does nothing.
+		async function goToSampleDetails(derivedSampleID: FMSId) {
+			const options = {
+				limit: 10,
+				'derived_samples__id__in': derivedSampleID,
+				'is_pooled': false
+			}
+			const response = await dispatch(list(options))
+			const samples = response.results as FMSSample[]
+			if (samples && samples.length === 1) {
+				const url = `/samples/${samples[0].id}`
+				navigate(url)
+			}
+		}
+
+		if (data.derivedSampleID) {
+			goToSampleDetails(data.derivedSampleID)
+		}
+	}
+
+	// This component displays the sample name and nbReads in a popup when the user
+	// hovers their mouse over a bar.
 	const SampleTooltip = ({active, payload, label}) => {
 		if (active && payload && payload.length) {
-			const sampleData : SampleReads = payload[0].payload
+			const sampleData : NumberOfReads = payload[0].payload
+			const style : React.CSSProperties = {
+				backgroundColor: 'white',
+				backgroundBlendMode: 'difference',
+				borderRadius: '6px',
+				padding: '0.5em',
+			}
 			return (
-				<div>
-					{ sampleData.sampleID && 
-					<div>{`Sample ID: ${sampleData.sampleID}`}</div>
-					}
+				<div style={style}>
 					<div>{`Name: ${sampleData.sampleName}`}</div>
 					<div>{`Count: ${Number(sampleData.nbReads).toFixed(0)}`}</div>
 				</div>
@@ -53,30 +89,17 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 	}
 
 	const data = lane.readsPerSample?.sampleReads ?? []
-	const graphData = data.map(sampleRead => {
-		return {
-			...sampleRead,
-			nbReads: Number.parseFloat(sampleRead.nbReads as any)	// make sure the value is numeric, not a string or you get a crazy graph.
-		}
-	})
 
 	return (
-		// <LineChart width={800} height={500} data={data}  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-		// 	<XAxis dataKey='sampleName'/>
-		// 	<YAxis dataKey='nbReads'/>
-		// 	<Tooltip content={<SampleTooltip/>}/>
-		// 	<Line type='linear' dataKey='nbReads' stroke='#DC3A18' isAnimationActive={false}/>
-		// </LineChart>
 		<div style={{display: 'block', padding: '1em', overflowX: 'scroll', overflowY: 'hidden'}} ref={resizeRef}>
-			<BarChart width={graphWidth} height={500} data={graphData} margin={{top: 20, right: 20, bottom: 20, left: 20}}>
+			<BarChart width={graphWidth} height={500} data={data} margin={{top: 20, right: 20, bottom: 20, left: 20}}>
 				<XAxis/>
 				<YAxis type='number'/>
 				<Tooltip content={<SampleTooltip/>}/>
-				<Bar dataKey='nbReads' fill='#8884d8' isAnimationActive={false}/>
+				<Bar dataKey='nbReads' fill='#8884d8' isAnimationActive={false} onClick={handleBarClick}/>
 			</BarChart>
 		</div>
 	)
-	// 
 }
 
 export default ReadsPerSampleGraph

@@ -1,6 +1,6 @@
 import store from "../../store"
 import api from "../../utils/api"
-import { DatasetInfo, ExperimentRunLanes, ReadsPerSample, SampleReads, ValidationStatus } from "./models"
+import { DatasetInfo, ExperimentRunLanes, ReadsPerSample, NumberOfReads, ValidationStatus } from "./models"
 
 
 
@@ -46,13 +46,13 @@ export async function loadExperimentRunLanes(experimentRunName: string) {
     for (const [laneNumber, datasets] of datasetsByLane) {
         // Request the validation status for the lane
         const validationResponse = await store.dispatch(api.experimentRuns.getLaneValidationStatus(experimentRunName, laneNumber))
-        const statusString = validationResponse.data as string
-        // if (!(statusString in ValidationStatus)) {
-        //     throw new Error(`Unexpected lane validation value received from server: ${statusString}. Experiment run name: ${experimentRunName}. Lane: ${laneNumber}`)
-        // }
-        // TODO : the backend is returning an empty string for the validation status, so temporarily set the status to AVAILABLE until the problem is resolved
-        const validationStatus : ValidationStatus = (statusString in ValidationStatus) ? ValidationStatus[statusString] : ValidationStatus.AVAILABLE
-
+        const status = validationResponse.data as number
+        
+        let validationStatus = ValidationStatus.AVAILABLE
+        switch(status) {
+            case 1: validationStatus = ValidationStatus.PASSED; break
+            case 2: validationStatus = ValidationStatus.FAILED; break
+        }
         // Create an ExperimentRunLane instance
         experimentRunLanes.lanes.push({
             runName: experimentRunName,
@@ -69,17 +69,15 @@ export async function fetchReadsPerSample(runName : string, lane: number): Promi
     const response = await store.dispatch(api.metrics.getReadsPerSampleForLane(runName, lane))
     if (response.ok) {
        const metrics = response.data.results as FMSMetric[]
-       const sampleReads : SampleReads[] = metrics.map(metric => {
+       const sampleReads : NumberOfReads[] = metrics.map(metric => {
             return {
-                sampleID: metric.derived_sample_id ?? undefined,
+                derivedSampleID: metric.derived_sample_id ?? undefined,
                 sampleName: metric.sample_name,
                 nbReads: metric.value_numeric ?? 0  // The numeric value should always be defined for this type of metric
             }
-       })
-       
+       })  
        return {sampleReads}
     } else {
         throw new Error(`Failed to load reads per sample for lane ${lane} of run ${runName}`)
     }
-
 }

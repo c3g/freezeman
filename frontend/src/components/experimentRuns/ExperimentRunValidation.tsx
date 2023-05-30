@@ -1,15 +1,9 @@
-import React, { Children, useEffect, useState } from 'react'
-import { ExperimentRun } from '../../models/frontend_models'
-import { Button, Collapse, List, Space, Typography } from 'antd'
-import CollapsePanel from 'antd/lib/collapse/CollapsePanel'
-import { Link } from 'react-router-dom'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
-import { FMSId } from '../../models/fms_api_models'
-import { Bar, BarChart, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { Button, Collapse, Space, Typography } from 'antd'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { initExperimentRunLanes, loadReadsPerSample } from '../../modules/experimentRunLanes/actions'
-import { ExperimentRunLanes, LaneInfo, SampleReads } from '../../modules/experimentRunLanes/models'
-import { loadExternalExperimentRuns } from '../../modules/experimentRuns/externalExperimentsActions'
+import { initExperimentRunLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
+import { LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState } from '../../selectors'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 
@@ -36,6 +30,13 @@ function ExperimentRunValidation({experimentRunName} : ExperimentRunValidationPr
 		}
 	}, [dispatch, experimentRunName, initialized])
 
+	const setPassed = useCallback((lane: LaneInfo) => {
+		dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
+	}, [dispatch])
+
+	const setFailed = useCallback((lane: LaneInfo) => {
+		dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
+	}, [dispatch])
 
 	const runLanes = experimentRunLanesState.runs[experimentRunName]
 	if (!runLanes) {
@@ -45,8 +46,7 @@ function ExperimentRunValidation({experimentRunName} : ExperimentRunValidationPr
 	return (
 		<Collapse >
 			{
-				// runLanes.lanes.map(lane => <LanePanel key={lane.laneNumber} lane={lane}/>)
-				runLanes.lanes.map(lane => LanePanel({lane: lane}))
+				runLanes.lanes.map(lane => LanePanel({lane: lane, setPassed: setPassed, setFailed: setFailed}))
 			}
 		</Collapse>
 	)
@@ -66,13 +66,13 @@ function FlexBar(props) {
 
 function getValidationStatusExtra(lane: LaneInfo) {
 	switch(lane.validationStatus) {
-		case 'AVAILABLE': {
+		case ValidationStatus.AVAILABLE: {
 			return (
 				<Typography.Text>Needs validation</Typography.Text>
 				
 			)
 		}
-		case 'PASSED': {
+		case ValidationStatus.PASSED: {
 			return (
 				<Space>
 					<CheckOutlined style={{color: 'green'}}/>
@@ -80,7 +80,7 @@ function getValidationStatusExtra(lane: LaneInfo) {
 				</Space>
 			)
 		}
-		case 'FAILED': {
+		case ValidationStatus.FAILED: {
 			return (
 				<Space>
 					<CloseOutlined style={{color: 'red'}}/>
@@ -93,9 +93,15 @@ function getValidationStatusExtra(lane: LaneInfo) {
 
 interface LanePanelProps {
 	lane: LaneInfo
+	setPassed: (lane: LaneInfo) => void
+	setFailed: (lane: LaneInfo) => void
 }
 
-function LanePanel({lane} : LanePanelProps) {
+function LanePanel({lane, setPassed, setFailed} : LanePanelProps) {
+	let title = 'Reads Per Sample'
+	if (lane.readsPerSample) {
+		title = `Reads Per Sample (${lane.readsPerSample.sampleReads.length})`
+	}
 	return (
 		<Collapse.Panel key={`LANE:${lane.laneNumber}`} header={`${lane.laneNumber}`} extra={getValidationStatusExtra(lane)}>
 			<FlexBar >
@@ -108,26 +114,16 @@ function LanePanel({lane} : LanePanelProps) {
 						)
 					})}
 				</List> */}
+				<Title level={5}>{title}</Title>
 				<Space>
-					<Button>Passed</Button>
-					<Button>Failed</Button>
+					<Button onClick={() => {setPassed(lane)}}>Passed</Button>
+					<Button onClick={() => {setFailed(lane)}}>Failed</Button>
 				</Space>
 			</FlexBar>
 			
-			<ReadsPerSampleGraph lane={lane}/>
-			<Title level={5}>Reads Per Sample</Title>
-			{/* <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-				
-				
-			</div> */}
-			
+			<ReadsPerSampleGraph lane={lane}/>			
 		</Collapse.Panel>
 	)
 }
-
-interface ReadsPerSampleGraphProps {
-	lane: LaneInfo
-}
-
 
 export default ExperimentRunValidation
