@@ -50,11 +50,15 @@ $darker-border-color: #e0e0e0;
   display: inline-flex;
   width: 100%;
   height: 100%;
+  margin-top: 8;
 }
 .ant-tabs-content.ant-tabs-content-top {
   display: inline-block;
   max-height: 100%;
-  // overflow: auto;
+  overflow: auto;
+}
+.ant-tabs-content.ant-tabs-content-top .lineage-tab-active {
+  overflow: hidden;
 }
 .ant-tabs-nav-list {
   padding: 0 8px !important;

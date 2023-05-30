@@ -156,7 +156,7 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 			}
 			style={{backgroundColor: 'white'}}
 		>
-			<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection} style={{overflow: 'auto'}}>
+			<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
 				<Tabs.TabPane tab={readyTab} key='ready'>
 					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings}/>
 				</Tabs.TabPane>

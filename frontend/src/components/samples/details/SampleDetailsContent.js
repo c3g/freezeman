@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import classNames from 'classnames'
+
 import { QCFlag } from "../../QCFlag";
 import { LoadingOutlined, UserOutlined } from "@ant-design/icons";
 import {
@@ -180,10 +182,11 @@ const SampleDetailsContent = ({
     })
   }, [sample])
 
-  const tabsStyle = {
-    marginTop: 8,
-    overflow: activeKey === 'lineage' ? 'hidden' : 'auto'
-  }
+  const tabsClass = classNames({
+    '.ant-tabs': true,
+    '.ant-tabs-content.ant-tabs-content-top': true,
+    '.lineage-tab-active': activeKey === 'lineage'
+  })
 
   return <>
     <AppPageHeader
@@ -205,7 +208,7 @@ const SampleDetailsContent = ({
       {error &&
         <ErrorMessage error={error} />
       }
-      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" className={tabsClass}>
         <TabPane tab="Overview" key="overview" style={tabStyle}>
           <Descriptions bordered={true} size="small">
             <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>

@@ -268,7 +268,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		<>
 			<AppPageHeader title={step.name} extra={buttonBar}/>
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<Tabs style={{overflow: 'auto'}} defaultActiveKey={SAMPLES_TAB_KEY} activeKey={selectedTab} tabBarExtraContent={
+				<Tabs defaultActiveKey={SAMPLES_TAB_KEY} activeKey={selectedTab} tabBarExtraContent={
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY && 
 							<>

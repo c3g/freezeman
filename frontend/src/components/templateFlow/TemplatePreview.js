@@ -15,7 +15,7 @@ export const TemplatePreview = ({checkResult}) => {
           {baseError.error}
         </p>)
     }
-    <Tabs size="large" type="card" style={{overflow: 'auto'}}>
+    <Tabs size="large" type="card">
       {checkResult.result_previews?.map((preview, index) =>
          <TabPane tab={preview.name} key={index}>
                 {!checkResult.valid && renderResultWithErrors(preview)}

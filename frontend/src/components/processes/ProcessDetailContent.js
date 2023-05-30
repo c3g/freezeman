@@ -59,7 +59,7 @@ const ProcessDetailContent = ({
   return <>
     <AppPageHeader title={title} />
     <PageContent loading={isLoading}>
-      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={{overflow: 'auto'}}>
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
         <TabPane tab="Overview" key="overview" style={{ marginTop: 8 }}>
           <Descriptions bordered={true} size="small" column={4}>
             <Descriptions.Item label="Protocol" span={4}>{protocolsByID[process.protocol]?.name}</Descriptions.Item>
