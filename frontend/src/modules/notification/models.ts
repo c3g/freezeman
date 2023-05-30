@@ -12,10 +12,10 @@ export enum AlertType {
 }
 
 export interface AlertProps {
-    type: AlertType,
+    type: AlertType
     description: ReactNode
-    title?: string,
-    error?: Error
+    title: string
+    duration?: number
 }
 
 export type AlertID = string
