@@ -28,6 +28,7 @@ export const closeAlert = (id: AlertID) => async (dispatch: AppDispatch, getStat
     if (!hasAlert(getState(), id)) {
         return;
     }
+    notification.close(id)
     dispatch<AlertRemoveAction>({
         type: ALERT_REMOVE,
         id
