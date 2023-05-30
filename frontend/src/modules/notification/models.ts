@@ -29,9 +29,6 @@ export interface AlertRemoveAction extends AnyAction {
     id: AlertID
 }
 
-export type NotificationState = { [key: AlertID]: {
-    description: ReactNode
-    title?: string
-    error?: Error
-    type: AlertType
-} }
+export interface NotificationState extends AlertProps {
+    id: AlertID
+}

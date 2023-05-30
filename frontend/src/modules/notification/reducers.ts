@@ -1,19 +1,25 @@
 import { Reducer } from "redux"
 import { ALERT_REMOVE, AlertAction, AlertRemoveAction, ALERT, NotificationState } from "./models"
-import {del, merge} from 'object-path-immutable'
 
-export const notifications: Reducer<NotificationState, AlertAction | AlertRemoveAction> = (state, action) => {
+export const notifications: Reducer<NotificationState[], AlertAction | AlertRemoveAction> = (oldState, action) => {
+    const state = oldState ?? []
     switch(action.type) {
         case ALERT: {
             const alertAction = action as AlertAction
-            return merge<NotificationState>(state ?? {}, [alertAction.id], alertAction.props)
+            return [
+                ...state,
+                {
+                    ...alertAction.props,
+                    id: alertAction.id,
+                }
+            ]
         }
 
         case ALERT_REMOVE: {
             const alertRemoveAction = action as AlertRemoveAction
-            return del<NotificationState>(state ?? {}, [alertRemoveAction.id])
+            return state.filter((notification) => notification.id !== alertRemoveAction.id)
         }
     }
 
-    return state ?? {}
+    return state
 }

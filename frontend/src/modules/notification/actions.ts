@@ -1,8 +1,12 @@
 import { AppDispatch, RootState } from "../../store"
 import { ALERT_REMOVE, AlertAction, AlertID, AlertProps, AlertRemoveAction, ALERT } from "./models"
 
+const hasAlert = (state: RootState, id: AlertID) => {
+    return state.notifications.some((notification) => notification.id === id)
+}
+
 export const alert = (id: AlertID, props: AlertProps) => async (dispatch: AppDispatch, getState: () => RootState) => {
-    if (id in getState().notifications) {
+    if (hasAlert(getState(), id)) {
         return;
     }
     dispatch<AlertAction>({
@@ -13,7 +17,7 @@ export const alert = (id: AlertID, props: AlertProps) => async (dispatch: AppDis
 }
 
 export const closeAlert = (id: AlertID) => async (dispatch: AppDispatch, getState: () => RootState) => {
-    if (!(id in getState().notifications)) {
+    if (!hasAlert(getState(), id)) {
         return;
     }
     dispatch<AlertRemoveAction>({
