@@ -1,23 +1,23 @@
 import { Reducer } from "redux"
-import { ALERT_REMOVE, AlertAction, AlertRemoveAction, ALERT, NotificationState } from "./models"
+import { NOTIFICATION_REMOVE, NotificationAction, NotificationRemoveAction, NOTIFICATION, NotificationState } from "./models"
 
-export const notifications: Reducer<NotificationState[], AlertAction | AlertRemoveAction> = (oldState, action) => {
+export const notifications: Reducer<NotificationState[], NotificationAction | NotificationRemoveAction> = (oldState, action) => {
     const state = oldState ?? []
-    switch(action.type) {
-        case ALERT: {
-            const alertAction = action as AlertAction
+
+    switch (action.type) {
+        case NOTIFICATION: {
+            const { props, id } = action as NotificationAction
             return [
                 ...state,
                 {
-                    ...alertAction.props,
-                    id: alertAction.id,
+                    ...props,
+                    id,
                 }
             ]
         }
-
-        case ALERT_REMOVE: {
-            const alertRemoveAction = action as AlertRemoveAction
-            return state.filter((notification) => notification.id !== alertRemoveAction.id)
+        case NOTIFICATION_REMOVE: {
+            const { id } = action as NotificationRemoveAction
+            return state.filter((notification) => notification.id !== id)
         }
     }
 

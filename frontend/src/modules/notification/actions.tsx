@@ -1,44 +1,54 @@
 import React from "react"
 import { AppDispatch, RootState } from "../../store"
-import { ALERT_REMOVE, AlertAction, AlertID, AlertProps, AlertRemoveAction, ALERT, AlertType } from "./models"
+import { NOTIFICATION_REMOVE, NotificationAction as NotificationAction, NotificationID, NotificationProps, NotificationRemoveAction as NotificationRemoveAction, NOTIFICATION, NotificationType } from "./models"
 import { notification } from "antd"
 
-const hasAlert = (state: RootState, id: AlertID) => {
+type AntdNotificationType = keyof Pick<typeof notification, 'success' | 'info' | 'warning' | 'error'>
+const convertToAntdNotificationType: { [key in NotificationType]: AntdNotificationType } = {
+    [NotificationType.SUCCESS]: 'success',
+    [NotificationType.INFO]: 'info',
+    [NotificationType.WARNING]: 'warning',
+    [NotificationType.ERROR]: 'error'
+}
+
+const hasNotification = (state: RootState, id: NotificationID) => {
     return state.notifications.some((notification) => notification.id === id)
 }
 
-export const alert = (id: AlertID, props: AlertProps) => async (dispatch: AppDispatch, getState: () => RootState) => {
-    if (hasAlert(getState(), id)) {
+export const notify = (id: NotificationID, props: NotificationProps) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    if (hasNotification(getState(), id)) {
         return;
     }
-    notification[props.type]({
+
+    notification[convertToAntdNotificationType[props.type]]({
         message: props.title,
-        description: <pre style={{fontSize: '0.8em', whiteSpace: 'pre-wrap'}}>{props.description}</pre>,
+        description: <pre style={{ fontSize: '0.8em', whiteSpace: 'pre-wrap' }}>{props.description}</pre>,
         duration: props.duration,
-        onClose: () => dispatch(closeAlert(id))
-      });
-    dispatch<AlertAction>({
-        type: ALERT,
+        onClose: () => dispatch(closeNotification(id))
+    });
+
+    dispatch<NotificationAction>({
+        type: NOTIFICATION,
         id,
         props: props
     })
 }
 
-export const closeAlert = (id: AlertID) => async (dispatch: AppDispatch, getState: () => RootState) => {
-    if (!hasAlert(getState(), id)) {
+export const closeNotification = (id: NotificationID) => async (dispatch: AppDispatch, getState: () => RootState) => {
+    if (!hasNotification(getState(), id)) {
         return;
     }
     notification.close(id)
-    dispatch<AlertRemoveAction>({
-        type: ALERT_REMOVE,
+    dispatch<NotificationRemoveAction>({
+        type: NOTIFICATION_REMOVE,
         id
     })
 }
 
 export const showNotification = (
-    title: AlertProps['title'],
-    description: AlertProps['description'],
-    type: AlertProps['type'] = AlertType.ERROR
+    titleAndID: NotificationProps['title'] & NotificationID,
+    description: NotificationProps['description'],
+    type: NotificationProps['type'] = NotificationType.ERROR
 ) => {
-    return alert(title, { type, title, description, duration: 0 })
+    return notify(titleAndID, { type, title: titleAndID, description, duration: 0 })
 }
