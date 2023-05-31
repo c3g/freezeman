@@ -337,6 +337,7 @@ export interface FMSStudy extends FMSTrackedModel {
 export interface FMSTaxon extends FMSTrackedModel {
     name: string                        // Taxon scientific name
     ncbi_id: number                     // Numerical identifier used by the NCBI taxonomy catalog
+    edit?: boolean
 }
 
 // Template action description

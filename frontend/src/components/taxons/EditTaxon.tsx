@@ -2,14 +2,17 @@ import { Button, Form, FormItemProps, Input, Space } from "antd";
 import React, { useCallback, useState } from "react";
 import { requiredRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectAppInitialzed, selectTaxonsByID } from "../../selectors";
-import { useNavigate, useParams } from "react-router-dom";
+import { selectAppInitialzed, selectAuthState, selectTaxonsByID, selectUsersByID } from "../../selectors";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { ObjectWithTaxon } from "./TaxonTableColumns";
+import { Taxon } from "../../models/frontend_models";
+import { } from 'react-router-dom'
 
-
+export interface EditTaxonProps {
+    taxon: Taxon,
+}
 export const AddTaxonRoute = () => {
     const appInitialzed = useAppSelector(selectAppInitialzed)
     return appInitialzed ? <EditTaxon /> : null
@@ -19,10 +22,13 @@ export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
     const { id } = useParams();
     const appInitialzed = useAppSelector(selectAppInitialzed)
-    return (id && taxons[id] && appInitialzed) ? <EditTaxon taxon={{ ...taxons[id] }} /> : null
+    const auth = useAppSelector(selectAuthState)
+    const users = useAppSelector(selectUsersByID)
+    return (id && taxons[id] && appInitialzed && (auth.currentUserID ? users[auth.currentUserID].is_superuser : false)) ? <EditTaxon taxon={{ ...taxons[id] }} /> :
+        <Navigate to={"/taxons/list"} />
 }
 
-const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
+const EditTaxon = ({ taxon }: Partial<EditTaxonProps>) => {
     const { Item } = Form
 
     const [formErrors, setFormErrors] = useState({})
@@ -99,7 +105,7 @@ const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
                     form={form}
                     initialValues={taxon}>
                     <Item label={"ncbi_id"} {...itemValidation("ncbi_id")} rules={requiredRules}>
-                        <Input />
+                        <Input disabled={!taxon?.edit} />
                     </Item>
                     <Item label={"name"} {...itemValidation("name")} rules={requiredRules}>
                         <Input />

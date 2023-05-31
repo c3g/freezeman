@@ -2,11 +2,11 @@ import React, { useCallback, useState } from "react"
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { Button, Form, FormItemProps, Input, Select, Space } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { add, list, update } from "../../modules/referenceGenomes/actions";
 import { requiredRules } from "../../constants";
-import { selectAppInitialzed, selectReferenceGenomesByID, selectTaxonsByID } from "../../selectors";
+import { selectAppInitialzed, selectAuthState, selectReferenceGenomesByID, selectTaxonsByID, selectUsersByID } from "../../selectors";
 import * as Options from "../../utils/options";
 import { ReferenceGenome, getAllItems } from "../../models/frontend_models";
 
@@ -23,7 +23,11 @@ export const EditReferenceGenomeRoute = () => {
     const { id } = useParams()
     const referenceGenomes = useAppSelector(selectReferenceGenomesByID)
     const appInitialized = useAppSelector(selectAppInitialzed)
-    return (id && referenceGenomes[id] && appInitialized) ? <EditReferenceGenomes referenceGenome={{ ...referenceGenomes[id] }} /> : null
+    const authState = useAppSelector(selectAuthState)
+    const users = useAppSelector(selectUsersByID)
+    const isAuthenticated = (authState.currentUserID ? users[authState.currentUserID].is_superuser : false);
+    return (id && referenceGenomes[id] && appInitialized && isAuthenticated) ? <EditReferenceGenomes referenceGenome={{ ...referenceGenomes[id] }} /> :
+        <Navigate to={"/taxons/list"} />
 }
 
 

@@ -6,7 +6,7 @@ import AddButton from '../AddButton'
 import { Table } from 'antd'
 import { getColumnsForTaxon } from './TaxonTableColumns'
 import { useAppSelector } from '../../hooks'
-import { selectTaxonsByID } from '../../selectors'
+import { selectAuthState, selectTaxonsByID, selectUsersByID } from '../../selectors'
 
 export interface TaxonsListContentProps {
 	taxons: Taxon[],
@@ -15,7 +15,9 @@ export interface TaxonsListContentProps {
 function TaxonsListContent() {
 	const taxonsByID = useAppSelector(selectTaxonsByID)
 	const [taxonsData, setTaxonsData] = useState<Taxon[]>();
-	const columns = getColumnsForTaxon()
+	const auth = useAppSelector(selectAuthState)
+	const users = useAppSelector(selectUsersByID)
+	const columns = getColumnsForTaxon((auth.currentUserID ? users[auth.currentUserID].is_superuser : false))
 
 	useEffect(() => {
 		const taxons: Taxon[] = getAllItems(taxonsByID)
