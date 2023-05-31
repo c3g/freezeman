@@ -9,9 +9,8 @@ import { createItemsByID } from "../../models/frontend_models";
 import { clearFiltersReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers";
 
 export const LIST_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.LIST_TABLE')
-export const REFRESH_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.REFRESH_TABLE')
+export const SET_SORT_BY = 'INDIVIDUAL_DETAILS.SET_SORT_BY'
 export const SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.SET_INDIVIDUAL_SAMPLES_FILTER'
-export const REMOVE_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.REMOVE_INDIVIDUAL_SAMPLES_FILTER'
 export const CLEAR_FILTERS = "INDIVIDUAL_DETAILS.CLEAR_FILTERS"
 
 export interface Individual {
@@ -45,17 +44,10 @@ export const individualDetails = (inputState: IndividualDetailsState = INITIAL_S
 
 export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsState>, action: AnyAction) => {
     switch (action.type) {
-        case REFRESH_TABLE.RECEIVE: {
-            const { individualID } = action.meta
-            state[individualID] = {
-                isFetching: true
-            }
-        }
         case LIST_TABLE.REQUEST: {
             const { individualID } = action.meta
             if (!state[individualID]) {
                 state[individualID] = {
-                    ...state,
                     isFetching: true
                 }
             }
@@ -71,7 +63,8 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
                     ...INITIAL_PAGED_ITEMS,
                     items: action.data.results.map(r => r.id),
                     itemsByID: createItemsByID(action.data.results),
-                    filters: state[individualID].data?.samplesByIndividual.filters ?? {}
+                    filters: state[individualID].data?.samplesByIndividual.filters ?? {},
+                    sortBy: state[individualID].data?.samplesByIndividual.sortBy ?? {},
                 }
             }
             break;
@@ -95,9 +88,15 @@ export const individualDetailsReducer = (state: WritableDraft<IndividualDetailsS
             }
             break;
         }
+        case SET_SORT_BY: {
+            const { individualID, sortBy } = action
+            const samplesByIndividual = state[individualID]?.data?.samplesByIndividual
+            if (samplesByIndividual) {
+                samplesByIndividual.sortBy = sortBy
+            }
+        }
         default:
             break
     }
-
     return state
 }

@@ -1,11 +1,12 @@
 import React, { useMemo, useCallback } from "react"
-import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../shared/WorkflowSamplesTable/SampleTableColumns';
+import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS, SAMPLE_COLUMN_FILTERS, SampleColumnID } from '../shared/WorkflowSamplesTable/SampleTableColumns';
 import WorkflowSamplesTable from "../shared/WorkflowSamplesTable/WorkflowSamplesTable"
-import { clearFilters, setIndividualDetailsSamplesFilter } from '../../modules/individualDetails/actions'
-import { FilterDescription, FilterValue } from "../../models/paged_items";
+import { clearFilters, setFilter, setSortBy } from '../../modules/individualDetails/actions'
+import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items";
 import { useAppDispatch } from "../../hooks";
 import { Individual } from "../../modules/individualDetails/reducers";
 import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
+
 interface IndividualAssociatedSamplesProps {
     samples: SampleAndLibrary[],
     individual: Individual
@@ -20,8 +21,16 @@ const IndividualAssociatedSamples = ({ samples, individual }: IndividualAssociat
             if (typeof description === 'undefined') {
                 return
             }
-            dispatch(setIndividualDetailsSamplesFilter(individual.individual.id, description, value))
-        }, []
+            if (individual.individual)
+                dispatch(setFilter(individual.individual.id, description, value))
+        }, [dispatch]
+    )
+    const handleSetSortBy = useCallback(
+        (sortBy: SortBy) => {
+            if (individual.individual)
+                dispatch(setSortBy(individual.individual.id, sortBy))
+        },
+        [dispatch]
     )
     const columnsForSelection = useMemo(() => {
         const columns = [
@@ -63,7 +72,7 @@ const IndividualAssociatedSamples = ({ samples, individual }: IndividualAssociat
     }, [])
 
     const localClearFilters = () => {
-        if (clearFilters)
+        if (clearFilters && individual.individual)
             dispatch(clearFilters(individual.individual.id))
     }
 
@@ -76,8 +85,8 @@ const IndividualAssociatedSamples = ({ samples, individual }: IndividualAssociat
             filterKeys={filterKeys}
             samples={samples ? samples : []}
             setFilter={handleSetFilter}
+            setSortBy={handleSetSortBy}
             columns={columnsForSelection}
-            setSortBy={() => { }}
         />
     </>
 }

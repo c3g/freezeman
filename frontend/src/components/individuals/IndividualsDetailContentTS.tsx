@@ -60,9 +60,7 @@ const IndividualsDetailContent = () => {
         `Individual ${[id, (individual && individual.data?.individual) ? individual.data.individual.name : undefined].filter(Boolean).join(' - ')}`;
 
     return <>
-        <AppPageHeader title={title} extra={
-            <EditButton url={`/individuals/${id}/update`} />
-        } />
+        <AppPageHeader title={title} extra={<EditButton url={`/individuals/${id}/update`} />} />
         <PageContent loading={(individual && individual.isFetching)}>
             <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
                 <Tabs.TabPane tab="Overview" key="overview" style={tabPaneStyle}>
