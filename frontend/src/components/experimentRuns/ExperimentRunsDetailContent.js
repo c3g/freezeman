@@ -19,10 +19,6 @@ const pageStyle = {
   overflow: "hidden",
 }
 
-const tabsStyle = {
-  marginTop: 8,
-}
-
 const tabStyle = {
   padding: "0 24px 24px 24px",
   overflow: "auto",
@@ -94,7 +90,7 @@ const ExperimentRunsDetailContent = ({
       />
 
       <PageContent loading={!isLoaded && isFetching} style={pageStyle} tabs={true}>
-        <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
+        <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
           <TabPane tab="Overview" key="overview" style={tabStyle}>
             <Descriptions bordered={true} size="small">
               <Descriptions.Item label="ID" span={3}>
