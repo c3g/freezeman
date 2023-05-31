@@ -80,7 +80,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         run_name = _request.data.get("run_name", None)
         lane = _request.data.get("lane", None)
         validation_status = _request.data.get("validation_status", None)
-        validation_status = int(validation_status) if validation_status else None
+        validation_status = int(validation_status) if validation_status is not None else None
         count, errors, _ = set_experiment_run_lane_validation_status(run_name=run_name, lane=lane, validation_status=validation_status)
         
         if errors:

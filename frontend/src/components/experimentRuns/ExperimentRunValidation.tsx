@@ -7,7 +7,7 @@ import { LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/mod
 import { selectExperimentRunLanesState } from '../../selectors'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 
-const { Title } = Typography
+const { Title, Text } = Typography
 
 // https://recharts.org/en-US/
 // https://github.com/recharts/recharts
@@ -38,6 +38,10 @@ function ExperimentRunValidation({experimentRunName} : ExperimentRunValidationPr
 		dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
 	}, [dispatch])
 
+	const setAvailable = useCallback((lane : LaneInfo) => {
+		dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
+	}, [dispatch])
+
 	const runLanes = experimentRunLanesState.runs[experimentRunName]
 	if (!runLanes) {
 		return null
@@ -46,7 +50,7 @@ function ExperimentRunValidation({experimentRunName} : ExperimentRunValidationPr
 	return (
 		<Collapse >
 			{
-				runLanes.lanes.map(lane => LanePanel({lane: lane, setPassed: setPassed, setFailed: setFailed}))
+				runLanes.lanes.map(lane => LanePanel({lane: lane, setPassed, setFailed, setAvailable}))
 			}
 		</Collapse>
 	)
@@ -95,15 +99,16 @@ interface LanePanelProps {
 	lane: LaneInfo
 	setPassed: (lane: LaneInfo) => void
 	setFailed: (lane: LaneInfo) => void
+	setAvailable: (lane: LaneInfo) => void
 }
 
-function LanePanel({lane, setPassed, setFailed} : LanePanelProps) {
+function LanePanel({lane, setPassed, setFailed, setAvailable} : LanePanelProps) {
 	let title = 'Reads Per Sample'
 	if (lane.readsPerSample) {
 		title = `Reads Per Sample (${lane.readsPerSample.sampleReads.length})`
 	}
 	return (
-		<Collapse.Panel key={`LANE:${lane.laneNumber}`} header={`${lane.laneNumber}`} extra={getValidationStatusExtra(lane)}>
+		<Collapse.Panel key={`LANE:${lane.laneNumber}`} header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>} extra={getValidationStatusExtra(lane)}>
 			<FlexBar >
 				{/* <List>
 					{lane.metrics_urls.map((url, index) => {
@@ -116,6 +121,7 @@ function LanePanel({lane, setPassed, setFailed} : LanePanelProps) {
 				</List> */}
 				<Title level={5}>{title}</Title>
 				<Space>
+					<Button onClick={() => {setAvailable(lane)}}>Reset</Button>
 					<Button onClick={() => {setPassed(lane)}}>Passed</Button>
 					<Button onClick={() => {setFailed(lane)}}>Failed</Button>
 				</Space>
