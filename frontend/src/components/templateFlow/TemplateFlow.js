@@ -91,9 +91,14 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
           // If the template file was changed on disk since it was uploaded
           // then a 'failed to fetch' error is thrown. This can happen if the user saves a change to
           // the template after it has been uploaded.
+          const description = 
+            <div>
+              <p>The template has changed since it was uploaded and cannot be submitted.</p>
+              <p>Please upload the template again, and ensure that it is not saved or otherwise modified until after it has been submitted.</p>
+            </div>
           notification.error({
             message: 'Template Has Changed',
-            description: 'The template has changed since it was uploaded and cannot be submitted. Please upload the template again, and ensure that it is not saved or otherwise modified until after it has been submitted.',
+            description,
             duration: 0
           })
         }
