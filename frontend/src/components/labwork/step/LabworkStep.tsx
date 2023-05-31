@@ -42,8 +42,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
+	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
 
-	const fetchSamples = (sampleIDs) => {
+	const getSampleList = (sampleIDs) => {
 		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
 			const sample = samplesByID[sampleID]
 			if (sample) {
@@ -56,11 +57,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			return acc
 		}, [] as SampleAndLibrary[])
-
-		setSamples(availableSamples)
+		return availableSamples
 	}
+
 	useEffect(() => {
-		fetchSamples(stepSamples.displayedSamples)
+		setSamples(getSampleList(stepSamples.displayedSamples))
+		setSelectedSamples(getSampleList(stepSamples.selectedSamples))
 	}, [samplesByID, librariesByID, stepSamples])
 
 	// ** Refresh **
@@ -372,7 +374,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable
 							hasFilter={false}
-							samples={samples}
+							samples={selectedSamples}
 							columns={columnsForSelection}
 							selection={selectionProps}
 							setSortBy={handleSelectionTableSortChange}
