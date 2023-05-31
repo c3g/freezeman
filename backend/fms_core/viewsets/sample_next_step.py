@@ -19,7 +19,7 @@ from fms_core.template_importer.importers import (ExtractionImporter, SampleQCIm
                                                   LibraryConversionImporter, ExperimentRunImporter)
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin):
-    queryset = SampleNextStep.objects.all()
+    queryset = SampleNextStep.objects.all().distinct()
     serializer_class = SampleNextStepSerializer
     permission_classes = [IsAuthenticated]
 

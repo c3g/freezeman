@@ -82,15 +82,14 @@ class ExperimentRunServicesTestCase(TestCase):
         for o in list(PropertyType.objects.filter(name__in=self.properties.keys(), object_id=self.protocol.id)):
             self.properties[o.name]['property_type_obj'] = o
 
-    def test_experiment_run(self):
+    def test_create_experiment_run(self):
         my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
                                                                                    run_type_obj=self.run_type,
                                                                                    container_obj=self.container,
                                                                                    instrument_obj=self.instrument,
                                                                                    samples_info=self.samples_info,
                                                                                    process_properties=self.properties,
-                                                                                   start_date=self.start_date
-                                                                                   )
+                                                                                   start_date=self.start_date)
 
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
@@ -104,6 +103,25 @@ class ExperimentRunServicesTestCase(TestCase):
         for sample in self.samples_info:
             source_sample = sample['sample_obj']
             ProcessMeasurement.objects.filter(process=my_experiment_run.process, source_sample=source_sample).exists()
+
+    def test_get_experiment_run(self):
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=self.container,
+                                                                                   instrument_obj=self.instrument,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+
+        my_experiment_run_again, errors, warnings = experiment_run.get_experiment_run(name=self.experiment_name)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(my_experiment_run.id, my_experiment_run_again.id)
+
 
     def test_missing_run_type(self):
         my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
@@ -140,9 +158,60 @@ class ExperimentRunServicesTestCase(TestCase):
                                                                                    process_properties=self.properties,
                                                                                    start_date=self.start_date
                                                                                    )
+        self.assertEqual(my_experiment_run, None)
+        self.assertTrue('Run name is required to create an experiment run.' in errors)
+
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name="Barbarun",
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=None,
+                                                                                   instrument_obj=None,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date
+                                                                                   )
 
         self.assertEqual(my_experiment_run, None)
         self.assertTrue('container: This field cannot be null.' in errors)
         self.assertTrue('instrument: This field cannot be null.' in errors)
         self.assertEqual(warnings, [])
 
+    def test_set_run_processing_start_time(self):
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=self.container,
+                                                                                   instrument_obj=self.instrument,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+
+        my_experiment_run, errors, warnings = experiment_run.set_run_processing_start_time(my_experiment_run.id)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertIsNotNone(my_experiment_run.run_processing_start_time)
+        self.assertIsNone(my_experiment_run.run_processing_end_time)
+        self.assertIsNotNone(my_experiment_run.end_time)
+        self.assertEqual(my_experiment_run.run_processing_start_time, my_experiment_run.end_time)
+
+    def test_set_run_processing_end_time(self):
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=self.container,
+                                                                                   instrument_obj=self.instrument,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+
+        my_experiment_run, errors, warnings = experiment_run.set_run_processing_end_time(my_experiment_run.id)
+        
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertIsNone(my_experiment_run.run_processing_start_time)
+        self.assertIsNotNone(my_experiment_run.run_processing_end_time)
+        self.assertIsNone(my_experiment_run.end_time)

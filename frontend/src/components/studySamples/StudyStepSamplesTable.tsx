@@ -5,7 +5,7 @@ import { Protocol } from '../../models/frontend_models'
 import { clearFilters, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepSortOrder } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID } from '../../selectors'
-import { SampleAndLibrary, getColumnsForStep } from '../shared/WorkflowSamplesTable/ColumnSets'
+import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../shared/WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../shared/WorkflowSamplesTable/LibraryTableColumns'
 import { IdentifiedTableColumnType, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS, SampleColumnID } from '../shared/WorkflowSamplesTable/SampleTableColumns'
 import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamplesTable'
@@ -70,7 +70,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 		if (protocol && stepDefinition) {
 			// Same columns as labwork, but we don't want the Project column, since the user
 			// is already in the project details page.
-			return getColumnsForStep(stepDefinition, protocol).filter(col => col.columnID !== SampleColumnID.PROJECT)
+			return getColumnsForStudySamplesStep(stepDefinition, protocol)
 		} else {
 			return []
 		}

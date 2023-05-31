@@ -180,6 +180,8 @@ const api = {
 
   referenceGenomes: {
     get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
+    add: referenceGenome => post(`/reference-genomes/`, referenceGenome),
+    update: referenceGenome => patch(`/reference-genomes/${referenceGenome.id}/`, referenceGenome),
     list: (options, abort) => get('/reference-genomes/', options, { abort }),
     search: q => get("/reference-genomes/search/", { q }),
   },
@@ -243,7 +245,7 @@ const api = {
   },
 
   stepHistory: {
-    getCompletedSamplesForStudy: (studyId) => get('/step-histories/', {study__id__in: studyId}),
+    getCompletedSamplesForStudy: (studyId, options) => get('/step-histories/', {...options, study__id__in: studyId}),
     countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, {study__id__in: studyId})
   },
 
@@ -256,7 +258,8 @@ const api = {
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
     list: (options, abort) => get('/studies', options, {abort}),
-    listProjectStudies: projectId => get('/studies', { project__id: projectId})
+    listProjectStudies: projectId => get('/studies', { project__id: projectId}),
+    remove: (studyId) => remove(`/studies/${studyId}/`)
   },
 
   taxons: {

@@ -16,7 +16,7 @@ from fms_core.serializers import SampleNextStepByStudySerializer
 from ._utils import _list_keys
 
 class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
-    queryset = SampleNextStepByStudy.objects.select_related("sample_next_step").select_related("step_order").all()
+    queryset = SampleNextStepByStudy.objects.select_related("sample_next_step").select_related("step_order").all().distinct()
     serializer_class = SampleNextStepByStudySerializer
     permission_classes = [IsAuthenticated]
 

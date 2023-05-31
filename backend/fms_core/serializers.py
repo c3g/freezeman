@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db.models import Max, F
+from fms_core.services.study import can_remove_study
 
 from .models import (
     Container,
@@ -40,9 +41,11 @@ from .models import (
     SampleNextStepByStudy,
     StepHistory,
     Coordinate,
+    Metric
 )
 
 from .models._constants import ReleaseStatus
+from .containers import CONTAINER_KIND_SPECS
 
 
 __all__ = [
@@ -52,6 +55,7 @@ __all__ = [
     "DatasetFileSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
+    "ExternalExperimentRunSerializer",
     "RunTypeSerializer",
     "SimpleContainerSerializer",
     "IndexSerializer",
@@ -95,6 +99,7 @@ __all__ = [
     "SampleNextStepByStudySerializer",
     "StepHistorySerializer",
     "CoordinateSerializer",
+    "MetricSerializer",
 ]
 
 
@@ -137,11 +142,12 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     children_processes = serializers.SerializerMethodField()
     instrument_type = serializers.SerializerMethodField()
     platform = serializers.SerializerMethodField()
+    lanes = serializers.SerializerMethodField()
 
     class Meta:
         model = ExperimentRun
         fields = "__all__"
-        extra_fields = ('children_processes', 'instrument_type', 'platform')
+        extra_fields = ('children_processes', 'instrument_type', 'platform', 'lanes')
 
     def get_children_processes(self, obj):
         return Process.objects.filter(parent_process=obj.process).values_list('id', flat=True)
@@ -152,6 +158,12 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     def get_platform(self, obj):
         return obj.instrument.type.platform.name
 
+    def get_lanes(self, obj):
+        container_spec = CONTAINER_KIND_SPECS.get(obj.container.kind, ())
+        nb_lanes = 1
+        for dimension in container_spec.coordinate_spec:
+            nb_lanes = nb_lanes * len(dimension)
+        return list(range(1, nb_lanes + 1))
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
     experiment_run_id = serializers.IntegerField(read_only=True, source="id")
@@ -161,10 +173,45 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
     container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    lanes = serializers.SerializerMethodField()
 
     class Meta:
         model = ExperimentRun
-        fields = ('experiment_run_id', 'experiment_run_name', 'run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date', 'run_processing_launch_date')
+        fields = ('experiment_run_id',
+                  'experiment_run_name',
+                  'run_type',
+                  'instrument',
+                  'container_kind',
+                  'container_name',
+                  'container_barcode',
+                  'start_date',
+                  'end_time',
+                  'run_processing_launch_time',
+                  'run_processing_start_time',
+                  'run_processing_end_time',
+                  'lanes')
+
+    def get_lanes(self, obj):
+        container_spec = CONTAINER_KIND_SPECS.get(obj.container.kind, ())
+        nb_lanes = 1
+        for dimension in container_spec.coordinate_spec:
+            nb_lanes = nb_lanes * len(dimension)
+        return ", ".join([str(x) for x in range(1, nb_lanes + 1)])
+
+
+class ExternalExperimentRunSerializer(serializers.ModelSerializer):
+    lanes = serializers.SerializerMethodField()
+    latest_submission_timestamp = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Dataset
+        fields = ("run_name", "lanes", "latest_submission_timestamp")
+    
+    def get_lanes(self, obj):
+        return Dataset.objects.filter(run_name=obj.run_name).values_list("lane", flat=True).distinct()
+    
+    def get_latest_submission_timestamp(self, obj):
+        return Dataset.objects.filter(run_name=obj.run_name).values_list("updated_at", flat=True).order_by("-updated_at")[:1]
 
 
 class RunTypeSerializer(serializers.ModelSerializer):
@@ -379,11 +426,11 @@ class SampleSerializer(serializers.Serializer):
                   'comment')
 
 class SampleExportSerializer(serializers.Serializer):
-    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
+    coordinates = serializers.CharField(read_only=True, source="coordinate.name")
 
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
-                  'container', 'container_kind', 'container_name', 'container_barcode', 'coordinate',
+                  'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
                   'location_barcode', 'location_coord', 'container_full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
@@ -399,10 +446,10 @@ class LibrarySerializer(serializers.Serializer):
 
 
 class LibraryExportSerializer(serializers.Serializer):
-    coordinate = serializers.CharField(read_only=True, source="coordinate.name")
+    coordinates = serializers.CharField(read_only=True, source="coordinate.name")
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
@@ -515,7 +562,7 @@ class ImportedFileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class DatasetSerializer(serializers.ModelSerializer):
-    files = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
     latest_release_update = serializers.SerializerMethodField()
 
@@ -523,17 +570,21 @@ class DatasetSerializer(serializers.ModelSerializer):
         model = Dataset
         fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
 
+    def get_files(self, obj):
+        return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
+
     def get_released_status_count(self, obj):
-        return DatasetFile.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
+        return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
     
     def get_latest_release_update(self, obj):
-        return DatasetFile.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
+        return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
 
 class DatasetFileSerializer(serializers.ModelSerializer):
-
+    dataset = serializers.IntegerField(read_only=True, source='readset.dataset.id')
+    sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
     class Meta:
         model = DatasetFile
-        fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp")
+        fields = ("id", "readset", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp", "validation_status", "validation_status_timestamp")
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 
@@ -729,10 +780,15 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
         fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size")
 
 class StudySerializer(serializers.ModelSerializer):
+    removable = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Study
-        fields = ("id", "letter", "project_id", "workflow_id", "start", "end")
-    
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "removable")
+
+    def get_removable(self, instance: Study):
+        is_removable, *_ = can_remove_study(instance.pk)
+        return is_removable
+
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True)
     studies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
@@ -756,3 +812,23 @@ class CoordinateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coordinate
         fields = "__all__"
+
+class MetricSerializer(serializers.ModelSerializer):
+    sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
+    derived_sample_id = serializers.IntegerField(read_only=True, source='readset.derived_sample_id')
+    run_name = serializers.CharField(read_only=True, source='readset.dataset.run_name')
+    experiment_run_id = serializers.IntegerField(read_only=True, source='readset.dataset.exeriment_run_id')
+    lane = serializers.IntegerField(read_only=True, source='readset.dataset.lane')
+
+    class Meta:
+        model = Metric
+        fields = ["id",
+                  "name",
+                  "metric_group",
+                  "sample_name",
+                  "derived_sample_id",
+                  "run_name",
+                  "experiment_run_id",
+                  "lane",
+                  "value_numeric",
+                  "value_string"]

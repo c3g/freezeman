@@ -1,8 +1,10 @@
 from decimal import Decimal
+from typing import Tuple, List
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, Library, SampleMetadata, Coordinate
+from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, ProcessMeasurement, SampleLineage,
+                             Container, Process, Library, SampleMetadata, Coordinate)
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -938,3 +940,29 @@ def validate_normalization(initial_volume, initial_concentration, final_volume, 
             is_valid = False
 
     return is_valid, errors, warnings
+
+def can_remove_sample(sample: Sample) -> Tuple[bool, List[str], List[str]]:
+    """
+    Tests the conditions for a sample to be removed. The sample :
+     - must not be used in any process_measurement.
+     - must not have childs (sample_lineage).
+    This allow remove any sample that was not processed internally.
+
+    Args:
+        `sample`: Sample instance to be tested.
+
+    Returns:
+        Tuple with the boolean is_removable, the list of errors and the list of warnings.
+    """
+    is_removable = False
+    errors = []
+    warnings = []
+    if not isinstance(sample, Sample):
+        errors.append(f"Valid sample instance required.")
+    else:
+        is_child = SampleLineage.objects.filter(child_id=sample.id).exists()
+        is_parent = SampleLineage.objects.filter(parent_id=sample.id).exists()
+        was_processed = ProcessMeasurement.objects.filter(source_sample_id=sample.id).exists()
+        is_removable = not is_child and not is_parent and not was_processed
+
+    return is_removable, errors, warnings

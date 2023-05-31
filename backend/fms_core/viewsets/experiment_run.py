@@ -1,13 +1,18 @@
 from dataclasses import asdict
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.http import HttpResponseServerError
+from django.http import HttpResponseServerError, HttpResponseNotFound
+from django.db.models import OuterRef, Subquery
 
-from fms_core.models import ExperimentRun
-from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
-from fms_core.services.experiment_run import start_experiment_run_processing, get_run_info_for_experiment
+from fms_core.models import ExperimentRun, Dataset
+from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer, ExternalExperimentRunSerializer
+from fms_core.services.experiment_run import (start_experiment_run_processing,
+                                              get_run_info_for_experiment,
+                                              set_run_processing_start_time,
+                                              set_run_processing_end_time)
+from fms_core.services.dataset import  set_experiment_run_lane_validation_status, get_experiment_run_lane_validation_status
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _experiment_run_filterset_fields
@@ -45,6 +50,59 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def list_export(self, _request):
         serializer = self.serializer_export_class(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def list_external_experiment_run(self, _request):
+        queryset = Dataset.objects.filter(experiment_run__isnull=True).distinct("run_name")
+        serializer = ExternalExperimentRunSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def set_run_processing_start_time(self, _request, pk=None):
+        _, errors, _ = set_run_processing_start_time(pk)
+        if errors:
+            response = HttpResponseServerError("\n".join(errors))
+        else:
+            response = Response("Time set successfully.")
+        return response
+    
+    @action(detail=True, methods=["post"])
+    def set_run_processing_end_time(self, _request, pk=None):
+        _, errors, _ = set_run_processing_end_time(pk)
+        if errors:
+            response = HttpResponseServerError("\n".join(errors))
+        else:
+            response = Response("Time set successfully.")
+        return response
+
+    @action(detail=False, methods=["post"])
+    def set_experiment_run_lane_validation_status(self, _request):
+        run_name = _request.data.get("run_name", None)
+        lane = _request.data.get("lane", None)
+        validation_status = _request.data.get("validation_status", None)
+        validation_status = int(validation_status) if validation_status else None
+        count, errors, _ = set_experiment_run_lane_validation_status(run_name=run_name, lane=lane, validation_status=validation_status)
+        
+        if errors:
+            response = HttpResponseServerError(errors)
+        elif count == 0:
+            response = Response("No validation status was set.")
+        else:
+            response = Response("Validation status set successfully.")
+        return response
+
+    @action(detail=False, methods=["get"])
+    def get_experiment_run_lane_validation_status(self, _request):
+        run_name = _request.GET.get("run_name", None)
+        lane = _request.GET.get("lane", None)
+        validation_status, errors, _ = get_experiment_run_lane_validation_status(run_name=run_name, lane=lane)
+        
+        if errors:
+            response = HttpResponseNotFound(errors)
+        else:
+            response = Response(validation_status)
+        return response
+
 
     @action(detail=True, methods=["patch"])
     def launch_run_processing(self, _request, pk=None):

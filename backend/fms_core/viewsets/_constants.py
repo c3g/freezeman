@@ -150,7 +150,7 @@ _experiment_run_filterset_fields: FiltersetFields = {
     "run_type": FK_FILTERS,
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,
-    "run_processing_launch_date": FK_FILTERS,
+    "run_processing_launch_time": FK_FILTERS,
 
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("instrument__type__", _instrument_type_filterset_fields),
@@ -235,11 +235,13 @@ _dataset_filterset_fields: FiltersetFields = {
 
 _dataset_file_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "dataset": FK_FILTERS,
+    "readset__dataset": FK_FILTERS,
+    "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
     "file_path": CATEGORICAL_FILTERS_LOOSE,
-    "sample_name": CATEGORICAL_FILTERS_LOOSE,
     "release_status": CATEGORICAL_FILTERS,
     "release_status_timestamp": DATE_FILTERS,
+    "validation_status": CATEGORICAL_FILTERS,
+    "validation_status_timestamp": DATE_FILTERS,
 }
 
 _pooled_sample_filterset_fields: FiltersetFields = {
@@ -322,3 +324,15 @@ _stephistory_filterset_fields: FiltersetFields = {
     **_prefix_keys("process_measurement__", _process_measurement_filterset_fields),
 }
 
+_metric_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "metric_group": CATEGORICAL_FILTERS_LOOSE,
+    "value_numeric": SCALAR_FILTERS,
+    "value_string": CATEGORICAL_FILTERS_LOOSE,
+    "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
+    "readset__derived_sample_id": PK_FILTERS,
+    "readset__dataset__experiment_run_id": PK_FILTERS,
+    "readset__dataset__run_name": CATEGORICAL_FILTERS_LOOSE,
+    "readset__dataset__lane": CATEGORICAL_FILTERS,
+}

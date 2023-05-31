@@ -1,8 +1,10 @@
-import {createNetworkActionTypes, networkAction} from "../../utils/actions";
+import { createNetworkActionTypes, networkAction } from "../../utils/actions";
 import api from "../../utils/api";
 
-export const GET                   = createNetworkActionTypes("REFERENCE_GENOMES.GET");
-export const LIST                  = createNetworkActionTypes("REFERENCE_GENOMES.LIST");
+export const GET = createNetworkActionTypes("REFERENCE_GENOMES.GET");
+export const LIST = createNetworkActionTypes("REFERENCE_GENOMES.LIST");
+export const ADD = createNetworkActionTypes("REFERENCE_GENOMES.ADD");
+export const UPDATE = createNetworkActionTypes("REFERENCE_GENOMES.UPDATE");
 
 export const get = id => async (dispatch, getState) => {
     const reference = getState().referenceGenomes.itemsByID[id];
@@ -10,6 +12,18 @@ export const get = id => async (dispatch, getState) => {
         return;
 
     return await dispatch(networkAction(GET, api.referenceGenomes.get(id), { meta: { id } }));
+};
+
+export const add = referenceGenome => async (dispatch, getState) => {
+    return await dispatch(networkAction(
+        ADD, api.referenceGenomes.add(referenceGenome), { meta: { ignoreError: 'APIError' } }
+    ));
+};
+
+export const update = (id, referenceGenome) => async (dispatch, getState) => {
+    return await dispatch(networkAction(
+        UPDATE, api.referenceGenomes.update(referenceGenome), { meta: { id, ignoreError: 'APIError' } }
+    ));
 };
 
 export const list = (options) => async (dispatch, getState) => {
@@ -25,4 +39,6 @@ export default {
     LIST,
     get,
     list,
+    add,
+    update
 };

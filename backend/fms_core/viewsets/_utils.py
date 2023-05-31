@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, Tuple, Union, List
 from tablib import Dataset
-from django.db.models import Func
+from django.db.models import CharField, Func, Value
 from wsgiref.util import FileWrapper
 from django.http import HttpResponseBadRequest, HttpResponse, StreamingHttpResponse
 from django.conf import settings
@@ -31,13 +31,13 @@ def _list_keys(d: Dict[str, Any]) -> Dict[str, Any]:
 
 
 class FZY(Func):
-    template = "%(function)s('%(search_term)s', %(expressions)s::cstring)"
+    template = "%(function)s(%(expressions)s::cstring)"
     function = "fzy"
 
-    def __init__(self, expression, search_term, **extras):
+    def __init__(self, search_term, search_field, **extras):
         super(FZY, self).__init__(
-            expression,
-            search_term=search_term,
+            Value(search_term, output_field=CharField()),
+            search_field,
             **extras
         )
 

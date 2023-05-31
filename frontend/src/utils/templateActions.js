@@ -1,9 +1,11 @@
 import React from "react";
-import {Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-import {Button, Menu, Dropdown} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined,
-  CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined, DotChartOutlined, FormOutlined} from "@ant-design/icons";
+import { Button, Menu, Dropdown } from "antd";
+import {
+  EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined,
+  CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined, DotChartOutlined, FormOutlined
+} from "@ant-design/icons";
 
 export const actionIcon = a => {
   const n = a.name || a
@@ -13,7 +15,7 @@ export const actionIcon = a => {
   if (n.includes("Transfer")) return <ExportOutlined />;
   if (n.includes("Update")) return <EditOutlined />;
   if (n.includes("Process")) return <ExperimentOutlined />;
-  if (n.includes("Link")) return <LinkOutlined/>;
+  if (n.includes("Link")) return <LinkOutlined />;
   if (n.includes("Quality")) return <CheckCircleOutlined />;
   if (n.includes("qPCR")) return <SelectOutlined />;
   if (n.includes("Prepare")) return <ExperimentOutlined />;
@@ -25,37 +27,39 @@ export const actionIcon = a => {
   return <DownloadOutlined />;
 };
 
-export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
+export const actionsToButtonList = (urlBase, actions, fullWidth = false) =>
   (actions.items || []).map((a) =>
     <Link key={a.id.toString()} to={`${urlBase}/actions/${a.id}/`}>
-      <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width:"100%"}} : {})}>{a.name}</Button>
+      <Button icon={actionIcon(a)} {...(fullWidth ? { style: { width: "100%" } } : {})}>{a.name}</Button>
     </Link>
   );
 
-export function ActionDropdown({urlBase, actions, fullWidth = true}) {
+export function ActionDropdown({ urlBase, actions, fullWidth = true }) {
   const history = useNavigate();
-  const actionMenu = (
+  const renderActions = actions.items.length > 0;
+  const actionMenu = renderActions ? (
     <Menu>
-      { actions.items ? actions.items.map((a) =>
-          <Menu.Item key={a.id.toString()}>
-            <Button
-              icon={actionIcon(a)}
-              onClick={() => history(`${urlBase}/actions/${a.id}/`)}
-              {...(fullWidth ? {style:{width:"100%", border:0, textAlign:'left'}} : {style:{border:0}})}
-            >
-              {a.name}
-            </Button>
-          </Menu.Item>) :
-          <Menu.Item>Loading ...</Menu.Item>
+      {actions.items.map((a) =>
+        <Menu.Item key={a.id.toString()}>
+          <Button
+            icon={actionIcon(a)}
+            onClick={() => history(`${urlBase}/actions/${a.id}/`)}
+            {...(fullWidth ? { style: { width: "100%", border: 0, textAlign: 'left' } } : { style: { border: 0 } })}
+          >
+            {a.name}
+          </Button>
+        </Menu.Item>)
       }
     </Menu>
-  );
+  ) : null;
 
-  return (<Dropdown overlay={actionMenu} placement="bottomRight">
-            <Button>
-              <MonitorOutlined />  Available Actions
-            </Button>
-          </Dropdown>)
+  return (
+    renderActions ?
+      <Dropdown overlay={actionMenu} placement="bottomRight">
+        <Button>
+          <MonitorOutlined />  Available Actions
+        </Button>
+      </Dropdown> : null)
 }
 
 export const templateActionsReducerFactory = moduleActions => (
@@ -68,7 +72,7 @@ export const templateActionsReducerFactory = moduleActions => (
 ) => {
   switch (action.type) {
     case moduleActions.LIST_TEMPLATE_ACTIONS.REQUEST:
-      return {...state, isFetching: true};
+      return { ...state, isFetching: true };
     case moduleActions.LIST_TEMPLATE_ACTIONS.RECEIVE:
       return {
         ...state,
