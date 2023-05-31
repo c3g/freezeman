@@ -22,9 +22,10 @@ export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
     const { id } = useParams();
     const appInitialzed = useAppSelector(selectAppInitialzed)
-    const auth = useAppSelector(selectAuthState)
+    const authState = useAppSelector(selectAuthState)
     const users = useAppSelector(selectUsersByID)
-    return (id && taxons[id] && appInitialzed && (auth.currentUserID ? users[auth.currentUserID].is_superuser : false)) ? <EditTaxon taxon={{ ...taxons[id] }} /> :
+    const isAuthenticated = (authState.currentUserID ? users[authState.currentUserID].is_superuser : false);
+    return (id && taxons[id] && appInitialzed && isAuthenticated) ? <EditTaxon taxon={{ ...taxons[id] }} /> :
         <Navigate to={"/taxons/list"} />
 }
 
