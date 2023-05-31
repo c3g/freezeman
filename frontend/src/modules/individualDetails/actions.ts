@@ -1,6 +1,8 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
 import { FMSId } from "../../models/fms_api_models"
+import { Individual } from "../../models/frontend_models"
 import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items"
+import { selectIndividualsByID } from "../../selectors"
 import { AppDispatch } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
@@ -32,10 +34,11 @@ export const setSortBy = (individualID: FMSId, sortBy: SortBy) => {
 }
 export const listTable = (individualID: FMSId) => {
 	return async (dispatch, getState) => {
-		if (!getState().individuals.itemsByID[individualID]) {
+		const individualsByID = selectIndividualsByID(getState())
+		if (!individualsByID[individualID]) {
 			await dispatch(get(individualID));
 		}
-		const individual = getState().individuals.itemsByID[individualID]
+		const individual: Individual = selectIndividualsByID(getState())[individualID]
 		const ordering = serializeSortByParams(getState().individualDetails[individualID]?.data?.samplesByIndividual.sortBy ?? {})
 		const filters = serializeFilterParamsWithDescriptions(getState().individualDetails[individualID]?.data?.samplesByIndividual.filters ?? {})
 		const options = { derived_samples__biosample__individual__id__in: individualID, ordering, ...filters }

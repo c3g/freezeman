@@ -10,18 +10,17 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectIndividualsDetailsById } from "../../selectors";
 import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 import { listTable } from "../../modules/individualDetails/actions";
-import { Individual, IndividualDetailsState as IndividualsDetailsById } from "../../modules/individualDetails/reducers";
-import { FetchedState } from "../../modules/common";
+import { IndividualDetails, IndividualDetailsById } from "../../modules/individualDetails/reducers";
 import { Sample } from "../../models/frontend_models";
 import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
 
 const IndividualsDetailContent = () => {
     const { id } = useParams();
     const dispatch = useAppDispatch()
-    const individualDetailsById: IndividualsDetailsById = useAppSelector(selectIndividualsDetailsById)
+    const individualDetailsById: IndividualDetailsById = useAppSelector(selectIndividualsDetailsById)
 
     const [activeKey, setActiveKey] = useHashURL('overview')
-    const [individual, setIndividual] = useState<FetchedState<Individual>>()
+    const [individual, setIndividual] = useState<IndividualDetails>()
 
     useEffect(() => {
         dispatch(listTable(Number(id)));
@@ -29,7 +28,7 @@ const IndividualsDetailContent = () => {
 
     useEffect(() => {
         if (individualDetailsById[Number(id)]) {
-            const individualInstance: FetchedState<Individual> = {
+            const individualInstance: IndividualDetails = {
                 ...individualDetailsById[Number(id)]
             }
             if (individualInstance) {
@@ -38,18 +37,8 @@ const IndividualsDetailContent = () => {
         }
     }, [individualDetailsById])
 
-    const tabsStyle = {
-        marginTop: 8,
-    }
-
-    const tabPaneStyle = {
-        padding: '0 24px 24px 24px',
-        overflow: 'auto',
-        height: '100%',
-    }
-
-    const samples = individual?.data?.samplesByIndividual.items.reduce((acc, sampleID) => {
-        const sample = individual?.data?.samplesByIndividual.itemsByID[sampleID]
+    const samples = individual?.samplesByIndividual.items.reduce((acc, sampleID) => {
+        const sample = individual?.samplesByIndividual.itemsByID[sampleID]
         if (sample) {
             acc.push({ sample: sample as Sample })
         }
@@ -57,19 +46,19 @@ const IndividualsDetailContent = () => {
     }, [] as SampleAndLibrary[])
 
     const title =
-        `Individual ${[id, (individual && individual.data?.individual) ? individual.data.individual.name : undefined].filter(Boolean).join(' - ')}`;
+        `Individual ${[id, (individual && individual.individual) ? individual.individual.name : undefined].filter(Boolean).join(' - ')}`;
 
     return <>
         <AppPageHeader title={title} extra={<EditButton url={`/individuals/${id}/update`} />} />
-        <PageContent loading={(individual && individual.isFetching)}>
-            <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
-                <Tabs.TabPane tab="Overview" key="overview" style={tabPaneStyle}>
-                    <IndividualOverview individual={individual && individual.data ? individual.data?.individual : {}} />
+        <PageContent loading={(individual && individual.individual?.isFetching)}>
+            <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
+                <Tabs.TabPane tab="Overview" key="overview">
+                    <IndividualOverview individual={individual && individual ? individual.individual : {}} />
                 </Tabs.TabPane>
-                <Tabs.TabPane tab="Associated Samples" key="samples" style={tabPaneStyle}>
+                <Tabs.TabPane tab="Associated Samples" key="samples">
                     {
-                        individual && individual.data &&
-                        <IndividualAssociatedSamples samples={samples ?? []} individual={individual.data} />
+                        individual &&
+                        <IndividualAssociatedSamples samples={samples ?? []} individual={individual} />
                     }
                 </Tabs.TabPane>
             </Tabs>

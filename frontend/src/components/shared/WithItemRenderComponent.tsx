@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { FMSTrackedModel } from '../../models/fms_api_models'
-import { Container, Coordinate, Index, Individual, ItemsByID, Process, Project, Sample, Sequence, Taxon, User } from '../../models/frontend_models'
-import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectSamplesByID, selectSequencesByID, selectTaxonsByID, selectUsersByID } from '../../selectors'
-import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProject, withSample, withSequence, withTaxon, withUser } from '../../utils/withItem'
+import { Container, Coordinate, Index, Individual, ItemsByID, Process, Project, ReferenceGenome, Sample, Sequence, Taxon, User } from '../../models/frontend_models'
+import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectReferenceGenomesByID, selectSamplesByID, selectSequencesByID, selectTaxonsByID, selectUsersByID } from '../../selectors'
+import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProject, withReferenceGenome, withSample, withSequence, withTaxon, withUser } from '../../utils/withItem'
 
 /**
  * WithItemRenderComponent
@@ -99,4 +99,5 @@ export const WithSampleRenderComponent = WithItemRenderComponentFactory<typeof w
 export const WithSequenceRenderComponent = WithItemRenderComponentFactory<typeof withSequence, Sequence>(withSequence, selectSequencesByID)
 export const WithUserRenderComponent = WithItemRenderComponentFactory<typeof withUser, User>(withUser, selectUsersByID)
 export const WithTaxonRenderComponent = WithItemRenderComponentFactory<typeof withTaxon, Taxon>(withTaxon, selectTaxonsByID)
+export const WithReferenceGenomeRenderComponent = WithItemRenderComponentFactory<typeof withReferenceGenome, ReferenceGenome>(withReferenceGenome, selectReferenceGenomesByID)
 
