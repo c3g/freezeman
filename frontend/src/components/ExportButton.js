@@ -1,13 +1,17 @@
 import React, {useState} from "react";
 import {downloadFromFile} from "../utils/download";
-import {Button, Modal, notification} from "antd";
+import {Button, Modal} from "antd";
 
 import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { useAppDispatch } from "../hooks";
+import { notify } from "../modules/notification/actions";
+import { NotificationType } from "../modules/notification/models";
 
 const { confirm } = Modal;
 
 const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch()
 
   const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
 
@@ -28,10 +32,11 @@ const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...res
               downloadFromFile(name, text)
             })
             .catch(err => {
-              notification.error({
-                message: err.message,
+              dispatch(notify(err.message, {
+                title: err.message,
                 description: <pre>{err.stack}</pre>,
-              });
+                type: NotificationType.ERROR,
+              }))
             })
             .then(() => {
               setLoading(false);
