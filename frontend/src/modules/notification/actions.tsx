@@ -19,7 +19,7 @@ const hasNotification = (state: RootState, id: NotificationID) => {
 
 export const notify = (id: NotificationID, props: NotificationProps) => async (dispatch: AppDispatch, getState: () => RootState) => {
     if (hasNotification(getState(), id)) {
-        await dispatch(closeNotification(id))
+        dispatch(closeNotification(id))
     }
 
     notification[convertToAntdNotificationAPI[props.type]]({
