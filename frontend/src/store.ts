@@ -9,7 +9,7 @@ const logger = createLogger({
 	level: 'info'
 })
 
-const notificationError: ThunkMiddleware = ({ dispatch }) => next => async action => {
+const notificationError: ThunkMiddleware = ({ dispatch }) => next => action => {
 	const TOKEN_EXPIRED_MESSAGE = 'Given token not valid for any token type'
 
 	function getErrorDescription(error: any) {

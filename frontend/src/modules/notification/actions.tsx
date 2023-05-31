@@ -17,7 +17,7 @@ const hasNotification = (state: RootState, id: NotificationID) => {
     return state.notifications.some((notification) => notification.id === id)
 }
 
-export const notify = (id: NotificationID, props: NotificationProps) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const notify = (id: NotificationID, props: NotificationProps) => (dispatch: AppDispatch, getState: () => RootState) => {
     if (hasNotification(getState(), id)) {
         dispatch(closeNotification(id))
     }
@@ -37,7 +37,7 @@ export const notify = (id: NotificationID, props: NotificationProps) => async (d
     })
 }
 
-export const closeNotification = (id: NotificationID) => async (dispatch: AppDispatch, getState: () => RootState) => {
+export const closeNotification = (id: NotificationID) => (dispatch: AppDispatch, getState: () => RootState) => {
     if (!hasNotification(getState(), id)) {
         return;
     }
