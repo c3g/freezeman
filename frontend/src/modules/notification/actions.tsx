@@ -25,7 +25,7 @@ export const notify = (id: NotificationID, props: NotificationProps) => (dispatc
     notification[convertToAntdNotificationAPI[props.type]]({
         message: props.title,
         description: <pre style={{ fontSize: '0.8em', whiteSpace: 'pre-wrap' }}>{props.description}</pre>,
-        duration: props.duration,
+        duration: props.duration ?? 4.5, // 4.5 is the default duration in antd
         key: id,
         onClose: () => dispatch(closeNotification(id))
     });
