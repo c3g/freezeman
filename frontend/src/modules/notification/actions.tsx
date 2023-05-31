@@ -3,8 +3,10 @@ import { AppDispatch, RootState } from "../../store"
 import { NOTIFICATION_REMOVE, NotificationAction as NotificationAction, NotificationID, NotificationProps, NotificationRemoveAction as NotificationRemoveAction, NOTIFICATION, NotificationType } from "./models"
 import { notification } from "antd"
 
-type AntdNotificationType = keyof Pick<typeof notification, 'success' | 'info' | 'warning' | 'error'>
-const convertToAntdNotificationType: { [key in NotificationType]: AntdNotificationType } = {
+type AntdNotificationAPI = keyof Pick<typeof notification, 'success' | 'info' | 'warning' | 'error'>
+
+// converts our NotificationType to the function names in the Antd Notification API
+const convertToAntdNotificationAPI: { [key in NotificationType]: AntdNotificationAPI } = {
     [NotificationType.SUCCESS]: 'success',
     [NotificationType.INFO]: 'info',
     [NotificationType.WARNING]: 'warning',
@@ -17,13 +19,14 @@ const hasNotification = (state: RootState, id: NotificationID) => {
 
 export const notify = (id: NotificationID, props: NotificationProps) => async (dispatch: AppDispatch, getState: () => RootState) => {
     if (hasNotification(getState(), id)) {
-        return;
+        await dispatch(closeNotification(id))
     }
 
-    notification[convertToAntdNotificationType[props.type]]({
+    notification[convertToAntdNotificationAPI[props.type]]({
         message: props.title,
         description: <pre style={{ fontSize: '0.8em', whiteSpace: 'pre-wrap' }}>{props.description}</pre>,
         duration: props.duration,
+        key: id,
         onClose: () => dispatch(closeNotification(id))
     });
 
@@ -38,11 +41,14 @@ export const closeNotification = (id: NotificationID) => async (dispatch: AppDis
     if (!hasNotification(getState(), id)) {
         return;
     }
-    notification.close(id)
     dispatch<NotificationRemoveAction>({
         type: NOTIFICATION_REMOVE,
         id
     })
+
+    // notification has onClose config which dispatches closeNotification.
+    // Closing after dispatch should prevent duplicate remove action.
+    notification.close(id)
 }
 
 export const showNotification = (

@@ -29,6 +29,6 @@ export interface NotificationRemoveAction extends AnyAction {
     id: NotificationID
 }
 
-export interface NotificationState extends NotificationProps {
+export interface NotificationItem extends NotificationProps {
     id: NotificationID
 }

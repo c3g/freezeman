@@ -1,7 +1,7 @@
 import { Reducer } from "redux"
-import { NOTIFICATION_REMOVE, NotificationAction, NotificationRemoveAction, NOTIFICATION, NotificationState } from "./models"
+import { NOTIFICATION_REMOVE, NotificationAction, NotificationRemoveAction, NOTIFICATION, NotificationItem } from "./models"
 
-export const notifications: Reducer<NotificationState[], NotificationAction | NotificationRemoveAction> = (oldState, action) => {
+export const notifications: Reducer<NotificationItem[], NotificationAction | NotificationRemoveAction> = (oldState, action) => {
     const state = oldState ?? []
 
     switch (action.type) {
