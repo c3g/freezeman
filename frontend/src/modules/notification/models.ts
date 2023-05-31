@@ -14,7 +14,7 @@ export enum NotificationType {
 export interface NotificationProps {
     type: NotificationType
     description: ReactNode
-    title: string
+    title: ReactNode
     duration?: number
 }
 
