@@ -12,6 +12,7 @@ from shutil import copyfile
 from django.contrib.auth.models import User
 # Import the functions of the various curations available.
 from ._update_field_value import update_field_value
+from ._update_index import update_index
 from ._delete_individual import delete_individual
 from ._delete_container import delete_container
 from ._delete_sample import delete_sample
@@ -25,6 +26,7 @@ from ._create_entity import create_entity
 
 # Available actions
 ACTION_UPDATE_FIELD_VALUE = "update_field_value"
+ACTION_UPDATE_INDEX = "update_index"
 ACTION_DELETE_INDIVIDUAL = "delete_individual"
 ACTION_DELETE_CONTAINER = "delete_container"
 ACTION_DELETE_SAMPLE = "delete_sample"
@@ -47,6 +49,7 @@ class Command(BaseCommand):
 
     curation_switch = {
         ACTION_UPDATE_FIELD_VALUE: update_field_value,
+        ACTION_UPDATE_INDEX: update_index,
         ACTION_DELETE_INDIVIDUAL: delete_individual,
         ACTION_DELETE_CONTAINER: delete_container,
         ACTION_DELETE_SAMPLE: delete_sample,
