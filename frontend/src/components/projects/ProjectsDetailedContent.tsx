@@ -69,10 +69,6 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 
 	const [activeKey, setActiveKey] = useHashURL('overview')
 
-	const tabsStyle = {
-		marginTop: 8,
-	}
-
 	const tabStyle: React.CSSProperties = {
 		padding: '0 24px 24px 24px',
 		overflow: 'auto',
@@ -102,7 +98,7 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 			{project && (
 				<PageContent loading={false} style={undefined}>
 					{ project && 
-						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={addStudyButton}>
+						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" tabBarExtraContent={addStudyButton}>
 							<TabPane tab="Overview" key="overview" style={tabStyle}>
 								<ProjectOverview project={project} />
 							</TabPane>

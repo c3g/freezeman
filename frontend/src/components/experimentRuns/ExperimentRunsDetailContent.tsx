@@ -1,6 +1,6 @@
-import { Descriptions, Tabs, Tag } from 'antd'
+import { Tabs } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
 import { Container, ExperimentRun, Process } from '../../models/frontend_models'
@@ -8,39 +8,25 @@ import { get as getContainer } from '../../modules/containers/actions'
 import { get as getExperimentRun, listPropertyValues } from '../../modules/experimentRuns/actions'
 import { get as getProcess, list as listProcesses } from '../../modules/processes/actions'
 import {
-  selectContainersByID,
-  selectExperimentRunsByID,
-  selectInstrumentsByID,
-  selectProcessesByID,
-  selectPropertyValuesByID,
-  selectProtocolsByID,
-  selectRunTypesByID,
+	selectContainersByID,
+	selectExperimentRunsByID,
+	selectProcessesByID,
+	selectPropertyValuesByID,
+	selectProtocolsByID
 } from '../../selectors'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import TrackingFieldsContent from '../TrackingFieldsContent'
+import DatasetTable from '../datasets/DatasetTable'
 import ProcessProperties from '../shared/ProcessProperties'
-import { WithContainerRenderComponent } from '../shared/WithItemRenderComponent'
+import ExperimentRunOverview from './ExperimentRunOverview'
 import ExperimentRunValidation from './ExperimentRunValidation'
 import ExperimentRunsSamples from './ExperimentRunsSamples'
-import ExperimentRunOverview from './ExperimentRunOverview'
-import DatasetTable from '../datasets/DatasetTable'
 
 const { TabPane } = Tabs
 
 const pageStyle = {
 	padding: 0,
 	overflow: 'hidden',
-}
-
-const tabsStyle = {
-	marginTop: 8,
-}
-
-const tabStyle = {
-	padding: '0 24px 24px 24px',
-	overflow: 'auto',
-	height: '100%',
 }
 
 /*
@@ -140,12 +126,12 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 			<AppPageHeader title={`Experiment ${experimentRun.id}`} />
 
 			<PageContent loading={false} style={pageStyle} tabs={true}>
-				<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
-					<TabPane tab="Overview" key="overview" style={tabStyle}>
+				<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
+					<TabPane tab="Overview" key="overview">
 						<ExperimentRunOverview experimentRun={experimentRun} container={container} process={process}/>
 					</TabPane>
 
-					<TabPane tab="Steps" key="steps" style={tabStyle}>
+					<TabPane tab="Steps" key="steps">
 						<ProcessProperties
 							propertyIDs={process.children_properties}
 							protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
@@ -165,15 +151,15 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 						})}
 					</TabPane>
 
-					<TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="samples" style={tabStyle}>
+					<TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="samples">
 						<ExperimentRunsSamples container={container} experimentRun={experimentRun} />
 					</TabPane>
 
-					<TabPane tab={'Validation'} key="validation" style={tabStyle}>
+					<TabPane tab={'Validation'} key="validation">
 						<ExperimentRunValidation experimentRunName={experimentRun.name} />
 					</TabPane>
 
-					<TabPane tab={'Datasets'} key="datasets" style={tabStyle}>
+					<TabPane tab={'Datasets'} key="datasets">
 						<DatasetTable run_name={experimentRun.name}/>
 					</TabPane>
 				</Tabs>

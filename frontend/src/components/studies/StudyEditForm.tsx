@@ -1,4 +1,4 @@
-import { Button, Form, Space } from 'antd'
+import { Button, Form, FormItemProps, Space } from 'antd'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Workflow, WorkflowStepRange } from '../../models/frontend_models'
@@ -56,10 +56,10 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 		}
 	}
 
-	function itemValidation(key: string) {
+	function itemValidation(key: string): FormItemProps {
 		if (formErrors && formErrors[key]) {
 			return {
-				validationStatus: 'error',
+				validateStatus: 'error',
 				help: formErrors[key]
 			}
 		}
