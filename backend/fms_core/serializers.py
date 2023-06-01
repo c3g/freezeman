@@ -568,7 +568,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update", "metric_report_url")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
@@ -819,7 +819,6 @@ class MetricSerializer(serializers.ModelSerializer):
     run_name = serializers.CharField(read_only=True, source='readset.dataset.run_name')
     experiment_run_id = serializers.IntegerField(read_only=True, source='readset.dataset.exeriment_run_id')
     lane = serializers.IntegerField(read_only=True, source='readset.dataset.lane')
-    value_numeric = serializers.DecimalField(read_only=True, decimal_places=20, max_digits=40, coerce_to_string=False)
 
     class Meta:
         model = Metric

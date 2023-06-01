@@ -16,7 +16,8 @@ interface ReadsPerSampleGraphProps {
 function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 
 	const DEFAULT_GRAPH_WIDTH = 800
-	const MIN_BAR_WIDTH = 4
+	const MIN_BAR_WIDTH = 4		// Make bars wide enough that the user can click them
+	const MAX_BAR_WIDTH = 64	// Don't let bars get too fat or the graph looks silly
 
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
@@ -31,12 +32,20 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 
 	useLayoutEffect(() => {
 		if (lane.readsPerSample && componentSize.width > 0) {
-			const minGraphWidth = lane.readsPerSample?.sampleReads.length * MIN_BAR_WIDTH
+			const minGraphWidth = lane.readsPerSample.sampleReads.length * MIN_BAR_WIDTH
+			const maxGraphWidth = lane.readsPerSample.sampleReads.length * MAX_BAR_WIDTH 
+
+			let finalGraphWidth = componentSize.width
 			if (minGraphWidth > componentSize.width) {
-				setGraphWidth(minGraphWidth)
+				// Allow the graph to be wider than the available space - it will be scrollable.
+				finalGraphWidth = minGraphWidth
 			} else {
-				setGraphWidth(componentSize.width)
+				// If there are only a few samples, set a smaller graph width so that bars aren't too fat.
+				if (maxGraphWidth < componentSize.width) {
+					finalGraphWidth = maxGraphWidth
+				}
 			}
+			setGraphWidth(finalGraphWidth)
 		}
 	}, [componentSize, lane.readsPerSample])
 

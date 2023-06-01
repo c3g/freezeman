@@ -190,7 +190,7 @@ export interface FMSMetric extends FMSTrackedModel {
     run_name: string                    // Name of run that generated metric
     experiment_run_id?: FMSId           // Freezeman experiment run (undefined for external experiment runs)
     lane: number                        // Lane number
-    value_numeric?: number              // Metric value if numeric
+    value_numeric?: string              // Metric value if numeric. Note: decimals are exported as string because JSON only supports floats and serializing as a number could lose precision.
     value_string?: string               // Metric value, if text
 }
 

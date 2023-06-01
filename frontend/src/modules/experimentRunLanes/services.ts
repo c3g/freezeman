@@ -53,6 +53,7 @@ export async function loadExperimentRunLanes(experimentRunName: string) {
             case 1: validationStatus = ValidationStatus.PASSED; break
             case 2: validationStatus = ValidationStatus.FAILED; break
         }
+
         // Create an ExperimentRunLane instance
         experimentRunLanes.lanes.push({
             runName: experimentRunName,
@@ -73,7 +74,7 @@ export async function fetchReadsPerSample(runName : string, lane: number): Promi
             return {
                 derivedSampleID: metric.derived_sample_id ?? undefined,
                 sampleName: metric.sample_name,
-                nbReads: metric.value_numeric ?? 0  // The numeric value should always be defined for this type of metric
+                nbReads: metric.value_numeric ? Number(metric.value_numeric) : 0  // The numeric value should always be defined for this type of metric
             }
        })  
        return {sampleReads}
