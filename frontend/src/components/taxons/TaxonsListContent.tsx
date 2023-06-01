@@ -15,9 +15,9 @@ export interface TaxonsListContentProps {
 function TaxonsListContent() {
 	const taxonsByID = useAppSelector(selectTaxonsByID)
 	const [taxonsData, setTaxonsData] = useState<Taxon[]>();
-	const auth = useAppSelector(selectAuthState)
+	const authState = useAppSelector(selectAuthState)
 	const users = useAppSelector(selectUsersByID)
-	const columns = getColumnsForTaxon((auth.currentUserID ? users[auth.currentUserID].is_superuser : false))
+	const columns = getColumnsForTaxon((authState.currentUserID ? users[authState.currentUserID].is_superuser : false))
 
 	useEffect(() => {
 		const taxons: Taxon[] = getAllItems(taxonsByID)

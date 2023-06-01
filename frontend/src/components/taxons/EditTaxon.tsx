@@ -24,8 +24,8 @@ export const EditTaxonRoute = () => {
     const appInitialzed = useAppSelector(selectAppInitialzed)
     const authState = useAppSelector(selectAuthState)
     const users = useAppSelector(selectUsersByID)
-    const isAuthenticated = (authState.currentUserID ? users[authState.currentUserID].is_superuser : false);
-    return (id && taxons[id] && appInitialzed && isAuthenticated) ? <EditTaxon taxon={{ ...taxons[id] }} /> :
+    const hasWritePermission = (authState.currentUserID ? users[authState.currentUserID].is_superuser : false);
+    return (id && taxons[id] && appInitialzed && hasWritePermission) ? <EditTaxon taxon={{ ...taxons[id] }} /> :
         <Navigate to={"/taxons/list"} />
 }
 
@@ -106,7 +106,7 @@ const EditTaxon = ({ taxon }: Partial<EditTaxonProps>) => {
                     form={form}
                     initialValues={taxon}>
                     <Item label={"ncbi_id"} {...itemValidation("ncbi_id")} rules={requiredRules}>
-                        <Input disabled={!taxon?.edit} />
+                        <Input disabled={!taxon?.editable} />
                     </Item>
                     <Item label={"name"} {...itemValidation("name")} rules={requiredRules}>
                         <Input />
