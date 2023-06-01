@@ -230,13 +230,15 @@ const api = {
       check:  (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/sample-next-step/template_submit/`, form({ action, template })),
     },
+    list: (options, abort) => get("/sample-next-step/", options, { abort }),
   },
 
   sampleNextStepByStudy: {
     getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
-    remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
+    remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
+    list: (options, abort) => get("/sample-next-step-by-study/", options, { abort }),
   },
 
   sequences: {
