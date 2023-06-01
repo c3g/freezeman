@@ -35,7 +35,7 @@ const IndividualsDetailContent = () => {
                 setIndividual(individualInstance)
             }
         }
-    }, [individualDetailsById])
+    }, [individualDetailsById, id])
 
     const samples = individual?.samplesByIndividual.items.reduce((acc, sampleID) => {
         const sample = individual?.samplesByIndividual.itemsByID[sampleID]
@@ -53,12 +53,12 @@ const IndividualsDetailContent = () => {
         <PageContent loading={(individual && individual.individual?.isFetching)}>
             <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
                 <Tabs.TabPane tab="Overview" key="overview">
-                    <IndividualOverview individual={individual && individual ? individual.individual : {}} />
+                    <IndividualOverview individual={(individual && individual) ? individual.individual : {}} />
                 </Tabs.TabPane>
                 <Tabs.TabPane tab="Associated Samples" key="samples">
                     {
-                        individual &&
-                        <IndividualAssociatedSamples samples={samples ?? []} individual={individual} />
+                        individual && individual.individual.id &&
+                        < IndividualAssociatedSamples samples={samples ?? []} individual={individual} />
                     }
                 </Tabs.TabPane>
             </Tabs>

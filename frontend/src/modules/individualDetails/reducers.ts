@@ -1,10 +1,10 @@
 import { WritableDraft } from "immer/dist/types/types-external";
 import { createNetworkActionTypes } from "../../utils/actions";
 import { AnyAction } from "redux";
-import { FMSId, FMSIndividual, FMSSample } from "../../models/fms_api_models";
+import { FMSId, FMSSample } from "../../models/fms_api_models";
 import produce from "immer";
 import { PagedItems } from "../../models/paged_items";
-import { Individual, createItemsByID } from "../../models/frontend_models";
+import { Individual, createItemsByID, preprocess } from "../../models/frontend_models";
 import { clearFiltersReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers";
 
 export const LIST_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.LIST_TABLE')
@@ -13,7 +13,7 @@ export const SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.SET_IND
 export const CLEAR_FILTERS = "INDIVIDUAL_DETAILS.CLEAR_FILTERS"
 
 export interface IndividualDetails {
-    individual: Individual | undefined,
+    individual: Individual,
     samplesByIndividual: PagedItems<FMSSample>
 }
 
@@ -49,7 +49,7 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
             const { individualID } = action.meta
             if (!state[individualID]) {
                 state[individualID] = {
-                    individual: undefined,
+                    individual: preprocess(undefined),
                     samplesByIndividual: {
                         ...INITIAL_PAGED_ITEMS
                     }
@@ -61,7 +61,7 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
             const { individualID, individual } = action.meta
             state[individualID] = {
                 ...state[individualID],
-                individual: { ...individual },
+                individual: preprocess(individual),
                 samplesByIndividual: {
                     ...INITIAL_PAGED_ITEMS,
                     items: action.data.results.map(r => r.id),
