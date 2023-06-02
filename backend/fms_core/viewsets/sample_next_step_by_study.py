@@ -43,13 +43,12 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                     removed, errors, _ = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
 
                     if removed:
-                        step_history_queryset = (StepHistory.objects
-                                                 .filter(study=study)
-                                                 .annotate(sample=Coalesce(F('process_measurement__lineage__child'), F('process_measurement__source_sample')))
-                                                 .filter(sample=sample.pk))
-                        step_history = step_history_queryset.get()
-                        step_history.workflow_action = WorkflowAction.DEQUEUE_SAMPLE
-                        step_history.save()
+                        # even if StepHistory does not exist (e.g., sample at first step) it should work fine.
+                        StepHistory.objects \
+                            .filter(study=study) \
+                            .annotate(sample=Coalesce(F('process_measurement__lineage__child'), F('process_measurement__source_sample'))) \
+                            .filter(sample=sample.pk) \
+                            .update(workflow_action = WorkflowAction.DEQUEUE_SAMPLE)
             except Exception as err:
                 return HttpResponseBadRequest(err)
         if removed and not errors:
