@@ -56,9 +56,9 @@ export const closeNotification = (id: NotificationID) => (dispatch: AppDispatch,
     notification.close(id)
 }
 
-const typeCurried = (type: NotificationProps['type']) => (props: Omit<NotifyProps, 'type'>) => notify({...props, type})
+const withType = (type: NotificationProps['type']) => (props: Omit<NotifyProps, 'type'>) => notify({...props, type})
 
-export const notifySuccess = typeCurried(NotificationType.SUCCESS)
-export const notifyInfo = typeCurried(NotificationType.INFO)
-export const notifyWarning = typeCurried(NotificationType.WARNING)
-export const notifyError = typeCurried(NotificationType.ERROR)
+export const notifySuccess = withType(NotificationType.SUCCESS)
+export const notifyInfo = withType(NotificationType.INFO)
+export const notifyWarning = withType(NotificationType.WARNING)
+export const notifyError = withType(NotificationType.ERROR)
