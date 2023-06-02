@@ -11,10 +11,11 @@ export enum NotificationType {
     ERROR = 'ERROR',
 }
 
+export type SerializableReactNode = string | number | boolean | null | undefined
 export interface NotificationProps {
     type: NotificationType
-    description: ReactNode
-    title: ReactNode
+    description: SerializableReactNode
+    title: SerializableReactNode
     duration?: number
 }
 
