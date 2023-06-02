@@ -17,7 +17,12 @@ const hasNotification = (state: RootState, id: NotificationID) => {
     return state.notifications.some((notification) => notification.id === id)
 }
 
-export const notify = (id: NotificationID, props: NotificationProps) => (dispatch: AppDispatch, getState: () => RootState) => {
+export interface NotifyProps extends NotificationProps {
+    id: NotificationID
+}
+export const notify = (props: NotifyProps) => (dispatch: AppDispatch, getState: () => RootState) => {
+    const { id } = props
+
     if (hasNotification(getState(), id)) {
         dispatch(closeNotification(id))
     }
