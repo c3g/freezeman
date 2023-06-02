@@ -1,7 +1,7 @@
 import { ThunkMiddleware, configureStore } from '@reduxjs/toolkit'
 import { createLogger } from 'redux-logger'
 import rootReducer from './reducers'
-import { showNotification } from './modules/notification/actions'
+import { notifyError } from './modules/notification/actions'
 import { logOut } from './modules/auth/actions'
 import shouldIgnoreError from './utils/shouldIgnoreError'
 
@@ -41,7 +41,12 @@ const notificationError: ThunkMiddleware = ({ dispatch }) => next => action => {
 		return next(action)
 
 	const error = getErrorDescription(action.error)
-	dispatch(showNotification(error.message, error.details))
+	dispatch(notifyError({
+		id: error.message,
+		title: error.message,
+		description: error.details,
+		duration: 0,
+	}))
 
 	return next(action)
 }
