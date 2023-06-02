@@ -1,7 +1,7 @@
 import { ThunkMiddleware, configureStore } from '@reduxjs/toolkit'
 import { createLogger } from 'redux-logger'
 import rootReducer from './reducers'
-import { notifyError } from './modules/notification/actions'
+import { NotifyProps, notifyError } from './modules/notification/actions'
 import { logOut } from './modules/auth/actions'
 import shouldIgnoreError from './utils/shouldIgnoreError'
 
@@ -12,7 +12,7 @@ const logger = createLogger({
 const notificationError: ThunkMiddleware = ({ dispatch }) => next => action => {
 	const TOKEN_EXPIRED_MESSAGE = 'Given token not valid for any token type'
 
-	function getErrorDescription(error: any) {
+	function getErrorDescription(error: any): Pick<NotifyProps, 'id' | 'title' | 'description'> {
 		/* HTTP errors are handled specially because they include the URL
 		 * in the error message and we don't want many very similar errors
 		 * to show up, just show one.
