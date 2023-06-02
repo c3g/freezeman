@@ -3,6 +3,47 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 import re
+import reversion
+from django.contrib.auth.models import User
+
+ADMIN_USERNAME = 'biobankadmin'
+
+def add_library_types(apps, schema_editor):
+    LibraryType = apps.get_model("fms_core", "LibraryType")
+
+    LIBRARY_TYPES = [ 
+        "HiC",
+        "ChIPmentation",
+        "ATACSeq",
+        "GeoMx_RNA",
+        "GeoMx_Protein",
+        "10x_Genomics_Linked_Reads_gDNA",
+        "10x_Genomics_SC_ATAC",
+        "10x_Genomics_SC_CNV",
+        "10x_Genomics_SC_Feature_Barcode",
+        "10x_Genomics_SC_RNA",
+        "10x_Genomics_SC_V-D-J",
+        "10x_Genomics_SC_Visium_Spatial_RNA",
+        "Amplicon_DNA",
+        "Amplicon_RNA",
+        "MNase-Seq",
+        "TELL-Seq",
+        "SHARE-Seq_ATAC",
+        "SHARE-Seq_RNA",
+    ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Add more library types that could be submitted for sequencing.")
+        reversion.set_user(admin_user)
+
+        for library_type_name in LIBRARY_TYPES:
+            library_type = LibraryType.objects.create(name=library_type_name,
+                                                      created_by_id=admin_user_id,
+                                                      updated_by_id=admin_user_id)
+            reversion.add_to_revision(library_type)
 
 class Migration(migrations.Migration):
 
@@ -132,5 +173,9 @@ class Migration(migrations.Migration):
             model_name='samplelineage',
             name='parent',
             field=models.ForeignKey(help_text='Parent sample.', on_delete=django.db.models.deletion.PROTECT, related_name='parent_sample', to='fms_core.sample'),
+        ),
+        migrations.RunPython(
+            add_library_types,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
