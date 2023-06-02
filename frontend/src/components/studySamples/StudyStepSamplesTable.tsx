@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { FMSId, FMSSampleNextStep, FMSSampleNextStepByStudy } from '../../models/fms_api_models'
-import { Protocol, Sample } from '../../models/frontend_models'
+import { FMSId } from '../../models/fms_api_models'
+import { Protocol } from '../../models/frontend_models'
 import { clearFilters, refreshStudySamples, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepSortOrder } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectProtocolsByID, selectStepsByID } from '../../selectors'
@@ -10,7 +10,7 @@ import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS }
 import { IdentifiedTableColumnType, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../shared/WorkflowSamplesTable/SampleTableColumns'
 import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'
-import { Spin, notification } from 'antd'
+import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
 
 interface StudyStepSamplesTableProps {
@@ -42,34 +42,6 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			dispatch(setStudyStepSortOrder(studyID, step.stepOrderID, sortBy))
 		}
 		, [studyID, step, dispatch])
-	
-	const [sampleNextStepIDs, setSampleNextSteps] = useState<FMSSampleNextStep['id'][]>()
-	useEffect(() => {
-		(async () => {
-			const results = (await dispatch(api.sampleNextStep.list({
-				sample__id__in: step.samples.join(","),
-				studies__id: studyID,
-				step__id: step.stepID
-			}))).data.results as FMSSampleNextStep[]
-			// console.debug(results)
-			setSampleNextSteps(results.map(sns => sns.id))
-		})()
-	}, [dispatch, step.samples, step.stepID, studyID])
-
-	const [sampleNextStepByStudies, setSampleNextStepByStudies] = useState<{[key: Sample['id']]: FMSSampleNextStepByStudy['id']}>()
-	useEffect(() => {
-		(async () => {
-			if (sampleNextStepIDs) {
-				const results = (await dispatch(api.sampleNextStepByStudy.list({
-					sample_next_step__id__in: sampleNextStepIDs.join(","),
-					study__id: studyID,
-					step_order__id: step.stepOrderID
-				}))).data.results as FMSSampleNextStepByStudy[]
-				// console.debug(results)
-				setSampleNextStepByStudies(Object.fromEntries(results.map((snsbs) => [snsbs.sample, snsbs.id])))
-			}
-		})()
-	}, [dispatch, sampleNextStepIDs, step.stepOrderID, studyID])
 
 	const protocol: Protocol | undefined = protocolsByID[step.protocolID]
 	const stepDefinition = stepsByID[step.stepID]
@@ -85,27 +57,31 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 					title: 'Action',
 					dataIndex: ['sample', 'id'],
 					render: (_, { sample }) => {
-						return <Spin spinning={!sampleNextStepByStudies}>{
-							sample && sampleNextStepByStudies && sample.id in sampleNextStepByStudies ? (
-								<a onClick={async () => {
-									const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample?.name}`
-									notification.info({
-										message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
-										key: REMOVE_NOTIFICATION_KEY
-									})
-									await dispatch(api.sampleNextStepByStudy.remove(sampleNextStepByStudies[sample.id]))
-									await dispatch(refreshStudySamples(studyID))
-									notification.close(REMOVE_NOTIFICATION_KEY)
-								}}>Remove</a>
-							) : <span>Remove</span>
-						}</Spin>
+						return <Popconfirm
+							title={`Are you sure you want to remove sample '${sample?.name ?? 'Loading...'}' from step '${step.stepName}'?`}
+							onConfirm={async () => {
+								if (!sample) return;
+								const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
+								notification.info({
+									message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
+									key: REMOVE_NOTIFICATION_KEY
+								})
+								await dispatch(api.sampleNextStepByStudy.remove(step.sampleNextStepByStudyBySampleID[sample.id].id))
+								await dispatch(refreshStudySamples(studyID))
+								notification.close(REMOVE_NOTIFICATION_KEY)
+							}}
+							disabled={!sample}
+							placement={'topLeft'}
+						>
+							<Typography.Link underline type={'danger'} href={''}>Remove</Typography.Link>
+						</Popconfirm>
 					}
 				}
 			]
 		} else {
 			return []
 		}
-	}, [dispatch, protocol, sampleNextStepByStudies, step.stepID, step.stepName, stepDefinition, studyID])
+	}, [dispatch, protocol, step.sampleNextStepByStudyBySampleID, step.stepID, step.stepName, stepDefinition, studyID])
 
 	const localClearFilters = () => {
 		if (clearFilters)
