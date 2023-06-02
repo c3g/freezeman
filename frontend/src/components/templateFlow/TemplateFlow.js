@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { connect } from "react-redux"
 import PropTypes from "prop-types";
-import { Button, Steps, Row, Col } from "antd";
+import { Button, Steps, Row, Col, notification } from "antd";
 import { downloadFromFile } from "../../utils/download";
 
 import {
@@ -87,6 +87,21 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
         setSubmitResult({ valid: true });
       })
       .catch(error => {
+        if (error.message === 'Failed to fetch') {
+          // If the template file was changed on disk since it was uploaded
+          // then a 'failed to fetch' error is thrown. This can happen if the user saves a change to
+          // the template after it has been uploaded.
+          const description = 
+            <div>
+              <p>The template has changed since it was uploaded and cannot be submitted.</p>
+              <p>Please upload the template again, and ensure that it is not saved or otherwise modified until after it has been submitted.</p>
+            </div>
+          notification.error({
+            message: 'Template Has Changed',
+            description,
+            duration: 0
+          })
+        }
         setSubmitResult({
           valid: false,
           error,
