@@ -88,14 +88,14 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 						return <Spin spinning={!sampleNextStepByStudies}>{
 							sample && sampleNextStepByStudies && sample.id in sampleNextStepByStudies ? (
 								<a onClick={async () => {
-									const REMOVE_NOTIFICAITON_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample?.name}`
+									const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample?.name}`
 									notification.info({
 										message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
-										key: REMOVE_NOTIFICAITON_KEY
+										key: REMOVE_NOTIFICATION_KEY
 									})
 									await dispatch(api.sampleNextStepByStudy.remove(sampleNextStepByStudies[sample.id]))
 									await dispatch(refreshStudySamples(studyID))
-									notification.close(REMOVE_NOTIFICAITON_KEY)
+									notification.close(REMOVE_NOTIFICATION_KEY)
 								}}>Remove</a>
 							) : <span>Remove</span>
 						}</Spin>
