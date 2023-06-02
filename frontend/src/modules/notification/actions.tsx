@@ -50,11 +50,3 @@ export const closeNotification = (id: NotificationID) => (dispatch: AppDispatch,
     // Closing after dispatch should prevent duplicate remove action.
     notification.close(id)
 }
-
-export const showNotification = (
-    titleAndID: NotificationProps['title'] & NotificationID,
-    description: NotificationProps['description'],
-    type: NotificationProps['type'] = NotificationType.ERROR
-) => {
-    return notify(titleAndID, { type, title: titleAndID, description, duration: 0 })
-}
