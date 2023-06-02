@@ -105,7 +105,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 		} else {
 			return []
 		}
-	}, [dispatch, protocol, sampleNextStepByStudies, stepDefinition, studyID])
+	}, [dispatch, protocol, sampleNextStepByStudies, step.stepID, step.stepName, stepDefinition, studyID])
 
 	const localClearFilters = () => {
 		if (clearFilters)
