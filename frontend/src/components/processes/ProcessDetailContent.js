@@ -15,8 +15,7 @@ import AllProcessProperties from "../shared/AllProcessProperties";
 import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
 import useHashURL from "../../hooks/useHashURL";
 import { useAppDispatch } from "../../hooks";
-import { notify } from "../../modules/notification/actions";
-import { NotificationType } from "../../modules/notification/models";
+import { notifyError } from "../../modules/notification/actions";
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -45,10 +44,9 @@ const ProcessDetailContent = ({
     withToken(token, api.importedFiles.download)(fileID)
       .then(response => downloadFromFile(response.filename, response.data))
       .catch((err) => {
-        dispatch(notify("ProcessDetailContent: Template Unavailable", {
+        dispatch(notifyError("ProcessDetailContent: Template Unavailable", {
           title: "Template Unavailable",
           description: "The template file could not be retrieved.",
-          type: NotificationType.ERROR
         }))
       })
 

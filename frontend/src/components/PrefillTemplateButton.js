@@ -4,8 +4,7 @@ import {Button, Modal} from "antd";
 
 import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { useAppDispatch } from "../hooks";
-import { notify } from "../modules/notification/actions";
-import { NotificationType } from "../modules/notification/models";
+import { notifyError } from "../modules/notification/actions";
 
 const { confirm } = Modal;
 
@@ -30,10 +29,9 @@ const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }
               downloadFromFile(response.filename, response.data)
             })
             .catch(err => {
-              dispatch(notify(err.message, {
+              dispatch(notifyError(err.message, {
                 title: err.message,
                 description:  <pre>{err.stack}</pre>,
-                type: NotificationType.ERROR
               }))
             })
             .then(() => {
