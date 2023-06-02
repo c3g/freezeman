@@ -19,13 +19,15 @@ const notificationError: ThunkMiddleware = ({ dispatch }) => next => action => {
 		 */
 		if (typeof error.status === 'number')
 			return {
-				message: `HTTP Error ${error.status}: ${error.statusText}`,
-				details: error.url,
+				id: error.url,
+				title: `HTTP Error ${error.status}: ${error.statusText}`,
+				description: error.url,
 			}
 
 		return {
-			message: error.message,
-			details: error.stack,
+			id: error.message,
+			title: error.message,
+			description: error.stack,
 		}
 	}
 
@@ -42,9 +44,7 @@ const notificationError: ThunkMiddleware = ({ dispatch }) => next => action => {
 
 	const error = getErrorDescription(action.error)
 	dispatch(notifyError({
-		id: error.message,
-		title: error.message,
-		description: error.details,
+		...error,
 		duration: 0,
 	}))
 
