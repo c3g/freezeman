@@ -2,7 +2,7 @@ import { CheckOutlined, CloseOutlined, QuestionCircleOutlined } from '@ant-desig
 import { Button, Collapse, List, Space, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { initExperimentRunLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
+import { flushExperimentRunLanes, initExperimentRunLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
 import { LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState } from '../../selectors'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
@@ -28,6 +28,11 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 			setInitialized(true)
 		}
 	}, [dispatch, experimentRunName, initialized])
+
+	useEffect(() => {
+		// Flush redux state when the component is unmounted
+		return () => {dispatch(flushExperimentRunLanes(experimentRunName))}
+	}, [dispatch, experimentRunName])
 
 	const setPassed = useCallback(
 		(lane: LaneInfo) => {
@@ -55,7 +60,12 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		return null
 	}
 
-	return <Collapse>{runLanes.lanes.map((lane) => LanePanel({ lane: lane, setPassed, setFailed, setAvailable }))}</Collapse>
+	return (
+		runLanes.lanes.length === 0 ?
+			<Text italic style={{paddingLeft: '1em'}}>No datasets for this experiment are available for this experiment yet.</Text>
+		:
+		<Collapse>{runLanes.lanes.map((lane) => LanePanel({ lane: lane, setPassed, setFailed, setAvailable }))}</Collapse>
+	)
 }
 
 function FlexBar(props) {
@@ -70,24 +80,24 @@ function getValidationStatusExtra(lane: LaneInfo) {
 			// return 
 			return (
 				<Space>
-					<Typography.Text strong>Needs validation</Typography.Text>
 					<QuestionCircleOutlined/>
+					<Typography.Text strong>Needs validation</Typography.Text>
 				</Space>
 			)
 		}
 		case ValidationStatus.PASSED: {
 			return (
 				<Space>
-					<Typography.Text>Passed</Typography.Text>
 					<CheckOutlined style={{ color: 'green' }} />
+					<Typography.Text strong>Passed</Typography.Text>
 				</Space>
 			)
 		}
 		case ValidationStatus.FAILED: {
 			return (
 				<Space>
-					<Typography.Text>Failed</Typography.Text>
 					<CloseOutlined style={{ color: 'red' }} />
+					<Typography.Text strong>Failed</Typography.Text>
 				</Space>
 			)
 		}

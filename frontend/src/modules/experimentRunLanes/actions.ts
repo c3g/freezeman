@@ -1,7 +1,7 @@
 import api from "../../utils/api"
 import { ValidationStatus } from "./models"
 import { LaneInfo, LaneNumber } from "./models"
-import { SET_EXPERIMENT_LANES, SET_LANE_VALIDATION_STATUS, SET_READS_PER_SAMPLE } from "./reducers"
+import { FLUSH_EXPERIMENT_LANES, SET_EXPERIMENT_LANES, SET_LANE_VALIDATION_STATUS, SET_READS_PER_SAMPLE } from "./reducers"
 import { fetchReadsPerSample, loadExperimentRunLanes } from "./services"
 
 
@@ -40,5 +40,12 @@ export function setRunLaneValidationStatus(lane: LaneInfo, status: ValidationSta
 				status: status
 			})
 		}
+	}
+}
+
+export function flushExperimentRunLanes(experimentRunName: string) {
+	return {
+		type: FLUSH_EXPERIMENT_LANES,
+		experimentRunName
 	}
 }
