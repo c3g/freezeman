@@ -4,13 +4,15 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
-from django.db.models import Count
+from django.db.models import Count, F
+from django.db.models.functions import Coalesce
 from fms_core.models.step_order import StepOrder
 
 from fms_core.models.workflow import Workflow
 
 from ._constants import _sample_next_step_by_study_filterset_fields
-from fms_core.models import SampleNextStepByStudy, Sample, Study
+from fms_core._constants import WorkflowAction
+from fms_core.models import SampleNextStepByStudy, Sample, Study, StepHistory
 from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow
 from fms_core.serializers import SampleNextStepByStudySerializer
 from ._utils import _list_keys
@@ -39,9 +41,18 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                     sample = Sample.objects.get(id=sample_id)
                     study = Study.objects.get(id=study_id)
                     removed, errors, _ = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
+
+                    if removed:
+                        step_history_queryset = (StepHistory.objects
+                                                 .filter(study=study)
+                                                 .annotate(sample=Coalesce(F('process_measurement__lineage__child'), F('process_measurement__source_sample')))
+                                                 .filter(sample=sample.pk))
+                        step_history = step_history_queryset.get()
+                        step_history.workflow_action = WorkflowAction.DEQUEUE_SAMPLE
+                        step_history.save()
             except Exception as err:
                 return HttpResponseBadRequest(err)
-        if removed:
+        if removed and not errors:
             return Response(data={"details": removed}, status=status.HTTP_200_OK)
         else:
             return HttpResponseBadRequest(errors or f"Missing sample-next-step-by-study ID to delete.")
