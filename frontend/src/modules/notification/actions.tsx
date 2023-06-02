@@ -55,3 +55,10 @@ export const closeNotification = (id: NotificationID) => (dispatch: AppDispatch,
     // Closing after dispatch should prevent duplicate remove action.
     notification.close(id)
 }
+
+const typeCurried = (type: NotificationProps['type']) => (props: Omit<NotifyProps, 'type'>) => notify({...props, type})
+
+export const notifySuccess = typeCurried(NotificationType.SUCCESS)
+export const notifyInfo = typeCurried(NotificationType.INFO)
+export const notifyWarning = typeCurried(NotificationType.WARNING)
+export const notifyError = typeCurried(NotificationType.ERROR)
