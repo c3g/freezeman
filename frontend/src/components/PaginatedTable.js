@@ -1,45 +1,44 @@
-import React, {useState, useRef} from "react";
-import {connect, useDispatch } from "react-redux";
+import React, { useState, useRef } from "react";
+import { connect, useDispatch } from "react-redux";
 import prop from "prop-types";
-import {Pagination, Table} from "antd";
-
-
-import {setPageSize} from "../modules/pagination";
-
+import { Pagination, Table } from "antd";
+import { useResizeObserver } from "../utils/ref"
+import { setPageSize } from "../modules/pagination";
 const propTypes = {
- filters: prop.object.isRequired,
- sortBy: prop.object.isRequired,
- pageSize : prop.number.isRequired
+  filters: prop.object.isRequired,
+  sortBy: prop.object.isRequired,
+  pageSize: prop.number.isRequired
 };
 
 const mapStateToProps = state => ({
   pageSize: state.pagination.pageSize,
 });
 
-const actionCreators = {setPageSize};
+const actionCreators = { setPageSize };
 
-function PaginatedTable ({
-    columns,
-    items,
-    itemsByID,
-    rowKey = 'id',
-    loading,
-    totalCount,
-    filters,
-    filterKey,
-    sortBy,
-    pageSize,
-    onLoad,
-    onChangeSort,
-  }) {
+function PaginatedTable({
+  columns,
+  items,
+  itemsByID,
+  rowKey = 'id',
+  loading,
+  totalCount,
+  filters,
+  filterKey,
+  sortBy,
+  pageSize,
+  onLoad,
+  onChangeSort,
+}) {
 
-  const dispatch  = useDispatch();
+  const dispatch = useDispatch();
   const filtersRef = useRef(filters);
   const sortByRef = useRef(sortBy);
   const [currentPage, setCurrentPage] = useState(1);
+  const { ref: resizeRef, size: maxSize } = useResizeObserver(40, 40)
 
   const startIndex = (currentPage - 1) * pageSize;
-  const endIndex   = Math.min((currentPage) * pageSize, totalCount);
+  const endIndex = Math.min((currentPage) * pageSize, totalCount);
 
   const dataSource =
     items.slice(startIndex, endIndex)
@@ -71,29 +70,31 @@ function PaginatedTable ({
     const dataIndex = sorter.column?.dataIndex
     const key = dataIndex
     const order = sorter.order
-
+    
     if (sortBy.key !== key || sortBy.order !== order)
-      onChangeSort(key, order)
+    onChangeSort(key, order)
   };
-
+  
   const onChangeSizeChange = (newPageSize) => {
     dispatch(setPageSize(newPageSize));
   };
-
+  
   return (
     <>
-      <Table
-        size="small"
-        bordered={true}
-        pagination={false}
-        columns={columns}
-        dataSource={hasUnloadedItems ? [] : dataSource}
-        rowKey={rowKey}
-        loading={loading || isCurrentPageUnloaded}
-        childrenColumnName={'UNEXISTENT_KEY'}
-        onChange={onChangeTable}
-        scroll={{ x: 300 }}
-      />
+      <div style={{ overflowY: 'scroll' }}>
+        <Table
+          ref={resizeRef}
+          scroll={{ x: 'max-content', y: maxSize.height }}
+          bordered={true}
+          pagination={false}
+          columns={columns}
+          dataSource={hasUnloadedItems ? [] : dataSource}
+          rowKey={rowKey}
+          loading={loading || isCurrentPageUnloaded}
+          childrenColumnName={'UNEXISTENT_KEY'}
+          sticky
+        />
+      </div>
       <Pagination
         className="ant-table-pagination ant-table-pagination-right"
         showSizeChanger={true}

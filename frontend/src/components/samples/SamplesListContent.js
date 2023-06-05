@@ -91,6 +91,7 @@ const getTableColumns = (sampleKinds, toggleOption) => [
       title: "Project",
       dataIndex: "derived_samples__project__name",
       sorter: toggleOption === TOGGLE_OPTIONS.SAMPLES ? true : false,
+      width: 80,
       render: (_, sample) => (sample.project &&
         <Link to={`/projects/${sample.project}`}>
           <WithProjectRenderComponent objectID={sample.project} placeholder={'loading...'} render={(project) => project.name}/>
@@ -104,7 +105,7 @@ const getTableColumns = (sampleKinds, toggleOption) => [
           sample.coordinate && 
           <WithCoordinateRenderComponent objectID={sample.coordinate} placeholder={'loading...'} render={coordinate => coordinate.name}/>
         ),
-      width: 70,
+      width: 100,
     },
     {
       title: "Vol. (µL)",
@@ -126,6 +127,7 @@ const getTableColumns = (sampleKinds, toggleOption) => [
     {
       title: "QC Flag",
       dataIndex: "qc_flag",
+      width: 60,
       render: (_, sample) => {
         const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
         if (flags.quantity !== null && flags.quality !== null)
@@ -145,7 +147,7 @@ const getTableColumns = (sampleKinds, toggleOption) => [
       dataIndex: "depleted",
       sorter: true,
       render: depleted => <Depletion depleted={depleted} />,
-      width: 85,
+      width: 125,
     }
   ];
 
