@@ -1,6 +1,6 @@
-import { Button, Descriptions, Typography } from "antd"
+import { Button, Descriptions, Space, Typography } from "antd"
 import moment from "moment"
-import React, { useCallback, useEffect, useReducer } from "react"
+import React, { useCallback, useEffect, useReducer, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useFilteredList from "../../hooks/useFilteredList"
@@ -12,7 +12,10 @@ import PageContent from "../PageContent"
 import { DATASET_FILE_FILTERS } from "../filters/descriptions"
 import PaginatedList from "../shared/PaginatedList"
 import { Dataset, DatasetFile } from "../../models/frontend_models"
-const { Title } = Typography
+import { ValidationStatus } from "../../modules/experimentRunLanes/models"
+import api from "../../utils/api"
+import { InfoCircleOutlined } from "@ant-design/icons"
+const { Title, Text } = Typography
 
 const AVAILABLE = 0
 const RELEASED = 1
@@ -83,6 +86,8 @@ const DatasetDetailContent = () => {
     const allFilesReleased = dataset?.released_status_count === dataset?.files?.length
     const allFilesBlocked = dataset?.released_status_count === 0
 
+    const [laneValidationStatus, setLaneValidationStatus] = useState<ValidationStatus>()
+
     const releaseStatusOptionReducer = (state, action) => {
         switch(action.type) {
             case "all":
@@ -135,6 +140,36 @@ const DatasetDetailContent = () => {
             dispatch(get(datasetId))
         }
     }, [dataset, datasetId, datasetsById, dispatch])
+
+    useEffect(() => {
+        async function fetchLaneValidationStatus(dataset: Dataset) {
+            const status = await dispatch(api.experimentRuns.getLaneValidationStatus(dataset.run_name, dataset.lane))
+            return status.data
+        }
+
+        if (dataset && !dataset.isFetching && !laneValidationStatus) {
+            fetchLaneValidationStatus(dataset).then((status) => {
+                setLaneValidationStatus(status)
+            })
+        }
+    }, [dataset, laneValidationStatus, dispatch])
+
+    const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
+
+    let laneValidationStatusString = ''
+    if (laneValidationStatus !== undefined) {
+        switch(laneValidationStatus) {
+            case ValidationStatus.AVAILABLE:
+                laneValidationStatusString = 'Awaiting validation'
+                break
+            case ValidationStatus.PASSED:
+                laneValidationStatusString = 'Passed'
+                break
+            case ValidationStatus.FAILED:
+                laneValidationStatusString = 'Failed'
+                break
+        }
+    }
 
     const loading = (value: string | number | undefined) => {
         return value ?? "Loading..."
@@ -205,7 +240,7 @@ const DatasetDetailContent = () => {
             Save Changes
         </Button>
     </>
-
+   
     return <>
     <AppPageHeader
         title={`Dataset ${loading(dataset?.external_project_id)} - ${loading(dataset?.run_name)} - ${loading(dataset?.lane)}`}
@@ -213,15 +248,23 @@ const DatasetDetailContent = () => {
 
     <PageContent>
         <Descriptions bordered={true} size={"small"} column={4}>
-            <Descriptions.Item label={"ID"}>{loading(dataset?.id)}</Descriptions.Item>
-            <Descriptions.Item label={"Project"}>{loading(dataset?.external_project_id)}</Descriptions.Item>
-            <Descriptions.Item label={"Run Name"}>{loading(dataset?.run_name)}</Descriptions.Item>
-            <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
-            <Descriptions.Item label={"Total Files"} span={2}>{loading(dataset?.files?.length)}</Descriptions.Item>
-            <Descriptions.Item label={"Files Released"} span={2}>{loading(dataset?.released_status_count)}</Descriptions.Item>
+            <Descriptions.Item label={"ID"} span={1}>{loading(dataset?.id)}</Descriptions.Item>
+            <Descriptions.Item label={"Project"} span={1}>{loading(dataset?.external_project_id)}</Descriptions.Item>
+            <Descriptions.Item label={"Run Name"} span={2}>{loading(dataset?.run_name)}</Descriptions.Item>
+            <Descriptions.Item label={"Lane"} span={1}>{loading(dataset?.lane)}</Descriptions.Item>
+            <Descriptions.Item label={"Validation Status"} span={1}>{loading(laneValidationStatusString)}</Descriptions.Item>
+            <Descriptions.Item label={"Total Files"} span={1}>{loading(dataset?.files?.length)}</Descriptions.Item>
+            <Descriptions.Item label={"Files Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
-        <PaginatedList {...paginatedListProps} other={extraButtons} />
+        {laneValidationStatus !== undefined &&  !canReleaseOrBlockFiles &&
+            <Space>
+                <InfoCircleOutlined/>
+                <Text italic>Files cannot be released until the dataset lane has been validated</Text>
+            </Space>
+            
+        }
+        <PaginatedList {...paginatedListProps} other={canReleaseOrBlockFiles ? extraButtons : undefined} />
     </PageContent>
     </>
 }

@@ -6,7 +6,6 @@ import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setR
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState } from '../../selectors'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
-import { experimentRunLanes } from '../../modules/experimentRunLanes/reducers'
 
 const { Title, Text } = Typography
 
