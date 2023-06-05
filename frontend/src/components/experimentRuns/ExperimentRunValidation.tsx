@@ -1,4 +1,4 @@
-import { CheckOutlined, CloseOutlined, QuestionCircleOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, QuestionCircleOutlined, SyncOutlined } from '@ant-design/icons'
 import { Button, Collapse, List, Space, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
@@ -28,6 +28,10 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 	const experimentRunLanesState = useAppSelector(selectExperimentRunLanesState)
 	const [runLanes, setRunLanes] = useState<ExperimentRunLanes>()
 
+	// Setting a run validated is a bit slow, so disable the validation buttons while
+	// a validation is in progress so users can't click the button and trigger another call to the backend.
+	const [isValidationInProgress, setIsValidationInProgress] = useState<boolean>(false)
+
 	useEffect(() => {
 		if (!initialized) {
 			dispatch(initExperimentRunLanes(experimentRunName))
@@ -51,21 +55,27 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 
 	const setPassed = useCallback(
 		(lane: LaneInfo) => {
+			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
+				.finally(() => {setIsValidationInProgress(false)})
 		},
 		[dispatch]
 	)
 
 	const setFailed = useCallback(
 		(lane: LaneInfo) => {
+			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
+				.finally(() => {setIsValidationInProgress(false)})
 		},
 		[dispatch]
 	)
 
 	const setAvailable = useCallback(
 		(lane: LaneInfo) => {
+			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
+				.finally(() => {setIsValidationInProgress(false)})
 		},
 		[dispatch]
 	)
@@ -92,7 +102,19 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 
 	return (
 		runLanes && runLanes.lanes.length > 0 ?
-			<Collapse onChange={setLaneExpansionState} activeKey={expandedLaneKeys}>{runLanes.lanes.map((lane) => LanePanel({ lane: lane, setPassed, setFailed, setAvailable }))}</Collapse>
+			<Collapse onChange={setLaneExpansionState} activeKey={expandedLaneKeys}>{
+				runLanes.lanes.map(lane => {
+					return (
+						<Collapse.Panel 
+							key={createLaneKey(lane)}
+							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
+							extra={getValidationStatusExtra(lane, isValidationInProgress)}
+						>
+							<LanePanel lane={lane} isValidationInProgress={isValidationInProgress} setAvailable={setAvailable} setPassed={setPassed} setFailed={setFailed}/>
+						</Collapse.Panel>
+					)
+				})
+			}</Collapse>
 		:
 			<Text italic style={{paddingLeft: '1em'}}>No datasets for this experiment are available for this experiment yet.</Text>
 	)
@@ -104,13 +126,13 @@ function FlexBar(props) {
 	return <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1em' }}>{props.children}</div>
 }
 
-function getValidationStatusExtra(lane: LaneInfo) {
+function getValidationStatusExtra(lane: LaneInfo, isValidationInProgress: boolean) {
 	switch (lane.validationStatus) {
 		case ValidationStatus.AVAILABLE: {
 			// return 
 			return (
 				<Space>
-					<QuestionCircleOutlined/>
+					{isValidationInProgress ? <SyncOutlined spin/> : <QuestionCircleOutlined/>}
 					<Typography.Text strong>Needs validation</Typography.Text>
 				</Space>
 			)
@@ -118,7 +140,7 @@ function getValidationStatusExtra(lane: LaneInfo) {
 		case ValidationStatus.PASSED: {
 			return (
 				<Space>
-					<CheckOutlined style={{ color: 'green' }} />
+					{isValidationInProgress ? <SyncOutlined spin/> : <CheckOutlined style={{ color: 'green' }} />}
 					<Typography.Text strong>Passed</Typography.Text>
 				</Space>
 			)
@@ -126,7 +148,7 @@ function getValidationStatusExtra(lane: LaneInfo) {
 		case ValidationStatus.FAILED: {
 			return (
 				<Space>
-					<CloseOutlined style={{ color: 'red' }} />
+					{isValidationInProgress ? <SyncOutlined spin/> : <CloseOutlined style={{ color: 'red' }} />}
 					<Typography.Text strong>Failed</Typography.Text>
 				</Space>
 			)
@@ -136,12 +158,14 @@ function getValidationStatusExtra(lane: LaneInfo) {
 
 interface LanePanelProps {
 	lane: LaneInfo
+	isValidationInProgress: boolean
 	setPassed: (lane: LaneInfo) => void
 	setFailed: (lane: LaneInfo) => void
 	setAvailable: (lane: LaneInfo) => void
 }
 
-function LanePanel({ lane, setPassed, setFailed, setAvailable }: LanePanelProps) {
+function LanePanel({ lane, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
+
 	// Create a list of unique metrics url's from the lane's datasets. Normally all of the
 	// datasets should have the same url.
 	const urlSet: Set<string> = lane.datasets.reduce<Set<string>>((acc, dataset) => {
@@ -157,11 +181,7 @@ function LanePanel({ lane, setPassed, setFailed, setAvailable }: LanePanelProps)
 	}
 
 	return (
-		<Collapse.Panel
-			key={createLaneKey(lane)}
-			header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
-			extra={getValidationStatusExtra(lane)}
-		>
+		<>
 			<FlexBar>
 				{urlSet.size > 0 && (
 					// Display the list of metrics url's associated with the lane's datasets.
@@ -180,21 +200,21 @@ function LanePanel({ lane, setPassed, setFailed, setAvailable }: LanePanelProps)
 
 				<Title level={5}>{title}</Title>
 				<Space>
-					<Button
+					<Button disabled={isValidationInProgress}
 						onClick={() => {
 							setAvailable(lane)
 						}}
 					>
 						Reset
 					</Button>
-					<Button
+					<Button disabled={isValidationInProgress}
 						onClick={() => {
 							setPassed(lane)
 						}}
 					>
 						Passed
 					</Button>
-					<Button
+					<Button disabled={isValidationInProgress}
 						onClick={() => {
 							setFailed(lane)
 						}}
@@ -205,7 +225,7 @@ function LanePanel({ lane, setPassed, setFailed, setAvailable }: LanePanelProps)
 			</FlexBar>
 
 			<ReadsPerSampleGraph lane={lane} />
-		</Collapse.Panel>
+		</>
 	)
 }
 
