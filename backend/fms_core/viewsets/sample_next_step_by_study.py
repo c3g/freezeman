@@ -4,8 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
-from django.db.models import Count, F
-from django.db.models.functions import Coalesce
+from django.db.models import Count, F, Case, When, Q, BooleanField
 from fms_core.models.step_order import StepOrder
 
 from fms_core.models.workflow import Workflow
@@ -45,8 +44,13 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                     if removed:
                         stepHistory = (StepHistory.objects
                                        .filter(study=study)
-                                       .annotate(sample=Coalesce(F('process_measurement__lineage__child'), F('process_measurement__source_sample')))
-                                       .filter(sample=sample.pk)
+                                       .annotate(source_sample=F('process_measurement__source_sample'))
+                                       .annotate(child_sample=F('process_measurement__lineage__child'))
+                                       .filter(Case(
+                                            When(Q(source_sample=sample.pk) & Q(child_sample=None), then=True), # QC?
+                                            When(~Q(source_sample=sample.pk) & Q(child_sample=sample.pk), then=True), # child?
+                                            default=False,
+                                            output_field=BooleanField()))
                                        .order_by('step_order__order')
                                        .last())
                         if stepHistory:
