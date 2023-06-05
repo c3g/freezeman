@@ -105,7 +105,7 @@ const getTableColumns = (sampleKinds, toggleOption) => [
           sample.coordinate && 
           <WithCoordinateRenderComponent objectID={sample.coordinate} placeholder={'loading...'} render={coordinate => coordinate.name}/>
         ),
-      width: 100,
+      width: 120,
     },
     {
       title: "Vol. (µL)",
@@ -127,7 +127,7 @@ const getTableColumns = (sampleKinds, toggleOption) => [
     {
       title: "QC Flag",
       dataIndex: "qc_flag",
-      width: 60,
+      width: 80,
       render: (_, sample) => {
         const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
         if (flags.quantity !== null && flags.quality !== null)

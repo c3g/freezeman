@@ -1,8 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { connect, useDispatch } from "react-redux";
 import prop from "prop-types";
 import { Pagination, Table } from "antd";
-import { useResizeObserver } from "../utils/ref"
 import { setPageSize } from "../modules/pagination";
 const propTypes = {
   filters: prop.object.isRequired,
@@ -31,11 +30,19 @@ function PaginatedTable({
   onChangeSort,
 }) {
 
+  const OFFSET = 400
   const dispatch = useDispatch();
   const filtersRef = useRef(filters);
   const sortByRef = useRef(sortBy);
   const [currentPage, setCurrentPage] = useState(1);
-  const { ref: resizeRef, size: maxSize } = useResizeObserver(40, 40)
+  const [tableHeight, setTableHeight] = useState(window.innerHeight - OFFSET);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setTableHeight(window.innerHeight - OFFSET)
+    }
+    window.addEventListener("resize", handleResize)
+  }, [])
 
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min((currentPage) * pageSize, totalCount);
@@ -70,21 +77,20 @@ function PaginatedTable({
     const dataIndex = sorter.column?.dataIndex
     const key = dataIndex
     const order = sorter.order
-    
+
     if (sortBy.key !== key || sortBy.order !== order)
-    onChangeSort(key, order)
+      onChangeSort(key, order)
   };
-  
+
   const onChangeSizeChange = (newPageSize) => {
     dispatch(setPageSize(newPageSize));
   };
-  
+
   return (
     <>
       <div style={{ overflowY: 'scroll' }}>
         <Table
-          ref={resizeRef}
-          scroll={{ x: 'max-content', y: maxSize.height }}
+          scroll={{ x: 'max-content', y: tableHeight }}
           bordered={true}
           pagination={false}
           columns={columns}
