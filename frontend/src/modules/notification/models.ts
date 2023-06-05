@@ -1,4 +1,3 @@
-import { ReactNode } from "react"
 import { AnyAction } from "redux"
 
 export const NOTIFICATION = 'NOTIFICATION'
@@ -11,11 +10,11 @@ export enum NotificationType {
     ERROR = 'ERROR',
 }
 
-export type SerializableReactNode = string | number | boolean | null | undefined
+export type NotificationInputType = string | number | boolean | null | undefined
 export interface NotificationProps {
     type: NotificationType
-    description: SerializableReactNode
-    title: SerializableReactNode
+    description: NotificationInputType
+    title: NotificationInputType
     duration?: number
 }
 
