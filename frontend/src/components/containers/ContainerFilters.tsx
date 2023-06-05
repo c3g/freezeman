@@ -20,7 +20,7 @@ const ContainerFilters = (rest: ContainerFiltersProps) => {
 
   return (
     <div className='SamplesFilters' {...rest}>
-      <Collapse defaultActiveKey={[]} ghost>
+      <Collapse defaultActiveKey={[]} ghost collapsible={"header"}>
         <Collapse.Panel
           header='Show advanced filters'
           key={0}
