@@ -57,11 +57,7 @@ const store = configureStore({
 	// state during the React render cycle. We can restore it once that problem is fixed.
 	// Serializable check is also disabled because Error objects get stored but they are
 	// not considered serializable.
-	middleware: (getDefaultMiddleware) => [
-		...getDefaultMiddleware({immutableCheck: false, serializableCheck: false}),
-		logger,
-		notificationError,
-	]
+	middleware: (getDefaultMiddleware) => getDefaultMiddleware({immutableCheck: false, serializableCheck: false}).concat(logger).concat(notificationError)
 })
 
 export type RootState = ReturnType<typeof store.getState>
