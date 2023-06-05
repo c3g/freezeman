@@ -2,6 +2,7 @@ from django.apps import apps
 import reversion
 import json
 import logging
+from typing import Set
 from reversion.models import Version
 from fms_core.models import *
 
@@ -47,10 +48,10 @@ def update_index(params, objects_to_delete, log):
     new_index = params[INDEX_NEW]
     user_id = params.get(USER_ID)
     
-
     try:
         derived_sample_model = apps.get_model("fms_core", "DerivedSample")
         index_model = apps.get_model("fms_core", "Index")
+        library_model = apps.get_model("fms_core", "Library")
         count_updates = 0
         try:
             derived_sample = derived_sample_model.objects.get(**derived_sample_id)
@@ -60,21 +61,27 @@ def update_index(params, objects_to_delete, log):
                     try:
                         # get the new index id
                         index = index_model.objects.get(name=new_index)
-                        # List all libraries that match the current sample lineage
-                        libraries = []
-                        # ascending
-
-                        #current_sample = derived_sample.samples.
-                        #while current_sample.is_library:
-                        #    parent_sample = sample_model.objects.filter(parent_of=current_sample)
+                        # List all libraries that matches the targeted derived sample library
+                        # find root library derived sample
+                        root_library_derived_sample = None
+                        current_derived_sample = derived_sample
+                        while current_derived_sample and current_derived_sample.library is not None:
+                            root_library_derived_sample = current_derived_sample
+                            current_derived_sample = current_derived_sample.derived_from
+                        # descend the tree from root library
+                        def get_derived_libraries(derived_sample: DerivedSample) -> Set[Library]:
+                            libraries = {derived_sample.library}
+                            for child_derived_sample in derived_sample.derived_to.all():
+                                libraries.update(get_derived_libraries(child_derived_sample))
+                            return libraries
                         
-                        # descending
+                        libraries = get_derived_libraries(root_library_derived_sample)
 
                         # Apply the new index to the library identified
                         for library in libraries:
-                            old_index_id = library.index_id
+                            old_index = library.index.name
                             library.index_id = index.id
-                            log.info(f"Updated model [library] id [{library.id} field [index_id] old value [{old_index_id}] new value [{index.id}].")
+                            log.info(f"Updated model [library] id [{library.id}] field [index] old value [{old_index}] new value [{index.name}].")
                             try:
                                 library.save(requester_id=user_id) # Save using the id of the requester if present
                                 count_updates += 1
