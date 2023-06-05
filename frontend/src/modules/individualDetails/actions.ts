@@ -7,7 +7,8 @@ import { AppDispatch } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { get } from "../individuals/actions"
-import { SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER, CLEAR_FILTERS, LIST_TABLE, SET_SORT_BY, IndividualDetails } from "./reducers"
+import { IndividualDetails } from "./models"
+import { SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER, CLEAR_FILTERS, LIST_TABLE, SET_SORT_BY } from "./reducers"
 
 
 export const setFilter = (individualID: FMSId, description: FilterDescription, value: FilterValue) => {

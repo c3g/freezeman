@@ -23,7 +23,7 @@ const IndividualOverview = ({ individual }) => {
                             (
                                 <Link to={`/individuals/${individual.mother}`}>
                                     <WithIndividualRenderComponent
-                                        objectID={individual.father}
+                                        objectID={individual.mother}
                                         render={(individual) => <span>{individual.mother}</span>}
                                     />
                                 </Link>

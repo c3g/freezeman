@@ -4,7 +4,7 @@ import WorkflowSamplesTable from "../shared/WorkflowSamplesTable/WorkflowSamples
 import { clearFilters, setFilter, setSortBy } from '../../modules/individualDetails/actions'
 import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items";
 import { useAppDispatch } from "../../hooks";
-import { IndividualDetails } from "../../modules/individualDetails/reducers";
+import { IndividualDetails } from "../../modules/individualDetails/models";
 import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
 
 interface IndividualAssociatedSamplesProps {

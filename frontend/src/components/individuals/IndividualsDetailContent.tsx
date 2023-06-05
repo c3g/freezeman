@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectIndividualsDetailsById } from "../../selectors";
 import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 import { listTable } from "../../modules/individualDetails/actions";
-import { IndividualDetails, IndividualDetailsById } from "../../modules/individualDetails/reducers";
+import { IndividualDetails, IndividualDetailsById } from "../../modules/individualDetails/models";
 import { Sample } from "../../models/frontend_models";
 import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
 

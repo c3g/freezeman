@@ -1,26 +1,15 @@
 import { WritableDraft } from "immer/dist/types/types-external";
 import { createNetworkActionTypes } from "../../utils/actions";
 import { AnyAction } from "redux";
-import { FMSId, FMSSample } from "../../models/fms_api_models";
 import produce from "immer";
-import { PagedItems } from "../../models/paged_items";
-import { Individual, createItemsByID, preprocess } from "../../models/frontend_models";
+import { createItemsByID, preprocess } from "../../models/frontend_models";
 import { clearFiltersReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers";
+import { IndividualDetailsById } from "./models";
 
 export const LIST_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.LIST_TABLE')
 export const SET_SORT_BY = 'INDIVIDUAL_DETAILS.SET_SORT_BY'
 export const SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.SET_INDIVIDUAL_SAMPLES_FILTER'
 export const CLEAR_FILTERS = "INDIVIDUAL_DETAILS.CLEAR_FILTERS"
-
-export interface IndividualDetails {
-    individual: Individual,
-    samplesByIndividual: PagedItems<FMSSample>
-}
-
-export interface IndividualDetailsById {
-    // key: FMSId for individual mapping individualDetails
-    [key: FMSId]: Readonly<IndividualDetails>
-}
 
 const INITIAL_STATE: IndividualDetailsById = {}
 const INITIAL_PAGED_ITEMS = {
@@ -49,7 +38,7 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
             const { individualID } = action.meta
             if (!state[individualID]) {
                 state[individualID] = {
-                    individual: preprocess(undefined),
+                    individual: preprocess({ id: individualID }),
                     samplesByIndividual: {
                         ...INITIAL_PAGED_ITEMS
                     }

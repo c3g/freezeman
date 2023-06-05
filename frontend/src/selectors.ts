@@ -1,5 +1,5 @@
 import { Coordinate, Index, Individual, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Sequence, Study, Taxon, User, Workflow } from "./models/frontend_models"
-import { IndividualDetailsById } from "./modules/individualDetails/reducers"
+import { IndividualDetailsById } from "./modules/individualDetails/models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { LabworkStepsState } from "./modules/labworkSteps/models"
 import { StudySamplesByID, StudySettingsByID } from "./modules/studySamples/models"
