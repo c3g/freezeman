@@ -2,6 +2,7 @@ import React from "react";
 import {Input} from "antd";
 import FilterLabel from "./FilterLabel"
 import * as style from "./style"
+import DebouncedInput from "../FilterProps/DebouncedInput";
 
 
 const FilterInput = ({
@@ -11,8 +12,8 @@ const FilterInput = ({
   width = 200,
   onChange,
 }) => {
-  const onInputChange = (ev) => {
-    onChange(item, ev.target.value)
+  const onInputChange = (value) => {
+    onChange(item, value)
   }
 
   return (
@@ -20,12 +21,12 @@ const FilterInput = ({
       <FilterLabel>{item.label}</FilterLabel>
 
       <Input.Group style={style.element} compact>
-        <Input
+        <DebouncedInput
           size='small'
           placeholder={placeholder}
           style={{ width: width}}
           value={value}
-          onChange={onInputChange}
+          onInputChange={onInputChange}
         />
       </Input.Group>
     </div>
