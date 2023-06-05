@@ -35,6 +35,7 @@ class DerivedSampleServicesTestCase(TestCase):
         self.assertEqual(new_derived_sample.biosample, self.original_derived_sample.biosample)
         self.assertEqual(new_derived_sample.sample_kind, self.sk_DNA)
         self.assertEqual(new_derived_sample.tissue_source, self.sk_BLOOD)
+        self.assertEqual(new_derived_sample.derived_from, self.original_derived_sample)
         self.assertEqual(error, [])
         self.assertEqual(warning, [])
 
