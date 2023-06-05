@@ -44,23 +44,24 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
 
-	const getSampleList = (sampleIDs) => {
-		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
-			const sample = samplesByID[sampleID]
-			if (sample) {
-				if (sample.is_library) {
-					const library = librariesByID[sampleID]
-					acc.push({ sample, library })
-				} else {
-					acc.push({ sample })
-				}
-			}
-			return acc
-		}, [] as SampleAndLibrary[])
-		return availableSamples
-	}
+
 
 	useEffect(() => {
+		const getSampleList = (sampleIDs) => {
+			const availableSamples = sampleIDs.reduce((acc, sampleID) => {
+				const sample = samplesByID[sampleID]
+				if (sample) {
+					if (sample.is_library) {
+						const library = librariesByID[sampleID]
+						acc.push({ sample, library })
+					} else {
+						acc.push({ sample })
+					}
+				}
+				return acc
+			}, [] as SampleAndLibrary[])
+			return availableSamples
+		}
 		setSamples(getSampleList(stepSamples.displayedSamples))
 		setSelectedSamples(getSampleList(stepSamples.selectedSamples))
 	}, [samplesByID, librariesByID, stepSamples])
