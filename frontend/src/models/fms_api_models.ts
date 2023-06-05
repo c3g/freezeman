@@ -92,10 +92,10 @@ export interface FMSExperimentRun extends FMSTrackedModel {
     name: string                        // Experiment run name
     platform: string                    // Platform (ILLUMINA, DBNSEQ, etc.)
     process: FMSId                      // Process ID
-    run_processing_launch_date?: string // Date when run processing was launched
     run_type: FMSId                     // RunType ID
     start_date: string                  // Date when user started run 
     end_time?: string                    // Time at which the experiment run completed (set by API call)
+    run_processing_launch_date?: string // Date when run processing was launched
     run_processing_launch_time?: string  // Last time the run processing was launched, if it has been launched for the experiment run
     run_processing_start_time?: string   // Last time the run processing actually started for the experiment run
     run_processing_end_time?: string     // Last time the run processing completed for the experiment run

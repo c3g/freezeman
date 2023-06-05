@@ -2,10 +2,11 @@ import { CheckOutlined, CloseOutlined, QuestionCircleOutlined } from '@ant-desig
 import { Button, Collapse, List, Space, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { flushExperimentRunLanes, initExperimentRunLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
-import { LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
+import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
+import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState } from '../../selectors'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
+import { experimentRunLanes } from '../../modules/experimentRunLanes/reducers'
 
 const { Title, Text } = Typography
 
@@ -16,11 +17,16 @@ interface ExperimentRunValidationProps {
 	experimentRunName: string
 }
 
+function createLaneKey(lane: LaneInfo) {
+	return `LANE: ${lane.laneNumber}`
+}
+
 function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationProps) {
 	const dispatch = useAppDispatch()
 
 	const [initialized, setInitialized] = useState<boolean>(false)
 	const experimentRunLanesState = useAppSelector(selectExperimentRunLanesState)
+	const [runLanes, setRunLanes] = useState<ExperimentRunLanes>()
 
 	useEffect(() => {
 		if (!initialized) {
@@ -33,6 +39,15 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		// Flush redux state when the component is unmounted
 		return () => {dispatch(flushExperimentRunLanes(experimentRunName))}
 	}, [dispatch, experimentRunName])
+
+	useEffect(() => {
+		const experimentRunLanes = experimentRunLanesState.runs[experimentRunName]
+		if (experimentRunLanes) {
+			setRunLanes(experimentRunLanes)
+		}
+
+	}, [experimentRunName, experimentRunLanesState])
+
 
 	const setPassed = useCallback(
 		(lane: LaneInfo) => {
@@ -55,16 +70,31 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		[dispatch]
 	)
 
-	const runLanes = experimentRunLanesState.runs[experimentRunName]
-	if (!runLanes) {
-		return null
+	const setLaneExpansionState = useCallback((laneKeys: string | string[]) => {
+		if (runLanes) {
+			const keys = (typeof laneKeys === 'string') ? [laneKeys] : laneKeys
+			const expandedLanes = runLanes.lanes.filter(lane => keys.includes(createLaneKey(lane)))
+			dispatch(setExpandedLanes(runLanes.experimentRunName, expandedLanes.map(lane => lane.laneNumber)))
+		}
+	}, [dispatch, runLanes])
+
+	const expandedLaneKeys: string[] = []
+	const lanesUX = experimentRunLanesState.ux[experimentRunName]
+	if (lanesUX && runLanes) {
+		for (const laneNumber of lanesUX.expandedLanes) {
+			const laneInfo = runLanes.lanes.find(lane => lane.laneNumber === laneNumber)
+			if (laneInfo) {
+				expandedLaneKeys.push(createLaneKey(laneInfo))
+			}
+
+		}
 	}
 
 	return (
-		runLanes.lanes.length === 0 ?
-			<Text italic style={{paddingLeft: '1em'}}>No datasets for this experiment are available for this experiment yet.</Text>
+		runLanes && runLanes.lanes.length > 0 ?
+			<Collapse onChange={setLaneExpansionState} activeKey={expandedLaneKeys}>{runLanes.lanes.map((lane) => LanePanel({ lane: lane, setPassed, setFailed, setAvailable }))}</Collapse>
 		:
-		<Collapse>{runLanes.lanes.map((lane) => LanePanel({ lane: lane, setPassed, setFailed, setAvailable }))}</Collapse>
+			<Text italic style={{paddingLeft: '1em'}}>No datasets for this experiment are available for this experiment yet.</Text>
 	)
 }
 
@@ -128,7 +158,7 @@ function LanePanel({ lane, setPassed, setFailed, setAvailable }: LanePanelProps)
 
 	return (
 		<Collapse.Panel
-			key={`LANE:${lane.laneNumber}`}
+			key={createLaneKey(lane)}
 			header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
 			extra={getValidationStatusExtra(lane)}
 		>

@@ -39,9 +39,17 @@ export interface ExperimentRunLanes {
 	lanes: LaneInfo[]
 }
 
+export interface ExperimentRunLanesUX {		// A place to store UX state (expanded lanes)
+	experimentRunName: string,
+	expandedLanes: number[]					// The lane numbers of lanes which are expanded in the UX.
+}
+
 export interface ExperimentRunLanesState {
 	runs: {
 		[key: ExperimentRunName] : ExperimentRunLanes
+	}
+	ux: {
+		[key: ExperimentRunName] : ExperimentRunLanesUX
 	}
 }
 

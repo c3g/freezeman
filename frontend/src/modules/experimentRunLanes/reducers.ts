@@ -1,15 +1,17 @@
 import { AnyAction } from "redux"
-import { ExperimentRunLanes, ExperimentRunLanesState, LaneInfo } from "./models"
+import { ExperimentRunLanes, ExperimentRunLanesState, ExperimentRunLanesUX, LaneInfo } from "./models"
 import produce, { Draft } from "immer"
 
 export const SET_EXPERIMENT_LANES = 'EXPERIMENT_RUN_LANES:SET_EXPERIMENT_LANES'
 export const SET_READS_PER_SAMPLE = 'EXPERIMENT_RUN_LANES:SET_READS_PER_SAMPLE'
 export const SET_LANE_VALIDATION_STATUS = 'EXPERIMENT_RUN_LANES:SET_LANE_VALIDATION_STATUS'
 export const FLUSH_EXPERIMENT_LANES = 'EXPERIMENT_RUN_LANES:FLUSH_EXPERIMENT_LANES'
+export const SET_EXPANDED_LANES = 'EXPERIMENT_RUN_LANES:SET_EXPANDED_LANES'
 
 
 const INITIAL_STATE : ExperimentRunLanesState = {
-	runs: {}	
+	runs: {},
+	ux: {}
 }
 
 
@@ -57,6 +59,21 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 			const { experimentRunName } = action
 			delete state.runs[experimentRunName]
 			break
+		}
+
+		case SET_EXPANDED_LANES: {
+			// Update the expansion state of the lanes, given the list of currently expanded lanes
+			const { experimentRunName, expandedLaneNumbers } = action
+			let experimentLanesUX = state.ux[experimentRunName] as ExperimentRunLanesUX
+			if (!experimentLanesUX) {
+				experimentLanesUX = {
+					experimentRunName: experimentRunName,
+					expandedLanes: []
+				}
+			}
+			experimentLanesUX.expandedLanes = expandedLaneNumbers
+			state.ux[experimentRunName] = experimentLanesUX
+			break 
 		}
 	}
 
