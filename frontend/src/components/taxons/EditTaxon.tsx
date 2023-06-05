@@ -8,25 +8,28 @@ import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { Taxon } from "../../models/frontend_models";
-import { } from 'react-router-dom'
 
 export interface EditTaxonProps {
     taxon: Taxon,
 }
 export const AddTaxonRoute = () => {
-    const appInitialzed = useAppSelector(selectAppInitialzed)
-    return appInitialzed ? <EditTaxon /> : null
+    const appInitialized = useAppSelector(selectAppInitialzed)
+    return appInitialized ? <EditTaxon /> : null
 
 }
 export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
     const { id } = useParams();
-    const appInitialzed = useAppSelector(selectAppInitialzed)
+    const appInitialized = useAppSelector(selectAppInitialzed)
     const authState = useAppSelector(selectAuthState)
-    const users = useAppSelector(selectUsersByID)
-    const hasWritePermission = (authState.currentUserID ? users[authState.currentUserID].is_superuser : false);
-    return (id && taxons[id] && appInitialzed && hasWritePermission) ? <EditTaxon taxon={{ ...taxons[id] }} /> :
-        <Navigate to={"/taxons/list"} />
+    const usersByID = useAppSelector(selectUsersByID)
+    const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false);
+    if (appInitialized) {
+        return (id && taxons && taxons[id] && hasWritePermission) ?
+            <EditTaxon taxon={{ ...taxons[id] }} /> : <Navigate to={"/taxons/list"} />
+    } else {
+        return null
+    }
 }
 
 const EditTaxon = ({ taxon }: Partial<EditTaxonProps>) => {

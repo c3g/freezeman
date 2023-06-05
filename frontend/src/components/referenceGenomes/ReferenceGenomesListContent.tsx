@@ -14,9 +14,10 @@ function ReferenceGenomesListContent() {
 	const [referenceGenomes, setReferenceGenomes] = useState<ReferenceGenome[]>();
 	const referenceGenomesByID = useAppSelector(selectReferenceGenomesByID)
 	const taxonsByID = useAppSelector(selectTaxonsByID)
-	const auth = useAppSelector(selectAuthState)
-	const users = useAppSelector(selectUsersByID)
-	const columns = getColumnsForReferenceGenome(taxonsByID, (auth.currentUserID ? users[auth.currentUserID].is_superuser : false));
+	const authState = useAppSelector(selectAuthState)
+	const usersByID = useAppSelector(selectUsersByID)
+	const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false)
+	const columns = getColumnsForReferenceGenome(taxonsByID, hasWritePermission);
 
 	useEffect(() => {
 		const refGenomesByID = getAllItems(referenceGenomesByID)
@@ -31,6 +32,7 @@ function ReferenceGenomesListContent() {
 
 			<PageContent>
 				<Table
+					loading={columns.length == 0}
 					rowKey={obj => obj.id}
 					bordered={true}
 					dataSource={referenceGenomes}

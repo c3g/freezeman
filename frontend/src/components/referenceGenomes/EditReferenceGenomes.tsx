@@ -24,10 +24,15 @@ export const EditReferenceGenomeRoute = () => {
     const referenceGenomes = useAppSelector(selectReferenceGenomesByID)
     const appInitialized = useAppSelector(selectAppInitialzed)
     const authState = useAppSelector(selectAuthState)
-    const users = useAppSelector(selectUsersByID)
-    const isAuthenticated = (authState.currentUserID ? users[authState.currentUserID].is_superuser : false);
-    return (id && referenceGenomes[id] && appInitialized && isAuthenticated) ? <EditReferenceGenomes referenceGenome={{ ...referenceGenomes[id] }} /> :
-        <Navigate to={"/taxons/list"} />
+    const usersByID = useAppSelector(selectUsersByID)
+    const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false);
+
+    if (appInitialized) {
+        return (id && referenceGenomes && referenceGenomes[id] && hasWritePermission) ?
+            <EditReferenceGenomes referenceGenome={{ ...referenceGenomes[id] }} /> : <Navigate to={"/genomes/list"} />
+    } else {
+        return null
+    }
 }
 
 

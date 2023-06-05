@@ -16,8 +16,9 @@ function TaxonsListContent() {
 	const taxonsByID = useAppSelector(selectTaxonsByID)
 	const [taxonsData, setTaxonsData] = useState<Taxon[]>();
 	const authState = useAppSelector(selectAuthState)
-	const users = useAppSelector(selectUsersByID)
-	const columns = getColumnsForTaxon((authState.currentUserID ? users[authState.currentUserID].is_superuser : false))
+	const usersByID = useAppSelector(selectUsersByID)
+	const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false)
+	const columns = getColumnsForTaxon(hasWritePermission)
 
 	useEffect(() => {
 		const taxons: Taxon[] = getAllItems(taxonsByID)
@@ -33,6 +34,7 @@ function TaxonsListContent() {
 				<AddButton key='add' url="/taxons/add" />,]} />
 			<PageContent>
 				<Table
+					loading={columns.length == 0}
 					rowKey={taxon => taxon.id}
 					bordered={true}
 					dataSource={taxonsData}

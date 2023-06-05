@@ -227,7 +227,7 @@ class TaxonSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_fields = ("editable")
     def get_editable(selft, obj):
-        return Individual.objects.filter(taxon_id=obj.id).exists()
+        return not Individual.objects.filter(taxon_id=obj.id).exists()
 
 
 class IndividualSerializer(serializers.ModelSerializer):

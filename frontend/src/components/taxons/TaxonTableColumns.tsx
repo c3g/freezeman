@@ -8,7 +8,7 @@ enum TaxonColumnID {
     NCBI_ID = 'NCBI_ID',
     NAME = 'NAME',
 }
-type TaxonColumn = IdentifiedTableColumnType<Taxon>
+export type TaxonColumn = IdentifiedTableColumnType<Taxon>
 
 export const getColumnsForTaxon = (hasWritePermission: boolean): TaxonColumn[] => {
     const TAXON_COLUMN_DEFINITIONS = TAXON_COLUMNS(hasWritePermission);
