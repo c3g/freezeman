@@ -48,7 +48,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                                        .annotate(child_sample=F('process_measurement__lineage__child'))
                                        .filter(Case(
                                             When(Q(source_sample=sample.pk) & Q(child_sample=None), then=True), # QC?
-                                            When(~Q(source_sample=sample.pk) & Q(child_sample=sample.pk), then=True), # child?
+                                            When(Q(child_sample=sample.pk), then=True), # child?
                                             default=False,
                                             output_field=BooleanField()))
                                        .order_by('step_order__order')
