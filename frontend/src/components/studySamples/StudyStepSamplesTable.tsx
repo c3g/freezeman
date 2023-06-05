@@ -46,42 +46,44 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 	const protocol: Protocol | undefined = protocolsByID[step.protocolID]
 	const stepDefinition = stepsByID[step.stepID]
 
+	const actionColumn = useMemo(() => ({
+		columnID: 'Action',
+		title: 'Action',
+		dataIndex: ['sample', 'id'],
+		render: (_: any, { sample }: SampleAndLibrary) => {
+			return <Popconfirm
+				title={`Are you sure you want to remove sample '${sample?.name ?? 'Loading...'}' from step '${step.stepName}'?`}
+				onConfirm={async () => {
+					if (!sample) return;
+					const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
+					notification.info({
+						message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
+						key: REMOVE_NOTIFICATION_KEY
+					})
+					await dispatch(api.sampleNextStepByStudy.remove(step.sampleNextStepByStudyBySampleID[sample.id].id))
+					await dispatch(refreshStudySamples(studyID))
+					notification.close(REMOVE_NOTIFICATION_KEY)
+				}}
+				disabled={!sample}
+				placement={'topLeft'}
+			>
+				<Typography.Link underline type={'danger'} href={''}>Remove</Typography.Link>
+			</Popconfirm>
+		}
+	}), [dispatch, step.sampleNextStepByStudyBySampleID, step.stepID, step.stepName, studyID])
+
 	const columns: IdentifiedTableColumnType<SampleAndLibrary>[] = useMemo(() => {
 		if (protocol && stepDefinition) {
 			// Same columns as labwork, but we don't want the Project column, since the user
 			// is already in the project details page.
 			return [
 				...getColumnsForStudySamplesStep(stepDefinition, protocol),
-				{
-					columnID: 'Action',
-					title: 'Action',
-					dataIndex: ['sample', 'id'],
-					render: (_, { sample }) => {
-						return <Popconfirm
-							title={`Are you sure you want to remove sample '${sample?.name ?? 'Loading...'}' from step '${step.stepName}'?`}
-							onConfirm={async () => {
-								if (!sample) return;
-								const REMOVE_NOTIFICATION_KEY = `StudyStepSamplesTable.remove-${studyID}-${step.stepID}-${sample.id}`
-								notification.info({
-									message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
-									key: REMOVE_NOTIFICATION_KEY
-								})
-								await dispatch(api.sampleNextStepByStudy.remove(step.sampleNextStepByStudyBySampleID[sample.id].id))
-								await dispatch(refreshStudySamples(studyID))
-								notification.close(REMOVE_NOTIFICATION_KEY)
-							}}
-							disabled={!sample}
-							placement={'topLeft'}
-						>
-							<Typography.Link underline type={'danger'} href={''}>Remove</Typography.Link>
-						</Popconfirm>
-					}
-				}
+				actionColumn,
 			]
 		} else {
 			return []
 		}
-	}, [dispatch, protocol, step.sampleNextStepByStudyBySampleID, step.stepID, step.stepName, stepDefinition, studyID])
+	}, [actionColumn, protocol, stepDefinition])
 
 	const localClearFilters = () => {
 		if (clearFilters)
