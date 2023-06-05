@@ -44,17 +44,20 @@ const JumpBar = (props) => {
   const history = useNavigate();
   const selectRef = useRef();
 
-  const search = useMemo(() => debounce(150, query => {
+  const search = useMemo(() => debounce(150, async query => {
     setValue(null)
-    setIsFetching(true)
-    withToken(token, api.query.search)(query)
-      .then(response => { setItems(response.data) })
-      .catch(err => {
-        if (err.name === 'AbortError')
-          return
-        setError(err.message)
-      })
-      .then(() => setIsFetching(false))
+    try {
+      const response = await withToken(token, api.query.search)(query)
+      if (response && response.data) {
+        setItems(response.data)
+      }
+    } catch (error) {
+      if (error.name == "AbortError") {
+        return
+      }
+      setError(error.message)
+    }
+    setIsFetching(false)
   }), [token])
 
   const clear = () => setItems([])
@@ -75,8 +78,10 @@ const JumpBar = (props) => {
 
   const onSearch = value => {
     setValue(value)
-    if (value)
+    if (value){
+      setIsFetching(true)
       search(value);
+    }
     else
       clear();
   }
