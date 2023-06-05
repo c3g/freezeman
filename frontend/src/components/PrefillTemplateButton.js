@@ -29,9 +29,10 @@ const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }
               downloadFromFile(response.filename, response.data)
             })
             .catch(err => {
-              dispatch(notifyError(err.message, {
-                title: err.message,
-                description:  <pre>{err.stack}</pre>,
+              const key = 'Failed to export'
+              dispatch(notifyError(key, {
+                title: key,
+                description: err.message,
               }))
             })
             .then(() => {
