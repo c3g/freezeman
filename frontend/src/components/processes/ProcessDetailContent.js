@@ -44,9 +44,11 @@ const ProcessDetailContent = ({
     withToken(token, api.importedFiles.download)(fileID)
       .then(response => downloadFromFile(response.filename, response.data))
       .catch((err) => {
-        dispatch(notifyError("ProcessDetailContent: Template Unavailable", {
+        dispatch(notifyError({
+          key: "ProcessDetailContent: Template Unavailable",
           title: "Template Unavailable",
           description: "The template file could not be retrieved.",
+          duration: 0,
         }))
       })
 
