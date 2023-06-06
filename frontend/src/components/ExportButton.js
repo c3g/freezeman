@@ -32,7 +32,7 @@ const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...res
             .catch(err => {
               const key = 'Failed to export'
               dispatch(notifyError({
-                key,
+                id: key,
                 title: key,
                 description: err.message,
                 duration: 0,
