@@ -30,9 +30,11 @@ const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }
             })
             .catch(err => {
               const key = 'Failed to export'
-              dispatch(notifyError(key, {
+              dispatch(notifyError({
+                key,
                 title: key,
                 description: err.message,
+                duration: 0,
               }))
             })
             .then(() => {
