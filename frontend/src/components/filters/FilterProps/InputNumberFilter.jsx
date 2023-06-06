@@ -24,8 +24,10 @@ const InputNumberFilter = ({value, validationFunc, description, filterKey, setFi
     }
   
     const onKeyDown = (ev, confirm) => {
-      if (ev.key === 'Escape')
+      ev.stopPropagation()
+      if (ev.key === 'Escape' || ev.key === 'Enter') {
         confirm()
+      }
     }
 
     useEffect(() => {

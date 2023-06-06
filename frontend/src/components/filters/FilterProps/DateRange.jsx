@@ -19,8 +19,10 @@ const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, vis
     };
   
     const onKeyDown = (ev, confirm) => {
-      if (ev.key === 'Escape')
+      ev.stopPropagation()
+      if (ev.key === 'Escape') {
         confirm()
+      }
     }
 
     useEffect(() => {

@@ -8,6 +8,7 @@ const RadioFilter = ({value, options, description, filterKey, setFilter, confirm
     const focusRef = useRef()
 
     const onSearch = (ev, confirm) => {
+      ev.stopPropagation()
       const value = typeof ev === 'string' ? ev : ev.target.value
       const storeValue = value === EMPTY_VALUE ? undefined : value
       setFilter(filterKey, storeValue, description)

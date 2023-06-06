@@ -12,8 +12,10 @@ const InputFilter = ({value, options, description, filterKey, setFilter, setFilt
     }
   
     const onKeyDown = (ev, confirm) => {
-      if (ev.key === 'Escape')
+      ev.stopPropagation()
+      if (ev.key === 'Escape' || ev.key === 'Enter') {
         confirm()
+      }
     }
   
     const onToggleSwitch = (key, checked )=> {

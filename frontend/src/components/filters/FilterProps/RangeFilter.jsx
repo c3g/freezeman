@@ -16,8 +16,10 @@ const RangeFilterComponent = ({minValue, defaultMin, maxValue, filterKey, setFil
     };
   
     const onKeyDown = (ev, confirm) => {
-      if (ev.key === 'Escape')
+      ev.stopPropagation()
+      if (ev.key === 'Escape') {
         confirm()
+      }
     }
 
     useEffect(() => {

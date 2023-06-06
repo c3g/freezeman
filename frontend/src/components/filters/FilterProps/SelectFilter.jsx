@@ -10,8 +10,10 @@ const SelectFilter = ({value, title, options, filterKey, setFilter, confirm, vis
     }
   
     const onKeyDown = (ev, confirm) => {
-      if (ev.key === 'Escape')
+      ev.stopPropagation()
+      if (ev.key === 'Escape') {
         confirm()
+      }
     }
 
     useEffect(() => {
