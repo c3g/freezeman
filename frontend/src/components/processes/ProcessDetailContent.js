@@ -45,7 +45,7 @@ const ProcessDetailContent = ({
       .then(response => downloadFromFile(response.filename, response.data))
       .catch((err) => {
         dispatch(notifyError({
-          key: "ProcessDetailContent: Template Unavailable",
+          id: "ProcessDetailContent: Template Unavailable",
           title: "Template Unavailable",
           description: "The template file could not be retrieved.",
           duration: 0,
