@@ -49,7 +49,21 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 		if (protocol && stepDefinition) {
 			// Same columns as labwork, but we don't want the Project column, since the user
 			// is already in the project details page.
-			return getColumnsForStudySamplesStep(stepDefinition, protocol)
+			return [
+				...getColumnsForStudySamplesStep(stepDefinition, protocol),
+				{
+					columnID: 'SAMPLE_COUNT',
+					title: 'Sample Count (as Pool)',
+					dataIndex: ['sample', 'id'],
+					render: (_, { sample }: SampleAndLibrary) => {
+						return (
+							sample && sample.id in step.sampleCountByPooledSampleID
+							? step.sampleCountByPooledSampleID[sample.id]
+							: '-'
+						)
+					},
+				},
+			]
 		} else {
 			return []
 		}

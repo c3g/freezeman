@@ -24,6 +24,7 @@ export interface StudySampleStep {
 	readonly samples: FMSId[]					// List of (filtered) samples at step
 	readonly completedCount: number				// Total number of completed samples, regardless of filters
 	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
+	readonly sampleCountByPooledSampleID: { [key: FMSId]: number }
 }
 
 // List of steps
