@@ -1,4 +1,4 @@
-import { Pagination, Table, TableProps } from 'antd'
+import { Button, Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
@@ -33,7 +33,8 @@ interface WorkflowSamplesTableProps {
 	setSortBy?: SetSortByFunc,
 	pagination?: PaginationParameters,
 	selection?: {
-		selectedSampleIDs: FMSId[]
+		selectedSampleIDs: FMSId[],
+		selectAllSamples: () => void,
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
 	}
 }
@@ -42,7 +43,7 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
-	
+
 
 	useEffect(() => {
 		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
@@ -107,6 +108,10 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 		<>
 			{tableColumns &&
 				<>
+					{
+						selection &&
+						<Button onClick={selection.selectAllSamples}>Select All</Button>
+					}
 					{
 						hasFilter && clearFilters && filters &&
 						<FiltersBar filters={filters} clearFilters={clearFilters}></FiltersBar>

@@ -12,7 +12,7 @@ import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./ser
 
 // Initialize the redux state for samples at step
 export function initSamplesAtStep(stepID: FMSId) {
-	return async (dispatch, getState) => { 
+	return async (dispatch, getState) => {
 		const stepsByID = selectStepsByID(getState())
 		const protocolsByID = selectProtocolsByID(getState())
 
@@ -24,10 +24,10 @@ export function initSamplesAtStep(stepID: FMSId) {
 
 		// Get the step's protocol
 		const protocol = protocolsByID[step.protocol_id]
-		if(! protocol) {
+		if (!protocol) {
 			throw Error(`Protocol with ID ${step.protocol_id} from step ${step.name} could not be found in store.`)
 		}
-		
+
 		// Request the list of template actions for the protocol
 		const templateActions = selectSampleNextStepTemplateActions(getState())
 
@@ -61,7 +61,26 @@ export function initSamplesAtStep(stepID: FMSId) {
 		await dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
-
+export function loadAllSamples(stepID: FMSId) {
+	return async (dispatch, getState) => {
+		const labworkState = selectLabworkStepsState(getState())
+		const stepSamples = labworkState.steps[stepID]
+		if (!stepSamples) {
+			throw new Error(`No step samples state found for step ID "${stepID}"`)
+		}
+		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
+		const ordering = serializeSortByParams(stepSamples.pagedItems.sortBy)
+		const meta = {
+			stepID
+		}
+		const options = {
+			ordering,
+			...serializedFilters
+		}
+		const response: FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), { meta }))
+		return response.results.map(nextStep => nextStep.sample)
+	}
+}
 export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	return async (dispatch, getState) => {
 		const labworkState = selectLabworkStepsState(getState())
@@ -88,11 +107,11 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 			limit
 		}
 
-		const response : FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), {meta}))
+		const response: FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), { meta }))
 		if (response.count > 0) {
 			// Load the associated samples/libraries
 			const sampleIDs = response.results.map(nextStep => nextStep.sample)
-			const options = {id__in: sampleIDs.join(',')}
+			const options = { id__in: sampleIDs.join(',') }
 			dispatch(Sample.list(options))
 		}
 	}
@@ -241,8 +260,8 @@ export function setSelectedSamplesSortDirection(stepID: FMSId, direction: Coordi
 }
 
 export const listTemplateActions = () => (dispatch, getState) => {
-    if (getState().sampleNextStepTemplateActions.isFetching) return;
-    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.sampleNextStep.template.actions()));
+	if (getState().sampleNextStepTemplateActions.isFetching) return;
+	return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.sampleNextStep.template.actions()));
 }
 
 /**
@@ -251,13 +270,13 @@ export const listTemplateActions = () => (dispatch, getState) => {
  * @param stepID Step ID
  * @returns 
  */
-export const requestPrefilledTemplate = (templateID : FMSId, stepID: FMSId) => {
+export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId) => {
 	return async (dispatch, getState) => {
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (step) {
 			const options = {
-				step__id__in: stepID, 
+				step__id__in: stepID,
 				sample__id__in: step.selectedSamples.join(','),
 				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}

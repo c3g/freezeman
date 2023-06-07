@@ -7,7 +7,7 @@ import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, loadAllSamples, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { downloadFromFile } from '../../../utils/download'
@@ -203,6 +203,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Selection handler for sample selection checkboxes
 	const selectionProps = {
 		selectedSampleIDs: stepSamples.selectedSamples,
+		selectAll: false,
+		selectAllSamples: async () => {
+			const samples = await dispatch(loadAllSamples(step.id))
+			dispatch(updateSelectedSamplesAtStep(step.id, samples))
+		},
 		onSelectionChanged: useCallback((selectedSamples) => {
 			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
@@ -224,22 +229,22 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	/** Sorting by coordinate **/
 
-	const handleCoordinateSortOrientation = useCallback((value : string) => {
-		switch(value) {
+	const handleCoordinateSortOrientation = useCallback((value: string) => {
+		switch (value) {
 			case 'row': {
-				dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, orientation: 'row'}))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'row' }))
 				break
 			}
 			case 'column': {
-				dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, orientation: 'column'}))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'column' }))
 				break
 			}
 		}
 	}, [dispatch, step, stepSamples.selectedSamplesSortDirection])
 
 	const handleSelectionTableSortChange = useCallback((sortBy: SortBy) => {
-		if(sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
-			dispatch(setSelectedSamplesSortDirection(step.id, {...stepSamples.selectedSamplesSortDirection, order: sortBy.order}))
+		if (sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
+			dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, order: sortBy.order }))
 		}
 	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
 
@@ -295,14 +300,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY &&
 							<>
-							<Typography.Text>Sort Coordinates: </Typography.Text>
-							<Radio.Group 
-								value={stepSamples.selectedSamplesSortDirection.orientation} 
-								onChange={(evt) => {evt.target && handleCoordinateSortOrientation(evt.target.value)}} 
-							>
-								<Radio.Button value='row'>by Row</Radio.Button>
-								<Radio.Button value='column'>by Column</Radio.Button>
-							</Radio.Group>
+								<Typography.Text>Sort Coordinates: </Typography.Text>
+								<Radio.Group
+									value={stepSamples.selectedSamplesSortDirection.orientation}
+									onChange={(evt) => { evt.target && handleCoordinateSortOrientation(evt.target.value) }}
+								>
+									<Radio.Button value='row'>by Row</Radio.Button>
+									<Radio.Button value='column'>by Column</Radio.Button>
+								</Radio.Group>
 							</>
 						}
 						<Popconfirm
