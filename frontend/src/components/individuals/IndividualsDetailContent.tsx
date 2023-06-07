@@ -32,7 +32,7 @@ const IndividualsDetailContent = () => {
         return () => {
             dispatch(flushIndividualDetails(Number(id)))
         }
-    }, [dispatch])
+    }, [dispatch, id])
     useEffect(() => {
         if (individualDetailsById[Number(id)]) {
             const individualInstance: IndividualDetails = {
