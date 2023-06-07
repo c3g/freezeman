@@ -10,6 +10,7 @@ export const LIST_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.LIST_TABL
 export const SET_SORT_BY = 'INDIVIDUAL_DETAILS.SET_SORT_BY'
 export const SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER = 'INDIVIDUAL_DETAILS.SET_INDIVIDUAL_SAMPLES_FILTER'
 export const CLEAR_FILTERS = "INDIVIDUAL_DETAILS.CLEAR_FILTERS"
+export const FLUSH_INDIVIDUAL_DETAILS = "INDIVIDUAL_DETAILS.FLUSH_INDIVIDUAL_DETAILS"
 
 const INITIAL_STATE: IndividualDetailsById = {}
 const INITIAL_PAGED_ITEMS = {
@@ -85,6 +86,13 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
             const samplesByIndividual = state[individualID].samplesByIndividual
             if (samplesByIndividual) {
                 samplesByIndividual.sortBy = sortBy
+            }
+            break;
+        }
+        case FLUSH_INDIVIDUAL_DETAILS: {
+            const { individualID } = action
+            if (state[individualID]) {
+                delete state[individualID]
             }
             break;
         }

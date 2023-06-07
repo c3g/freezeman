@@ -9,7 +9,7 @@ import IndividualOverview from "./IndividualOverview";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectIndividualsDetailsById } from "../../selectors";
 import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
-import { listTable } from "../../modules/individualDetails/actions";
+import { flushIndividualDetails, listTable } from "../../modules/individualDetails/actions";
 import { IndividualDetails, IndividualDetailsById } from "../../modules/individualDetails/models";
 import { Sample } from "../../models/frontend_models";
 import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
@@ -26,6 +26,13 @@ const IndividualsDetailContent = () => {
         dispatch(listTable(Number(id)));
     }, [id, dispatch])
 
+    useEffect(() => {
+        // Flush the labwork state when the user navigates away from the
+        // the labwork section.
+        return () => {
+            dispatch(flushIndividualDetails(Number(id)))
+        }
+    }, [dispatch])
     useEffect(() => {
         if (individualDetailsById[Number(id)]) {
             const individualInstance: IndividualDetails = {

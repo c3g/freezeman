@@ -8,8 +8,14 @@ import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { get } from "../individuals/actions"
 import { IndividualDetails } from "./models"
-import { SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER, CLEAR_FILTERS, LIST_TABLE, SET_SORT_BY } from "./reducers"
+import { SET_INDIVIDUAL_DETAILS_SAMPLES_FILTER, CLEAR_FILTERS, LIST_TABLE, SET_SORT_BY, FLUSH_INDIVIDUAL_DETAILS } from "./reducers"
 
+export const flushIndividualDetails = (individualID: FMSId) => {
+	return {
+		type: FLUSH_INDIVIDUAL_DETAILS,
+		individualID
+	}
+}
 
 export const setFilter = (individualID: FMSId, description: FilterDescription, value: FilterValue) => {
 	return async (dispatch, getState) => {
