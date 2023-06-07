@@ -1,13 +1,16 @@
 import React, {useState} from "react";
 import {downloadFromFile} from "../utils/download";
-import {Button, Modal, notification} from "antd";
+import {Button, Modal} from "antd";
 
 import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { useAppDispatch } from "../hooks";
+import { notifyError } from "../modules/notification/actions";
 
 const { confirm } = Modal;
 
 const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch()
 
   const onClick = () => {
     setLoading(true);
@@ -26,10 +29,13 @@ const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }
               downloadFromFile(response.filename, response.data)
             })
             .catch(err => {
-              notification.error({
-                message: err.message,
-                description: <pre>{err.stack}</pre>,
-              });
+              const key = 'Failed to export'
+              dispatch(notifyError({
+                id: key,
+                title: key,
+                description: err.message,
+                duration: 0,
+              }))
             })
             .then(() => {
               setLoading(false);

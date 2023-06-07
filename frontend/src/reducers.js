@@ -89,6 +89,7 @@ import { individualDetails } from "./modules/individualDetails/reducers";
 import { coordinates } from "./modules/coordinates/reducers"
 import { labworkSteps, sampleNextStepTemplateActions } from "./modules/labworkSteps/reducers";
 import { steps } from './modules/steps/reducers'
+import { notifications } from './modules/notification/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -156,62 +157,10 @@ const allReducers = combineReducers({
   labworkSteps,
   sampleNextStepTemplateActions,
   steps,
+  notifications,
 });
 
 export default function rootReducer(state, action) {
-  const otherAction = getErrorAction(action);
   const newState = allReducers(state, action);
-  if (otherAction)
-    return allReducers(newState, otherAction);
   return newState;
-}
-
-function getErrorAction(action) {
-  if (!action.error)
-    return
-
-  if (action.error.message.includes(TOKEN_EXPIRED_MESSAGE)) {
-    showNotification('Your session expired. Login again to continue.', undefined, 'warning')
-    return logOut()
-  }
-
-  if (shouldIgnoreError(action))
-    return
-
-  const error = getErrorDescription(action.error)
-  showNotification(error.message, error.details)
-}
-
-function showNotification(message, details, type = 'error') {
-  if (recentMessages.has(message))
-    return;
-
-  recentMessages.add(message)
-  setTimeout(() => { recentMessages.delete(message) }, 5 * 1000);
-
-  notification[type]({
-    message,
-    description:
-      <pre style={{ fontSize: '0.8em', whiteSpace: 'pre-wrap' }}>
-        {details}
-      </pre>,
-    duration: 0,
-  });
-}
-
-function getErrorDescription(error) {
-  /* HTTP errors are handled specially because they include the URL
-   * in the error message and we don't want many very similar errors
-   * to show up, just show one.
-   */
-  if (typeof error.status === 'number')
-    return {
-      message: `HTTP Error ${error.status}: ${error.statusText}`,
-      details: error.url,
-    }
-
-  return {
-    message: error.message,
-    details: error.stack,
-  }
 }
