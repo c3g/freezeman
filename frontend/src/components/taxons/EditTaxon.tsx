@@ -7,9 +7,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { ObjectWithTaxon } from "./TaxonTableColumns";
+import { Taxon } from "../../models/frontend_models";
 
-
+interface EditTaxonProps {
+    taxon?: Taxon
+}
 export const AddTaxonRoute = () => {
     const appInitialzed = useAppSelector(selectAppInitialzed)
     return appInitialzed ? <EditTaxon /> : null
@@ -22,7 +24,7 @@ export const EditTaxonRoute = () => {
     return (id && taxons[id] && appInitialzed) ? <EditTaxon taxon={{ ...taxons[id] }} /> : null
 }
 
-const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
+const EditTaxon = ({ taxon }: EditTaxonProps) => {
     const { Item } = Form
 
     const [formErrors, setFormErrors] = useState({})
