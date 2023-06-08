@@ -66,8 +66,8 @@ export interface FilterKeySet {
 	[key: string]: string
 }
 
-export type AnyFetchedModel = Partial<FMSTrackedModel> & FetchedObject
 export type FetchedModel<T extends FMSTrackedModel> = Partial<T> & FetchedObject
+export type AnyFetchedModel = FetchedModel<FMSTrackedModel>
 export interface FetchedItemsByID<T extends FMSTrackedModel> {
 	[key: FMSId]: FetchedModel<T>
 }
