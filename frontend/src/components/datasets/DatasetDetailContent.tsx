@@ -15,6 +15,7 @@ import { Dataset, DatasetFile } from "../../models/frontend_models"
 import { ValidationStatus } from "../../modules/experimentRunLanes/models"
 import api from "../../utils/api"
 import { InfoCircleOutlined } from "@ant-design/icons"
+import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
 const { Title, Text } = Typography
 
 const AVAILABLE = 0
@@ -23,7 +24,7 @@ const BLOCKED = 2
 const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
 const OPPOSITE_STATUS = [RELEASED, BLOCKED, RELEASED]
 
-const getTableColumns = (toggleReleaseStatus, releaseStatusOption) => {
+const getTableColumns = (toggleReleaseStatus, releaseStatusOption, canReleaseOrBlockFiles) => {
     return [
         {
             title: "ID",
@@ -48,7 +49,11 @@ const getTableColumns = (toggleReleaseStatus, releaseStatusOption) => {
                 const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? release_status
                 const changed = (releaseStatusOption.all && releaseStatusOption.all !== release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
                 return <>
-                    <Button style={{ color: changed ? "red" : "grey", width: "6em" }} onClick={() => toggleReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}</Button>
+                    <Button 
+                        disabled={!canReleaseOrBlockFiles}
+                        style={{ color: changed ? "red" : "grey", width: "6em" }}
+                        onClick={() => toggleReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}
+                    </Button>
                 </>
             }
         },
@@ -127,14 +132,6 @@ const DatasetDetailContent = () => {
         dispatchReleaseStatusOption({ type: "all", release_status })
     }
 
-    const columns = getTableColumns(
-        (id, releaseStatus) => {
-            dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus, filesById  })
-        },
-        releaseStatusOption
-    )
-    const filterKey = DATASET_FILE_FILTERS.readset__dataset.key
-    
     useEffect(() => {
         if (!dataset) {
             dispatch(get(datasetId))
@@ -174,6 +171,15 @@ const DatasetDetailContent = () => {
     const loading = (value: string | number | undefined) => {
         return value ?? "Loading..."
     }
+
+    const columns = getTableColumns(
+        (id, releaseStatus) => {
+            dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus, filesById  })
+        },
+        releaseStatusOption,
+        canReleaseOrBlockFiles
+    )
+    const filterKey = DATASET_FILE_FILTERS.readset__dataset.key
 
     const paginatedListProps = useFilteredList({
         description: DATASET_FILE_FILTERS,
@@ -252,7 +258,16 @@ const DatasetDetailContent = () => {
             <Descriptions.Item label={"Project"} span={1}>{loading(dataset?.external_project_id)}</Descriptions.Item>
             <Descriptions.Item label={"Run Name"} span={2}>{loading(dataset?.run_name)}</Descriptions.Item>
             <Descriptions.Item label={"Lane"} span={1}>{loading(dataset?.lane)}</Descriptions.Item>
-            <Descriptions.Item label={"Validation Status"} span={1}>{loading(laneValidationStatusString)}</Descriptions.Item>
+            <Descriptions.Item label={"Lane Validation Status"} span={1}>{laneValidationStatus !== undefined && 
+                <LaneValidationStatus validationStatus={laneValidationStatus} isValidationInProgress={false}/>}
+            </Descriptions.Item>
+            <Descriptions.Item label={"Run Metrics Report"} span={2}>
+                {dataset?.metric_report_url ? 
+                    <a href={dataset.metric_report_url} rel="external noopener noreferrer" target="_blank">View Run Metrics</a>
+                :
+                    <span>Unavailable</span>
+                }
+            </Descriptions.Item>
             <Descriptions.Item label={"Total Files"} span={1}>{loading(dataset?.files?.length)}</Descriptions.Item>
             <Descriptions.Item label={"Files Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
         </Descriptions>
@@ -260,7 +275,7 @@ const DatasetDetailContent = () => {
         {laneValidationStatus !== undefined &&  !canReleaseOrBlockFiles &&
             <Space>
                 <InfoCircleOutlined/>
-                <Text italic>Files cannot be released until the dataset lane has been validated</Text>
+                <Text italic>Files cannot be released until the dataset&apos;s lane has been validated</Text>
             </Space>
             
         }

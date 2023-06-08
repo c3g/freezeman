@@ -3,8 +3,8 @@ import { createNetworkActionTypes } from "../../utils/actions";
 import { AnyAction } from "redux";
 import produce from "immer";
 import { createItemsByID, preprocess } from "../../models/frontend_models";
-import { clearFiltersReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers";
 import { IndividualDetailsById } from "./models";
+import { clearFilters, setFilterValue } from "../../models/filter_set_reducers"
 
 export const LIST_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.LIST_TABLE')
 export const SET_SORT_BY = 'INDIVIDUAL_DETAILS.SET_SORT_BY'
@@ -69,7 +69,7 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
             const { individualID, description, value } = action
             const samplesByIndividual = state[individualID].samplesByIndividual
             if (samplesByIndividual) {
-                samplesByIndividual.filters = setFilterReducer(samplesByIndividual.filters ?? {}, description, value)
+                samplesByIndividual.filters = setFilterValue(samplesByIndividual.filters ?? {}, description, value)
             }
             break;
         }
@@ -77,7 +77,7 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
             const { individualID } = action
             const samplesByIndividual = state[individualID].samplesByIndividual
             if (samplesByIndividual) {
-                samplesByIndividual.filters = clearFiltersReducer()
+                samplesByIndividual.filters = clearFilters(samplesByIndividual.filters)
             }
             break;
         }
@@ -101,3 +101,4 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
     }
     return state
 }
+

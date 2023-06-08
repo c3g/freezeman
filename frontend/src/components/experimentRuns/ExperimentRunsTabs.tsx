@@ -79,7 +79,7 @@ function ExperimentRunsTabs() {
 		<AppPageHeader title='Experiment Runs'  extra={getPageHeaderExtra()}></AppPageHeader>
 		<PageContent style={pageStyle}>
 			<Tabs onChange={setActiveKey} type='card' tabBarExtraContent={getTabBarExtraContent()} style={tabsStyle}>
-				<TabPane tab='Freezeman' key={FREEZEMAN_TAB_KEY} style={tabStyle}>
+				<TabPane tab='FreezeMan' key={FREEZEMAN_TAB_KEY} style={tabStyle}>
 					<ExperimentRunsListContent/>
 				</TabPane>
 				<TabPane tab='External' key={EXTERNAL_TAB_KEY}  style={tabStyle}>

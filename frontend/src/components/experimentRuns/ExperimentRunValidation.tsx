@@ -1,5 +1,5 @@
 import { CheckOutlined, CloseOutlined, QuestionCircleOutlined, SyncOutlined } from '@ant-design/icons'
-import { Button, Collapse, List, Space, Typography } from 'antd'
+import { Button, Collapse, List, Popconfirm, Space, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
@@ -7,6 +7,7 @@ import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/ex
 import { selectExperimentRunLanesState } from '../../selectors'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
+import LaneValidationStatus from './LaneValidationStatus'
 
 const { Title, Text } = Typography
 
@@ -112,7 +113,7 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 						<Collapse.Panel 
 							key={createLaneKey(lane)}
 							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
-							extra={getValidationStatusExtra(lane, isValidationInProgress)}
+							extra={<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>}
 						>
 							<LanePanel 
 								lane={lane}
@@ -135,36 +136,6 @@ function FlexBar(props) {
 	// Displays children in a horizontal flexbox, maximizing the space between the children.
 	// Two children will appear at the left and right ends of the bar with whitespace in between.
 	return <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1em' }}>{props.children}</div>
-}
-
-function getValidationStatusExtra(lane: LaneInfo, isValidationInProgress: boolean) {
-	switch (lane.validationStatus) {
-		case ValidationStatus.AVAILABLE: {
-			// return 
-			return (
-				<Space>
-					{isValidationInProgress ? <SyncOutlined spin/> : <QuestionCircleOutlined/>}
-					<Typography.Text strong>Needs validation</Typography.Text>
-				</Space>
-			)
-		}
-		case ValidationStatus.PASSED: {
-			return (
-				<Space>
-					{isValidationInProgress ? <SyncOutlined spin/> : <CheckOutlined style={{ color: 'green' }} />}
-					<Typography.Text strong>Passed</Typography.Text>
-				</Space>
-			)
-		}
-		case ValidationStatus.FAILED: {
-			return (
-				<Space>
-					{isValidationInProgress ? <SyncOutlined spin/> : <CloseOutlined style={{ color: 'red' }} />}
-					<Typography.Text strong>Failed</Typography.Text>
-				</Space>
-			)
-		}
-	}
 }
 
 interface LanePanelProps {
@@ -196,57 +167,74 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 	return (
 		<>
 			<FlexBar>
-				{urlSet.size > 0 && (
+				{urlSet.size > 0 ? (
 					// Display the list of metrics url's associated with the lane's datasets.
 					<List>
 						{[...urlSet].map((url, index) => {
 							return (
 								<List.Item key={`URL-${index}`}>
-									<a href={url} rel="external noopener noreferrer" target="_blank">
-										View Metrics
+									<a style={{fontSize: 'medium'}} href={url} rel="external noopener noreferrer" target="_blank">
+										View Run Metrics
 									</a>
 								</List.Item>
 							)
 						})}
 					</List>
+				) : (
+					<Text italic>(Run metrics unavailable)</Text>
 				)}
-
-				<Title level={5}>{title}</Title>
 				<Space>
+					{canValidate && 
+						<Text strong>Validate lane:</Text>
+					}
 					{canReset && 
-						<Button 
-							disabled={isValidationInProgress}
-							onClick={() => {
+						<Popconfirm
+							title="Reset the lane's validation status?"
+							okText={'Yes'}
+							cancelText={'No'}
+							onConfirm={() => {
 								setAvailable(lane)
 							}}
 						>
-							Reset
-						</Button>
+							<Button disabled={isValidationInProgress || lane.validationStatus === ValidationStatus.AVAILABLE}>Reset</Button>
+						</Popconfirm>
+						
 					}
 					
 					{canValidate &&
-						<Button disabled={isValidationInProgress}
-							onClick={() => {
+						<Popconfirm
+							title="Set the lane's validation status to Passed?"
+							okText={'Yes'}
+							cancelText={'No'}
+							onConfirm={() => {
 								setPassed(lane)
 							}}
 						>
-							Passed
-						</Button>
+							<Button disabled={isValidationInProgress || lane.validationStatus === ValidationStatus.PASSED}>Passed</Button>
+						</Popconfirm>
+						
 					}
 
 					{canValidate &&
-						<Button disabled={isValidationInProgress}
-							onClick={() => {
+						<Popconfirm
+							title="Set the lane's validation status to Failed?"
+							okText={'Yes'}
+							cancelText={'No'}
+							onConfirm={() => {
 								setFailed(lane)
 							}}
 						>
-							Failed
-						</Button>
+							<Button disabled={isValidationInProgress || lane.validationStatus === ValidationStatus.FAILED}>Failed</Button>
+						</Popconfirm>
 					}
 				</Space>
 			</FlexBar>
 
-			<ReadsPerSampleGraph lane={lane} />
+			<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+				<ReadsPerSampleGraph lane={lane} />
+				<Title level={5}>{title}</Title>
+			</div>
+			
 		</>
 	)
 }

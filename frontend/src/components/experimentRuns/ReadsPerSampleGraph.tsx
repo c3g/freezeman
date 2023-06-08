@@ -7,7 +7,7 @@ import { loadReadsPerSample } from '../../modules/experimentRunLanes/actions'
 import { LaneInfo, NumberOfReads } from '../../modules/experimentRunLanes/models'
 import { list } from '../../modules/samples/actions'
 import { useResizeObserver } from '../../utils/ref'
-
+import { notifyError } from '../../modules/notification/actions'
 
 interface ReadsPerSampleGraphProps {
 	lane: LaneInfo
@@ -16,7 +16,7 @@ interface ReadsPerSampleGraphProps {
 function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 
 	const DEFAULT_GRAPH_WIDTH = 800
-	const MIN_BAR_WIDTH = 4		// Make bars wide enough that the user can click them
+	const MIN_BAR_WIDTH = 6		// Make bars wide enough that the user can click them
 	const MAX_BAR_WIDTH = 64	// Don't let bars get too fat or the graph looks silly
 
 	const navigate = useNavigate()
@@ -72,6 +72,11 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 				}
 			} catch(err) {
 				console.error(err)
+				dispatch(notifyError({
+					id: 'RUN_VALIDATION:CANNOT_RETRIEVE_SAMPLE',
+					title: 'Failed to retrieve sample',
+					description: 'The sample cannot be displayed due to an error.'
+				}))
 			}
 
 		}
@@ -104,10 +109,12 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 
 	const data = lane.readsPerSample?.sampleReads ?? []
 
+	
+
 	return (
-		<div style={{display: 'block', padding: '1em', overflowX: 'scroll', overflowY: 'hidden'}} ref={resizeRef}>
-			<BarChart width={graphWidth} height={500} data={data} margin={{top: 20, right: 20, bottom: 20, left: 20}}>
-				<XAxis/>
+		<div style={{display: 'block', overflowX: 'scroll', overflowY: 'hidden', maxWidth: '100%'}} ref={resizeRef}>
+			<BarChart width={graphWidth} height={500} barCategoryGap={0} barGap={0} data={data} margin={{top: 20, right: 20, bottom: 0, left: 20}}>
+				<XAxis tick={false}/>
 				<YAxis type='number'/>
 				<Tooltip content={<SampleTooltip/>}/>
 				<Bar dataKey='nbReads' fill='#8884d8' isAnimationActive={false} onClick={handleBarClick}/>
