@@ -44,7 +44,7 @@ const JumpBar = (props) => {
   const history = useNavigate();
   const selectRef = useRef();
 
-  const search = useMemo(() => debounce(150, async query => {
+  const search = useMemo(() => debounce(500, async query => {
     try {
       const response = await withToken(token, api.query.search)(query)
       if (response && response.data) {
