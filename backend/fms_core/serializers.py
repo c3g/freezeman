@@ -221,9 +221,13 @@ class RunTypeSerializer(serializers.ModelSerializer):
 
 
 class TaxonSerializer(serializers.ModelSerializer):
+    editable = serializers.SerializerMethodField()
     class Meta:
         model = Taxon
         fields = "__all__"
+        extra_fields = ("editable")
+    def get_editable(selft, obj):
+        return not Individual.objects.filter(taxon_id=obj.id).exists()
 
 
 class IndividualSerializer(serializers.ModelSerializer):

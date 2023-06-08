@@ -22,6 +22,7 @@ import {
 	User,
 	Workflow,
 } from './models/frontend_models'
+import { IndividualDetailsById } from './modules/individualDetails/models'
 import { LabworkSummaryState } from './modules/labwork/reducers'
 import { LabworkStepsState } from './modules/labworkSteps/models'
 import { StudySamplesByID, StudySettingsByID } from './modules/studySamples/models'
@@ -82,6 +83,7 @@ export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.ite
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
 export const selectSequencesByID = (state: RootState) => state.sequences.itemsByID as ItemsByID<Sequence>
+export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID

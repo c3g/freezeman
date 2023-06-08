@@ -9,10 +9,16 @@
 
 import {
 	FMSContainer,
+	FMSCoordinate,
+	FMSDataset,
+	FMSDatasetFile,
+	FMSExperimentRun,
+	FMSExternalExperimentRun,
 	FMSId,
 	FMSImportedFile,
 	FMSIndex,
 	FMSIndividual,
+	FMSInstrument,
 	FMSLibrary,
 	FMSLibraryType,
 	FMSPlatform,
@@ -23,6 +29,7 @@ import {
 	FMSPropertyValue,
 	FMSProtocol,
 	FMSReferenceGenome,
+	FMSRunType,
 	FMSSample,
 	FMSSampleKind,
 	FMSSampleNextStep,
@@ -33,13 +40,6 @@ import {
 	FMSTrackedModel,
 	FMSUser,
 	FMSWorkflow,
-  FMSCoordinate,
-  FMSExperimentRun,
-  FMSDataset,
-  FMSDatasetFile,
-  FMSRunType,
-  FMSInstrument,
-  FMSExternalExperimentRun,
 } from './fms_api_models'
 
 // Reducers tack on these two properties to objects that are fetched from
@@ -56,13 +56,22 @@ export interface ItemsByID<T extends FMSTrackedModel> {
 	[key: FMSId]: T
 }
 
+export function preprocess<T extends FetchedObject>(object: any): T {
+	const processedObject: T = {
+		...object,
+		isFetching: false,
+		isLoaded: true,
+	}
+	return processedObject;
+}
+
 /**
  * Generates an ItemsByID object from an array of model objects.
  * @param items Array of model objects
  * @returns ItemsByID
  */
-export function createItemsByID<T extends FMSTrackedModel>(items: T[]) : ItemsByID<T> {
-	const itemsByID : ItemsByID<T> = {}
+export function createItemsByID<T extends FMSTrackedModel>(items: T[]): ItemsByID<T> {
+	const itemsByID: ItemsByID<T> = {}
 	items.forEach(item => {
 		itemsByID[item.id] = item
 	})
@@ -74,12 +83,13 @@ export function createItemsByID<T extends FMSTrackedModel>(items: T[]) : ItemsBy
  * @param itemsByID An ItemsByID object
  * @returns The array of items contained in the ItemsByID object
  */
-export function getAllItems<T extends FMSTrackedModel>(itemsByID: ItemsByID<T>) : T[] {
+export function getAllItems<T extends FMSTrackedModel>(itemsByID: ItemsByID<T>): T[] {
 	return Object.values(itemsByID) as T[]
 }
 
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {}
+export interface Coordinate extends Readonly<FMSCoordinate>, FetchedObject {}
 export interface Dataset extends Readonly<FMSDataset>, FetchedObject {}
 export interface DatasetFile extends Readonly<FMSDatasetFile>, FetchedObject {}
 export interface ExperimentRun extends Readonly<FMSExperimentRun>, FetchedObject {}
@@ -108,7 +118,6 @@ export interface Study extends Readonly<FMSStudy>, FetchedObject {}
 export interface Taxon extends Readonly<FMSTaxon>, FetchedObject {}
 export interface User extends Readonly<FMSUser>, FetchedObject {}
 export interface Workflow extends Readonly<FMSWorkflow>, FetchedObject {}
-export interface Coordinate extends Readonly<FMSCoordinate>, FetchedObject {}
 
 export interface WorkflowStepRange {
 	start: number
