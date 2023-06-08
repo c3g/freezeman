@@ -41,11 +41,11 @@ class UserViewSet(viewsets.ModelViewSet):
         errors = {}
         email = request.data.get("email", None)
         if email and self.queryset.filter(email=email).exists():
-            errors["email"] = ["User's email is already in use by another user."]
+            errors["email"] = "User's email is already in use by another user."
         try:
             response = super().create(request, *args, **kwargs)
-        except ValidationError as err:
-            errors.update(err)
+        except Exception as err:
+            errors.update(err.__dict__.get("detail", {"username": "An unexpected error happened."}))
         if errors:
             raise ValidationError(errors)
         else:
