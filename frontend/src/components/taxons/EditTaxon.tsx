@@ -9,8 +9,8 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { Taxon } from "../../models/frontend_models";
 
-export interface EditTaxonProps {
-    taxon: Taxon,
+interface EditTaxonProps {
+    taxon?: Taxon
 }
 export const AddTaxonRoute = () => {
     const appInitialized = useAppSelector(selectAppInitialzed)
@@ -32,7 +32,7 @@ export const EditTaxonRoute = () => {
     }
 }
 
-const EditTaxon = ({ taxon }: Partial<EditTaxonProps>) => {
+const EditTaxon = ({ taxon }: EditTaxonProps) => {
     const { Item } = Form
 
     const [formErrors, setFormErrors] = useState({})

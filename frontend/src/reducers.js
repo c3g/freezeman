@@ -1,9 +1,10 @@
 import React from "react";
-import {combineReducers} from "redux";
-import {persistReducer} from "redux-persist";
+import { combineReducers } from "redux";
+import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import { notification } from "antd";
 
-import {auth} from "./modules/auth/reducers";
+import { auth } from "./modules/auth/reducers";
 import { app } from "./modules/app/reducers";
 import {
   containerKinds,
@@ -12,11 +13,11 @@ import {
   containerPrefillTemplates,
   containers,
 } from "./modules/containers/reducers";
-import {datasets} from "./modules/datasets/reducers";
-import {datasetFiles} from "./modules/datasetFiles/reducers";
-import {taxons} from "./modules/taxons/reducers";
-import {referenceGenomes} from './modules/referenceGenomes/reducers'
-import {individuals} from "./modules/individuals/reducers";
+import { datasets } from "./modules/datasets/reducers";
+import { datasetFiles } from "./modules/datasetFiles/reducers";
+import { taxons } from "./modules/taxons/reducers";
+import { referenceGenomes } from './modules/referenceGenomes/reducers'
+import { individuals } from "./modules/individuals/reducers";
 import {
   sampleKinds,
   samplesSummary,
@@ -74,17 +75,18 @@ import {
 import {
   importedFiles,
 } from "./modules/importedFiles/reducers";
-import {users} from "./modules/users/reducers";
-import {versions} from "./modules/versions/reducers";
+import { users } from "./modules/users/reducers";
+import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
-import {reducer as groups} from "./modules/groups";
-import {reducer as pagination} from "./modules/pagination";
-import {logOut} from "./modules/auth/actions";
+import { reducer as groups } from "./modules/groups";
+import { reducer as pagination } from "./modules/pagination";
+import { logOut } from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
 import { studies } from "./modules/studies/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
 import { studySamples } from "./modules/studySamples/reducers";
-import {coordinates} from "./modules/coordinates/reducers"
+import { individualDetails } from "./modules/individualDetails/reducers";
+import { coordinates } from "./modules/coordinates/reducers"
 import { labworkSteps, sampleNextStepTemplateActions } from "./modules/labworkSteps/reducers";
 import { steps } from './modules/steps/reducers'
 import { notifications } from './modules/notification/reducers'
@@ -150,6 +152,7 @@ const allReducers = combineReducers({
   workflows,
   labworkSummary,
   studySamples,
+  individualDetails,
   coordinates,
   labworkSteps,
   sampleNextStepTemplateActions,

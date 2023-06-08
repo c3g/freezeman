@@ -1,10 +1,8 @@
 import { Checkbox, Pagination, Popconfirm, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useEffect, useMemo, useState } from 'react'
-import { useAppSelector } from '../../../hooks'
+import React, { useMemo } from 'react'
 import { FMSId } from '../../../models/fms_api_models'
 import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
-import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
 import { SampleAndLibrary } from './ColumnSets'
 import { addFiltersToColumns } from './MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './SampleTableColumns'
@@ -20,7 +18,7 @@ export interface PaginationParameters {
 }
 
 interface WorkflowSamplesTableProps {
-	sampleIDs: FMSId[]
+	samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
 	clearFilters?: () => void,
@@ -41,28 +39,7 @@ interface WorkflowSamplesTableProps {
 	}
 }
 
-function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: WorkflowSamplesTableProps) {
-	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
-	const samplesByID = useAppSelector(selectSamplesByID)
-	const librariesByID = useAppSelector(selectLibrariesByID)
-
-	useEffect(() => {
-		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
-			const sample = samplesByID[sampleID]
-			if (sample) {
-				if (sample.is_library) {
-					const library = librariesByID[sampleID]
-					acc.push({ sample, library })
-				} else {
-					acc.push({ sample })
-				}
-			}
-			return acc
-		}, [] as SampleAndLibrary[])
-
-		setSamples(availableSamples)
-	}, [samplesByID, librariesByID, sampleIDs])
-
+function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: WorkflowSamplesTableProps) {
 
 	const tableColumns = useMemo(() => {
 		const mergedColumns = addFiltersToColumns(
@@ -98,7 +75,7 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 	if (selection) {
 		rowSelection = {
 			type: 'checkbox',
-			columnTitle: checkBox,
+			columnTitle: samples.length > 0 ? checkBox : <></>,
 			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},
@@ -143,6 +120,7 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 					/>
 					{pagination &&
 						<Pagination
+
 							className="ant-table-pagination ant-table-pagination-right"
 							showSizeChanger={true}
 							showQuickJumper={true}
