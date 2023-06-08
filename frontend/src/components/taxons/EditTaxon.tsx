@@ -2,37 +2,27 @@ import { Button, Form, FormItemProps, Input, Space } from "antd";
 import React, { useCallback, useState } from "react";
 import { requiredRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectAppInitialzed, selectAuthState, selectTaxonsByID, selectUsersByID } from "../../selectors";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { selectAppInitialzed, selectTaxonsByID } from "../../selectors";
+import { useNavigate, useParams } from "react-router-dom";
 import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { Taxon } from "../../models/frontend_models";
+import { ObjectWithTaxon } from "./TaxonTableColumns";
 
-export interface EditTaxonProps {
-    taxon: Taxon,
-}
+
 export const AddTaxonRoute = () => {
-    const appInitialized = useAppSelector(selectAppInitialzed)
-    return appInitialized ? <EditTaxon /> : null
+    const appInitialzed = useAppSelector(selectAppInitialzed)
+    return appInitialzed ? <EditTaxon /> : null
 
 }
 export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
     const { id } = useParams();
-    const appInitialized = useAppSelector(selectAppInitialzed)
-    const authState = useAppSelector(selectAuthState)
-    const usersByID = useAppSelector(selectUsersByID)
-    const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false);
-    if (appInitialized) {
-        return (id && taxons && taxons[id] && hasWritePermission) ?
-            <EditTaxon taxon={{ ...taxons[id] }} /> : <Navigate to={"/taxons/list"} />
-    } else {
-        return null
-    }
+    const appInitialzed = useAppSelector(selectAppInitialzed)
+    return (id && taxons[id] && appInitialzed) ? <EditTaxon taxon={{ ...taxons[id] }} /> : null
 }
 
-const EditTaxon = ({ taxon }: Partial<EditTaxonProps>) => {
+const EditTaxon = ({ taxon }: Partial<ObjectWithTaxon>) => {
     const { Item } = Form
 
     const [formErrors, setFormErrors] = useState({})
@@ -109,7 +99,7 @@ const EditTaxon = ({ taxon }: Partial<EditTaxonProps>) => {
                     form={form}
                     initialValues={taxon}>
                     <Item label={"ncbi_id"} {...itemValidation("ncbi_id")} rules={requiredRules}>
-                        <Input disabled={!taxon?.editable} />
+                        <Input />
                     </Item>
                     <Item label={"name"} {...itemValidation("name")} rules={requiredRules}>
                         <Input />

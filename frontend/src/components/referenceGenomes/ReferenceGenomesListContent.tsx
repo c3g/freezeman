@@ -3,7 +3,7 @@ import { getAllItems } from '../../models/frontend_models'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import { useAppSelector } from '../../hooks'
-import { selectAuthState, selectReferenceGenomesByID, selectTaxonsByID, selectUsersByID } from '../../selectors'
+import { selectReferenceGenomesByID, selectTaxonsByID } from '../../selectors'
 import { Table } from 'antd'
 import AddButton from '../AddButton'
 import { getColumnsForReferenceGenome } from './ReferenceGenomeTableColumns'
@@ -14,10 +14,7 @@ function ReferenceGenomesListContent() {
 	const [referenceGenomes, setReferenceGenomes] = useState<ReferenceGenome[]>();
 	const referenceGenomesByID = useAppSelector(selectReferenceGenomesByID)
 	const taxonsByID = useAppSelector(selectTaxonsByID)
-	const authState = useAppSelector(selectAuthState)
-	const usersByID = useAppSelector(selectUsersByID)
-	const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false)
-	const columns = getColumnsForReferenceGenome(taxonsByID, hasWritePermission);
+	const columns = getColumnsForReferenceGenome(taxonsByID);
 
 	useEffect(() => {
 		const refGenomesByID = getAllItems(referenceGenomesByID)
@@ -32,7 +29,6 @@ function ReferenceGenomesListContent() {
 
 			<PageContent>
 				<Table
-					loading={columns.length == 0}
 					rowKey={obj => obj.id}
 					bordered={true}
 					dataSource={referenceGenomes}

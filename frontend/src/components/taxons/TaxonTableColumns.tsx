@@ -8,14 +8,14 @@ enum TaxonColumnID {
     NCBI_ID = 'NCBI_ID',
     NAME = 'NAME',
 }
-export type TaxonColumn = IdentifiedTableColumnType<Taxon>
+type TaxonColumn = IdentifiedTableColumnType<Taxon>
 
-export const getColumnsForTaxon = (hasWritePermission: boolean): TaxonColumn[] => {
-    const TAXON_COLUMN_DEFINITIONS = TAXON_COLUMNS(hasWritePermission);
+export const getColumnsForTaxon = (): TaxonColumn[] => {
+    const TAXON_COLUMN_DEFINITIONS = TAXON_COLUMNS;
     return TAXON_COLUMN_DEFINITIONS.map((column: TaxonColumn) => { return { ...column } })
 }
 
-const TAXON_COLUMNS = (hasWritePermission: boolean): TaxonColumn[] => [
+const TAXON_COLUMNS: TaxonColumn[] = [
     {
         columnID: TaxonColumnID.ID,
         title: 'ID',
@@ -23,14 +23,11 @@ const TAXON_COLUMNS = (hasWritePermission: boolean): TaxonColumn[] => [
         sorter: (a, b) => a.id - b.id,
         width: '20%',
         render: (_, { id }) =>
-            id && hasWritePermission ? (
+            id && (
                 <Link to={`/taxons/update/${id}`}>
                     <div>{id}</div>
                 </Link>
-            ) :
-                (<div>
-                    {id}
-                </div>),
+            ),
     },
     {
         columnID: TaxonColumnID.NCBI_ID,
@@ -39,14 +36,11 @@ const TAXON_COLUMNS = (hasWritePermission: boolean): TaxonColumn[] => [
         sorter: (a, b) => a.ncbi_id - b.ncbi_id,
         width: '20%',
         render: (_, { ncbi_id, id }) =>
-            ncbi_id && id && hasWritePermission ? (
+            ncbi_id && id && (
                 <Link to={`/taxons/update/${id}`}>
                     <div>{ncbi_id}</div>
                 </Link>
-            ) :
-                (<div>
-                    {ncbi_id}
-                </div>),
+            ),
     },
     {
         columnID: TaxonColumnID.NAME,
