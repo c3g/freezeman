@@ -89,7 +89,7 @@ const DatasetDetailContent = () => {
     const {id: datasetId} = useParams();
     const dataset: Dataset | undefined = datasetsById[datasetId!];
     const allFilesReleased = dataset?.released_status_count === dataset?.files?.length
-    const allFilesBlocked = dataset?.released_status_count === 0
+    const allFilesBlocked = dataset?.blocked_status_count === dataset?.files?.length
 
     const [laneValidationStatus, setLaneValidationStatus] = useState<ValidationStatus>()
 

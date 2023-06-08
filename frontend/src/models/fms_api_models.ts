@@ -73,6 +73,7 @@ export interface FMSDataset extends FMSTrackedModel {
     lane: number                        // Flowcell lane number of dataset
     latest_release_update?: string      // ?
     released_status_count: number       // Number of files released
+    blocked_status_count: number        // Number of files blocked
     run_name: string                    // The name of the experiment run that generated this dataset
     metric_report_url?: string          // An external url to a report containing metrics for the dataset run
 }
