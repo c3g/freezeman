@@ -81,14 +81,15 @@ export function reduceListRequest<T extends FMSTrackedModel, P extends PagedItem
 	}
 }
 
+export type ReduceListReceiveType<T> = {
+	items: T[],
+	pageNumber: number, 
+	pageSize: number, 
+	totalCount: number
+}
 export function reduceListReceive<T extends FMSTrackedModel, P extends PagedItems<T>>(
 	pagedItems: P, 
-	data: {
-		items: T[], 
-		pageNumber: number, 
-		pageSize: number, 
-		totalCount: number
-	}): P {
+	data: ReduceListReceiveType<T>): P {
 	function createFetchedItemsByID(items: T[]): FetchedItemsByID<T> {
 		const itemsByID : FetchedItemsByID<T> = {}
 		items.forEach(item => {
