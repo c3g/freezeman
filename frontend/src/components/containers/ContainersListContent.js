@@ -20,6 +20,7 @@ import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
+import ContainerFilters from "./ContainerFilters";
 
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
@@ -161,6 +162,7 @@ const ContainersListContent = ({
     ]}/>
     <PageContent>
       <div className='filters-warning-bar'>
+        <ContainerFilters style={{ flex: 1 }} />
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
