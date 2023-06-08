@@ -6,6 +6,7 @@ import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setR
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState } from '../../selectors'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 
 const { Title, Text } = Typography
 
@@ -26,7 +27,11 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 	const [initialized, setInitialized] = useState<boolean>(false)
 	const experimentRunLanesState = useAppSelector(selectExperimentRunLanesState)
 	const [runLanes, setRunLanes] = useState<ExperimentRunLanes>()
-
+	
+	// Staff are allowed to change the lane validation status whenever needed.
+	const currentUser = useCurrentUser()
+	const isStaff = currentUser?.is_staff ?? false
+	
 	// Setting a run validated is a bit slow, so disable the validation buttons while
 	// a validation is in progress so users can't click the button and trigger another call to the backend.
 	const [isValidationInProgress, setIsValidationInProgress] = useState<boolean>(false)
@@ -109,7 +114,14 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
 							extra={getValidationStatusExtra(lane, isValidationInProgress)}
 						>
-							<LanePanel lane={lane} isValidationInProgress={isValidationInProgress} setAvailable={setAvailable} setPassed={setPassed} setFailed={setFailed}/>
+							<LanePanel 
+								lane={lane}
+								canReset={isStaff} 
+								canValidate={isStaff || lane.validationStatus === ValidationStatus.AVAILABLE}
+								isValidationInProgress={isValidationInProgress} 
+								setAvailable={setAvailable} 
+								setPassed={setPassed} 
+								setFailed={setFailed}/>
 						</Collapse.Panel>
 					)
 				})
@@ -157,13 +169,15 @@ function getValidationStatusExtra(lane: LaneInfo, isValidationInProgress: boolea
 
 interface LanePanelProps {
 	lane: LaneInfo
+	canValidate: boolean
+	canReset: boolean
 	isValidationInProgress: boolean
 	setPassed: (lane: LaneInfo) => void
 	setFailed: (lane: LaneInfo) => void
 	setAvailable: (lane: LaneInfo) => void
 }
 
-function LanePanel({ lane, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
+function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
 
 	// Create a list of unique metrics url's from the lane's datasets. Normally all of the
 	// datasets should have the same url.
@@ -199,27 +213,36 @@ function LanePanel({ lane, isValidationInProgress, setPassed, setFailed, setAvai
 
 				<Title level={5}>{title}</Title>
 				<Space>
-					<Button disabled={isValidationInProgress}
-						onClick={() => {
-							setAvailable(lane)
-						}}
-					>
-						Reset
-					</Button>
-					<Button disabled={isValidationInProgress}
-						onClick={() => {
-							setPassed(lane)
-						}}
-					>
-						Passed
-					</Button>
-					<Button disabled={isValidationInProgress}
-						onClick={() => {
-							setFailed(lane)
-						}}
-					>
-						Failed
-					</Button>
+					{canReset && 
+						<Button 
+							disabled={isValidationInProgress}
+							onClick={() => {
+								setAvailable(lane)
+							}}
+						>
+							Reset
+						</Button>
+					}
+					
+					{canValidate &&
+						<Button disabled={isValidationInProgress}
+							onClick={() => {
+								setPassed(lane)
+							}}
+						>
+							Passed
+						</Button>
+					}
+
+					{canValidate &&
+						<Button disabled={isValidationInProgress}
+							onClick={() => {
+								setFailed(lane)
+							}}
+						>
+							Failed
+						</Button>
+					}
 				</Space>
 			</FlexBar>
 

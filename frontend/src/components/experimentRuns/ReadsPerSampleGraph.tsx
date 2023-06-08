@@ -63,12 +63,17 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 				'derived_samples__id__in': derivedSampleID,
 				'is_pooled': false
 			}
-			const response = await dispatch(list(options))
-			const samples = response.results as FMSSample[]
-			if (samples && samples.length === 1) {
-				const url = `/samples/${samples[0].id}`
-				navigate(url)
+			try {
+				const response = await dispatch(list(options))
+				const samples = response.results as FMSSample[]
+				if (samples && samples.length === 1) {
+					const url = `/samples/${samples[0].id}`
+					navigate(url)
+				}
+			} catch(err) {
+				console.error(err)
 			}
+
 		}
 
 		if (data.derivedSampleID) {
