@@ -1,4 +1,4 @@
-import { Pagination, Table, TableProps } from 'antd'
+import { Checkbox, Pagination, Popconfirm, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
@@ -35,6 +35,8 @@ interface WorkflowSamplesTableProps {
 	selection?: {
 		selectedSampleIDs: FMSId[],
 		selectAllSamples: () => void,
+		clearAllSamples: () => void,
+		selectAll: boolean,
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
 	}
 }
@@ -43,7 +45,6 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
-
 
 	useEffect(() => {
 		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
@@ -74,11 +75,30 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 		return mergedColumns
 	}, [columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions])
 
+	const checkBox = (
+		<Popconfirm
+			title={!selection?.selectAll ? 'Select all samples?' : 'Clear the entire selection?'}
+			okText={'Yes'}
+			cancelText={'No'}
+			placement={'rightTop'}
+			onConfirm={() => {
+				if (!selection?.selectAll)
+					selection?.selectAllSamples();
+				else
+					selection?.clearAllSamples();
+			}}
+		>
+			<Checkbox checked={selection?.selectAll}></Checkbox>
+		</Popconfirm>
+	)
+
+
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
 	if (selection) {
 		rowSelection = {
 			type: 'checkbox',
+			columnTitle: checkBox,
 			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},

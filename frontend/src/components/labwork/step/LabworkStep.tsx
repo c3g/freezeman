@@ -50,7 +50,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// A selected template picker is used if protocol supports more than one template
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
-
+	const [selectAllSamples, setSelectAllSamples] = useState(false);
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
@@ -200,14 +200,24 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return mergedSelection
 	}
 
+	const handleClearSelection = useCallback(
+		() => {
+			dispatch(clearSelectedSamples(step.id))
+		}
+		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
 	const selectionProps = {
 		selectedSampleIDs: stepSamples.selectedSamples,
-		selectAll: false,
+		selectAll: selectAllSamples,
 		selectAllSamples: async () => {
 			const samples = await dispatch(loadAllSamples(step.id))
 			dispatch(updateSelectedSamplesAtStep(step.id, samples))
+			setSelectAllSamples(!selectAllSamples)
 		},
+		clearAllSamples: () => {
+			handleClearSelection()
+			setSelectAllSamples(!selectAllSamples)
+		 },
 		onSelectionChanged: useCallback((selectedSamples) => {
 			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
@@ -219,13 +229,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
 		}, [step, stepSamples, dispatch]),
 	}
-
-	const canClearSelection = stepSamples.selectedSamples.length !== 0
-	const handleClearSelection = useCallback(
-		() => {
-			dispatch(clearSelectedSamples(step.id))
-		}
-		, [step, dispatch])
+	
 
 	/** Sorting by coordinate **/
 
@@ -315,15 +319,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							dispatch(updateSelectedSamplesAtStep(step.id, samples))
 						}}>Select All</Button>
 
-						<Popconfirm
-							title={'Clear the entire selection?'}
-							okText={'Yes'}
-							cancelText={'No'}
-							placement={'rightTop'}
-							onConfirm={() => handleClearSelection()}
-						>
-							<Button disabled={!canClearSelection} title='Deselect all samples'>Clear Selection</Button>
-						</Popconfirm>
+						
 
 					</Space>
 				} onChange={tabKey => setSelectedTab(tabKey)}>
