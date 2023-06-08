@@ -310,6 +310,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 								</Radio.Group>
 							</>
 						}
+						<Button onClick={async () => {
+							const samples = await dispatch(loadAllSamples(step.id))
+							dispatch(updateSelectedSamplesAtStep(step.id, samples))
+						}}>Select All</Button>
+
 						<Popconfirm
 							title={'Clear the entire selection?'}
 							okText={'Yes'}

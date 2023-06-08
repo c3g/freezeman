@@ -1,4 +1,4 @@
-import { Button, Pagination, Table, TableProps } from 'antd'
+import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
@@ -108,10 +108,6 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 		<>
 			{tableColumns &&
 				<>
-					{
-						selection &&
-						<Button onClick={selection.selectAllSamples}>Select All</Button>
-					}
 					{
 						hasFilter && clearFilters && filters &&
 						<FiltersBar filters={filters} clearFilters={clearFilters}></FiltersBar>
