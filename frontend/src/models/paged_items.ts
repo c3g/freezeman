@@ -1,5 +1,5 @@
 import { FMSId, FMSTrackedModel } from "./fms_api_models"
-import { ItemsByID } from "./frontend_models"
+import { FetchedObject } from "./frontend_models"
 
 // Models for paged items, used in redux to hold lists of objects
 
@@ -36,7 +36,7 @@ export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilt
 
 export type SetFilterFunc = (filterKey: string, value: FilterValue, description: FilterDescription) => void
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
-export type FilterValidationFunc = (string) => boolean
+export type FilterValidationFunc = (string: string) => boolean
 export type SetSortByFunc = (sortBy: SortBy) => void
 
 export interface FilterOptions {
@@ -66,10 +66,16 @@ export interface FilterKeySet {
 	[key: string]: string
 }
 
+export type AnyFetchedModel = Partial<FMSTrackedModel> & FetchedObject
+export type FetchedModel<T extends FMSTrackedModel> = Partial<T> & FetchedObject
+export interface FetchedItemsByID<T extends FMSTrackedModel> {
+	[key: FMSId]: FetchedModel<T>
+}
+
 export interface PagedItems<T extends FMSTrackedModel> {
 	readonly isFetching: boolean
 	readonly error?: any
-	readonly itemsByID: ItemsByID<T>
+	readonly itemsByID: FetchedItemsByID<T>
 	readonly items: readonly FMSId[]
 	readonly totalCount: number
 	readonly filters: FilterSet

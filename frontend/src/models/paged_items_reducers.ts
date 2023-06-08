@@ -1,7 +1,6 @@
-import { FilterDescription, FilterOptions, FilterValue, PagedItems } from "./paged_items"
-import { FMSTrackedModel } from "./fms_api_models"
-import { createItemsByID } from "./frontend_models"
+import { AnyFetchedModel, FetchedItemsByID, FetchedModel, FilterDescription, FilterOptions, FilterValue, PagedItems } from "./paged_items"
 import { clearFilters, removeFilter, setFilterOptions, setFilterValue } from "./filter_set_reducers"
+import { FMSTrackedModel } from "./fms_api_models"
 
 /*
 	A set of reducer functions for updating objects that conform to the PagedItems interface.
@@ -14,11 +13,13 @@ export function reduceGetRequest<T extends FMSTrackedModel, P extends PagedItems
 	itemID: number
 ): P {
 	// Add a new, empty object containing just an id and isFetching set to true to itemsByID
-	const item: T = {
+	const item: AnyFetchedModel = {
 		id: itemID,
 		isFetching: true,
 		error: undefined,
-		isLoaded: false
+		isLoaded: false,
+		isRemoving: false,
+		didFail: undefined,
 	}
 
 	return {
@@ -34,11 +35,13 @@ export function reduceGetReceive<T extends FMSTrackedModel, P extends PagedItems
 	pagedItems: P,
 	item: T
 ): P {
-	const object: T = {
+	const object: FetchedModel<T> = {
 		...item,
 		isFetching: false,
 		error: undefined,
-		isLoaded: true
+		isLoaded: true,
+		isRemoving: false,
+		didFail: false,
 	}
 	return {
 		...pagedItems,
@@ -54,9 +57,13 @@ export function reduceGetError<T extends FMSTrackedModel, P extends PagedItems<T
 	itemID: number,
 	error: any
 ): P {
-	const item : T = {
+	const item : AnyFetchedModel = {
 		id: itemID,
 		error,
+		didFail: true,
+		isFetching: false,
+		isRemoving: false,
+		isLoaded: false,
 	}
 	return {
 		...pagedItems,
@@ -82,6 +89,21 @@ export function reduceListReceive<T extends FMSTrackedModel, P extends PagedItem
 		pageSize: number, 
 		totalCount: number
 	}): P {
+	function createFetchedItemsByID(items: T[]): FetchedItemsByID<T> {
+		const itemsByID : FetchedItemsByID<T> = {}
+		items.forEach(item => {
+			if (item.id) {
+				itemsByID[item.id] = {
+					...item,
+					isFetching: false,
+					isRemoving: false,
+					isLoaded: false,
+					didFail: undefined,
+				}
+			}
+		})
+		return itemsByID	
+	}
 
 	return {
 		...pagedItems,
@@ -90,7 +112,7 @@ export function reduceListReceive<T extends FMSTrackedModel, P extends PagedItem
 		items: data.items.map(item => item.id),
 		itemsByID: {
 			...pagedItems.itemsByID,
-			...createItemsByID(data.items)
+			...createFetchedItemsByID(data.items)
 		},
 		page: {
 			...pagedItems.page,
