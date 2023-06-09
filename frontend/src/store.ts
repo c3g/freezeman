@@ -15,11 +15,15 @@ const logger = createLogger({
 	collapsed: () => true,
 	predicate: (getState, action) => {
 		// Disable redux logging of summary actions, unless there is a summary error.
-		// Summaries pollute the log.
-		if (action.type.includes('.SUMMARY.REQUEST' || action.type.include('.SUMMARY.RECEIVE'))) {
+		// Summaries pollute the log.		
+		if (action.type.includes('.SUMMARY.REQUEST') || 
+			action.type.includes('.SUMMARY.RECEIVE') ||
+			action.type.includes('.GET_LABWORK_SUMMARY.REQUEST') ||
+			action.type.includes('.GET_LABWORK_SUMMARY.RECEIVE')) {
 			return false
+		} else {
+			return true
 		}
-		return true
 	},
 })
 
