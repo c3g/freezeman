@@ -568,17 +568,21 @@ class ImportedFileSerializer(serializers.ModelSerializer):
 class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
+    blocked_status_count = serializers.SerializerMethodField()
     latest_release_update = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "metric_report_url")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
 
     def get_released_status_count(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
+    
+    def get_blocked_status_count(self, obj):
+        return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.BLOCKED).count()
     
     def get_latest_release_update(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]

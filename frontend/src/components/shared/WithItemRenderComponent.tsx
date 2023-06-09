@@ -56,11 +56,11 @@ type ItemsByIDSelectorFunc<T extends FMSTrackedModel> = (state: any) => ItemsByI
  */
 function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTrackedModel>(withItem: W, selector: ItemsByIDSelectorFunc<T>) {
 
-    interface WithItemRenderComponentProps<T extends FMSTrackedModel> {
-        objectID: string | number
-        render: ItemRenderFunc<T>
-        placeholder?: React.ReactElement
-    }
+	interface WithItemRenderComponentProps<T extends FMSTrackedModel> {
+		objectID: string | number
+		render: ItemRenderFunc<T>
+		placeholder?: React.ReactElement | string
+	}
 
     const WithItemRenderComponent = ({ objectID, render, placeholder }: WithItemRenderComponentProps<T>) => {
         const objectsByID = useSelector(selector)
@@ -79,7 +79,9 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTra
             return render(object)
         } else {
             if (placeholder) {
-                return placeholder
+                if (typeof placeholder === 'string') {
+                    return <span>placeholder</span>
+                } else return placeholder
             } else {
                 return null
             }

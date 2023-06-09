@@ -1,14 +1,27 @@
-import {merge, set} from "object-path-immutable";
+import { merge } from "object-path-immutable";
 
-import {indexByID} from "../../utils/objects";
+import { map } from "rambda";
+import { createFilterActionTypes } from "../../models/filter_set_actions";
+import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from "../../models/paged_items_reducers";
+import { createNetworkActionTypes } from "../../utils/actions";
 import mergeArray from "../../utils/mergeArray";
-import EXPERIMENT_RUNS from "./actions";
-import {map} from "rambda";
-import {templateActionsReducerFactory} from "../../utils/templateActions";
+import { indexByID } from "../../utils/objects";
+import { templateActionsReducerFactory } from "../../utils/templateActions";
 
+export const GET                   = createNetworkActionTypes("EXPERIMENT_RUNS.GET");
+export const LIST                  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST");
+export const LIST_TABLE            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TABLE");
+export const SET_SORT_BY           = "EXPERIMENT_RUNS.SET_SORT_BY";
+export const FILTER_ACTION_TYPES = createFilterActionTypes('EXPERIMENT_RUNS')
+export const { SET_FILTER, SET_FILTER_OPTION, CLEAR_FILTERS} = FILTER_ACTION_TYPES
+export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
+export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
+export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TEMPLATE_ACTIONS");
+export const LAUNCH_EXPERIMENT_RUN = createNetworkActionTypes("EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN")
+export const FLUSH_EXPERIMENT_RUN_LAUNCH = "EXPERIMENT_RUNS.FLUSH_EXPERIMENT_RUN_LAUNCH"
 
-// TODO: summary
-export const experimentRunTemplateActions = templateActionsReducerFactory(EXPERIMENT_RUNS);
+export const experimentRunTemplateActions = templateActionsReducerFactory({LIST_TEMPLATE_ACTIONS});
 
 export const runTypes = (
   state = {
@@ -19,19 +32,19 @@ export const runTypes = (
   action
 ) => {
     switch (action.type) {
-        case EXPERIMENT_RUNS.LIST_TYPES.REQUEST:
+        case LIST_TYPES.REQUEST:
             return {
                 ...state,
                 isFetching: true,
             };
-        case EXPERIMENT_RUNS.LIST_TYPES.RECEIVE:
+        case LIST_TYPES.RECEIVE:
             return {
                 ...state,
                 items: action.data,
                 itemsByID: indexByID(action.data, "id"),
                 isFetching: false,
             };
-        case EXPERIMENT_RUNS.LIST_TYPES.ERROR:
+        case LIST_TYPES.ERROR:
             return {
                 ...state,
                 isFetching: false,
@@ -51,51 +64,19 @@ export const instruments = (
   action
 ) => {
     switch (action.type) {
-        case EXPERIMENT_RUNS.LIST_INSTRUMENTS.REQUEST:
+        case LIST_INSTRUMENTS.REQUEST:
             return {
                 ...state,
                 isFetching: true,
             };
-        case EXPERIMENT_RUNS.LIST_INSTRUMENTS.RECEIVE:
+        case LIST_INSTRUMENTS.RECEIVE:
             return {
                 ...state,
                 items: action.data,
                 itemsByID: indexByID(action.data, "id"),
                 isFetching: false,
             };
-        case EXPERIMENT_RUNS.LIST_INSTRUMENTS.ERROR:
-            return {
-                ...state,
-                isFetching: false,
-                error: action.error,
-            };
-        default:
-            return state;
-    }
-};
-
-export const processes = (
-  state = {
-      items: [],
-      itemsByID: {},
-      isFetching: false,
-  },
-  action
-) => {
-    switch (action.type) {
-        case EXPERIMENT_RUNS.LIST_PROCESSES.REQUEST:
-            return {
-                ...state,
-                isFetching: true,
-            };
-        case EXPERIMENT_RUNS.LIST_PROCESSES.RECEIVE:
-            return {
-                ...state,
-                items: action.data,
-                itemsByID: indexByID(action.data, "id"),
-                isFetching: false,
-            };
-        case EXPERIMENT_RUNS.LIST_PROCESSES.ERROR:
+        case LIST_INSTRUMENTS.ERROR:
             return {
                 ...state,
                 isFetching: false,
@@ -115,19 +96,19 @@ export const propertyValues = (
   action
 ) => {
     switch (action.type) {
-        case EXPERIMENT_RUNS.LIST_PROPERTY_VALUES.REQUEST:
+        case LIST_PROPERTY_VALUES.REQUEST:
             return {
                 ...state,
                 isFetching: true,
             };
-        case EXPERIMENT_RUNS.LIST_PROPERTY_VALUES.RECEIVE:
+        case LIST_PROPERTY_VALUES.RECEIVE:
             return {
                 ...state,
                 items: action.data,
                 itemsByID: indexByID(action.data, "id"),
                 isFetching: false,
             };
-        case EXPERIMENT_RUNS.LIST_PROPERTY_VALUES.ERROR:
+        case LIST_PROPERTY_VALUES.ERROR:
             return {
                 ...state,
                 isFetching: false,
@@ -152,58 +133,36 @@ export const experimentRuns = (
 ) => {
     switch (action.type) {
 
-        case EXPERIMENT_RUNS.GET.REQUEST:
+        case GET.REQUEST:
             return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
-        case EXPERIMENT_RUNS.GET.RECEIVE:
+        case GET.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
-        case EXPERIMENT_RUNS.GET.ERROR:
+        case GET.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
-        case EXPERIMENT_RUNS.SET_SORT_BY:
+        case SET_SORT_BY:
             return { ...state, sortBy: action.data, items: [] };
-        case EXPERIMENT_RUNS.SET_FILTER:
-            return {
-                ...state,
-                filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
-        case EXPERIMENT_RUNS.SET_FILTER_OPTION:
-            return {
-                ...state,
-                filters: set(
-                    state.filters,
-                    [action.data.name, 'options', action.data.option],
-                    action.data.value
-                ),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
-        case EXPERIMENT_RUNS.CLEAR_FILTERS:
-            return {
-                ...state,
-                filters: {},
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
+        case SET_FILTER:
+            return reduceSetFilter(state, action.description, action.value)
+        case SET_FILTER_OPTION:
+            return reduceSetFilterOptions(state, action.description, action.options)
+        case CLEAR_FILTERS:
+            return reduceClearFilters(state)
 
-        case EXPERIMENT_RUNS.LIST.REQUEST:
+        case LIST.REQUEST:
             return { ...state, isFetching: true, };
-        case EXPERIMENT_RUNS.LIST.RECEIVE: {
+        case LIST.RECEIVE: {
             const results = action.data
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
-        case EXPERIMENT_RUNS.LIST.ERROR:
+        case LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
-        case EXPERIMENT_RUNS.LIST_TABLE.REQUEST:
+        case LIST_TABLE.REQUEST:
             return { ...state, isFetching: true, };
-        case EXPERIMENT_RUNS.LIST_TABLE.RECEIVE: {
+        case LIST_TABLE.RECEIVE: {
             const totalCount = action.data.length;
             const hasChanged = state.totalCount !== action.data.length;
             const currentItems = hasChanged ? [] : state.items;
@@ -226,15 +185,13 @@ export const experimentRuns = (
                 error: undefined,
             };
         }
-        case EXPERIMENT_RUNS.LIST_TABLE.ERROR:
+        case LIST_TABLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
         default:
             return state;
     }
-};
-
-
+}
 
 export const LAUNCH_STATUS = {
     LAUNCHING: 'LAUNCHING',
@@ -260,7 +217,7 @@ export const experimentRunLaunches = (state = {launchesById: {}}, action) => {
     } 
 
     switch(action.type) {
-        case EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN.REQUEST: {
+        case LAUNCH_EXPERIMENT_RUN.REQUEST: {
             const experimentRunId = action.meta.experimentRunId
             return updateLaunchState(experimentRunId, {
                 experimentRunId,
@@ -268,14 +225,14 @@ export const experimentRunLaunches = (state = {launchesById: {}}, action) => {
             })
         }
         
-        case EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN.RECEIVE: {
+        case LAUNCH_EXPERIMENT_RUN.RECEIVE: {
             const experimentRunId = action.meta.experimentRunId
             return updateLaunchState(experimentRunId, {
                 status: LAUNCH_STATUS.LAUNCHED
             })
         }
 
-        case EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN.ERROR: {
+        case LAUNCH_EXPERIMENT_RUN.ERROR: {
             const experimentRunId = action.meta.experimentRunId
             return updateLaunchState(experimentRunId, {
                 status: LAUNCH_STATUS.ERROR,
@@ -283,7 +240,7 @@ export const experimentRunLaunches = (state = {launchesById: {}}, action) => {
             })
         }
 
-        case EXPERIMENT_RUNS.FLUSH_EXPERIMENT_RUN_LAUNCH: {
+        case FLUSH_EXPERIMENT_RUN_LAUNCH: {
             const experimentRunId = action.data
             const launches = {...state.launchesById}
             delete launches[experimentRunId]

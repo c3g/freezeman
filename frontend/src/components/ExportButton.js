@@ -7,7 +7,7 @@ import { useAppDispatch } from "../hooks";
 import { notifyError } from "../modules/notification/actions";
 const { confirm } = Modal;
 
-const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...rest }) => {
+const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
   const dispatch = useAppDispatch()
 
@@ -49,9 +49,7 @@ const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...res
 
   }
   return (
-    <Button icon={<DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
-      Export {exportType}
-    </Button>
+    <Button icon={<DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>Export</Button>
   )
 }
 

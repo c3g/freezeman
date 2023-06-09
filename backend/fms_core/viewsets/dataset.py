@@ -21,7 +21,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
         latest_release_update=Max("readsets__files__release_status_timestamp")
     )
     queryset = queryset.annotate(
-        released_status_count=Count("readsets__files", filter=Q(readsets__files__release_status=ReleaseStatus.RELEASED), distinct=True)
+        released_status_count=Count("readsets__files", filter=Q(readsets__files__release_status=ReleaseStatus.RELEASED), distinct=True),
+        blocked_status_count=Count("readsets__files", filter=Q(readsets__files__release_status=ReleaseStatus.BLOCKED), distinct=True)
     )
 
     serializer_class = DatasetSerializer

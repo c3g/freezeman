@@ -1,26 +1,30 @@
-import { Button, Checkbox, Descriptions, Select, Switch, Typography } from "antd";
-const { Option } = Select;
-import Title from "antd/lib/skeleton/Title";
-import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
-import {get, setReleaseStatus} from "../../modules/datasets/actions";
-import {listFilter, update} from "../../modules/datasetFiles/actions"
-import AppPageHeader from "../AppPageHeader";
-import FilteredList from "../FilteredList";
-import { DATASET_FILE_FILTERS } from "../filters/descriptions";
-import PageContent from "../PageContent";
-import moment from "moment";
-import useFilteredList from "../../hooks/useFilteredList";
-import PaginatedList from "../shared/PaginatedList";
+import { Button, Descriptions, Space, Typography } from "antd"
+import moment from "moment"
+import React, { useCallback, useEffect, useReducer, useState } from "react"
+import { useParams } from "react-router-dom"
+import { useAppDispatch, useAppSelector } from '../../hooks'
+import useFilteredList from "../../hooks/useFilteredList"
+import { listFilter, update } from "../../modules/datasetFiles/actions"
+import { get, setReleaseStatus } from "../../modules/datasets/actions"
+import { selectDatasetFilesByID, selectDatasetFilesState, selectDatasetsByID } from "../../selectors"
+import AppPageHeader from "../AppPageHeader"
+import PageContent from "../PageContent"
+import { DATASET_FILE_FILTERS } from "../filters/descriptions"
+import PaginatedList from "../shared/PaginatedList"
+import { Dataset, DatasetFile } from "../../models/frontend_models"
+import { ValidationStatus } from "../../modules/experimentRunLanes/models"
+import api from "../../utils/api"
+import { InfoCircleOutlined } from "@ant-design/icons"
+import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
+const { Title, Text } = Typography
 
 const AVAILABLE = 0
 const RELEASED = 1
 const BLOCKED = 2
 const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
-const OPPOSITE_STATUS = [0, 2, 1]
+const OPPOSITE_STATUS = [RELEASED, BLOCKED, RELEASED]
 
-const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
+const getTableColumns = (toggleReleaseStatus, releaseStatusOption, canReleaseOrBlockFiles) => {
     return [
         {
             title: "ID",
@@ -40,12 +44,16 @@ const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
         {
             title: "Release Status",
             dataIndex: "release_status",
-            render: (release_status, file) => {
+            render: (release_status: number, file) => {
                 const { id } = file;
                 const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? release_status
                 const changed = (releaseStatusOption.all && releaseStatusOption.all !== release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
                 return <>
-                    <Button style={{ color: changed ? "red" : "grey", width: "6em" }} onClick={() => setReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}</Button>
+                    <Button 
+                        disabled={!canReleaseOrBlockFiles}
+                        style={{ color: changed ? "red" : "grey", width: "6em" }}
+                        onClick={() => toggleReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}
+                    </Button>
                 </>
             }
         },
@@ -53,7 +61,7 @@ const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
             title: "Latest Release Update",
             dataIndex: "release_status_timestamp",
             sorter: true,
-            render: (release_status_timestamp, _) => {
+            render: (release_status_timestamp) => {
                 if (release_status_timestamp) {
                     const date = moment(release_status_timestamp)
                     return date.format("YYYY-MM-DD LT")
@@ -66,20 +74,24 @@ const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
 }
 
 const DatasetDetailContent = () => {
-    const datasetsById = useSelector((state) => state.datasets.itemsByID)
-    const filesById = useSelector((state) => state.datasetFiles.itemsByID)
-    const files = useSelector((state) => state.datasetFiles.filteredItems)
-    const isFetching = useSelector((state) => state.datasetFiles.isFetching)
-    const page = useSelector((state) => state.datasetFiles.page)
-    const totalCount = useSelector((state) => state.datasetFiles.filteredItemsCount)
+    const datasetsById = useAppSelector(selectDatasetsByID)
 
-    const dispatch = useDispatch()
+    const datasetFilesState = useAppSelector(selectDatasetFilesState)
+    const filesById = useAppSelector(selectDatasetFilesByID)
+    const files = datasetFilesState.filteredItems as DatasetFile[]
+    const isFetching = datasetFilesState.isFetching
+    const page = datasetFilesState.page
+    const totalCount = datasetFilesState.filteredItemsCount
+
+    const dispatch = useAppDispatch()
     const dispatchListFilter = useCallback((...args) => dispatch(listFilter(...args)), [dispatch])
 
     const {id: datasetId} = useParams();
-    const dataset = datasetsById[datasetId];
+    const dataset: Dataset | undefined = datasetsById[datasetId!];
     const allFilesReleased = dataset?.released_status_count === dataset?.files?.length
-    const allFilesBlocked = dataset?.released_status_count === 0
+    const allFilesBlocked = dataset?.blocked_status_count === dataset?.files?.length
+
+    const [laneValidationStatus, setLaneValidationStatus] = useState<ValidationStatus>()
 
     const releaseStatusOptionReducer = (state, action) => {
         switch(action.type) {
@@ -120,23 +132,54 @@ const DatasetDetailContent = () => {
         dispatchReleaseStatusOption({ type: "all", release_status })
     }
 
-    const columns = getTableColumns(
-        (id, releaseStatus) => {
-            dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus, filesById  })
-        },
-        releaseStatusOption
-    )
-    const filterKey = DATASET_FILE_FILTERS.dataset.key
-    
     useEffect(() => {
         if (!dataset) {
             dispatch(get(datasetId))
         }
-    }, [datasetsById])
+    }, [dataset, datasetId, datasetsById, dispatch])
 
-    const loading = (value) => {
+    useEffect(() => {
+        async function fetchLaneValidationStatus(dataset: Dataset) {
+            const status = await dispatch(api.experimentRuns.getLaneValidationStatus(dataset.run_name, dataset.lane))
+            return status.data
+        }
+
+        if (dataset && !dataset.isFetching && !laneValidationStatus) {
+            fetchLaneValidationStatus(dataset).then((status) => {
+                setLaneValidationStatus(status)
+            })
+        }
+    }, [dataset, laneValidationStatus, dispatch])
+
+    const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
+
+    let laneValidationStatusString = ''
+    if (laneValidationStatus !== undefined) {
+        switch(laneValidationStatus) {
+            case ValidationStatus.AVAILABLE:
+                laneValidationStatusString = 'Awaiting validation'
+                break
+            case ValidationStatus.PASSED:
+                laneValidationStatusString = 'Passed'
+                break
+            case ValidationStatus.FAILED:
+                laneValidationStatusString = 'Failed'
+                break
+        }
+    }
+
+    const loading = (value: string | number | undefined) => {
         return value ?? "Loading..."
     }
+
+    const columns = getTableColumns(
+        (id, releaseStatus) => {
+            dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus, filesById  })
+        },
+        releaseStatusOption,
+        canReleaseOrBlockFiles
+    )
+    const filterKey = DATASET_FILE_FILTERS.readset__dataset.key
 
     const paginatedListProps = useFilteredList({
         description: DATASET_FILE_FILTERS,
@@ -147,7 +190,6 @@ const DatasetDetailContent = () => {
         totalCount: totalCount,
         filterID: datasetId,
         filterKey: filterKey,
-        rowKey: "id",
         isFetching: isFetching,
         page: page,
     })
@@ -157,7 +199,7 @@ const DatasetDetailContent = () => {
     const extraButtons = <>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 dispatchReleaseStatusOptionTypeAll(RELEASED)
             }}
             disabled={
@@ -167,7 +209,7 @@ const DatasetDetailContent = () => {
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 dispatchReleaseStatusOptionTypeAll(BLOCKED)
             }}
             disabled={
@@ -177,7 +219,7 @@ const DatasetDetailContent = () => {
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 dispatchReleaseStatusOptionTypeAll(undefined)
             }}
             disabled={!releaseStatusOption.all && !specificStatusToggled}>
@@ -185,7 +227,7 @@ const DatasetDetailContent = () => {
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => {
+            onClick={() => {
                 const { all, specific } = releaseStatusOption
                 if (all) {
                     dispatch(setReleaseStatus(datasetId, all, Object.keys(specific), filters))
@@ -204,7 +246,7 @@ const DatasetDetailContent = () => {
             Save Changes
         </Button>
     </>
-
+   
     return <>
     <AppPageHeader
         title={`Dataset ${loading(dataset?.external_project_id)} - ${loading(dataset?.run_name)} - ${loading(dataset?.lane)}`}
@@ -212,15 +254,32 @@ const DatasetDetailContent = () => {
 
     <PageContent>
         <Descriptions bordered={true} size={"small"} column={4}>
-            <Descriptions.Item label={"ID"}>{loading(dataset?.id)}</Descriptions.Item>
-            <Descriptions.Item label={"Project"}>{loading(dataset?.external_project_id)}</Descriptions.Item>
-            <Descriptions.Item label={"Run Name"}>{loading(dataset?.run_name)}</Descriptions.Item>
-            <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
-            <Descriptions.Item label={"Total Files"} span={2}>{loading(dataset?.files?.length)}</Descriptions.Item>
-            <Descriptions.Item label={"Files Released"} span={2}>{loading(dataset?.released_status_count)}</Descriptions.Item>
+            <Descriptions.Item label={"ID"} span={1}>{loading(dataset?.id)}</Descriptions.Item>
+            <Descriptions.Item label={"Project"} span={1}>{loading(dataset?.external_project_id)}</Descriptions.Item>
+            <Descriptions.Item label={"Run Name"} span={2}>{loading(dataset?.run_name)}</Descriptions.Item>
+            <Descriptions.Item label={"Lane"} span={1}>{loading(dataset?.lane)}</Descriptions.Item>
+            <Descriptions.Item label={"Lane Validation Status"} span={1}>{laneValidationStatus !== undefined && 
+                <LaneValidationStatus validationStatus={laneValidationStatus} isValidationInProgress={false}/>}
+            </Descriptions.Item>
+            <Descriptions.Item label={"Run Metrics Report"} span={2}>
+                {dataset?.metric_report_url ? 
+                    <a href={dataset.metric_report_url} rel="external noopener noreferrer" target="_blank">View Run Metrics</a>
+                :
+                    <span>Unavailable</span>
+                }
+            </Descriptions.Item>
+            <Descriptions.Item label={"Total Files"} span={1}>{loading(dataset?.files?.length)}</Descriptions.Item>
+            <Descriptions.Item label={"Files Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
-        <PaginatedList {...paginatedListProps} other={extraButtons} />
+        {laneValidationStatus !== undefined &&  !canReleaseOrBlockFiles &&
+            <Space>
+                <InfoCircleOutlined/>
+                <Text italic>Files cannot be released until the dataset&apos;s lane has been validated</Text>
+            </Space>
+            
+        }
+        <PaginatedList {...paginatedListProps} other={canReleaseOrBlockFiles ? extraButtons : undefined} />
     </PageContent>
     </>
 }
