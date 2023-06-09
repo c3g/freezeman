@@ -1,4 +1,4 @@
-import { ThunkAction } from '@reduxjs/toolkit';
+import { AnyAction, ThunkAction } from '@reduxjs/toolkit';
 import { AppDispatch } from '../store';
 
 export interface NetworkActionTypes {
@@ -26,6 +26,12 @@ export interface NetworkActionOptions {
 
 
 export type NetworkActionThunk<T> = ThunkAction<T, any, any, any>
+export interface NetworkActionReceiveType extends AnyAction {
+    type: string,
+    data: any,
+    meta: NetworkActionOptions['meta'],
+}
+
 /**
  * @param {object} types - Action types for REQUEST, RECEIVE, ERROR
  * @param {function} apiFunction - Store-dispatchable API function
