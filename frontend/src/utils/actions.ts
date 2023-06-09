@@ -26,7 +26,7 @@ export interface NetworkActionOptions {
 
 
 export type NetworkActionThunk<T> = ThunkAction<T, any, any, any>
-export interface NetworkActionReceiveType extends AnyAction {
+export interface NetworkActionListReceive extends AnyAction {
     type: string,
     data: any,
     meta: NetworkActionOptions['meta'],
