@@ -3,7 +3,7 @@ import { FMSTrackedModel } from "../models/fms_api_models";
 import { AppDispatch, RootState } from "../store";
 import { AnyAction, Reducer } from "redux";
 import { FilterDescription, FilterValue, PagedItems, initPagedItems } from "../models/paged_items";
-import { NetworkActionListReceive, createNetworkActionTypes, networkAction } from "./actions";
+import { NetworkActionListReceive, NetworkActionThunk, createNetworkActionTypes, networkAction } from "./actions";
 import { reduceClearFilters, reduceListError, reduceListReceive, reduceListRequest, reduceRemoveFilter, reduceSetFilter, reduceSetFilterOptions } from "../models/paged_items_reducers";
 import { DEFAULT_PAGINATION_LIMIT } from "../config";
 
@@ -18,7 +18,7 @@ interface PagedItemsActions<T extends FMSTrackedModel> {
 }
 
 // Define a type alias for the list function signature
-type ListType = (option: any) => ThunkAction<Promise<any>, RootState, unknown, AnyAction>;
+type ListType = (option: any) => NetworkActionThunk<any>;
 
 // Define an interface for the return value of the PagedItemsFactory function
 interface PagedItemsFactoryReturnType<T extends FMSTrackedModel> {
