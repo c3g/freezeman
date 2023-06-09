@@ -14,7 +14,7 @@ export function loadExternalExperimentRuns() {
 			try {
 				const options = {
 					limit: 100000
-				}	// no options yet
+				}
 				const response = await dispatch(api.experimentRuns.listExternalRuns(options))
 				dispatch({
 					type: LIST_EXTERNAL_EXPERIMENTS.RECEIVE,

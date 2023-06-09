@@ -48,8 +48,9 @@ function ExperimentRunsTabs() {
 		if (activeKey === FREEZEMAN_TAB_KEY) {
 
 			const listExport = () =>
-				withToken(token, api.experimentRuns.listExport)
-				(mergedListQueryParams(EXPERIMENT_RUN_FILTERS, experimentRunsState.filters, experimentRunsState.sortBy))
+				withToken(token, api.experimentRuns.listExport)(
+					mergedListQueryParams(EXPERIMENT_RUN_FILTERS, experimentRunsState.filters, experimentRunsState.sortBy)
+				)
 				.then(response => response.data)
 
 

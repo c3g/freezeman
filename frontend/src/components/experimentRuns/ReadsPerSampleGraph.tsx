@@ -9,15 +9,15 @@ import { list } from '../../modules/samples/actions'
 import { useResizeObserver } from '../../utils/ref'
 import { notifyError } from '../../modules/notification/actions'
 
+
 interface ReadsPerSampleGraphProps {
 	lane: LaneInfo
 }
 
-function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
-
+function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 	const DEFAULT_GRAPH_WIDTH = 800
-	const MIN_BAR_WIDTH = 6		// Make bars wide enough that the user can click them
-	const MAX_BAR_WIDTH = 64	// Don't let bars get too fat or the graph looks silly
+	const MIN_BAR_WIDTH = 6 // Make bars wide enough that the user can click them
+	const MAX_BAR_WIDTH = 64 // Don't let bars get too fat or the graph looks silly
 
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
@@ -27,13 +27,13 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 	useEffect(() => {
 		if (!lane.readsPerSample) {
 			dispatch(loadReadsPerSample(lane.runName, lane.laneNumber))
-		} 
+		}
 	}, [lane, dispatch])
 
 	useLayoutEffect(() => {
 		if (lane.readsPerSample && componentSize.width > 0) {
 			const minGraphWidth = lane.readsPerSample.sampleReads.length * MIN_BAR_WIDTH
-			const maxGraphWidth = lane.readsPerSample.sampleReads.length * MAX_BAR_WIDTH 
+			const maxGraphWidth = lane.readsPerSample.sampleReads.length * MAX_BAR_WIDTH
 
 			let finalGraphWidth = componentSize.width
 			if (minGraphWidth > componentSize.width) {
@@ -50,7 +50,6 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 	}, [componentSize, lane.readsPerSample])
 
 	function handleBarClick(data: NumberOfReads) {
-
 		// TODO confirm that this approach is correct...
 		// Given a derived sample ID, fetch the sample it is associated with, and
 		// navigate to the sample details page. For this to work, there has to be
@@ -60,8 +59,8 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 		async function goToSampleDetails(derivedSampleID: FMSId) {
 			const options = {
 				limit: 10,
-				'derived_samples__id__in': derivedSampleID,
-				'is_pooled': false
+				derived_samples__id__in: derivedSampleID,
+				is_pooled: false,
 			}
 			try {
 				const response = await dispatch(list(options))
@@ -70,15 +69,16 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 					const url = `/samples/${samples[0].id}`
 					navigate(url)
 				}
-			} catch(err) {
+			} catch (err) {
 				console.error(err)
-				dispatch(notifyError({
-					id: 'RUN_VALIDATION:CANNOT_RETRIEVE_SAMPLE',
-					title: 'Failed to retrieve sample',
-					description: 'The sample cannot be displayed due to an error.'
-				}))
+				dispatch(
+					notifyError({
+						id: 'RUN_VALIDATION:CANNOT_RETRIEVE_SAMPLE',
+						title: 'Failed to retrieve sample',
+						description: 'The sample cannot be displayed due to an error.',
+					})
+				)
 			}
-
 		}
 
 		if (data.derivedSampleID) {
@@ -88,10 +88,10 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 
 	// This component displays the sample name and nbReads in a popup when the user
 	// hovers their mouse over a bar.
-	const SampleTooltip = ({active, payload, label}) => {
+	const SampleTooltip = ({ active, payload, label }) => {
 		if (active && payload && payload.length) {
-			const sampleData : NumberOfReads = payload[0].payload
-			const style : React.CSSProperties = {
+			const sampleData: NumberOfReads = payload[0].payload
+			const style: React.CSSProperties = {
 				backgroundColor: 'white',
 				backgroundBlendMode: 'difference',
 				borderRadius: '6px',
@@ -109,15 +109,20 @@ function ReadsPerSampleGraph({lane}: ReadsPerSampleGraphProps) {
 
 	const data = lane.readsPerSample?.sampleReads ?? []
 
-	
-
 	return (
-		<div style={{display: 'block', overflowX: 'scroll', overflowY: 'hidden', maxWidth: '100%'}} ref={resizeRef}>
-			<BarChart width={graphWidth} height={500} barCategoryGap={0} barGap={0} data={data} margin={{top: 20, right: 20, bottom: 0, left: 20}}>
-				<XAxis tick={false}/>
-				<YAxis type='number'/>
-				<Tooltip content={<SampleTooltip/>}/>
-				<Bar dataKey='nbReads' fill='#8884d8' isAnimationActive={false} onClick={handleBarClick}/>
+		<div style={{ display: 'block', overflowX: 'scroll', overflowY: 'hidden', maxWidth: '100%' }} ref={resizeRef}>
+			<BarChart
+				width={graphWidth}
+				height={500}
+				barCategoryGap={0}
+				barGap={0}
+				data={data}
+				margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
+			>
+				<XAxis tick={false} />
+				<YAxis type="number" />
+				<Tooltip content={<SampleTooltip />} />
+				<Bar dataKey="nbReads" fill="#8884d8" isAnimationActive={false} onClick={handleBarClick} />
 			</BarChart>
 		</div>
 	)

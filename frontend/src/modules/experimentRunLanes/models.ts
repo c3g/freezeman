@@ -15,14 +15,12 @@ export interface DatasetInfo {
 }
 
 export interface NumberOfReads {
-	derivedSampleID?: FMSId						// Sample ID if this is from a freezeman experiment run and the sample is in the DB
+	derivedSampleID?: FMSId					// Sample ID if this is from a freezeman experiment run and the sample is in the DB
 	sampleName: string						// Name of the sample
 	nbReads : number						// Number of reads for the sample
 }
 
 export interface ReadsPerSample {
-	// TODO : Is there some kind of sort order for the samples that would be
-	// helpful to the lab? 
 	sampleReads: NumberOfReads[]
 }
 

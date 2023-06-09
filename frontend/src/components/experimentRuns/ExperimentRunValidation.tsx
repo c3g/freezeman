@@ -1,18 +1,15 @@
-import { CheckOutlined, CloseOutlined, QuestionCircleOutlined, SyncOutlined } from '@ant-design/icons'
 import { Button, Collapse, List, Popconfirm, Space, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState } from '../../selectors'
-import ReadsPerSampleGraph from './ReadsPerSampleGraph'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
 import LaneValidationStatus from './LaneValidationStatus'
+import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 
 const { Title, Text } = Typography
 
-// https://recharts.org/en-US/
-// https://github.com/recharts/recharts
 
 interface ExperimentRunValidationProps {
 	experimentRunName: string

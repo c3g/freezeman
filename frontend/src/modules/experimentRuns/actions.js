@@ -19,8 +19,6 @@ import {
     SET_SORT_BY
 } from './reducers';
 
-// TODO: SUMMARY, LIST_TEMPLATE_ACTIONS
-
 export const get = id => async (dispatch, getState) => {
     const experimentRun = getState().experimentRuns.itemsByID[id];
     if (experimentRun && experimentRun.isFetching)

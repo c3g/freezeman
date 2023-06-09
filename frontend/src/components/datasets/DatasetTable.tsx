@@ -4,17 +4,16 @@ import React, { useCallback } from "react"
 
 import { Link } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { clearFilters, listTable, setFilter, setFilterOption, setSortBy, listFilter } from "../../modules/datasets/actions"
-import { selectDatasetsByID, selectDatasetsState } from "../../selectors"
+import { clearFilters, listFilter, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/datasets/actions"
+import { selectDatasetsState } from "../../selectors"
 
+import { FMSDataset } from "../../models/fms_api_models"
+import FilteredList from "../FilteredList"
 import PaginatedTable from "../PaginatedTable"
 import FiltersWarning from "../filters/FiltersWarning"
 import { DATASET_FILTERS } from "../filters/descriptions"
 import getFilterProps from "../filters/getFilterProps"
 import getNFilters from "../filters/getNFilters"
-import { FMSDataset } from "../../models/fms_api_models"
-import FilteredList from "../FilteredList"
-import { RootState } from "../../store"
 
 
 const getTableColumns = () => {

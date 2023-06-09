@@ -1,21 +1,17 @@
-import {merge, set} from "object-path-immutable";
+import { merge } from "object-path-immutable";
 
-import {indexByID} from "../../utils/objects";
-import mergeArray from "../../utils/mergeArray";
-import {map} from "rambda";
-import {templateActionsReducerFactory} from "../../utils/templateActions";
-import {createNetworkActionTypes} from "../../utils/actions";
-import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from "../../models/paged_items_reducers";
+import { map } from "rambda";
 import { createFilterActionTypes } from "../../models/filter_set_actions";
-
+import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from "../../models/paged_items_reducers";
+import { createNetworkActionTypes } from "../../utils/actions";
+import mergeArray from "../../utils/mergeArray";
+import { indexByID } from "../../utils/objects";
+import { templateActionsReducerFactory } from "../../utils/templateActions";
 
 export const GET                   = createNetworkActionTypes("EXPERIMENT_RUNS.GET");
 export const LIST                  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST");
 export const LIST_TABLE            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TABLE");
 export const SET_SORT_BY           = "EXPERIMENT_RUNS.SET_SORT_BY";
-// export const SET_FILTER            = "EXPERIMENT_RUNS.SET_FILTER";
-// export const SET_FILTER_OPTION     = "EXPERIMENT_RUNS.SET_FILTER_OPTION"
-// export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
 export const FILTER_ACTION_TYPES = createFilterActionTypes('EXPERIMENT_RUNS')
 export const { SET_FILTER, SET_FILTER_OPTION, CLEAR_FILTERS} = FILTER_ACTION_TYPES
 export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
@@ -24,7 +20,6 @@ export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.L
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TEMPLATE_ACTIONS");
 export const LAUNCH_EXPERIMENT_RUN = createNetworkActionTypes("EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN")
 export const FLUSH_EXPERIMENT_RUN_LAUNCH = "EXPERIMENT_RUNS.FLUSH_EXPERIMENT_RUN_LAUNCH"
-
 
 export const experimentRunTemplateActions = templateActionsReducerFactory({LIST_TEMPLATE_ACTIONS});
 
@@ -150,35 +145,10 @@ export const experimentRuns = (
             return { ...state, sortBy: action.data, items: [] };
         case SET_FILTER:
             return reduceSetFilter(state, action.description, action.value)
-            // return {
-            //     ...state,
-            //     filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-            //     items: [],
-            //     totalCount: 0,
-            //     page: set(state.page, ['offset'], 0),
-            // };
         case SET_FILTER_OPTION:
             return reduceSetFilterOptions(state, action.description, action.options)
-            // return {
-            //     ...state,
-            //     filters: set(
-            //         state.filters,
-            //         [action.data.name, 'options', action.data.option],
-            //         action.data.value
-            //     ),
-            //     items: [],
-            //     totalCount: 0,
-            //     page: set(state.page, ['offset'], 0),
-            // };
         case CLEAR_FILTERS:
             return reduceClearFilters(state)
-            // return {
-            //     ...state,
-            //     filters: {},
-            //     items: [],
-            //     totalCount: 0,
-            //     page: set(state.page, ['offset'], 0),
-            // };
 
         case LIST.REQUEST:
             return { ...state, isFetching: true, };
@@ -221,9 +191,7 @@ export const experimentRuns = (
         default:
             return state;
     }
-};
-
-
+}
 
 export const LAUNCH_STATUS = {
     LAUNCHING: 'LAUNCHING',
