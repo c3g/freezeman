@@ -24,6 +24,7 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndividualRenderComponent, WithProjectRenderComponent } from "../shared/WithItemRenderComponent";
 import SamplesFilters from "./SamplesFilters";
+import ListPageContent from "../ListPageContent";
 
 const getTableColumns = (sampleKinds, toggleOption) => [
     {
@@ -261,7 +262,7 @@ const SamplesListContent = ({
       <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportDropdown key='export' listExport={listExport} listExportMetadata={listExportMetadata} itemsCount={totalCount}/>,
     ]}/>
-    <PageContent>
+    <ListPageContent>
       <div className='filters-warning-bar'>
         <SamplesFilters style={{ flex: 1 }} />
         <FiltersWarning
@@ -282,20 +283,31 @@ const SamplesListContent = ({
          <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
          <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
       </Radio.Group>
-      <PaginatedTable
-        columns={mappedColumns}
-        items={samples}
-        itemsByID={samplesByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
-    </PageContent>
+      {/* Put the paginated table into a box that fills the remaining vertical and
+        horizontal space on the page (flex: 1) */}
+      <div style={{
+        flex: 1, 
+        position: 'relative',
+        height: '100%',
+        maxHeight: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <PaginatedTable
+          columns={mappedColumns}
+          items={samples}
+          itemsByID={samplesByID}
+          rowKey="id"
+          loading={isFetching}
+          totalCount={totalCount}
+          page={page}
+          filters={filters}
+          sortBy={sortBy}
+          onLoad={listTable}
+          onChangeSort={setSortBy}
+        />
+      </div>
+    </ListPageContent>
   </>;
 }
 
