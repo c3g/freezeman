@@ -237,7 +237,7 @@ const SampleDetailsContent = ({
                 <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
             </Descriptions.Item>
             <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
-            <Descriptions.Item label="Container">
+            <Descriptions.Item label="Container Barcode">
               {sample.container &&
                 <Link to={`/containers/${sample.container}`}>
                   {withContainer(containersByID, sample.container, container => container.barcode, "Loading...")}
