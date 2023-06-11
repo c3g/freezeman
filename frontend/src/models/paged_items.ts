@@ -89,7 +89,7 @@ export interface PagedItems<T extends FMSTrackedModel> {
 	}
 }
 
-export function initPagedItems<T extends FMSTrackedModel>(fixedFilters: PagedItems<T>['fixedFilters']): PagedItems<T> {
+export function initPagedItems<T extends FMSTrackedModel>(fixedFilters?: PagedItems<T>['fixedFilters']): PagedItems<T> {
 	return {
 		isFetching: false,
 		itemsByID: {},
