@@ -78,12 +78,13 @@ export function PagedItemsFactory<T extends FMSTrackedModel>(prefix: string, lis
         const offset = limit * (pageNumber - 1)
         const { filters, fixedFilters, sortBy } = pagedItems
 
-        return dispatch(networkAction(LIST_PAGE, list({
+        const { results } = await dispatch<Promise<{ results: T[] }>>(networkAction(LIST_PAGE, list({
             offset,
             filters: { ...fixedFilters, ...filters },
             sortBy,
             limit
         })))
+        return results
     }
 
     const refreshPage: PagedItemsActions<T>['refreshPage'] = () => async (dispatch, getState) => {
