@@ -79,6 +79,7 @@ export interface PagedItems<T extends FMSTrackedModel> {
 	readonly items: readonly FMSId[]
 	readonly totalCount: number
 	readonly filters: FilterSet
+	readonly fixedFilters?: FilterSet
 	readonly sortBy: SortBy
 	readonly page?: {
 		readonly pageNumber?: number		// Move to using page number instead of offset

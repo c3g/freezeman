@@ -6,6 +6,7 @@ import { FilterDescription, FilterValue, PagedItems, initPagedItems } from "../m
 import { NetworkActionListReceive, NetworkActionThunk, createNetworkActionTypes, networkAction } from "./actions";
 import { reduceClearFilters, reduceListError, reduceListReceive, reduceListRequest, reduceRemoveFilter, reduceSetFilter, reduceSetFilterOptions } from "../models/paged_items_reducers";
 import { DEFAULT_PAGINATION_LIMIT } from "../config";
+import { selectPageSize } from "../selectors";
 
 type FreezemanThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => T
 type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
@@ -26,12 +27,12 @@ interface PagedItemsFactoryReturnType<T extends FMSTrackedModel> {
   reducer: Reducer<PagedItems<T>, AnyAction>;
 }
 
-export function PagedItemsFactory<T extends FMSTrackedModel>(ID: string, list: ListType): PagedItemsFactoryReturnType<T> {
-    const LIST_PAGE = createNetworkActionTypes(`${ID}.LIST_PAGE`)
-    const SET_FILTER = `${ID}.SET_FILTER`
-    const SET_FILTER_OPTIONS = `${ID}.SET_FILTER_OPTIONS`
-    const REMOVE_FILTER = `${ID}.REMOVE_FILTER`
-    const CLEAR_FILTER = `${ID}.CLEAR_FILTER`
+export function PagedItemsFactory<T extends FMSTrackedModel>(prefix: string, list: ListType): PagedItemsFactoryReturnType<T> {
+    const LIST_PAGE = createNetworkActionTypes(`${prefix}.LIST_PAGE`)
+    const SET_FILTER = `${prefix}.SET_FILTER`
+    const SET_FILTER_OPTIONS = `${prefix}.SET_FILTER_OPTIONS`
+    const REMOVE_FILTER = `${prefix}.REMOVE_FILTER`
+    const CLEAR_FILTER = `${prefix}.CLEAR_FILTER`
 
     const reducer: PagedItemsFactoryReturnType<T>['reducer'] = (oldState, action) => {
         const state = oldState ?? initPagedItems<T>()
@@ -70,18 +71,23 @@ export function PagedItemsFactory<T extends FMSTrackedModel>(ID: string, list: L
     }
 
     const listPage: PagedItemsActions<T>['listPage'] = (pageNumber) => async (dispatch, getState) => {
-        const pagedItems = getState()[ID] as PagedItems<T>
+        const state = getState()
+        const pagedItems = state[prefix] as PagedItems<T>
         
-        const limit = pagedItems.page?.limit ?? DEFAULT_PAGINATION_LIMIT
+        const limit = pagedItems.page?.limit ?? selectPageSize(state)
         const offset = limit * (pageNumber - 1)
-        const filters = pagedItems.filters
-        const sortBy = pagedItems.sortBy
+        const { filters, fixedFilters, sortBy } = pagedItems
 
-        return dispatch(networkAction(LIST_PAGE, list({ offset, filters, sortBy, limit })))
+        return dispatch(networkAction(LIST_PAGE, list({
+            offset,
+            filters: { ...fixedFilters, ...filters },
+            sortBy,
+            limit
+        })))
     }
 
     const refreshPage: PagedItemsActions<T>['refreshPage'] = () => async (dispatch, getState) => {
-        return await dispatch(listPage((getState()[ID] as PagedItems<T>).page?.pageNumber ?? 1))
+        return await dispatch(listPage((getState()[prefix] as PagedItems<T>).page?.pageNumber ?? 1))
     }
 
     const setFilter: PagedItemsActions<T>['setFilter'] = (value, description) => async (dispatch) => {
