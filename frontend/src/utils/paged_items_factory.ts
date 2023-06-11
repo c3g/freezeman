@@ -46,7 +46,7 @@ export function PagedItemsFactory<T extends FMSTrackedModel>(prefix: string, lis
                     items: data.results,
                     pageSize: meta.limit,
                     totalCount: data.count,
-                    pageNumber: Math.floor(Math.max(meta.offset / meta.limit, 1)),
+                    pageNumber: Math.floor(meta.offset / meta.limit + 1),
                 })
             }
             case LIST_PAGE.ERROR: {
