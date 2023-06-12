@@ -338,7 +338,7 @@ const SampleDetailsContent = ({
            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
         </TabPane>
 
-        <TabPane tab={"Associated Projects"} key="associated-projects" style={tabStyle}>
+          <TabPane tab={"Associated Projects"} key="associated-projects" style={tabStyle}>
           <SamplesAssociatedProjects sampleID={sample.id} />
         </TabPane>
 

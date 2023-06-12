@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import AddButton from "../AddButton";
 import AppPageHeader from "../AppPageHeader";
 import ExportButton from "../ExportButton";
-import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
 import api, { withToken } from "../../utils/api";
@@ -18,6 +17,7 @@ import { PROJECT_FILTERS } from "../filters/descriptions";
 import FiltersWarning from "../filters/FiltersWarning";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
+import ListPageContent from "../ListPageContent";
 
 const getTableColumns = () => [
     {
@@ -124,7 +124,7 @@ const ProjectsListContent = ({
       <ActionDropdown key='actions' urlBase={'/projects'} actions={actions}/>,
       <ExportButton key='export' exportFunction={listExport} filename="projects" itemsCount={totalCount}/>,
     ]}/>
-    <PageContent>
+    <ListPageContent>
       <div className='filters-warning-bar'>
         <div style={{ flex: 1 }} />
         <FiltersWarning
@@ -153,7 +153,7 @@ const ProjectsListContent = ({
         onLoad={listTable}
         onChangeSort={setSortBy}
       />
-    </PageContent>
+    </ListPageContent>
   </>;
 }
 

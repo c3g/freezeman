@@ -22,6 +22,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { WithSequenceRenderComponent } from "../shared/WithItemRenderComponent";
+import ListPageContent from "../ListPageContent";
 
 const getTableColumns = () => [
     {
@@ -130,45 +131,42 @@ const IndicesListContent = ({
 
   const history = useNavigate();
 
-  return <>
-    <AppPageHeader title="Indices" extra={[
-      <Button key='validate' onClick={() => history("/indices/validate")}>
-        <CheckOutlined /> Validate Indices
-      </Button>,
-      <ActionDropdown key='actions' urlBase={"/indices"} actions={actions}/>,
-      <ExportButton key='export' exportFunction={listExport} filename="indices" itemsCount={totalCount}/>,
-    ]}/>
-    <PageContent>
-      <div className='filters-warning-bar'>
-        <div style={{ flex: 1 }} />
-        <FiltersWarning
-          nFilters={nFilters}
-          filters={filters}
-          description={INDEX_FILTERS}
-        />
-        <Button
-          style={{ margin: 6 }}
-          disabled={nFilters === 0}
-          onClick={clearFilters}
-        >
-          Clear Filters
-        </Button>
-      </div>
-      <PaginatedTable
-        columns={columns}
-        items={indices}
-        itemsByID={indicesByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
-    </PageContent>
-  </>;
+  return (
+		<>
+			<AppPageHeader
+				title="Indices"
+				extra={[
+					<Button key="validate" onClick={() => history('/indices/validate')}>
+						<CheckOutlined /> Validate Indices
+					</Button>,
+					<ActionDropdown key="actions" urlBase={'/indices'} actions={actions} />,
+					<ExportButton key="export" exportFunction={listExport} filename="indices" itemsCount={totalCount} />,
+				]}
+			/>
+			<ListPageContent>
+				<div className="filters-warning-bar">
+					<div style={{ flex: 1 }} />
+					<FiltersWarning nFilters={nFilters} filters={filters} description={INDEX_FILTERS} />
+					<Button style={{ margin: 6 }} disabled={nFilters === 0} onClick={clearFilters}>
+						Clear Filters
+					</Button>
+				</div>
+				<PaginatedTable
+					columns={columns}
+					items={indices}
+					itemsByID={indicesByID}
+					rowKey="id"
+					loading={isFetching}
+					totalCount={totalCount}
+					page={page}
+					filters={filters}
+					sortBy={sortBy}
+					onLoad={listTable}
+					onChangeSort={setSortBy}
+				/>
+			</ListPageContent>
+		</>
+  )
 }
 
 export default connect(mapStateToProps, actionCreators)(IndicesListContent);

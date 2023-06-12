@@ -22,6 +22,7 @@ import {PrefilledTemplatesDropdown} from "../../utils/prefillTemplates";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndexRenderComponent } from '../shared/WithItemRenderComponent';
+import ListPageContent from "../ListPageContent";
 
 const getTableColumns = (containersByID, indicesByID, projectsByID, coordinatesByID, toggleOption) => [
     {
@@ -286,7 +287,7 @@ const LibrariesListContent = ({
       <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportButton key='export' exportFunction={listExport} filename="libraries" itemsCount={totalCount}/>,
     ]}/>
-    <PageContent>
+    <ListPageContent>
       <div style={{display: 'flex', justifyContent: 'space-between'}}>
           <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginTop:6}}>
             <Radio.Button value={TOGGLE_OPTIONS.LIBRARIES}> Libraries </Radio.Button>
@@ -321,7 +322,7 @@ const LibrariesListContent = ({
         onLoad={listTable}
         onChangeSort={setSortBy}
       />
-    </PageContent>
+    </ListPageContent>
   </>;
 }
 

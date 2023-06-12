@@ -4,7 +4,6 @@ import {Link} from "react-router-dom";
 import {Button} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
 import AddButton from "../AddButton";
@@ -17,6 +16,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { withTaxon } from "../../utils/withItem";
+import ListPageContent from "../ListPageContent";
 
 
 const TABLE_COLUMNS = (taxons) => [
@@ -114,7 +114,7 @@ const IndividualsListContent = ({
         <AddButton key='add' url="/individuals/add" />,
         <ExportButton key='export' exportFunction={listExport} filename="individuals"  itemsCount={totalCount}/>,
     ]}/>
-    <PageContent>
+    <ListPageContent>
       <div className='filters-warning-bar'>
         <div style={{ flex: 1 }} />
         <FiltersWarning
@@ -143,7 +143,7 @@ const IndividualsListContent = ({
         onLoad={listTable}
         onChangeSort={setSortBy}
       />
-    </PageContent>
+    </ListPageContent>
   </>;
 };
 

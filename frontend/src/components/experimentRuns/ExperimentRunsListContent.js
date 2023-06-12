@@ -10,6 +10,7 @@ import { EXPERIMENT_RUN_FILTERS } from "../filters/descriptions";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 import { getFilterPropsIncludingDescriptions } from '../shared/WorkflowSamplesTable/getFilterPropsTS';
 import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard";
+import ListPageContent from "../ListPageContent";
 
 
 const getTableColumns = (runTypes, instruments, launchesById) => [
@@ -119,23 +120,23 @@ const ExperimentRunsListContent = ({
     setFilterOption
   )))
 
-  return <>
-    <>
-      <PaginatedTable
-        columns={columns}
-        items={experimentRuns}
-        itemsByID={experimentRunsByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
-    </>
-  </>;
+  return (
+		<>
+					<PaginatedTable
+						columns={columns}
+						items={experimentRuns}
+						itemsByID={experimentRunsByID}
+						rowKey="id"
+						loading={isFetching}
+						totalCount={totalCount}
+						page={page}
+						filters={filters}
+						sortBy={sortBy}
+						onLoad={listTable}
+						onChangeSort={setSortBy}
+					/>
+		</>
+  )
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ExperimentRunsListContent);

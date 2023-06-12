@@ -5,7 +5,6 @@ import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
 
@@ -15,6 +14,7 @@ import {USER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import FiltersWarning from "../filters/FiltersWarning";
 import canWrite from "./canWrite";
+import ListPageContent from "../ListPageContent";
 
 const getTableColumns = (groupsByID) => [
     {
@@ -109,38 +109,31 @@ const UsersListContent = ({
 
   const nFilters = Object.entries(filters).filter(e => e[1]).length
 
-  return <>
-    <AppPageHeader title="Users" extra={canWrite ? [
-      <AddButton key='add' url="/users/add" />,
-    ] : []}/>
-    <PageContent>
-      <div className='filters-warning-bar'>
-        <FiltersWarning
-          nFilters={nFilters}
-          filters={filters}
-          description={USER_FILTERS}
-        />
-        <Button
-          disabled={nFilters === 0}
-          onClick={clearFilters}
-        >
-          Clear Filters
-        </Button>
-      </div>
-      <PaginatedTable
-        columns={columns}
-        items={users}
-        itemsByID={usersByID}
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
-    </PageContent>
-  </>;
+  return (
+		<>
+			<AppPageHeader title="Users" extra={canWrite ? [<AddButton key="add" url="/users/add" />] : []} />
+			<ListPageContent>
+				<div className="filters-warning-bar">
+					<FiltersWarning nFilters={nFilters} filters={filters} description={USER_FILTERS} />
+					<Button disabled={nFilters === 0} onClick={clearFilters}>
+						Clear Filters
+					</Button>
+				</div>
+				<PaginatedTable
+					columns={columns}
+					items={users}
+					itemsByID={usersByID}
+					loading={isFetching}
+					totalCount={totalCount}
+					page={page}
+					filters={filters}
+					sortBy={sortBy}
+					onLoad={listTable}
+					onChangeSort={setSortBy}
+				/>
+			</ListPageContent>
+		</>
+  )
 }
 
 export default connect(mapStateToProps, actionCreators)(UsersListContent);

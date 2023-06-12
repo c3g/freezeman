@@ -4,7 +4,6 @@ import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
 
@@ -18,6 +17,7 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import { WithSampleRenderComponent} from '../shared/WithItemRenderComponent'
+import ListPageContent from "../ListPageContent";
 
 const getTableColumns = (protocols) => [
     {
@@ -141,7 +141,7 @@ const ProcessMeasurementsListContent = ({
       <ActionDropdown key='actions' urlBase={"/process-measurements"} actions={actions}/>,
       <ExportButton key='export' exportFunction={listExport} filename="processes"  itemsCount={totalCount}/>,
     ]}/>
-    <PageContent>
+    <ListPageContent>
       <div className='filters-warning-bar'>
         <FiltersWarning
           nFilters={nFilters}
@@ -169,7 +169,7 @@ const ProcessMeasurementsListContent = ({
         onLoad={listTable}
         onChangeSort={setSortBy}
       />
-    </PageContent>
+    </ListPageContent>
   </>;
 }
 
