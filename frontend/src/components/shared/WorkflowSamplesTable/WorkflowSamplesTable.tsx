@@ -32,9 +32,6 @@ interface WorkflowSamplesTableProps {
 	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[],
-		selectAllSamples: () => void,
-		clearAllSamples: () => void,
-		selectAll: boolean,
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
 	}
 }
@@ -52,30 +49,13 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 		return mergedColumns
 	}, [columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions])
 
-	const checkBox = (
-		<Popconfirm
-			title={!selection?.selectAll ? 'Select all samples?' : 'Clear the entire selection?'}
-			okText={'Yes'}
-			cancelText={'No'}
-			placement={'rightTop'}
-			onConfirm={() => {
-				if (!selection?.selectAll)
-					selection?.selectAllSamples();
-				else
-					selection?.clearAllSamples();
-			}}
-		>
-			<Checkbox checked={selection?.selectAll}></Checkbox>
-		</Popconfirm>
-	)
-
 
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
 	if (selection) {
 		rowSelection = {
 			type: 'checkbox',
-			columnTitle: samples.length > 0 ? checkBox : <></>,
+			columnTitle: <></>,
 			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},

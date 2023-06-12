@@ -76,7 +76,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// ** Template handling **
 
 	// A selected template picker is used if protocol supports more than one template
-	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
+	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>();
 	const [selectAllSamples, setSelectAllSamples] = useState(false);
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
@@ -226,26 +226,29 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 		return mergedSelection
 	}
+	const handleSelectAll = useCallback(
+		async () => {
+			const samples = await dispatch(loadAllSamples(step.id))
+			dispatch(updateSelectedSamplesAtStep(step.id, samples))
+			setSelectAllSamples(true)
+		}, [step, dispatch]
+	)
+
 
 	const handleClearSelection = useCallback(
 		() => {
 			dispatch(clearSelectedSamples(step.id))
+			setSelectAllSamples(false)
 		}
 		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
 	const selectionProps = {
 		selectedSampleIDs: stepSamples.selectedSamples,
-		selectAll: selectAllSamples,
-		selectAllSamples: async () => {
-			const samples = await dispatch(loadAllSamples(step.id))
-			dispatch(updateSelectedSamplesAtStep(step.id, samples))
-			setSelectAllSamples(!selectAllSamples)
-		},
-		clearAllSamples: () => {
-			handleClearSelection()
-			setSelectAllSamples(!selectAllSamples)
-		 },
+		clearAllSamples: () => handleClearSelection(),
 		onSelectionChanged: useCallback((selectedSamples) => {
+			if (selectAllSamples) {
+				setSelectAllSamples(false)
+			}
 			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
 					acc.push(selected.sample.id)
@@ -256,7 +259,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
 		}, [step, stepSamples, dispatch]),
 	}
-	
+
 
 	/** Sorting by coordinate **/
 
@@ -341,12 +344,28 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 								</Radio.Group>
 							</>
 						}
-						<Button onClick={async () => {
-							const samples = await dispatch(loadAllSamples(step.id))
-							dispatch(updateSelectedSamplesAtStep(step.id, samples))
-						}}>Select All</Button>
+						<Popconfirm
+							disabled={selectAllSamples}
+							title={'Select all samples?'}
+							okText={'Yes'}
+							cancelText={'No'}
+							placement={'rightTop'}
+							onConfirm={() => handleSelectAll()}
+						>
+							<Button disabled={selectAllSamples} title='Select all samples'>Select All</Button>
+						</Popconfirm>
+						<Popconfirm
+							disabled={stepSamples.selectedSamples.length == 0}
+							title={'Clear the entire selection?'}
+							okText={'Yes'}
+							cancelText={'No'}
+							placement={'rightTop'}
+							onConfirm={() => handleClearSelection()}
+						>
+							<Button disabled={stepSamples.selectedSamples.length == 0} title='Deselect all samples'>Clear Selection</Button>
+						</Popconfirm>
 
-						
+
 
 					</Space>
 				} onChange={tabKey => setSelectedTab(tabKey)}>
