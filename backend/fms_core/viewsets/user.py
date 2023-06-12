@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import permission_required
+from django.core.exceptions import ValidationError
 
 from rest_framework import viewsets
 from rest_framework import viewsets
@@ -35,6 +36,20 @@ class UserViewSet(viewsets.ModelViewSet):
             user.set_password(password)
             user.save()
         return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        errors = {}
+        email = request.data.get("email", None)
+        if email and self.queryset.filter(email=email).exists():
+            errors["email"] = "User's email is already in use by another user."
+        try:
+            response = super().create(request, *args, **kwargs)
+        except Exception as err:
+            errors.update(err.__dict__.get("detail", {"username": "An unexpected error happened."}))
+        if errors:
+            raise ValidationError(errors)
+        else:
+            return response
 
     @action(detail=False, methods=["patch"])
     def update_self(self, request):
