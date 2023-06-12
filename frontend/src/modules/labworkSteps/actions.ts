@@ -70,15 +70,16 @@ export function loadAllSamples(stepID: FMSId) {
 		}
 		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
 		const ordering = serializeSortByParams(stepSamples.pagedItems.sortBy)
-		const meta = {
-			stepID
-		}
 		const options = {
 			ordering,
 			...serializedFilters
 		}
-		const response: FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), { meta }))
-		return response.results.map(nextStep => nextStep.sample)
+		const response = await dispatch(api.sampleNextStep.listSamplesAtStep(stepID, options))
+		const results = response.data.results;
+		if (results)
+			dispatch(updateSelectedSamplesAtStep(stepID, results.map(nextStep => nextStep.sample)))
+		else
+			return
 	}
 }
 export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {

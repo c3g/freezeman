@@ -226,13 +226,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 		return mergedSelection
 	}
-	const handleSelectAll = useCallback(
+	const handleSelectAll =
 		async () => {
-			const samples = await dispatch(loadAllSamples(step.id))
-			dispatch(updateSelectedSamplesAtStep(step.id, samples))
-			setSelectAllSamples(true)
-		}, [step, dispatch]
-	)
+			await dispatch(loadAllSamples(step.id))
+		}
 
 
 	const handleClearSelection = useCallback(
