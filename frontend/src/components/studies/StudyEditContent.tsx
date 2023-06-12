@@ -90,7 +90,6 @@ const StudyEditContent = ({ action }: StudyEditContentProps) => {
 						})
 					}
 				})
-				console.log(result)
 			}
 		} else {
 			// This is where we will handle editing an existing study.
