@@ -4,7 +4,6 @@ import {Link} from "react-router-dom";
 import {Button} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
@@ -21,6 +20,7 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import ContainerFilters from "./ContainerFilters";
+import ListPageContent from "../ListPageContent";
 
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
@@ -160,7 +160,7 @@ const ContainersListContent = ({
       <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
       <ExportButton key='export' exportFunction={listExport} filename="containers" itemsCount={totalCount}/>,
     ]}/>
-    <PageContent>
+    <ListPageContent>
       <div className='filters-warning-bar'>
         <ContainerFilters style={{ flex: 1 }} />
         <FiltersWarning
@@ -188,7 +188,7 @@ const ContainersListContent = ({
         onLoad={listTable}
         onChangeSort={setSortBy}
       />
-    </PageContent>
+    </ListPageContent>
   </>;
 }
 

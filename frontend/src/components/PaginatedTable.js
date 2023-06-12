@@ -5,6 +5,7 @@ import {Pagination, Table} from "antd";
 
 
 import {setPageSize} from "../modules/pagination";
+import PaginatedTableScroller from "./PaginatedTableScroller";
 
 const propTypes = {
  filters: prop.object.isRequired,
@@ -82,59 +83,34 @@ function PaginatedTable ({
 
   return (
     <>
-	{/* Put the table in an absolute positioned div. This stops the height and
-		width of the table from determining the height and width of the page.
-		
-		This div uses flex to allocate the maximum vertical space to the table
-		contents, while leaving the pagination section at the bottom of the box.
-	*/}
-	<div style={{
-		position: 'absolute',
-		display: 'flex',
-		flexDirection: 'column',
-		maxHeight: '100%',
-		height: '100%',
-		width: '100%',
-		maxWidth: '100%'
-	}}>
-		{/* Have the table take up all available vertical space (flex 1)
-			and have it scroll the table contents.
-
-			The antd table supports vertical and horizontal scrolling, along
-			with sticky headers, which would be perfect, but if we enable that
-			then the table squishes itself horizontally to force the whole
-			table to fit in the available width, and this makes the headers ugly.
-		*/}
-		<div style={{
-			flex: '1',
-			overflow: 'scroll',
-			border: 'thin solid lightgray'
-		}}>
-			<Table
-				size="small"
-				bordered={false}
-				pagination={false}
-				columns={columns}
-				dataSource={hasUnloadedItems ? [] : dataSource}
-				rowKey={rowKey}
-				loading={loading || isCurrentPageUnloaded}
-				childrenColumnName={'UNEXISTENT_KEY'}
-				onChange={onChangeTable}
-			/>
-		</div>
-			
-		<Pagination
-		className="ant-table-pagination ant-table-pagination-right"
-		showSizeChanger={true}
-		showQuickJumper={true}
-		showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-		current={currentPage}
-		pageSize={pageSize}
-		total={totalCount}
-		onChange={onChangePage}
-		onShowSizeChange={(current, newPageSize) => onChangeSizeChange(newPageSize)}
-		/>
-	</div>
+      <PaginatedTableScroller 
+        table={
+          <Table
+            size="small"
+            bordered={false}
+            pagination={false}
+            columns={columns}
+            dataSource={hasUnloadedItems ? [] : dataSource}
+            rowKey={rowKey}
+            loading={loading || isCurrentPageUnloaded}
+            childrenColumnName={'UNEXISTENT_KEY'}
+            onChange={onChangeTable}
+            />
+        }
+        pagination={
+          <Pagination
+            className="ant-table-pagination ant-table-pagination-right"
+            showSizeChanger={true}
+            showQuickJumper={true}
+            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+            current={currentPage}
+            pageSize={pageSize}
+            total={totalCount}
+            onChange={onChangePage}
+            onShowSizeChange={(current, newPageSize) => onChangeSizeChange(newPageSize)}
+          />
+        }
+        />
     </>
   );
 }

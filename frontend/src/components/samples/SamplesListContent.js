@@ -7,7 +7,6 @@ import AddButton from "../AddButton";
 import AppPageHeader from "../AppPageHeader";
 import { Depletion } from "../Depletion";
 import ExportDropdown from "../ExportDropdown";
-import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import { QCFlag } from "../QCFlag";
 
@@ -255,60 +254,56 @@ const SamplesListContent = ({
     setFilterOption
   ))), [columns, filters, setFilter, setFilterOption])
 
-  return <>
-    <AppPageHeader title="Samples" extra={[
-      <AddButton key='add' url="/samples/add" />,
-      <ActionDropdown key='actions' urlBase={"/samples"} actions={actions}/>,
-      <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
-      <ExportDropdown key='export' listExport={listExport} listExportMetadata={listExportMetadata} itemsCount={totalCount}/>,
-    ]}/>
-    <ListPageContent>
-      <div className='filters-warning-bar'>
-        <SamplesFilters style={{ flex: 1 }} />
-        <FiltersWarning
-          nFilters={nFilters}
-          filters={filters}
-          description={SAMPLE_FILTERS}
-        />
-        <Button
-          style={{ margin: 6 }}
-          disabled={nFilters === 0}
-          onClick={localClearFilters}
-        >
-          Clear Filters
-        </Button>
-      </div>
-      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginBottom: '1rem'}}>
-         <Radio.Button value={TOGGLE_OPTIONS.SAMPLES}> Samples </Radio.Button>
-         <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
-         <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
-      </Radio.Group>
-      {/* Put the paginated table into a box that fills the remaining vertical and
-        horizontal space on the page (flex: 1) */}
-      <div style={{
-        flex: 1, 
-        position: 'relative',
-        height: '100%',
-        maxHeight: '100%',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <PaginatedTable
-          columns={mappedColumns}
-          items={samples}
-          itemsByID={samplesByID}
-          rowKey="id"
-          loading={isFetching}
-          totalCount={totalCount}
-          page={page}
-          filters={filters}
-          sortBy={sortBy}
-          onLoad={listTable}
-          onChangeSort={setSortBy}
-        />
-      </div>
-    </ListPageContent>
-  </>;
+  return (
+		<>
+			<AppPageHeader
+				title="Samples"
+				extra={[
+					<AddButton key="add" url="/samples/add" />,
+					<ActionDropdown key="actions" urlBase={'/samples'} actions={actions} />,
+					<PrefilledTemplatesDropdown
+						key="prefills"
+						prefillTemplate={prefillTemplate}
+						totalCount={totalCount}
+						prefills={prefills}
+					/>,
+					<ExportDropdown key="export" listExport={listExport} listExportMetadata={listExportMetadata} itemsCount={totalCount} />,
+				]}
+			/>
+			<ListPageContent>
+				<div className="filters-warning-bar">
+					<SamplesFilters style={{ flex: 1 }} />
+					<FiltersWarning nFilters={nFilters} filters={filters} description={SAMPLE_FILTERS} />
+					<Button style={{ margin: 6 }} disabled={nFilters === 0} onClick={localClearFilters}>
+						Clear Filters
+					</Button>
+				</div>
+				<Radio.Group
+					disabled={isFetching}
+					value={toggleOption}
+					onChange={handleToggleOptionChange}
+					style={{ marginBottom: '1rem' }}
+				>
+					<Radio.Button value={TOGGLE_OPTIONS.SAMPLES}> Samples </Radio.Button>
+					<Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
+					<Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
+				</Radio.Group>
+				<PaginatedTable
+					columns={mappedColumns}
+					items={samples}
+					itemsByID={samplesByID}
+					rowKey="id"
+					loading={isFetching}
+					totalCount={totalCount}
+					page={page}
+					filters={filters}
+					sortBy={sortBy}
+					onLoad={listTable}
+					onChangeSort={setSortBy}
+				/>
+			</ListPageContent>
+		</>
+  )
 }
 
 export default connect(mapStateToProps, actionCreators)(SamplesListContent);
