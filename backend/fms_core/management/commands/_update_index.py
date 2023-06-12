@@ -19,10 +19,10 @@ USER_ID = "requester_user_id"                           # The user id of the per
 # { CURATION_INDEX: 1,
 #   ACTION: "update_index",
 #   COMMENT: "Dr. No asked a libray index to be changed from [PATATE] to [CAROTTE].",
-#   DERIVED_SAMPLE_IDENTIFIER: [{"biosample__alias": "Sample_test",
-#                                "biosample__individual__id": 42,
-#                                "samples__container__barcode": "PLATE_TEST",
-#                                "samples__coordinate__name": "A01"}], # Any subset of fields that identifies uniquely the derived sample
+#   DERIVED_SAMPLE_IDENTIFIER: {"biosample__alias": "Sample_test",
+#                               "biosample__individual__id": 42,
+#                               "samples__container__barcode": "PLATE_TEST",
+#                               "samples__coordinate__name": "A01"}, # Any subset of fields that identifies uniquely the derived sample
 #   INDEX_OLD: PATATE, # Matches erroneous index name
 #   INDEX_NEW: CAROTTE, # Matches corrected index name
 #   USER_ID: 5
@@ -51,7 +51,6 @@ def update_index(params, objects_to_delete, log):
     try:
         derived_sample_model = apps.get_model("fms_core", "DerivedSample")
         index_model = apps.get_model("fms_core", "Index")
-        library_model = apps.get_model("fms_core", "Library")
         count_updates = 0
         try:
             derived_sample = derived_sample_model.objects.get(**derived_sample_id)
