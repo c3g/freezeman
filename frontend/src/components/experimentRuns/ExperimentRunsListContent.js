@@ -134,6 +134,7 @@ const ExperimentRunsListContent = ({
 						sortBy={sortBy}
 						onLoad={listTable}
 						onChangeSort={setSortBy}
+            scrollable={false}
 					/>
 		</>
   )

@@ -32,6 +32,7 @@ function PaginatedTable ({
     pageSize,
     onLoad,
     onChangeSort,
+    scrollable = false
   }) {
 
   const dispatch  = useDispatch();
@@ -82,37 +83,65 @@ function PaginatedTable ({
   };
 
   return (
-    <>
-      <PaginatedTableScroller 
-        table={
-          <Table
-            size="small"
-            bordered={false}
-            pagination={false}
-            columns={columns}
-            dataSource={hasUnloadedItems ? [] : dataSource}
-            rowKey={rowKey}
-            loading={loading || isCurrentPageUnloaded}
-            childrenColumnName={'UNEXISTENT_KEY'}
-            onChange={onChangeTable}
+		<>
+			{/* If the table should be contained in a scroller then it is put in a PaginatedTableScroller. */
+      scrollable ?
+        <PaginatedTableScroller
+          table={
+            <Table
+              size="small"
+              bordered={false}
+              pagination={false}
+              columns={columns}
+              dataSource={hasUnloadedItems ? [] : dataSource}
+              rowKey={rowKey}
+              loading={loading || isCurrentPageUnloaded}
+              childrenColumnName={'UNEXISTENT_KEY'}
+              onChange={onChangeTable}
             />
-        }
-        pagination={
-          <Pagination
-            className="ant-table-pagination ant-table-pagination-right"
-            showSizeChanger={true}
-            showQuickJumper={true}
-            showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-            current={currentPage}
-            pageSize={pageSize}
-            total={totalCount}
-            onChange={onChangePage}
-            onShowSizeChange={(current, newPageSize) => onChangeSizeChange(newPageSize)}
-          />
-        }
+          }
+          pagination={
+            <Pagination
+              className="ant-table-pagination ant-table-pagination-right"
+              showSizeChanger={true}
+              showQuickJumper={true}
+              showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+              current={currentPage}
+              pageSize={pageSize}
+              total={totalCount}
+              onChange={onChangePage}
+              onShowSizeChange={(current, newPageSize) => onChangeSizeChange(newPageSize)}
+            />
+          }
         />
-    </>
-  );
+			:
+			<>
+				<Table
+					size="small"
+					bordered={false}
+					pagination={false}
+					columns={columns}
+					dataSource={hasUnloadedItems ? [] : dataSource}
+					rowKey={rowKey}
+					loading={loading || isCurrentPageUnloaded}
+					childrenColumnName={'UNEXISTENT_KEY'}
+					onChange={onChangeTable}
+				/>
+				<Pagination
+					className="ant-table-pagination ant-table-pagination-right"
+					showSizeChanger={true}
+					showQuickJumper={true}
+					showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+					current={currentPage}
+					pageSize={pageSize}
+					total={totalCount}
+					onChange={onChangePage}
+					onShowSizeChange={(current, newPageSize) => onChangeSizeChange(newPageSize)}
+				/>
+			</>
+  }
+		</>
+  )
 }
 
 PaginatedTable.propTypes = propTypes;

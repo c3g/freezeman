@@ -130,6 +130,7 @@ const UsersListContent = ({
 					sortBy={sortBy}
 					onLoad={listTable}
 					onChangeSort={setSortBy}
+          scrollable={true}
 				/>
 			</ListPageContent>
 		</>
