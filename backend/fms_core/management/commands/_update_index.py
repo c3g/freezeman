@@ -23,8 +23,8 @@ USER_ID = "requester_user_id"                           # The user id of the per
 #                               "biosample__individual__id": 42,
 #                               "samples__container__barcode": "PLATE_TEST",
 #                               "samples__coordinate__name": "A01"}, # Any subset of fields that identifies uniquely the derived sample
-#   INDEX_OLD: PATATE, # Matches erroneous index name
-#   INDEX_NEW: CAROTTE, # Matches corrected index name
+#   INDEX_OLD: "PATATE", # Matches erroneous index name
+#   INDEX_NEW: "CAROTTE", # Matches corrected index name
 #   USER_ID: 5
 # }
 
