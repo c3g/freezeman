@@ -35,7 +35,7 @@ export function PagedItemsFactory<T extends FMSTrackedModel>(prefix: string, lis
     const CLEAR_FILTER = `${prefix}.CLEAR_FILTER`
 
     const reducer: PagedItemsFactoryReturnType<T>['reducer'] = (oldState, action) => {
-        const state = oldState ?? initPagedItems<T>()
+        const state = oldState ?? initPagedItems()
         switch (action.type) {
             case LIST_PAGE.REQUEST: {
                 return reduceListRequest(state)

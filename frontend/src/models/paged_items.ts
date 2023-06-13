@@ -75,7 +75,7 @@ export interface FetchedItemsByID<T extends FMSTrackedModel> {
 export interface PagedItems<T extends FMSTrackedModel> {
 	readonly isFetching: boolean
 	readonly error?: any
-	readonly itemsByID: FetchedItemsByID<T>
+	readonly itemsByID?: FetchedItemsByID<T>
 	readonly items: readonly FMSId[]
 	readonly totalCount: number
 	readonly filters: FilterSet
@@ -92,7 +92,6 @@ export interface PagedItems<T extends FMSTrackedModel> {
 export function initPagedItems<T extends FMSTrackedModel>(fixedFilters?: PagedItems<T>['fixedFilters']): PagedItems<T> {
 	return {
 		isFetching: false,
-		itemsByID: {},
 		items: [],
 		totalCount: 0,
 		fixedFilters,
