@@ -29,6 +29,8 @@ class DerivedSample(TrackedModel):
                                    help_text="Library associated to this Derived Sample.")
     project = models.ForeignKey("Project", null=True, blank=True, on_delete=models.PROTECT, related_name="project_derived_samples",
                                help_text="Project linked to the derived sample.")
+    derived_from = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="derived_to",
+                                     help_text="Derived sample from which this derived sample was derived.")
 
 
     @property
