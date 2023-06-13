@@ -256,7 +256,7 @@ LIBRARY_QC_TEMPLATE = {
 
 NORMALIZATION_TEMPLATE = {
   "identity": {"description": "Template to perform normalization",
-               "file": static("submission_templates/Normalization_v4_1_0.xlsx"),
+               "file": static("submission_templates/Normalization_v4_4_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
@@ -264,7 +264,7 @@ NORMALIZATION_TEMPLATE = {
         'headers': ['Type', 'Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
-                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Volume Used (uL)', 'Volume (uL)',
+                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Current Volume (uL)', 'Volume Used (uL)', 'Volume (uL)',
                     'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
         'batch': False,
       },
@@ -275,6 +275,7 @@ NORMALIZATION_TEMPLATE = {
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
       ("Normalization", "Initial Conc. (ng/uL)", "concentration", "concentration"),
+      ("Normalization", "Current Volume (uL)", "volume", "volume"),
   ],
 }
 
@@ -408,15 +409,15 @@ SAMPLE_UPDATE_TEMPLATE = {
 
 SAMPLE_QC_TEMPLATE = {
   "identity": {"description": "Template to perform sample quality control",
-               "file": static("submission_templates/Sample_QC_v4_1_0.xlsx"),
+               "file": static("submission_templates/Sample_QC_v4_4_0.xlsx"),
                "protocol": "Sample Quality Control"},
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Current Volume (uL)',
                       'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
                       'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
-                      'Quantity Flag', 'QC Date', 'Comment', 'Workflow Action'],
+                      'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
   ],
@@ -425,7 +426,7 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Name", "name", "name"),
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
-      ("SampleQC", "Initial Volume (uL)", "volume", "volume"),],
+      ("SampleQC", "Current Volume (uL)", "volume", "volume"),],
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
