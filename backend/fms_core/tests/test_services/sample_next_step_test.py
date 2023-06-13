@@ -5,9 +5,10 @@ from django.test import TestCase
 
 from fms_core.models import (SampleNextStep, SampleNextStepByStudy, Study, Workflow,
                              Individual, Container, SampleKind, Project, Protocol,
-                             StepHistory, Step, StepOrder, Process, ProcessMeasurement)
+                             StepHistory, Step, StepOrder, Process, ProcessMeasurement,
+                             SampleLineage)
 from fms_core.tests.constants import create_individual, create_fullsample, create_sample_container
-from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
+from fms_core.services.sample_next_step import (dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history, queue_sample_to_study_workflow,
                                                 dequeue_sample_from_all_steps_study_workflow,
                                                 dequeue_sample_from_specific_step_study_workflow,
                                                 is_sample_queued_in_study,
@@ -17,6 +18,8 @@ from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
                                                 remove_sample_from_workflow,
                                                 execute_workflow_action)
 from fms_core._constants import WorkflowAction
+
+import pytest
 
 class SampleNextStepServicesTestCase(TestCase):
     def setUp(self):
@@ -497,3 +500,115 @@ class SampleNextStepServicesTestCase(TestCase):
                                                     process_measurement__source_sample=sample_out,
                                                     step_order__step=step_2,
                                                     workflow_action=WorkflowAction.DEQUEUE_SAMPLE).count(), 1)
+
+    def execute_workflow_action_up_to(self, order: int):
+        container1 = Container.objects.create(**create_sample_container(kind='tube', name=f'TestTube01_1{order}', barcode=f'T123456_1{order}'))
+        container2 = Container.objects.create(**create_sample_container(kind='tube', name=f'TestTube01_2{order}', barcode=f'T123456_2{order}'))
+        sample_in = create_fullsample(name=f"TestSampleNextStep_in{order}",
+                                      alias="TestSampleNextStep_in",
+                                      volume=5000,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_BLOOD,
+                                      container=container1)
+
+        sample_out = create_fullsample(name=f"TestSampleNextStep_out{order}",
+                                      alias="TestSampleNextStep_out",
+                                      volume=1000,
+                                      concentration=10,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_DNA,
+                                      container=container2,
+                                      tissue_source=self.sample_kind_BLOOD)
+        
+        step_1 = Step.objects.get(name="Extraction (DNA)")
+        for derived_sample in sample_in.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+
+        for derived_sample in sample_out.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+                
+        letter_B = "B"
+        start = 1
+        end = 7
+        study_B, _ = Study.objects.get_or_create(letter=letter_B,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_free,
+                                       start=start,
+                                       end=end)
+
+        protocol_1 = Protocol.objects.get(name="Extraction")
+        process_1 = Process.objects.create(protocol=protocol_1)
+        process_measurement_1 = ProcessMeasurement.objects.create(process=process_1,
+                                                                  source_sample=sample_in,
+                                                                  execution_date=datetime.date(2021, 1, 10),
+                                                                  volume_used=5000)
+        SampleLineage.objects.create(parent=sample_in, child=sample_out, process_measurement=process_measurement_1)
+
+        old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
+
+        if order == 0:
+             return study_B, step_1, sample_in, process_measurement_1, sample_out
+
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
+                                                   step=step_1,
+                                                   current_sample=sample_in,
+                                                   process_measurement=process_measurement_1,
+                                                   next_sample=sample_out)
+        self.assertEquals(errors, [])
+        self.assertEquals(warnings, [])
+        
+        if order == 1:
+             return study_B, step_1, sample_in, process_measurement_1, sample_out
+
+        step_2 = Step.objects.get(name="Sample QC")
+        protocol_2 = Protocol.objects.get(name="Sample Quality Control")
+        process_2 = Process.objects.create(protocol=protocol_2)
+        process_measurement_2 = ProcessMeasurement.objects.create(process=process_2,
+                                                                  source_sample=sample_out,
+                                                                  execution_date=datetime.date(2021, 1, 10),
+                                                                  volume_used=2) 
+
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
+                                                   step=step_2,
+                                                   current_sample=sample_out,
+                                                   process_measurement=process_measurement_2)
+        self.assertEquals(errors, [])
+        self.assertEquals(warnings, [])
+
+        return study_B, step_2, sample_out, process_measurement_2, sample_out
+
+    def test_dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(self):
+        for order in [1, 2, 3]:
+            with self.subTest(["Queued for Extraction", "Queued for QC", "After QC"][order - 1]):
+                study, step_done, sample_in, process_measurement, sample_out = self.execute_workflow_action_up_to(order - 1)
+
+                removed = False,
+                errors = []
+                warnings = []
+
+                if order == 1:
+                    # there's no step history with sample_out yet
+                    removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample_in, study, order)
+                else:
+                    removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample_out, study, order)
+
+                self.assertTrue(removed)
+                self.assertEqual(errors, [])
+                self.assertEqual(warnings, [])
+
+                if order == 1:
+                    # SampleNextStep deleted since it hasn't completed the first step
+                    self.assertFalse(SampleNextStep.objects.exists())
+                if order == 2:
+                    # Extraction step completed but it has been dequeued after that
+                    self.assertFalse(SampleNextStepByStudy.objects.filter(step_order=2).exists())
+                    self.assertEqual(list(StepHistory.objects.values_list('workflow_action', flat=True)), [WorkflowAction.DEQUEUE_SAMPLE])
+                if order == 3:
+                    # QC step completed but it has been dequeued after that
+                    self.assertFalse(SampleNextStepByStudy.objects.filter(sample_next_step__sample=sample_in.pk, step_order=3).exists())
+                    self.assertEqual(list(StepHistory.objects.filter(process_measurement__source_sample=sample_out.pk, step_order__order=2).values_list('workflow_action', flat=True)), [WorkflowAction.DEQUEUE_SAMPLE])
+                    
+                    # Leave earlier step history alone
+                    self.assertEqual(list(StepHistory.objects.filter(process_measurement__lineage__child=sample_out.pk, step_order__order=1).values_list('workflow_action', flat=True)), [WorkflowAction.NEXT_STEP])

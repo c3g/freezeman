@@ -1,4 +1,5 @@
-import { FMSId } from "../../models/fms_api_models"
+import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
+import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
 import { FetchedState } from "../common"
 
@@ -24,6 +25,7 @@ export interface StudySampleStep {
 	readonly samples: FMSId[]					// List of (filtered) samples at step
 	readonly completedCount: number				// Total number of completed samples, regardless of filters
 	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
+	readonly sampleNextStepByStudyBySampleID: {[key: Sample['id']]: FMSSampleNextStepByStudy} // Mapping of Sample ID to FMSSampleNextStepByStudy
 }
 
 // List of steps
