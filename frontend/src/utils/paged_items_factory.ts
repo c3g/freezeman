@@ -7,6 +7,7 @@ import { NetworkActionListReceive, NetworkActionThunk, createNetworkActionTypes,
 import { reduceClearFilters, reduceListError, reduceListReceive, reduceListRequest, reduceRemoveFilter, reduceSetFilter, reduceSetFilterOptions } from "../models/paged_items_reducers";
 import { DEFAULT_PAGINATION_LIMIT } from "../config";
 import { selectPageSize } from "../selectors";
+import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../components/shared/WorkflowSamplesTable/serializeFilterParamsTS";
 
 type FreezemanThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => T
 type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
@@ -78,10 +79,13 @@ export function PagedItemsFactory<T extends FMSTrackedModel>(prefix: string, lis
         const offset = limit * (pageNumber - 1)
         const { filters, fixedFilters, sortBy } = pagedItems
 
+        const serializedFilters = serializeFilterParamsWithDescriptions({ ...fixedFilters, ...filters })
+		const ordering = serializeSortByParams(sortBy)
+
         const { results } = await dispatch<Promise<{ results: T[] }>>(networkAction(LIST_PAGE, list({
             offset,
-            filters: { ...fixedFilters, ...filters },
-            sortBy,
+            ...serializedFilters,
+            ordering,
             limit
         })))
         return results
