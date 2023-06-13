@@ -581,7 +581,7 @@ class SampleNextStepServicesTestCase(TestCase):
 
     def test_dequeue_sample_from_specific_step_and_update_step_history(self):
         for order in [1, 2, 3]:
-            with self.subTest(["", "Queued for Extraction", "Queued for QC", "After QC"][order]):
+            with self.subTest(["Queued for Extraction", "Queued for QC", "After QC"][order - 1]):
                 study, step_done, sample_in, process_measurement, sample_out = self.execute_workflow_action_up_to(order - 1)
 
                 removed = False,
