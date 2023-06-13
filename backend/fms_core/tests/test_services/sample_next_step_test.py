@@ -571,9 +571,9 @@ class SampleNextStepServicesTestCase(TestCase):
                                                                   volume_used=2) 
 
         errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
-                                            step=step_2,
-                                            current_sample=sample_out,
-                                            process_measurement=process_measurement_2)
+                                                   step=step_2,
+                                                   current_sample=sample_out,
+                                                   process_measurement=process_measurement_2)
         self.assertEquals(errors, [])
         self.assertEquals(warnings, [])
 
