@@ -123,7 +123,7 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
             errors.append(err)
     return dequeued, errors, warnings
 
-def dequeue_sample_from_specific_step_and_update_step_history(sample: Sample, study: Study, order: int) -> Tuple[bool, List[str], List[str]]:
+def dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample: Sample, study: Study, order: int) -> Tuple[bool, List[str], List[str]]:
     removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
 
     if removed and not errors:

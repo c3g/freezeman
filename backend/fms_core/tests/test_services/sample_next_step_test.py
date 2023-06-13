@@ -8,7 +8,7 @@ from fms_core.models import (SampleNextStep, SampleNextStepByStudy, Study, Workf
                              StepHistory, Step, StepOrder, Process, ProcessMeasurement,
                              SampleLineage)
 from fms_core.tests.constants import create_individual, create_fullsample, create_sample_container
-from fms_core.services.sample_next_step import (dequeue_sample_from_specific_step_and_update_step_history, queue_sample_to_study_workflow,
+from fms_core.services.sample_next_step import (dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history, queue_sample_to_study_workflow,
                                                 dequeue_sample_from_all_steps_study_workflow,
                                                 dequeue_sample_from_specific_step_study_workflow,
                                                 is_sample_queued_in_study,
@@ -579,7 +579,7 @@ class SampleNextStepServicesTestCase(TestCase):
 
         return study_B, step_2, sample_out, process_measurement_2, sample_out
 
-    def test_dequeue_sample_from_specific_step_and_update_step_history(self):
+    def test_dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(self):
         for order in [1, 2, 3]:
             with self.subTest(["Queued for Extraction", "Queued for QC", "After QC"][order - 1]):
                 study, step_done, sample_in, process_measurement, sample_out = self.execute_workflow_action_up_to(order - 1)
@@ -590,9 +590,9 @@ class SampleNextStepServicesTestCase(TestCase):
 
                 if order == 1:
                     # there's no step history with sample_out yet
-                    removed, errors, warnings = dequeue_sample_from_specific_step_and_update_step_history(sample_in, study, order)
+                    removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample_in, study, order)
                 else:
-                    removed, errors, warnings = dequeue_sample_from_specific_step_and_update_step_history(sample_out, study, order)
+                    removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample_out, study, order)
 
                 self.assertTrue(removed)
                 self.assertEqual(errors, [])
