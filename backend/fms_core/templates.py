@@ -201,7 +201,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
 
 LIBRARY_PREPARATION_TEMPLATE = {
   "identity": {"description": "Template to prepare libraries",
-               "file": static("submission_templates/Library_preparation_v4_1_0.xlsx"),
+               "file": static("submission_templates/Library_preparation_v4_4_0.xlsx"),
                "protocol": "Library Preparation"},
   "sheets info": [
       {
@@ -217,7 +217,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
           'name': 'Library',
           'headers': ['Library Batch ID', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
                       'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
-                      'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume (uL)',
+                      'Library Parent Container Coordinates', 'Sample Current Volume (uL)', 'Sample Volume Used (uL)', 'Library Volume (uL)',
                       'Index Set', 'Index', 'Strandedness', 'Comment', 'Workflow Action'],
           'stitch_column': 'Library Batch ID',
           'batch': False,
@@ -227,7 +227,9 @@ LIBRARY_PREPARATION_TEMPLATE = {
   "prefill info": [
       ("Library", "Sample Name", "name", "name"),
       ("Library", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Library", "Sample Container Coordinates", "coordinate__name", "coordinates"),],
+      ("Library", "Sample Container Coordinates", "coordinate__name", "coordinates"),
+      ("Library", "Sample Current Volume (uL)", "volume", "volume"),
+  ],
 }
 
 LIBRARY_QC_TEMPLATE = {
