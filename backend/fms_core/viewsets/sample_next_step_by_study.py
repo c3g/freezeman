@@ -12,7 +12,7 @@ from fms_core.models.workflow import Workflow
 from ._constants import _sample_next_step_by_study_filterset_fields
 from fms_core._constants import WorkflowAction
 from fms_core.models import SampleNextStepByStudy, Sample, Study, StepHistory
-from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow
+from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_and_update_step_history
 from fms_core.serializers import SampleNextStepByStudySerializer
 from ._utils import _list_keys
 
@@ -39,23 +39,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                 for sample_id, study_id, order in values_list:
                     sample = Sample.objects.get(id=sample_id)
                     study = Study.objects.get(id=study_id)
-                    removed, errors, _ = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
-
-                    if removed:
-                        stepHistory = (StepHistory.objects
-                                       .filter(study=study)
-                                       .annotate(source_sample=F('process_measurement__source_sample'))
-                                       .annotate(child_sample=F('process_measurement__lineage__child'))
-                                       .filter(Case(
-                                            When(Q(source_sample=sample.pk) & Q(child_sample=None), then=True), # QC?
-                                            When(Q(child_sample=sample.pk), then=True), # child?
-                                            default=False,
-                                            output_field=BooleanField()))
-                                       .order_by('step_order__order')
-                                       .last())
-                        if stepHistory:
-                            stepHistory.workflow_action = WorkflowAction.DEQUEUE_SAMPLE
-                            stepHistory.save()
+                    removed, errors, _ = dequeue_sample_from_specific_step_and_update_step_history(sample, study, order)
             except Exception as err:
                 return HttpResponseBadRequest(err)
         if removed and not errors:
