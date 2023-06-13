@@ -12,13 +12,27 @@ import { list as listLibraries } from '../libraries/actions'
 import { list as listWorkflows } from '../workflows/actions'
 import { list as listStudies } from '../studies/actions'
 import { list as listContainers } from '../containers/actions'
+import { FilterSet, SortBy } from "../../models/paged_items"
 
 
-type ListByIDFunction = (ids: FMSId[]) => (dispatch: Dispatch, getState: () => any) => Promise<any>
+type ListOptions = { [key: string]: any }
+interface ListPagedOptions extends ListOptions {
+	offset: number
+	limit: number
+}
 
-function createFetchItems<ItemType extends FMSTrackedModel>(
+type ListPagedReturnType<T> = { results: T[], count: number }
+type ListReturnType<T> = ListPagedReturnType<T> | T[]
+type ListFunction<T> = (options: ListOptions | ListPagedOptions) => (dispatch: Dispatch, getState: () => any) => Promise<ListReturnType<T>>
+
+function isResultPaged<T>(result: ListReturnType<T>): result is ListPagedReturnType<T> {
+	const r = (result as ListPagedReturnType<T>)
+	return r.count !== undefined && r.results !== undefined
+}
+
+function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 	itemsByIDSelector: (state: any) => ItemsByID<ItemType>,
-	listByIDFunc: ListByIDFunction
+	listFunc: ListFunction<ItemType>
 ) {
 
 	async function fetchItemsByID(ids: FMSId[]): Promise<ItemType[]> {
@@ -37,11 +51,12 @@ function createFetchItems<ItemType extends FMSTrackedModel>(
 		}
 
 		if (itemsToFetch.length > 0) {
-			const reply = await store.dispatch(listByIDFunc(itemsToFetch))
+			const id__in = itemsToFetch.join(",")
+			const reply = await store.dispatch(listFunc({ id__in }))
 			// Some 'list' endpoints return paginated results, with a count and the data
 			// in a 'results' field. Others just return an array of data objects directly,
 			// so we have to distinguish between the two types of response.
-			if (reply.count && reply.results) {
+			if (isResultPaged(reply)) {
 				fetchedItems.push(...reply.results)
 			} else {
 				fetchedItems.push(...reply)
@@ -55,62 +70,13 @@ function createFetchItems<ItemType extends FMSTrackedModel>(
 	return fetchItemsByID
 }
 
-function id__in(ids: FMSId[]) {
-	return {
-		id__in: ids.join(',')
-	}
-}
-
-export const fetchContainers = createFetchItems<Container>(selectContainersByID, ids => {
-	const options = id__in(ids)
-	return listContainers(options)
-})
-
-export const fetchLibraries = createFetchItems<Library>(selectLibrariesByID, ids => {
-	const options = id__in(ids)
-	return listLibraries(options)
-})
-
-export const fetchLibrariesForSamples = createFetchItems<Library>(selectLibrariesByID, ids => {
-	const options = {
-		'sample__id__in': ids.join(',')
-	}
-	return listLibraries(options)
-})
-
-export const fetchProcesses = createFetchItems<Process>(selectProcessesByID, ids => {
-	const options = id__in(ids)
-	return listProcesses(options)
-})
-
-export const fetchProcessMeasurements = createFetchItems<ProcessMeasurement>(selectProcessMeasurementsByID, ids => {
-	const options = id__in(ids)
-	return listProcessMeasurements(options)
-})
-
-export const fetchPropertyValues = createFetchItems<PropertyValue>(selectPropertyValuesByID, ids => {
-	const options = id__in(ids)
-	return listPropertyValues(options)
-})
-
-export const fetchSamples = createFetchItems<Sample>(selectSamplesByID, ids => {
-	const options = id__in(ids)
-	return listSamples(options)
-})
-
-export const fetchStudies = createFetchItems<Study>(selectStudiesByID, ids => {
-	const options = id__in(ids)
-	return listStudies(options)
-})
-
-export const fetchUsers = createFetchItems<User>(selectUsersByID, ids => {
-	const options = id__in(ids)
-	return listUsers(options)
-})
-
-export const fetchWorkflows = createFetchItems<Workflow>(selectWorkflowsByID, ids => {
-	const options = id__in(ids)
-	return listWorkflows(options)
-})
-
-
+export const fetchContainers = createFetchItemsByID<Container>(selectContainersByID, listContainers)
+export const fetchLibraries = createFetchItemsByID<Library>(selectLibrariesByID, listLibraries)
+export const fetchLibrariesForSamples = createFetchItemsByID<Library>(selectLibrariesByID, listLibraries)
+export const fetchProcesses = createFetchItemsByID<Process>(selectProcessesByID, listProcesses)
+export const fetchProcessMeasurements = createFetchItemsByID<ProcessMeasurement>(selectProcessMeasurementsByID, listProcessMeasurements)
+export const fetchPropertyValues = createFetchItemsByID<PropertyValue>(selectPropertyValuesByID, listPropertyValues)
+export const fetchSamples = createFetchItemsByID<Sample>(selectSamplesByID, listSamples)
+export const fetchStudies = createFetchItemsByID<Study>(selectStudiesByID, listStudies)
+export const fetchUsers = createFetchItemsByID<User>(selectUsersByID, listUsers)
+export const fetchWorkflows = createFetchItemsByID<Workflow>(selectWorkflowsByID, listWorkflows)
