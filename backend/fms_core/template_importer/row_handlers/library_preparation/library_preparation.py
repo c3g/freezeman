@@ -29,7 +29,7 @@ class LibraryRowHandler(GenericRowHandler):
             volume_used = source_sample_obj.volume if volume_used == LOAD_ALL else volume_used
 
             if volume_used > source_sample_obj.volume:
-                self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})"
+                self.errors['volume_used'].append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})")
 
             # Check if sample is not a library or a pool of libraries
             if source_sample_obj.is_library:
