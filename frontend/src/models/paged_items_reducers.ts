@@ -83,3 +83,13 @@ export function reduceSetSortBy<T extends FMSTrackedModel, P extends PagedItems<
 		sortBy
 	}
 }
+
+export function reduceSetPageSize<T extends FMSTrackedModel, P extends PagedItems<T>>(pagedItems: P, pageSize: number) : P {
+	return {
+		...pagedItems,
+		page: {
+			...pagedItems.page,
+			limit: pageSize
+		}
+	}
+}
