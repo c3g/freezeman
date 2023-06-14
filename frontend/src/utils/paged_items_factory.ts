@@ -3,7 +3,7 @@ import { FMSTrackedModel } from "../models/fms_api_models";
 import { AppDispatch, RootState } from "../store";
 import { AnyAction, Reducer } from "redux";
 import { FilterDescription, FilterValue, PagedItems, initPagedItems } from "../models/paged_items";
-import { NetworkActionListReceive, NetworkActionThunk, createNetworkActionTypes, networkAction } from "./actions";
+import { NetworkActionListReceive, NetworkActionThunk, NetworkActionTypes, createNetworkActionTypes, networkAction } from "./actions";
 import { reduceClearFilters, reduceListError, reduceListReceive, reduceListRequest, reduceRemoveFilter, reduceSetFilter, reduceSetFilterOptions } from "../models/paged_items_reducers";
 import { DEFAULT_PAGINATION_LIMIT } from "../config";
 import { selectPageSize } from "../selectors";
@@ -28,48 +28,26 @@ interface PagedItemsFactoryReturnType<T extends FMSTrackedModel> {
   reducer: Reducer<PagedItems<T>, AnyAction>;
 }
 
-export function PagedItemsFactory<T extends FMSTrackedModel>(prefix: string, list: ListType): PagedItemsFactoryReturnType<T> {
-    const LIST_PAGE = createNetworkActionTypes(`${prefix}.LIST_PAGE`)
-    const SET_FILTER = `${prefix}.SET_FILTER`
-    const SET_FILTER_OPTIONS = `${prefix}.SET_FILTER_OPTIONS`
-    const REMOVE_FILTER = `${prefix}.REMOVE_FILTER`
-    const CLEAR_FILTER = `${prefix}.CLEAR_FILTER`
+interface PagedItemsActionTypes {
+    LIST_PAGE: NetworkActionTypes,
+    SET_FILTER: string,
+    SET_FILTER_OPTIONS: string,
+    REMOVE_FILTER: string,
+    CLEAR_FILTER: string,
+}
 
-    const reducer: PagedItemsFactoryReturnType<T>['reducer'] = (oldState, action) => {
-        const state = oldState ?? initPagedItems()
-        switch (action.type) {
-            case LIST_PAGE.REQUEST: {
-                return reduceListRequest(state)
-            }
-            case LIST_PAGE.RECEIVE: {
-                const { data, meta } = action as NetworkActionListReceive
-                return reduceListReceive(state, {
-                    items: data.results,
-                    pageSize: meta.limit,
-                    totalCount: data.count,
-                    pageNumber: Math.floor(meta.offset / meta.limit + 1),
-                })
-            }
-            case LIST_PAGE.ERROR: {
-                return reduceListError(state, action.error)
-            }
-            case SET_FILTER: {
-                return reduceSetFilter(state, action.description, action.value)
-            }
-            case SET_FILTER_OPTIONS: {
-                return reduceSetFilterOptions(state, action.description, action.options)
-            }
-            case REMOVE_FILTER: {
-                return reduceRemoveFilter(state, action.description)
-            }
-            case CLEAR_FILTER: {
-                return reduceClearFilters(state)
-            }
-            default: {
-                return state
-            }
-        }
+export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTypes {
+    return {
+        LIST_PAGE: createNetworkActionTypes(`${prefix}.LIST_PAGE`),
+        SET_FILTER: `${prefix}.SET_FILTER`,
+        SET_FILTER_OPTIONS: `${prefix}.SET_FILTER_OPTIONS`,
+        REMOVE_FILTER: `${prefix}.REMOVE_FILTER`,
+        CLEAR_FILTER: `${prefix}.CLEAR_FILTER`,
     }
+}
+
+export function createPagedItemsActions<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes, prefix: string, list: ListType): PagedItemsActions<T> {
+    const { LIST_PAGE, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTER } = actionTypes
 
     const listPage: PagedItemsActions<T>['listPage'] = (pageNumber) => async (dispatch, getState) => {
         const state = getState()
@@ -121,5 +99,45 @@ export function PagedItemsFactory<T extends FMSTrackedModel>(prefix: string, lis
         removeFilter,
     }
 
-    return { actions, reducer }
+    return actions
+}
+
+export function createPagedItemsReducer<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes): PagedItemsFactoryReturnType<T>['reducer'] {
+    const { LIST_PAGE, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTER } = actionTypes
+
+    return (oldState, action) => {
+        const state = oldState ?? initPagedItems()
+        switch (action.type) {
+            case LIST_PAGE.REQUEST: {
+                return reduceListRequest(state)
+            }
+            case LIST_PAGE.RECEIVE: {
+                const { data, meta } = action as NetworkActionListReceive
+                return reduceListReceive(state, {
+                    items: data.results,
+                    pageSize: meta.limit,
+                    totalCount: data.count,
+                    pageNumber: Math.floor(meta.offset / meta.limit + 1),
+                })
+            }
+            case LIST_PAGE.ERROR: {
+                return reduceListError(state, action.error)
+            }
+            case SET_FILTER: {
+                return reduceSetFilter(state, action.description, action.value)
+            }
+            case SET_FILTER_OPTIONS: {
+                return reduceSetFilterOptions(state, action.description, action.options)
+            }
+            case REMOVE_FILTER: {
+                return reduceRemoveFilter(state, action.description)
+            }
+            case CLEAR_FILTER: {
+                return reduceClearFilters(state)
+            }
+            default: {
+                return state
+            }
+        }
+    }
 }
