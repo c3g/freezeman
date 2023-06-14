@@ -32,7 +32,8 @@ import { reducer as groups } from "./modules/groups";
 import {
   indices,
   indicesSummary,
-  indicesTemplateActions
+  indicesTable,
+  indicesTemplateActions,
 } from "./modules/indices/reducers";
 import { individualDetails } from "./modules/individualDetails/reducers";
 import { individuals } from "./modules/individuals/reducers";
@@ -137,6 +138,7 @@ const allReducers = combineReducers({
   studies,
   indicesSummary,
   indices,
+  indicesTable,
   indicesTemplateActions,
   propertyValues,
   sequences,

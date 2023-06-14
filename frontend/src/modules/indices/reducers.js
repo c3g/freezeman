@@ -9,6 +9,7 @@ import {templateActionsReducerFactory} from "../../utils/templateActions";
 import {resetTable} from "../../utils/reducers";
 
 import INDICES from "./actions";
+import { createPagedItemsReducer } from "../../utils/paged_items_factory";
 
 export const indicesSummary = summaryReducerFactory(INDICES);
 export const indicesTemplateActions = templateActionsReducerFactory(INDICES);
@@ -114,6 +115,8 @@ export const indices = (
             return { ...state, error: action.error, isFetching: false };
     }
 };
+
+export const indicesTable = createPagedItemsReducer(INDICES.pagedActionTypes)
 
 function preprocess(index) {
     index.isFetching = false;

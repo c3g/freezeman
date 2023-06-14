@@ -14,7 +14,7 @@ import DropdownListItems from "../DropdownListItems";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/indices/actions";
+import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/indices/actions";
 import {ActionDropdown} from "../../utils/templateActions";
 import {INDEX_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -22,6 +22,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { WithSequenceRenderComponent } from "../shared/WithItemRenderComponent";
+import { useAppDispatch } from "../../hooks";
 
 const getTableColumns = () => [
     {
@@ -81,40 +82,15 @@ const getTableColumns = () => [
     },
   ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  indicesByID: state.indices.itemsByID,
-  indices: state.indices.items,
-  actions: state.indicesTemplateActions,
-  page: state.indices.page,
-  totalCount: state.indices.totalCount,
-  isFetching: state.indices.isFetching,
-  filters: state.indices.filters,
-  sortBy: state.indices.sortBy,
-});
-
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
-
-const IndicesListContent = ({
-  token,
-  indices,
-  indicesByID,
-  actions,
-  isFetching,
-  page,
-  totalCount,
-  filters,
-  sortBy,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+const IndicesListContent = () => {
+  const token = useAppDispatch((state) =>  state.auth.tokens.access)
+  const indicesByID = useAppDispatch((state) =>  state.indices.itemsByID)
+  const actions = useAppDispatch((state) =>  state.indicesTemplateActions)
+  const { filters, sortBy, items } = useAppDispatch((state) => state.indicesTable)
+  const totalCount = items.length
 
   const listExport = () =>
-    withToken(token, api.indices.listExport)
-    (mergedListQueryParams(INDEX_FILTERS, filters, sortBy))
+    withToken(token, api.indices.listExport)(mergedListQueryParams(INDEX_FILTERS, filters, sortBy))
       .then(response => response.data)
 
   const columns = getTableColumns()
@@ -171,4 +147,4 @@ const IndicesListContent = ({
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(IndicesListContent);
+export default IndicesListContent
