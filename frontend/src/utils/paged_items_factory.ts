@@ -22,11 +22,6 @@ interface PagedItemsActions<T extends FMSTrackedModel> {
 // Define a type alias for the list function signature
 type ListType = (option: any) => NetworkActionThunk<any>;
 
-// Define an interface for the return value of the PagedItemsFactory function
-interface PagedItemsFactoryReturnType<T extends FMSTrackedModel> {
-  actions: PagedItemsActions<T>;
-  reducer: Reducer<PagedItems<T>, AnyAction>;
-}
 
 interface PagedItemsActionTypes {
     LIST_PAGE: NetworkActionTypes,
@@ -46,7 +41,7 @@ export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTyp
     }
 }
 
-export function createPagedItemsActions<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes, prefix: string, list: ListType): PagedItemsFactoryReturnType<T>['actions'] {
+export function createPagedItemsActions<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes, prefix: string, list: ListType): PagedItemsActions<T> {
     const { LIST_PAGE, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTER } = actionTypes
 
     const listPage: PagedItemsActions<T>['listPage'] = (pageNumber) => async (dispatch, getState) => {
@@ -102,7 +97,7 @@ export function createPagedItemsActions<T extends FMSTrackedModel>(actionTypes: 
     return actions
 }
 
-export function createPagedItemsReducer<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes): PagedItemsFactoryReturnType<T>['reducer'] {
+export function createPagedItemsReducer<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes): Reducer<PagedItems<T>, AnyAction> {
     const { LIST_PAGE, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTER } = actionTypes
 
     return (oldState, action) => {
