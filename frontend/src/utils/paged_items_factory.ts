@@ -46,7 +46,7 @@ export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTyp
     }
 }
 
-export function createPagedItemsActions<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes, prefix: string, list: ListType): PagedItemsActions<T> {
+export function createPagedItemsActions<T extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes, prefix: string, list: ListType): PagedItemsFactoryReturnType<T>['actions'] {
     const { LIST_PAGE, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTER } = actionTypes
 
     const listPage: PagedItemsActions<T>['listPage'] = (pageNumber) => async (dispatch, getState) => {
