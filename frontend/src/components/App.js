@@ -205,7 +205,7 @@ const App = ({userID, usersByID, logOut, get}) => {
   const user = usersByID[userID];
 
   useEffect(() => {
-    if (!user && isLoggedIn) {
+    if (!user && isLoggedIn && token) {
       get(userID)
     }
   }, [user, userID, usersByID, get, isLoggedIn])
