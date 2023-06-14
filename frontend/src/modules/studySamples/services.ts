@@ -125,6 +125,9 @@ export async function buildStudySamplesFromWorkflow(
 			}
 			const samples = sampleNextSteps.map(nextStep => nextStep.sample)
 
+			const sampleNextStepByStudyBySampleID: StudySampleStep['sampleNextStepByStudyBySampleID'] =
+				Object.fromEntries(sampleNextSteps.map((nextStep) => [nextStep.sample, nextStep]))
+
 			// Find the sample count for this step, if it is there. The backend returns nothing
 			// if there are zero samples for a step.
 			const sampleCountStep = sampleCounts?.steps.find(s => s.step_order_id === stepOrder.id)
@@ -139,7 +142,8 @@ export async function buildStudySamplesFromWorkflow(
 				sampleCount: sampleCountStep ? sampleCountStep.count : 0,
 				samples,
 				completedCount: completedStep ? completedStep.count : 0, 
-				completed: []
+				completed: [],
+				sampleNextStepByStudyBySampleID
 			}
 			stepMap.set(step.stepOrderID, step)
 		}

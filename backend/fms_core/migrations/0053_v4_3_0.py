@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from django.db.models import OuterRef, Subquery, F
 
 import re
 import reversion
@@ -44,6 +45,32 @@ def add_library_types(apps, schema_editor):
                                                       created_by_id=admin_user_id,
                                                       updated_by_id=admin_user_id)
             reversion.add_to_revision(library_type)
+
+def initialize_derived_from(apps, schema_editor):
+    DerivedSample = apps.get_model("fms_core", "DerivedSample")
+    SampleLineage = apps.get_model("fms_core", "SampleLineage")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Initialize derived_from field for existing samples.")
+        reversion.set_user(admin_user)
+
+        derived_sample_candidates = SampleLineage.objects.select_related("child__derived_samples__id", "parent__derived_samples__id", "process_measurement__process__protocol__name")
+        derived_sample_candidates = derived_sample_candidates.exclude(process_measurement__process__protocol__name="Transfer")
+        derived_sample_candidates = derived_sample_candidates.values_list("child__derived_samples__id", "parent__derived_samples__id")
+
+        for derived_sample_id, from_id in derived_sample_candidates:
+            derived_sample = DerivedSample.objects.get(id=derived_sample_id)
+            derived_sample.derived_from_id = from_id
+            derived_sample.save()
+
+            reversion.add_to_revision(derived_sample)
+
+        assert not DerivedSample.objects.filter(derived_from_id=F("id")).exists()
+        assert not DerivedSample.objects.exclude(derived_from_id__isnull=True).exclude(derived_from__biosample_id=F("biosample_id")).exists()
+
+
 
 class Migration(migrations.Migration):
 
@@ -176,6 +203,15 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             add_library_types,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AddField(
+            model_name='derivedsample',
+            name='derived_from',
+            field=models.ForeignKey(blank=True, help_text='Derived sample from which this derived sample was derived.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='derived_to', to='fms_core.derivedsample'),
+        ),
+        migrations.RunPython(
+            initialize_derived_from,
             reverse_code=migrations.RunPython.noop,
         ),
     ]

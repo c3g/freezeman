@@ -174,7 +174,7 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
           <Form.Item label="Is Active" {...props("is_active")} valuePropName="checked">
             {isAdmin ? <Checkbox /> : user?.is_active ? 'Yes' : 'No'}
           </Form.Item>
-          {errors.length > 0 &&
+          {formErrors == {} && errors.length > 0 &&
             <Alert
               showIcon
               type="error"

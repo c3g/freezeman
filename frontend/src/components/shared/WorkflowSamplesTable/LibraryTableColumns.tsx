@@ -114,15 +114,6 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		render: (qty) => qty && parseFloat(qty).toFixed(3),
 	},
 
-	[LibraryColumnID.PLATFORM_NAME]: {
-		columnID: LibraryColumnID.PLATFORM_NAME,
-		title: 'Platform',
-		dataIndex: 'platform',
-		render: (_, { library }) => {
-			return library && library.platform && <span>{library.platform}</span>
-		},
-	},
-
 	[LibraryColumnID.SELECTION_TARGET]: {
 		columnID: LibraryColumnID.SELECTION_TARGET,
 		title: 'Selection Target',

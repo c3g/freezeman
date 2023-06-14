@@ -65,7 +65,7 @@ const api = {
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
     launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}), 
-    fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info`, {}),
+    fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info/`, {}),
     setLaneValidationStatus: (run_name, lane, validation_status) => post(`/experiment-runs/set_experiment_run_lane_validation_status/`, {run_name, lane, validation_status}),
     getLaneValidationStatus: (run_name, lane) => get(`/experiment-runs/get_experiment_run_lane_validation_status/`, {run_name, lane})
   },
@@ -82,10 +82,10 @@ const api = {
 
   indices: {
     get: indexId => get(`/indices/${indexId}/`),
-    list: (options, abort) => get("/indices", options, { abort }),
+    list: (options, abort) => get("/indices/", options, { abort }),
     listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
     listSets: () => get("/indices/list_sets/"),
-    summary: () => get("/indices/summary"),
+    summary: () => get("/indices/summary/"),
     template: {
       actions: () => get(`/indices/template_actions/`),
       check:  (action, template) => post(`/indices/template_check/`, form({ action, template })),
@@ -105,13 +105,13 @@ const api = {
 
   instruments: {
     list: () => get("/instruments/"),
-    listTypes: () => get("/instruments/list_types"),
+    listTypes: () => get("/instruments/list_types/"),
   },
 
 
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
-    list: (options, abort) => get("/libraries", options, { abort }),
+    list: (options, abort) => get("/libraries/", options, { abort }),
     listExport: options => get("/libraries/list_export/", {format: "csv", ...options}),
     summary: () => get("/libraries/summary/"),
     template: {
@@ -167,9 +167,9 @@ const api = {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
-    list: (options, abort) => get("/projects", options, { abort }),
+    list: (options, abort) => get("/projects/", options, { abort }),
     listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
-    summary: () => get("/projects/summary"),
+    summary: () => get("/projects/summary/"),
     template: {
       actions: () => get(`/projects/template_actions/`),
       check:  (action, template) => post(`/projects/template_check/`, form({ action, template })),
@@ -197,7 +197,7 @@ const api = {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     update: sample => patch(`/samples/${sample.id}/`, sample),
-    list: (options, abort) => get("/samples", options, { abort }),
+    list: (options, abort) => get("/samples/", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
@@ -229,7 +229,7 @@ const api = {
     listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {...options, step__id__in: stepId}),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
     prefill: {
-      templates: (protocolId) => get('/sample-next-step/list_prefills', {protocol: protocolId}),
+      templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
       request: (templateID, options) => get('/sample-next-step/prefill_template/', {template: templateID, ...options})
     },
     template: {
@@ -237,13 +237,15 @@ const api = {
       check:  (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/sample-next-step/template_submit/`, form({ action, template })),
     },
+    list: (options, abort) => get("/sample-next-step/", { limit: 100000, ...options }, { abort }),
   },
 
   sampleNextStepByStudy: {
     getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
-    remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
+    remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
+    list: (options, abort) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },
 
   sequences: {
@@ -265,7 +267,7 @@ const api = {
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
     list: (options, abort) => get('/studies', options, {abort}),
-    listProjectStudies: projectId => get('/studies', { project__id: projectId}),
+    listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
 
@@ -282,9 +284,9 @@ const api = {
     add: user => post("/users/", user),
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
-    list: (options, abort) => get("/users", options, { abort }),
-    listRevisions: (userId, options = {}) => get(`/revisions`, { user_id: userId, ...options }),
-    listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
+    list: (options, abort) => get("/users/", options, { abort }),
+    listRevisions: (userId, options = {}) => get(`/revisions/`, { user_id: userId, ...options }),
+    listVersions: (userId, options = {}) => get(`/versions/`, { revision__user: userId, ...options }),
   },
 
   workflows: {
@@ -293,7 +295,7 @@ const api = {
   },
 
   groups: {
-    list: (options, abort) => get("/groups", options, { abort }),
+    list: (options, abort) => get("/groups/", options, { abort }),
   },
 
   query: {
@@ -301,7 +303,7 @@ const api = {
   },
 
   sample_lineage: {
-    get: sampleId => get(`/sample-lineage/${sampleId}/graph`)
+    get: sampleId => get(`/sample-lineage/${sampleId}/graph/`)
   }
 };
 
