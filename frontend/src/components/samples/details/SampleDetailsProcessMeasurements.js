@@ -48,7 +48,7 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
         align: 'right',
         render: (volumeUsed, _) =>
             <div>
-              {volumeUsed ? `${parseFloat(volumeUsed).toFixed(3)}` : undefined}
+              {parseFloat(volumeUsed).toFixed(3)}
             </div>
       },
       {
