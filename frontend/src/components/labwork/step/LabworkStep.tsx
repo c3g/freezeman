@@ -77,7 +77,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// A selected template picker is used if protocol supports more than one template
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>();
-	const [selectAllSamples, setSelectAllSamples] = useState(false);
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
@@ -235,7 +234,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleClearSelection = useCallback(
 		() => {
 			dispatch(clearSelectedSamples(step.id))
-			setSelectAllSamples(false)
 		}
 		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
@@ -243,9 +241,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		selectedSampleIDs: stepSamples.selectedSamples,
 		clearAllSamples: () => handleClearSelection(),
 		onSelectionChanged: useCallback((selectedSamples) => {
-			if (selectAllSamples) {
-				setSelectAllSamples(false)
-			}
 			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
 					acc.push(selected.sample.id)
@@ -288,7 +283,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
-
+	const canSelectAllSamples = stepSamples.displayedSamples.length > 0;
 	const buttonBar = (
 		<Space>
 			{stepSamples.prefill.templates.length > 1 &&
@@ -342,14 +337,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							</>
 						}
 						<Popconfirm
-							disabled={selectAllSamples}
+							disabled={!canSelectAllSamples}
 							title={'Select all samples?'}
 							okText={'Yes'}
 							cancelText={'No'}
 							placement={'rightTop'}
 							onConfirm={() => handleSelectAll()}
 						>
-							<Button disabled={selectAllSamples} title='Select all samples'>Select All</Button>
+							<Button disabled={!canSelectAllSamples} title='Select all samples'>Select All</Button>
 						</Popconfirm>
 						<Popconfirm
 							disabled={stepSamples.selectedSamples.length == 0}

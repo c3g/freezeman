@@ -1,4 +1,4 @@
-import { Checkbox, Pagination, Popconfirm, Table, TableProps } from 'antd'
+import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useMemo } from 'react'
 import { FMSId } from '../../../models/fms_api_models'
@@ -55,7 +55,6 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 	if (selection) {
 		rowSelection = {
 			type: 'checkbox',
-			columnTitle: <></>,
 			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},
