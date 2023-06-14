@@ -1,4 +1,4 @@
-import { FilterDescription, FilterOptions, FilterValue, PagedItems } from "./paged_items"
+import { FilterDescription, FilterOptions, FilterValue, PagedItems, SortBy } from "./paged_items"
 import { clearFilters, removeFilter, setFilterOptions, setFilterValue } from "./filter_set_reducers"
 import { FMSTrackedModel } from "./fms_api_models"
 
@@ -74,5 +74,12 @@ export function reduceClearFilters<T extends FMSTrackedModel, P extends PagedIte
 	return {
 		...pagedItems,
 		filters: clearFilters(pagedItems.filters)
+	}
+}
+
+export function reduceSetSortBy<T extends FMSTrackedModel, P extends PagedItems<T>>(pagedItems: P, sortBy: SortBy): P {
+	return {
+		...pagedItems,
+		sortBy
 	}
 }
