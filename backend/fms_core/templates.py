@@ -455,7 +455,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
 
 SAMPLE_TRANSFER_TEMPLATE = {
   "identity": {"description": "Template to transfer samples",
-               "file": static("submission_templates/Sample_transfer_v4_2_0.xlsx"),
+               "file": static("submission_templates/Sample_transfer_v4_4_0.xlsx"),
                "protocol": "Transfer"},
   "sheets info": [
       {
@@ -463,7 +463,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
           'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
                       'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                       'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
-                      'Volume Used (uL)', 'Transfer Date', 'Comment', 'Workflow Action'],
+                      'Current Volume (uL)', 'Volume Used (uL)', 'Transfer Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
   ],
@@ -471,7 +471,9 @@ SAMPLE_TRANSFER_TEMPLATE = {
   "prefill info": [
       ("SampleTransfer", "Source Sample Name", "name", "name"),
       ("SampleTransfer", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleTransfer", "Source Container Coord", "coordinate__name", "coordinates"),],
+      ("SampleTransfer", "Source Container Coord", "coordinate__name", "coordinates"),
+      ("SampleTransfer", "Current Volume (uL)", "volume", "volume"),
+  ],
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
