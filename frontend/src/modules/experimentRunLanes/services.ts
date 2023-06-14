@@ -1,11 +1,8 @@
+import { FMSMetric } from "../../models/fms_api_models"
+import { Dataset } from "../../models/frontend_models"
 import store from "../../store"
 import api from "../../utils/api"
-import { DatasetInfo, ExperimentRunLanes, ReadsPerSample, NumberOfReads, ValidationStatus } from "./models"
-
-
-
-import { Dataset } from "../../models/frontend_models"
-import { FMSMetric } from "../../models/fms_api_models"
+import { DatasetInfo, ExperimentRunLanes, NumberOfReads, ReadsPerSample, ValidationStatus } from "./models"
 
 
 export async function loadExperimentRunLanes(experimentRunName: string) {

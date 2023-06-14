@@ -73,6 +73,7 @@ export interface FMSDataset extends FMSTrackedModel {
     lane: number                        // Flowcell lane number of dataset
     latest_release_update?: string      // ?
     released_status_count: number       // Number of files released
+    blocked_status_count: number        // Number of files blocked
     run_name: string                    // The name of the experiment run that generated this dataset
     metric_report_url?: string          // An external url to a report containing metrics for the dataset run
 }
@@ -95,7 +96,6 @@ export interface FMSExperimentRun extends FMSTrackedModel {
     run_type: FMSId                     // RunType ID
     start_date: string                  // Date when user started run 
     end_time?: string                    // Time at which the experiment run completed (set by API call)
-    run_processing_launch_date?: string // Date when run processing was launched
     run_processing_launch_time?: string  // Last time the run processing was launched, if it has been launched for the experiment run
     run_processing_start_time?: string   // Last time the run processing actually started for the experiment run
     run_processing_end_time?: string     // Last time the run processing completed for the experiment run
@@ -403,6 +403,7 @@ export interface FMSStudy extends FMSTrackedModel {
 export interface FMSTaxon extends FMSTrackedModel {
     name: string                        // Taxon scientific name
     ncbi_id: number                     // Numerical identifier used by the NCBI taxonomy catalog
+    editable?: boolean
 }
 
 // Template action description

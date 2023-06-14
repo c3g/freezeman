@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import React from "react";
-import { ReferenceGenome } from "../../models/frontend_models";
+import { ItemsByID, ReferenceGenome, Taxon } from "../../models/frontend_models";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 
 enum ReferenceGenomeID {
@@ -16,24 +16,27 @@ enum ReferenceGenomeID {
 
 type ReferenceGenomeColumn = IdentifiedTableColumnType<ReferenceGenome>
 
-export const getColumnsForReferenceGenome = (taxonsByID): ReferenceGenomeColumn[] => {
-    const REFERENCE_GENOME_COLUMN_DEFINITIONS = REFERENCE_GENOME_COLUMNS(taxonsByID)
+export const getColumnsForReferenceGenome = (taxonsByID: ItemsByID<Taxon>, authEdit: boolean): ReferenceGenomeColumn[] => {
+    const REFERENCE_GENOME_COLUMN_DEFINITIONS = REFERENCE_GENOME_COLUMNS(taxonsByID, authEdit)
     return REFERENCE_GENOME_COLUMN_DEFINITIONS.map((column: ReferenceGenomeColumn) => { return { ...column } });
 }
 
 
-const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
+const REFERENCE_GENOME_COLUMNS = (taxonsByID: ItemsByID<Taxon>, authEdit: boolean): ReferenceGenomeColumn[] => [
     {
         columnID: ReferenceGenomeID.ID,
         title: 'ID',
         dataIndex: ['referenceGenome', 'id'],
         sorter: (a, b) => a.id - b.id,
         render: (_, { id }) =>
-            id && (
+            id && authEdit ? (
                 <Link to={`/genomes/update/${id}`}>
                     <div>{id}</div>
                 </Link>
-            ),
+            ) :
+                (<div>
+                    {id}
+                </div>),
     },
     {
         columnID: ReferenceGenomeID.ASSEMBLY_NAME,
@@ -41,11 +44,14 @@ const REFERENCE_GENOME_COLUMNS = (taxonsByID): ReferenceGenomeColumn[] => [
         dataIndex: ['referenceGenome', 'assembly_name'],
         sorter: (a, b) => a.assembly_name.localeCompare(b.assembly_name),
         render: (_, { id, assembly_name }) =>
-            assembly_name && id && (
+            assembly_name && id && authEdit ? (
                 <Link to={`/genomes/update/${id}`}>
                     <div>{assembly_name}</div>
                 </Link>
-            ),
+            ) :
+                (<div>
+                    {assembly_name}
+                </div>),
     },
     {
         columnID: ReferenceGenomeID.SYNONYM,

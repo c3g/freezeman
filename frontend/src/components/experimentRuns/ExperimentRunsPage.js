@@ -1,18 +1,14 @@
 import React from "react";
 
-import {Navigate, Route, Routes} from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
-import { ExperimentRunsDetailContentRoute } from "./ExperimentRunsDetailContent";
-import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
-import { useAppDispatch } from "../../hooks";
+import PageContainer from "../PageContainer";
+import { ExperimentRunsDetailContentRoute } from "./ExperimentRunsDetailContent";
 import ExperimentRunsTabs from "./ExperimentRunsTabs";
 import ExternalExperimentRunDetailContentRoute from "./ExternalExperimentRunDetailContent";
 
 const ExperimentRunsPage = () => { 
-
-  const dispatch = useAppDispatch()
-
   return (
     <PageContainer>
       <Routes>

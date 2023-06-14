@@ -55,26 +55,3 @@ export function createFiltersActions(filterActionTypes: FilterActionTypes) {
 		clearFilters: createClearFiltersAction(filterActionTypes.CLEAR_FILTERS)
 	}
 }
-
-
-// export function setFilterOptions(filterKey: string, description: FilterDescription, options: FilterOptions) {
-// 	return {
-// 		type: SET_FILTER_OPTION,
-// 		description,
-// 		options
-// 	}
-// }
-
-// export function removeFilter(filterKey: string, description: FilterDescription) {
-// 	return {
-// 		type: REMOVE_FILTER,
-// 		description
-
-// 	}
-// }
-
-// export function clearFilters() {
-// 	return {
-// 		type: CLEAR_FILTERS
-// 	}
-// }

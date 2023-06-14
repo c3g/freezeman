@@ -1,14 +1,11 @@
 import { Table, TableColumnProps } from 'antd'
 import React, { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { ExternalExperimentRun } from '../../models/frontend_models'
-import { selectExternalExperimentRuns, selectExternalExperimentRunsState } from '../../selectors'
 import { loadExternalExperimentRuns } from '../../modules/experimentRuns/externalExperimentsActions'
-import { Link } from 'react-router-dom'
+import { selectExternalExperimentRuns } from '../../selectors'
 
-// interface ExternalExperimentRunsListContentProps {
-
-// }
 
 function getTableColumns() : TableColumnProps<ExternalExperimentRun>[] {
 	return [

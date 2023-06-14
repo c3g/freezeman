@@ -5,11 +5,20 @@ import { Link } from 'react-router-dom'
 import { useAppSelector } from '../../hooks'
 import { selectInstrumentsByID, selectRunTypesByID } from '../../selectors'
 import TrackingFieldsContent from '../TrackingFieldsContent'
+import moment from 'moment'
 
 interface ExperimentRunOverviewProps {
 	experimentRun: ExperimentRun
 	container: Container
 	process: Process
+}
+
+function formatDate(dateString : string | undefined) {
+	if (dateString) {
+		const date = new Date(Date.parse(dateString))
+		return moment(date).format("YYYY-MM-DD LT")
+	}
+	return undefined
 }
 
 function ExperimentRunOverview({ experimentRun, container, process }: ExperimentRunOverviewProps) {
@@ -46,6 +55,9 @@ function ExperimentRunOverview({ experimentRun, container, process }: Experiment
 				<Descriptions.Item label="Comment" span={3}>
 					{process.comment}
 				</Descriptions.Item>
+				<Descriptions.Item label="Launch Date" span={3}>{formatDate(experimentRun.run_processing_launch_time)}</Descriptions.Item>
+				<Descriptions.Item  label="Processing Start Date" span={3}>{formatDate(experimentRun.run_processing_start_time)}</Descriptions.Item>
+				<Descriptions.Item  label="Processing End Date" span={3}>{formatDate(experimentRun.run_processing_end_time)}</Descriptions.Item>
 			</Descriptions>
 
 			<TrackingFieldsContent entity={experimentRun} />
