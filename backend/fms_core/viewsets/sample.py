@@ -246,6 +246,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             container_id=full_sample['container'],
             coordinate_id=full_sample['coordinate'],
             **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
+            **(dict(depleted=full_sample['depleted']) if full_sample['depleted'] is not None else dict()),
             **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
         )
 

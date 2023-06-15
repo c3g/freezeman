@@ -5,11 +5,18 @@ import { CoordinateSortDirection } from "./models"
 // Default sorting keys for a prefilled template. By default, the lab wants samples grouped
 // by plate and sorted by coordinate.
  
-export function getCoordinateOrderingParams(direction: CoordinateSortDirection) {
-	const ordering = direction === 'column' ? 
-				'sample__container__barcode,sample__coordinate__column,sample__coordinate__row' : 
-				'sample__container__barcode,sample__coordinate__row,sample__coordinate__column'
-	return ordering
+export function getCoordinateOrderingParams(sort: CoordinateSortDirection) {
+	if (sort.orientation === 'column') {
+		return sort.order === 'descend' ?
+		'sample__container__barcode,-sample__coordinate__column,-sample__coordinate__row'
+		:
+		'sample__container__barcode,sample__coordinate__column,sample__coordinate__row' 
+	} else {
+		return sort.order === 'descend' ?
+		'sample__container__barcode,-sample__coordinate__row,-sample__coordinate__column'
+		:
+		'sample__container__barcode,sample__coordinate__row,sample__coordinate__column'
+	}
 }
 
 /**

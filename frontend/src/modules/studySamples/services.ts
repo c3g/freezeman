@@ -4,7 +4,7 @@ import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
 import { selectStudySettingsByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
-import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "./cache"
+import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models"
 
 
@@ -29,8 +29,8 @@ export async function loadStudySamples(studyID: FMSId) {
 	// Each step has its own samples table, with its own filters and sort order, so
 	// we have to request samples for each step separately. Create one request per step.
 	
-	const requests = workflow.steps_order.map(step => {
-		return fetchSamplesAtStep(studyID, step.step_id)
+	const requests = workflow.steps_order.map(workflowStepOrder => {
+		return fetchSamplesAtStepOrder(studyID, workflowStepOrder.id)
 	})
 
 	// Create a map object with step ID as key and list of SampleNextSteps as values.
@@ -38,7 +38,7 @@ export async function loadStudySamples(studyID: FMSId) {
 	try {
 		const steps = await Promise.all(requests)
 		for (const step of steps) {
-			groupedSampleNextSteps[step.stepID] = step.sampleNextSteps
+			groupedSampleNextSteps[step.stepOrderID] = step.sampleNextSteps
 		}
 	} catch(err) {
 		throw new Error('Failed to fetch study samples')
@@ -105,7 +105,7 @@ function listSamplesInStep(step: StudySampleStep) {
 export async function buildStudySamplesFromWorkflow(
 	study: Study, 
 	workflow: Workflow, 
-	sampleNextStepsByStep: {[key: FMSId] : FMSSampleNextStepByStudy[]},
+	sampleNextStepsByStepOrderID: {[key: FMSId] : FMSSampleNextStepByStudy[]},	// key: Step Order ID
 	completedSamplesByStudy: FMSStepHistory[],
 	sampleCounts: FMSStudySamplesCounts | undefined,
 	completedSampleCounts: FMSStudySamplesCounts | undefined,
@@ -119,11 +119,14 @@ export async function buildStudySamplesFromWorkflow(
 
 			// Get the list of sample-next-steps retrieved for this step, and set
 			// the list of samples for the step.
-			const sampleNextSteps = sampleNextStepsByStep[stepOrder.step_id]
+			const sampleNextSteps = sampleNextStepsByStepOrderID[stepOrder.id]
 			if (!sampleNextSteps) {
-				throw new Error(`Study samples for step ${stepOrder.step_id} not retrieved.`)
+				throw new Error(`Study samples for step order ${stepOrder.id} not retrieved.`)
 			}
 			const samples = sampleNextSteps.map(nextStep => nextStep.sample)
+
+			const sampleNextStepByStudyBySampleID: StudySampleStep['sampleNextStepByStudyBySampleID'] =
+				Object.fromEntries(sampleNextSteps.map((nextStep) => [nextStep.sample, nextStep]))
 
 			// Find the sample count for this step, if it is there. The backend returns nothing
 			// if there are zero samples for a step.
@@ -139,7 +142,8 @@ export async function buildStudySamplesFromWorkflow(
 				sampleCount: sampleCountStep ? sampleCountStep.count : 0,
 				samples,
 				completedCount: completedStep ? completedStep.count : 0, 
-				completed: []
+				completed: [],
+				sampleNextStepByStudyBySampleID
 			}
 			stepMap.set(step.stepOrderID, step)
 		}
@@ -175,7 +179,8 @@ export async function buildStudySamplesFromWorkflow(
 				processMeasurementID: stepHistory.process_measurement,
 				executionDate: processMeasurement?.execution_date,
 				executedBy: user?.username,
-				comment: processMeasurement?.comment
+				comment: processMeasurement?.comment,
+				removedFromWorkflow: stepHistory.workflow_action === 'DEQUEUE_SAMPLE'
 			}
 			step.completed.push(completedSample)
 		}
@@ -189,24 +194,24 @@ export async function buildStudySamplesFromWorkflow(
 	}
 }
 
-export async function fetchSamplesAtStep(studyID: FMSId, stepID: FMSId) {
+export async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
 
 	const studySettingsByID = selectStudySettingsByID(store.getState())
 
 	// Get the current set of filters and sort order from UX settings for study and step
 	let options = {}
-	const settings = studySettingsByID[studyID]?.stepSettings[stepID]
+	const settings = studySettingsByID[studyID]?.stepSettings[stepOrderID]
 	if (settings) {
 		const serializedFilters = settings.filters ? serializeFilterParamsWithDescriptions(settings.filters) : {}
 		const ordering = settings.sortBy ? serializeSortByParams(settings.sortBy) : undefined
 		options = {ordering, ...serializedFilters}
 	}
 
-	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStep(studyID, stepID, {...options, limit: 100000}))
+	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, {...options, limit: 100000}))
 		.then(response => {
 			if (response.data?.results) {
 				return {
-					stepID: stepID,
+					stepOrderID,
 					sampleNextSteps: response.data.results as FMSSampleNextStepByStudy[]
 				}
 			} else {

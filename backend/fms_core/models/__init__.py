@@ -43,6 +43,8 @@ from .sample_next_step import SampleNextStep
 from .step_history import StepHistory
 from .sample_next_step_by_study import SampleNextStepByStudy
 from .coordinate import Coordinate
+from .metric import Metric
+from .readset import Readset
 
 
 __all__ = [
@@ -90,4 +92,6 @@ __all__ = [
     "StepHistory",
     "SampleNextStepByStudy",
     "Coordinate",
+    "Metric",
+    "Readset",
 ]

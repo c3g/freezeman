@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db.models import Case, When, Q, F, BooleanField
 from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StepHistory
 from fms_core._constants import WorkflowAction
 from typing import  List, Tuple, Union
@@ -121,6 +122,27 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
         except Exception as err:
             errors.append(err)
     return dequeued, errors, warnings
+
+def dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample: Sample, study: Study, order: int) -> Tuple[bool, List[str], List[str]]:
+    removed, errors, warnings = dequeue_sample_from_specific_step_study_workflow(sample, study, order)
+
+    if removed and not errors:
+        stepHistory = (StepHistory.objects
+                        .filter(study=study)
+                        .annotate(source_sample=F('process_measurement__source_sample'))
+                        .annotate(child_sample=F('process_measurement__lineage__child'))
+                        .filter(Case(
+                            When(Q(source_sample=sample.pk) & Q(child_sample=None), then=True), # QC?
+                            When(Q(child_sample=sample.pk), then=True), # child?
+                            default=False,
+                            output_field=BooleanField()))
+                        .order_by('step_order__order')
+                        .last())
+        if stepHistory:
+            stepHistory.workflow_action = WorkflowAction.DEQUEUE_SAMPLE
+            stepHistory.save()
+    
+    return removed, errors, warnings
 
 def dequeue_sample_from_all_steps_study_workflow(sample_obj: Sample, study_obj: Study) -> Tuple[Union[int, None], List[str], List[str]]:
     """

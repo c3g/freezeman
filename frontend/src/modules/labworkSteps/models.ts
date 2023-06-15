@@ -12,7 +12,10 @@ export interface LabworkPrefilledTemplateDescriptor {
 	submissionURL?: string
 }
 
-export type CoordinateSortDirection = 'column' | 'row'
+export interface CoordinateSortDirection {
+	orientation: 'column' | 'row'
+	order: 'ascend' | 'descend'
+}
 
 export interface LabworkStepSamples {
 	stepID: FMSId											// Step ID (get the step from the labwork summary state)
@@ -23,7 +26,6 @@ export interface LabworkStepSamples {
 	prefill: {
 		templates: LabworkPrefilledTemplateDescriptor[],	// The resulting list, or an empty array
 	}
-	showSelectionChangedWarning: boolean						// If true, a warning is displayed that the selected samples were changed during refresh
-
+	showSelectionChangedWarning: boolean					// If true, a warning is displayed that the selected samples were changed during refresh
 }
 

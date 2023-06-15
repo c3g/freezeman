@@ -24,13 +24,13 @@ export interface FilterDescription {
 }
 
 export interface FilterDescriptionSet {
-	[key: string] : FilterDescription
+	[key: string]: FilterDescription
 }
 
 export type StringFilterValue = string
 export type StringArrayFilterValue = string[]
-export type RangeFilterValue = {min?: string | number, max?: string | number}
-export type MetadataFilterValue = {name: string, value?: string}[]
+export type RangeFilterValue = { min?: string | number, max?: string | number }
+export type MetadataFilterValue = { name: string, value?: string }[]
 
 export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilterValue | MetadataFilterValue | undefined
 
@@ -38,7 +38,6 @@ export type SetFilterFunc = (filterKey: string, value: FilterValue, description:
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
 export type FilterValidationFunc = (string) => boolean
 export type SetSortByFunc = (sortBy: SortBy) => void
-
 
 export interface FilterOptions {
 	[key: string]: boolean
@@ -49,7 +48,7 @@ export interface FilterOptions {
 // 3. Write a new version of serializeFilterProps to get description from state rather than from a filter config file
 export interface FilterSetting {
 	value: FilterValue
-  	options?: FilterOptions
+	options?: FilterOptions
 	description?: FilterDescription		// Include filter description in redux state for filter serialization.
 }
 
@@ -64,22 +63,33 @@ export interface SortBy {
 
 // Maps column ID's to filter key string (django keys)
 export interface FilterKeySet {
-	[key: string] : string
+	[key: string]: string
 }
 
 export interface PagedItems<T extends FMSTrackedModel> {
-	isFetching: boolean
-	error?: any
-	itemsByID: ItemsByID<T>
-	items: FMSId[]
-	totalCount: number
-	filters: FilterSet
-	sortBy: SortBy
-	page?: {
-		pageNumber?: number		// Move to using page number instead of offset
-		offset?: number
-		limit?: number
-		ignoreError?: string
+	readonly isFetching: boolean
+	readonly error?: any
+	readonly itemsByID: ItemsByID<T>
+	readonly items: readonly FMSId[]
+	readonly totalCount: number
+	readonly filters: FilterSet
+	readonly sortBy: SortBy
+	readonly page?: {
+		readonly pageNumber?: number		// Move to using page number instead of offset
+		readonly offset?: number
+		readonly limit?: number
+		readonly ignoreError?: string
+	}
+}
+
+export function initPagedItems<T extends FMSTrackedModel>(): PagedItems<T> {
+	return {
+		isFetching: false,
+		itemsByID: {},
+		items: [],
+		totalCount: 0,
+		filters: {},
+		sortBy: {},
 	}
 }
 
@@ -99,12 +109,12 @@ export function isStringArrayFilterValue(value?: FilterValue): value is StringAr
 	return false
 }
 
-export function isRangeFilterValue(value?: FilterValue) : value is RangeFilterValue {
-  if (value) {
-    const v = value as RangeFilterValue
-    return ('min' in v) || ('max' in v)
-  }
-  return false
+export function isRangeFilterValue(value?: FilterValue): value is RangeFilterValue {
+	if (value) {
+		const v = value as RangeFilterValue
+		return ('min' in v) || ('max' in v)
+	}
+	return false
 }
 
 export function isMetadataFilterValue(value?: FilterValue): value is MetadataFilterValue {

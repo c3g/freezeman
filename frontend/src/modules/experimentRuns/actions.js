@@ -1,26 +1,23 @@
-import {createNetworkActionTypes, networkAction} from "../../utils/actions";
-import api from "../../utils/api"
+import { EXPERIMENT_RUN_FILTERS } from "../../components/filters/descriptions";
+import { DEFAULT_PAGINATION_LIMIT } from "../../config";
+import { createFiltersActions } from "../../models/filter_set_actions";
+import { networkAction } from "../../utils/actions";
+import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {DEFAULT_PAGINATION_LIMIT} from "../../config";
-import {EXPERIMENT_RUN_FILTERS} from "../../components/filters/descriptions";
-
-// TODO: SUMMARY, LIST_TEMPLATE_ACTIONS
-
-export const GET                   = createNetworkActionTypes("EXPERIMENT_RUNS.GET");
-export const LIST                  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST");
-export const LIST_TABLE            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TABLE");
-export const SET_SORT_BY           = "EXPERIMENT_RUNS.SET_SORT_BY";
-export const SET_FILTER            = "EXPERIMENT_RUNS.SET_FILTER";
-export const SET_FILTER_OPTION     = "EXPERIMENT_RUNS.SET_FILTER_OPTION"
-export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
-export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
-export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
-export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
-export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TEMPLATE_ACTIONS");
-export const LAUNCH_EXPERIMENT_RUN = createNetworkActionTypes("EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN")
-export const FLUSH_EXPERIMENT_RUN_LAUNCH = "EXPERIMENT_RUNS.FLUSH_EXPERIMENT_RUN_LAUNCH"
-
+import {
+    FILTER_ACTION_TYPES,
+    FLUSH_EXPERIMENT_RUN_LAUNCH,
+    GET,
+    LAUNCH_EXPERIMENT_RUN,
+    LIST,
+    LIST_INSTRUMENTS,
+    LIST_PROPERTY_VALUES,
+    LIST_TABLE,
+    LIST_TEMPLATE_ACTIONS,
+    LIST_TYPES,
+    SET_SORT_BY
+} from './reducers';
 
 export const get = id => async (dispatch, getState) => {
     const experimentRun = getState().experimentRuns.itemsByID[id];
@@ -60,25 +57,12 @@ export const setSortBy = thenList((key, order) => {
     }
 });
 
-export const setFilter = thenList((name, value) => {
-    return {
-        type: SET_FILTER,
-        data: { name, value}
-    }
-});
 
-export const setFilterOption = thenList((name, option, value) => {
-    return {
-        type: SET_FILTER_OPTION,
-        data: { name, option, value }
-    }
-});
+const { setFilter: setFilterAction, setFilterOption: setFilterOptionAction, clearFilters: clearFiltersAction} = createFiltersActions(FILTER_ACTION_TYPES)
 
-export const clearFilters = thenList(() => {
-    return {
-        type: CLEAR_FILTERS,
-    }
-});
+export const setFilter = thenList(setFilterAction)
+export const setFilterOption = thenList(setFilterOptionAction)
+export const clearFilters = thenList(clearFiltersAction)
 
 export const listTypes = () => async (dispatch, getState) => {
     if (getState().runTypes.isFetching || getState().runTypes.items.length > 0)
@@ -135,19 +119,6 @@ export const flushExperimentRunLaunch = (experimentRunId) => {
 }
 
 export default {
-    GET,
-    SET_SORT_BY,
-    SET_FILTER,
-    SET_FILTER_OPTION,
-    CLEAR_FILTERS,
-    LIST,
-    LIST_TABLE,
-    LIST_TYPES,
-    LIST_INSTRUMENTS,
-    LIST_PROPERTY_VALUES,
-    LIST_TEMPLATE_ACTIONS,
-    LAUNCH_EXPERIMENT_RUN,
-    FLUSH_EXPERIMENT_RUN_LAUNCH,
     get,
     setSortBy,
     setFilter,

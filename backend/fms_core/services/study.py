@@ -1,7 +1,28 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import Study, Project
+from fms_core.models import Study, Project, StepHistory, SampleNextStep, SampleNextStepByStudy
 
+from collections import defaultdict
+from typing import Dict, List, Tuple
 import string
+
+def new_letter(project):
+    def skip_char(letter: str, distance: int):
+        return chr(ord(letter) + distance)
+
+    FIRST_LETTER = 'A'
+    occupied_letters = sorted(Study.objects.filter(project=project).values_list('letter', flat=True))
+    new_letter = skip_char(occupied_letters[-1], 1) if occupied_letters else FIRST_LETTER
+    
+    # Find earlier missing letter
+    for c in range(len(occupied_letters)):
+        expected_letter = skip_char(FIRST_LETTER, c)
+        # assumes occupied_letters is sorted alphabetically
+        if expected_letter != occupied_letters[c]:
+            # expected_letter missing
+            new_letter = expected_letter
+            break
+    
+    return new_letter
 
 def create_study(project, workflow, start, end):
     """
@@ -35,10 +56,8 @@ def create_study(project, workflow, start, end):
     
     if errors:
         return study, errors, warnings
-
-    # Generate a sequential letter by counting the number of existing studies tied to the provided project
-    study_count = Study.objects.filter(project=project).count()
-    letter = string.ascii_uppercase[study_count]
+    
+    letter = new_letter(project)
 
     try:
         study = Study.objects.create(letter=letter,
@@ -80,3 +99,18 @@ def get_study(project_obj: Project, study_letter: str):
         errors.append(f"Both a project and a study letter are required to retrieve a study.")
 
     return study, errors, warnings
+
+def can_remove_study(study_id: int) -> Tuple[bool, List[str], List[str]]:
+    errors = []
+    warnings = []
+
+    if StepHistory.objects.filter(study__id=study_id).exists():
+        errors.append("At least one StepHistory is associated with the Study")
+    if SampleNextStep.objects.filter(studies__id=study_id).exists():
+        errors.append("At least one SampleNextStep is associated with the Study")
+    if SampleNextStepByStudy.objects.filter(study__id=study_id).exists():
+        errors.append("At least one SampleNextStepByStudy is associated with the Study")
+    
+    is_removable = len(errors) == 0
+
+    return is_removable, errors, warnings

@@ -1,8 +1,10 @@
-import {createNetworkActionTypes, networkAction} from "../../utils/actions";
+import { createNetworkActionTypes, networkAction } from "../../utils/actions";
 import api from "../../utils/api";
 
-export const GET                   = createNetworkActionTypes("TAXONS.GET");
-export const LIST                  = createNetworkActionTypes("TAXONS.LIST");
+export const GET = createNetworkActionTypes("TAXONS.GET");
+export const LIST = createNetworkActionTypes("TAXONS.LIST");
+export const ADD = createNetworkActionTypes("TAXONS.ADD");
+export const UPDATE = createNetworkActionTypes("TAXONS.UPDATE")
 
 export const get = id => async (dispatch, getState) => {
     const taxon = getState().taxons.itemsByID[id];
@@ -10,6 +12,18 @@ export const get = id => async (dispatch, getState) => {
         return;
 
     return await dispatch(networkAction(GET, api.taxons.get(id), { meta: { id } }));
+};
+
+export const add = taxon => async (dispatch, getState) => {
+    return await dispatch(networkAction(
+        ADD, api.taxons.add(taxon), { meta: { ignoreError: 'APIError' } }
+    ));
+};
+
+export const update = (id, taxon) => async (dispatch, getState) => {
+    return await dispatch(networkAction(
+        UPDATE, api.taxons.update(taxon), { meta: { id, ignoreError: 'APIError' } }
+    ));
 };
 
 export const list = (options) => async (dispatch, getState) => {
@@ -25,4 +39,6 @@ export default {
     LIST,
     get,
     list,
+    add,
+    update
 };

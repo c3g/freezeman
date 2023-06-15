@@ -207,6 +207,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.PROJECT,
 		title: 'Project',
 		dataIndex: ['sample', 'project'],
+		sorter: false,	// Disable project sorting, due to pools not being sortable by project
 		render: (projectID) => 
 			projectID && (
 				<WithProjectRenderComponent 

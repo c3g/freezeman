@@ -1,4 +1,5 @@
-import { FMSId } from "../../models/fms_api_models"
+import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
+import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
 import { FetchedState } from "../common"
 
@@ -11,10 +12,11 @@ export interface CompletedStudySample {
 	readonly executionDate?: string
 	readonly executedBy?: string
 	readonly comment?: string
+	readonly removedFromWorkflow: boolean
 }
 
 export interface StudySampleStep {
-	readonly stepID:	FMSId						// step ID
+	readonly stepID:	FMSId					// step ID
 	readonly stepName: string					// step name
 	readonly stepOrderID: FMSId      			// step order ID
 	readonly stepOrder: number					// step order
@@ -23,13 +25,15 @@ export interface StudySampleStep {
 	readonly samples: FMSId[]					// List of (filtered) samples at step
 	readonly completedCount: number				// Total number of completed samples, regardless of filters
 	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
+	readonly sampleNextStepByStudyBySampleID: {[key: Sample['id']]: FMSSampleNextStepByStudy} // Mapping of Sample ID to FMSSampleNextStepByStudy
 }
 
+// List of steps
 export interface StudySampleList {
 	readonly steps: StudySampleStep[]
 }
 
-export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}
+export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}	// key: Study ID
 
 // UX settings for study samples page, used to keep track of
 // the expanded/collapsed state of steps, the 'ready' vs. 'completed'
@@ -40,7 +44,7 @@ export type StudyStepSamplesTabSelection = 'ready' | 'completed'
 
 // Settings for one step
 export interface StudyUXStepSettings {
-	readonly stepID: FMSId
+	readonly stepOrderID: FMSId
 	readonly expanded?: boolean
 	readonly selectedSamplesTab?: StudyStepSamplesTabSelection
 	readonly filters?: FilterSet
@@ -50,7 +54,7 @@ export interface StudyUXStepSettings {
 // Settings for one study
 export interface StudyUXSettings {
 	readonly studyID: FMSId
-	readonly stepSettings: {[key : FMSId] : StudyUXStepSettings}	// key: step ID
+	readonly stepSettings: {[key : number] : StudyUXStepSettings}	// key: step order
 }
 
 export type StudySettingsByID = {[key: number] : StudyUXSettings}

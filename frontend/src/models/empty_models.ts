@@ -16,6 +16,7 @@ export const container = {
   }
   
   export const sample = {
+    id: null,
     name: "",
     alias: "",
     sample_kind: null,

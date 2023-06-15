@@ -1,4 +1,4 @@
-import { merge } from 'object-path-immutable'
+import { merge, del, wrap } from 'object-path-immutable'
 import { ItemsByID, Study } from '../../models/frontend_models'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { indexByID } from '../../utils/objects'
@@ -9,6 +9,7 @@ export const GET = createNetworkActionTypes('STUDIES.GET')
 export const ADD = createNetworkActionTypes('STUDIES.ADD')
 export const UPDATE = createNetworkActionTypes('STUDIES.UPDATE')
 export const LIST = createNetworkActionTypes('STUDIES.LIST')
+export const REMOVE = createNetworkActionTypes('STUDIES.REMOVE')
 export const LIST_PROJECT_STUDIES = createNetworkActionTypes('STUDIES.LIST_PROJECT_STUDIES')
 
 
@@ -16,6 +17,7 @@ interface StudiesState {
     itemsByID: ItemsByID<Study>,
     items: Study[]
     isFetching: boolean
+	isRemoving: boolean
     error?: any
 }
 
@@ -24,7 +26,8 @@ export const studies = (
 	state : StudiesState = {
 		itemsByID: {} as ItemsByID<Study>,
 		items: [],
-		isFetching: false
+		isFetching: false,
+		isRemoving: false,
 	},
 	action
 ) : StudiesState => {
@@ -63,6 +66,20 @@ export const studies = (
 		}
 		case LIST_PROJECT_STUDIES.ERROR:
 			return { ...state, isFetching: false, error: action.error, };
+		
+		case REMOVE.REQUEST:
+			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { id: action.meta?.id, isRemoving: true })
+		case REMOVE.RECEIVE: {
+			return wrap<StudiesState>(state)
+				.del(['itemsByID', action.meta.id])
+				.update('items', (items) => {
+					const { results }: { results: Study[] } = items;
+					return { ...items, results: results.filter((item) => item.id !== action.meta.id) }
+				})
+				.value()
+		}
+		case REMOVE.ERROR:
+			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, isRemoving: false, didFail: true })
 	}
     return state
 }

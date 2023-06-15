@@ -19,6 +19,7 @@ from datetime import datetime
 class ExperimentRunTest(TestCase):
     def setUp(self):
         self.start_date = "2021-06-22"
+        self.experiment_name = "RunNovaseq_100213"
         self.run_type_name = "Infinium Global Screening Array-24"
         self.run_type, _ = RunType.objects.get_or_create(name=self.run_type_name)
 
@@ -40,20 +41,35 @@ class ExperimentRunTest(TestCase):
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
     def test_experiment_run(self):
-        my_experiment_run = ExperimentRun.objects.create(run_type=self.run_type,
+        my_experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
+                                                         run_type=self.run_type,
                                                          container=self.container,
                                                          instrument=self.instrument,
                                                          process=self.process,
                                                          start_date=self.start_date)
-        self.assertEqual(my_experiment_run.run_type.name, self.run_type_name)                                               
+        self.assertEqual(my_experiment_run.name, self.experiment_name)
+        self.assertEqual(my_experiment_run.run_type.name, self.run_type_name)
         self.assertEqual(my_experiment_run.container.barcode, "Flowcell1212testtest")
         self.assertEqual(my_experiment_run.instrument.name, self.instrument_name)
         self.assertEqual(my_experiment_run.start_date, datetime.strptime(self.start_date, "%Y-%m-%d").date())
 
+    def test_missing_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                er_without_name = ExperimentRun.objects.create(run_type=self.run_type,
+                                                               container=self.container,
+                                                               instrument=self.instrument,
+                                                               process=self.process,
+                                                               start_date=self.start_date)
+            except ValidationError as e:
+                self.assertTrue("name" in e.message_dict)
+                raise e
+
     def test_missing_run_type(self):
         with self.assertRaises(ValidationError):
             try:
-                er_without_rt = ExperimentRun.objects.create(container=self.container,
+                er_without_rt = ExperimentRun.objects.create(name=self.experiment_name,
+                                                             container=self.container,
                                                              instrument=self.instrument,
                                                              process=self.process,
                                                              start_date=self.start_date)
@@ -64,7 +80,8 @@ class ExperimentRunTest(TestCase):
     def test_missing_container(self):
         with self.assertRaises(ValidationError):
             try:
-                er_without_container = ExperimentRun.objects.create(run_type=self.run_type,
+                er_without_container = ExperimentRun.objects.create(name=self.experiment_name,
+                                                                    run_type=self.run_type,
                                                                     instrument=self.instrument,
                                                                     process=self.process,
                                                                     start_date=self.start_date)
@@ -75,7 +92,8 @@ class ExperimentRunTest(TestCase):
     def test_container_invalid_kind(self):
         with self.assertRaises(ValidationError):
             try:
-                er_invalid_container_kind = ExperimentRun.objects.create(run_type=self.run_type,
+                er_invalid_container_kind = ExperimentRun.objects.create(name=self.experiment_name,
+                                                                         run_type=self.run_type,
                                                                          container=self.container_invalid_kind,
                                                                          instrument=self.instrument,
                                                                          process=self.process,
@@ -87,7 +105,8 @@ class ExperimentRunTest(TestCase):
     def test_duplicate_experiment_run_with_container(self):
         with self.assertRaises(ValidationError):
             # First ExperimentRun is valid
-            ExperimentRun.objects.create(run_type=self.run_type,
+            ExperimentRun.objects.create(name=self.experiment_name,
+                                         run_type=self.run_type,
                                          container=self.container,
                                          instrument=self.instrument,
                                          process=self.process,
@@ -96,7 +115,8 @@ class ExperimentRunTest(TestCase):
             try:
                 process_2 = Process.objects.create(protocol=self.protocol, comment="Process test 2")
                 # Second ExperimentRun has the same Container, should be invalid
-                ExperimentRun.objects.create(run_type=self.run_type,
+                ExperimentRun.objects.create(name=self.experiment_name,
+                                             run_type=self.run_type,
                                              container=self.container,
                                              instrument=self.instrument,
                                              process=process_2,
@@ -108,7 +128,8 @@ class ExperimentRunTest(TestCase):
     def test_missing_instrument(self):
         with self.assertRaises(ValidationError):
             try:
-                er_without_instrument = ExperimentRun.objects.create(container=self.container,
+                er_without_instrument = ExperimentRun.objects.create(name=self.experiment_name,
+                                                                     container=self.container,
                                                                      run_type=self.run_type,
                                                                      process=self.process,
                                                                      start_date=self.start_date)
@@ -119,7 +140,8 @@ class ExperimentRunTest(TestCase):
     def test_missing_process(self):
         with self.assertRaises(ValidationError):
             try:
-                ExperimentRun.objects.create(run_type=self.run_type,
+                ExperimentRun.objects.create(name=self.experiment_name,
+                                             run_type=self.run_type,
                                              container=self.container,
                                              instrument=self.instrument,
                                              start_date=self.start_date)
@@ -130,7 +152,8 @@ class ExperimentRunTest(TestCase):
     def test_missing_date(self):
         with self.assertRaises(ValidationError):
             try:
-                er_without_date = ExperimentRun.objects.create(container=self.container,
+                er_without_date = ExperimentRun.objects.create(name=self.experiment_name,
+                                                               container=self.container,
                                                                instrument=self.instrument,
                                                                process=self.process,
                                                                run_type=self.run_type)

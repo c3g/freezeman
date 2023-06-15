@@ -107,6 +107,8 @@ RUN_PROCESSING_SCHEMA = {
     "properties": {
         "run": {"type": "string"},
         "lane": {"type": "string", "pattern": str(r"^([1-9][0-9]*|0)$")},
+        "run_obj_id": {"type": ["null", "number"]},
+        "metrics_report_url": {"type": "string"},
         "readsets": {
             "type": "object",
             "patternProperties": {
@@ -114,6 +116,7 @@ RUN_PROCESSING_SCHEMA = {
                     "type": "object",
                     "properties": {
                         "sample_name": {"type": "string"},
+                        "derived_sample_id": {"type": ["null", "number"]},
                         "barcodes": {
                             "type": "array",
                             "items": {
@@ -130,8 +133,61 @@ RUN_PROCESSING_SCHEMA = {
                 },
             },
         },
+        "run_validation": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sample": {"type": "string"},
+                    "index": {
+                        "type": "object",
+                        "properties": {
+                            "pct_on_index_in_lane": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pct_of_the_lane": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pct_perfect_barcode": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pct_one_mismatch_barcode": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pf_clusters": {"type": "integer"},
+                            "yield": {"type": "integer"},
+                            "mean_quality_score": {"type": "number"},
+                            "pct_q30_bases": {"type": "number", "minimum": 0, "maximum": 100},
+                        },
+                    },
+                    "qc": {
+                        "type": "object",
+                        "properties": {
+                            "avg_qual": {"type": "string"},
+                            "duplicate_rate": {"type": "string"},
+                            "nb_reads": {"type": "string"},
+                            "nb_bases": {"type": "string"},
+                        },
+                    },
+                    "blast": {
+                        "type": "object",
+                        "properties": {
+                            "1st_hit": {"type": "string"},
+                            "2nd_hit": {"type": "string"},
+                            "3rd_hit": {"type": "string"},
+                        },
+                    },
+                    "alignment": {
+                        "type": "object",
+                        "properties": {
+                            "chimeras": {"type": ["number", "null"]},
+                            "average_aligned_insert_size": {"type": ["number", "null"]},
+                            "pf_read_alignment_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "inferred_sex": {"type": ["string", "null"]},
+                            "adapter_dimers": {"type": ["integer", "null"]},
+                            "mean_coverage": {"type": ["number", "null"]},
+                            "aligned_dup_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                        },
+                    },
+                },
+                "required": ["sample", "index", "qc", "blast", "alignment"]
+            },
+            "minItems": 1,
+        }
     },
-    "required": ["run", "lane", "readsets"],
+    "required": ["run", "lane", "metrics_report_url", "readsets", "run_validation"],
 }
 
 RUN_PROCESSING_VALIDATOR = JsonSchemaValidator(RUN_PROCESSING_SCHEMA, formats=["date-time"])

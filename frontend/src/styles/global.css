@@ -110,8 +110,11 @@ abbr.--time {
 
 .filters-warning-bar {
   display: flex;
-  margin-bottom: 1rem;
   justify-content: right;
   align-items: baseline;
 }
 
+.ant-layout-sider-collapsed .App__spin {
+  width: 0 !important;
+  opacity: 0;
+}

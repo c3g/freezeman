@@ -63,14 +63,16 @@ const pageStyle = {
   overflow: "hidden",
 }
 
-const tabsStyle = {
-  marginTop: 8,
-}
-
 const tabStyle = {
   padding: "0 24px 24px 24px",
   overflow: "auto",
   height: "100%",
+}
+
+const lineageStyle = {
+  ...tabStyle,
+  overflow: 'hidden',
+  height: '90vh'
 }
 
 const listSampleMetadata = (token, options) =>
@@ -198,7 +200,7 @@ const SampleDetailsContent = ({
       {error &&
         <ErrorMessage error={error} />
       }
-      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" className={(activeKey === 'lineage' ? 'lineage-tab-active' : '')}>
         <TabPane tab="Overview" key="overview" style={tabStyle}>
           <Descriptions bordered={true} size="small">
             <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
@@ -235,7 +237,7 @@ const SampleDetailsContent = ({
                 <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
             </Descriptions.Item>
             <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
-            <Descriptions.Item label="Container">
+            <Descriptions.Item label="Container Barcode">
               {sample.container &&
                 <Link to={`/containers/${sample.container}`}>
                   {withContainer(containersByID, sample.container, container => container.barcode, "Loading...")}
@@ -352,7 +354,7 @@ const SampleDetailsContent = ({
           </Descriptions>
         </TabPane>
 
-        <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
+        <TabPane tab={`Lineage`} key="lineage" style={lineageStyle}>
           <SampleDetailsLineage sample={sample} 
             handleSampleClick={navigateToSample}
             handleProcessClick={navigateToProcess}
