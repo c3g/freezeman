@@ -1,5 +1,6 @@
+import { FILTER_TYPE } from "../constants"
 import { FMSId, FMSTrackedModel } from "./fms_api_models"
-import { FetchedObject } from "./frontend_models"
+import { FetchedObject, ItemsByID } from "./frontend_models"
 
 // Models for paged items, used in redux to hold lists of objects
 
@@ -34,6 +35,7 @@ export type MetadataFilterValue = { name: string, value?: string }[]
 
 export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilterValue | MetadataFilterValue | undefined
 
+// Callback function definitions for functions that are passed to filter components.
 export type SetFilterFunc = (filterKey: string, value: FilterValue, description: FilterDescription) => void
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
 export type FilterValidationFunc = (string: string) => boolean
@@ -66,16 +68,16 @@ export interface FilterKeySet {
 	[key: string]: string
 }
 
-export type FetchedModel<T extends FMSTrackedModel> = Partial<T> & FetchedObject
-export type AnyFetchedModel = FetchedModel<FMSTrackedModel>
-export interface FetchedItemsByID<T extends FMSTrackedModel> {
-	[key: FMSId]: FetchedModel<T>
+// Any items displayed in a PagedItemsTable must have an 'id' property.
+export type DataID = number // | string ?
+
+export interface PageableData {
+	id: DataID
 }
 
-export interface PagedItems<T extends FMSTrackedModel> {
+export interface PagedItems {
 	readonly isFetching: boolean
 	readonly error?: any
-	readonly itemsByID?: FetchedItemsByID<T>
 	readonly items: readonly FMSId[]
 	readonly totalCount: number
 	readonly filters: FilterSet
@@ -89,14 +91,47 @@ export interface PagedItems<T extends FMSTrackedModel> {
 	}
 }
 
-export function initPagedItems<T extends FMSTrackedModel>(fixedFilters?: PagedItems<T>['fixedFilters']): PagedItems<T> {
-	return {
+interface PagedItem extends FMSTrackedModel, FetchedObject, PageableData {}
+
+// TODO: Decide if this type is needed.
+export interface PagedItemsByID<T extends PagedItem> extends PagedItems {
+	readonly itemsByID: ItemsByID<T>
+}
+
+// Create a PagedItems instance, with all properties set to defaults.
+export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
+	const DEFAULT_PAGED_ITEMS: PagedItems = {
 		isFetching: false,
 		items: [],
 		totalCount: 0,
 		fixedFilters,
 		filters: {},
 		sortBy: {},
+		page: {
+			limit: 20	// TODO import this as a constant from pagination?
+		}
+	}
+	return {...DEFAULT_PAGED_ITEMS}
+}
+
+// Create a PagedItemsByID instance, with all properties set to defaults.
+export function createPagedItemsByID<T extends PagedItem>(fixedFilters?: FilterSet): PagedItemsByID<T> {
+	return {
+		itemsByID: {},
+		...createPagedItems(fixedFilters)
+	}
+}
+
+// TODO allow filter type
+// Create a FilterSetting object for a fixed filter, from a key and a value.
+export function createFixedFilter(filterType: string, filterKey: string, value: FilterValue): FilterSetting {
+	return {
+		value,
+		description: {
+			type: filterType,
+			key: filterKey,
+			label: ''
+		}
 	}
 }
 

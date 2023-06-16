@@ -2,7 +2,7 @@ import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useMemo } from 'react'
 import { FMSId } from '../../../models/fms_api_models'
-import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
+import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterOptions, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { SampleAndLibrary } from './ColumnSets'
 import { addFiltersToColumns } from './MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './SampleTableColumns'
@@ -57,9 +57,9 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},
-			getCheckboxProps: (record: SampleAndLibrary) => ({
-				name: `${record.sample?.id}`,
-			}),
+			// getCheckboxProps: (record: SampleAndLibrary) => ({
+			// 	name: `${record.sample?.id}`,
+			// }),
 			selectedRowKeys: [...selection.selectedSampleIDs]
 		}
 	}

@@ -2,7 +2,7 @@ import React from "react";
 
 import {Navigate, Route, Routes} from "react-router-dom";
 
-import ProjectsListContent from "./ProjectsListContent";
+import ProjectsListContent2 from "./ProjectsListContent2";
 import ProjectEditContent from "./ProjectEditContent";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
@@ -13,7 +13,7 @@ const ProjectsPage = () => {
   return (
     <PageContainer>
       <Routes>
-        <Route path="/list/*" element={<ProjectsListContent />}/>
+        <Route path="/list/*" element={<ProjectsListContent2 />}/>
         <Route path="/actions/:action/*" element={<ActionContent templateType="project" />}/>
         <Route path="/add/*" element={<ProjectEditContent />}/>
         <Route path="/:id/update/*" element={<ProjectEditContent />}/>

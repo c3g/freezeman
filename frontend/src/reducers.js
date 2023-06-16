@@ -89,6 +89,7 @@ import { taxons } from "./modules/taxons/reducers";
 import { users } from "./modules/users/reducers";
 import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
+import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -133,6 +134,7 @@ const allReducers = combineReducers({
   processMeasurements,
   projectsSummary,
   projects,
+  projectsOfSamples,
   projectTemplateActions,
   studies,
   indicesSummary,

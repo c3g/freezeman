@@ -1,7 +1,6 @@
 import {merge, set} from "object-path-immutable";
 import {map} from "rambda"
 
-import {preprocessSampleVersions} from "../../utils/preprocessRevisions";
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
@@ -9,23 +8,21 @@ import {templateActionsReducerFactory} from "../../utils/templateActions";
 import {resetTable} from "../../utils/reducers";
 
 import PROJECTS from "./actions";
+import { AnyAction } from "redux"
+import { PagedItemsByID, createPagedItemsByID } from "../../models/paged_items"
+import { createPagedItemsActionTypes, createPagedItemsReducer } from "../../models/paged_items_factory"
+import { Project, mergeItemsByID } from "../../models/frontend_models"
 
 export const projectsSummary = summaryReducerFactory(PROJECTS);
 export const projectTemplateActions = templateActionsReducerFactory(PROJECTS);
 
+const initialState = createPagedItemsByID<Project>()
+const actionTypes = createPagedItemsActionTypes('PROJECTS')
+const pagedItemsReducer = createPagedItemsReducer(actionTypes, initialState)
+
 export const projects = (
-    state = {
-        itemsByID: {},
-        items: [],
-        filteredItems: [],
-        page: { offset: 0 },
-        totalCount: 0,
-        filteredItemsCount: 0,
-        isFetching: false,
-        filters: {},
-        sortBy: { key: undefined, order: undefined },
-    },
-    action
+    state: PagedItemsByID<Project> = initialState,
+    action : AnyAction
 ) => {
     switch (action.type) {
 
@@ -52,36 +49,36 @@ export const projects = (
         case PROJECTS.UPDATE.ERROR:
             return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
 
-        case PROJECTS.SET_SORT_BY:
-            return { ...state, sortBy: action.data, items: [] };
-        case PROJECTS.SET_FILTER:
-            return {
-                ...state,
-                filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
-        case PROJECTS.SET_FILTER_OPTION:
-            return {
-                ...state,
-                filters: set(
-                    state.filters,
-                    [action.data.name, 'options', action.data.option],
-                    action.data.value
-                ),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
-        case PROJECTS.CLEAR_FILTERS:
-            return {
-                ...state,
-                filters: {},
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
+        // case PROJECTS.SET_SORT_BY:
+        //     return { ...state, sortBy: action.data, items: [] };
+        // case PROJECTS.SET_FILTER:
+        //     return {
+        //         ...state,
+        //         filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+        //         items: [],
+        //         totalCount: 0,
+        //         page: set(state.page, ['offset'], 0),
+        //     };
+        // case PROJECTS.SET_FILTER_OPTION:
+        //     return {
+        //         ...state,
+        //         filters: set(
+        //             state.filters,
+        //             [action.data.name, 'options', action.data.option],
+        //             action.data.value
+        //         ),
+        //         items: [],
+        //         totalCount: 0,
+        //         page: set(state.page, ['offset'], 0),
+        //     };
+        // case PROJECTS.CLEAR_FILTERS:
+        //     return {
+        //         ...state,
+        //         filters: {},
+        //         items: [],
+        //         totalCount: 0,
+        //         page: set(state.page, ['offset'], 0),
+        //     };
 
         case PROJECTS.LIST.REQUEST:
             return { ...state, isFetching: true, };
@@ -94,26 +91,29 @@ export const projects = (
         case PROJECTS.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
+        // TODO : Get rid of LIST_FILTER
         case PROJECTS.LIST_FILTER.REQUEST:
             return { ...state, isFetching: true, };
         case PROJECTS.LIST_FILTER.RECEIVE: {
-            const filteredItemsCount = action.data.count;
-            //If filter was changed we get a new list with a different count
-            const hasChanged = state.filteredItemsCount !== action.data.count;
-            const currentItems = hasChanged ? [] : state.filteredItems;
-            const results = action.data.results.map(preprocess)
-            //New filtered items
-            const newFilteredItems = action.data.results.map(r => r.id)
-            const filteredItems = mergeArray(currentItems, action.meta.offset, newFilteredItems)
-            const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return {
-              ...state,
-              itemsByID,
-              filteredItems,
-              filteredItemsCount,
-              isFetching: false,
-              error: undefined
-            };
+            // const filteredItemsCount = action.data.count;
+            // //If filter was changed we get a new list with a different count
+            // const hasChanged = state.filteredItemsCount !== action.data.count;
+            // const currentItems = hasChanged ? [] : state.filteredItems;
+            // const results = action.data.results.map(preprocess)
+            // //New filtered items
+            // const newFilteredItems = action.data.results.map(r => r.id)
+            // const filteredItems = mergeArray(currentItems, action.meta.offset, newFilteredItems)
+            // const itemsByID = merge(state.itemsByID, [], indexByID(results));
+            // return {
+            //   ...state,
+            //   itemsByID,
+            //   filteredItems,
+            //   filteredItemsCount,
+            //   isFetching: false,
+            //   error: undefined
+            // };
+            // TODO PagedItems doesn't have 'filteredItems' or 'filteredItemsCount' anymore, so this action is broken.
+            return state
         }
         case PROJECTS.LIST_FILTER.ERROR:
             return { ...state, isFetching: false, error: action.error, };
@@ -145,8 +145,20 @@ export const projects = (
         }
         case PROJECTS.LIST_TABLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
+
+
+        case actionTypes.LIST_PAGE.RECEIVE: {
+            // Add the projects to itemsByID
+            const projects = action.data.results.map(preprocess)
+            state = {
+                ...state,
+                itemsByID: mergeItemsByID(state.itemsByID, projects)
+            }
+            return pagedItemsReducer(state, action)
+        }
+
         default:
-            return state;
+            return pagedItemsReducer(state, action);
     }
 };
 

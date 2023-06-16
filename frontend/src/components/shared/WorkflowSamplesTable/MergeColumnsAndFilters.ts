@@ -22,8 +22,8 @@ export function addFiltersToColumns<T>(
 	filterDescriptions: FilterDescriptionSet, 
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
-	setFilter : SetFilterFunc = () => {/* noop */},
-	setFilterOption : SetFilterOptionFunc = () => {/* noop */},
+	setFilter : SetFilterFunc = () => false,
+	setFilterOption : SetFilterOptionFunc = () => false,
 	addSorter = true
 	) : IdentifiedTableColumnType<T>[]{
 	const mergedColumns = columns.map(column => {
