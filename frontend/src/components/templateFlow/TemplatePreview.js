@@ -79,7 +79,7 @@ const renderResultWithWarnings = (previewSheetInfo) => {
   return Object.keys(warnings).length > 0 ? <>
     <h4>WARNINGS:</h4>
     <ul>
-      {Object.entries(warnings).sort(([_1, a], [_2, b]) => b.length - a.length).map(([warning, row_numbers]) => {
+      {Object.entries(warnings).sort(([_1, a], [_2, b]) => a.length - b.length).map(([warning, row_numbers]) => {
         return <li key={warning}>
             <Space>
               <Badge count={row_numbers.length} style={{backgroundColor: 'gray'}}/>
