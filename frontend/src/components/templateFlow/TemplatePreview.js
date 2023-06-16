@@ -34,17 +34,17 @@ const renderResultWithErrors = (previewSheetInfo) => {
   previewSheetInfo.rows?.forEach((row, index) => {
     row.errors.forEach(e => {
       errors.push(
-        <div key={'row-' + index}>
+        <li key={'row-' + index}>
           Row {row.row_repr}: {e.error}
-        </div>
+        </li>
       )
     })
     row.validation_error?.forEach(field => {
       field[1].forEach(reason => {
         errors.push(
-          <div key={'row-' + index + field[0] + reason}>
+          <li key={'row-' + index + field[0] + reason}>
             Row {row.row_repr}: {field[0]} - {reason}
-          </div>
+          </li>
         )
       })
     })
@@ -60,7 +60,9 @@ const renderResultWithErrors = (previewSheetInfo) => {
         { errors.length > 0 &&
           <p>
             <h4>ERRORS: </h4>
+            <ul>
             {errors}
+            </ul>
           </p>
         }
     </>
