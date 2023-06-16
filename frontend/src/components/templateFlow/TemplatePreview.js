@@ -1,5 +1,5 @@
 import React from "react";
-import {Popover, Table, Tabs, Badge} from "antd";
+import {Popover, Table, Tabs, Badge, Space} from "antd";
 import {WarningOutlined} from "@ant-design/icons";
 import innerHTMLPurified from "../../utils/innerHTMLPurified";
 const {TabPane} = Tabs;
@@ -18,10 +18,9 @@ export const TemplatePreview = ({checkResult}) => {
     <Tabs size="large" type="card">
       {checkResult.result_previews?.map((preview, index) =>
          <TabPane tab={preview.name} key={index}>
-                {!checkResult.valid && renderResultWithErrors(preview)}
-            <p>
-                {renderPreviewSheetTable(preview)}
-            </p>
+            {!checkResult.valid && renderResultWithErrors(preview)}
+            {renderResultWithWarnings(preview)}
+            {renderPreviewSheetTable(preview)}
          </TabPane>
       )}
     </Tabs>
@@ -66,6 +65,30 @@ const renderResultWithErrors = (previewSheetInfo) => {
         }
     </>
   )
+}
+
+const renderResultWithWarnings = (previewSheetInfo) => {
+  const warnings = {}
+  previewSheetInfo.rows?.forEach((row) => {
+    row.warnings.forEach((warning) => {
+      warnings[warning] = warnings[warning] ?? []
+      warnings[warning].push(row.row_repr.substring(1))
+    })
+  })
+
+  return Object.keys(warnings).length > 0 ? <>
+    <h4>WARNINGS:</h4>
+    <ul>
+      {Object.entries(warnings).sort(([_1, a], [_2, b]) => b.length - a.length).map(([warning, row_numbers]) => {
+        return <li key={warning}>
+            <Space>
+              <Badge count={row_numbers.length} style={{backgroundColor: 'gray'}}/>
+              {`${warning} (Row # ${row_numbers.join(", ")})`}
+            </Space>
+          </li>
+      })}
+    </ul>
+  </> : null
 }
 
 const renderPreviewSheetTable = (previewSheetInfo) => {
