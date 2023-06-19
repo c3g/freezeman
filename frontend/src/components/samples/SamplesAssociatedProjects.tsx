@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import PagedItemsTable, { useFilteredColumns } from "../pagedItemsTable/PagedItemsTable"
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from '../projects/ProjectsTableColumns'
-import { useAppSelector } from "../../hooks"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import { DataID, FilterSetting, createFixedFilter } from "../../models/paged_items"
 import ProjectsOfSamplesActions from '../../modules/projectsOfSamples/actions'
 import { selectProjectsByID, selectProjectsOfSamples } from "../../selectors"
 import { FILTER_TYPE } from "../../constants"
+import { addProjectsToCache } from "../../modules/projects/actions"
 
 const projectColumns = [
   PROJECT_COLUMN_DEFINITIONS.NAME,
@@ -19,6 +20,7 @@ const projectColumns = [
 const SamplesAssociatedProjects = ({
   sampleID,
 }) => {
+  const dispatch = useAppDispatch()
   const { setFilter, setFilterOptions } = ProjectsOfSamplesActions
   const projectsOfSamples = useAppSelector(selectProjectsOfSamples)
   const projectsByID = useAppSelector(selectProjectsByID)
@@ -52,6 +54,15 @@ const SamplesAssociatedProjects = ({
     }, [] as ObjectWithProject[])
   }
 
+  const requestPageCallback = useCallback((pageNumber: number) => {
+		// Create a thunk and dispatch it.
+		const requestAction = (page: number) => async (dispatch) => {
+			const projects = await dispatch(ProjectsOfSamplesActions.listPage(page))
+			dispatch(addProjectsToCache(projects))
+		}
+		dispatch(requestAction(pageNumber))
+  }, [dispatch])
+
   // TODO : This table is actually broken, because there is no mechanism to stored retrieved
   // projects in redux. It only seems to work because most of the projects from the db are
   // loaded into redux at startup.
@@ -60,9 +71,10 @@ const SamplesAssociatedProjects = ({
       // Don't render until the sample fixed filter is set, or you will get all of the projects.
       sampleIDFilter && 
        <PagedItemsTable
+        requestPageCallback={requestPageCallback}
         columns={columns}
         fixedFilter={sampleIDFilter}
-        getItemsByID={mapProjectsByID}
+        getDataObjectsByID={mapProjectsByID}
         pagedItems={projectsOfSamples}
         pagedItemsActions={ProjectsOfSamplesActions}
         usingFilters={true}

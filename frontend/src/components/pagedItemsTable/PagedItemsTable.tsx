@@ -1,4 +1,5 @@
 import { Pagination, Table, TableProps } from 'antd'
+import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { DataID, FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterSetting, FilterValue, PageableData, PagedItems } from '../../models/paged_items'
@@ -7,7 +8,6 @@ import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/FiltersBar'
 import { addFiltersToColumns } from '../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns'
-import { TableRowSelection } from 'antd/lib/table/interface'
 
 // TODO move this to its own file
 /*  This is a hook that combines column definitions with filter definitions to produce
@@ -48,16 +48,26 @@ export function useFilteredColumns<T>(
 	return tableColumns
 }
 
-
 export interface PagedItemTableSelection<T extends PageableData> {
 	selectedItemIDs: DataID[]
 	onSelectionChanged: (selectedItems: T[]) => void
 }
 
+// This callback function is called whenever the table needs to request a new page
+// of data due to pagination.
+export type RequestPageCallback = (pageNumber: number) => void
+
 interface PagedItemsTableProps<T extends PageableData> {
-	getItemsByID: (ids: number[]) => Promise<T[]>
+	// The paged items table only has a list of item ID's. You have provide a function
+	// that maps those ID's to data objects which get rendered by the table.
+	getDataObjectsByID: (ids: number[]) => Promise<T[]>	
 	pagedItems: PagedItems
 	pagedItemsActions: PagedItemsActions
+
+	// When the user uses the pagination controls to change to another page this
+	// callback is called to request that a new page is loaded. The caller is responsible
+	// for fetching the page of data.
+	requestPageCallback: RequestPageCallback
 
 	columns: IdentifiedTableColumnType<T>[]
 	fixedFilter?: FilterSetting
@@ -66,63 +76,87 @@ interface PagedItemsTableProps<T extends PageableData> {
 	selection?: PagedItemTableSelection<T>
 }
 
-function PagedItemsTable<T extends PageableData>({getItemsByID, pagedItems, pagedItemsActions, columns, fixedFilter, usingFilters, selection}: PagedItemsTableProps<T>) {
-
+function PagedItemsTable<T extends PageableData>({
+	getDataObjectsByID,
+	requestPageCallback,
+	pagedItems,
+	pagedItemsActions,
+	columns,
+	fixedFilter,
+	usingFilters,
+	selection,
+}: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
 	const { items, sortBy } = pagedItems
-	const { setFixedFilter, clearFilters, listPage, setSortBy, setPageSize } = pagedItemsActions
-	const [data, setData] = useState<T[]>([])
+	const { setFixedFilter, clearFilters, setSortBy, setPageSize } = pagedItemsActions
+	const [dataObjects, setDataObjects] = useState<T[]>([])
 
-	
 	// On initial load, trigger the fetch of one page of items
-	useEffect(() => {
-		if (fixedFilter && fixedFilter.description) {
-			dispatch(setFixedFilter(fixedFilter))
-		}
-		dispatch(listPage(pagedItems.page?.pageNumber ?? 1))
-	}, [/* Only call once when the component is mounted*/])
+	useEffect(
+		() => {
+			if (fixedFilter && fixedFilter.description) {
+				dispatch(setFixedFilter(fixedFilter))
+			}
+			requestPageCallback(pagedItems.page?.pageNumber ?? 1)
+		},
+		[
+			/* Only call once when the component is mounted*/
+		]
+	)
 
-	// 
+	//
 	useEffect(() => {
 		async function retrieveItems(ids: number[]) {
 			try {
-				const items = await getItemsByID(ids)
-				setData(items)
-			} catch(error) {
+				const objects = await getDataObjectsByID(ids)
+				setDataObjects(objects)
+			} catch (error) {
 				// TODO set an error in the paged items state
 			}
 		}
 		retrieveItems([...items])
-	}, [getItemsByID, items])
+	}, [getDataObjectsByID, items])
 
+	// TODO Is there any advantage to wrapping the callback in a callback?
+	const listPageCallback = useCallback(
+		(pageNumber) => {
+			requestPageCallback(pageNumber)
+		},
+		[requestPageCallback]
+	)
 
-	const listPageCallback = useCallback((pageNumber) => {
-		dispatch(listPage(pageNumber))
-	}, [dispatch, listPage])
-
-	const pageSizeCallback = useCallback(pageSize => {
-		dispatch(setPageSize(pageSize))
-		dispatch(setPageSizeForApp(pageSize))
-	}, [dispatch, setPageSize])
+	const pageSizeCallback = useCallback(
+		(pageSize) => {
+			// TODO: It's unclear if limit should be part of the paged items data structure,
+			// or if we should ALWAYS use the pageSize stored for the app. Right now, setting
+			// the page size changes it for the current table and for the app.
+			dispatch(setPageSize(pageSize))
+			dispatch(setPageSizeForApp(pageSize))
+		},
+		[dispatch, setPageSize]
+	)
 
 	const clearFiltersCallback = useCallback(() => {
 		dispatch(clearFilters())
 	}, [dispatch, clearFilters])
 
 	// We use this callback to respond when the user sorts a column
-	const setSortByCallback: TableProps<any>['onChange'] = useCallback( (pagination, filters, sorterResult) => {
-		if (!Array.isArray(sorterResult)) {
-			const sorter = sorterResult
-			const key = sorter.columnKey?.toString()
-			const order = sorter.order ?? undefined
-			if (key) {
-				if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
-					dispatch(setSortBy({ key, order }))
+	const setSortByCallback: TableProps<any>['onChange'] = useCallback(
+		(pagination, filters, sorterResult) => {
+			if (!Array.isArray(sorterResult)) {
+				const sorter = sorterResult
+				const key = sorter.columnKey?.toString()
+				const order = sorter.order ?? undefined
+				if (key) {
+					if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
+						dispatch(setSortBy({ key, order }))
+					}
 				}
 			}
-		}
-	}, [dispatch, sortBy, setSortBy])
+		},
+		[dispatch, sortBy, setSortBy]
+	)
 
 	// TODO : Find a way to make selection generic
 	let rowSelection: TableRowSelection<T> | undefined = undefined
@@ -145,7 +179,7 @@ function PagedItemsTable<T extends PageableData>({getItemsByID, pagedItems, page
 					)}
 					<Table
 						rowSelection={rowSelection}
-						dataSource={data}
+						dataSource={dataObjects}
 						columns={columns}
 						rowKey={(obj) => obj.id ?? 'BAD_SAMPLE_KEY'} // The data objects passed to the table must have an id property
 						style={{ overflowX: 'auto' }}
@@ -173,3 +207,25 @@ function PagedItemsTable<T extends PageableData>({getItemsByID, pagedItems, page
 
 export default PagedItemsTable
 
+/*
+	Use cases:
+
+	The list of all items of a given type (samples, projects, etc..)
+		- Data can be pulled straight from redux itemsByID
+		- Could use a selector pointing to itemsByID
+
+	A list of items of a given type with special filtering (eg. project samples)
+		- Data can be pulled straight from redux itemsByID
+		- Could use selector pointing to itemsByID
+
+	A list of items that combine two or more types (eg. SampleAndLibrary, SampleAndLibraryAndProcess)
+		- There is no redux state holding these objects - they are created on demand.
+		- The typed items are each in a separate redux state that must be combined.
+		- Avoid copying the items into a new redux state since there will no longer be
+			a single source of truth.
+
+	A list of hybrid/synthetic items that combine values from different types or which do not
+	have a corresponding database type
+		- Table creator is responsible for providing these objects when requested
+		- Objects must have an id, because table asks for them by id
+*/

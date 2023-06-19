@@ -7,16 +7,20 @@ import PageContent from '../PageContent'
 
 import api, { withToken } from '../../utils/api'
 
-import { useAppSelector } from '../../hooks'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
 import { Project } from '../../models/frontend_models'
-import { PagedItemsByID } from '../../models/paged_items'
-import { selectProjectTemplateActions, selectProjectsByID, selectProjectsState, selectToken } from '../../selectors'
+import { PagedItems, PagedItemsByID } from '../../models/paged_items'
+import { selectPageSize, selectProjectTemplateActions, selectProjectsByID, selectProjectsState, selectToken } from '../../selectors'
 import mergedListQueryParams from '../../utils/mergedListQueryParams'
 import { ActionDropdown } from '../../utils/templateActions'
 import PagedItemsTable, { useFilteredColumns } from '../pagedItemsTable/PagedItemsTable'
 import ProjectsTableActions from './ProjectsTableActions'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
+import serializeFilterParamsWithDescriptions, { serializeSortByParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
+import { createPagedItemsActionTypes } from '../../models/paged_items_factory'
+import { networkAction } from '../../utils/actions'
+import { addProjectsToCache } from '../../modules/projects/actions'
 
 
 const projectsListContentColumns = [
@@ -30,7 +34,7 @@ const projectsListContentColumns = [
 ]
 
 const ProjectsListContent2 = () => {
-
+	const dispatch = useAppDispatch()
 	const projectsState  = useAppSelector(selectProjectsState) as PagedItemsByID<Project>
 	const projectsByID = useAppSelector(selectProjectsByID)
 	const { filters, sortBy, totalCount } = projectsState
@@ -52,17 +56,31 @@ const ProjectsListContent2 = () => {
 						ProjectsTableActions.setFilter,
 						ProjectsTableActions.setFilterOptions)
 
-	async function mapProjectIDs(ids: FMSId[]) {
-		const data = ids.reduce((acc, id) => {
-			const project = projectsByID[id]
-			if (project) {
-				acc.push({id, project})
-			}
-			return acc
-		}, [] as ObjectWithProject[])
+	
 
-		return data
-	}
+	const mapProjectIDs = useCallback((ids: FMSId[]) => {
+		async function mapIDsToProjects(ids: FMSId[]) {
+			const data = ids.reduce((acc, id) => {
+				const project = projectsByID[id]
+				if (project) {
+					acc.push({ id, project })
+				}
+				return acc
+			}, [] as ObjectWithProject[])
+
+			return data
+		}
+		return mapIDsToProjects(ids)
+	}, [projectsByID])
+
+	const projectsRequestCallback = useCallback((pageNumber: number) => {
+		// Create a thunk and dispatch it.
+		const requestAction = (page: number) => async (dispatch) => {
+			const projects = await dispatch(ProjectsTableActions.listPage(page))
+			dispatch(addProjectsToCache(projects))
+		}
+		dispatch(requestAction(pageNumber))
+	}, [dispatch])
 	
 	return (
 		<>
@@ -76,7 +94,8 @@ const ProjectsListContent2 = () => {
 			/>
 			<PageContent>
 				<PagedItemsTable<ObjectWithProject>
-					getItemsByID={mapProjectIDs}
+					requestPageCallback={projectsRequestCallback}
+					getDataObjectsByID={mapProjectIDs}
 					pagedItems={projectsState}
 					pagedItemsActions={ProjectsTableActions}
 					columns={columns}

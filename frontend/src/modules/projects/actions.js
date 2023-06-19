@@ -18,6 +18,7 @@ export const CLEAR_FILTERS         = "PROJECTS.CLEAR_FILTERS";
 export const SUMMARY               = createNetworkActionTypes("PROJECTS.SUMMARY");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("PROJECTS.LIST_TEMPLATE_ACTIONS");
 
+
 export const get = id => async (dispatch, getState) => {
     const project = getState().projects.itemsByID[id];
     if (project && project.isFetching)
@@ -49,6 +50,16 @@ export const list = (options) => async (dispatch, getState) => {
         { meta: params }
     ));
 };
+
+// TODO remove this
+export const addProjectsToCache = (projects) => {
+    return {
+        type: LIST.RECEIVE,
+        data: {
+            results: projects
+        }
+    }
+} 
 
 export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy } = {}, abort) => async (dispatch, getState) => {
     if(getState().projects.isFetching && !abort)
