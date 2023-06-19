@@ -85,7 +85,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, getP
 			ordering,
 			...serializedFilters,
 		}
-        const meta = { ...params, ignoreError: 'AbortError' }
+        const meta = { ...params, pageNumber, ignoreError: 'AbortError' }
 
         // TODO: Listing items doesn't put the items into an ItemsByID automatically any more, since PagedItems
         // only contains a list of object ID's, and no longer has the objects themselves. For example, the 
@@ -192,7 +192,7 @@ export function createPagedItemsReducer<P extends PagedItems>(actionTypes: Paged
 					items: data.results,
 					pageSize: meta.limit,
 					totalCount: data.count,
-					pageNumber: Math.floor(meta.offset / meta.limit + 1),
+					pageNumber: meta.pageNumber,
 				})
 			}
 			case LIST_PAGE.ERROR: {
