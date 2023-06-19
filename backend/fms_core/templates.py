@@ -74,14 +74,14 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
           'name': 'Experiments',
           'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
-                      'Instrument Name', 'Experiment Start Date', 'Comment'],
+                      'Instrument Name', 'Experiment Start Date (YYYY-MM-DD)', 'Comment'],
           'stitch_column': 'Experiment Name',
           'batch': True,
       },
       {
           'name': 'Samples',
-          'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
-                      'Experiment Container Coordinates', 'Comment', 'Workflow Action'],
+          'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates',
+                      'Source Sample Current Volume (uL)', 'Source Sample Volume Used (uL)', 'Experiment Container Coordinates', 'Comment', 'Workflow Action'],
           'stitch_column': 'Experiment Name',
           'batch': False,
       },]
@@ -100,14 +100,16 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 
 EXPERIMENT_MGI_TEMPLATE = {
   "identity": {"description": "Template to add MGI experiments",
-               "file": static("submission_templates/Experiment_run_MGI_v4_1_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_MGI_v4_4_0.xlsx"),
                "protocol": "DNBSEQ Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Samples", "Source Sample Name", "name", "name"),
       ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),],
+      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
+      ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+      ],
 }
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {

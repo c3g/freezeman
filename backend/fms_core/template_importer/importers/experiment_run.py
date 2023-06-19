@@ -1,11 +1,12 @@
 from fms_core.models import RunType, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.experiment_run import ExperimentRunRowHandler, SampleRowHandler
+from fms_core.template_importer._constants import LOAD_ALL
 from fms_core.templates import EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
 from collections import defaultdict
 from datetime import datetime
 from fms_core.services.step import get_step_from_template
-from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none, load_all_or_float_to_decimal_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 PROPERTIES_STARTING_INDEX = 6
@@ -65,7 +66,7 @@ class ExperimentRunImporter(GenericImporter):
         sample_rows_data = defaultdict(list)
         for i, row_data in enumerate(samples_sheet.rows):
             sample = {'experiment_name': str_cast_and_normalize(row_data['Experiment Name']),
-                      'volume_used': float_to_decimal_and_none(row_data['Source Sample Volume Used']),
+                      'volume_used': load_all_or_float_to_decimal_and_none(row_data['Source Sample Volume Used (uL)']),
                       'experiment_container_coordinates': str_cast_and_normalize(row_data['Experiment Container Coordinates']),
                       'comment': str_cast_and_normalize(row_data['Comment']),
                       'workflow':
@@ -87,7 +88,8 @@ class ExperimentRunImporter(GenericImporter):
                 row_i=i,
                 **sample_kwargs,
             )
-
+            # Set the actual volumed_used in case the load all option was used
+            sample["volume_used"] = sample['sample_obj'].volume if sample["volume_used"] == LOAD_ALL else sample["volume_used"]
             sample_rows_data[sample['experiment_name']].append(sample)
 
         """
@@ -109,7 +111,7 @@ class ExperimentRunImporter(GenericImporter):
                 instrument={'name': str_cast_and_normalize(experiment_run_dict['Instrument Name'])},
                 container={'barcode': str_cast_and_normalize(experiment_run_dict['Experiment Container Barcode']),
                            'kind': str_cast_and_normalize_lower(experiment_run_dict['Experiment Container Kind'])},
-                start_date=input_to_date_and_none(experiment_run_dict['Experiment Start Date']),
+                start_date=input_to_date_and_none(experiment_run_dict['Experiment Start Date (YYYY-MM-DD)']),
                 comment=str_cast_and_normalize(experiment_run_dict['Comment']),
                 # Additional data for this row
                 process_properties=process_properties,
