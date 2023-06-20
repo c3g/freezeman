@@ -63,15 +63,15 @@ export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTyp
 // need a function that returns the PagedItems. Normally this is just a selector,
 // but if the paged items is embedded in an index object or other type of collection
 // then a custom function will need to be implemented by the component that uses the state.
-export type GetPagedItemsFunc = (state: RootState) => PagedItems
+export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
-export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, getPagedItems: GetPagedItemsFunc, list: ListType): PagedItemsActions {
+export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, selectPagedItems: SelectPagedItemsFunc, list: ListType): PagedItemsActions {
 
     const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE } =
 		actionTypes
 
     const listPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {     
-        const pagedItems = getPagedItems(getState())
+        const pagedItems = selectPagedItems(getState())
         const limit = pagedItems.page?.limit ?? selectPageSize(getState())
         const offset = limit * (pageNumber - 1)
         const { filters, fixedFilters, sortBy } = pagedItems
@@ -99,7 +99,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, getP
     }
 
     const refreshPage: PagedItemsActions['refreshPage'] = () => async (dispatch, getState) => {
-        const pagedItems = getPagedItems(getState())
+        const pagedItems = selectPagedItems(getState())
         return await dispatch(listPage(pagedItems.page?.pageNumber ?? 1))
     }
 
