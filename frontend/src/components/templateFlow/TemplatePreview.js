@@ -85,14 +85,10 @@ const renderResultWithWarnings = (previewSheetInfo) => {
     <h4>WARNINGS:</h4>
     <ul>
       {Object.entries(warnings).sort(([_1, a], [_2, b]) => a.length - b.length).map(([format, array]) => {
-        const argCount = array[0].args.length
-        const argIndices = Array.from(Array(argCount).keys())
         return <li key={format}>
             <Space>
               <Badge count={array.length} style={{backgroundColor: 'gray'}}/>
-              {`${argIndices.reduce((prev, index) => {
-                return prev.replace(`{${index}}`, array.map((x) => x.args[index]).join(", "))
-              }, format)} (Row # ${array.map((x) => x.row).join(", ")})`}
+              {`${format.replace(/\{[0-9]*\}/, "...")} (Row # ${array.map((x) => x.row).join(", ")})`}
             </Space>
           </li>
       })}
