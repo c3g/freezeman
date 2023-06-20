@@ -27,10 +27,12 @@ class SampleRowHandler(GenericRowHandler):
         taxon_obj = None
         if individual['taxon']:
             taxon_obj, self.errors['taxon'], self.warnings['taxon'] = get_taxon(ncbi_id=individual['taxon'])
+            self.warnings['taxon'] = [(w,) for w in self.warnings['taxon']]
 
         reference_genome_obj = None
         if individual['reference_genome']:
             reference_genome_obj, self.errors['reference_genome'], self.warnings['reference_genome'] = get_reference_genome(assembly_name=individual['reference_genome'])
+            self.warnings['reference_genome'] = [(w,) for w in self.warnings['reference_genome']]
 
         mother_obj = None
         if individual_mother['name']:
@@ -40,6 +42,7 @@ class SampleRowHandler(GenericRowHandler):
                                          sex=Individual.SEX_FEMALE,
                                          pedigree=individual["pedigree"],
                                          reference_genome=reference_genome_obj)
+            self.warnings['individual_mother'] = [(w,) for w in self.warnings['individual_mother']]
 
         father_obj = None
         if individual_father['name']:
@@ -49,6 +52,7 @@ class SampleRowHandler(GenericRowHandler):
                                          sex=Individual.SEX_MALE,
                                          pedigree=individual["pedigree"],
                                          reference_genome=reference_genome_obj)
+            self.warnings['individual_father'] = [(w,) for w in self.warnings['individual_father']]
 
         individual_obj = None
         need_individual = any([individual["taxon"],
@@ -90,24 +94,25 @@ class SampleRowHandler(GenericRowHandler):
                                          reference_genome=reference_genome_obj,
                                          mother=mother_obj,
                                          father=father_obj)
+            self.warnings['individual'] = [(w,) for w in self.warnings['individual']]
             if not created:
-                self.warnings['individual'].append(f'Individual already exists and was not created.')
+                self.warnings['individual'].append((f'Individual already exists and was not created.',))
         else:
-            self.warnings['individual'].append(f'Sample is not tied to any individual.')
+            self.warnings['individual'].append((f'Sample is not tied to any individual.',))
 
         # Sample related section
         sample_kind_obj = None
         try:
             sample_kind_obj = sample_kind_objects_by_name[sample['sample_kind']]
         except KeyError as e:
-            self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found."]
+            self.errors['sample_kind'] = [("Sample Kind {0} not found.", sample['sample_kind'])]
         #TODO: sample kind str normalization
         tissue_source_obj = None
         if sample['tissue_source']:
             try:
                 tissue_source_obj = sample_kind_objects_by_name[sample['tissue_source']]
             except KeyError as e:
-                self.errors['tissue_source'] = [f"Tissue source {sample['tissue_source']} not found."]
+                self.errors['tissue_source'] = [("Tissue source {0} not found.", sample['tissue_source'])]
 
         # Library are submitted
         library_obj = None
@@ -115,12 +120,16 @@ class SampleRowHandler(GenericRowHandler):
         if is_library:
             # Create library objects
             library_type_obj, self.errors['library_type'], self.warnings['library_type'] = get_library_type(library['library_type'])
+            self.warnings['library_type'] = [(w,) for w in self.warnings['library_type']]
             index_obj, self.errors['index'], self.warnings['index'] = get_index(library['index'])
+            self.warnings['index'] = [(w,) for w in self.warnings['index']]
             platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(library['platform'])
+            self.warnings['platform'] = [(w,) for w in self.warnings['platform']]
             library_selection_obj = None
             if library['selection_name'] and library['selection_target']:
                 library_selection_obj, self.errors['library_selection'], self.warnings['library_selection'] = \
                     get_library_selection(name=library['selection_name'], target=library['selection_target'])
+                self.warnings['library_selection'] = [(w,) for w in self.warnings['library_selection']]
             elif bool(library['selection_name']) != bool(library['selection_target']):
                 self.errors['library_selection'].append(f"Selection and Selection Target need to have both values together to define the library.")
 
@@ -129,19 +138,21 @@ class SampleRowHandler(GenericRowHandler):
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'],
                                                                                            library_selection=library_selection_obj)
+            self.warnings['library'] = [(w,) for w in self.warnings['library']]
 
         # Project related section
         project_obj = None
         studies_obj = []
         if project['name']:
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
+            self.warnings['project'] = [(w,) for w in self.warnings['project']]
 
             if project_obj and project['study_letter']:
                   study_letters = [s.strip() for s in project['study_letter'].split("-") if s != ""]
                   for study_letter in study_letters:
                       study, study_errors, study_warnings = get_study(project_obj, study_letter)
                       self.errors['study'].extend(study_errors)
-                      self.warnings['study'].extend(study_warnings)
+                      self.warnings['study'].extend([(w,) for w in study_warnings])
                       if study is not None:
                           studies_obj.append(study)
         else:
@@ -153,16 +164,17 @@ class SampleRowHandler(GenericRowHandler):
             if Sample.objects.filter(name__iexact=sample['name']).exists():
                 # Output different warnings depending on whether the name is an exact match or a case insensitive match
                 if Sample.objects.filter(name__exact=sample['name']).exists():
-                    self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists. ' \
-                                            f'A new sample with the same name will be created.'
+                    self.warnings['name'] = ('Sample with the same name [{0}] already exists. ' \
+                                            'A new sample with the same name will be created.', sample["name"])
                 else:
-                    self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists. ' \
-                                            f'Please verify the name is correct.'
+                    self.warnings['name'] = ('Sample with the same name [{0}] but different type casing already exists. ' \
+                                            'Please verify the name is correct.', sample["name"])
 
             # Container related section
             parent_container_obj = None
             if parent_container['barcode']:
                 parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
+                self.warnings['parent_container'] = [(w,) for w in self.warnings['parent_container']]
 
             container_obj, _, self.errors['container'], self.warnings['container'] = \
                 get_or_create_container(barcode=container['barcode'],
@@ -172,6 +184,7 @@ class SampleRowHandler(GenericRowHandler):
                                         container_parent=parent_container_obj,
                                         creation_comment=comment,
                                         )
+            self.warnings['container'] = [(w,) for w in self.warnings['container']]
 
             sample_obj = None
             if library_obj is not None or not is_library:
@@ -181,14 +194,16 @@ class SampleRowHandler(GenericRowHandler):
                                        concentration=sample['concentration'], tissue_source=tissue_source_obj,
                                        experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
                                        library=library_obj, sample_kind=sample_kind_obj, comment=comment)
+                self.warnings['sample'] = [(w,) for w in self.warnings['sample']]
 
             # Link sample to project if requested
             if project_obj and sample_obj:
                 _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
+                self.warnings['project_link'] = [(w,) for w in self.warnings['project_link']]
                 for study_obj in studies_obj:
                     _, queue_errors, queue_warnings  = queue_sample_to_study_workflow(sample_obj, study_obj)
                     self.errors['queue_to_study'].extend(queue_errors)
-                    self.warnings['queue_to_study'].extend(queue_warnings)
+                    self.warnings['queue_to_study'].extend([(w,) for w in queue_warnings])
 
         # If this sample belongs to a pool but the library obj was not created
         elif library['pool_name'] and not library_obj:

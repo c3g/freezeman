@@ -73,19 +73,26 @@ const renderResultWithWarnings = (previewSheetInfo) => {
   const warnings = {}
   previewSheetInfo.rows?.forEach((row) => {
     row.warnings.forEach((warning) => {
-      warnings[warning] = warnings[warning] ?? []
-      warnings[warning].push(row.row_repr.substring(1))
+      warnings[warning.format] = warnings[warning.format] ?? []
+      warnings[warning.format].push({
+        args: warning.args,
+        row: row.row_repr.substring(1)
+      })
     })
   })
 
   return Object.keys(warnings).length > 0 ? <>
     <h4>WARNINGS:</h4>
     <ul>
-      {Object.entries(warnings).sort(([_1, a], [_2, b]) => a.length - b.length).map(([warning, row_numbers]) => {
-        return <li key={warning}>
+      {Object.entries(warnings).sort(([_1, a], [_2, b]) => a.length - b.length).map(([format, array]) => {
+        const argCount = array[0].args.length
+        const argIndices = Array.from(Array(argCount).keys())
+        return <li key={format}>
             <Space>
-              <Badge count={row_numbers.length} style={{backgroundColor: 'gray'}}/>
-              {`${warning} (Row # ${row_numbers.join(", ")})`}
+              <Badge count={array.length} style={{backgroundColor: 'gray'}}/>
+              {`${argIndices.reduce((prev, index) => {
+                return prev.replace(`{${index}}`, array.map((x) => x.args[index]).join(", "))
+              }, format)} (Row # ${array.map((x) => x.row).join(", ")})`}
             </Space>
           </li>
       })}
@@ -135,7 +142,9 @@ const renderPreviewSheetTable = (previewSheetInfo) => {
     row.warnings.length > 0 && (
       row_data['warning'] = (
         <div key={`warning-${index}`}>
-          {row.warnings.map(warning => <p>{warning}</p>)}
+          {row.warnings.map(({key, format, args}) => <p>{`${key} : ${args.reduce((prev, curr, index) => {
+            return prev.replace(`{${index}}`, curr)
+          }, format)}`}</p>)}
         </div>
       )
     )
