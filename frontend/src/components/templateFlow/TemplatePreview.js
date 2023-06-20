@@ -88,7 +88,7 @@ const renderResultWithWarnings = (previewSheetInfo) => {
         return <li key={format}>
             <Space>
               <Badge count={array.length} style={{backgroundColor: 'gray'}}/>
-              {`${format.replace(/\{[0-9]*\}/, "...")} (Row # ${array.map((x) => x.row).join(", ")})`}
+              {`${format.replace(/\{[0-9]*\}/g, "...")} (Row # ${array.map((x) => x.row).join(", ")})`}
             </Space>
           </li>
       })}
