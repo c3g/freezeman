@@ -28,7 +28,7 @@ class SampleRowHandler(GenericRowHandler):
 
     def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
-        
+        sample_start_time = datetime.now()
         # Individual related section
         taxon_obj = None
         if individual['taxon']:
@@ -165,16 +165,18 @@ class SampleRowHandler(GenericRowHandler):
 
         # Continue creating the sample objects if this sample is not associated with a pool
         if library['pool_name'] is None:
+            d1 = datetime.now()
+            samples_set = Sample.objects
             # Check if there's a sample with the same name
-            if Sample.objects.filter(name__iexact=sample['name']).exists():
+            if samples_set.filter(name__iexact=sample['name']):
                 # Output different warnings depending on whether the name is an exact match or a case insensitive match
-                if Sample.objects.filter(name__exact=sample['name']).exists():
+                if samples_set.filter(name__exact=sample['name']).exists():
                     self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists. ' \
                                             f'A new sample with the same name will be created.'
                 else:
                     self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists. ' \
                                             f'Please verify the name is correct.'
-
+            logging.info("check_sample_exists "+ str(( (datetime.now())-d1 ).total_seconds()))
             # Container related section
             parent_container_obj = None
             if parent_container['barcode']:
@@ -219,7 +221,7 @@ class SampleRowHandler(GenericRowHandler):
             if not sample['alias']:
                 self.errors['alias'].append([f"A pooled library must have a valid alias."])
 
-        d1 = datetime.now()
+        
         # For pooling purposes
         self.row_object = {
             # Biosample info
@@ -236,4 +238,4 @@ class SampleRowHandler(GenericRowHandler):
             # Pool relation info
             "volume": sample['volume'],
         }
-        logging.info("sample_wrapping_row_info_end "+ (str(( (datetime.now())-d1 ).total_seconds())))
+        logging.info("sample_row_end "+ (str(( (datetime.now()) - sample_start_time ).total_seconds())))
