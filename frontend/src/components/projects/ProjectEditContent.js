@@ -18,6 +18,7 @@ import PageContent from "../PageContent";
 import { add, update, listTable, summary } from "../../modules/projects/actions";
 import { project as EMPTY_PROJECT } from "../../models/empty_models";
 import { requiredRules, emailRules } from "../../constants";
+import ProjectsTableActions from '../../modules/projectsTable/actions'
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -60,9 +61,14 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
         add(data).then(project => { history(`/projects/${project.id}`) }) :
         update(id, data).then(() => { history(`/projects/${id}`) })
     action
-      .then(() => { setFormErrors({}) })
-      .catch(err => { setFormErrors(err.data || {}) })
-      .then(() => Promise.all([listTable(), summary()]))
+		.then(() => {
+			setFormErrors({})
+		})
+		.catch((err) => {
+			setFormErrors(err.data || {})
+		})
+		.then(() => Promise.all([listTable(), summary()]))
+		// .then(() => Promise.all([ProjectsTableActions.refreshPage(), summary()]))
   }
 
   const onCancel = useCallback(() => {
