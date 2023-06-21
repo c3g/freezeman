@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import moment from "moment";
-import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
@@ -12,33 +11,34 @@ import {
   Switch,
 } from "antd";
 const { TextArea } = Input
+import { Rule } from 'antd/lib/form'
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { add, update, listTable, summary } from "../../modules/projects/actions";
+import { add, update, summary } from "../../modules/projects/actions";
 import { project as EMPTY_PROJECT } from "../../models/empty_models";
 import { requiredRules, emailRules } from "../../constants";
 import ProjectsTableActions from '../../modules/projectsTable/actions'
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { selectProjectsByID } from "../../selectors"
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  projectsByID: state.projects.itemsByID,
-});
 
-const actionCreators = { add, update, listTable, summary };
 
-const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summary }) => {
+const ProjectEditContent = () => {
+  const dispatch = useAppDispatch()
+  const projectsByID = useAppSelector(selectProjectsByID)
+
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
 
-  const project = projectsByID[id];
+  const project = projectsByID[id!];
   /*
    * Form Data submission
    */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_PROJECT : project))
-  const [formErrors, setFormErrors] = useState({})
+  const [formErrors, setFormErrors] = useState<any>({})
 
   if (!isAdding && formData === undefined && project !== undefined) {
     const newData = deserialize(project)
@@ -58,8 +58,8 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(project => { history(`/projects/${project.id}`) }) :
-        update(id, data).then(() => { history(`/projects/${id}`) })
+        dispatch(add(data)).then(project => { history(`/projects/${project.id}`) }) :
+        dispatch(update(id, data)).then(() => { history(`/projects/${id}`) })
     action
 		.then(() => {
 			setFormErrors({})
@@ -67,8 +67,10 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
 		.catch((err) => {
 			setFormErrors(err.data || {})
 		})
-		.then(() => Promise.all([listTable(), summary()]))
-		// .then(() => Promise.all([ProjectsTableActions.refreshPage(), summary()]))
+		.then(() => {
+      dispatch(ProjectsTableActions.refreshPage())
+      dispatch(summary())
+    })
   }
 
   const onCancel = useCallback(() => {
@@ -83,13 +85,26 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
     'Add Project' :
     `Update Project ${project ? project.name : id}`
 
-  const props = name =>
-    !formErrors[name] ? { name } : {
-      name,
-      hasFeedback: true,
-      validateStatus: 'error',
-      help: formErrors[name],
-    }
+
+  interface ValidationProps {
+    name: string
+    hasFeedback?: boolean
+    validateStatus?: 'error',
+    help?: string
+  }  
+
+  function props(name: string): ValidationProps {
+    return !formErrors[name]
+		? { name }
+		: {
+				name,
+				hasFeedback: true,
+				validateStatus: 'error',
+				help: formErrors[name],
+		  }
+  }
+
+  const emailRule: Rule = { type: 'email', message: 'The input is not valid E-mail' }
 
   return (
     <>
@@ -115,7 +130,7 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
           <Form.Item label="Requestor Name" {...props("requestor_name")} >
             <Input />
           </Form.Item>
-          <Form.Item label="Requestor Email" {...props("requestor_email")} rules={emailRules} >
+          <Form.Item label="Requestor Email" {...props("requestor_email")} rules={[emailRule]} >
             <Input />
           </Form.Item>
           <Form.Item label="Status" {...props("status")} valuePropName="checked">
@@ -195,4 +210,4 @@ function serialize(values) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(ProjectEditContent);
+export default ProjectEditContent
