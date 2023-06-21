@@ -11,7 +11,7 @@ import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
 import PagedItemsTable, { useFilteredColumns } from '../pagedItemsTable/PagedItemsTable'
-import ProjectsTableActions from './ProjectsTableActions'
+import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
 
 
