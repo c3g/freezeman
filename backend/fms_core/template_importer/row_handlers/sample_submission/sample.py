@@ -14,6 +14,12 @@ from fms_core.services.sample import create_full_sample
 from fms_core.services.library import get_library_type, get_library_selection, create_library
 from fms_core.services.platform import get_platform
 from fms_core.services.index import get_index
+import logging
+logging.basicConfig(filename='output.log',
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
@@ -22,7 +28,7 @@ class SampleRowHandler(GenericRowHandler):
 
     def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
-
+        
         # Individual related section
         taxon_obj = None
         if individual['taxon']:
@@ -33,6 +39,7 @@ class SampleRowHandler(GenericRowHandler):
             reference_genome_obj, self.errors['reference_genome'], self.warnings['reference_genome'] = get_reference_genome(assembly_name=individual['reference_genome'])
 
         mother_obj = None
+        d1 = datetime.now()
         if individual_mother['name']:
             mother_obj, _, self.errors['individual_mother'], self.warnings['individual_mother'] = \
                 get_or_create_individual(name=individual_mother['name'],
@@ -41,7 +48,9 @@ class SampleRowHandler(GenericRowHandler):
                                          pedigree=individual["pedigree"],
                                          reference_genome=reference_genome_obj)
 
+        logging.info("sample_individual_fetch_or_create_mother_end "+ str(( (datetime.now())-d1 ).total_seconds()))
         father_obj = None
+        d1 = datetime.now()
         if individual_father['name']:
             father_obj, _, self.errors['individual_father'], self.warnings['individual_father'] = \
                 get_or_create_individual(name=individual_father['name'],
@@ -50,6 +59,7 @@ class SampleRowHandler(GenericRowHandler):
                                          pedigree=individual["pedigree"],
                                          reference_genome=reference_genome_obj)
 
+        logging.info("sample_individual_fetch_or_create_father_end "+ str(( (datetime.now())-d1 ).total_seconds()))
         individual_obj = None
         need_individual = any([individual["taxon"],
                                individual["sex"],
@@ -80,6 +90,7 @@ class SampleRowHandler(GenericRowHandler):
             if father_obj:
                 self.errors['individual'].append(f"Individual father requires an individual name to be provided to be saved.")
         elif individual["name"]:
+            d1 = datetime.now()
             individual_obj, created, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
                                          alias=individual['alias'],
@@ -94,6 +105,7 @@ class SampleRowHandler(GenericRowHandler):
                 self.warnings['individual'].append(f'Individual already exists and was not created.')
         else:
             self.warnings['individual'].append(f'Sample is not tied to any individual.')
+        logging.info("sample_individual_fetch_or_create_end "+ str(( (datetime.now())-d1 ).total_seconds()))
 
         # Sample related section
         sample_kind_obj = None
@@ -113,6 +125,7 @@ class SampleRowHandler(GenericRowHandler):
         library_obj = None
         is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness']])
         if is_library:
+            d1 = datetime.now()
             # Create library objects
             library_type_obj, self.errors['library_type'], self.warnings['library_type'] = get_library_type(library['library_type'])
             index_obj, self.errors['index'], self.warnings['index'] = get_index(library['index'])
@@ -129,14 +142,16 @@ class SampleRowHandler(GenericRowHandler):
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'],
                                                                                            library_selection=library_selection_obj)
-
+            logging.info("sample_library_create_end "+ str(( (datetime.now())-d1 ).total_seconds()))
         # Project related section
         project_obj = None
         studies_obj = []
         if project['name']:
+            d1 = datetime.now()
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
-
+            logging.info("sample_project_fetch_end "+ str(( (datetime.now())-d1 ).total_seconds()))
             if project_obj and project['study_letter']:
+                  d1 = datetime.now()
                   study_letters = [s.strip() for s in project['study_letter'].split("-") if s != ""]
                   for study_letter in study_letters:
                       study, study_errors, study_warnings = get_study(project_obj, study_letter)
@@ -144,6 +159,7 @@ class SampleRowHandler(GenericRowHandler):
                       self.warnings['study'].extend(study_warnings)
                       if study is not None:
                           studies_obj.append(study)
+                  logging.info("sample_study_fetch_end "+ str(( (datetime.now())-d1 ).total_seconds()))
         else:
             self.errors['project'] = [f"New samples must be assigned to a project."]
 
@@ -162,8 +178,10 @@ class SampleRowHandler(GenericRowHandler):
             # Container related section
             parent_container_obj = None
             if parent_container['barcode']:
+                d1 = datetime.now()
                 parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
-
+                logging.info("sample_container_fetch_end "+ str(( (datetime.now())-d1 ).total_seconds()))
+            d1 = datetime.now()
             container_obj, _, self.errors['container'], self.warnings['container'] = \
                 get_or_create_container(barcode=container['barcode'],
                                         kind=container['kind'],
@@ -172,24 +190,26 @@ class SampleRowHandler(GenericRowHandler):
                                         container_parent=parent_container_obj,
                                         creation_comment=comment,
                                         )
-
+            logging.info("sample_container_fetch_or_create_end "+ str(( (datetime.now())-d1 ).total_seconds()))
             sample_obj = None
             if library_obj is not None or not is_library:
+                d1 = datetime.now()
                 sample_obj, self.errors['sample'], self.warnings['sample'] = \
                     create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
                                        creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
                                        concentration=sample['concentration'], tissue_source=tissue_source_obj,
                                        experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
                                        library=library_obj, sample_kind=sample_kind_obj, comment=comment)
-
+                logging.info("sample_sample_create_end "+ str(( (datetime.now())-d1 ).total_seconds()))
             # Link sample to project if requested
             if project_obj and sample_obj:
+                d1 = datetime.now()
                 _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
                 for study_obj in studies_obj:
                     _, queue_errors, queue_warnings  = queue_sample_to_study_workflow(sample_obj, study_obj)
                     self.errors['queue_to_study'].extend(queue_errors)
                     self.warnings['queue_to_study'].extend(queue_warnings)
-
+                logging.info("sample_link_samples_to_project_end "+ str(( (datetime.now())-d1 ).total_seconds()))
         # If this sample belongs to a pool but the library obj was not created
         elif library['pool_name'] and not library_obj:
             self.errors['pooling'] = [f"A valid library is necessary to pool this sample."]
@@ -199,6 +219,7 @@ class SampleRowHandler(GenericRowHandler):
             if not sample['alias']:
                 self.errors['alias'].append([f"A pooled library must have a valid alias."])
 
+        d1 = datetime.now()
         # For pooling purposes
         self.row_object = {
             # Biosample info
@@ -215,3 +236,4 @@ class SampleRowHandler(GenericRowHandler):
             # Pool relation info
             "volume": sample['volume'],
         }
+        logging.info("sample_wrapping_row_info_end "+ (str(( (datetime.now())-d1 ).total_seconds())))

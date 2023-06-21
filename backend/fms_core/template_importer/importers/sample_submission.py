@@ -5,8 +5,11 @@ from fms_core.template_importer.row_handlers.sample_submission import SampleRowH
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none, input_to_integer_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
-
+import logging
+from datetime import datetime
+logger = logging.getLogger(__file__)
 class SampleSubmissionImporter(GenericImporter):
+    
     SHEETS_INFO = SAMPLE_SUBMISSION_TEMPLATE["sheets info"]
     def __init__(self):
         super().__init__()
@@ -17,6 +20,7 @@ class SampleSubmissionImporter(GenericImporter):
         self.preloaded_data['sample_kind_objects_by_name'] = {sample_kind.name: sample_kind for sample_kind in SampleKind.objects.all()}
 
     def import_template_inner(self):
+        
         samples_sheet = self.sheets['SampleSubmission']
 
         # Pool submission information
@@ -25,6 +29,7 @@ class SampleSubmissionImporter(GenericImporter):
         pools_dict = defaultdict(list)
         result_list = []
 
+        d1 = datetime.now()
         for row_id, row_data in enumerate(samples_sheet.rows):
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
 
@@ -102,12 +107,14 @@ class SampleSubmissionImporter(GenericImporter):
             result_list.append(result)
             if pool_name is not None:
                 pools_dict[pool_name].append(row_object)
-
+        d2 = datetime.now()
+        logger.info("sample_end_submission: "+str((d2-d1).total_seconds()))
         # prevent the repetition of error messages at the level of pools.
         if not any(result['validation_error'].messages for result in result_list):
             """
                 POOLS SHEET
             """
+            d1 = datetime.now()
             # Iterate through libraries rows
             for row_id, row_data in enumerate(pools_sheet.rows):
                 pool_kwargs = {
@@ -134,6 +141,7 @@ class SampleSubmissionImporter(GenericImporter):
                     samples_info=pools_dict.get(str_cast_and_normalize(row_data['Pool Name']), None),
                     **pool_kwargs
                 )
+            logger.info("pools_end_submission: "+str(((datetime.now())-d1).total_seconds()))
 
 
 
