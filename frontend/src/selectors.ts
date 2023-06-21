@@ -22,6 +22,7 @@ import {
 	User,
 	Workflow,
 } from './models/frontend_models'
+import { PagedItems } from './models/paged_items'
 import { IndividualDetailsById } from './modules/individualDetails/models'
 import { LabworkSummaryState } from './modules/labwork/reducers'
 import { LabworkStepsState } from './modules/labworkSteps/models'
@@ -75,6 +76,7 @@ export const selectProcessMeasurementTemplateActions = (state: RootState) => sta
 export const selectProjectsOfSamples = (state: RootState) => state.projectsOfSamples
 export const selectProjectsState = (state: RootState) => state.projects
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
+export const selectProjectsTable = (state: RootState) => state.projectsTable as PagedItems
 export const selectProjectTemplateActions = (state: RootState) => state.projectTemplateActions
 export const selectPropertyValuesByID = (state: RootState) => state.propertyValues.itemsByID as ItemsByID<PropertyValue>
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>

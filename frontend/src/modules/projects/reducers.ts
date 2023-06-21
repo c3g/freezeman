@@ -1,17 +1,17 @@
-import {merge, set} from "object-path-immutable";
-import {map} from "rambda"
+import { merge } from "object-path-immutable"
+import { map } from "rambda"
 
-import {indexByID} from "../../utils/objects";
-import mergeArray from "../../utils/mergeArray";
-import {summaryReducerFactory} from "../../utils/summary";
-import {templateActionsReducerFactory} from "../../utils/templateActions";
-import {resetTable} from "../../utils/reducers";
+import mergeArray from "../../utils/mergeArray"
+import { indexByID } from "../../utils/objects"
+import { resetTable } from "../../utils/reducers"
+import { summaryReducerFactory } from "../../utils/summary"
+import { templateActionsReducerFactory } from "../../utils/templateActions"
 
-import PROJECTS from "./actions";
 import { AnyAction } from "redux"
+import { Project } from "../../models/frontend_models"
 import { PagedItemsByID, createPagedItemsByID } from "../../models/paged_items"
 import { createPagedItemsActionTypes, createPagedItemsReducer } from "../../models/paged_items_factory"
-import { Project, mergeItemsByID } from "../../models/frontend_models"
+import PROJECTS from "./actions"
 
 export const projectsSummary = summaryReducerFactory(PROJECTS);
 export const projectTemplateActions = templateActionsReducerFactory(PROJECTS);
@@ -54,9 +54,8 @@ export const projects = (
             return { ...state, isFetching: true, };
         case PROJECTS.LIST.RECEIVE: {
             const results = action.data.results.map(preprocess)
-            const temporaryItems = action.data.results.map(r => r.id)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return { ...state, itemsByID, temporaryItems, isFetching: false, error: undefined };
+            return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case PROJECTS.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
