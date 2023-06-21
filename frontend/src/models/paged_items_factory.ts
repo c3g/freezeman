@@ -71,6 +71,11 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 		actionTypes
 
     const listPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {     
+        // Dispatch the LIST_PAGE.REQUEST action
+        dispatch({
+            type: actionTypes.LIST_PAGE.REQUEST
+        })
+
         const pagedItems = selectPagedItems(getState())
         const limit = pagedItems.page?.limit ?? selectPageSize(getState())
         const offset = limit * (pageNumber - 1)
@@ -87,15 +92,27 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 		}
         const meta = { ...params, pageNumber, ignoreError: 'AbortError' }
 
-        // TODO: Listing items doesn't put the items into an ItemsByID automatically any more, since PagedItems
-        // only contains a list of object ID's, and no longer has the objects themselves. For example, the 
-        // `projectsOfSamples` state has a list of project id's associated with a sample, but not the projects
-        // themselves. When we list the projects here, we need to somehow get the projects stored in
-        // state.projects.itemsByID, or wherever we decide to store projects in the future.
-
-        const { results } = await dispatch<Promise<{ results: FMSId[] }>>(networkAction(LIST_PAGE, list(params), {meta}))
-
-        return results
+        // Note: We are dispatch a `list` action here(eg. the "list" action from the projects actions in actions.js).
+        // The list action will dispatch the REQUEST/RECEIVE/ERROR actions for the type of item we are listing (eg. projects),
+        // which will ensure that the retrieved projects are stored in redux before this action completes.
+        // After listing the projects, we dispatch the LIST_PAGE action to updated the paged items state with
+        // the list of id's of the items, the count, the page size, etc.
+        try {
+            const reply = await dispatch(list(params))
+            dispatch({
+                type: actionTypes.LIST_PAGE.RECEIVE,
+                data: reply,
+                meta
+            })
+            const ids = reply.results.map(item => item.id)
+			return ids
+        } catch(error) {
+            dispatch({
+                type: actionTypes.LIST_PAGE.ERROR,
+                error
+            })
+            return []   // Return [] or rethrow the error?
+        }
     }
 
     const refreshPage: PagedItemsActions['refreshPage'] = () => async (dispatch, getState) => {

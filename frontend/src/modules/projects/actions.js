@@ -51,16 +51,6 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-// TODO remove this
-export const addProjectsToCache = (projects) => {
-    return {
-        type: LIST.RECEIVE,
-        data: {
-            results: projects
-        }
-    }
-} 
-
 export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy } = {}, abort) => async (dispatch, getState) => {
     if(getState().projects.isFetching && !abort)
       return

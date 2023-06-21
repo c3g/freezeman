@@ -49,36 +49,6 @@ export const projects = (
         case PROJECTS.UPDATE.ERROR:
             return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
 
-        // case PROJECTS.SET_SORT_BY:
-        //     return { ...state, sortBy: action.data, items: [] };
-        // case PROJECTS.SET_FILTER:
-        //     return {
-        //         ...state,
-        //         filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-        //         items: [],
-        //         totalCount: 0,
-        //         page: set(state.page, ['offset'], 0),
-        //     };
-        // case PROJECTS.SET_FILTER_OPTION:
-        //     return {
-        //         ...state,
-        //         filters: set(
-        //             state.filters,
-        //             [action.data.name, 'options', action.data.option],
-        //             action.data.value
-        //         ),
-        //         items: [],
-        //         totalCount: 0,
-        //         page: set(state.page, ['offset'], 0),
-        //     };
-        // case PROJECTS.CLEAR_FILTERS:
-        //     return {
-        //         ...state,
-        //         filters: {},
-        //         items: [],
-        //         totalCount: 0,
-        //         page: set(state.page, ['offset'], 0),
-        //     };
 
         case PROJECTS.LIST.REQUEST:
             return { ...state, isFetching: true, };
@@ -145,17 +115,6 @@ export const projects = (
         }
         case PROJECTS.LIST_TABLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
-
-
-        case actionTypes.LIST_PAGE.RECEIVE: {
-            // Add the projects to itemsByID
-            const projects = action.data.results.map(preprocess)
-            state = {
-                ...state,
-                itemsByID: mergeItemsByID(state.itemsByID, projects)
-            }
-            return pagedItemsReducer(state, action)
-        }
 
         default:
             return pagedItemsReducer(state, action);

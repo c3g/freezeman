@@ -4,23 +4,17 @@ import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-
 import api, { withToken } from '../../utils/api'
-
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
 import { Project } from '../../models/frontend_models'
-import { PagedItems, PagedItemsByID } from '../../models/paged_items'
-import { selectPageSize, selectProjectTemplateActions, selectProjectsByID, selectProjectsState, selectToken } from '../../selectors'
+import { PagedItemsByID } from '../../models/paged_items'
+import { selectProjectTemplateActions, selectProjectsByID, selectProjectsState, selectToken } from '../../selectors'
 import mergedListQueryParams from '../../utils/mergedListQueryParams'
 import { ActionDropdown } from '../../utils/templateActions'
 import PagedItemsTable, { useFilteredColumns } from '../pagedItemsTable/PagedItemsTable'
 import ProjectsTableActions from './ProjectsTableActions'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
-import serializeFilterParamsWithDescriptions, { serializeSortByParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
-import { createPagedItemsActionTypes } from '../../models/paged_items_factory'
-import { networkAction } from '../../utils/actions'
-import { addProjectsToCache } from '../../modules/projects/actions'
 
 
 const projectsListContentColumns = [
@@ -74,12 +68,7 @@ const ProjectsListContent2 = () => {
 	}, [projectsByID])
 
 	const projectsRequestCallback = useCallback((pageNumber: number) => {
-		// Create a thunk and dispatch it.
-		const requestAction = (page: number) => async (dispatch) => {
-			const projects = await dispatch(ProjectsTableActions.listPage(page))
-			dispatch(addProjectsToCache(projects))
-		}
-		dispatch(requestAction(pageNumber))
+		dispatch(ProjectsTableActions.listPage(pageNumber))
 	}, [dispatch])
 	
 	return (

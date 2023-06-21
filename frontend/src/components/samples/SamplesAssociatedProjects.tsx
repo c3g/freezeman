@@ -57,8 +57,7 @@ const SamplesAssociatedProjects = ({
   const requestPageCallback = useCallback((pageNumber: number) => {
 		// Create a thunk and dispatch it.
 		const requestAction = (page: number) => async (dispatch) => {
-			const projects = await dispatch(ProjectsOfSamplesActions.listPage(page))
-			dispatch(addProjectsToCache(projects))
+			dispatch(ProjectsOfSamplesActions.listPage(page))
 		}
 		dispatch(requestAction(pageNumber))
   }, [dispatch])
