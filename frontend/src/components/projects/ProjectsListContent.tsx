@@ -25,7 +25,7 @@ const projectsListContentColumns = [
 	PROJECT_COLUMN_DEFINITIONS.STATUS
 ]
 
-const ProjectsListContent2 = () => {
+const ProjectsListContent = () => {
 	const dispatch = useAppDispatch()
 	const projectsTableState  = useAppSelector(selectProjectsTable)
 	const projectsByID = useAppSelector(selectProjectsByID)
@@ -93,4 +93,4 @@ const ProjectsListContent2 = () => {
 	)
 }
 
-export default ProjectsListContent2
+export default ProjectsListContent

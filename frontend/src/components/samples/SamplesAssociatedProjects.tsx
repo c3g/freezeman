@@ -6,7 +6,6 @@ import { DataID, FilterSetting, createFixedFilter } from "../../models/paged_ite
 import ProjectsOfSamplesActions from '../../modules/projectsOfSamples/actions'
 import { selectProjectsByID, selectProjectsOfSamples } from "../../selectors"
 import { FILTER_TYPE } from "../../constants"
-import { addProjectsToCache } from "../../modules/projects/actions"
 
 const projectColumns = [
   PROJECT_COLUMN_DEFINITIONS.NAME,
