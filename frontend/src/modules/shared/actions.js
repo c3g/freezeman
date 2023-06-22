@@ -100,7 +100,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
         Individuals.listTable,
         Samples.listTable,
         Libraries.listTable,
-        Projects.listTable,
+        // Projects.listTable,
         ProcessMeasurements.listTable,
         Protocols.list,
         Datasets.listTable,

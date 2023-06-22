@@ -17,7 +17,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { add, update, summary } from "../../modules/projects/actions";
 import { project as EMPTY_PROJECT } from "../../models/empty_models";
-import { requiredRules, emailRules } from "../../constants";
+import { requiredRules } from "../../constants";
 import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectProjectsByID } from "../../selectors"
@@ -32,7 +32,7 @@ const ProjectEditContent = () => {
   const { id } = useParams();
   const isAdding = id === undefined
 
-  const project = projectsByID[id!];
+  const project = id ? projectsByID[id] : undefined
   /*
    * Form Data submission
    */
@@ -59,7 +59,7 @@ const ProjectEditContent = () => {
     const action =
       isAdding ?
         dispatch(add(data)).then(project => { history(`/projects/${project.id}`) }) :
-        dispatch(update(id, data)).then(() => { history(`/projects/${id}`) })
+        dispatch(update(Number(id), data)).then(() => { history(`/projects/${id}`) })
     action
 		.then(() => {
 			setFormErrors({})
@@ -104,6 +104,7 @@ const ProjectEditContent = () => {
 		  }
   }
 
+  // The emailRule defined in constants.js causes a typescript typing error, so it is redefined here.
   const emailRule: Rule = { type: 'email', message: 'The input is not valid E-mail' }
 
   return (
