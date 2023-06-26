@@ -34,7 +34,9 @@ class GenericRowHandler():
 
     def get_result(self):
         warnings = []
-        for (k, v) in (self.warnings).items():
-            if v:
+        for (k, vs) in (self.warnings).items():
+            if isinstance(vs, tuple):
+                vs = [vs]
+            for v in vs:
                 warnings.append({'key': k, 'format': v[0], 'args': v[1] })
         return {'errors': [], 'validation_error': ValidationError(self.errors), 'warnings': warnings}
