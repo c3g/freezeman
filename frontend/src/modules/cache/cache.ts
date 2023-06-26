@@ -53,9 +53,15 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 		if (itemsToFetch.length > 0) {
 			const BATCH_SIZE = 100
 			const totalBatch = Math.ceil(itemsToFetch.length / BATCH_SIZE)
-			for (let offset = 0; offset < BATCH_SIZE*totalBatch; offset += BATCH_SIZE) {
-				const id__in = itemsToFetch.slice(offset, offset + BATCH_SIZE).join(",")
-				const reply = await store.dispatch(listFunc({ id__in }))
+			const batchNumbers = [...Array(totalBatch).keys()]
+			const batchActions = batchNumbers.map((batchNum) => (async () => {
+					const offset = batchNum*BATCH_SIZE
+					const id__in = itemsToFetch.slice(offset, offset + BATCH_SIZE).join(",")
+					return await store.dispatch(listFunc({ id__in }))
+				})())
+
+			for (const bathAction of batchActions) {
+				const reply = await bathAction
 				// Some 'list' endpoints return paginated results, with a count and the data
 				// in a 'results' field. Others just return an array of data objects directly,
 				// so we have to distinguish between the two types of response.
