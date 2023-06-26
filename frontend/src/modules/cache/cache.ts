@@ -59,9 +59,8 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 					const id__in = itemsToFetch.slice(offset, offset + BATCH_SIZE).join(",")
 					return await store.dispatch(listFunc({ id__in }))
 				})())
-
-			for (const bathAction of batchActions) {
-				const reply = await bathAction
+			const replies = await Promise.all(batchActions)
+			for (const reply of replies) {
 				// Some 'list' endpoints return paginated results, with a count and the data
 				// in a 'results' field. Others just return an array of data objects directly,
 				// so we have to distinguish between the two types of response.
