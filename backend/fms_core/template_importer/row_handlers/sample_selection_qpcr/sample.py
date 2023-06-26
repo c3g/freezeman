@@ -17,6 +17,7 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
             barcode=sample['container']['barcode'],
             coordinates=sample['coordinates'],
         )
+        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
 
         if sample_obj:
             if not process_measurement['volume_used']:
@@ -30,12 +31,14 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
                         volume_used=process_measurement['volume_used'],
                         comment=process_measurement['comment'],
                     )
+                self.warnings['process_measurement'] = [(x, []) for x in self.warnings['process_measurement']]
 
                 # Create process measurement's properties
                 if process_measurement_obj:
                     properties_obj, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
                         process_measurement_properties,
                         process_measurement_obj)
+                    self.warnings['properties'] = [(x, []) for x in self.warnings['properties']]
 
                     # Update sample with Depleted and volume new values
                     depleted = check_truth_like(sample['depleted']) if sample['depleted'] and check_truth_like(sample['depleted']) else None
@@ -43,3 +46,4 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
                     
                     _, self.errors['sample_update'], self.warnings['sample_update'] = \
                         update_sample(sample_to_update=sample_obj, volume=new_volume, depleted=depleted)
+                    self.warnings['sample_update'] = [(x, []) for x in self.warnings['sample_update']]

@@ -21,6 +21,7 @@ class SampleQCRowHandler(GenericRowHandler):
             barcode=sample['container']['barcode'],
             coordinates=sample['coordinates'],
         )
+        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
 
         if sample_obj:
             # Check if sample is not a library or a pool of libraries
@@ -43,11 +44,13 @@ class SampleQCRowHandler(GenericRowHandler):
                 update_sample(sample_to_update=sample_obj,
                               volume=new_volume,
                               concentration=sample_information['concentration'])
+            self.warnings['sample_update'] = [(x, []) for x in self.warnings['sample_update']]
 
             # Update the sample's flags with sample information
             _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj,
                                                                               quantity_flag=sample_information['quantity_flag'],
                                                                               quality_flag=sample_information['quality_flag'])
+            self.warnings['flags'] = [(x, []) for x in self.warnings['flags']]
 
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
@@ -57,18 +60,21 @@ class SampleQCRowHandler(GenericRowHandler):
                     volume_used=process_measurement['volume_used'],
                     comment=process_measurement['comment'],
                 )
+            self.warnings['process_measurement'] = [(x, []) for x in self.warnings['process_measurement']]
 
             # Create process measurement's properties
             if process_measurement_obj:
                 properties_obj, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
                     process_measurement_properties,
                     process_measurement_obj)
+                self.warnings['properties'] = [(x, []) for x in self.warnings['properties']]
 
                 # Process the workflow action
                 self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
                                                                                              step=workflow["step"],
                                                                                              current_sample=sample_obj,
                                                                                              process_measurement=process_measurement_obj)
+                self.warnings['workflow'] = [(x, []) for x in self.warnings['workflow']]
 
             if process_measurement_obj and properties_obj:
                 # Validate instruments according to platform
@@ -85,5 +91,4 @@ class SampleQCRowHandler(GenericRowHandler):
                 # Validate required RIN for RNA
                 if sample_obj.derived_samples.first().sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
                     self.errors['RIN'] = 'RIN has to be specified for RNA.'
-
 

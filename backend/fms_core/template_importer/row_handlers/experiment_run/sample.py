@@ -11,6 +11,7 @@ class SampleRowHandler(GenericRowHandler):
     def process_row_inner(self, barcode, coordinates, volume_used, platform):
         # Calling the service creator for Samples in ExperimentRun
         sample, self.errors['container'], self.warnings['container'] = get_sample_from_container(barcode=barcode, coordinates=coordinates)
+        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         if sample is not None:
             self.row_object = sample
@@ -24,7 +25,7 @@ class SampleRowHandler(GenericRowHandler):
 
             # Add a warning if the sample has failed qc
             if any([sample.quality_flag is False, sample.quantity_flag is False]):
-                self.warnings["qc_flags"] = (f"Sample {sample.name} has failed QC.")
+                self.warnings["qc_flags"] = ("Sample {0} has failed QC.", [sample.name])
 
             if not volume_used:
                 self.errors['volume_used'] = f"Volume used must be entered"

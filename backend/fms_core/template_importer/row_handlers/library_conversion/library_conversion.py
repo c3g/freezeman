@@ -21,11 +21,12 @@ class LibraryRowHandler(GenericRowHandler):
             # Calling the service creator for Samples in LibraryPreparation
             sample_source_obj, self.errors['container'], self.warnings['container'] = \
                 get_sample_from_container(barcode=library_source['barcode'], coordinates=library_source['coordinates'])
+            self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
             if sample_source_obj:
                 # Add a warning if the sample has failed qc
                 if any([sample_source_obj.quality_flag is False, sample_source_obj.quantity_flag is False]):
-                    self.warnings["qc_flags"] = (f"Source library {sample_source_obj.name} has failed QC.")
+                    self.warnings["qc_flags"] = ("Source library {0} has failed QC.", [sample_source_obj.name])
 
                 # Populate the libraries with the batch and  individual information
                 container_coordinates = container['coordinates']
@@ -34,6 +35,7 @@ class LibraryRowHandler(GenericRowHandler):
                 if container['parent_barcode']:
                     container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = \
                         get_container(barcode=container['parent_barcode'])
+                    self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
 
                 container_obj, created, self.errors['library_container'], self.warnings['library_container'] = get_or_create_container(
                     name=container['name'],
@@ -42,9 +44,10 @@ class LibraryRowHandler(GenericRowHandler):
                     container_parent=container_parent_obj if container_parent_obj else None,
                     coordinates=container['parent_coordinates'] if container_parent_obj else None,
                     creation_comment=f"Automatically generated on {datetime.utcnow().isoformat()}Z via Library Conversion")
+                self.warnings['library_container'] = [(x, []) for x in self.warnings['library_container']]
 
                 if container_obj and not created:
-                    self.warnings['library_container'] = f'Using existing container {container_obj.name}'
+                    self.warnings['library_container'] = ('Using existing container {0}', [container_obj.name])
 
                 library_info = dict(
                     execution_date=library_batch_info['execution_date'],
@@ -68,5 +71,6 @@ class LibraryRowHandler(GenericRowHandler):
                                     execution_date=library_info['execution_date'],
                                     comment=comment,
                                     workflow=workflow)
+                self.warnings['library_conversion'] = [(x, []) for x in self.warnings['library_conversion']]
             else:
                 self.errors['library_source'] = 'Library source is needed to convert a library.'

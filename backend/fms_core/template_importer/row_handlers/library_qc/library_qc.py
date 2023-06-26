@@ -23,6 +23,7 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         source_sample_obj, self.errors['container'], self.warnings['container'] = \
                     get_sample_from_container(barcode=barcode, coordinates=coordinates)
+        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         # If library sample cannot be found then bail.
         if source_sample_obj is None:
@@ -55,7 +56,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             if measured_volume < 0:
                 self.errors['measured_volume'] = f'Measured volume ({measured_volume}) must be a positive value.'
             elif measured_volume > initial_volume:
-                self.warnings['measured_volume'] = f"Measured volume {measured_volume} is greater than initial volume {initial_volume}"
+                self.warnings['measured_volume'] = ("Measured volume {0} is greater than initial volume {1}", [measured_volume, initial_volume])
 
             if volume_used < 0:
                 self.errors['volume_used'] = f'Volume used ({volume_used}) must be a positive value.'
@@ -67,7 +68,7 @@ class LibraryQCRowHandler(GenericRowHandler):
 
             change_in_initial_volume = abs(initial_volume - sample_volume)
             if (change_in_initial_volume) > 0.0:
-                self.warnings['initial_volume'] = f"The current library volume ({sample_volume}uL) differs from the initial volume ({initial_volume}uL) in the template. The library volume will be set to {final_volume}uL."
+                self.warnings['initial_volume'] = ("The current library volume ({0}uL) differs from the initial volume ({1}uL) in the template. The library volume will be set to {2}uL.", [sample_volume, initial_volume, final_volume])
 
             if final_volume < 0:
                 self.errors['library_volume'] = f'The library\'s computed final volume would be less than zero ({final_volume}). Please verify the volume currently stored for the library.'
@@ -81,6 +82,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             # update sample library size before calculating concentration (uses the new value)
             _, self.errors['library_size'], self.warnings['library_size'] = update_sample(sample_to_update=source_sample_obj,
                                                                                           fragment_size=library_size)
+            self.warnings['library_size'] = [(x, []) for x in self.warnings['library_size']]
 
         # concentration
         if measures['concentration_nm'] is None and measures['concentration_uL'] is None:
@@ -96,6 +98,7 @@ class LibraryQCRowHandler(GenericRowHandler):
                 # Calculate the concentration taking into account volume ratios
                 concentration, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
                     convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, measures['concentration_nm'])
+                self.warnings['concentration_conversion'] = [(x, []) for x in self.warnings['concentration_conversion']]
                 if concentration is None:
                     self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
         
@@ -131,10 +134,12 @@ class LibraryQCRowHandler(GenericRowHandler):
         _, self.errors['sample_update'], self.warnings['sample_update'] = update_sample(sample_to_update=source_sample_obj,
                                                                                         volume=final_volume,
                                                                                         concentration=concentration)
+        self.warnings['sample_update'] = [(x, []) for x in self.warnings['sample_update']]
 
         _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=source_sample_obj,
                                                                           quantity_flag=measures['quantity_flag'],
                                                                           quality_flag=measures['quality_flag'])
+        self.warnings['flags'] = [(x, []) for x in self.warnings['flags']]
             
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
@@ -145,15 +150,18 @@ class LibraryQCRowHandler(GenericRowHandler):
                 volume_used=process_measurement['volume_used'],
                 comment=process_measurement['comment'],
             )
+        self.warnings['process_measurement'] = [(x, []) for x in self.warnings['process_measurement']]
 
          # Create process measurement's properties
         if process_measurement_obj:
             properties_obj, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
                 process_measurement_properties,
                 process_measurement_obj)
+            self.warnings['properties'] = [(x, []) for x in self.warnings['properties']]
 
             # Process the workflow action
             self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
                                                                                          step=workflow["step"],
                                                                                          current_sample=source_sample_obj,
                                                                                          process_measurement=process_measurement_obj)
+            self.warnings['workflow'] = [(x, []) for x in self.warnings['workflow']]

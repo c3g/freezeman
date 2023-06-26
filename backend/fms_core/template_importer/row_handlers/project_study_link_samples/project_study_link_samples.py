@@ -22,25 +22,28 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
         # Get sample object
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample['sample_container_barcode'],
                                                                                                coordinates=sample['sample_container_coord'])
+        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
         # Get project object
         project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
+        self.warnings['project'] = [(x, []) for x in self.warnings['project']]
 
         if sample_obj and project_obj:
             if sample_obj.name != sample['sample_name']:
                 warning_msg = f"Sample in container with barcode {sample['sample_container_barcode']} " + \
                               (f"at coordinate {sample['sample_container_coord']} " if sample['sample_container_coord'] else f"") + \
                               f"is named {sample_obj.name} not {sample['sample_name']}."
-                self.warnings['sample'].append(warning_msg)
 
             # Perform an add project and/or study action
             if action['name'] == ADD_PROJECT_STUDY_ACTION:
                 # Create link object if no errors
                 link_created, self.errors['link'], self.warnings['link'] = create_link(sample=sample_obj,
                                                                                        project=project_obj)
+                self.warnings['link'] = [(x, []) for x in self.warnings['link']]
 
                 # Queue sample to study if provided
                 if project['study_letter']:
                     study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
+                    self.warnings['study'] = [(x, []) for x in self.warnings['study']]
 
                     if study_obj:
                         # To avoid empty step orders
@@ -48,8 +51,10 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
 
                         # Check if sample is already queued 
                         is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study_obj, step_order)
+                        self.warnings['sample_queued'] = [(x, []) for x in self.warnings['sample_queued']]
                         if not is_sample_queued:
                             _, self.errors['add_to_study'], self.warnings['add_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj, step_order)
+                            self.warnings['add_to_study'] = [(x, []) for x in self.warnings['add_to_study']]
                         else:
                             self.errors['study'] = f"Sample [{sample_obj.name}] is already queued in study [{project['study_letter']}] \
                                 of project [{project['name']}] at step [{project['step_order']}]."
@@ -69,6 +74,7 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
                 # Queue sample to study if specified
                 if project['study_letter']:
                     study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
+                    self.warnings['study'] = [(x, []) for x in self.warnings['study']]
 
                     if study_obj:
                         # To avoid empty step orders
@@ -76,8 +82,10 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
 
                         # Check if sample is already queued 
                         is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study_obj, step_order)
+                        self.warnings['sample_queued'] = [(x, []) for x in self.warnings['sample_queued']]
                         if not is_sample_queued:
                             _, self.errors['add_to_study'], self.warnings['add_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj, step_order)
+                            self.warnings['add_to_study'] = [(x, []) for x in self.warnings['add_to_study']]
                         else:
                             self.errors['study'] = f"Sample [{sample_obj.name}] is already queued in study [{project['study_letter']}] \
                                 of project [{project['name']}] at step [{project['step_order']}]."
@@ -98,24 +106,28 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
                     for study in project_obj.studies.all():
                          # Check if sample is queued 
                         is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study)
+                        self.warnings['sample_queued'] = [(x, []) for x in self.warnings['sample_queued']]
                         
                         if is_sample_queued:
                             # Don't specify order to be able remove all instances of sample in the study, regardless of step
                             num_dequeued, self.errors['remove_from_study'], self.warnings['queue_to_study'] = dequeue_sample_from_all_steps_study_workflow(sample_obj, study)
+                            self.warnings['queue_to_study'] = [(x, []) for x in self.warnings['queue_to_study']]
                             num_dequeued += num_dequeued
                     if num_dequeued > 0:
-                        self.warnings['remove_project'] = f"Removing sample [{sample_obj.name}] from project [{project_obj.name}] will also remove the sample from [{project_obj.studies.all().count()}] studies."
+                        self.warnings['remove_project'] = ("Removing sample [{0}] from project [{1}] will also remove the sample from [{2}] studies.", [sample_obj.name, project_obj.name, project_obj.studies.all().count()])
                 
                 if not any(self.errors.values()):
                     # Remove link object if no errors
                     link_removed, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
                                                                                         project=project_obj)
+                    self.warnings['link'] = [(x, []) for x in self.warnings['link']]
 
             # Perform a remove study action
             elif action['name'] == REMOVE_STUDY_ACTION:
                 # Dequeue sample from a specified study 
                 if project['study_letter']:
                     study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
+                    self.warnings['study'] = [(x, []) for x in self.warnings['study']]
 
                     if study_obj:
                         # To avoid empty step orders
@@ -123,8 +135,10 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
                         if step_order is not None:
                             # Check if sample is queued 
                             is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study_obj, step_order)
+                            self.warnings['sample_queued'] = [(x, []) for x in self.warnings['sample_queued']]
                             if is_sample_queued:
                                 dequeued, self.errors['remove_from_study'], self.warnings['remove_from_study'] = dequeue_sample_from_specific_step_study_workflow(sample_obj, study_obj, step_order)
+                                self.warnings['remove_from_study'] = [(x, []) for x in self.warnings['remove_from_study']]
                             else:
                                 self.errors['study'] = f"Sample [{sample_obj.name}] is not queued in study [{project['study_letter']}] of project [{project_obj.name}] at step [{step_order}]."
                         else:

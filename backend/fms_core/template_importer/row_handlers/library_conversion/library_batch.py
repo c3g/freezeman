@@ -13,16 +13,19 @@ class LibraryBatchRowHandler(GenericRowHandler):
 
     def process_row_inner(self, protocol, process_properties, platform, comment, imported_template=None):
         platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(platform)
+        self.warnings['platform'] = [(x, []) for x in self.warnings['platform']]
 
         process_by_protocol, self.errors['library_conversion'], self.warnings['library_conversion'] = \
             create_process(protocol=protocol,
                            creation_comment=comment if comment
                            else f"Automatically generated via library conversion "f"on {datetime.utcnow().isoformat()}Z",
                            imported_template=imported_template)
+        self.warnings['library_conversion'] = [(x, []) for x in self.warnings['library_conversion']]
 
         # Create process' properties
         properties, self.errors['process_properties'], self.warnings['process_properties'] = \
             create_process_properties(process_properties, process_by_protocol)
+        self.warnings['process_properties'] = [(x, []) for x in self.warnings['process_properties']]
 
         if not platform_obj:
             self.errors['library_conversion'] = \
@@ -37,4 +40,3 @@ class LibraryBatchRowHandler(GenericRowHandler):
             'process_by_protocol': process_by_protocol,
             'platform': platform_obj,
         }
-

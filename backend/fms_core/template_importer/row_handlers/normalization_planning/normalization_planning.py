@@ -41,6 +41,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         source_sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
+        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
 
         if source_sample_obj and source_sample_obj.concentration is None:
             self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
@@ -48,7 +49,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         if source_sample_obj is not None and not self.has_errors():
             # Add a warning if the sample has failed qc
             if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
-                self.warnings["qc_flags"] = (f"Source sample {source_sample_obj.name} has failed QC.")
+                self.warnings["qc_flags"] = ("Source sample {0} has failed QC.", [source_sample_obj.name])
                 
             # ensure that the sample source is a library if the norm choice is library
             # If it is a pool we have to check if it is a pool of libraries
@@ -57,6 +58,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
 
             # ensure that if the sample source is in a tube, the tube has a parent container in FMS.
             container_obj, self.errors['src_container'], self.warnings['src_container'] = get_container(barcode=source_sample['container']['barcode'])
+            self.warnings['src_container'] = [(x, []) for x in self.warnings['src_container']]
             if not source_sample_obj.coordinates and container_obj.location is None: # sample without coordinate => tube
                 self.errors['robot_input_coordinates'] = 'Source samples in tubes must be in a rack for coordinates to be generated for robot.'
 
@@ -72,6 +74,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     # Calculate the concentration taking into account volume ratios
                     combined_concentration_nguL, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
                         convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, concentration_nm)
+                    self.warnings['concentration_conversion'] = [(x, []) for x in self.warnings['concentration_conversion']]
                     combined_concentration_nguL = decimal.Decimal(combined_concentration_nguL)
                     if combined_concentration_nguL is None:
                         self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
@@ -89,6 +92,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             if parent_barcode:
                 container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(
                     barcode=parent_barcode)
+                self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
             else:
                 container_parent_obj = None
 
@@ -98,6 +102,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                                                                                                destination_container_dict['name'],
                                                                                                                destination_container_dict['coordinates'],
                                                                                                                container_parent_obj)
+            self.warnings['dest_container'] = [(x, []) for x in self.warnings['dest_container']]
 
             volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
 
@@ -107,10 +112,10 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             if volume_used > source_sample_obj.volume:
                 adjusted_volume = decimal_rounded_to_precision(source_sample_obj.volume * source_sample_obj.concentration / combined_concentration_nguL)
                 volume_used = source_sample_obj.volume
-                self.warnings['volume'] = f'Insufficient source sample volume to comply. ' \
-                                          f'Requested Final volume ({measurements["volume"]} uL) ' \
-                                          f'will be adjusted to {adjusted_volume} uL to ' \
-                                          f'maintain requested concentration while using all source sample volume.'
+                self.warnings['volume'] = ('Insufficient source sample volume to comply. ' \
+                                          'Requested Final volume ({0} uL) ' \
+                                          'will be adjusted to {1} uL to ' \
+                                          'maintain requested concentration while using all source sample volume.', [measurements["volume"], adjusted_volume])
             else:
                 adjusted_volume = measurements['volume']
 

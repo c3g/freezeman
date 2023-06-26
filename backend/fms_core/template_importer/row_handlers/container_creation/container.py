@@ -17,6 +17,7 @@ class ContainerRowHandler(GenericRowHandler):
         parent_container_obj = None
         if parent_container['barcode']:
             parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
+            self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
 
         container_obj, self.errors['container'], self.warnings['container'] = create_container(barcode=container['barcode'],
                                                                                                kind=container['kind'],
@@ -25,3 +26,4 @@ class ContainerRowHandler(GenericRowHandler):
                                                                                                coordinates=container['coordinates'],
                                                                                                creation_comment=comment,
                                                                                               )
+        self.warnings['container'] = [(x, []) for x in self.warnings['container']]

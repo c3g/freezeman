@@ -11,6 +11,7 @@ class ContainerRowHandler(GenericRowHandler):
     def process_row_inner(self, container, container_rename):
         # Container related section
         container_obj, self.errors['container'], self.warnings['container'] = get_container(barcode=container['barcode'])
+        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         if not self.errors['container']:
             #Update
@@ -20,3 +21,4 @@ class ContainerRowHandler(GenericRowHandler):
                 name=container_rename['new_name'],
                 update_comment=container_rename['comment'],
             )
+            self.warnings['container_rename'] = [(x, []) for x in self.warnings['container_rename']]
