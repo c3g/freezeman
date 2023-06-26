@@ -11,7 +11,6 @@ class ContainerRowHandler(GenericRowHandler):
     def process_row_inner(self, container, destination_container):
         # Container related section
         container_obj, self.errors['container'], self.warnings['container'] = get_container(barcode=container['barcode'])
-        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         if not self.errors['container']:
             #Update
@@ -21,4 +20,3 @@ class ContainerRowHandler(GenericRowHandler):
                 destination_coordinates=destination_container['destination_coordinates'],
                 update_comment=destination_container['comment'],
             )
-            self.warnings['container_move'] = [(x, []) for x in self.warnings['container_move']]
