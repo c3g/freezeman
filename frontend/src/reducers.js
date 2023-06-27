@@ -91,6 +91,7 @@ import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
 import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
 import { projectsTable} from './modules/projectsTable/reducers'
+import { samplesTable } from './modules/samplesTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -123,6 +124,7 @@ const allReducers = combineReducers({
   sampleTemplateActions,
   samplePrefillTemplates,
   samples,
+  samplesTable,
   pooledSamples,
   protocols,
   processes,
