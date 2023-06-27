@@ -16,15 +16,15 @@ type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState)
   }
 
 export interface PagedItemsActions {
-	listPage: (pageNumber: number) => FreezemanAsyncThunk<FMSId[]>
-	refreshPage: () => FreezemanAsyncThunk<FMSId[]>
+	listPage: (pageNumber: number) => FreezemanAsyncThunk<void>
+	refreshPage: () => FreezemanAsyncThunk<void>
 	setFixedFilter: (filter: FilterSetting) => SetFixedFilterAction
-	setFilter: (value: FilterValue, description: FilterDescription) => FreezemanAsyncThunk<FMSId[]>
-	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<FMSId[]>
-	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<FMSId[]>
-	clearFilters: () => FreezemanAsyncThunk<FMSId[]>
-	setSortBy: (sortBy: SortBy) => FreezemanAsyncThunk<FMSId[]>
-	setPageSize: (pageSize: number) => FreezemanAsyncThunk<FMSId[]>
+	setFilter: (value: FilterValue, description: FilterDescription) => FreezemanAsyncThunk<void>
+	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<void>
+	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<void>
+	clearFilters: () => FreezemanAsyncThunk<void>
+	setSortBy: (sortBy: SortBy) => FreezemanAsyncThunk<void>
+	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
 }
 
 export type SetFilterActionType = PagedItemsActions['setFilter']
@@ -104,14 +104,12 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
                 data: reply,
                 meta
             })
-            const ids = reply.results.map(item => item.id)
-			return ids
         } catch(error) {
             dispatch({
                 type: actionTypes.LIST_PAGE.ERROR,
                 error
             })
-            return []   // Return [] or rethrow the error?
+            return
         }
     }
 
