@@ -109,6 +109,8 @@ export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
 		sortBy: {},
 		page: {
 			limit: 20	// TODO import this as a constant from pagination?
+			// Note: The pageNumber is left undefined intentionally. A page number
+			// should only be set when the page items are loaded.
 		}
 	}
 	return {...DEFAULT_PAGED_ITEMS}

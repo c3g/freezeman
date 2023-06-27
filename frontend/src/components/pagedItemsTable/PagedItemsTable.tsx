@@ -95,10 +95,15 @@ function PagedItemsTable<T extends PageableData>({
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
 		() => {
+			// If this table uses a fixed filter then set it before loading any items.
 			if (fixedFilter && fixedFilter.description) {
 				dispatch(setFixedFilter(fixedFilter))
 			}
-			requestPageCallback(pagedItems.page?.pageNumber ?? 1)
+			// If a page isn't already loaded in redux then request page 1
+			if (!pagedItems.page?.pageNumber) {
+				requestPageCallback(1)
+			}
+			
 		},
 		[
 			/* Only call once when the component is mounted*/

@@ -21,6 +21,7 @@ import Steps from '../steps/actions'
 import * as SampleNextStep from '../labworkSteps/actions'
 import { refreshLabwork } from "../labwork/actions";
 import { refreshAllStudySamples } from "../studySamples/actions";
+import ProjectsTableActions from '../projectsTable/actions'
 
 
 export const fetchSummariesData = () => async (dispatch, getState) => {
@@ -100,7 +101,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
         Individuals.listTable,
         Samples.listTable,
         Libraries.listTable,
-        // Projects.listTable,
+        ProjectsTableActions.refreshPage,
         ProcessMeasurements.listTable,
         Protocols.list,
         Datasets.listTable,

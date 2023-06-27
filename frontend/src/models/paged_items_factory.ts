@@ -70,13 +70,52 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
     const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE } =
 		actionTypes
 
-    const listPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {     
-        // Dispatch the LIST_PAGE.REQUEST action
-        dispatch({
-            type: actionTypes.LIST_PAGE.REQUEST
-        })
+
+    /**
+     * Get a page of items, specified by page number.
+     * This is intended for components to use. Components can sometimes ask for the same page of data
+     * multiple times. This action will only call the backend if the page has not already been loaded.
+     * To force the page to be updated, use the refreshPage() action.
+     * 
+     * This is to protect us from accidentally spamming to server with an infinite loop of requests
+     * for the same page of data, which happened in the past with PaginatedTable.
+     * 
+     * @param pageNumber The page number to list
+     * @returns 
+     */
+    const listPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {
+		const pagedItems = selectPagedItems(getState())
+		// If the page is already loaded then ignore this action. This protects against
+		// components that go into an infinite loop of requesting items. If the items need to be
+		// refreshed then the refreshPage() action should be used.
+		if (pagedItems.page?.pageNumber) {
+			if (pagedItems.page.pageNumber === pageNumber) {
+				console.warn(`Ignored listPage action as page ${pageNumber} is already loaded.`)
+				return
+			}
+		}
+
+        // If the page is not already loaded then fetch the page.
+        dispatch(_fetchPage(pageNumber))
+	}
+
+    /**
+     * This is a private, internal action that fetches a page load of items, specified
+     * by page number. It will fetch the page of items even if the page is already loaded.
+     * It is used to force tables to refresh their contents.
+     * 
+     * @param pageNumber The page number to fetch
+     * @returns 
+     */
+    const _fetchPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {     
 
         const pagedItems = selectPagedItems(getState())
+
+        // Dispatch the LIST_PAGE.REQUEST action
+        dispatch({
+            type: LIST_PAGE.REQUEST
+        })
+        
         const limit = pagedItems.page?.limit ?? selectPageSize(getState())
         const offset = limit * (pageNumber - 1)
         const { filters, fixedFilters, sortBy } = pagedItems
@@ -100,13 +139,13 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
         try {
             const reply = await dispatch(list(params))
             dispatch({
-                type: actionTypes.LIST_PAGE.RECEIVE,
+                type: LIST_PAGE.RECEIVE,
                 data: reply,
                 meta
             })
         } catch(error) {
             dispatch({
-                type: actionTypes.LIST_PAGE.ERROR,
+                type: LIST_PAGE.ERROR,
                 error
             })
             return
@@ -115,7 +154,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 
     const refreshPage: PagedItemsActions['refreshPage'] = () => async (dispatch, getState) => {
         const pagedItems = selectPagedItems(getState())
-        return await dispatch(listPage(pagedItems.page?.pageNumber ?? 1))
+        return await dispatch(_fetchPage(pagedItems.page?.pageNumber ?? 1))
     }
 
     const setFixedFilter: PagedItemsActions['setFixedFilter'] = (filter: FilterSetting) => {
@@ -132,7 +171,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
             value: value
         })
 
-        return await dispatch(listPage(1))
+        return await dispatch(_fetchPage(1))
     }
 
     const setFilterOptions: PagedItemsActions['setFilterOptions'] = (description, options) => async (dispatch) => {
@@ -141,7 +180,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
             description,
             options
         })
-        return await dispatch(listPage(1))
+        return await dispatch(_fetchPage(1))
     }
 
     const removeFilter: PagedItemsActions['removeFilter'] = (description) => async (dispatch) => {
@@ -150,12 +189,12 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
             description: description,
         })
 
-        return await dispatch(listPage(1))
+        return await dispatch(_fetchPage(1))
     }
 
     const clearFilters: PagedItemsActions['clearFilters'] = () => async (dispatch) => {
         dispatch({ type: CLEAR_FILTERS })
-        return await dispatch(listPage(1))
+        return await dispatch(_fetchPage(1))
     }
 
     const setSortBy: PagedItemsActions['setSortBy'] = (sortBy) => async (dispatch) => {
@@ -164,7 +203,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
             sortBy
         })
 
-        return await dispatch(listPage(1))
+        return await dispatch(_fetchPage(1))
     }
 
     const setPageSize: PagedItemsActions['setPageSize'] = (pageSize) => async (dispatch) => {
@@ -172,7 +211,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
             type: SET_PAGE_SIZE,
             pageSize
         })
-        return await dispatch(listPage(1))
+        return await dispatch(_fetchPage(1))
     }
 
 
