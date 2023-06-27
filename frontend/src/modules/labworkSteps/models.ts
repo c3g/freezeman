@@ -26,7 +26,6 @@ export interface LabworkStepSamples {
 	prefill: {
 		templates: LabworkPrefilledTemplateDescriptor[],	// The resulting list, or an empty array
 	}
-	showSelectionChangedWarning: boolean						// If true, a warning is displayed that the selected samples were changed during refresh
-
+	showSelectionChangedWarning: boolean					// If true, a warning is displayed that the selected samples were changed during refresh
 }
 

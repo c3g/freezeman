@@ -67,6 +67,46 @@ export interface FMSCoordinate extends FMSTrackedModel {
   row: number                        // Row ordinal starting at 0
 }
 
+export interface FMSDataset extends FMSTrackedModel {
+    external_project_id : FMSId         // External (Hercules) project ID
+    files: FMSId[]                      // List of dataset file ID's
+    lane: number                        // Flowcell lane number of dataset
+    latest_release_update?: string      // ?
+    released_status_count: number       // Number of files released
+    blocked_status_count: number        // Number of files blocked
+    run_name: string                    // The name of the experiment run that generated this dataset
+    metric_report_url?: string          // An external url to a report containing metrics for the dataset run
+}
+
+export interface FMSDatasetFile extends FMSTrackedModel {
+    dataset: FMSId                      // The dataset that owns this file
+    file_path: string                   // The path to the dataset file (on Abacus?)
+    release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
+    sample_name: string                 // The name of the sample that was processed to produce this file
+}
+
+export interface FMSExperimentRun extends FMSTrackedModel {
+    children_processes: FMSId[]         //Child process ID's
+    container: FMSId                    // Experiment run container (flowcell)
+    instrument: FMSId                   // Sequencer instrument ID
+    instrument_type: string             // Name of instrument type
+    name: string                        // Experiment run name
+    platform: string                    // Platform (ILLUMINA, DBNSEQ, etc.)
+    process: FMSId                      // Process ID
+    run_type: FMSId                     // RunType ID
+    start_date: string                  // Date when user started run 
+    end_time?: string                    // Time at which the experiment run completed (set by API call)
+    run_processing_launch_time?: string  // Last time the run processing was launched, if it has been launched for the experiment run
+    run_processing_start_time?: string   // Last time the run processing actually started for the experiment run
+    run_processing_end_time?: string     // Last time the run processing completed for the experiment run
+}
+
+export interface FMSExternalExperimentRun {
+    run_name: string                    // Experiment run name
+    latest_submission_timestamp: string // Date that datasets for run were last submitted
+    lanes: number[]                     // Lane descriptions: Coordinates of the lane in a container
+}
+
 export interface FMSImportedFile {
     filename: string,                   // Name of file 
     location: string,                   // Path to file (including file name)
@@ -90,6 +130,12 @@ export interface FMSIndividual extends FMSTrackedModel {
     reference_genome?: FMSId            // Reference Genome ID
     mother?: FMSId                      // Individual ID of mother
     father?: FMSId                      // Individual ID of father
+}
+
+export interface FMSInstrument extends FMSTrackedModel {
+    name: string                        // Name of instrument
+    serial_id: string                   // Instrument serial number
+    type: FMSId                         // ID of instrument type
 }
 
 export interface FMSLabworkSummary {
@@ -136,6 +182,18 @@ export interface FMSLibraryType extends FMSTrackedModel {
     name: string                        // Library type name, eg "PCR-Free"
 }
 
+export interface FMSMetric extends FMSTrackedModel {
+    name: string                        // Metric name
+    metric_group: string                // Named group that metric belongs to
+    sample_name: string                 // Name of sample metric applies to
+    derived_sample_id?: FMSId           // Derived sample id, if metric is from a freezeman experiment run
+    run_name: string                    // Name of run that generated metric
+    experiment_run_id?: FMSId           // Freezeman experiment run (undefined for external experiment runs)
+    lane: number                        // Lane number
+    value_numeric?: string              // Metric value if numeric. Note: decimals are exported as string because JSON only supports floats and serializing as a number could lose precision.
+    value_string?: string               // Metric value, if text
+}
+
 export interface FMSPlatform extends FMSTrackedModel {
     name: string                        // Platform name eg "ILLUMINA" or "DNBSEQ"
 }
@@ -174,6 +232,7 @@ export interface FMSProcess extends FMSTrackedModel {
     parent_process?: FMSId              // Parent process ID, if any
     protocol: FMSId                     // ID of protocol for process
     imported_template?: FMSId           // Imported template ID, if any
+    comment?: string                    // User comment
 }
 
 export interface FMSProcessMeasurement extends FMSTrackedModel {
@@ -237,6 +296,13 @@ export interface FMSReferenceGenome extends FMSTrackedModel {
     refseq_id?: string                  // RefSeq identifier of the reference genome
     taxon_id: FMSId                        // Reference genome used to analyze samples in the study
     size: number                        // Number of base pairs of the reference genome
+}
+
+export interface FMSRunType extends FMSTrackedModel {
+    name: string                        // Name of run type
+    needs_run_processing : boolean      // True if this run type requires run processing
+    platform: FMSId                     // Platform ID
+    protocol: FMSId                     // Experiment run protocol ID
 }
 
 export interface FMSSample extends FMSTrackedModel {
@@ -337,6 +403,7 @@ export interface FMSStudy extends FMSTrackedModel {
 export interface FMSTaxon extends FMSTrackedModel {
     name: string                        // Taxon scientific name
     ncbi_id: number                     // Numerical identifier used by the NCBI taxonomy catalog
+    editable?: boolean
 }
 
 // Template action description

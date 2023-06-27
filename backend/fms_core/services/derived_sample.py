@@ -9,6 +9,7 @@ def inherit_derived_sample(derived_sample_source, new_derived_sample_data):
     
     try:
         new_derived_sample = DerivedSample.objects.get(id=derived_sample_source.id)
+        new_derived_sample.derived_from_id = new_derived_sample.id
         new_derived_sample.pk = None
         new_derived_sample.__dict__.update(new_derived_sample_data)
         new_derived_sample.save()

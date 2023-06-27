@@ -31,9 +31,11 @@ const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...res
             })
             .catch(err => {
               const key = 'Failed to export'
-              dispatch(notifyError(key, {
+              dispatch(notifyError({
+                id: key,
                 title: key,
                 description: err.message,
+                duration: 0,
               }))
             })
             .then(() => {
@@ -47,9 +49,7 @@ const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...res
 
   }
   return (
-    <Button icon={<DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
-      Export {exportType}
-    </Button>
+		<Button icon={<DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>{exportType ? `Export ${exportType}` : 'Export'}</Button>
   )
 }
 

@@ -129,6 +129,9 @@ export async function buildStudySamplesFromWorkflow(
 				((await store.dispatch(api.pooledSamples.sample_count({ sample__id__in: samples.join(",") }))).data as { sample__id: FMSId, count_derived_samples: number }[])
 				.reduce((prev, { sample__id, count_derived_samples }) => ({ ...prev, [sample__id]: count_derived_samples }), {} as { [key: FMSId]: number })
 
+			const sampleNextStepByStudyBySampleID: StudySampleStep['sampleNextStepByStudyBySampleID'] =
+				Object.fromEntries(sampleNextSteps.map((nextStep) => [nextStep.sample, nextStep]))
+
 			// Find the sample count for this step, if it is there. The backend returns nothing
 			// if there are zero samples for a step.
 			const sampleCountStep = sampleCounts?.steps.find(s => s.step_order_id === stepOrder.id)
@@ -145,6 +148,7 @@ export async function buildStudySamplesFromWorkflow(
 				completedCount: completedStep ? completedStep.count : 0, 
 				completed: [],
 				sampleCountByPooledSampleID
+				sampleNextStepByStudyBySampleID
 			}
 			stepMap.set(step.stepOrderID, step)
 		}
