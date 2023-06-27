@@ -1,5 +1,5 @@
 import { Tag } from "antd";
-import React from "react";
+import React, { useCallback } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import FilteredList from "../FilteredList";
@@ -7,6 +7,8 @@ import { listFilter } from "../../modules/samples/actions";
 import { Depletion } from "../Depletion";
 import { SAMPLE_FILTERS } from "../filters/descriptions";
 import { WithIndividualRenderComponent } from "../shared/WithItemRenderComponent";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { selectSampleKindsState, selectSamplesByID } from "../../selectors";
 
 const getTableColumns = (sampleKinds) => [
     {
@@ -67,37 +69,29 @@ const getTableColumns = (sampleKinds) => [
     }
   ];
 
-const mapStateToProps = state => ({
-  sampleKinds: state.sampleKinds,
-  page: state.samples.page,
-  samplesByID: state.samples.itemsByID,
-  samples: state.samples.filteredItems,
-  totalCount: state.samples.filteredItemsCount,
-  isFetching: state.samples.isFetching,
-});
-
-const actionCreators = {listFilter};
-
-const ProjectsAssociatedSamples = ({
-  projectID,
-  samplesByID,
-  samples,
-  totalCount,
-  sampleKinds,
-  isFetching,
-  page,
-  listFilter,
-}) => {
+const ProjectsAssociatedSamples = ({projectID}) => {
 
   const filterKey = SAMPLE_FILTERS.derived_samples__project__id.key
 
+  const sampleKinds = useAppSelector(selectSampleKindsState)
+  const page = useAppSelector((state) => state.samples.page)
+  const samplesByID = useAppSelector(selectSamplesByID)
+  const samples = useAppSelector((state) => state.samples.filteredItems)
+  const totalCount = useAppSelector((state) => state.samples.filteredItemsCount)
+  const isFetching = useAppSelector((state) => state.samples.isFetching)
+  
+  const dispatch = useAppDispatch()
+  const listFilterCallback = useCallback((props: any) => {
+    return dispatch(listFilter(props))
+  }, [dispatch])
+  
   const columns = getTableColumns(sampleKinds)
 
   return <>
     <FilteredList
       description={SAMPLE_FILTERS}
       columns={columns}
-      listFilter={listFilter}
+      listFilter={listFilterCallback}
       items={samples}
       itemsByID={samplesByID}
       totalCount={totalCount}
@@ -110,4 +104,4 @@ const ProjectsAssociatedSamples = ({
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ProjectsAssociatedSamples);
+export default ProjectsAssociatedSamples;

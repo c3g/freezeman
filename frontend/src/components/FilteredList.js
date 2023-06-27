@@ -21,6 +21,7 @@ const FilteredList = ({
   isFetching,
   page,
   listFilter,
+  rowKey = 'id',
 }) => {
 
 
@@ -102,7 +103,7 @@ const FilteredList = ({
         columns={columns}
         items={itemsFiltered}
         itemsByID={itemsByID}
-        rowKey="id"
+        rowKey={rowKey}
         loading={isFetching}
         totalCount={totalCount}
         page={page}
