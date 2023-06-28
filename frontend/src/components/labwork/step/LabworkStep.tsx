@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearSelectedSamples, flushSamplesAtStep, loadAllSamples, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, selectAllSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { downloadFromFile } from '../../../utils/download'
@@ -63,6 +63,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			return availableSamples
 		}
 		setSamples(getSampleList(stepSamples.displayedSamples))
+
+		// This is pretty expensive. The selected samples table doesn't use pagination
+		// and so all of the selected samples and libraries needed to be loaded into redux
+		// for the table to work properly. It would be better if the samples and libraries
+		// were loaded on demand, by page like we usually do in tables.
 		setSelectedSamples(getSampleList(stepSamples.selectedSamples))
 	}, [samplesByID, librariesByID, stepSamples])
 
@@ -227,7 +232,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}
 	const handleSelectAll =
 		async () => {
-			await dispatch(loadAllSamples(step.id))
+			await dispatch(selectAllSamplesAtStep(step.id))
 		}
 
 
@@ -389,7 +394,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 								style={{ marginBottom: '1em' }}
 							/>
 						}
-						{/* Selection table does not allow filtering or sorting */}
+						{/* Selection table does not allow filtering or sorting.*/}
+						{/* Also, we don't handle pagination for selected samples so we are required to 
+							load all of the selected samples and libraries for the table to work.
+							We should handle pagination and only load pages of samples and libraries on demand.	
+						*/}
 						<WorkflowSamplesTable
 							hasFilter={false}
 							samples={selectedSamples}

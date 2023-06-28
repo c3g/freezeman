@@ -4,6 +4,7 @@ import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../mod
 import { selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectToken } from "../../selectors"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
+import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
 import Sample from "../samples/actions.js"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE } from "./reducers"
@@ -61,7 +62,7 @@ export function initSamplesAtStep(stepID: FMSId) {
 		await dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
-export function loadAllSamples(stepID: FMSId) {
+export function selectAllSamplesAtStep(stepID: FMSId) {
 	return async (dispatch, getState) => {
 		const labworkState = selectLabworkStepsState(getState())
 		const stepSamples = labworkState.steps[stepID]
@@ -76,8 +77,12 @@ export function loadAllSamples(stepID: FMSId) {
 		}
 		const response = await dispatch(api.sampleNextStep.listSamplesAtStep(stepID, options))
 		const results = response.data.results;
-		if (results)
-			dispatch(updateSelectedSamplesAtStep(stepID, results.map(nextStep => nextStep.sample)))
+		if (results) {
+			const selectedSampleIDs = results.map(nextStep => nextStep.sample)
+			await fetchSamples(selectedSampleIDs)
+			await fetchLibrariesForSamples(selectedSampleIDs)
+			dispatch(updateSelectedSamplesAtStep(stepID, selectedSampleIDs))
+		}	
 		else
 			return
 	}
