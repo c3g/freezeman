@@ -79,8 +79,12 @@ export function selectAllSamplesAtStep(stepID: FMSId) {
 		const results = response.data.results;
 		if (results) {
 			const selectedSampleIDs = results.map(nextStep => nextStep.sample)
+			// We have to load all of the selected samples and libraries for the selected
+			// samples table to work properly. This is pretty expensive and the table should
+			// be refactored to load pages of samples on demand.
 			await fetchSamples(selectedSampleIDs)
 			await fetchLibrariesForSamples(selectedSampleIDs)
+			
 			dispatch(updateSelectedSamplesAtStep(stepID, selectedSampleIDs))
 		}	
 		else
