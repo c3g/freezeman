@@ -786,8 +786,7 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
     editable = serializers.SerializerMethodField()
     class Meta:
         model = ReferenceGenome
-        fields = ("__all__")
-        extra_fields = ("editable")
+        fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size", "editable")
     def get_editable(selft, obj):
         return not Individual.objects.filter(reference_genome_id=obj.id).exists()
 

@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { getAllItems } from '../../models/frontend_models'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import { useAppSelector } from '../../hooks'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectAuthState, selectReferenceGenomesByID, selectTaxonsByID, selectUsersByID } from '../../selectors'
 import { Table } from 'antd'
 import AddButton from '../AddButton'
 import { getColumnsForReferenceGenome } from './ReferenceGenomeTableColumns'
 import { ReferenceGenome } from '../../models/frontend_models'
+import { list } from "../../modules/referenceGenomes/actions";
 
 
 function ReferenceGenomesListContent() {
@@ -18,7 +19,12 @@ function ReferenceGenomesListContent() {
 	const usersByID = useAppSelector(selectUsersByID)
 	const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false)
 	const columns = getColumnsForReferenceGenome(taxonsByID, hasWritePermission);
+	const dispatch = useAppDispatch();
 
+	useEffect(() => {
+		dispatch(list());
+	}, [])
+	
 	useEffect(() => {
 		const refGenomesByID = getAllItems(referenceGenomesByID)
 		const refGenomeColumns: ReferenceGenome[] = refGenomesByID.map((ref) => { return { ...ref } })
