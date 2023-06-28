@@ -783,9 +783,13 @@ class WorkflowSerializer(serializers.ModelSerializer):
         return serialized_data.data
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
+    editable = serializers.SerializerMethodField()
     class Meta:
         model = ReferenceGenome
-        fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size")
+        fields = ("__all__")
+        extra_fields = ("editable")
+    def get_editable(selft, obj):
+        return not Individual.objects.filter(reference_genome_id=obj.id).exists()
 
 class StudySerializer(serializers.ModelSerializer):
     removable = serializers.SerializerMethodField(read_only=True)
