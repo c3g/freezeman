@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
-import PagedItemsTable, { useFilteredColumns } from "../pagedItemsTable/PagedItemsTable"
+import PagedItemsTable, { useFilteredColumns, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from '../projects/ProjectsTableColumns'
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { DataID, FilterSetting, createFixedFilter } from "../../models/paged_items"
@@ -19,21 +19,19 @@ const projectColumns = [
 const SamplesAssociatedProjects = ({
   sampleID,
 }) => {
-  const dispatch = useAppDispatch()
-  const { setFilter, setFilterOptions } = ProjectsOfSamplesActions
   const projectsOfSamples = useAppSelector(selectProjectsOfSamples)
   const projectsByID = useAppSelector(selectProjectsByID)
   const [sampleIDFilter, setSampleIDFilter] = useState<FilterSetting>()
+
+  const tableCallbacks = usePagedItemsActionsCallbacks(ProjectsOfSamplesActions)
 
   const columns = useFilteredColumns<ObjectWithProject>(
                     projectColumns, 
                     PROJECT_FILTERS, 
                     PROJECT_FILTER_KEYS, 
                     projectsOfSamples.filters,
-                    setFilter,
-                    setFilterOptions)
-
-  
+                    tableCallbacks.setFilterCallback,
+                    tableCallbacks.setFilterOptionsCallback)
 
   useEffect(() => {
     if (sampleID) {
@@ -53,14 +51,6 @@ const SamplesAssociatedProjects = ({
     }, [] as ObjectWithProject[])
   }
 
-  const requestPageCallback = useCallback((pageNumber: number) => {
-		// Create a thunk and dispatch it.
-		const requestAction = (page: number) => async (dispatch) => {
-			dispatch(ProjectsOfSamplesActions.listPage(page))
-		}
-		dispatch(requestAction(pageNumber))
-  }, [dispatch])
-
   // TODO : This table is actually broken, because there is no mechanism to stored retrieved
   // projects in redux. It only seems to work because most of the projects from the db are
   // loaded into redux at startup.
@@ -69,13 +59,12 @@ const SamplesAssociatedProjects = ({
       // Don't render until the sample fixed filter is set, or you will get all of the projects.
       sampleIDFilter && 
        <PagedItemsTable
-        requestPageCallback={requestPageCallback}
         columns={columns}
         fixedFilter={sampleIDFilter}
         getDataObjectsByID={mapProjectsByID}
         pagedItems={projectsOfSamples}
-        pagedItemsActions={ProjectsOfSamplesActions}
         usingFilters={true}
+        {...tableCallbacks}
       />
   )
 }

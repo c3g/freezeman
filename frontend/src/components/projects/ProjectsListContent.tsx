@@ -10,7 +10,7 @@ import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import PagedItemsTable, { useFilteredColumns } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable, { useFilteredColumns, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
 
@@ -26,7 +26,6 @@ const projectsListContentColumns = [
 ]
 
 const ProjectsListContent = () => {
-	const dispatch = useAppDispatch()
 	const projectsTableState  = useAppSelector(selectProjectsTable)
 	const projectsByID = useAppSelector(selectProjectsByID)
 	const { filters, sortBy, totalCount } = projectsTableState
@@ -40,15 +39,16 @@ const ProjectsListContent = () => {
 	}
 	, [token, filters, sortBy])
 
-	const columns = useFilteredColumns(
-						projectsListContentColumns, 
-						PROJECT_FILTERS,
-						PROJECT_FILTER_KEYS,
-						filters,
-						ProjectsTableActions.setFilter,
-						ProjectsTableActions.setFilterOptions)
+	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
 
-	
+	const columns = useFilteredColumns(
+		projectsListContentColumns,
+		PROJECT_FILTERS,
+		PROJECT_FILTER_KEYS,
+		filters,
+		projectsTableCallbacks.setFilterCallback,
+		projectsTableCallbacks.setFilterOptionsCallback
+	)
 
 	const mapProjectIDs = useCallback((ids: FMSId[]) => {
 		async function mapIDsToProjects(ids: FMSId[]) {
@@ -64,10 +64,6 @@ const ProjectsListContent = () => {
 		}
 		return mapIDsToProjects(ids)
 	}, [projectsByID])
-
-	const projectsRequestCallback = useCallback((pageNumber: number) => {
-		dispatch(ProjectsTableActions.listPage(pageNumber))
-	}, [dispatch])
 	
 	return (
 		<>
@@ -81,12 +77,11 @@ const ProjectsListContent = () => {
 			/>
 			<PageContent>
 				<PagedItemsTable<ObjectWithProject>
-					requestPageCallback={projectsRequestCallback}
 					getDataObjectsByID={mapProjectIDs}
 					pagedItems={projectsTableState}
-					pagedItemsActions={ProjectsTableActions}
 					columns={columns}
 					usingFilters={true}
+					{...projectsTableCallbacks}
 				/>
 			</PageContent>
 		</>
