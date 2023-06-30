@@ -99,7 +99,6 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			// is already in the project details page.
 			return [
 				...getColumnsForStudySamplesStep(stepDefinition, protocol),
-        actionColumn,
 				{
 					columnID: 'SAMPLE_COUNT',
 					title: 'Sample Count (as Pool)',
@@ -109,14 +108,15 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 							sample && sample.id in step.sampleCountByPooledSampleID
 							? step.sampleCountByPooledSampleID[sample.id]
 							: '-'
-						)
+							)
+						},
 					},
-				},
-			]
+					actionColumn,
+				]
 		} else {
 			return []
 		}
-	}, [actionColumn, protocol, stepDefinition])
+	}, [actionColumn, protocol, step.sampleCountByPooledSampleID, stepDefinition])
 
 	const localClearFilters = () => {
 		if (clearFilters)
