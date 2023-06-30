@@ -54,10 +54,10 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 			const BATCH_SIZE = 100
 			const totalBatch = Math.ceil(itemsToFetch.length / BATCH_SIZE)
 			const batchNumbers = [...Array(totalBatch).keys()]
-			const batchActions = batchNumbers.map((batchNum) => (async () => {
+			const batchActions = batchNumbers.map((batchNum) => (() => {
 					const offset = batchNum*BATCH_SIZE
 					const id__in = itemsToFetch.slice(offset, offset + BATCH_SIZE).join(",")
-					return await store.dispatch(listFunc({ id__in }))
+					return store.dispatch(listFunc({ id__in }))
 				})())
 			const replies = await Promise.all(batchActions)
 			for (const reply of replies) {
