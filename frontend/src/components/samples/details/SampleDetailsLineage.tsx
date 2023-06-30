@@ -4,7 +4,7 @@ import { Typography, Card, Space, Popover, Button, Spin } from 'antd';
 
 const { Text } = Typography;
 
-import { Graph, GraphConfiguration, GraphData, GraphLink, GraphNode } from "freezeman-d3-graph"
+import { Graph, GraphConfiguration, GraphData, GraphEventCallbacks, GraphLink, GraphNode } from "freezeman-d3-graph"
 
 import dagre, { GraphLabel, Node } from "dagre"
 import api from "../../../utils/api";
@@ -83,13 +83,13 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
   }
   
   const [graphData, setGraphData] = useState<GraphData<PositionedGraphNode, GraphLink>>({ nodes: [], links: [] })
-  const [nodesToEdges, setNodesToEdges] = useState<{ [key: string]: SampleLineageGraphProcessMeasurement }> ({})
+  const [nodesToEdges, setNodesToEdges] = useState<{ [key: string]: { [key: string]: SampleLineageGraphProcessMeasurement } }> ({})
   
   useEffect(() => {
-    if (sample.id === undefined) {
-      return;
-    }
     (async () => {
+      if (sample == undefined || sample.id === undefined) {
+        return;
+      }
       const result = await dispatch(api.sample_lineage.get(sample.id))
 
       // the node is a subset of Sample
@@ -123,7 +123,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
       const nodes = g.nodes()
         .map((v) => {
           // 'id' is set by g.setNode but typedef is dumb :(
-          const n: Node & { id: string } = g.node(v) as Node & { id: string }
+          const n = g.node(v) as Node & { id: string }
           const curr_sample = samples[n.id]
           let color = "black"
           if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
@@ -150,32 +150,37 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
       setNodesToEdges(
         data.edges.filter((process) => process.child_sample)
         .reduce((prev, p) => {
-          return {
-            ...prev,
-            [`${p.source_sample}:${p.child_sample}`]: p
-          }
+          return p.child_sample
+            ? {
+                ...prev,
+                [p.source_sample]: {
+                  ...prev[p.source_sample],
+                  [p.child_sample]: p
+                }
+              }
+            : prev
         }, {})
-        )
+      )
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sample?.id])
 
   const adjustedGraphData: typeof graphData = useMemo(() => {
     const { nodes, links } = graphData
-    let dx = 0
-    let dy = 0
+    let dx = 0, dy = 0
     if (nodes.length > 0 && sample.id !== undefined) {
       // Find the node that matches the current sample.
-      const currentNode = nodes.find((n) => n.id === sample.id?.toString())
+      const currentSampleId = sample.id?.toString()
+      const currentNode = nodes.find((n) => n.id === currentSampleId)
       if (currentNode) {
         const enclosedWidth = Math.max(...nodes.map((n) => n.x))
         const { x: cx, y: cy } = currentNode
         
         // if graph too wide
+        dy = (graphSize.height / 2) - cy
         if (enclosedWidth > (graphSize.width - nodeSize.width)) {
-          dx = graphSize.width / 2 - cx
+          dx = (graphSize.width / 2) - cx
         }
-        dy = (graphSize.height) / 2 - cy
       }
     }
 
@@ -200,6 +205,27 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
       setReset(false)
     }
   }, [reset])
+
+  const onClickNodeCallback: GraphEventCallbacks['onClickNode'] | undefined = useMemo(() =>
+    handleSampleClick
+      ? (id) => {
+          if (id) {
+            handleSampleClick(Number(id))
+          }
+        }
+      : undefined,
+    [handleSampleClick])
+
+    const onClickLinkCallback: GraphEventCallbacks['onClickLink'] | undefined = useMemo(() =>
+      handleProcessClick
+        ? (source, target) => {
+            const linkId = nodesToEdges[source][target].id
+            if (linkId) {
+              handleProcessClick(linkId)
+            }
+          }
+        : undefined,
+      [handleProcessClick, nodesToEdges])
 
   return (
     <>
@@ -238,17 +264,8 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
                     // tabPaneKey is used to generate a hash url for the lineage tab.
                     // Without the hash url, clicking a node navigates the user to the Overview tab
                     // rather than staying in the graph.
-                    onClickNode={(id) => {
-                      if (id && handleSampleClick) {
-                        handleSampleClick(Number(id))
-                      }
-                    }}
-                    onClickLink={(source, target) => {
-                      const linkId = nodesToEdges[`${source}:${target}`].id
-                      if (linkId && handleProcessClick) {
-                        handleProcessClick(linkId)
-                      }
-                    }}
+                    onClickNode={onClickNodeCallback}
+                    onClickLink={onClickLinkCallback}
                   />
             }
           </div>
