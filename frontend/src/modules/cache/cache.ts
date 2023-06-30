@@ -53,12 +53,14 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 		if (itemsToFetch.length > 0) {
 			const BATCH_SIZE = 100
 			const totalBatch = Math.ceil(itemsToFetch.length / BATCH_SIZE)
-			const batchNumbers = [...Array(totalBatch).keys()]
-			const batchActions = batchNumbers.map((batchNum) => {
-					const offset = batchNum*BATCH_SIZE
-					const id__in = itemsToFetch.slice(offset, offset + BATCH_SIZE).join(",")
-					return store.dispatch(listFunc({ id__in }))
-				})
+
+			const batchActions: Promise<ListReturnType<ItemType>>[] = []
+			for (let batchNum = 0; batchNum < totalBatch; batchNum++) {
+				const offset = batchNum*BATCH_SIZE
+				const id__in = itemsToFetch.slice(offset, offset + BATCH_SIZE).join(",")
+				batchActions.push(store.dispatch(listFunc({ id__in })))
+			}
+
 			const replies = await Promise.all(batchActions)
 			for (const reply of replies) {
 				// Some 'list' endpoints return paginated results, with a count and the data
