@@ -147,7 +147,7 @@ export async function buildStudySamplesFromWorkflow(
 				samples,
 				completedCount: completedStep ? completedStep.count : 0, 
 				completed: [],
-				sampleCountByPooledSampleID
+				sampleCountByPooledSampleID,
 				sampleNextStepByStudyBySampleID
 			}
 			stepMap.set(step.stepOrderID, step)
