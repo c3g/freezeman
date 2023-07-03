@@ -1,6 +1,6 @@
-import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from "./paged_items"
 import { clearFilters, removeFilter, setFilterOptions, setFilterValue } from "./filter_set_reducers"
-import { filter } from "rambda"
+import { ObjectId } from "./frontend_models"
+import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
 
 /*
 	A set of reducer functions for updating objects that conform to the PagedItems interface.
@@ -17,23 +17,25 @@ export function reduceListRequest<P extends PagedItems>(pagedItems: P): P {
 	}
 }
 
-export type ReduceListReceiveType<T> = {
-	items: T[],
+export type ReduceListReceiveType = {
+	items: ObjectId[],
 	pageNumber: number, 
 	pageSize: number, 
 	totalCount: number
 }
-export function reduceListReceive<T extends PageableData, P extends PagedItems>(
+
+export function reduceListReceive<P extends PagedItems>(
 	pagedItems: P, 
-	data: ReduceListReceiveType<T>): P {
+	data: ReduceListReceiveType): P {
+
 	return {
 		...pagedItems,
 		isFetching: false,
 		totalCount: data.totalCount,
-		items: data.items.map(item => item.id),
+		items: data.items,
 		page: {
 			...pagedItems.page,
-			pageNumber: data.pageNumber,
+			pageNumber: data.pageNumber,	// TODO : what if totalCount has changed and the page number doesn't make sense anymore?
 			limit: data.pageSize
 		}
 	}

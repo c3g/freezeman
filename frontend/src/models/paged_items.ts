@@ -68,12 +68,12 @@ export interface FilterKeySet {
 	[key: string]: string
 }
 
-// Any items displayed in a PagedItemsTable must have an 'id' property.
+// A type representing an ID associated with an object displayed in a table.
+// Usually this is an FMSId, but doesn't have to be.
 export type DataID = number // | string ?
 
-export interface PageableData {
-	id: DataID
-}
+// Any object is pageable
+export type PageableData = object
 
 export interface PagedItems {
 	readonly isFetching: boolean

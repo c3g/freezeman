@@ -10,7 +10,7 @@ import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import PagedItemsTable, { useFilteredColumns, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable, { DataObjectsByID, useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
 
@@ -50,20 +50,7 @@ const ProjectsListContent = () => {
 		projectsTableCallbacks.setFilterOptionsCallback
 	)
 
-	const mapProjectIDs = useCallback((ids: FMSId[]) => {
-		async function mapIDsToProjects(ids: FMSId[]) {
-			const data = ids.reduce((acc, id) => {
-				const project = projectsByID[id]
-				if (project) {
-					acc.push({ id, project })
-				}
-				return acc
-			}, [] as ObjectWithProject[])
-
-			return data
-		}
-		return mapIDsToProjects(ids)
-	}, [projectsByID])
+	const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, project => {return { project }})
 	
 	return (
 		<>

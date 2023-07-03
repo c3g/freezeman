@@ -16,7 +16,7 @@ export enum ProjectColumnID {
 }
 
 
-export interface ObjectWithProject extends PageableData {
+export interface ObjectWithProject {
 	project: Project
 }
 

@@ -1,13 +1,16 @@
 import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useAppDispatch } from '../../hooks'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import { DataID, FilterDescription, FilterDescriptionSet, FilterKeySet, FilterOptions, FilterSet, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { PagedItemsActions } from '../../models/paged_items_factory'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/FiltersBar'
 import { addFiltersToColumns } from '../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns'
+import { RootState } from '../../store'
+import { ItemsByID } from '../../models/frontend_models'
+import { FMSTrackedModel } from '../../models/fms_api_models'
 
 // TODO move this to its own file
 /*  This is a hook that combines column definitions with filter definitions to produce
@@ -107,6 +110,52 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 	}
 }
 
+/**
+ * This hook can be used for the getDataObjectsByID callback, if a simple selector
+ * can be used to lookup the data items displayed in the table, such as projectByID
+ * or samplesByID.
+ * 
+ * The hook returns a callback function that takes a list of item ID's as input
+ * and outputs an object mapping the id's to data objects.
+ * 
+ * The transform function is used to convert from the data type stored in itemsByID
+ * to the data type used in the table. Normally this is to transform something like a
+ * project to an object containing a project, ie.
+ * 
+ * {
+ * 	project: <some project>
+ * }
+ * 
+ * This hook is intended for simple tables such as the samples, containers, individuals,
+ * projects and libraries tables. For more complicated tables (such as workflow tables)
+ * you should probably write your own custom function.
+ * 
+ * @param itemsByIDSelector 
+ * @returns 
+ */
+export function useItemsByIDToDataObjects<T extends FMSTrackedModel, D>(
+	itemsByIDSelector: (state: RootState) => ItemsByID<T>,
+	transform: (item: T) => D
+) {
+	const itemsByID = useAppSelector(itemsByIDSelector)
+	
+	const callback = useCallback((ids: DataID[]) => {
+		async function mapItemIDs(ids: DataID[]) {
+			return ids.reduce((acc, id) => {
+				const item = itemsByID[id]
+				if (item) {
+					acc[id] = transform(item)
+				}
+				return acc
+			}, {})
+		}
+
+		return mapItemIDs(ids)
+	}, [itemsByID])
+
+	return callback
+}
+
 export interface PagedItemTableSelection<T extends PageableData> {
 	selectedItemIDs: DataID[]
 	onSelectionChanged: (selectedItems: T[]) => void
@@ -121,11 +170,16 @@ export type SetPageSizeCallback = (pageSize: number) => void
 export type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
 export type SetFilterOptionsCallback = (description: FilterDescription, options: FilterOptions) => void
 
+export interface DataObjectsByID<T> {
+	[key: string] : T | undefined
+}
+export type GetDataObjectsByIDCallback<T> = (ids: number[]) => Promise<DataObjectsByID<T>>
+
 
 interface PagedItemsTableProps<T extends PageableData> {
 	// The paged items table only has a list of item ID's. You have provide a function
 	// that maps those ID's to data objects which get rendered by the table.
-	getDataObjectsByID: (ids: number[]) => Promise<T[]>	
+	getDataObjectsByID: GetDataObjectsByIDCallback<T>
 	pagedItems: PagedItems
 
 	// Callbacks required by the table to implement page loading, filtering and sorting.
@@ -134,7 +188,7 @@ interface PagedItemsTableProps<T extends PageableData> {
 	clearFiltersCallback: ClearFiltersCallback
 	setSortByCallback: SetSortByCallback
 	setPageSizeCallback: SetPageSizeCallback
-	
+
 	columns: IdentifiedTableColumnType<T>[]
 	fixedFilter?: FilterSetting
 	usingFilters: boolean
@@ -142,7 +196,7 @@ interface PagedItemsTableProps<T extends PageableData> {
 	selection?: PagedItemTableSelection<T>
 }
 
-function PagedItemsTable<T extends PageableData>({
+function PagedItemsTable<T extends object>({
 	getDataObjectsByID,
 	listPageCallback,
 	setFixedFilterCallback,
@@ -158,7 +212,7 @@ function PagedItemsTable<T extends PageableData>({
 	const dispatch = useAppDispatch()
 
 	const { items, sortBy } = pagedItems
-	const [dataObjects, setDataObjects] = useState<T[]>([])
+	const [dataObjects, setDataObjects] = useState<DataObjectsByID<T>>({})
 
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
@@ -181,8 +235,8 @@ function PagedItemsTable<T extends PageableData>({
 	useEffect(() => {
 		async function retrieveItems(ids: number[]) {
 			try {
-				const objects = await getDataObjectsByID(ids)
-				setDataObjects(objects)
+				const objectMap = await getDataObjectsByID(ids)
+				setDataObjects(objectMap)
 			} catch (error) {
 				// TODO set an error in the paged items state
 			}
@@ -230,6 +284,26 @@ function PagedItemsTable<T extends PageableData>({
 		}
 	}
 
+	// Get the objects by ID, in the order defined by 'items'
+	const tableData = items.reduce((acc, id) => {
+		const data = dataObjects[id]
+		if (data) {
+			acc.push(data)
+		}
+		return acc
+	}, [] as T[])
+
+	// The table needs something to use as a row key for each item in the table.
+	// 
+	function getRowKeyForDataObject(data: T) {
+		for (const key in dataObjects) {
+			if (dataObjects[key] === data) {
+				return key
+			}
+		}
+		return 'unknown-data-row-key'
+	}
+
 	return (
 		<>
 			{columns && (
@@ -239,9 +313,9 @@ function PagedItemsTable<T extends PageableData>({
 					)}
 					<Table
 						rowSelection={rowSelection}
-						dataSource={dataObjects}
+						dataSource={tableData}
 						columns={columns}
-						rowKey={(obj) => obj.id ?? 'BAD_SAMPLE_KEY'} // The data objects passed to the table must have an id property
+						rowKey={getRowKeyForDataObject}
 						style={{ overflowX: 'auto' }}
 						onChange={sortByCallback}
 						pagination={false}

@@ -2,10 +2,9 @@ import { AnyAction, Reducer } from "redux"
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
 import { selectPageSize } from "../selectors"
 import { AppDispatch, RootState } from "../store"
-import { NetworkActionListReceive, NetworkActionThunk, NetworkActionTypes, createNetworkActionTypes, networkAction } from "../utils/actions"
-import { FMSId } from "./fms_api_models"
+import { NetworkActionThunk, NetworkActionTypes, createNetworkActionTypes } from "../utils/actions"
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
-import { reduceClearFilters, reduceListError, reduceListReceive, reduceListRequest, reduceRemoveFilter, reduceSetFilter, reduceSetFilterOptions, reduceSetFixedFilter, reduceSetPageSize, reduceSetSortBy } from "./paged_items_reducers"
+import { ReduceListReceiveType, reduceClearFilters, reduceListError, reduceListReceive, reduceListRequest, reduceRemoveFilter, reduceSetFilter, reduceSetFilterOptions, reduceSetFixedFilter, reduceSetPageSize, reduceSetSortBy } from "./paged_items_reducers"
 
 type FreezemanThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => T
 type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
@@ -65,7 +64,7 @@ export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTyp
 // then a custom function will need to be implemented by the component that uses the state.
 export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
-export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, selectPagedItems: SelectPagedItemsFunc, list: ListType): PagedItemsActions {
+export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, selectPagedItems: SelectPagedItemsFunc, list: ListType, extra?: object): PagedItemsActions {
 
     const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE } =
 		actionTypes
@@ -113,7 +112,8 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 
         // Dispatch the LIST_PAGE.REQUEST action
         dispatch({
-            type: LIST_PAGE.REQUEST
+            type: LIST_PAGE.REQUEST,
+            extra
         })
         
         const limit = pagedItems.page?.limit ?? selectPageSize(getState())
@@ -129,7 +129,6 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 			ordering,
 			...serializedFilters,
 		}
-        const meta = { ...params, pageNumber, ignoreError: 'AbortError' }
 
         // Note: We are dispatch a `list` action here(eg. the "list" action from the projects actions in actions.js).
         // The list action will dispatch the REQUEST/RECEIVE/ERROR actions for the type of item we are listing (eg. projects),
@@ -138,15 +137,25 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
         // the list of id's of the items, the count, the page size, etc.
         try {
             const reply = await dispatch(list(params))
+            
+            // The paged items reducer just needs the item ID's, not the actual
+            // items that were retrieved, so extra the list of ID's from the data.
+            const data: ReduceListReceiveType = {
+				items: reply.results.map((item) => item.id),
+				totalCount: reply.count,
+                pageNumber: pageNumber,
+                pageSize: limit
+			}
             dispatch({
                 type: LIST_PAGE.RECEIVE,
-                data: reply,
-                meta
+                data,
+                extra
             })
         } catch(error) {
             dispatch({
                 type: LIST_PAGE.ERROR,
-                error
+                error,
+                extra
             })
             return
         }
@@ -160,7 +169,8 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
     const setFixedFilter: PagedItemsActions['setFixedFilter'] = (filter: FilterSetting) => {
         return ({
 			type: SET_FIXED_FILTER,
-			filter
+			filter,
+            extra
 		})
     }
 
@@ -168,7 +178,8 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
         dispatch({
             type: SET_FILTER,
             description: description,
-            value: value
+            value: value,
+            extra
         })
 
         return await dispatch(_fetchPage(1))
@@ -178,7 +189,8 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
         dispatch({
             type: SET_FILTER_OPTIONS,
             description,
-            options
+            options,
+            extra
         })
         return await dispatch(_fetchPage(1))
     }
@@ -187,20 +199,22 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
         dispatch({
             type: REMOVE_FILTER,
             description: description,
+            extra
         })
 
         return await dispatch(_fetchPage(1))
     }
 
     const clearFilters: PagedItemsActions['clearFilters'] = () => async (dispatch) => {
-        dispatch({ type: CLEAR_FILTERS })
+        dispatch({ type: CLEAR_FILTERS, extra })
         return await dispatch(_fetchPage(1))
     }
 
     const setSortBy: PagedItemsActions['setSortBy'] = (sortBy) => async (dispatch) => {
         dispatch({
             type: SET_SORT_BY,
-            sortBy
+            sortBy,
+            extra
         })
 
         return await dispatch(_fetchPage(1))
@@ -209,7 +223,8 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
     const setPageSize: PagedItemsActions['setPageSize'] = (pageSize) => async (dispatch) => {
         dispatch({
             type: SET_PAGE_SIZE,
-            pageSize
+            pageSize,
+            extra
         })
         return await dispatch(_fetchPage(1))
     }
@@ -241,13 +256,7 @@ export function createPagedItemsReducer<P extends PagedItems>(actionTypes: Paged
 				return reduceListRequest(state)
 			}
 			case LIST_PAGE.RECEIVE: {
-				const { data, meta } = action as NetworkActionListReceive
-				return reduceListReceive(state, {
-					items: data.results,
-					pageSize: meta.limit,
-					totalCount: data.count,
-					pageNumber: meta.pageNumber,
-				})
+				return reduceListReceive(state, action.data as ReduceListReceiveType)
 			}
 			case LIST_PAGE.ERROR: {
 				return reduceListError(state, action.error)
@@ -281,3 +290,30 @@ export function createPagedItemsReducer<P extends PagedItems>(actionTypes: Paged
 
     return reduce
 }
+
+// type PagedItemsGetter = <S, P extends PagedItems>(state: S, action: AnyAction) => P
+// type PagedItemsSetter = <S, P extends PagedItems>(state: S, pagedItems: P) => S
+
+// export function wrapPageItemsReducer<S, P extends PagedItems>(
+//     getter: PagedItemsGetter, 
+//     setter: PagedItemsSetter, 
+//     reducer: Reducer<P, AnyAction>): Reducer<S, AnyAction> {
+
+//     function wrapper(state: S | undefined, action: AnyAction): S {
+        
+//         // State is undefined at startup and reducer returns an initial state.
+//         if (state === undefined) {
+//             return reducer(state, action)
+//         }
+
+//         const pagedItems = getter(state, action)
+//         if (pagedItems) {
+//             const updatedPagedItems = reducer(pagedItems, action)
+//             if (updatedPagedItems !== pagedItems) {
+//                 return setter(state, updatedPagedItems)
+//             }
+//         }
+//         return state
+//     }
+//     return wrapper
+// }
