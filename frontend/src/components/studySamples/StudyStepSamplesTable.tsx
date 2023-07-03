@@ -105,9 +105,9 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 					dataIndex: ['sample', 'id'],
 					render: (_, { sample }: SampleAndLibrary) => {
 						return (
-							sample && sample.id in step.sampleCountByPooledSampleID
-							? step.sampleCountByPooledSampleID[sample.id]
-							: '-'
+								sample && sample.id in step.sampleCountByPooledSampleID
+								? step.sampleCountByPooledSampleID[sample.id]
+								: '-'
 							)
 						},
 					},
