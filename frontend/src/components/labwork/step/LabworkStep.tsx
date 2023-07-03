@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
-import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography } from 'antd'
+import { Alert, Button, Checkbox, Form, Input, Modal, Popconfirm, Radio, Select, Space, Tabs, Typography } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
@@ -280,6 +280,16 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
 
+	const [isModalOpen, setIsModalOpen] = useState(true);
+
+	const showPrefillColumns = useCallback(() => {
+		setIsModalOpen(true);
+	}, [setIsModalOpen]);
+
+	const cancelPrefillTemplate = useCallback(() => {
+		setIsModalOpen(false);
+	}, [setIsModalOpen]);
+
 	const buttonBar = (
 		<Space>
 			{stepSamples.prefill.templates.length > 1 &&
@@ -304,7 +314,44 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
+			<Button type='primary' disabled={!canPrefill} onClick={showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
+			<Modal title={"Prefilled Columns"} visible={isModalOpen} onOk={handlePrefillTemplate} onCancel={cancelPrefillTemplate}>
+				<table className='prefill-template'>
+					<tr>
+						<td>
+							<Checkbox />
+						</td>
+						<td>
+							<span>Volume Used (uL):</span>
+						</td>
+						<td>
+							<Input style={{textAlign: 'right'}} />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<Checkbox />
+						</td>
+						<td>
+							<span>dafdsfjklasjfkl;sj (uL):</span>
+						</td>
+						<td>
+							<Input style={{textAlign: 'right'}} />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<Checkbox />
+						</td>
+						<td>
+							<span>vmcxvxvksldjfds;sj (uL):</span>
+						</td>
+						<td>
+							<Input style={{textAlign: 'right'}} />
+						</td>
+					</tr>
+				</table>
+			</Modal>
 			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
 			<RefreshButton
 				refreshing={isRefreshing}
