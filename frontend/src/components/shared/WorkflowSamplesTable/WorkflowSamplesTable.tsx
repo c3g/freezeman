@@ -31,7 +31,7 @@ interface WorkflowSamplesTableProps {
 	setSortBy?: SetSortByFunc,
 	pagination?: PaginationParameters,
 	selection?: {
-		selectedSampleIDs: FMSId[]
+		selectedSampleIDs: FMSId[],
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
 	}
 }
@@ -48,6 +48,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 			setFilterOptions)
 		return mergedColumns
 	}, [columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions])
+
 
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
@@ -98,7 +99,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 					/>
 					{pagination &&
 						<Pagination
-							
+
 							className="ant-table-pagination ant-table-pagination-right"
 							showSizeChanger={true}
 							showQuickJumper={true}
