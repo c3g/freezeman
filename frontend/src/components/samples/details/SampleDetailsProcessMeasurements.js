@@ -3,6 +3,7 @@ import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
 import {Table, Tag, Empty} from "antd";
+import { isNullish } from "../../../utils/functions";
 
 
 const mapStateToProps = state => ({
@@ -48,7 +49,7 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
         align: 'right',
         render: (volumeUsed, _) =>
             <div>
-              {volumeUsed ? `${parseFloat(volumeUsed).toFixed(3)}` : undefined}
+              {isNullish(volumeUsed) ? '' : `${parseFloat(volumeUsed).toFixed(3)}`}
             </div>
       },
       {
