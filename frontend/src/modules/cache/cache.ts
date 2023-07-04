@@ -51,17 +51,27 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 		}
 
 		if (itemsToFetch.length > 0) {
-			const id__in = itemsToFetch.join(",")
-			const reply = await store.dispatch(listFunc({ id__in }))
-			// Some 'list' endpoints return paginated results, with a count and the data
-			// in a 'results' field. Others just return an array of data objects directly,
-			// so we have to distinguish between the two types of response.
-			if (isResultPaged(reply)) {
-				fetchedItems.push(...reply.results)
-			} else {
-				fetchedItems.push(...reply)
+			const BATCH_SIZE = 100
+			const totalBatch = Math.ceil(itemsToFetch.length / BATCH_SIZE)
+
+			const batchActions: Promise<ListReturnType<ItemType>>[] = []
+			for (let batchNum = 0; batchNum < totalBatch; batchNum++) {
+				const offset = batchNum*BATCH_SIZE
+				const id__in = itemsToFetch.slice(offset, offset + BATCH_SIZE).join(",")
+				batchActions.push(store.dispatch(listFunc({ id__in })))
 			}
-			
+
+			const replies = await Promise.all(batchActions)
+			for (const reply of replies) {
+				// Some 'list' endpoints return paginated results, with a count and the data
+				// in a 'results' field. Others just return an array of data objects directly,
+				// so we have to distinguish between the two types of response.
+				if (isResultPaged(reply)) {
+					fetchedItems.push(...reply.results)
+				} else {
+					fetchedItems.push(...reply)
+				}
+			}
 		}
 
 		return fetchedItems
