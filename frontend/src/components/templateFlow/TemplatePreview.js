@@ -85,10 +85,14 @@ const renderResultWithWarnings = (previewSheetInfo) => {
     <h4>WARNINGS:</h4>
     <ul>
       {Object.entries(warnings).sort(([_1, a], [_2, b]) => a.length - b.length).map(([format, array]) => {
+        const MAX_ROWS_DISPLAYED = 10
+        const warning = format.replace(/\{[0-9]*\}/g, "...")
+        const rows = array.map((x) => x.row)
+        const extra = rows.length > MAX_ROWS_DISPLAYED ? `... (+${rows.length - MAX_ROWS_DISPLAYED} others)` : ''
         return <li key={format}>
             <Space>
-              <Badge count={array.length} style={{backgroundColor: 'gray'}}/>
-              {`${format.replace(/\{[0-9]*\}/g, "...")} (Row # ${array.map((x) => x.row).join(", ")})`}
+              <Badge count={array.length} style={{backgroundColor: 'gray'}} overflowCount={Number.MAX_SAFE_INTEGER}/>
+              {`${warning} (Row # ${rows.slice(0, MAX_ROWS_DISPLAYED).join(", ")}${extra})`}
             </Space>
           </li>
       })}
