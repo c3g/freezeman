@@ -9,6 +9,7 @@ from .models import (
     Container,
     Dataset,
     DatasetFile,
+    Readset,
     DerivedBySample,
     ExperimentRun,
     RunType,
@@ -593,6 +594,17 @@ class DatasetFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = DatasetFile
         fields = ("id", "readset", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp", "validation_status", "validation_status_timestamp")
+
+class ReadsetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Readset
+        fields = (
+            "id",
+            "name",
+            "dataset",
+            "sample_name",
+            "derived_sample",
+        )
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 
