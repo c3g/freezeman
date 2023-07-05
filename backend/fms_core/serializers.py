@@ -226,7 +226,7 @@ class TaxonSerializer(serializers.ModelSerializer):
         model = Taxon
         fields = "__all__"
         extra_fields = ("editable")
-    def get_editable(selft, obj):
+    def get_editable(self, obj):
         return not Individual.objects.filter(taxon_id=obj.id).exists()
 
 
@@ -784,11 +784,15 @@ class WorkflowSerializer(serializers.ModelSerializer):
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
     editable = serializers.SerializerMethodField()
+    taxon_id = serializers.SerializerMethodField()
     class Meta:
         model = ReferenceGenome
-        fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size", "editable")
-    def get_editable(selft, obj):
-        return not Individual.objects.filter(reference_genome_id=obj.id).exists()
+        fields = "__all__"
+        extra_fields = ("taxon_id", "editable")
+    def get_editable(self, obj):
+        return not Individual.objects.filter(reference_genome_id = obj.id).exists()
+    def get_taxon_id(self, obj):
+        return obj.taxon.id
 
 class StudySerializer(serializers.ModelSerializer):
     removable = serializers.SerializerMethodField(read_only=True)
