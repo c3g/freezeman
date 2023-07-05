@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, selectAllSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { downloadFromFile } from '../../../utils/download'
@@ -63,6 +63,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			return availableSamples
 		}
 		setSamples(getSampleList(stepSamples.displayedSamples))
+
+		// This is pretty expensive. The selected samples table doesn't use pagination
+		// and so all of the selected samples and libraries needed to be loaded into redux
+		// for the table to work properly. It would be better if the samples and libraries
+		// were loaded on demand, by page like we usually do in tables.
 		setSelectedSamples(getSampleList(stepSamples.selectedSamples))
 	}, [samplesByID, librariesByID, stepSamples])
 
@@ -76,8 +81,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// ** Template handling **
 
 	// A selected template picker is used if protocol supports more than one template
-	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
-
+	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>();
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
@@ -226,10 +230,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 		return mergedSelection
 	}
+	const handleSelectAll =
+		async () => {
+			await dispatch(selectAllSamplesAtStep(step.id))
+		}
 
+
+	const handleClearSelection = useCallback(
+		() => {
+			dispatch(clearSelectedSamples(step.id))
+		}
+		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
 	const selectionProps = {
 		selectedSampleIDs: stepSamples.selectedSamples,
+		clearAllSamples: () => handleClearSelection(),
 		onSelectionChanged: useCallback((selectedSamples) => {
 			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
@@ -242,12 +257,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}, [step, stepSamples, dispatch]),
 	}
 
-	const canClearSelection = stepSamples.selectedSamples.length !== 0
-	const handleClearSelection = useCallback(
-		() => {
-			dispatch(clearSelectedSamples(step.id))
-		}
-		, [step, dispatch])
 
 	/** Sorting by coordinate **/
 
@@ -279,7 +288,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
-
+	const canSelectAllSamples = stepSamples.displayedSamples.length > 0;
 	const buttonBar = (
 		<Space>
 			{stepSamples.prefill.templates.length > 1 &&
@@ -333,14 +342,27 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							</>
 						}
 						<Popconfirm
+							disabled={!canSelectAllSamples}
+							title={'Select all samples?'}
+							okText={'Yes'}
+							cancelText={'No'}
+							placement={'rightTop'}
+							onConfirm={() => handleSelectAll()}
+						>
+							<Button disabled={!canSelectAllSamples} title='Select all samples'>Select All</Button>
+						</Popconfirm>
+						<Popconfirm
+							disabled={stepSamples.selectedSamples.length == 0}
 							title={'Clear the entire selection?'}
 							okText={'Yes'}
 							cancelText={'No'}
 							placement={'rightTop'}
 							onConfirm={() => handleClearSelection()}
 						>
-							<Button disabled={!canClearSelection} title='Deselect all samples'>Clear Selection</Button>
+							<Button disabled={stepSamples.selectedSamples.length == 0} title='Deselect all samples'>Clear Selection</Button>
 						</Popconfirm>
+
+
 
 					</Space>
 				} onChange={tabKey => setSelectedTab(tabKey)}>
@@ -372,7 +394,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 								style={{ marginBottom: '1em' }}
 							/>
 						}
-						{/* Selection table does not allow filtering or sorting */}
+						{/* Selection table does not allow filtering or sorting.*/}
+						{/* Also, we don't handle pagination for selected samples so we are required to 
+							load all of the selected samples and libraries for the table to work.
+							We should handle pagination and only load pages of samples and libraries on demand.	
+						*/}
 						<WorkflowSamplesTable
 							hasFilter={false}
 							samples={selectedSamples}
