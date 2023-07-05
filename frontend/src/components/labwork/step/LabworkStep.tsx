@@ -280,15 +280,15 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
 
-	const [isModalOpen, setIsModalOpen] = useState(true);
+	const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(true);
 
 	const showPrefillColumns = useCallback(() => {
-		setIsModalOpen(true);
-	}, [setIsModalOpen]);
+		setIsPrefillColumnsShown(true);
+	}, [setIsPrefillColumnsShown]);
 
 	const cancelPrefillTemplate = useCallback(() => {
-		setIsModalOpen(false);
-	}, [setIsModalOpen]);
+		setIsPrefillColumnsShown(false);
+	}, [setIsPrefillColumnsShown]);
 
 	const buttonBar = (
 		<Space>
@@ -315,7 +315,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				</>
 			}
 			<Button type='primary' disabled={!canPrefill} onClick={showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
-			<Modal title={"Prefilled Columns"} visible={isModalOpen} onOk={handlePrefillTemplate} onCancel={cancelPrefillTemplate}>
+			<Modal title={"Prefilled Columns"} visible={isPrefillColumnsShown} onOk={handlePrefillTemplate} onCancel={cancelPrefillTemplate}>
 				<table className='prefill-template'>
 					<tr>
 						<td>
