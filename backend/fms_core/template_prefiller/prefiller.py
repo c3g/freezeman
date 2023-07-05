@@ -18,7 +18,7 @@ def PrefillTemplate(template_path, template_info, queryset):
     out_stream = BytesIO()
 
     workbook = load_workbook(filename=template_path)
-    position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
+    position_dict, extra_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"], extra_fields)
 
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]
@@ -26,7 +26,13 @@ def PrefillTemplate(template_path, template_info, queryset):
             for prefill_sheet_name, template_column, queryset_column, _ in template_info["prefill info"]:
                 if prefill_sheet_name == sheet_name and queryset_column is not None:
                     current_sheet.cell(row=sheet_dict["header_offset"] + i, column=sheet_dict["column_offsets"][template_column]).value = entry[queryset_column]
-            
+    
+    for sheet_name, sheet_dict in extra_dict.items():
+        # iterates over extra prefill info and putting them into their respective cells
+        for i, entry in enumerate(template_info["extra info"]):
+            for header, value in entry.items():
+                current_sheet.cell(row=sheet_dict['header_offset'] + i, column=sheet_dict["column_offsets"][header]).value = value
+    
     workbook.save(out_stream)
     return out_stream.getvalue()
 

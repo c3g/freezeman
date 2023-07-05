@@ -431,8 +431,8 @@ SAMPLE_QC_TEMPLATE = {
        "sheet name": "SampleQC",
        "options": [
                    #array of field options you can prefill for a template, 
-                   #object structured using the field name as a key, with the value being it's field type and possible options
-                   {"Volume Used": {"type": "number"}},
+                   #object structured using the 'Table Column Header' as a key, with the value being it's field type and possible options
+                   {"Volume Used (uL)": {"type": "number"}},
                    {"Quality Instrument": {"type": "select", "options": ["Aragose Gel", "TapeStation", "NanoDrop", "Caliper LabChip", "Tecan Absorbance", "BioAnalyzer"]}},
                    {"Quality Flag": {"type": "boolean", "options": ["Passed", "Failed"]}},
                    {"Quantity Instrument": {"type": "select", "options": ["qPCR", "Qubit", "NanoDrop", "Caliper LabChip", "Tecan ABsorbance", "BioAnalyzer", "TapeStation", "PicoGreen"]}},
