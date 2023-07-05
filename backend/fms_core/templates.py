@@ -409,7 +409,8 @@ SAMPLE_UPDATE_TEMPLATE = {
 SAMPLE_QC_TEMPLATE = {
   "identity": {"description": "Template to perform sample quality control",
                "file": static("submission_templates/Sample_QC_v4_1_0.xlsx"),
-               "protocol": "Sample Quality Control"},
+               "protocol": "Sample Quality Control",
+               },
   "sheets info": [
       {
           'name': 'SampleQC',
@@ -426,6 +427,19 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
       ("SampleQC", "Initial Volume (uL)", "volume", "volume"),],
+   "extra prefill info" : {
+       "sheet name": "SampleQC",
+       "options": [
+                   #array of field options you can prefill for a template, 
+                   #object structured using the field name as a key, with the value being it's field type and possible options
+                   {"Volume Used": {"type": "number"}},
+                   {"Quality Instrument": {"type": "select", "options": ["Aragose Gel", "TapeStation", "NanoDrop", "Caliper LabChip", "Tecan Absorbance", "BioAnalyzer"]}},
+                   {"Quality Flag": {"type": "boolean", "options": ["Passed", "Failed"]}},
+                   {"Quantity Instrument": {"type": "select", "options": ["qPCR", "Qubit", "NanoDrop", "Caliper LabChip", "Tecan ABsorbance", "BioAnalyzer", "TapeStation", "PicoGreen"]}},
+                   {"Quantity Flag": {"type": "boolean", "options": ["Passed", "Failed"]}},
+                   {"QC Date": {"type": "Date"}},
+               ]
+   }
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
