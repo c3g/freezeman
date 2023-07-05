@@ -138,7 +138,7 @@ const renderPreviewSheetTable = (previewSheetInfo) => {
     row.warnings.length > 0 && (
       row_data['warning'] = (
         <div key={`warning-${index}`}>
-          {row.warnings.map(({key, format, args}) => <p>{`${key} : ${args.reduce((prev, curr, index) => {
+          {row.warnings.map(({key, format, args}, index) => <p key={index}>{`${key} : ${args.reduce((prev, curr, index) => {
             return prev.replace(`{${index}}`, curr)
           }, format)}`}</p>)}
         </div>
