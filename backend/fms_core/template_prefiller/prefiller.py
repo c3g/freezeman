@@ -3,7 +3,7 @@ from io import BytesIO
 from openpyxl.reader.excel import load_workbook
 from ._utils import load_position_dict, find_worksheet_header_offset
 from django.conf import settings
-
+import logging
 
 def PrefillTemplate(template_path, template_info, queryset):
     """
@@ -16,10 +16,9 @@ def PrefillTemplate(template_path, template_info, queryset):
     {SHEET_NAME: {header_offset: HEADER_OFFSET, queryset_column_list: [COLUMN_NAME, ...], column_offsets: {COLUMN_NAME: COLUMN_OFFSET, ...}}, ...}
     """
     out_stream = BytesIO()
-
+    extra_fields = { "sheet name" : "SampleQC", "options" : {"Volume Used (uL)" : "30", "Quality Instrument" : "Aragose Gel"}}
     workbook = load_workbook(filename=template_path)
     position_dict, extra_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"], extra_fields)
-
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]
         for i, entry in enumerate(queryset.values(*sheet_dict["queryset_column_list"])):
@@ -27,11 +26,14 @@ def PrefillTemplate(template_path, template_info, queryset):
                 if prefill_sheet_name == sheet_name and queryset_column is not None:
                     current_sheet.cell(row=sheet_dict["header_offset"] + i, column=sheet_dict["column_offsets"][template_column]).value = entry[queryset_column]
     
+    rowCount = 0 
     for sheet_name, sheet_dict in extra_dict.items():
         # iterates over extra prefill info and putting them into their respective cells
-        for i, entry in enumerate(template_info["extra info"]):
-            for header, value in entry.items():
-                current_sheet.cell(row=sheet_dict['header_offset'] + i, column=sheet_dict["column_offsets"][header]).value = value
+        while rowCount <= i :
+            for header in sheet_dict['column_offsets']:
+                if header in extra_fields["options"]:
+                    current_sheet.cell(row=sheet_dict['header_offset'] + rowCount, column=sheet_dict["column_offsets"][header]).value = extra_fields["options"][header]
+            rowCount = rowCount + 1    
     
     workbook.save(out_stream)
     return out_stream.getvalue()

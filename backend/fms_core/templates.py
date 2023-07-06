@@ -427,6 +427,7 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
       ("SampleQC", "Initial Volume (uL)", "volume", "volume"),],
+   
    "extra prefill info" : {
        "sheet name": "SampleQC",
        "options": [

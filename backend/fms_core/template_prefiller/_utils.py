@@ -27,16 +27,13 @@ def load_position_dict(workbook, sheets_info, prefill_info, extra_prefill_info):
                                       "column_offsets": column_offsets}
     
         if sheet_name == extra_prefill_info["sheet name"]:
-            index = 0
             extra_fields = extra_prefill_info["options"]
             # iterates over the extra fields to determine all the offsets
-            while index < len(extra_fields):
-                for key in extra_fields[index]:
-                    column_offsets[key] = sheet_header.index(key) + 1
-                    extra_dict[sheet_name] = { "header_offset": sheet_header_offset,  
+            for key in extra_fields:
+                column_offsets[key] = sheet_header.index(key) + 1
+                extra_dict[sheet_name] = { "header_offset": sheet_header_offset,  
                                       "column_offsets": column_offsets}
-
-    
+                    
     return position_dict, extra_dict
 
 def find_worksheet_header_offset(worksheet, header_values, max_offset=-1):
