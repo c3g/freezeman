@@ -10,7 +10,6 @@ class SamplesToPoolRowHandler(GenericRowHandler):
     def process_row_inner(self, source_sample, pool, volume_used, volume_in_pool, comment, workflow):
 
         sample, self.errors["source_sample"], self.warnings["source_sample"] = get_sample_from_container(barcode=source_sample["barcode"],coordinates=source_sample["coordinates"])
-        self.warnings["source_sample"] = [(x, []) for x in self.warnings["source_sample"]]
 
         # Add a warning if the sample has failed qc
         if any([sample.quality_flag is False, sample.quantity_flag is False]):

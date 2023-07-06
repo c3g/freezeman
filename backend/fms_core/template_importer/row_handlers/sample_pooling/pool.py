@@ -62,7 +62,6 @@ class PoolsRowHandler(GenericRowHandler):
             # Validate indices from the samples being pooled
             if pool_is_library and seq_instrument_type is not None:
                 instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
-                self.warnings["seq_instrument_type"] = [(x, []) for x in self.warnings["seq_instrument_type"]]
 
                 indices = []
                 samples_name = []
@@ -85,10 +84,10 @@ class PoolsRowHandler(GenericRowHandler):
                                                     f"Index {index_val.name} for sample {samples_name[j]} are colliding.")
                             # Warnings if too close
                             elif index_distance is not None and all(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
-                                index_warnings.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
-                                                      f"Index {index_val.name} for sample {samples_name[j]} are not different enough {index_distance}.")
+                                index_warnings.append(("Index {0} for sample {1} and "
+                                                      "Index {2} for sample {3} are not different enough {4}.", [index_ref.name, samples_name[i], index_val.name, samples_name[j], index_distance]))
                     self.errors["index_colision"] = index_errors
-                    self.warnings["index_colision"] = [(x, []) for x in index_warnings]
+                    self.warnings["index_colision"] = index_warnings
 
             # Create a process for each pool created
             process_by_protocol, self.errors["process"], self.warnings["process"] = create_process(protocol=protocol,
@@ -96,7 +95,6 @@ class PoolsRowHandler(GenericRowHandler):
                                                                                                    create_children=False,
                                                                                                    children_protocols=None,
                                                                                                    imported_template=imported_template)
-            self.warnings["process"] = [(x, []) for x in self.warnings["process"]]
             process = process_by_protocol[protocol.id]
 
             # Get/Create pool container
@@ -105,7 +103,6 @@ class PoolsRowHandler(GenericRowHandler):
             parent_barcode = container_destination_dict["parent_barcode"]
             if parent_barcode:
                 container_parent, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_barcode)
-                self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
             else:
                 container_parent = None
 
@@ -114,7 +111,6 @@ class PoolsRowHandler(GenericRowHandler):
                                                                                                                      name=container_destination_dict['name'],
                                                                                                                      coordinates=container_destination_dict['coordinates'],
                                                                                                                      container_parent=container_parent)
-            self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
             # Pool samples
             pool, self.errors["pool"], self.warnings["pool"] = pool_samples(process=process,
@@ -123,6 +119,5 @@ class PoolsRowHandler(GenericRowHandler):
                                                                             container_destination=container_destination,
                                                                             coordinates_destination=pool["coordinates"],
                                                                             execution_date=pooling_date)
-            self.warnings["pool"] = [(x, []) for x in self.warnings["pool"]]
 
         

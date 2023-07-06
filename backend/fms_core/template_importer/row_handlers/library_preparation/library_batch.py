@@ -16,22 +16,18 @@ class LibraryBatchRowHandler(GenericRowHandler):
 
         library_type_obj, self.errors['library_type'], self.warnings['library_type'] = \
             get_library_type(library_type)
-        self.warnings['library_type'] = [(x, []) for x in self.warnings['library_type']]
 
         platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(platform)
-        self.warnings['platform'] = [(x, []) for x in self.warnings['platform']]
 
         process_by_protocol, self.errors['library_preparation'], self.warnings['library_preparation'] = \
             create_process(protocol=protocol,
                            creation_comment=comment if comment
                            else f"Automatically generated via library preparation "f"on {datetime.utcnow().isoformat()}Z",
                            imported_template=imported_template)
-        self.warnings['library_preparation'] = [(x, []) for x in self.warnings['library_preparation']]
 
         # Create process' properties
         properties, self.errors['process_properties'], self.warnings['process_properties'] = \
             create_process_properties(process_properties, process_by_protocol)
-        self.warnings['process_properties'] = [(x, []) for x in self.warnings['process_properties']]
 
         if not library_type_obj:
             self.errors['library_preparation'] = f"Library type is required for library preparation."
@@ -48,3 +44,4 @@ class LibraryBatchRowHandler(GenericRowHandler):
             'library_type': library_type_obj,
             'platform': platform_obj,
         }
+

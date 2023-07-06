@@ -15,7 +15,6 @@ class SampleRowHandler(GenericRowHandler):
             barcode=sample['container']['barcode'],
             coordinates=sample['coordinates'],
         )
-        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
 
         if sample_to_update:
             depleted = None
@@ -41,7 +40,6 @@ class SampleRowHandler(GenericRowHandler):
                 concentration=sample_updated['concentration'],
                 depleted=depleted,
             )
-            self.warnings['sample_update'] = [(x, []) for x in self.warnings['sample_update']]
 
             _, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
@@ -51,4 +49,3 @@ class SampleRowHandler(GenericRowHandler):
                     volume_used=volume_used,
                     comment=process_measurement['comment'],
                 )
-            self.warnings['process_measurement'] = [(x, []) for x in self.warnings['process_measurement']]

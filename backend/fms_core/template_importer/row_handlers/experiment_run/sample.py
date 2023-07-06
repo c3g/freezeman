@@ -11,7 +11,6 @@ class SampleRowHandler(GenericRowHandler):
     def process_row_inner(self, barcode, coordinates, volume_used, platform):
         # Calling the service creator for Samples in ExperimentRun
         sample, self.errors['container'], self.warnings['container'] = get_sample_from_container(barcode=barcode, coordinates=coordinates)
-        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         if sample is not None:
             self.row_object = sample

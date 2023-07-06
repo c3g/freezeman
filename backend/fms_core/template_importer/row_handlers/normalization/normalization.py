@@ -27,7 +27,6 @@ class NormalizationRowHandler(GenericRowHandler):
         source_sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
-        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
 
         destination_container_dict = destination_sample['container']
 
@@ -35,7 +34,6 @@ class NormalizationRowHandler(GenericRowHandler):
         if parent_barcode:
             container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(
                 barcode=parent_barcode)
-            self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
         else:
             container_parent_obj = None
 
@@ -54,7 +52,6 @@ class NormalizationRowHandler(GenericRowHandler):
                     # Calculate the concentration taking into account volume ratios
                     concentration, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
                         convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, destination_sample['concentration_nm'])
-                    self.warnings['concentration_conversion'] = [(x, []) for x in self.warnings['concentration_conversion']]
                     if concentration is None:
                         self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
                 else:
@@ -65,7 +62,6 @@ class NormalizationRowHandler(GenericRowHandler):
                                          initial_concentration=source_sample_obj.concentration,
                                          final_volume=destination_sample['volume'],
                                          desired_concentration=concentration)
-            self.warnings['concentration_validation'] = [(x, []) for x in self.warnings['concentration_validation']]
 
             destination_container, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
                 barcode=destination_container_dict['barcode'],
@@ -73,7 +69,6 @@ class NormalizationRowHandler(GenericRowHandler):
                 name=destination_container_dict['name'],
                 coordinates=destination_container_dict['coordinates'],
                 container_parent=container_parent_obj)
-            self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
             resulting_sample, self.errors['transfered_sample'], self.warnings['transfered_sample'] = transfer_sample(
                 process=process_measurement['process'],
@@ -85,12 +80,10 @@ class NormalizationRowHandler(GenericRowHandler):
                 volume_destination=destination_sample['volume'],
                 source_depleted=source_sample['depleted'],
                 comment=process_measurement['comment'])
-            self.warnings['transfered_sample'] = [(x, []) for x in self.warnings['transfered_sample']]
 
             if resulting_sample and concentration is not None and is_concentration_valid:
                 _, self.errors['concentration_update'], self.warnings['concentration_update'] = \
                     update_sample(sample_to_update=resulting_sample, concentration=concentration)
-                self.warnings['concentration_update'] = [(x, []) for x in self.warnings['concentration_update']]
 
                 # Set the process measurement properties
                 process_measurement_properties['Final Volume (uL)']['value'] = destination_sample['volume']
@@ -104,7 +97,6 @@ class NormalizationRowHandler(GenericRowHandler):
                         'properties'] = create_process_measurement_properties(
                         process_measurement_properties,
                         process_measurement_obj)
-                    self.warnings['properties'] = [(x, []) for x in self.warnings['properties']]
 
                     # Process the workflow action
                     self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
@@ -112,8 +104,8 @@ class NormalizationRowHandler(GenericRowHandler):
                                                                                                  current_sample=source_sample_obj,
                                                                                                  process_measurement=process_measurement_obj,
                                                                                                  next_sample=resulting_sample)
-                    self.warnings['workflow'] = [(x, []) for x in self.warnings['workflow']]
                 else:
                     self.errors['process_measurement'] = 'Could not create the process measurement.'
+
 
 

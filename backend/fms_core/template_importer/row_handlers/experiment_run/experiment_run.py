@@ -19,13 +19,11 @@ class ExperimentRunRowHandler(GenericRowHandler):
                           sample_rows_info, process_properties, protocols_dict, imported_template=None):
 
         instrument_obj, self.errors['instrument'], self.warnings['instrument'] = get_instrument(instrument['name'])
-        self.warnings['instrument'] = [(x, []) for x in self.warnings['instrument']]
 
         container_obj, self.errors['container'], self.warnings['container'] = create_container(barcode=container['barcode'],
                                                                                                kind=container['kind'],
                                                                                                coordinates=None,
                                                                                                creation_comment=comment)
-        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         if run_type_obj and instrument_obj and container_obj:
             _, self.errors['experiment'], self.warnings['experiment'] = create_experiment_run(experiment_run_name,
@@ -38,6 +36,5 @@ class ExperimentRunRowHandler(GenericRowHandler):
                                                                                               comment,
                                                                                               protocols_dict,
                                                                                               imported_template)
-            self.warnings['experiment'] = [(x, []) for x in self.warnings['experiment']]
         else:
             self.errors['experiment'] = f"Errors prevent the creation of the experiment."

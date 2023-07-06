@@ -20,7 +20,6 @@ class SampleMetadataHandler(GenericRowHandler):
         # Get sample object
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample_info['container_barcode'],
                                                                                                coordinates=sample_info['container_coordinates'])
-        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
 
         if sample_obj and not sample_obj.is_pool:
             if sample_obj.name != sample_info['name']:
@@ -34,21 +33,18 @@ class SampleMetadataHandler(GenericRowHandler):
                 # Create link object if no errors
                 metadata, self.errors['metadata'], self.warnings['metadata'] = add_sample_metadata(sample=sample_obj,
                                                                                                    metadata=metadata)
-                self.warnings['metadata'] = [(x, []) for x in self.warnings['metadata']]
 
             # Check if sample already has the metadata associated with it
             elif action == UPDATE_ACTION:
                 # Create link object if no errors
                 metadata, self.errors['metadata'], self.warnings['metadata'] = update_sample_metadata(sample=sample_obj,
                                                                                                       metadata=metadata)
-                self.warnings['metadata'] = [(x, []) for x in self.warnings['metadata']]
 
             # Check that the metadata exists and it is associated to the sample
             elif action == REMOVE_ACTION:
                 # Remove link object if no errors
                 is_removed, self.errors['metadata'], self.warnings['metadata'] = remove_sample_metadata(sample=sample_obj,
                                                                                                         metadata=metadata)
-                self.warnings['metadata'] = [(x, []) for x in self.warnings['metadata']]
 
                 if not is_removed:
                     self.errors['remove_metadata'] = 'For metadata to be deleted values should match those stored.'

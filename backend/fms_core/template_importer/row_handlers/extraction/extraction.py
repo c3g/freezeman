@@ -16,7 +16,6 @@ class ExtractionRowHandler(GenericRowHandler):
         parent_barcode = destination_container_dict['parent_barcode']
         if parent_barcode:
             container_parent, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_barcode)
-            self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
         else:
             container_parent = None
 
@@ -25,12 +24,10 @@ class ExtractionRowHandler(GenericRowHandler):
                                                                                                                  name=destination_container_dict['name'],
                                                                                                                  coordinates=destination_container_dict['coordinates'],
                                                                                                                  container_parent=container_parent)
-        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         # Sample & Extraction
         original_sample, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=source_sample['container']['barcode'],
                                                                                                     coordinates=source_sample['coordinates'])
-        self.warnings['sample'] = [(x, []) for x in self.warnings['sample']]
 
         if original_sample and not original_sample.is_pool:
             _, self.errors['extracted_sample'], self.warnings['extracted_sample'] = \
@@ -46,6 +43,5 @@ class ExtractionRowHandler(GenericRowHandler):
                                source_depleted=check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None,
                                comment=process_measurement['comment'],
                                workflow=workflow)
-            self.warnings['extracted_sample'] = [(x, []) for x in self.warnings['extracted_sample']]
         else:
             self.errors['source_sample'] = f"Source sample can't be a pool."

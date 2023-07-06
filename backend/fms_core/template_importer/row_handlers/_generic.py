@@ -36,7 +36,14 @@ class GenericRowHandler():
         warnings = []
         for (k, vs) in (self.warnings).items():
             if isinstance(vs, tuple):
+                # should fix the row handler to ensure it's a list
                 vs = [vs]
+            elif isinstance(vs, str):
+                # this warning hasn't been converted yet
+                vs = [(vs, [])]
             for v in vs:
+                if isinstance(v, str):
+                    # this warning hasn't been converted yet
+                    v = (v, [])
                 warnings.append({'key': k, 'format': v[0], 'args': v[1] })
         return {'errors': [], 'validation_error': ValidationError(self.errors), 'warnings': warnings}

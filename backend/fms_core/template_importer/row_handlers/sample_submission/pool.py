@@ -30,7 +30,6 @@ class PoolsRowHandler(GenericRowHandler):
             if parent_barcode:
                 container_parent, self.errors['parent_container'], self.warnings['parent_container'] = get_container(
                     barcode=parent_barcode)
-                self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
             else:
                 container_parent = None
 
@@ -40,12 +39,10 @@ class PoolsRowHandler(GenericRowHandler):
                 name=pool_container_dict['name'],
                 coordinates=pool_container_dict['coordinates'],
                 container_parent=container_parent)
-            self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
             # Validate indices from the samples being pooled
             if seq_instrument_type is not None:
                 instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
-                self.warnings["seq_instrument_type"] = [(x, []) for x in self.warnings["seq_instrument_type"]]
 
                 indices = []
                 samples_name = []
@@ -74,9 +71,9 @@ class PoolsRowHandler(GenericRowHandler):
                       index_warnings = []
                       for i, j in collisions:
                           index_distance = results["distances"][i][j]
-                          index_warnings.append(f"Index {indices[i].name} for sample {samples_name[i]} and "
-                                                f"Index {indices[j].name} for sample {samples_name[j]} are not different enough {index_distance}.")
-                      self.warnings["index_collision"] = [(x, []) for x in index_warnings]
+                          index_warnings.append(("Index {0} for sample {1} and "
+                                                "Index {2} for sample {3} are not different enough {4}.", [indices[i].name, samples_name[i], indices[j].name, samples_name[j], index_distance]))
+                      self.warnings["index_collision"] = index_warnings
 
             # Pool samples
             pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=samples_info,
@@ -85,4 +82,3 @@ class PoolsRowHandler(GenericRowHandler):
                                                                                       coordinates_destination=pool['coordinates'],
                                                                                       reception_date=reception_date,
                                                                                       comment=comment)
-            self.warnings['pool'] = [(x, []) for x in self.warnings['pool']]

@@ -20,7 +20,6 @@ class LibraryRowHandler(GenericRowHandler):
         # Calling the service creator for Samples in LibraryPreparation
         source_sample_obj, self.errors['container'], self.warnings['container'] = \
             get_sample_from_container(barcode=source_sample['barcode'], coordinates=source_sample['coordinates'])
-        self.warnings['container'] = [(x, []) for x in self.warnings['container']]
 
         if not volume_used:
             self.errors['volume_used'] = f"Volume used must be entered"
@@ -49,7 +48,6 @@ class LibraryRowHandler(GenericRowHandler):
             if container['parent_barcode']:
                 container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = \
                     get_container(barcode=container['parent_barcode'])
-                self.warnings['parent_container'] = [(x, []) for x in self.warnings['parent_container']]
 
             container_obj, created, self.errors['library_container'], self.warnings['library_container'] = get_or_create_container(
                 name=container['name'],
@@ -58,13 +56,11 @@ class LibraryRowHandler(GenericRowHandler):
                 container_parent=container_parent_obj if container_parent_obj else None,
                 coordinates=container['parent_coordinates'] if container_parent_obj else None,
                 creation_comment=comment)
-            self.warnings['library_container'] = [(x, []) for x in self.warnings['library_container']]
 
             if container_obj and not created:
                 self.warnings['library_container'] = ('Using existing container {0}', [container_obj.name])
 
             index_obj, self.errors['index'], self.warnings['index'] = get_index(index)
-            self.warnings['index'] = [(x, []) for x in self.warnings['index']]
 
             library_info = dict(
                 library_type=library_batch_info['library_type'],
@@ -80,7 +76,6 @@ class LibraryRowHandler(GenericRowHandler):
                                                                                                index=index_obj,
                                                                                                platform=library_info['platform'],
                                                                                                strandedness=strandedness)
-                self.warnings['library'] = [(x, []) for x in self.warnings['library']]
                 libraries_by_derived_sample[derived_sample_source.id] = library_obj
 
             sample_destination, self.errors['library_preparation'], self.warnings['library_preparation'] = \
@@ -94,6 +89,5 @@ class LibraryRowHandler(GenericRowHandler):
                                 volume_destination=volume,
                                 comment=comment,
                                 workflow=workflow)
-            self.warnings['library_preparation'] = [(x, []) for x in self.warnings['library_preparation']]
         else:
             self.errors['sample_source'] = 'Sample source is needed to prepare a library.'

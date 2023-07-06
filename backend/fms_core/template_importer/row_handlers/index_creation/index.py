@@ -14,7 +14,6 @@ class IndexCreationHandler(GenericRowHandler):
     def process_row_inner(self, set_name, index):
         #get or create set
         index_set_obj, created, self.errors['index_set'], self.warnings['index_set'] = get_or_create_index_set(set_name)
-        self.warnings['index_set'] = [(x, []) for x in self.warnings['index_set']]
 
         if not index_set_obj:
             self.warnings['index_set'] = ('Index will not be associated to a set.', [])
@@ -25,18 +24,15 @@ class IndexCreationHandler(GenericRowHandler):
         index_obj, self.errors['index'], self.warnings['index'] = create_index(index_name=index['name'],
                                                                                index_structure=index['index_structure'],
                                                                                index_set=index_set_obj)
-        self.warnings['index'] = [(x, []) for x in self.warnings['index']]
 
         if index_obj:
             if any([index['index_3prime'], index['index_5prime']]):
                 indices_3prime_by_sequence, self.errors['index_3prime'], self.warnings['index_3prime'] = \
                     create_indices_3prime_by_sequence(index=index_obj,
                                                       index_3prime=index['index_3prime'])
-                self.warnings['index_3prime'] = [(x, []) for x in self.warnings['index_3prime']]
 
                 indices_5prime_by_sequence, self.errors['index_5prime'], self.warnings['index_5prime'] = \
                     create_indices_5prime_by_sequence(index=index_obj,
                                                       index_5prime=index['index_5prime'])
-                self.warnings['index_5prime'] = [(x, []) for x in self.warnings['index_5prime']]
             else:
                 self.errors['index_sequences'] = 'At least one index sequence is required.'
