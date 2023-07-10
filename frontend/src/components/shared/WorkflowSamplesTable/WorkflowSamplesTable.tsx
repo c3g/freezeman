@@ -58,9 +58,6 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},
-			// getCheckboxProps: (record: SampleAndLibrary) => ({
-			// 	name: `${record.sample?.id}`,
-			// }),
 			selectedRowKeys: [...selection.selectedSampleIDs]
 		}
 	}

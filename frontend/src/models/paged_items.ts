@@ -1,4 +1,3 @@
-import { FILTER_TYPE } from "../constants"
 import { FMSId, FMSTrackedModel } from "./fms_api_models"
 import { FetchedObject, ItemsByID } from "./frontend_models"
 
