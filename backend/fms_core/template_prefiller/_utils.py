@@ -2,7 +2,7 @@ from fms_core.templates import MAX_HEADER_OFFSET
 
 HEADER_NOT_FOUND = -1
 
-def load_position_dict(workbook, sheets_info, prefill_info, extra_prefill_info):
+def load_position_dict(workbook, sheets_info, prefill_info):
     """
     Function that return a dictionary that provides offset for sheet headers and offset for columns used during the prefilling process.
 
@@ -10,7 +10,6 @@ def load_position_dict(workbook, sheets_info, prefill_info, extra_prefill_info):
     {SHEET_NAME: {header_offset: HEADER_OFFSET, queryset_column_list: [COLUMN_NAME, ...], column_offsets: {COLUMN_NAME: COLUMN_OFFSET, ...}}, ...}
     """
     position_dict = {}
-    extra_dict = {}
     for sheet in sheets_info:
         column_offsets = {}
         queryset_column_list = []
@@ -25,16 +24,8 @@ def load_position_dict(workbook, sheets_info, prefill_info, extra_prefill_info):
         position_dict[sheet_name] = { "header_offset": sheet_header_offset, 
                                       "queryset_column_list": queryset_column_list, 
                                       "column_offsets": column_offsets}
-    
-        if sheet_name == extra_prefill_info["sheet name"]:
-            extra_fields = extra_prefill_info["options"]
-            # iterates over the extra fields to determine all the offsets
-            for key in extra_fields:
-                column_offsets[key] = sheet_header.index(key) + 1
-                extra_dict[sheet_name] = { "header_offset": sheet_header_offset,  
-                                      "column_offsets": column_offsets}
                     
-    return position_dict, extra_dict
+    return position_dict
 
 def find_worksheet_header_offset(worksheet, header_values, max_offset=-1):
     for i, row_values in enumerate(worksheet.iter_rows(min_col=1, max_col=len(header_values), values_only=True), start=2):

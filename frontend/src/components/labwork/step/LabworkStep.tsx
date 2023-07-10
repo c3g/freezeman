@@ -21,6 +21,7 @@ import WorkflowSamplesTable, { PaginationParameters } from '../../shared/Workflo
 import { SampleColumnID } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import { clearFilters } from '../../../modules/labworkSteps/actions'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
+import PrefillButton from '../../PrefillTemplateColumns'
 
 const { Text } = Typography
 
@@ -77,7 +78,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// A selected template picker is used if protocol supports more than one template
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
-
+	
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
@@ -97,7 +98,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		async () => {
 			if (selectedTemplate) {
 				try {
-					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id))
+					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, {}))
 					if (result) {
 						downloadFromFile(result.filename, result.data)
 					}
@@ -280,15 +281,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
 
-	const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(true);
-
-	const showPrefillColumns = useCallback(() => {
-		setIsPrefillColumnsShown(true);
-	}, [setIsPrefillColumnsShown]);
-
-	const cancelPrefillTemplate = useCallback(() => {
-		setIsPrefillColumnsShown(false);
-	}, [setIsPrefillColumnsShown]);
 
 	const buttonBar = (
 		<Space>
@@ -314,44 +306,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<Button type='primary' disabled={!canPrefill} onClick={showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
-			<Modal title={"Prefilled Columns"} visible={isPrefillColumnsShown} onOk={handlePrefillTemplate} onCancel={cancelPrefillTemplate}>
-				<table className='prefill-template'>
-					<tr>
-						<td>
-							<Checkbox />
-						</td>
-						<td>
-							<span>Volume Used (uL):</span>
-						</td>
-						<td>
-							<Input style={{textAlign: 'right'}} />
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<Checkbox />
-						</td>
-						<td>
-							<span>dafdsfjklasjfkl;sj (uL):</span>
-						</td>
-						<td>
-							<Input style={{textAlign: 'right'}} />
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<Checkbox />
-						</td>
-						<td>
-							<span>vmcxvxvksldjfds;sj (uL):</span>
-						</td>
-						<td>
-							<Input style={{textAlign: 'right'}} />
-						</td>
-					</tr>
-				</table>
-			</Modal>
+			<PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
 			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
 			<RefreshButton
 				refreshing={isRefreshing}

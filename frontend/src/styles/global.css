@@ -118,19 +118,3 @@ abbr.--time {
   width: 0 !important;
   opacity: 0;
 }
-
-/* CSS for the table */
-.prefill-template {
-  width: 100%; /* Set the width of the table to 100% of its container */
-  border-collapse: collapse; /* Collapse table borders */
-}
-
-/* CSS for the table cells (td) */
-.prefill-template td {
-  text-align: left; /* Align the content of the cells to the left */
-}
-
-/* CSS for the last column */
-.prefill-template td:last-child {
-  text-align: right; /* Align the content of the last column to the right */
-}

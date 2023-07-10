@@ -427,20 +427,6 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
       ("SampleQC", "Initial Volume (uL)", "volume", "volume"),],
-   
-   "extra prefill info" : {
-       "sheet name": "SampleQC",
-       "options": [
-                   #array of field options you can prefill for a template, 
-                   #object structured using the 'Table Column Header' as a key, with the value being it's field type and possible options
-                   {"Volume Used (uL)": {"type": "number"}},
-                   {"Quality Instrument": {"type": "select", "options": ["Aragose Gel", "TapeStation", "NanoDrop", "Caliper LabChip", "Tecan Absorbance", "BioAnalyzer"]}},
-                   {"Quality Flag": {"type": "boolean", "options": ["Passed", "Failed"]}},
-                   {"Quantity Instrument": {"type": "select", "options": ["qPCR", "Qubit", "NanoDrop", "Caliper LabChip", "Tecan ABsorbance", "BioAnalyzer", "TapeStation", "PicoGreen"]}},
-                   {"Quantity Flag": {"type": "boolean", "options": ["Passed", "Failed"]}},
-                   {"QC Date": {"type": "Date"}},
-               ]
-   }
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
@@ -457,6 +443,12 @@ SAMPLE_EXTRACTION_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info" : 
+      {
+        "Volume Used (uL)" : "number",
+        "Extraction Date" : "date"
+      }
+  ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("ExtractionTemplate", "Source Sample Name", "name", "name"),

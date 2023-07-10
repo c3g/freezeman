@@ -16,25 +16,15 @@ def PrefillTemplate(template_path, template_info, queryset):
     {SHEET_NAME: {header_offset: HEADER_OFFSET, queryset_column_list: [COLUMN_NAME, ...], column_offsets: {COLUMN_NAME: COLUMN_OFFSET, ...}}, ...}
     """
     out_stream = BytesIO()
-    extra_fields = { "sheet name" : "SampleQC", "options" : {"Volume Used (uL)" : "30", "Quality Instrument" : "Aragose Gel"}}
     workbook = load_workbook(filename=template_path)
-    position_dict, extra_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"], extra_fields)
+    position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]
         for i, entry in enumerate(queryset.values(*sheet_dict["queryset_column_list"])):
             for prefill_sheet_name, template_column, queryset_column, _ in template_info["prefill info"]:
                 if prefill_sheet_name == sheet_name and queryset_column is not None:
                     current_sheet.cell(row=sheet_dict["header_offset"] + i, column=sheet_dict["column_offsets"][template_column]).value = entry[queryset_column]
-    
-    rowCount = 0 
-    for sheet_name, sheet_dict in extra_dict.items():
-        # iterates over extra prefill info and putting them into their respective cells
-        while rowCount <= i :
-            for header in sheet_dict['column_offsets']:
-                if header in extra_fields["options"]:
-                    current_sheet.cell(row=sheet_dict['header_offset'] + rowCount, column=sheet_dict["column_offsets"][header]).value = extra_fields["options"][header]
-            rowCount = rowCount + 1    
-    
+
     workbook.save(out_stream)
     return out_stream.getvalue()
 
