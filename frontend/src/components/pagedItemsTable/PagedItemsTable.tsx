@@ -2,18 +2,18 @@ import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
+import { FMSTrackedModel } from '../../models/fms_api_models'
+import { ItemsByID } from '../../models/frontend_models'
 import { DataID, FilterDescription, FilterDescriptionSet, FilterKeySet, FilterOptions, FilterSet, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { PagedItemsActions } from '../../models/paged_items_factory'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
+import { RootState } from '../../store'
 import FiltersBar from '../filters/FiltersBar'
 import { addFiltersToColumns } from '../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
-import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns'
-import { RootState } from '../../store'
-import { ItemsByID } from '../../models/frontend_models'
-import { FMSTrackedModel } from '../../models/fms_api_models'
+import { IdentifiedTableColumnType } from './PagedItemsColumns'
 
-// TODO move this to its own file
-/*  This is a hook that combines column definitions with filter definitions to produce
+
+/*  This is a hook that merges column definitions with filter definitions to produce
 	complete column descriptions for the table. 
 */
 export function useFilteredColumns<T>(
@@ -151,7 +151,7 @@ export function useItemsByIDToDataObjects<T extends FMSTrackedModel, D>(
 		}
 
 		return mapItemIDs(ids)
-	}, [itemsByID])
+	}, [itemsByID, transform])
 
 	return callback
 }
@@ -238,7 +238,7 @@ function PagedItemsTable<T extends object>({
 				const objectMap = await getDataObjectsByID(ids)
 				setDataObjects(objectMap)
 			} catch (error) {
-				// TODO set an error in the paged items state
+				console.error(error)
 			}
 		}
 		retrieveItems([...items])
@@ -272,7 +272,8 @@ function PagedItemsTable<T extends object>({
 		[sortBy, setSortByCallback]
 	)
 
-	// TODO : Find a way to make selection generic
+	// If a selection listener is passed to the table then the listener is informed
+	// every time the row selection is changed by the user.
 	let rowSelection: TableRowSelection<T> | undefined = undefined
 	if (selection) {
 		rowSelection = {
@@ -293,8 +294,9 @@ function PagedItemsTable<T extends object>({
 		return acc
 	}, [] as T[])
 
-	// The table needs something to use as a row key for each item in the table.
-	// 
+	// Return the ID that corresponds to the object displayed in a row of the table.
+	// We just find the object in the dataObjects map and return its corresponding
+	// key. This allows us to use data objects that don't have an explicit 'id' property.
 	function getRowKeyForDataObject(data: T) {
 		for (const key in dataObjects) {
 			if (dataObjects[key] === data) {

@@ -1,9 +1,10 @@
 import React from 'react'
 import { Link } from "react-router-dom"
-import { Project } from "../../models/frontend_models"
-import { IdentifiedTableColumnType, UNDEFINED_FILTER_KEY } from "../shared/WorkflowSamplesTable/SampleTableColumns"	// TODO define these somewhere common
-import { FilterDescription, PageableData } from '../../models/paged_items'
 import { FILTER_TYPE, PROJECT_STATUS } from '../../constants'
+import { Project } from "../../models/frontend_models"
+import { FilterDescription } from '../../models/paged_items'
+import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
+import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
 
 export enum ProjectColumnID {
 	ID = 'ID',

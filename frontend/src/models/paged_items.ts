@@ -124,7 +124,6 @@ export function createPagedItemsByID<T extends PagedItem>(fixedFilters?: FilterS
 	}
 }
 
-// TODO allow filter type
 // Create a FilterSetting object for a fixed filter, from a key and a value.
 export function createFixedFilter(filterType: string, filterKey: string, value: FilterValue): FilterSetting {
 	return {

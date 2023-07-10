@@ -41,11 +41,7 @@ const SamplesAssociatedProjects = ({
   }, [sampleID])
 
   const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, project => {return { project }})
-
-  // TODO : This table is actually broken, because there is no mechanism to stored retrieved
-  // projects in redux. It only seems to work because most of the projects from the db are
-  // loaded into redux at startup.
-
+  
   return (
 		// Don't render until the sample fixed filter is set, or you will get all of the projects.
 		sampleIDFilter && (

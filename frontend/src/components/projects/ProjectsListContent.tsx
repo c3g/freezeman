@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react'
 
-import { useAppDispatch, useAppSelector } from '../../hooks'
-import { FMSId } from '../../models/fms_api_models'
+import { useAppSelector } from '../../hooks'
+import { Project } from '../../models/frontend_models'
+import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { selectProjectTemplateActions, selectProjectsByID, selectProjectsTable, selectToken } from '../../selectors'
 import api, { withToken } from '../../utils/api'
 import mergedListQueryParams from '../../utils/mergedListQueryParams'
@@ -10,8 +11,7 @@ import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import PagedItemsTable, { DataObjectsByID, useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
-import ProjectsTableActions from '../../modules/projectsTable/actions'
+import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
 
 
@@ -25,9 +25,12 @@ const projectsListContentColumns = [
 	PROJECT_COLUMN_DEFINITIONS.STATUS
 ]
 
+function wrapProject(project: Project) {
+	return {project}
+}
+
 const ProjectsListContent = () => {
 	const projectsTableState  = useAppSelector(selectProjectsTable)
-	const projectsByID = useAppSelector(selectProjectsByID)
 	const { filters, sortBy, totalCount } = projectsTableState
 	const templateActions = useAppSelector(selectProjectTemplateActions)
 	const token = useAppSelector(selectToken)
@@ -50,7 +53,7 @@ const ProjectsListContent = () => {
 		projectsTableCallbacks.setFilterOptionsCallback
 	)
 
-	const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, project => {return { project }})
+	const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, wrapProject)
 	
 	return (
 		<>
@@ -59,7 +62,7 @@ const ProjectsListContent = () => {
 				extra={[
 					<AddButton key="add" url="/projects/add" />,
 					<ActionDropdown key="actions" urlBase={'/projects'} actions={templateActions} />,
-					<ExportButton key="export" exportFunction={listExport} filename="projects" itemsCount={totalCount} />,
+					<ExportButton key="export" exportType={undefined} exportFunction={listExport} filename="projects" itemsCount={totalCount} />,
 				]}
 			/>
 			<PageContent>
