@@ -4,4 +4,4 @@ import { createPagedItemsActionTypes, createPagedItemsReducer } from '../../mode
 export const actionTypes = createPagedItemsActionTypes('SAMPLES_TABLE')
 const initialState = createPagedItems()
 
-export const samplesTable = createPagedItemsReducer(actionTypes, initialState)
+export const projectSamplesTable = createPagedItemsReducer(actionTypes, initialState)
