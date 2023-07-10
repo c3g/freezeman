@@ -98,10 +98,6 @@ const AUTH_PERSIST_CONFIG = {
   storage,
 };
 
-const TOKEN_EXPIRED_MESSAGE = 'Given token not valid for any token type'
-
-const recentMessages = new Set();
-
 const allReducers = combineReducers({
   auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
   app,

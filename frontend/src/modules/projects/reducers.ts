@@ -12,8 +12,6 @@ import PROJECTS from "./actions"
 export const projectsSummary = summaryReducerFactory(PROJECTS);
 export const projectTemplateActions = templateActionsReducerFactory(PROJECTS);
 
-// TODO: Remove paged items properties
-// TODO: make this generic
 interface ProjectsState {
     itemsByID: ItemsByID<Project>
     isFetching: boolean

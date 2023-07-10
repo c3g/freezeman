@@ -35,7 +35,7 @@ export function reduceListReceive<P extends PagedItems>(
 		items: data.items,
 		page: {
 			...pagedItems.page,
-			pageNumber: data.pageNumber,	// TODO : what if totalCount has changed and the page number doesn't make sense anymore?
+			pageNumber: data.pageNumber,
 			limit: data.pageSize
 		}
 	}

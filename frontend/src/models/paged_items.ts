@@ -92,7 +92,7 @@ export interface PagedItems {
 
 interface PagedItem extends FMSTrackedModel, FetchedObject, PageableData {}
 
-// TODO: Decide if this type is needed.
+
 export interface PagedItemsByID<T extends PagedItem> extends PagedItems {
 	readonly itemsByID: ItemsByID<T>
 }
@@ -107,7 +107,7 @@ export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
 		filters: {},
 		sortBy: {},
 		page: {
-			limit: 20	// TODO import this as a constant from pagination?
+			limit: 20
 			// Note: The pageNumber is left undefined intentionally. A page number
 			// should only be set when the page items are loaded.
 		}

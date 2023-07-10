@@ -6,7 +6,6 @@ import { NetworkActionThunk, NetworkActionTypes, createNetworkActionTypes } from
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
 import { ReduceListReceiveType, reduceClearFilters, reduceListError, reduceListReceive, reduceListRequest, reduceRemoveFilter, reduceSetFilter, reduceSetFilterOptions, reduceSetFixedFilter, reduceSetPageSize, reduceSetSortBy } from "./paged_items_reducers"
 
-type FreezemanThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => T
 type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
 
   type SetFixedFilterAction = {
@@ -130,7 +129,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 			...serializedFilters,
 		}
 
-        // Note: We are dispatch a `list` action here(eg. the "list" action from the projects actions in actions.js).
+        // Note: We dispatch a `list` action here(eg. the "list" action from the projects actions in actions.js).
         // The list action will dispatch the REQUEST/RECEIVE/ERROR actions for the type of item we are listing (eg. projects),
         // which will ensure that the retrieved projects are stored in redux before this action completes.
         // After listing the projects, we dispatch the LIST_PAGE action to updated the paged items state with
@@ -139,7 +138,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
             const reply = await dispatch(list(params))
             
             // The paged items reducer just needs the item ID's, not the actual
-            // items that were retrieved, so extra the list of ID's from the data.
+            // items that were retrieved, so extract the list of ID's from the data.
             const data: ReduceListReceiveType = {
 				items: reply.results.map((item) => item.id),
 				totalCount: reply.count,
@@ -290,30 +289,3 @@ export function createPagedItemsReducer<P extends PagedItems>(actionTypes: Paged
 
     return reduce
 }
-
-// type PagedItemsGetter = <S, P extends PagedItems>(state: S, action: AnyAction) => P
-// type PagedItemsSetter = <S, P extends PagedItems>(state: S, pagedItems: P) => S
-
-// export function wrapPageItemsReducer<S, P extends PagedItems>(
-//     getter: PagedItemsGetter, 
-//     setter: PagedItemsSetter, 
-//     reducer: Reducer<P, AnyAction>): Reducer<S, AnyAction> {
-
-//     function wrapper(state: S | undefined, action: AnyAction): S {
-        
-//         // State is undefined at startup and reducer returns an initial state.
-//         if (state === undefined) {
-//             return reducer(state, action)
-//         }
-
-//         const pagedItems = getter(state, action)
-//         if (pagedItems) {
-//             const updatedPagedItems = reducer(pagedItems, action)
-//             if (updatedPagedItems !== pagedItems) {
-//                 return setter(state, updatedPagedItems)
-//             }
-//         }
-//         return state
-//     }
-//     return wrapper
-// }
