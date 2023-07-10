@@ -319,6 +319,7 @@ function PagedItemsTable<T extends object>({
 						style={{ overflowX: 'auto' }}
 						onChange={sortByCallback}
 						pagination={false}
+						bordered={true}
 					/>
 					{true && (
 						<Pagination
