@@ -140,7 +140,7 @@ export function useItemsByIDToDataObjects<T extends FMSTrackedModel, D>(
 	const itemsByID = useAppSelector(itemsByIDSelector)
 	
 	const callback = useCallback((ids: DataID[]) => {
-		async function mapItemIDs(ids: DataID[]) {
+		async function mapItemIDs(ids: DataID[]) : Promise<{[key: DataID] : D}> {
 			return ids.reduce((acc, id) => {
 				const item = itemsByID[id]
 				if (item) {
