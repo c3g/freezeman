@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from collections import defaultdict
 
+from fms_core.utils import serialize_warnings
+
 '''
     RowHandler objects
     An object inheriting from RowHandler() should be created for each different 'type' of row 
@@ -33,17 +35,5 @@ class GenericRowHandler():
         return result
 
     def get_result(self):
-        warnings = []
-        for (k, vs) in (self.warnings).items():
-            if isinstance(vs, tuple):
-                # should fix the row handler to ensure it's a list
-                vs = [vs]
-            elif isinstance(vs, str):
-                # this warning hasn't been converted yet
-                vs = [(vs, [])]
-            for v in vs:
-                if isinstance(v, str):
-                    # this warning hasn't been converted yet
-                    v = (v, [])
-                warnings.append({'key': k, 'format': v[0], 'args': v[1] })
+        warnings = serialize_warnings(self.warnings)
         return {'errors': [], 'validation_error': ValidationError(self.errors), 'warnings': warnings}
