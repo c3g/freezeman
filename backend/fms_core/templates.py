@@ -291,15 +291,16 @@ NORMALIZATION_TEMPLATE = {
 
 NORMALIZATION_PLANNING_TEMPLATE = {
   "identity": {"description": "Template to perform normalization planning",
-               "file": static("submission_templates/Normalization_planning_v4_2_0.xlsx"),
+               "file": static("submission_templates/Normalization_planning_v4_4_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
-                    'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
-                    'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
+                    'Destination Parent Container Barcode', 'Destination Parent Container Coord',
+                    'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)',
+                    'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
         'batch': False,
       },
   ],
@@ -308,6 +309,8 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Sample Name", "name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
+      ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
+      ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
 }
 
