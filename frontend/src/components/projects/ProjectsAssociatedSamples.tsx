@@ -1,35 +1,37 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectSamplesByID, selectProjectSamplesTable, selectProtocolsByID } from "../../selectors";
+import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors";
 import SamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { FilterSetting, createFixedFilter } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumn } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
-import { ProcessMeasurement, Protocol, Sample } from "../../models/frontend_models";
+import { Protocol, Sample } from "../../models/frontend_models";
 import api from '../../utils/api'
 
-const listProcessMeasurements = api.processMeasurements.list;
+const lastProtocols = api.processMeasurements.lastProtocols;
 
-interface WithLastProtocolProps {
-    sampleID: Sample['id']
-}
-const WithLastProtocol = ({ sampleID }: WithLastProtocolProps) => {
+const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
     const dispatch = useAppDispatch()
-    const protocolsByID = useAppSelector(selectProtocolsByID)
-    
-    const [lastProtocol, setLastProtocol] = useState<string | undefined>()
+    const [lastProtocolBySampleID, setLastProtocolBySampleID] = useState<{[key in Sample['id']]: Protocol['name']}>({})
 
     useEffect(() => {
         (async () => {
-            const response = await dispatch(listProcessMeasurements({ lineage__child__id: `${sampleID}` }))
-            console.debug(response)
-            const processMeasurement: ProcessMeasurement = response.data.results[0]
-            setLastProtocol(protocolsByID[processMeasurement.protocol].name)
+            const results = sampleIDs.length > 0 ? (await dispatch(lastProtocols({ lineage__child__id__in: sampleIDs.join(",")}))).data : {}
+            const lastProtocolBySampleIdResponse: Record<string, Protocol['name']> = results
+            setLastProtocolBySampleID(Object.fromEntries(Object.entries(lastProtocolBySampleIdResponse).map(([k, v]) => [Number(k), v])))
         })()
-    }, [dispatch, protocolsByID, sampleID])
+    }, [dispatch, sampleIDs])
 
-    return <>{lastProtocol}</>
+    const LastProtocol = useCallback(({ sampleID }: { sampleID: Sample['id'] }) => {
+        if (sampleID in lastProtocolBySampleID) {
+            return <>{lastProtocolBySampleID[sampleID]}</>
+        } else {
+            return <></>
+        }
+    }, [lastProtocolBySampleID])
+
+    return LastProtocol
 }
 
 const ProjectsAssociatedSamples = ({
@@ -45,6 +47,8 @@ const ProjectsAssociatedSamples = ({
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
+    const LastProtocol = useLastProtocols(samplesTable.items)
+
     const sampleColumns = [
         SAMPLE_COLUMN_DEFINITIONS.KIND,
         SAMPLE_COLUMN_DEFINITIONS.NAME,
@@ -57,7 +61,7 @@ const ProjectsAssociatedSamples = ({
             title: 'Last Protocol',
             dataIndex: ['sample', 'id'],
             render: (_, { sample }) =>
-                sample && <WithLastProtocol sampleID={sample.id} />,
+                sample && <LastProtocol sampleID={sample.id} />,
         } as SampleColumn
     ]
 

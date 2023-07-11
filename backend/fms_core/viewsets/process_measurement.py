@@ -100,3 +100,9 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                 for c in self.queryset.values("process__protocol").annotate(Count("process__protocol"))
             },
         })
+    
+    @action(detail=False, methods=["get"])
+    def last_protocols(self, _request):
+        queryset = self.filter_queryset(self.get_queryset())
+        values = queryset.annotate(protocol=F('process__protocol__name')).values_list('child_sample', 'protocol').distinct()
+        return Response(dict(values))
