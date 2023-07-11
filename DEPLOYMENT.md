@@ -64,22 +64,22 @@ On this page we list the various steps needed for deployments. The first section
     yum install nginx -y
     yum install -y gcc openssl-devel bzip2-devel libffi-devel
     ```
-  * Install python 3.8.7
+  * Install python 3.11.4
     ```
     cd /opt
-    wget https://www.python.org/ftp/python/3.8.7/Python-3.8.7.tgz
-    tar xzf Python-3.8.7.tgz
-    cd Python-3.8.7
+    wget https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz
+    tar xzf Python-3.11.4.tgz
+    cd Python-3.11.4
     ./configure --enable-optimizations
     make altinstall #to prevent replacing the default python binary file /usr/bin/python
-    /usr/local/bin/python3.8 -V
-    /usr/local/bin/pip3.8 -V
+    /usr/local/bin/python3.11 -V
+    /usr/local/bin/pip3.11 -V
     ```
   * Install uWsgi and django with pip, and llvm
     ```
-    /usr/local/bin/pip3.8 install uWSGI
-    /usr/local/bin/pip3.8 install djangorestframework-simplejwt
-    /usr/local/bin/pip3.8 list
+    /usr/local/bin/pip3.11 install uWSGI
+    /usr/local/bin/pip3.11 install djangorestframework-simplejwt
+    /usr/local/bin/pip3.11 list
 
     yum install -y clang llvm-toolset-7
 
@@ -134,11 +134,11 @@ On this page we list the various steps needed for deployments. The first section
   * Move to the frontend (`cd frontend`) and install any new dependency (`npm install`) and fix security issues (`npm audit fix`)
   * Compile the frontend (`npm run build`)
   * Move to the backend directory (`cd ../backend`) and activate the the virtual environment (`. env/bin/activate`)
-  * Install any new dependency (`pip3.8 install -r requirements.txt`) (version of pip may change)
+  * Install any new dependency (`pip3.11 install -r requirements.txt`) (version of pip may change)
   * Install pg_fzy (`cd backend/dependencies/pg_fzy && make && sudo make install`) (`make restore_precompiled_binary` to get precompiled binaries) (if needed)
-  * Move back to the backend root (`cd ../..`) and migrate the database (`python3.8 manage.py migrate`)
-  * Create the first revisions for newly created models (`python3.8 manage.py createinitialrevisions`)
-  * Serve new and modified templates (`python3.8 manage.py collectstatic`)
+  * Move back to the backend root (`cd ../..`) and migrate the database (`python3.11 manage.py migrate`)
+  * Create the first revisions for newly created models (`python3.11 manage.py createinitialrevisions`)
+  * Serve new and modified templates (`python3.11 manage.py collectstatic`)
   * Activate the pg_fzy module (`psql -u postgres -d fms -c "create extension fzy;"`)
   * Restart the uwsgi (`uwsgi uwsgi.ini &`)
 
@@ -160,3 +160,5 @@ On this page we list the various steps needed for deployments. The first section
   * Add a .env file in the /frontend directory using the exemple.env as a reference. Set FMS_ENV ("DEV", "QC", "PROD") in the file.
 * Version 3.14:
   * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini
+* Version 4.4.0:
+  * Upgrade python verison to 3.11
