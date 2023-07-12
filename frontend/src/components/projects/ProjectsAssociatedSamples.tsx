@@ -13,7 +13,7 @@ const lastProtocols = api.processMeasurements.lastProtocols;
 
 const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
     const dispatch = useAppDispatch()
-    const [lastProtocolBySampleID, setLastProtocolBySampleID] = useState<{[key in Sample['id']]: Protocol['name']}>({})
+    const [lastProtocolBySampleID, setLastProtocolBySampleID] = useState<Record<Sample['id'], Protocol['name']>>({})
 
     useEffect(() => {
         (async () => {
