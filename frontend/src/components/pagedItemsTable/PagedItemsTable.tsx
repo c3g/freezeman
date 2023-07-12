@@ -327,6 +327,7 @@ function PagedItemsTable<T extends object>({
 						onChange={sortByCallback}
 						pagination={false}
 						bordered={true}
+						loading={pagedItems.isFetching}
 					/>
 					{true && (
 						<Pagination
