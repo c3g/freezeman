@@ -140,7 +140,7 @@ export function useItemsByIDToDataObjects<T extends FMSTrackedModel, D>(
 	const itemsByID = useAppSelector(itemsByIDSelector)
 	
 	const callback = useCallback((ids: DataID[]) => {
-		async function mapItemIDs(ids: DataID[]) {
+		async function mapItemIDs(ids: DataID[]) : Promise<DataObjectsByID<D>> {
 			return ids.reduce((acc, id) => {
 				const item = itemsByID[id]
 				if (item) {
@@ -322,6 +322,7 @@ function PagedItemsTable<T extends object>({
 						onChange={sortByCallback}
 						pagination={false}
 						bordered={true}
+						loading={pagedItems.isFetching}
 					/>
 					{true && (
 						<Pagination
@@ -329,8 +330,8 @@ function PagedItemsTable<T extends object>({
 							showSizeChanger={true}
 							showQuickJumper={true}
 							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-							current={pagedItems.page?.pageNumber}
-							pageSize={pagedItems.page?.limit}
+							current={pagedItems.page?.pageNumber ?? 0}
+							pageSize={pagedItems.page?.limit ?? 0}
 							total={pagedItems.totalCount}
 							onChange={listPageCallback}
 							onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
