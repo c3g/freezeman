@@ -80,7 +80,7 @@ export interface PagedItems {
 	readonly items: readonly FMSId[]
 	readonly totalCount: number
 	readonly filters: FilterSet
-	readonly fixedFilters?: FilterSet
+	readonly fixedFilters: FilterSet
 	readonly sortBy: SortBy
 	readonly page?: {
 		readonly pageNumber?: number		// Move to using page number instead of offset
@@ -103,7 +103,7 @@ export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
 		isFetching: false,
 		items: [],
 		totalCount: 0,
-		fixedFilters,
+		fixedFilters: fixedFilters ?? {},
 		filters: {},
 		sortBy: {},
 		page: {

@@ -103,6 +103,10 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		dispatch(pagedItemActions.setPageSize(pageSize))
 	}, [dispatch, pagedItemActions])
 
+	const resetPagedItemsCallback = useCallback(() => {
+		dispatch(pagedItemActions.resetPagedItems())
+	}, [dispatch, pagedItemActions])
+
 	return {
 		listPageCallback,
 		refreshPageCallback,
@@ -112,6 +116,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		clearFiltersCallback,
 		setSortByCallback,
 		setPageSizeCallback,
+		resetPagedItemsCallback,
 	}
 }
 

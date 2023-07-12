@@ -1,10 +1,11 @@
 import { WritableDraft } from "immer/dist/types/types-external";
 import { createNetworkActionTypes } from "../../utils/actions";
 import { AnyAction } from "redux";
-import produce from "immer";
-import { createItemsByID, preprocess } from "../../models/frontend_models";
-import { IndividualDetailsById } from "./models";
+import produce, { castDraft } from "immer";
+import { Sample, createItemsByID, preprocess } from "../../models/frontend_models";
+import { IndividualDetails, IndividualDetailsById } from "./models";
 import { clearFilters, setFilterValue } from "../../models/filter_set_reducers"
+import { createPagedItemsByID } from "../../models/paged_items"
 
 export const LIST_TABLE = createNetworkActionTypes('INDIVIDUAL_DETAILS.LIST_TABLE')
 export const SET_SORT_BY = 'INDIVIDUAL_DETAILS.SET_SORT_BY'
@@ -13,19 +14,7 @@ export const CLEAR_FILTERS = "INDIVIDUAL_DETAILS.CLEAR_FILTERS"
 export const FLUSH_INDIVIDUAL_DETAILS = "INDIVIDUAL_DETAILS.FLUSH_INDIVIDUAL_DETAILS"
 
 const INITIAL_STATE: IndividualDetailsById = {}
-const INITIAL_PAGED_ITEMS = {
-    itemsByID: {},
-    items: [],
-    page: {
-        pageNumber: 0,
-        offset: 0,
-        limit: 0
-    },
-    totalCount: 0,
-    isFetching: false,
-    filters: {},
-    sortBy: { key: undefined, order: undefined },
-}
+const INITIAL_PAGED_ITEMS = createPagedItemsByID<Sample>()
 
 export const individualDetails = (inputState: IndividualDetailsById = INITIAL_STATE, action: AnyAction) => {
     return produce(inputState, (draft) => {
@@ -38,12 +27,15 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
         case LIST_TABLE.REQUEST: {
             const { individualID } = action.meta
             if (!state[individualID]) {
-                state[individualID] = {
+                const details : IndividualDetails = {
                     individual: preprocess({ id: individualID }),
                     samplesByIndividual: {
                         ...INITIAL_PAGED_ITEMS
                     }
                 }
+                // castDraft solves a typing issue with the items array being a 'readonly number[]'
+                // https://immerjs.github.io/immer/typescript/#cast-utilities
+                state[individualID] = castDraft(details)
             }
             break;
         }

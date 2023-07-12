@@ -1,6 +1,6 @@
 import { clearFilters, removeFilter, setFilterOptions, setFilterValue } from "./filter_set_reducers"
 import { ObjectId } from "./frontend_models"
-import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
+import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy, createPagedItems } from "./paged_items"
 
 /*
 	A set of reducer functions for updating objects that conform to the PagedItems interface.
@@ -55,7 +55,7 @@ export function reduceSetFixedFilter<P extends PagedItems>(pagedItems: P, filter
 	if (filter.description) {
 		return {
 			...pagedItems,
-			fixedFilters: setFilterValue(pagedItems.filters, filter.description, filter.value),
+			fixedFilters: setFilterValue(pagedItems.fixedFilters, filter.description, filter.value),
 		}
 	} else {
 		return pagedItems
@@ -104,5 +104,13 @@ export function reduceSetPageSize<P extends PagedItems>(pagedItems: P, pageSize:
 			...pagedItems.page,
 			limit: pageSize
 		}
+	}
+}
+
+export function reduceResetPagedItems<P extends PagedItems>(pagedItems: P): P {
+	const defaultPagedItems = createPagedItems()
+	return {
+		...pagedItems,
+		...defaultPagedItems
 	}
 }
