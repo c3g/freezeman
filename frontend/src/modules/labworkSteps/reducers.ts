@@ -5,6 +5,7 @@ import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from '../
 import { createNetworkActionTypes } from '../../utils/actions'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
 import { LabworkStepSamples, LabworkStepsState } from './models'
+import { createPagedItems, createPagedItemsByID } from '../../models/paged_items'
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
@@ -135,18 +136,7 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { stepID, templates } = action
 			const stepSamples: LabworkStepSamples = {
 				stepID,
-				pagedItems: {
-					isFetching: false,
-					error: undefined,
-					totalCount: 0,
-					items: [],
-					itemsByID: {},
-					page: {
-						pageNumber: 0
-					},
-					filters: {},
-					sortBy: {}
-				},
+				pagedItems: createPagedItemsByID(),
 				displayedSamples: [],
 				selectedSamples: [],
 				selectedSamplesSortDirection: {orientation: 'column', order: 'ascend'},

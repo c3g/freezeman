@@ -55,7 +55,7 @@ export function reduceSetFixedFilter<P extends PagedItems>(pagedItems: P, filter
 	if (filter.description) {
 		return {
 			...pagedItems,
-			fixedFilters: setFilterValue(pagedItems.filters, filter.description, filter.value),
+			fixedFilters: setFilterValue(pagedItems.fixedFilters, filter.description, filter.value),
 		}
 	} else {
 		return pagedItems
