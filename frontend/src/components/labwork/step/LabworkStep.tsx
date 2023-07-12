@@ -95,10 +95,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
 
 	const handlePrefillTemplate = useCallback(
-		async () => {
+		async (prefillData: { [column: string]: any }) => {
 			if (selectedTemplate) {
 				try {
-					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, {}))
+					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData))
 					if (result) {
 						downloadFromFile(result.filename, result.data)
 					}
@@ -306,7 +306,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+			<PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
 			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
 			<RefreshButton
 				refreshing={isRefreshing}

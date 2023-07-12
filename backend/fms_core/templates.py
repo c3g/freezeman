@@ -409,8 +409,7 @@ SAMPLE_UPDATE_TEMPLATE = {
 SAMPLE_QC_TEMPLATE = {
   "identity": {"description": "Template to perform sample quality control",
                "file": static("submission_templates/Sample_QC_v4_1_0.xlsx"),
-               "protocol": "Sample Quality Control",
-               },
+               "protocol": "Sample Quality Control"},
   "sheets info": [
       {
           'name': 'SampleQC',

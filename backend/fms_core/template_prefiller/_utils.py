@@ -24,7 +24,6 @@ def load_position_dict(workbook, sheets_info, prefill_info):
         position_dict[sheet_name] = { "header_offset": sheet_header_offset, 
                                       "queryset_column_list": queryset_column_list, 
                                       "column_offsets": column_offsets}
-                    
     return position_dict
 
 def find_worksheet_header_offset(worksheet, header_values, max_offset=-1):
