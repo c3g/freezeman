@@ -17,6 +17,8 @@ import SampleCategoryChooser, { SampleCategory } from './SampleCategoryChooser'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
 import { FilterSetting } from '../../models/paged_items'
 import { FILTER_TYPE } from '../../constants'
+import Flexbar from '../shared/Flexbar'
+import FiltersBar from '../filters/FiltersBar'
 
 const samplesTableColumns = [
 	SampleColumns.ID,
@@ -118,16 +120,20 @@ function SamplesListContent() {
 				]}
 			/>
 			<PageContent>
-				<SampleCategoryChooser
-					disabled={isFetching}
-					value={sampleCategory}
-					onChange={category => handleSampleCategoryChange(category)}
-				/>
+				<Flexbar style={{alignItems: 'center'}}>
+					<SampleCategoryChooser
+						disabled={isFetching}
+						value={sampleCategory}
+						onChange={category => handleSampleCategoryChange(category)}
+					/>
+					<FiltersBar filters={samplesTableState.filters} clearFilters={clearFiltersAndCategory}/>
+				</Flexbar>
+				
 				<PagedItemsTable<ObjectWithSample> 
 					getDataObjectsByID={mapSampleIDs}
 					pagedItems={samplesTableState}
 					columns={baseColumns}
-					usingFilters={true}
+					usingFilters={false}
 					{...samplesTableCallbacks}
 					clearFiltersCallback={clearFiltersAndCategory}
 				/>
