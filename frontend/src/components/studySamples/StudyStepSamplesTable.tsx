@@ -105,8 +105,8 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 					dataIndex: ['sample', 'id'],
 					render: (_, { sample }: SampleAndLibrary) => {
 						return (
-								sample && sample.id in step.sampleCountByPooledSampleID
-								? step.sampleCountByPooledSampleID[sample.id]
+								sample && sample.is_pool
+								? sample.count_derived_samples
 								: '-'
 							)
 						},
@@ -116,7 +116,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 		} else {
 			return []
 		}
-	}, [actionColumn, protocol, step.sampleCountByPooledSampleID, stepDefinition])
+	}, [actionColumn, protocol, stepDefinition])
 
 	const localClearFilters = () => {
 		if (clearFilters)

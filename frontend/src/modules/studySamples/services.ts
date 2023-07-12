@@ -114,7 +114,7 @@ export async function buildStudySamplesFromWorkflow(
 	const stepMap = new Map<FMSId, StudySampleStep>()
 
 	// Create the list of study steps from the workflow, starting and ending at the steps defined in the study.
-	for (const stepOrder of workflow.steps_order) {
+	workflow.steps_order.forEach(stepOrder => {
 		if (stepOrder.order >= study.start && stepOrder.order <= study.end) {
 
 			// Get the list of sample-next-steps retrieved for this step, and set
@@ -124,10 +124,6 @@ export async function buildStudySamplesFromWorkflow(
 				throw new Error(`Study samples for step order ${stepOrder.id} not retrieved.`)
 			}
 			const samples = sampleNextSteps.map(nextStep => nextStep.sample)
-
-			const sampleCountByPooledSampleID =
-				((await store.dispatch(api.pooledSamples.sample_count({ sample__id__in: samples.join(",") }))).data as { sample__id: FMSId, count_derived_samples: number }[])
-				.reduce((prev, { sample__id, count_derived_samples }) => ({ ...prev, [sample__id]: count_derived_samples }), {} as { [key: FMSId]: number })
 
 			const sampleNextStepByStudyBySampleID: StudySampleStep['sampleNextStepByStudyBySampleID'] =
 				Object.fromEntries(sampleNextSteps.map((nextStep) => [nextStep.sample, nextStep]))
@@ -147,12 +143,11 @@ export async function buildStudySamplesFromWorkflow(
 				samples,
 				completedCount: completedStep ? completedStep.count : 0, 
 				completed: [],
-				sampleCountByPooledSampleID,
 				sampleNextStepByStudyBySampleID
 			}
 			stepMap.set(step.stepOrderID, step)
 		}
-	}
+	}) 
 
 	// Get the process measurements for the completed samples
 	const processMeasurementIDs = completedSamplesByStudy.map(completed => completed.process_measurement)

@@ -143,7 +143,6 @@ const api = {
   pooledSamples: {
     list: (options, abort) => get("/pooled-samples/", options, { abort }),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
-    sample_count: (options, abort) => get("/pooled-samples/sample_count/", options, { abort })
   },
 
   processes: {
@@ -227,7 +226,7 @@ const api = {
 
   sampleNextStep: {
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
-    listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {...options, step__id__in: stepId}),
+    listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),

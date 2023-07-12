@@ -194,6 +194,7 @@ class FetchSampleData(FetchData):
                     'updated_at': sample["updated_at"],
                     'deleted': sample["deleted"],
                     'comment': sample["comment"],
+                    'count_derived_samples': sample["count_derived_samples"]
                 }
                 serialized_data.append(data)
             return (serialized_data, count)

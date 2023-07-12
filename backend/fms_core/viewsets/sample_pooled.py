@@ -75,8 +75,3 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     filterset_class = PooledSamplesFilter
-
-    @action(detail=False, methods=["get"])
-    def sample_count(self, _request):
-        queryset = self.filter_queryset(self.get_queryset()).values('sample__id', 'count_derived_samples')
-        return Response(list(queryset))

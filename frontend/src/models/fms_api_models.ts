@@ -176,6 +176,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     index: FMSId                        // Index ID
     library_selection?: string          // library selection name
     library_selection_target?: string   // library selection target
+    count_derived_samples: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
 export interface FMSLibraryType extends FMSTrackedModel {
@@ -330,6 +331,7 @@ export interface FMSSample extends FMSTrackedModel {
     quality_flag?: boolean              // QC quality flag
     quantity_flag?: boolean             // QC quantity flag
     comment: string                     // User comment
+    count_derived_samples: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
 export interface FMSSampleKind extends FMSTrackedModel {
