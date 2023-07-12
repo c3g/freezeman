@@ -111,7 +111,7 @@ const SampleDetailsPool = ({sample}) => {
     // Only display the pooled samples table if the sample is actually a pool.
     // Otherwise, just display a message saying that there are no pooled samples to display.
     return (
-        sample.is_pool ?
+        sample.derived_samples_count > 1 ?
             <PooledSamples sample={sample}/>
         :
             <NoPooledSamples/>

@@ -165,7 +165,6 @@ export interface FMSLibrary extends FMSTrackedModel {
     quantity_ng?: number                // Quantity in nanograms
     container: FMSId                    // Container ID
     coordinate: FMSId                   // Coords ID of position in container
-    is_pool: boolean                    // Pool flag (false for plain sample)
     project: FMSId                      // Project ID
     creation_date: string               // Date library was created (YYYY-MM-DD)
     quality_flag?: boolean              // Quality check flag (undefined in no QC has been performed)
@@ -176,7 +175,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     index: FMSId                        // Index ID
     library_selection?: string          // library selection name
     library_selection_target?: string   // library selection target
-    count_derived_samples: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
+    derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
 export interface FMSLibraryType extends FMSTrackedModel {
@@ -321,7 +320,6 @@ export interface FMSSample extends FMSTrackedModel {
     coordinate: FMSId                   // Coordinate ID of position in container, if applicable
     sample_kind: FMSId                  // Sample kind ID
     is_library: boolean                 // Library flag
-    is_pool: boolean                    // Pool flag
     project?: FMSId                     // Project ID
     process_measurements: FMSId[]       // ID's of ProcessMeasurement objects
     tissue_source?: FMSId               // ID of tissue source type
@@ -331,7 +329,7 @@ export interface FMSSample extends FMSTrackedModel {
     quality_flag?: boolean              // QC quality flag
     quantity_flag?: boolean             // QC quantity flag
     comment: string                     // User comment
-    count_derived_samples: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
+    derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
 export interface FMSSampleKind extends FMSTrackedModel {

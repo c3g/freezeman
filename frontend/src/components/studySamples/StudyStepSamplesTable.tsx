@@ -105,8 +105,8 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 					dataIndex: ['sample', 'id'],
 					render: (_, { sample }: SampleAndLibrary) => {
 						return (
-								sample && sample.is_pool
-								? sample.count_derived_samples
+								sample && sample.derived_samples_count > 1
+								? sample.derived_samples_count
 								: '-'
 							)
 						},

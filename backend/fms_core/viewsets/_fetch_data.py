@@ -179,7 +179,6 @@ class FetchSampleData(FetchData):
                     'coordinate': sample["coordinate_id"],
                     'sample_kind': derived_sample["sample_kind__id"] if not is_pool or not is_library else None,
                     'is_library': is_library,
-                    'is_pool': is_pool,
                     'project': derived_sample["project_id"] if not is_pool or not is_library else None,
                     'process_measurements': process_measurements,
                     'tissue_source': derived_sample["tissue_source__id"] if not is_pool else None,
@@ -194,7 +193,7 @@ class FetchSampleData(FetchData):
                     'updated_at': sample["updated_at"],
                     'deleted': sample["deleted"],
                     'comment': sample["comment"],
-                    'count_derived_samples': sample["count_derived_samples"]
+                    'derived_samples_count': sample["count_derived_samples"]
                 }
                 serialized_data.append(data)
             return (serialized_data, count)
@@ -505,7 +504,6 @@ class FetchLibraryData(FetchData):
                     'quantity_ng': decimal_rounded_to_precision(sample["quantity_ng"]) if sample["concentration"] else None,
                     'container': sample["container_id"],
                     'coordinate': sample["coordinate_id"],
-                    'is_pool': is_pool,
                     'project': derived_sample["project_id"] if not is_pool else None,
                     'creation_date': sample["creation_date"],
                     'quality_flag': sample["quality_flag"],
@@ -516,6 +514,7 @@ class FetchLibraryData(FetchData):
                     'index': derived_sample["library__index__id"] if not is_pool else None,
                     'library_selection': derived_sample["library__library_selection__name"] if not is_pool else None,
                     'library_selection_target': derived_sample["library__library_selection__target"] if not is_pool else None,
+                    'derived_samples_count': sample["count_derived_samples"]
                 }
                 serialized_data.append(data)
             return (serialized_data, count)
@@ -592,7 +591,6 @@ class FetchLibraryData(FetchData):
                     'quantity_ng': decimal_rounded_to_precision(sample["quantity_ng"]) if sample["concentration"] else None,
                     'container': sample["container__barcode"],
                     'coordinates': sample["coordinate__name"],
-                    'is_pool': is_pool,
                     'project': derived_sample["project__name"] if not is_pool else None,
                     'creation_date': sample["creation_date"],
                     'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
@@ -603,6 +601,7 @@ class FetchLibraryData(FetchData):
                     'index': derived_sample["library__index__name"] if not is_pool else None,
                     'library_selection': derived_sample["library__library_selection__name"] if not is_pool else None,
                     'library_selection_target': derived_sample["library__library_selection__target"] if not is_pool else None,
+                    'derived_samples_count': sample["count_derived_samples"]
                 }
                 serialized_data.append(data)
             return serialized_data
