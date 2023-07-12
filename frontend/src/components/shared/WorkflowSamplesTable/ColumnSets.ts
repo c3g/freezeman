@@ -3,7 +3,7 @@ import { ProtocolNames } from '../../../models/protocols'
 import { getStepSpecificationValue } from '../../../modules/steps/services'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { LibraryColumn, LIBRARY_COLUMN_DEFINITIONS as LIBRARY_COLUMNS, ObjectWithLibrary } from './LibraryTableColumns'
-import { ObjectWithSample, SampleColumn, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from './SampleTableColumns'
+import { ObjectWithSample, SampleColumn, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from '../../samples/SampleTableColumns'
 
 export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 

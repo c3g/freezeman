@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react"
-import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS, SAMPLE_COLUMN_FILTERS, SampleColumnID } from '../shared/WorkflowSamplesTable/SampleTableColumns';
+import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS, SAMPLE_COLUMN_FILTERS, SampleColumnID } from '../samples/SampleTableColumns';
 import WorkflowSamplesTable from "../shared/WorkflowSamplesTable/WorkflowSamplesTable"
 import { clearFilters, setFilter, setSortBy } from '../../modules/individualDetails/actions'
 import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items";

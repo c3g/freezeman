@@ -72,6 +72,10 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		dispatch(pagedItemActions.listPage(pageNumber))
 	}, [dispatch, pagedItemActions])
 
+	const refreshPageCallback = useCallback(() => {
+		dispatch(pagedItemActions.refreshPage())
+	}, [dispatch, pagedItemActions])
+
 	const setFixedFilterCallback = useCallback((filter: FilterSetting) => {
 		dispatch(pagedItemActions.setFixedFilter(filter))
 	}, [dispatch, pagedItemActions])
@@ -101,6 +105,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 
 	return {
 		listPageCallback,
+		refreshPageCallback,
 		setFixedFilterCallback,
 		setFilterCallback,
 		setFilterOptionsCallback,
@@ -329,8 +334,8 @@ function PagedItemsTable<T extends object>({
 							showSizeChanger={true}
 							showQuickJumper={true}
 							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-							current={pagedItems.page?.pageNumber}
-							pageSize={pagedItems.page?.limit}
+							current={pagedItems.page?.pageNumber ?? 0}
+							pageSize={pagedItems.page?.limit ?? 0}
 							total={pagedItems.totalCount}
 							onChange={listPageCallback}
 							onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}

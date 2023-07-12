@@ -1,16 +1,16 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { FILTER_TYPE } from '../../../constants'
-import { Sample } from '../../../models/frontend_models'
-import { FilterDescription } from '../../../models/paged_items'
-import { selectSampleKindsByID } from '../../../selectors'
-import store from '../../../store'
-import { Depletion } from '../../Depletion'
-import { QCFlag } from '../../QCFlag'
-import SampleKindTag from '../../SampleKindTag'
-import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
-import { UNDEFINED_FILTER_KEY } from '../../pagedItemsTable/PagedItemsFilters'
-import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndividualRenderComponent, WithProjectRenderComponent } from '../WithItemRenderComponent'
+import { FILTER_TYPE } from '../../constants'
+import { Sample } from '../../models/frontend_models'
+import { FilterDescription } from '../../models/paged_items'
+import { selectSampleKindsByID } from '../../selectors'
+import store from '../../store'
+import { Depletion } from '../Depletion'
+import { QCFlag } from '../QCFlag'
+import SampleKindTag from '../SampleKindTag'
+import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
+import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
+import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndividualRenderComponent, WithProjectRenderComponent } from '../shared/WithItemRenderComponent'
 
 /*
 	Defines a set of Ant Table column descriptors for sample fields. Each column
@@ -333,6 +333,22 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
  * Defines the filter keys used for filtering samples using the sample-next-step endpoint.
  * Filter keys are merged into the filter definition when a table's columns are configured.
  */
+export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
+	[SampleColumnID.ID]: 'id',
+	[SampleColumnID.KIND]: 'derived_samples__sample_kind__name',
+	[SampleColumnID.NAME]: 'name',
+	[SampleColumnID.INDIVIDUAL]: 'derived_samples__biosample__individual__name',
+	[SampleColumnID.CONTAINER_NAME]: 'container__name',
+	[SampleColumnID.CONTAINER_BARCODE]: 'container__barcode',
+	[SampleColumnID.COORDINATES]: 'coordinate__name',
+	[SampleColumnID.VOLUME]: 'volume',
+	[SampleColumnID.CONCENTRATION]: 'concentration',
+	[SampleColumnID.CREATION_DATE]: 'creation_date',
+	[SampleColumnID.DEPLETED]: 'depleted',
+	[SampleColumnID.QC_FLAG]: 'qc_flag',
+	[SampleColumnID.PROJECT]: 'derived_samples__project__name',
+}
+
 export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.ID]: 'sample__id',
 	[SampleColumnID.KIND]: 'sample__derived_samples__sample_kind__name',
