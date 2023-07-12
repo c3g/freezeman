@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.models import ContentType
+from fms_core.services.taxon import can_edit_taxon
+from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db.models import Max, F
@@ -221,13 +223,13 @@ class RunTypeSerializer(serializers.ModelSerializer):
 
 
 class TaxonSerializer(serializers.ModelSerializer):
-    editable = serializers.SerializerMethodField()
+    editable = serializers.BooleanField(read_only=True)
     class Meta:
         model = Taxon
         fields = "__all__"
         extra_fields = ("editable")
     def get_editable(self, obj):
-        return not Individual.objects.filter(taxon_id=obj.id).exists()
+        return can_edit_taxon(obj.id)
 
 
 class IndividualSerializer(serializers.ModelSerializer):
@@ -783,16 +785,14 @@ class WorkflowSerializer(serializers.ModelSerializer):
         return serialized_data.data
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
-    editable = serializers.SerializerMethodField()
-    taxon_id = serializers.SerializerMethodField()
+    editable = serializers.BooleanField(read_only=True)
+    taxon_id = serializers.IntegerField(read_only=True, source='taxon.id')
     class Meta:
         model = ReferenceGenome
         fields = "__all__"
         extra_fields = ("taxon_id", "editable")
     def get_editable(self, obj):
-        return not Individual.objects.filter(reference_genome_id = obj.id).exists()
-    def get_taxon_id(self, obj):
-        return obj.taxon.id
+        return can_edit_referenceGenome(obj.id)
 
 class StudySerializer(serializers.ModelSerializer):
     removable = serializers.SerializerMethodField(read_only=True)
