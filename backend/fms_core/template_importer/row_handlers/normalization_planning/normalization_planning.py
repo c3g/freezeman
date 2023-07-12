@@ -76,7 +76,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                         convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, concentration_nm)
                     combined_concentration_nguL = decimal.Decimal(combined_concentration_nguL)
                     if combined_concentration_nguL is None:
-                        self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
+                        self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL.'
                 if measurements['volume'] == LOAD_ALL:
                     na_qty = source_sample_obj.volume * source_sample_obj.concentration
                 else:
@@ -85,7 +85,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 if measurements['volume'] == LOAD_ALL:
                     na_qty = str(source_sample_obj.volume * source_sample_obj.concentration)
                     if measurements['na_quantity'] != na_qty:
-                        self.warnings['na_qty'] = f'The quantity of nucleic acid requested do not match the quantity found in the source sample. Using available quantity : {na_qty} ng.'
+                        self.warnings['na_qty'].append(("The quantity of nucleic acid requested do not match the quantity found in the source sample. Using available quantity : {0} ng.", [na_qty]))
                     concentration_nguL = source_sample_obj.concentration
                 else:
                     #compute concentration in ngul
@@ -126,8 +126,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                           f'maintain requested concentration while using all source sample volume.'
             elif measurements['volume'] == LOAD_ALL:
                 adjusted_volume = decimal_rounded_to_precision(na_qty / combined_concentration_nguL)
-                self.warnings['volume'] = f'Final volume will be set to {adjusted_volume} uL to ' \
-                                          f'maintain requested concentration while using all source sample volume ({volume_used} uL).'
+                self.warnings['volume'].append(("Final volume will be set to {0} uL to maintain requested concentration while using all source sample volume ({1} uL).", [adjusted_volume, volume_used]))
             else:
                 adjusted_volume = measurements['volume']
 
