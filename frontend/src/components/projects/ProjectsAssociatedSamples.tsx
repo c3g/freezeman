@@ -19,7 +19,10 @@ const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
         (async () => {
             const results = sampleIDs.length > 0 ? (await dispatch(lastProtocols({ lineage__child__id__in: sampleIDs.join(",")}))).data : {}
             const lastProtocolBySampleIdResponse: { child_sample: Sample['id'], protocol: Protocol['name']}[] = results
-            setLastProtocolBySampleID(lastProtocolBySampleIdResponse.reduce((acc, curr) => { acc[curr['child_sample']] = curr['protocol']; return acc }, {} as typeof lastProtocolBySampleID))
+            setLastProtocolBySampleID(lastProtocolBySampleIdResponse.reduce((acc, { child_sample, protocol }) => {
+                acc[child_sample] = protocol
+                return acc
+            }, {} as typeof lastProtocolBySampleID))
         })()
     }, [dispatch, sampleIDs])
 
