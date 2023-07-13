@@ -88,6 +88,7 @@ export interface PagedItems {
 		readonly limit?: number
 		readonly ignoreError?: string
 	}
+	readonly stale: boolean
 }
 
 interface PagedItem extends FMSTrackedModel, FetchedObject, PageableData {}
@@ -110,7 +111,8 @@ export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
 			limit: 20
 			// Note: The pageNumber is left undefined intentionally. A page number
 			// should only be set when the page items are loaded.
-		}
+		},
+		stale: false
 	}
 	return {...DEFAULT_PAGED_ITEMS}
 }
