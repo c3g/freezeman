@@ -12,6 +12,7 @@ import { list as listLibraries } from '../libraries/actions'
 import { list as listWorkflows } from '../workflows/actions'
 import { list as listStudies } from '../studies/actions'
 import { list as listContainers } from '../containers/actions'
+import { isDefined, isNullish } from "../../utils/functions"
 
 
 type ListByIDFunction = (ids: FMSId[]) => (dispatch: Dispatch, getState: () => any) => Promise<any>
@@ -41,12 +42,17 @@ function createFetchItems<ItemType extends FMSTrackedModel>(
 			// Some 'list' endpoints return paginated results, with a count and the data
 			// in a 'results' field. Others just return an array of data objects directly,
 			// so we have to distinguish between the two types of response.
-			if (reply.count && reply.results) {
-				fetchedItems.push(...reply.results)
-			} else {
+
+			if (Array.isArray(reply)) {
 				fetchedItems.push(...reply)
-			}
-			
+			} else {
+				if (isDefined(reply.count) && isDefined(reply.results)) {
+					fetchedItems.push(...reply.results)
+				} else {
+					console.error('Cache received unsupported reply from a list api call', JSON.stringify(reply))
+					throw new Error('Cache received unexpected reply from list api call')
+				}
+			}			
 		}
 
 		return fetchedItems
