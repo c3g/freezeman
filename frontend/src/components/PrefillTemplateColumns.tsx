@@ -11,7 +11,7 @@ interface PrefillButtonProps {
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
 
-    const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(true);
+    const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(false);
     const [checkedFields, setCheckedFields] = useState({});
     const [formErrors, setFormErrors] = useState({})
 
@@ -35,7 +35,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
 
     const [form] = Form.useForm()
 
-    const checkFormErrors = (key: string) =>{
+    const checkFormErrors = (key: string) => {
         if (formErrors && formErrors[key]) {
             const formErrors_copy = { ...formErrors }
             formErrors_copy[key] = undefined;
@@ -50,28 +50,33 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
 
     const onFinish = () => {
         let prefillData = returnPrefillData()
-        if (prefillData)
+        if (prefillData) {
             handlePrefillTemplate(prefillData)
-        setIsPrefillColumnsShown(false)
+            setIsPrefillColumnsShown(false)
+        }
     }
 
     const returnPrefillData = () => {
         const fieldValues = form.getFieldsValue();
         const prefillData = {}
         const errorData = {}
+        let error = false
         Object.keys(fieldValues).forEach((column) => {
             if (checkedFields[column]) {
+                console.log(column, fieldValues[column])
                 if (fieldValues[column] == undefined) {
                     errorData[column] = 'Missing Field'
-                }
-                if(column.includes("date")){
-                    prefillData[column] = new Date(fieldValues[column]).toISOString()
-                }else{
-                    prefillData[column] = fieldValues[column]
+                    error = true
+                } else {
+                    if (!column.toLocaleLowerCase().includes("date")) {
+                        prefillData[column] = fieldValues[column]
+                    } else {
+                        prefillData[column] = new Date(fieldValues[column]).toISOString().split('T')[0]
+                    }
                 }
             }
         })
-        if (Object.keys(errorData).length > 0) {
+        if (error) {
             setFormErrors(errorData)
             return null
         }
