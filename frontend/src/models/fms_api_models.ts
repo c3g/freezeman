@@ -165,6 +165,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     quantity_ng?: number                // Quantity in nanograms
     container: FMSId                    // Container ID
     coordinate: FMSId                   // Coords ID of position in container
+    is_pool: boolean                    // Pool flag (false for plain sample)
     project: FMSId                      // Project ID
     creation_date: string               // Date library was created (YYYY-MM-DD)
     quality_flag?: boolean              // Quality check flag (undefined in no QC has been performed)
@@ -320,6 +321,7 @@ export interface FMSSample extends FMSTrackedModel {
     coordinate: FMSId                   // Coordinate ID of position in container, if applicable
     sample_kind: FMSId                  // Sample kind ID
     is_library: boolean                 // Library flag
+    is_pool: boolean                    // Pool flag
     project?: FMSId                     // Project ID
     process_measurements: FMSId[]       // ID's of ProcessMeasurement objects
     tissue_source?: FMSId               // ID of tissue source type
