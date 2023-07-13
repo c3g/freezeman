@@ -14,7 +14,7 @@ class DatasetServicesTestCase(TestCase):
         
 
     def test_create_dataset(self):
-        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, metric_report_url=self.METRIC_REPORT_URL)
+        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, metric_report_url=self.METRIC_REPORT_URL, project_name="MY_NAME_IS_PROJECT")
         self.assertFalse(errors, "errors occured while creating a valid dataset with create_dataset")
         self.assertFalse(warnings, "warnings is expected to be empty")
         self.assertIsNotNone(dataset)
@@ -24,9 +24,10 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset.run_name, "run")
         self.assertEqual(dataset.lane, 1)
         self.assertEqual(dataset.metric_report_url, self.METRIC_REPORT_URL)
+        self.assertEqual(dataset.project_name, "MY_NAME_IS_PROJECT")
     
     def test_create_dataset_without_metric_report(self):
-        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1)
+        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         self.assertFalse(errors, "errors occured while creating a valid dataset with create_dataset")
         self.assertFalse(warnings, "warnings is expected to be empty")
         self.assertIsNotNone(dataset)
@@ -35,25 +36,27 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset.external_project_id, "project")
         self.assertEqual(dataset.run_name, "run")
         self.assertEqual(dataset.lane, 1)
+        self.assertEqual(dataset.project_name, "MY_NAME_IS_PROJECT")
         self.assertIsNone(dataset.metric_report_url)
 
     def test_create_dataset_without_replace(self):
-        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1)
-        _, errors, _ = create_dataset(external_project_id="project", run_name="run", lane=1)
+        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
+        _, errors, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         self.assertTrue(errors)
     
     def test_create_dataset_with_replace(self):
-        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1)
+        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
         dataset_file, errors, warnings = create_dataset_file(readset, file_path="file_path", release_status=3)
 
-        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, metric_report_url=self.METRIC_REPORT_URL, replace=True)
+        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, metric_report_url=self.METRIC_REPORT_URL, project_name="MY_NAME_IS_PROJECT_TOO", replace=True)
         self.assertIsNotNone(dataset)
         self.assertCountEqual(errors, [])
         if dataset:
             self.assertCountEqual(Readset.objects.filter(dataset=dataset.id), [])
             self.assertCountEqual(DatasetFile.objects.filter(readset=readset.id), [])
             self.assertEqual(dataset.metric_report_url, self.METRIC_REPORT_URL)
+            self.assertEqual(dataset.project_name, "MY_NAME_IS_PROJECT_TOO")
 
     def test_reset_dataset_content(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, metric_report_url=self.METRIC_REPORT_URL)
