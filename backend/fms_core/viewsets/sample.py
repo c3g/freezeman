@@ -57,6 +57,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             .values_list("derived_sample", flat=True)[:1]
         )
     )
+    serializer_class = SampleSerializer
 
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),
