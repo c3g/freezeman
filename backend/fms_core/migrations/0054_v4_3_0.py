@@ -12,46 +12,46 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddIndex(
             model_name='container',
-            index=models.Index(fields=['coordinate'], name='fms_core_co_coordin_27d459_idx'),
+            index=models.Index(fields=['coordinate'], name='container_coordinate_idx'),
         ),
         migrations.AddIndex(
             model_name='container',
-            index=models.Index(fields=['barcode'], name='fms_core_co_barcode_fdac5c_idx'),
+            index=models.Index(fields=['barcode'], name='container_barcode_idx'),
         ),
         migrations.AddIndex(
             model_name='container',
-            index=models.Index(fields=['name'], name='fms_core_co_name_ec10e2_idx'),
+            index=models.Index(fields=['name'], name='container_name_idx'),
         ),
         migrations.AddIndex(
             model_name='coordinate',
-            index=models.Index(fields=['name'], name='fms_core_co_name_fc06c1_idx'),
+            index=models.Index(fields=['name'], name='coordinate_name_idx'),
         ),
         migrations.AddIndex(
             model_name='individual',
-            index=models.Index(fields=['name'], name='fms_core_in_name_bbaf8d_idx'),
+            index=models.Index(fields=['name'], name='individual_name_idx'),
         ),
         migrations.AddIndex(
             model_name='instrument',
-            index=models.Index(fields=['type'], name='fms_core_in_type_id_8d8189_idx'),
+            index=models.Index(fields=['type'], name='instrument_type_idx'),
         ),
         migrations.AddIndex(
             model_name='project',
-            index=models.Index(fields=['name'], name='fms_core_pr_name_332150_idx'),
+            index=models.Index(fields=['name'], name='project_name_idx'),
         ),
         migrations.AddIndex(
             model_name='sample',
-            index=models.Index(fields=['creation_date'], name='fms_core_sa_creatio_c15eb6_idx'),
+            index=models.Index(fields=['creation_date'], name='sample_creationdate_idx'),
         ),
         migrations.AddIndex(
             model_name='samplenextstep',
-            index=models.Index(fields=['sample', 'step'], name='fms_core_sa_sample__ac44ad_idx'),
+            index=models.Index(fields=['sample', 'step'], name='samplenextstep_sample_step_idx'),
         ),
         migrations.AddIndex(
             model_name='samplenextstepbystudy',
-            index=models.Index(fields=['sample_next_step', 'step_order', 'study'], name='fms_core_sa_sample__172375_idx'),
+            index=models.Index(fields=['sample_next_step', 'step_order', 'study'], name='samplenextstepbystudy_samplenextstep_steporder_study_idx'),
         ),
         migrations.AddIndex(
             model_name='steporder',
-            index=models.Index(fields=['order', 'workflow'], name='fms_core_st_order_06777e_idx'),
+            index=models.Index(fields=['order', 'workflow'], name='steporder_order_workflow_idx'),
         ),
     ]
