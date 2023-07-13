@@ -106,8 +106,7 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = (queryset
                     .annotate(protocol=F('process__protocol__name'))
-                    .order_by('execution_date')
-                    .values('child_sample', 'protocol')
-                    .order_by('child_sample')
-                    .distinct('child_sample'))
+                    .order_by('child_sample', '-execution_date')
+                    .distinct('child_sample')
+                    .values('child_sample', 'protocol'))
         return Response(queryset)
