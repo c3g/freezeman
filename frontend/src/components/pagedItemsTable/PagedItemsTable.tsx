@@ -103,6 +103,10 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		dispatch(pagedItemActions.resetPagedItems())
 	}, [dispatch, pagedItemActions])
 
+	const setStaleCallback = useCallback((stale: boolean) => {
+		dispatch(pagedItemActions.setStale(stale))
+	}, [dispatch, pagedItemActions])
+
 	return {
 		listPageCallback,
 		setFixedFilterCallback,
@@ -112,6 +116,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		setSortByCallback,
 		setPageSizeCallback,
 		resetPagedItemsCallback,
+		setStaleCallback,
 	}
 }
 
@@ -161,6 +166,30 @@ export function useItemsByIDToDataObjects<T extends FMSTrackedModel, D>(
 	return callback
 }
 
+/**
+ * This hook creates a callback that automatically refreshes the table if
+ * the stale flag in PagedItems is set. The flag is cleared and the table
+ * items are refreshed.
+ * 
+ * PagedItems table will call the callback whenever the paged items state changes,
+ * to check for the stale flag.
+ * @param pagedItemActions 
+ * @returns 
+ */
+export function useRefreshWhenStale(pagedItemActions: PagedItemsActions) {
+
+	const dispatch = useAppDispatch()
+
+	const refreshWhenStale = useCallback((pagedItems: PagedItems) => {
+		if (pagedItems.stale) {
+			dispatch(pagedItemActions.setStale(false))
+			dispatch(pagedItemActions.refreshPage())
+		}
+	}, [dispatch, pagedItemActions])
+
+	return refreshWhenStale
+}
+
 export interface PagedItemTableSelection<T extends PageableData> {
 	selectedItemIDs: DataID[]
 	onSelectionChanged: (selectedItems: T[]) => void
@@ -174,6 +203,7 @@ export type SetSortByCallback = (sortBy: SortBy) => void
 export type SetPageSizeCallback = (pageSize: number) => void
 export type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
 export type SetFilterOptionsCallback = (description: FilterDescription, options: FilterOptions) => void
+export type RefreshWhenStaleCallback = (pagedItems: PagedItems) => void
 
 export interface DataObjectsByID<T> {
 	[key: string] : T | undefined
@@ -194,6 +224,8 @@ interface PagedItemsTableProps<T extends PageableData> {
 	setSortByCallback: SetSortByCallback
 	setPageSizeCallback: SetPageSizeCallback
 
+	refreshWhenStale?: RefreshWhenStaleCallback
+
 	columns: IdentifiedTableColumnType<T>[]
 	fixedFilter?: FilterSetting
 	usingFilters: boolean
@@ -208,6 +240,7 @@ function PagedItemsTable<T extends object>({
 	clearFiltersCallback,
 	setSortByCallback,
 	setPageSizeCallback,
+	refreshWhenStale,
 	pagedItems,
 	columns,
 	fixedFilter,
@@ -248,6 +281,14 @@ function PagedItemsTable<T extends object>({
 		}
 		retrieveItems([...items])
 	}, [getDataObjectsByID, items])
+
+	// Refresh the page if the paged items are marked as stale, if using 
+	// the refresh mechanism.
+	useEffect(() => {
+		if (refreshWhenStale) {
+			refreshWhenStale(pagedItems)
+		}
+	}, [pagedItems, refreshWhenStale])
 
 	const pageSizeCallback = useCallback(
 		(pageSize) => {
