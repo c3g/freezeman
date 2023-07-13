@@ -17,6 +17,7 @@ import {
 	reduceSetFixedFilter,
 	reduceSetPageSize,
 	reduceSetSortBy,
+    reduceSetStale,
 } from './paged_items_reducers'
 
 type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
@@ -37,6 +38,7 @@ export interface PagedItemsActions {
 	setSortBy: (sortBy: SortBy) => FreezemanAsyncThunk<void>
 	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
     resetPagedItems: () => FreezemanAsyncThunk<void>
+    setStale: (stale: boolean) => FreezemanAsyncThunk<void>
 }
 
 export type SetFilterActionType = PagedItemsActions['setFilter']
@@ -56,6 +58,7 @@ interface PagedItemsActionTypes {
 	SET_SORT_BY: string
 	SET_PAGE_SIZE: string
     RESET_PAGED_ITEMS: string
+    SET_STALE: string
 }
 
 export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTypes {
@@ -69,6 +72,7 @@ export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTyp
         SET_SORT_BY: `${prefix}.SET_SORT_BY`,
         SET_PAGE_SIZE: `${prefix}.SET_PAGE_SIZE`,
         RESET_PAGED_ITEMS: `${prefix}.RESET_PAGED_ITEMS`,
+        SET_STALE: `${prefix}.SET_STATE`,
     }
 }
 
@@ -81,7 +85,7 @@ export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
 export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, selectPagedItems: SelectPagedItemsFunc, list: ListType, extra?: object): PagedItemsActions {
 
-    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS } =
+    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } =
 		actionTypes
 
 
@@ -251,6 +255,14 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
         })
     }
 
+    const setStale: PagedItemsActions['setStale'] = (stale) => async (dispatch) => {
+        dispatch({
+            type: SET_STALE,
+            stale,
+            extra
+        })
+    }
+
     const actions: PagedItemsActions = {
         listPage,
         refreshPage,
@@ -261,7 +273,8 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
         clearFilters,
         setSortBy,
         setPageSize,
-        resetPagedItems
+        resetPagedItems,
+        setStale
     }
 
     return actions
@@ -270,7 +283,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 
 // This reducer will support any state that extends PagedItems.
 export function createPagedItemsReducer<P extends PagedItems>(actionTypes: PagedItemsActionTypes, initialState: P): Reducer<P, AnyAction> {
-    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS } = actionTypes
+    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } = actionTypes
 
     function reduce(state: P = initialState, action: AnyAction): P {
         switch (action.type) {
@@ -306,6 +319,9 @@ export function createPagedItemsReducer<P extends PagedItems>(actionTypes: Paged
 			}
             case RESET_PAGED_ITEMS: {
                 return reduceResetPagedItems(state)
+            }
+            case SET_STALE: {
+                return reduceSetStale(state, action.stale)
             }
 			default: {
 				return state
