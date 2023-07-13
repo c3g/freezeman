@@ -85,7 +85,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
     return (
         <>
             <Button type='primary' disabled={!canPrefill} onClick={showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
-            <Modal title={"Prefilled Columns"} visible={isPrefillColumnsShown} onOk={form.submit} onCancel={cancelPrefillTemplate}>
+            <Modal title={"Prefilled Columns"} visible={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate}>
 
                 <Form
                     form={form}
@@ -102,7 +102,8 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                             return (
                                 <span key={field} style={{
                                     display: 'flex',
-                                    flexDirection: 'row'
+                                    flexDirection: 'row',
+                                    alignItems: 'center'
                                 }}>
                                     <Checkbox checked={checkedFields[field]}
                                         onClick={() => {
