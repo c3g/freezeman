@@ -41,7 +41,7 @@ function createFetchItems<ItemType extends FMSTrackedModel>(
 			// Some 'list' endpoints return paginated results, with a count and the data
 			// in a 'results' field. Others just return an array of data objects directly,
 			// so we have to distinguish between the two types of response.
-			if (reply.count && reply.results) {
+			if (reply.count !== undefined && reply.results) {
 				fetchedItems.push(...reply.results)
 			} else {
 				fetchedItems.push(...reply)

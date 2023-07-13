@@ -52,7 +52,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
         let prefillData = returnPrefillData()
         if (prefillData)
             handlePrefillTemplate(prefillData)
-
+        setIsPrefillColumnsShown(false)
     }
 
     const returnPrefillData = () => {
@@ -64,10 +64,14 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                 if (fieldValues[column] == undefined) {
                     errorData[column] = 'Missing Field'
                 }
-                prefillData[column] = fieldValues[column]
+                if(column.includes("date")){
+                    prefillData[column] = new Date(fieldValues[column]).toISOString()
+                }else{
+                    prefillData[column] = fieldValues[column]
+                }
             }
         })
-        if (errorData) {
+        if (Object.keys(errorData).length > 0) {
             setFormErrors(errorData)
             return null
         }
