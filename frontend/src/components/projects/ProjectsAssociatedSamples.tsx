@@ -4,7 +4,7 @@ import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors";
 import SamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { FilterSetting, createFixedFilter } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
-import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumn } from "../shared/WorkflowSamplesTable/SampleTableColumns";
+import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
 import { Protocol, Sample } from "../../models/frontend_models";
 import api from '../../utils/api'
@@ -68,7 +68,7 @@ const ProjectsAssociatedSamples = ({
     const columns = useFilteredColumns<ObjectWithSample>(
         sampleColumns,
         SAMPLE_COLUMN_FILTERS,
-        SAMPLE_NEXT_STEP_FILTER_KEYS,
+        SAMPLE_FILTER_KEYS,
         samplesTable.filters,
         samplesTableCallbacks.setFilterCallback,
         samplesTableCallbacks.setFilterOptionsCallback)
