@@ -335,6 +335,7 @@ class FetchSampleData(FetchData):
                 'depleted': ["No", "Yes"][sample["depleted"]],
                 'is_library': is_library,
                 'comment': sample["comment"],
+                "derived_samples_counts": sample["count_derived_samples"]
             }
             serialized_data.append(data)
 
