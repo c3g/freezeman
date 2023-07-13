@@ -225,7 +225,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			const individual = sample?.individual
 			return (individual !== undefined &&
 			<Link to={`/individuals/${individual}`}>
-				<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={"Loading..."}/>
+				<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""}/>
 			</Link>)
 		}
 	}
