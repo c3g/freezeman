@@ -18,8 +18,8 @@ const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
     useEffect(() => {
         (async () => {
             const results = sampleIDs.length > 0 ? (await dispatch(lastProtocols({ lineage__child__id__in: sampleIDs.join(",")}))).data : {}
-            const lastProtocolBySampleIdResponse: Record<string, Protocol['name']> = results
-            setLastProtocolBySampleID(Object.fromEntries(Object.entries(lastProtocolBySampleIdResponse).map(([k, v]) => [Number(k), v])))
+            const lastProtocolBySampleIdResponse: { child_sample: Sample['id'], protocol: Protocol['name']}[] = results
+            setLastProtocolBySampleID(lastProtocolBySampleIdResponse.reduce((acc, curr) => { acc[curr['child_sample']] = curr['protocol']; return acc }, {} as typeof lastProtocolBySampleID))
         })()
     }, [dispatch, sampleIDs])
 
