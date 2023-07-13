@@ -87,8 +87,9 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 	}
 
 	// This component displays the sample name and nbReads in a popup when the user
-	// hovers their mouse over a bar.
-	const SampleTooltip = ({ active, payload, label }) => {
+	// hovers their mouse over a bar. The props for this component are passed to it
+	// by recharts.
+	const SampleTooltip = ({ active, payload, } : any) => {
 		if (active && payload && payload.length) {
 			const sampleData: NumberOfReads = payload[0].payload
 			const style: React.CSSProperties = {
@@ -121,7 +122,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 			>
 				<XAxis tick={false} />
 				<YAxis type="number" />
-				<Tooltip content={<SampleTooltip />} />
+				<Tooltip content={<SampleTooltip/>} />
 				<Bar dataKey="nbReads" fill="#8884d8" isAnimationActive={false} onClick={handleBarClick} />
 			</BarChart>
 		</div>
