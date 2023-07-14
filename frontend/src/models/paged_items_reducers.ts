@@ -114,3 +114,10 @@ export function reduceResetPagedItems<P extends PagedItems>(pagedItems: P): P {
 		...defaultPagedItems
 	}
 }
+
+export function reduceSetStale<P extends PagedItems>(pagedItems: P, stale: boolean): P {
+	return {
+		...pagedItems,
+		stale
+	}
+}
