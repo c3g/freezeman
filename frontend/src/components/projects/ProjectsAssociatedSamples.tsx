@@ -20,7 +20,7 @@ const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
             const response: { child_sample: Sample['id'], protocol: Protocol['name']}[] =
                 sampleIDs.length > 0
                     ? (await dispatch(lastProtocols({ lineage__child__id__in: sampleIDs.join(",")}))).data
-                    : {}
+                    : []
             setLastProtocolBySampleID(response.reduce((acc, { child_sample, protocol }) => {
                 acc[child_sample] = protocol
                 return acc
