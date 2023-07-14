@@ -17,9 +17,11 @@ const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
 
     useEffect(() => {
         (async () => {
-            const results = sampleIDs.length > 0 ? (await dispatch(lastProtocols({ lineage__child__id__in: sampleIDs.join(",")}))).data : {}
-            const lastProtocolBySampleIdResponse: { child_sample: Sample['id'], protocol: Protocol['name']}[] = results
-            setLastProtocolBySampleID(lastProtocolBySampleIdResponse.reduce((acc, { child_sample, protocol }) => {
+            const response: { child_sample: Sample['id'], protocol: Protocol['name']}[] =
+                sampleIDs.length > 0
+                    ? (await dispatch(lastProtocols({ lineage__child__id__in: sampleIDs.join(",")}))).data
+                    : {}
+            setLastProtocolBySampleID(response.reduce((acc, { child_sample, protocol }) => {
                 acc[child_sample] = protocol
                 return acc
             }, {} as typeof lastProtocolBySampleID))
