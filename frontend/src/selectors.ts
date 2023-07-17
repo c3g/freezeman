@@ -26,6 +26,7 @@ import { PagedItems } from './models/paged_items'
 import { IndividualDetailsById } from './modules/individualDetails/models'
 import { LabworkSummaryState } from './modules/labwork/reducers'
 import { LabworkStepsState } from './modules/labworkSteps/models'
+import { ProjectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { StudySamplesByID, StudySettingsByID } from './modules/studySamples/models'
 import { RootState } from './store'
 
@@ -87,7 +88,7 @@ export const selectSampleKindsState = (state: RootState) => state.sampleKinds
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
-export const selectProjectSamplesTable = (state: RootState) => state.projectSamplesTable as PagedItems
+export const selectProjectSamplesTable = (state: RootState) => state.projectSamplesTable as ProjectSamplesTable
 export const selectSequencesByID = (state: RootState) => state.sequences.itemsByID as ItemsByID<Sequence>
 export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID

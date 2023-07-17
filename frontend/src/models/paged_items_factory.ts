@@ -20,7 +20,7 @@ import {
     reduceSetStale,
 } from './paged_items_reducers'
 
-type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
+export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
 
   type SetFixedFilterAction = {
 		type: string

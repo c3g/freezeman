@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors";
-import SamplesTableActions from '../../modules/projectSamplesTable/actions'
+import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { FilterSetting, createFixedFilter } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../shared/WorkflowSamplesTable/SampleTableColumns";
@@ -43,18 +43,24 @@ export interface ProjectsAssociatedSamplesProps {
     projectID: Project['id']
 }
 
-export const ProjectsAssociatedSamples = ({ projectID } : ProjectsAssociatedSamplesProps) => {
+export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : ProjectsAssociatedSamplesProps) => {
+    const dispatch = useAppDispatch()
+    useEffect(() => {
+        dispatch(projectSamplesTableActions.setProject(currentProjectID))
+    }, [currentProjectID, dispatch])
+    
+    const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
+    const { projectID = currentProjectID } = projectSamplesTable
+
     const projectIDFilter = useMemo(() => {
         const filterKey = 'derived_samples__project__id'
         const filter: FilterSetting = createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, filterKey, projectID.toString())
         return filter
     }, [projectID])
 
-    const samplesTable = useAppSelector(selectProjectSamplesTable)
+    const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
-    const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
-
-    const LastProtocol = useLastProtocols(samplesTable.items)
+    const LastProtocol = useLastProtocols(projectSamplesTable.items)
 
     const sampleColumns: SampleColumn[] = useMemo(() => [
         SAMPLE_COLUMN_DEFINITIONS.KIND,
@@ -76,9 +82,9 @@ export const ProjectsAssociatedSamples = ({ projectID } : ProjectsAssociatedSamp
         sampleColumns,
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
-        samplesTable.filters,
-        samplesTableCallbacks.setFilterCallback,
-        samplesTableCallbacks.setFilterOptionsCallback)
+        projectSamplesTable.filters,
+        projectSamplesTableCallbacks.setFilterCallback,
+        projectSamplesTableCallbacks.setFilterOptionsCallback)
 
     const mapSamplesID = useItemsByIDToDataObjects(selectSamplesByID, (sample: Sample) => ({ sample }))
 
@@ -86,10 +92,10 @@ export const ProjectsAssociatedSamples = ({ projectID } : ProjectsAssociatedSamp
         // Don't render until the sample fixed filter is set, or you will get all of the projects.
         <PagedItemsTable<ObjectWithSample>
             getDataObjectsByID={mapSamplesID}
-            pagedItems={samplesTable}
+            pagedItems={projectSamplesTable}
             columns={columns}
             usingFilters={true}
-            {...samplesTableCallbacks}
+            {...projectSamplesTableCallbacks}
             fixedFilter={projectIDFilter}
         />
     )
