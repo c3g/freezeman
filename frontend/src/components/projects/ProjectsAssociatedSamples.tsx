@@ -9,7 +9,7 @@ import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePage
 import { Protocol, Sample } from "../../models/frontend_models";
 import api from '../../utils/api'
 
-const lastProtocols = api.processMeasurements.lastProtocols;
+const lastProtocols = api.protocols.lastProtocols;
 
 const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
     const dispatch = useAppDispatch()

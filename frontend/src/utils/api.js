@@ -156,7 +156,6 @@ const api = {
     listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
     search: q => get("/process-measurements/search/", { q }),
     summary: () => get("/process-measurements/summary/"),
-    lastProtocols: (options, abort) => get("/process-measurements/last_protocols/", options, { abort }),
     template: {
       actions: () => get(`/process-measurements/template_actions/`),
       check:  (action, template) => post(`/process-measurements/template_check/`, form({ action, template })),
@@ -184,6 +183,7 @@ const api = {
 
   protocols: {
     list:  (options, abort) => get("/protocols/", options, { abort }),
+    lastProtocols: (options, abort) => get("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {
