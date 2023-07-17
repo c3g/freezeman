@@ -58,11 +58,24 @@ On this page we list the various steps needed for deployments. The first section
 
     service postgresql-11 restart
     ```
-  * Install nginx and more stuff
+  * Install essential packages
     ```
     yum install git -y
-    yum install nginx -y
     yum install -y gcc openssl-devel bzip2-devel libffi-devel
+    ```
+  * Install Openssl 1.1.1u
+    ```
+    cd /opt/
+    wget https://ftp.openssl.org/source/openssl-1.1.1u.tar.gz --no-check-certificate
+    tar xzf openssl-1.1.1u.tar.gz
+    cd openssl-1.1.1u
+    ./config --prefix=/usr/local --openssldir=/etc/ssl --libdir=lib  no-shared zlib-dynamic
+    make -j1 depend
+    make -j2
+    make install_sw
+
+    # To test
+    /usr/local/bin/openssl version
     ```
   * Install python 3.11.4
     ```
@@ -70,16 +83,22 @@ On this page we list the various steps needed for deployments. The first section
     wget https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz
     tar xzf Python-3.11.4.tgz
     cd Python-3.11.4
-    ./configure --enable-optimizations
+    ./configure --enable-optimizations --with-openssl=/usr/local -with-openssl-rpath=auto
     make altinstall #to prevent replacing the default python binary file /usr/bin/python
+    export PATH=/usr/local/bin:$PATH
+
+    # To test:
+
     /usr/local/bin/python3.11 -V
-    /usr/local/bin/pip3.11 -V
+    /usr/local/bin/pip3.11 
+
+    # Python ssl test
+    python3.11 -m ssl
     ```
   * Install uWsgi and django with pip, and llvm
     ```
-    /usr/local/bin/pip3.11 install uWSGI
-    /usr/local/bin/pip3.11 install djangorestframework-simplejwt
-    /usr/local/bin/pip3.11 list
+    pip3.11 install asgiref Django djangorestframework djangorestframework-simplejwt PyJWT pytz sqlparse list --no-cache-dir
+    CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib" UWSGI_PROFILE_OVERRIDE=ssl=true pip3.11 install uwsgi -I  --no-cache-dir
 
     yum install -y clang llvm-toolset-7
 
@@ -92,8 +111,10 @@ On this page we list the various steps needed for deployments. The first section
     yum update
     yum install nodejs -y
     ```
-  * Configure nginx
+  * Install and Configure nginx
     ```
+    yum install nginx -y
+
     cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.BKP
 
     # Edit /etc/nginx/conf.d/default.conf add/replace the following lines:
