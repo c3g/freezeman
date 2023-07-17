@@ -25,8 +25,8 @@ class TaxonServicesTestCase(TestCase):
         
         # one taxon is assigned to an individual, other is not
         # verify editable boolean is correct for each taxon
-        edit_101 = can_edit_taxon(self.taxon_101)
-        edit_102 = can_edit_taxon(self.taxon_102)
+        edit_101 = can_edit_taxon(self.taxon_101.id)
+        edit_102 = can_edit_taxon(self.taxon_102.id)
 
         self.assertFalse(edit_101)
         self.assertTrue(edit_102)
