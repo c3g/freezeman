@@ -111,7 +111,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		dispatch(pagedItemActions.refreshPage())
 	}, [dispatch, pagedItemActions])
 
-	return {
+	return useMemo(() => ({
 		listPageCallback,
 		setFixedFilterCallback,
 		setFilterCallback,
@@ -122,7 +122,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		resetPagedItemsCallback,
 		setStaleCallback,
 		refreshPageCallback,
-	}
+	}), [clearFiltersCallback, listPageCallback, refreshPageCallback, resetPagedItemsCallback, setFilterCallback, setFilterOptionsCallback, setFixedFilterCallback, setPageSizeCallback, setSortByCallback, setStaleCallback])
 }
 
 /**
