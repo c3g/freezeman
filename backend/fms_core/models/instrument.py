@@ -23,7 +23,7 @@ class Instrument(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['type']),
+            models.Index(fields=['type'], name='instrument_type_idx'),
         ]
     def __str__(self):
         return self.name

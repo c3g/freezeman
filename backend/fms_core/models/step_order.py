@@ -21,7 +21,7 @@ class StepOrder(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['order', 'workflow']),
+            models.Index(fields=['order', 'workflow'], name='steporder_order_workflow_idx'),
         ]
         constraints = [
             models.UniqueConstraint(fields=["order", "workflow_id"], name="steporder_order_workflowid_key")

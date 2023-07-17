@@ -59,7 +59,7 @@ class Sample(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['creation_date'])
+            models.Index(fields=['creation_date'], name='sample_creationdate_idx')
         ]
         constraints = [
             models.UniqueConstraint(fields=["container", "coordinate"], name="sample_container_coordinate_key")
