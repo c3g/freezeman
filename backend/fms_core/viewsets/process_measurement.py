@@ -1,4 +1,4 @@
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, Case, When, IntegerField
 from django.forms import ValidationError
 
 from rest_framework import viewsets
@@ -103,10 +103,15 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     
     @action(detail=False, methods=["get"])
     def last_protocols(self, _request):
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = (queryset
+        samples = [int(x) for x in self.request.query_params.get("samples").split(",")]
+        queryset = (self.get_queryset()
                     .annotate(protocol=F('process__protocol__name'))
-                    .order_by('child_sample', '-execution_date')
-                    .distinct('child_sample')
-                    .values('child_sample', 'protocol'))
+                    .annotate(sample_result=Case(When(Q(source_sample__in=samples) & Q(child_sample=None), then=F('source_sample')), # QC?
+                                                 When(Q(child_sample__in=samples), then=F('child_sample')), # child?
+                                                 default=None,
+                                                 output_field=IntegerField()))
+                    .exclude(sample_result=None)
+                    .order_by('sample_result', '-pk')
+                    .distinct('sample_result')
+                    .values('sample_result', 'protocol'))
         return Response(queryset)
