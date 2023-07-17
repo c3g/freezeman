@@ -10,7 +10,7 @@ from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH
 class Dataset(TrackedModel):
     """ Class to store information about the datasets of data deliveries. """
     external_project_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project id.")
-    project_name = models.CharField(blank=True, null=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Human readable project name.")
+    project_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Human readable project name.")
     run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Run name.")
     lane = models.PositiveIntegerField(help_text="Coordinates of the lane in a container")
     experiment_run = models.ForeignKey(blank=True, null=True, help_text='Experiment run matching the dataset.', on_delete=models.PROTECT, related_name='datasets', to='fms_core.experimentrun')

@@ -15,9 +15,9 @@ from fms_core.services.metric import create_metrics_from_run_validation_data
 def create_dataset(external_project_id: str,
                    run_name: str,
                    lane: int,
+                   project_name: str,
                    experiment_run_id: int = None,
                    metric_report_url: str = None,
-                   project_name: str = None,
                    replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
     Create a new dataset and return it. If an dataset exists already with the same natural key (external_project_id, run_name and lane),
@@ -29,9 +29,9 @@ def create_dataset(external_project_id: str,
         `external_project_id`: Project id from the external system that generate projects.
         `run_name`: Name or id of the experiment run.
         `lane`: Lane (coordinate) on the experiment container.
+        `project_name`: Human readable name of the project.
         `experiment_run_id`: Experiment run ID, None if not recorded on Freezeman.
         `metric_report_url`: Run processing report URL.
-        `project_name`: Human readable name of the project.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
 
     Returns:
@@ -259,9 +259,9 @@ def ingest_run_validation_report(report_json):
             dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
                                                        run_name=run_name,
                                                        lane=lane,
+                                                       project_name=project_name,
                                                        experiment_run_id=experiment_run_id,
                                                        metric_report_url=metric_report_url,
-                                                       project_name=project_name,
                                                        replace=True)
             if errors:
                 return (datasets, dataset_files, errors, warnings)
