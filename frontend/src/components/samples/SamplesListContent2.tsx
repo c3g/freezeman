@@ -19,6 +19,8 @@ import { FilterSetting } from '../../models/paged_items'
 import { FILTER_TYPE } from '../../constants'
 import Flexbar from '../shared/Flexbar'
 import FiltersBar from '../filters/FiltersBar'
+import ExportDropdown from '../ExportDropdown'
+import SamplesFilters from './SamplesFilters'
 
 const samplesTableColumns = [
 	SampleColumns.ID,
@@ -59,6 +61,11 @@ function SamplesListContent() {
 			(mergedListQueryParams(SAMPLE_COLUMN_FILTERS, filters, sortBy))
 			.then(response => response.data)
 	}
+	, [token, filters, sortBy])
+
+	const listExportMetadata = useCallback(() =>
+		withToken(token, api.samples.listExportMetadata)(mergedListQueryParams(SAMPLE_COLUMN_FILTERS, filters, sortBy))
+		.then(response => response.data)
 	, [token, filters, sortBy])
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
@@ -116,10 +123,11 @@ function SamplesListContent() {
 					<AddButton key="add" url="/samples/add" />,
 					<ActionDropdown key="actions" urlBase={'/samples'} actions={templateActions} />,
 					<PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>,
-					<ExportButton key="export" exportType={undefined} exportFunction={listExport} filename="samples" itemsCount={totalCount} />,
+					<ExportDropdown key='export' listExport={listExport} listExportMetadata={listExportMetadata} itemsCount={totalCount}/>,
 				]}
 			/>
 			<PageContent>
+				<SamplesFilters style={{ flex: 1 }} />
 				<Flexbar style={{alignItems: 'center'}}>
 					<SampleCategoryChooser
 						disabled={isFetching}
