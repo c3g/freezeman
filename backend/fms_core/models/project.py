@@ -29,6 +29,10 @@ class Project(TrackedModel):
 
     comment = models.TextField(blank=True, help_text="Other relevant information about the project.")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+        ]
     def clean(self):
         super().clean()
         errors = {}

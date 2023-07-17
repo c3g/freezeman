@@ -43,6 +43,12 @@ class Container(TrackedModel):
     comment = models.TextField(blank=True, help_text="Other relevant information about the container.")
     update_comment = models.TextField(blank=True, help_text="Comment describing the latest updates made to the container. Change this whenever updates are made.")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['coordinate']),
+            models.Index(fields=['barcode']),
+            models.Index(fields=['name']),
+        ]
     @property
     def coordinates(self) -> str:
         return self.coordinate.name if self.coordinate is not None else None

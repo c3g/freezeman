@@ -58,6 +58,9 @@ class Sample(TrackedModel):
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
 
     class Meta:
+        indexes = [
+            models.Index(fields=['creation_date'])
+        ]
         constraints = [
             models.UniqueConstraint(fields=["container", "coordinate"], name="sample_container_coordinate_key")
         ]
