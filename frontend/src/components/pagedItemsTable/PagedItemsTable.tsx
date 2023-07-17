@@ -21,8 +21,8 @@ export function useFilteredColumns<T>(
 	filterDefinitions: FilterDescriptionSet,
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
-	setFilterCallback: SetFilterCallback,
-	setFilterOptionsCallback: SetFilterOptionsCallback
+	setFilterCallback: PagedItemsActionsCallbacks['setFilterCallback'],
+	setFilterOptionsCallback: PagedItemsActionsCallbacks['setFilterOptionsCallback']
 ) {
 
 	const wrappedSetFilterCallback = useCallback(
@@ -65,7 +65,7 @@ export function useFilteredColumns<T>(
  * @param pagedItemActions 
  * @returns 
  */
-export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsActions) {
+export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsActions): PagedItemsActionsCallbacks {
 	const dispatch = useAppDispatch()
 
 	const listPageCallback = useCallback((pageNumber: number) => {
@@ -111,6 +111,10 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		dispatch(pagedItemActions.setStale(stale))
 	}, [dispatch, pagedItemActions])
 
+	const refreshPageCallback = useCallback(() => {
+		dispatch(pagedItemActions.refreshPage())
+	}, [dispatch, pagedItemActions])
+
 	return {
 		listPageCallback,
 		refreshPageCallback,
@@ -122,6 +126,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		setPageSizeCallback,
 		resetPagedItemsCallback,
 		setStaleCallback,
+		refreshPageCallback,
 	}
 }
 
@@ -181,16 +186,13 @@ export function useItemsByIDToDataObjects<T extends FMSTrackedModel, D>(
  * @param pagedItemActions 
  * @returns 
  */
-export function useRefreshWhenStale(pagedItemActions: PagedItemsActions) {
-
-	const dispatch = useAppDispatch()
-
-	const refreshWhenStale = useCallback((pagedItems: PagedItems) => {
-		if (pagedItems.stale) {
-			dispatch(pagedItemActions.setStale(false))
-			dispatch(pagedItemActions.refreshPage())
+export function useRefreshWhenStale(refreshPageCallback: PagedItemsActionsCallbacks['refreshPageCallback'], setStaleCallback: PagedItemsActionsCallbacks['setStaleCallback']) {
+	const refreshWhenStale = useCallback((stale: PagedItems['stale']) => {
+		if (stale) {
+			refreshPageCallback()
+			setStaleCallback(false)
 		}
-	}, [dispatch, pagedItemActions])
+	}, [refreshPageCallback, setStaleCallback])
 
 	return refreshWhenStale
 }
@@ -200,15 +202,19 @@ export interface PagedItemTableSelection<T extends PageableData> {
 	onSelectionChanged: (selectedItems: T[]) => void
 }
 
-// This is the set of callbacks required by the paged items table.
-export type ListPageCallback = (pageNumber: number) => void
-export type SetFixedFilterCallback = (filter: FilterSetting) => void
-export type ClearFiltersCallback = () => void
-export type SetSortByCallback = (sortBy: SortBy) => void
-export type SetPageSizeCallback = (pageSize: number) => void
-export type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
-export type SetFilterOptionsCallback = (description: FilterDescription, options: FilterOptions) => void
-export type RefreshWhenStaleCallback = (pagedItems: PagedItems) => void
+// This is the set of possible callbacks for the paged items table.
+export interface PagedItemsActionsCallbacks {
+	listPageCallback: (pagedNumber: number) => void
+	setFixedFilterCallback: (filter: FilterSetting) => void
+	setFilterCallback: (value: FilterValue, description: FilterDescription) => void
+	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => void
+	clearFiltersCallback: () => void
+	setSortByCallback: (sortBy: SortBy) => void
+	setPageSizeCallback: (pageSize: number) => void
+	resetPagedItemsCallback: () => void
+	setStaleCallback: (stale: boolean) => void
+	refreshPageCallback: () => void
+}
 
 export interface DataObjectsByID<T> {
 	[key: string] : T | undefined
@@ -216,20 +222,11 @@ export interface DataObjectsByID<T> {
 export type GetDataObjectsByIDCallback<T> = (ids: number[]) => Promise<DataObjectsByID<T>>
 
 
-interface PagedItemsTableProps<T extends PageableData> {
+interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActionsCallbacks {
 	// The paged items table only has a list of item ID's. You have provide a function
 	// that maps those ID's to data objects which get rendered by the table.
 	getDataObjectsByID: GetDataObjectsByIDCallback<T>
 	pagedItems: PagedItems
-
-	// Callbacks required by the table to implement page loading, filtering and sorting.
-	listPageCallback: ListPageCallback
-	setFixedFilterCallback: SetFixedFilterCallback
-	clearFiltersCallback: ClearFiltersCallback
-	setSortByCallback: SetSortByCallback
-	setPageSizeCallback: SetPageSizeCallback
-
-	refreshWhenStale?: RefreshWhenStaleCallback
 
 	columns: IdentifiedTableColumnType<T>[]
 	fixedFilter?: FilterSetting
@@ -245,7 +242,8 @@ function PagedItemsTable<T extends object>({
 	clearFiltersCallback,
 	setSortByCallback,
 	setPageSizeCallback,
-	refreshWhenStale,
+	refreshPageCallback,
+	setStaleCallback,
 	pagedItems,
 	columns,
 	fixedFilter,
@@ -254,7 +252,7 @@ function PagedItemsTable<T extends object>({
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
-	const { items, sortBy } = pagedItems
+	const { items, sortBy, stale } = pagedItems
 	const [dataObjects, setDataObjects] = useState<DataObjectsByID<T>>({})
 
 	// On initial load, trigger the fetch of one page of items
@@ -289,11 +287,10 @@ function PagedItemsTable<T extends object>({
 
 	// Refresh the page if the paged items are marked as stale, if using 
 	// the refresh mechanism.
+	const refreshWhenStale = useRefreshWhenStale(refreshPageCallback, setStaleCallback)
 	useEffect(() => {
-		if (refreshWhenStale) {
-			refreshWhenStale(pagedItems)
-		}
-	}, [pagedItems, refreshWhenStale])
+			refreshWhenStale(stale)
+	}, [stale, refreshWhenStale])
 
 	const pageSizeCallback = useCallback(
 		(pageSize) => {
