@@ -54,7 +54,7 @@ const ProjectsAssociatedSamples = ({
 
     const LastProtocol = useLastProtocols(samplesTable.items)
 
-    const sampleColumns = [
+    const sampleColumns: SampleColumn[] = useMemo(() => [
         SAMPLE_COLUMN_DEFINITIONS.KIND,
         SAMPLE_COLUMN_DEFINITIONS.NAME,
         SAMPLE_COLUMN_DEFINITIONS.COHORT,
@@ -67,8 +67,8 @@ const ProjectsAssociatedSamples = ({
             dataIndex: ['sample', 'id'],
             render: (_, { sample }) =>
                 sample && <LastProtocol sampleID={sample.id} />,
-        } as SampleColumn
-    ]
+        }
+    ], [LastProtocol])
 
     const columns = useFilteredColumns<ObjectWithSample>(
         sampleColumns,
