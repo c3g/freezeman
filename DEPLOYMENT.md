@@ -183,3 +183,4 @@ On this page we list the various steps needed for deployments. The first section
   * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini
 * Version 4.4.0:
   * Upgrade python version to 3.11
+  * Upgrade Openssl version to 1.1.1u
