@@ -1,14 +1,14 @@
 import React from "react"
 import AppPageHeader from "../AppPageHeader"
-import PageContent from "../PageContent"
 import DatasetTable from "./DatasetTable";
+import ListPageContent from "../ListPageContent";
 
 const DatasetsListContent = () => {
     return <>
         <AppPageHeader title="Datasets"/>
-        <PageContent>
+        <ListPageContent>
             <DatasetTable />
-        </PageContent>
+        </ListPageContent>
     </>;
     }
 

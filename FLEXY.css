@@ -1,0 +1,58 @@
+body {
+	width: 100vw;
+	height: 100vh;
+	background-color: #5F9;
+	padding: 0;
+	margin: 0;
+}
+
+.page {
+	display: flex;
+	/* align-items: stretch; */
+	background-color: black;
+	min-height: 100%;
+	min-width: 100%;
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.sidebar {
+	display: block;
+	width: 20em;
+	background-color: #234;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+	width: 100%;
+	max-height: 100%;
+}
+
+.s1 {
+
+}
+
+.s2 {
+	flex-grow: 1;
+	max-height: 100%;
+}
+
+.s3 {
+	
+}
+
+.tbl-port {
+	overflow: scroll scroll;
+	max-height: 100%;
+}
+
+.tbl {
+	background-color: red;
+	height: 2000px;
+}
+
+.pgn {
+	background-color: yellow;
+}

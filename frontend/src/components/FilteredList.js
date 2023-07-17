@@ -1,13 +1,11 @@
-import React, {useEffect, useState} from "react";
-import {connect} from "react-redux";
-import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
+import { Button } from "antd";
+import React, { useEffect, useState } from "react";
 
-import PageContent from "./PageContent";
+import ListPageContent from "./ListPageContent";
 import PaginatedTable from "./PaginatedTable";
 import FiltersWarning from "./filters/FiltersWarning";
-import getNFilters from "./filters/getNFilters";
 import getFilterProps from "./filters/getFilterProps";
+import getNFilters from "./filters/getNFilters";
 
 
 const FilteredList = ({
@@ -83,37 +81,32 @@ const FilteredList = ({
     setFilter,
   )))
 
-  return <>
-    <PageContent>
-      <div className='filters-warning-bar'>
-        <FiltersWarning
-          nFilters={nFiltersForWarning}
-          filters={filtersForWarning}
-          description={description}
-        />
-        <Button
-          disabled={nFiltersForWarning === 0}
-          onClick={clearFilters}
-        >
-          Clear Filters
-        </Button>
-      </div>
-      <PaginatedTable
-        columns={columns}
-        items={itemsFiltered}
-        itemsByID={itemsByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listFilter}
-        filterKey={filterKey}
-        onChangeSort={setSorter}
-      />
-    </PageContent>
-  </>;
+  return (
+		<>
+			<ListPageContent>
+				<div className="filters-warning-bar">
+					<FiltersWarning nFilters={nFiltersForWarning} filters={filtersForWarning} description={description} />
+					<Button disabled={nFiltersForWarning === 0} onClick={clearFilters}>
+						Clear Filters
+					</Button>
+				</div>
+				<PaginatedTable
+					columns={columns}
+					items={itemsFiltered}
+					itemsByID={itemsByID}
+					rowKey="id"
+					loading={isFetching}
+					totalCount={totalCount}
+					page={page}
+					filters={filters}
+					sortBy={sortBy}
+					onLoad={listFilter}
+					filterKey={filterKey}
+					onChangeSort={setSorter}
+				/>
+			</ListPageContent>
+		</>
+  )
 }
 
 export default FilteredList;
