@@ -1,8 +1,9 @@
 import { Protocol, Step } from '../../../models/frontend_models'
 import { ProtocolNames } from '../../../models/protocols'
 import { getStepSpecificationValue } from '../../../modules/steps/services'
+import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { LibraryColumn, LIBRARY_COLUMN_DEFINITIONS as LIBRARY_COLUMNS, ObjectWithLibrary } from './LibraryTableColumns'
-import { IdentifiedTableColumnType, ObjectWithSample, SampleColumn, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from './SampleTableColumns'
+import { ObjectWithSample, SampleColumn, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from './SampleTableColumns'
 
 export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 
