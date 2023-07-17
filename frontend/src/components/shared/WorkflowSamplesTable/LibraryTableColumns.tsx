@@ -4,8 +4,9 @@ import { FILTER_TYPE } from '../../../constants'
 import { Library } from '../../../models/frontend_models'
 import { FilterDescription } from '../../../models/paged_items'
 import { WithIndexRenderComponent, WithProjectRenderComponent } from '../WithItemRenderComponent'
-import { IdentifiedTableColumnType } from './SampleTableColumns'
-import { UNDEFINED_FILTER_KEY } from './SampleTableColumns'
+import { isNullish } from '../../../utils/functions'
+import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
+import { UNDEFINED_FILTER_KEY } from '../../pagedItemsTable/PagedItemsFilters'
 
 /*
 	Defines a set of Ant Table column descriptors for library fields. Each column
@@ -41,7 +42,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		dataIndex: ['library', 'concentration_nm'],
 		align: 'right',
 		className: 'table-column-numbers',
-		render: (conc) => conc && parseFloat(conc).toFixed(3),
+		render: (conc) => isNullish(conc) ? '' : parseFloat(conc).toFixed(3),
 	},
 
 	[LibraryColumnID.INDEX_NAME]: {

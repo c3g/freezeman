@@ -1,10 +1,10 @@
-import { FMSId, FMSSample } from "../../models/fms_api_models"
-import { Individual } from "../../models/frontend_models"
-import { PagedItems } from "../../models/paged_items"
+import { FMSId } from "../../models/fms_api_models"
+import { Individual, Sample } from "../../models/frontend_models"
+import { PagedItemsByID } from "../../models/paged_items"
 
 export interface IndividualDetails {
     individual: Individual,
-    samplesByIndividual: PagedItems<FMSSample>
+    samplesByIndividual: PagedItemsByID<Sample>
 }
 
 export interface IndividualDetailsById {

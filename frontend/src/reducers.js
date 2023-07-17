@@ -89,16 +89,14 @@ import { taxons } from "./modules/taxons/reducers";
 import { users } from "./modules/users/reducers";
 import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
+import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
+import { projectsTable} from './modules/projectsTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
   blacklist: ["isFetching"],
   storage,
 };
-
-const TOKEN_EXPIRED_MESSAGE = 'Given token not valid for any token type'
-
-const recentMessages = new Set();
 
 const allReducers = combineReducers({
   auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
@@ -133,6 +131,8 @@ const allReducers = combineReducers({
   processMeasurements,
   projectsSummary,
   projects,
+  projectsOfSamples,
+  projectsTable,
   projectTemplateActions,
   studies,
   indicesSummary,

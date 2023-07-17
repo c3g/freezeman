@@ -14,9 +14,6 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const list = (options) => async (dispatch, getState) => {
-    if (getState().processes.isFetching)
-        return;
-
     return await dispatch(networkAction(LIST,
         api.processes.list(options),
         { meta: { ...options} }
