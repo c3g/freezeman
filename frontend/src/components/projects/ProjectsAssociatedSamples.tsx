@@ -6,7 +6,7 @@ import { FilterSetting, createFixedFilter } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
-import { Protocol, Sample } from "../../models/frontend_models";
+import { Project, Protocol, Sample } from "../../models/frontend_models";
 import api from '../../utils/api'
 
 const lastProtocols = api.protocols.lastProtocols;
@@ -39,12 +39,14 @@ const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
     return LastProtocol
 }
 
-const ProjectsAssociatedSamples = ({
-    projectID
-}) => {
+export interface ProjectsAssociatedSamplesProps {
+    projectID: Project['id']
+}
+
+export const ProjectsAssociatedSamples = ({ projectID } : ProjectsAssociatedSamplesProps) => {
     const projectIDFilter = useMemo(() => {
         const filterKey = 'derived_samples__project__id'
-        const filter: FilterSetting = createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, filterKey, projectID)
+        const filter: FilterSetting = createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, filterKey, projectID.toString())
         return filter
     }, [projectID])
 
