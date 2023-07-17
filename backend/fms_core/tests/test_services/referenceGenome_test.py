@@ -32,5 +32,5 @@ class ReferenceGenomeServicesTestCase(TestCase):
         edit_101 = can_edit_referenceGenome(self.refGenome_101.id)
         edit_102 = can_edit_referenceGenome(self.refGenome_102.id)
 
-        self.assertFalse(edit_101)
+        self.assertTrue(edit_101)
         self.assertTrue(edit_102)

@@ -28,5 +28,5 @@ class TaxonServicesTestCase(TestCase):
         edit_101 = can_edit_taxon(self.taxon_101)
         edit_102 = can_edit_taxon(self.taxon_102)
 
-        self.assertTrue(not edit_101)
+        self.assertFalse(edit_101)
         self.assertTrue(edit_102)
