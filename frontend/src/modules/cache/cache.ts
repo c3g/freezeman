@@ -12,6 +12,7 @@ import { list as listSamples } from "../samples/actions"
 import { list as listStudies } from '../studies/actions'
 import { list as listUsers } from "../users/actions"
 import { list as listWorkflows } from '../workflows/actions'
+import { isDefined } from "../../utils/functions"
 
 
 type ListOptions = { [key: string]: any }
@@ -26,7 +27,11 @@ type ListFunction<T> = (options: ListOptions | ListPagedOptions) => (dispatch: D
 
 function isResultPaged<T>(result: ListReturnType<T>): result is ListPagedReturnType<T> {
 	const r = (result as ListPagedReturnType<T>)
-	return r.count !== undefined && r.results !== undefined
+	return isDefined(r.count) && isDefined(r.results)
+}
+
+function isResultAnArray<T>(result: ListReturnType<T>): result is T[] {
+	return Array.isArray(result)
 }
 
 function createFetchItemsByID<ItemType extends FMSTrackedModel>(
@@ -64,11 +69,15 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 			for (const reply of replies) {
 				// Some 'list' endpoints return paginated results, with a count and the data
 				// in a 'results' field. Others just return an array of data objects directly,
-				// so we have to distinguish between the two types of response.
+				// so we have to distinguish between the two types of response. Any other type
+				// of response is an error.
 				if (isResultPaged(reply)) {
 					fetchedItems.push(...reply.results)
-				} else {
+				} else if (isResultAnArray(reply)) {
 					fetchedItems.push(...reply)
+				} else {
+					console.error('Cache received unsupported reply from a list api call', JSON.stringify(reply))
+					throw new Error('Cache received unexpected reply from list api call')
 				}
 			}
 		}
