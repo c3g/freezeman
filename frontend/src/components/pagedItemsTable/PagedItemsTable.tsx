@@ -72,10 +72,6 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		dispatch(pagedItemActions.listPage(pageNumber))
 	}, [dispatch, pagedItemActions])
 
-	const refreshPageCallback = useCallback(() => {
-		dispatch(pagedItemActions.refreshPage())
-	}, [dispatch, pagedItemActions])
-
 	const setFixedFilterCallback = useCallback((filter: FilterSetting) => {
 		dispatch(pagedItemActions.setFixedFilter(filter))
 	}, [dispatch, pagedItemActions])
@@ -117,7 +113,6 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 
 	return {
 		listPageCallback,
-		refreshPageCallback,
 		setFixedFilterCallback,
 		setFilterCallback,
 		setFilterOptionsCallback,
