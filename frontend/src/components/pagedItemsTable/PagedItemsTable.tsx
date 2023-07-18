@@ -226,6 +226,8 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 	usingFilters: boolean
 
 	selection?: PagedItemTableSelection<T>
+
+	initialLoad?: boolean
 }
 
 function PagedItemsTable<T extends object>({
@@ -242,6 +244,7 @@ function PagedItemsTable<T extends object>({
 	fixedFilter,
 	usingFilters,
 	selection,
+	initialLoad = false,
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -251,10 +254,13 @@ function PagedItemsTable<T extends object>({
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
 		() => {
+			if (!initialLoad) return;
+
 			// If this table uses a fixed filter then set it before loading any items.
 			if (fixedFilter && fixedFilter.description) {
 				setFixedFilterCallback(fixedFilter)
 			}
+
 			// If a page isn't already loaded in redux then request page 1
 			if (!pagedItems.page?.pageNumber) {
 				listPageCallback(1)

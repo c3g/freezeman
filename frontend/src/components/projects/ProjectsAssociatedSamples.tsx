@@ -2,8 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors";
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
-import { FilterSetting, createFixedFilter } from "../../models/paged_items";
-import { FILTER_TYPE } from "../../constants";
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
 import { Project, Protocol, Sample } from "../../models/frontend_models";
@@ -50,10 +48,11 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
     }, [currentProjectID, dispatch])
     
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
+    const { pagedItems } = projectSamplesTable
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
-    const LastProtocol = useLastProtocols(projectSamplesTable.items)
+    const LastProtocol = useLastProtocols(pagedItems.items)
 
     const sampleColumns: SampleColumn[] = useMemo(() => [
         SAMPLE_COLUMN_DEFINITIONS.KIND,
@@ -75,7 +74,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
         sampleColumns,
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
-        projectSamplesTable.filters,
+        pagedItems.filters,
         projectSamplesTableCallbacks.setFilterCallback,
         projectSamplesTableCallbacks.setFilterOptionsCallback)
 
@@ -85,7 +84,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
         // Don't render until the sample fixed filter is set, or you will get all of the projects.
         <PagedItemsTable<ObjectWithSample>
             getDataObjectsByID={mapSamplesID}
-            pagedItems={projectSamplesTable}
+            pagedItems={pagedItems}
             columns={columns}
             usingFilters={true}
             {...projectSamplesTableCallbacks}
