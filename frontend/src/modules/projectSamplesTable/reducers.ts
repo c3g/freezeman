@@ -6,7 +6,7 @@ import { createPagedItemsActionTypes, createPagedItemsReducer } from '../../mode
 const ACTION_PREFIX = 'PROJECT_SAMPLES_TABLE'
 
 export const actionTypes = {
-    ...createPagedItemsActionTypes('PROJECT_SAMPLES_TABLE'),
+    ...createPagedItemsActionTypes(ACTION_PREFIX),
     SET_PROJECT: `${ACTION_PREFIX}.SET_PROJECT`
 }
 const initialState = createPagedItems()

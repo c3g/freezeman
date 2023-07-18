@@ -50,13 +50,6 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
     }, [currentProjectID, dispatch])
     
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
-    const { projectID = currentProjectID } = projectSamplesTable
-
-    const projectIDFilter = useMemo(() => {
-        const filterKey = 'derived_samples__project__id'
-        const filter: FilterSetting = createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, filterKey, projectID.toString())
-        return filter
-    }, [projectID])
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
@@ -96,7 +89,6 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
             columns={columns}
             usingFilters={true}
             {...projectSamplesTableCallbacks}
-            fixedFilter={projectIDFilter}
         />
     )
 }
