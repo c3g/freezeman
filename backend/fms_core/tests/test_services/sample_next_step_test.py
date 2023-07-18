@@ -556,8 +556,8 @@ class SampleNextStepServicesTestCase(TestCase):
                                                    current_sample=sample_in,
                                                    process_measurement=process_measurement_1,
                                                    next_sample=sample_out)
-        self.assertEquals(errors, [])
-        self.assertEquals(warnings, [])
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
         
         if order == 1:
              return study_B, step_1, sample_in, process_measurement_1, sample_out
@@ -574,8 +574,8 @@ class SampleNextStepServicesTestCase(TestCase):
                                                    step=step_2,
                                                    current_sample=sample_out,
                                                    process_measurement=process_measurement_2)
-        self.assertEquals(errors, [])
-        self.assertEquals(warnings, [])
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
 
         return study_B, step_2, sample_out, process_measurement_2, sample_out
 
