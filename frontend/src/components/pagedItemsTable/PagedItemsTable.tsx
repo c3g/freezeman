@@ -244,7 +244,7 @@ function PagedItemsTable<T extends object>({
 	fixedFilter,
 	usingFilters,
 	selection,
-	initialLoad = false,
+	initialLoad = true,
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 

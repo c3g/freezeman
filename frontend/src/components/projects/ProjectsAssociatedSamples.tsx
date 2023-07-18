@@ -88,6 +88,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
             columns={columns}
             usingFilters={true}
             {...projectSamplesTableCallbacks}
+            initialLoad={false}
         />
     )
 }
