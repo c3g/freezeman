@@ -30,7 +30,7 @@ const useLastProtocols = (sampleIDs: readonly Sample['id'][]) => {
         if (sampleID in lastProtocolBySampleID) {
             return <>{lastProtocolBySampleID[sampleID]}</>
         } else {
-            return <>-</>
+            return <></>
         }
     }, [lastProtocolBySampleID])
 
