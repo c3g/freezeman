@@ -1,16 +1,16 @@
 import { AnyAction, ThunkAction } from '@reduxjs/toolkit';
 import { AppDispatch } from '../store';
 
-export interface NetworkActionTypes {
-    REQUEST: string
-    RECEIVE: string
-    ERROR: string
+export interface NetworkActionTypes<Prefix extends string> {
+    REQUEST: `${Prefix}.REQUEST`
+    RECEIVE: `${Prefix}.RECEIVE`
+    ERROR: `${Prefix}.ERROR`
 }
 
-export const createNetworkActionTypes = (name : string) : NetworkActionTypes => ({
-    REQUEST: `${name}.REQUEST`,
-    RECEIVE: `${name}.RECEIVE`,
-    ERROR: `${name}.ERROR`,
+export const createNetworkActionTypes = <Prefix extends string>(prefix : Prefix) : NetworkActionTypes<Prefix> => ({
+    REQUEST: `${prefix}.REQUEST`,
+    RECEIVE: `${prefix}.RECEIVE`,
+    ERROR: `${prefix}.ERROR`,
   });
   
 export interface NetworkActionOptions {
@@ -39,7 +39,7 @@ export interface NetworkActionListReceive extends AnyAction {
  * @param {object} [options.meta] - Additional data for actions
  * @param {boolean} [options.meta.ignoreError] - Don't show error notification on error
  */
-export const networkAction = (types : NetworkActionTypes, apiAction: NetworkActionThunk<any>, options : NetworkActionOptions = {}) => (dispatch : AppDispatch) => {
+export const networkAction = <Prefix extends string>(types : NetworkActionTypes<Prefix>, apiAction: NetworkActionThunk<any>, options : NetworkActionOptions = {}) => (dispatch : AppDispatch) => {
     const { meta, transform } = options
 
     dispatch({type: types.REQUEST, meta});

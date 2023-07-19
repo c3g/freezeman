@@ -49,7 +49,7 @@ type ListType = (option: any) => NetworkActionThunk<any>;
 
 
 interface PagedItemsActionTypes<Prefix extends string> {
-	LIST_PAGE: NetworkActionTypes
+	LIST_PAGE: NetworkActionTypes<`${Prefix}.LIST_PAGE`>
 	SET_FIXED_FILTER: `${Prefix}.SET_FIXED_FILTER`
 	SET_FILTER: `${Prefix}.SET_FILTER`
 	SET_FILTER_OPTIONS: `${Prefix}.SET_FILTER_OPTIONS`
