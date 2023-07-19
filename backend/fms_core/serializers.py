@@ -223,11 +223,13 @@ class RunTypeSerializer(serializers.ModelSerializer):
 
 
 class TaxonSerializer(serializers.ModelSerializer):
-    editable = serializers.BooleanField(read_only=True)
+    editable = serializers.SerializerMethodField()
     class Meta:
         model = Taxon
-        fields = "__all__"
-        extra_fields = ("editable")
+        fields = ("id",
+                  "name",
+                  "ncbi_id",
+                  "editable")
     def get_editable(self, obj):
         return can_edit_taxon(obj.id)
 
@@ -785,12 +787,17 @@ class WorkflowSerializer(serializers.ModelSerializer):
         return serialized_data.data
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
-    editable = serializers.BooleanField(read_only=True)
+    editable = serializers.SerializerMethodField()
     taxon_id = serializers.IntegerField(read_only=True, source='taxon.id')
     class Meta:
         model = ReferenceGenome
-        fields = "__all__"
-        extra_fields = ("taxon_id", "editable")
+        fields = ("id",
+                  "assembly_name",
+                  "synonym", "genbank_id",
+                  "refseq_id",
+                  "taxon_id",
+                  "size",
+                  "editable")
     def get_editable(self, obj):
         return can_edit_referenceGenome(obj.id)
 
