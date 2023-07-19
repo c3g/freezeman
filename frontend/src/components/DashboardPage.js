@@ -1,17 +1,8 @@
-import React, {useEffect} from "react";
+import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Card, Col, Row, Statistic} from "antd";
-
-import CONTAINERS from "../modules/containers/actions";
-import SAMPLES from "../modules/samples/actions";
-import LIBRARIES from "../modules/libraries/actions";
-import PROCESS_MEASUREMENTS from "../modules/processMeasurements/actions";
-import PROJECTS from "../modules/projects/actions";
-import INDICES from "../modules/indices/actions";
-
 import {actionsToButtonList, actionIcon} from "../utils/templateActions";
-
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
@@ -45,17 +36,7 @@ const DashboardPage = ({
   protocolsByID,
   libraryTypesByID,
   templates,
-  listActions,
 }) => {
-  useEffect(() => {
-    listActions.container();
-    listActions.sample();
-    listActions.library();
-    listActions.process();
-    listActions.project();
-    listActions.indices();
-  }, []);
-
   return <PageContainer>
     <AppPageHeader title="Dashboard" />
     <PageContent style={{padding: "0 24px 24px 24px"}}>
@@ -197,15 +178,4 @@ const mapStateToProps = state => ({
   },
 });
 
-const mapDispatchToProps = dispatch => ({
-  listActions: {
-    container: () => dispatch(CONTAINERS.listTemplateActions()),
-    sample: () => dispatch(SAMPLES.listTemplateActions()),
-    library: () => dispatch(LIBRARIES.listTemplateActions()),
-    process: () => dispatch(PROCESS_MEASUREMENTS.listTemplateActions()),
-    project: () => dispatch(PROJECTS.listTemplateActions()),
-    indices: () => dispatch(INDICES.listTemplateActions()),
-  }
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(DashboardPage);
+export default connect(mapStateToProps)(DashboardPage);

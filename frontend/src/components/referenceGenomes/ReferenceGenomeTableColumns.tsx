@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns";
 import React from "react";
 import { ItemsByID, ReferenceGenome, Taxon } from "../../models/frontend_models";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
+import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 
 enum ReferenceGenomeID {
     ID = 'ID',

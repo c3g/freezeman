@@ -10,7 +10,7 @@ from ...containers import CONTAINER_KIND_SPECS
 from fms_core.services.id_generator import get_unique_id
 
 from ._generic import GenericImporter
-from .._utils import float_to_decimal_and_none, zip_files
+from .._utils import float_to_decimal_and_none, load_all_or_float_to_decimal_and_none, zip_files
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, unique
 
 from io import BytesIO
@@ -62,7 +62,7 @@ class NormalizationPlanningImporter(GenericImporter):
             }
 
             measurements = {
-                'volume': float_to_decimal_and_none(row_data['Final Volume (uL)']),
+                'volume': load_all_or_float_to_decimal_and_none(row_data['Final Volume (uL)']),
                 'na_quantity': float_to_decimal_and_none(row_data['Norm. NA Quantity (ng)']),
                 'concentration_ngul': float_to_decimal_and_none(row_data['Norm. Conc. (ng/uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Norm. Conc. (nM)']),

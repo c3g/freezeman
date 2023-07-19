@@ -4,6 +4,14 @@ from fms_core.utils import float_to_decimal
 import datetime
 import io
 import zipfile
+from ._constants import LOAD_ALL
+
+
+def load_all_or_float_to_decimal_and_none(val, decimals: int = 3):
+    if str(val).strip().upper() == LOAD_ALL:
+        return LOAD_ALL
+    else:
+        return float_to_decimal_and_none(val, decimals)
 
 
 def float_to_decimal_and_none(val, decimals: int = 3):

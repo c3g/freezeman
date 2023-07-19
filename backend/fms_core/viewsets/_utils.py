@@ -216,7 +216,7 @@ class TemplatePrefillsMixin:
         try:
             filename = "/".join(template["identity"]["file"].split("/")[-2:]) # Remove the /static/ from the served path to search for local path 
             template_path = os.path.join(settings.STATIC_ROOT, filename)
-        
+
             prefilled_template = PrefillTemplate(template_path, template, queryset)
         except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")

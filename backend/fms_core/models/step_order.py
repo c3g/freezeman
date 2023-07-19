@@ -20,6 +20,9 @@ class StepOrder(TrackedModel):
     workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT, related_name="steps_order", help_text="Workflow of the step order.")
 
     class Meta:
+        indexes = [
+            models.Index(fields=['order', 'workflow'], name='steporder_order_workflow_idx'),
+        ]
         constraints = [
             models.UniqueConstraint(fields=["order", "workflow_id"], name="steporder_order_workflowid_key")
         ]
