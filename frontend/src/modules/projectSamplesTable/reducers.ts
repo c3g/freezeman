@@ -3,9 +3,14 @@ import { Project } from '../../models/frontend_models'
 import { PagedItems, createPagedItems } from '../../models/paged_items'
 import { createPagedItemsActionTypes, createPagedItemsReducer } from '../../models/paged_items_factory'
 
-const ACTION_PREFIX = 'PROJECT_SAMPLES_TABLE'
+type ActionPrefix = 'PROJECT_SAMPLES_TABLE'
+const ACTION_PREFIX: ActionPrefix = 'PROJECT_SAMPLES_TABLE'
 
-export const actionTypes = {
+export interface ProjectsSamplesTableActionTypes<Prefix extends string> extends ReturnType<typeof createPagedItemsActionTypes<Prefix>> {
+    SET_PROJECT: `${ActionPrefix}.SET_PROJECT`
+}
+
+export const actionTypes: ProjectsSamplesTableActionTypes<ActionPrefix> = {
     ...createPagedItemsActionTypes(ACTION_PREFIX),
     SET_PROJECT: `${ACTION_PREFIX}.SET_PROJECT`
 }
