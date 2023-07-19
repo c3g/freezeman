@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps } from "antd"
+import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select } from "antd"
 
 const { Text } = Typography
 const { Item } = Form
@@ -98,7 +98,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
 
                 <Form
                     form={form}
-                    labelCol={{ span: 14 }}
+                    labelCol={{ span: 15 }}
                     wrapperCol={{ span: 7 }}
                     onValuesChange={onValuesChange}
                     onFinish={onFinish}
@@ -126,16 +126,22 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                                     />
                                     <Item label={field} {...itemValidation(field)}
                                         style={{
-                                            marginBottom: 0,
                                             flex: 10,
                                         }}
-                                        >
+                                    >
 
                                         {
                                             data[field] == 'date' ?
                                                 <DatePicker disabled={!checkedFields[field]} />
                                                 :
-                                                <Input disabled={!checkedFields[field]} style={{ textAlign: 'right' }} />
+                                                data[field] == 'select' ?
+                                                    // might have to fetch options from backend for these select options or define them in `templates.py`
+                                                    <Select
+                                                        disabled={!checkedFields[field]}
+                                                        style={{ textAlign: 'left' }}>
+                                                    </Select>
+                                                    :
+                                                    <Input type={data[field]} disabled={!checkedFields[field]} style={{ textAlign: 'right' }} />
                                         }
                                     </Item>
                                 </span>

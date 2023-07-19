@@ -464,7 +464,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
         "Destination Container Kind" : "select",
         "Volume (uL)" : "number",
         "Source Depleted" : "select",
-        "Comment" : "string"
+        "Comment" : "text"
 
       }
   ,
