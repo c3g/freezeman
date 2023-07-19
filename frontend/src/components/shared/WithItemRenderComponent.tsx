@@ -79,9 +79,7 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTra
             return render(object)
         } else {
             if (placeholder) {
-                if (typeof placeholder === 'string') {
-                    return <span>placeholder</span>
-                } else return placeholder
+                return <>{placeholder}</>
             } else {
                 return null
             }

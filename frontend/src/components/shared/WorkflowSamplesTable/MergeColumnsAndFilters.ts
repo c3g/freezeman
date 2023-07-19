@@ -1,7 +1,7 @@
 import { getFilterPropsForDescription } from "./getFilterPropsTS"
 import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc } from "../../../models/paged_items"
+import { IdentifiedTableColumnType } from "../../pagedItemsTable/PagedItemsColumns"
 
-import { IdentifiedTableColumnType } from "./SampleTableColumns"
 
 /**
  * Construct the columns for an antd table. This code takes column definitions and
@@ -22,8 +22,8 @@ export function addFiltersToColumns<T>(
 	filterDescriptions: FilterDescriptionSet, 
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
-	setFilter : SetFilterFunc = () => {/* noop */},
-	setFilterOption : SetFilterOptionFunc = () => {/* noop */},
+	setFilter : SetFilterFunc = () => false,
+	setFilterOption : SetFilterOptionFunc = () => false,
 	addSorter = true
 	) : IdentifiedTableColumnType<T>[]{
 	const mergedColumns = columns.map(column => {

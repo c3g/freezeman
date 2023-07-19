@@ -1,4 +1,3 @@
-import { TableColumnType } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { FILTER_TYPE } from '../../../constants'
@@ -9,7 +8,9 @@ import store from '../../../store'
 import { Depletion } from '../../Depletion'
 import { QCFlag } from '../../QCFlag'
 import SampleKindTag from '../../SampleKindTag'
-import { WithContainerRenderComponent, WithIndividualRenderComponent, WithCoordinateRenderComponent, WithProjectRenderComponent } from '../WithItemRenderComponent'
+import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
+import { UNDEFINED_FILTER_KEY } from '../../pagedItemsTable/PagedItemsFilters'
+import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndividualRenderComponent, WithProjectRenderComponent } from '../WithItemRenderComponent'
 
 /*
 	Defines a set of Ant Table column descriptors for sample fields. Each column
@@ -23,10 +24,6 @@ import { WithContainerRenderComponent, WithIndividualRenderComponent, WithCoordi
 */
 export interface ObjectWithSample {
 	sample?: Sample
-}
-
-export interface IdentifiedTableColumnType<T> extends TableColumnType<T> {
-	columnID: string
 }
 
 export type SampleColumn = IdentifiedTableColumnType<ObjectWithSample>
@@ -228,8 +225,6 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
  * Filter keys are defined separately, as they change depending on which endpoint
  * is being used to retrieve samples.
  */
-
-export const UNDEFINED_FILTER_KEY = 'UNDEFINED_FILTER_KEY'
 
 // Initializes the sample KIND options with the sample kinds in the redux store.
 function getSampleKindOptions() {

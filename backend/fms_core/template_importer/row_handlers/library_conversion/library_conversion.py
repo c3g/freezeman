@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-
+from fms_core.template_importer._constants import LOAD_ALL
 from fms_core.services.sample import get_sample_from_container
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.library import convert_library
@@ -22,7 +22,16 @@ class LibraryRowHandler(GenericRowHandler):
             sample_source_obj, self.errors['container'], self.warnings['container'] = \
                 get_sample_from_container(barcode=library_source['barcode'], coordinates=library_source['coordinates'])
 
+            if not volume_used:
+                self.errors['volume_used'] = f"Volume used must be entered"
+
             if sample_source_obj:
+                # Set the actual volumed_used in case the load all option was used
+                volume_used = sample_source_obj.volume if volume_used == LOAD_ALL else volume_used
+
+                if volume_used > sample_source_obj.volume:
+                    self.errors['volume_used'].append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source_obj.volume})")
+
                 # Add a warning if the sample has failed qc
                 if any([sample_source_obj.quality_flag is False, sample_source_obj.quantity_flag is False]):
                     self.warnings["qc_flags"] = ("Source library {0} has failed QC.", [sample_source_obj.name])

@@ -1,7 +1,7 @@
 import React from "react"
-import { IdentifiedTableColumnType } from "../shared/WorkflowSamplesTable/SampleTableColumns"
 import { Link } from "react-router-dom"
 import { Taxon } from "../../models/frontend_models"
+import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 
 enum TaxonColumnID {
     ID = 'ID',

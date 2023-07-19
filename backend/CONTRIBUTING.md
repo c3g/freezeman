@@ -6,7 +6,7 @@
 
 Always use type annotation!
 
-For more information, visit: https://docs.python.org/3.8/library/typing.html
+For more information, visit: https://docs.python.org/3.11/library/typing.html
 
 ### Document Generation
 
