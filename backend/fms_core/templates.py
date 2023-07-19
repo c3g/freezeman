@@ -459,11 +459,10 @@ SAMPLE_EXTRACTION_TEMPLATE = {
   ],
   "user prefill info" : 
       {
-        "Extraction Type" : "select",
         "Volume Used (uL)" : "number",
-        "Extraction Date" : "date",
+        "Extraction Date (YYYY-MM-DD)" : "date",
         "Destination Container Kind" : "select",
-        "Volume Used (uL)" : "number",
+        "Volume (uL)" : "number",
         "Source Depleted" : "select",
         "Comment" : "string"
 
