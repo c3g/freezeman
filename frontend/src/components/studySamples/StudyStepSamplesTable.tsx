@@ -107,7 +107,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 						return (
 								sample && sample.is_pool
 								? sample.derived_samples_count
-								: '-'
+								: ''
 							)
 						},
 					},
