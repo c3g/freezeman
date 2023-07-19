@@ -1,8 +1,7 @@
 dist: bionic
 language: python
 python:
-  - "3.6"
-  - "3.8"
+  - "3.11"
 addons:
   postgresql: "12"
   apt:

@@ -58,28 +58,47 @@ On this page we list the various steps needed for deployments. The first section
 
     service postgresql-11 restart
     ```
-  * Install nginx and more stuff
+  * Install essential packages
     ```
     yum install git -y
-    yum install nginx -y
     yum install -y gcc openssl-devel bzip2-devel libffi-devel
     ```
-  * Install python 3.8.7
+  * Install Openssl 1.1.1u
+    ```
+    cd /opt/
+    wget https://ftp.openssl.org/source/openssl-1.1.1u.tar.gz --no-check-certificate
+    tar xzf openssl-1.1.1u.tar.gz
+    cd openssl-1.1.1u
+    ./config --prefix=/usr/local --openssldir=/etc/ssl --libdir=lib  no-shared zlib-dynamic
+    make -j1 depend
+    make -j2
+    make install_sw
+
+    # To test
+    /usr/local/bin/openssl version
+    ```
+  * Install python 3.11.4
     ```
     cd /opt
-    wget https://www.python.org/ftp/python/3.8.7/Python-3.8.7.tgz
-    tar xzf Python-3.8.7.tgz
-    cd Python-3.8.7
-    ./configure --enable-optimizations
+    wget https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz
+    tar xzf Python-3.11.4.tgz
+    cd Python-3.11.4
+    ./configure --enable-optimizations --with-openssl=/usr/local -with-openssl-rpath=auto
     make altinstall #to prevent replacing the default python binary file /usr/bin/python
-    /usr/local/bin/python3.8 -V
-    /usr/local/bin/pip3.8 -V
+    export PATH=/usr/local/bin:$PATH
+
+    # To test:
+
+    /usr/local/bin/python3.11 -V
+    /usr/local/bin/pip3.11 
+
+    # Python ssl test
+    python3.11 -m ssl
     ```
   * Install uWsgi and django with pip, and llvm
     ```
-    /usr/local/bin/pip3.8 install uWSGI
-    /usr/local/bin/pip3.8 install djangorestframework-simplejwt
-    /usr/local/bin/pip3.8 list
+    pip3.11 install asgiref Django djangorestframework djangorestframework-simplejwt PyJWT pytz sqlparse list --no-cache-dir
+    CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib" UWSGI_PROFILE_OVERRIDE=ssl=true pip3.11 install uwsgi -I  --no-cache-dir
 
     yum install -y clang llvm-toolset-7
 
@@ -92,8 +111,10 @@ On this page we list the various steps needed for deployments. The first section
     yum update
     yum install nodejs -y
     ```
-  * Configure nginx
+  * Install and Configure nginx
     ```
+    yum install nginx -y
+
     cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.BKP
 
     # Edit /etc/nginx/conf.d/default.conf add/replace the following lines:
@@ -134,11 +155,11 @@ On this page we list the various steps needed for deployments. The first section
   * Move to the frontend (`cd frontend`) and install any new dependency (`npm install`) and fix security issues (`npm audit fix`)
   * Compile the frontend (`npm run build`)
   * Move to the backend directory (`cd ../backend`) and activate the the virtual environment (`. env/bin/activate`)
-  * Install any new dependency (`pip3.8 install -r requirements.txt`) (version of pip may change)
+  * Install any new dependency (`pip3.11 install -r requirements.txt`) (version of pip may change)
   * Install pg_fzy (`cd backend/dependencies/pg_fzy && make && sudo make install`) (`make restore_precompiled_binary` to get precompiled binaries) (if needed)
-  * Move back to the backend root (`cd ../..`) and migrate the database (`python3.8 manage.py migrate`)
-  * Create the first revisions for newly created models (`python3.8 manage.py createinitialrevisions`)
-  * Serve new and modified templates (`python3.8 manage.py collectstatic`)
+  * Move back to the backend root (`cd ../..`) and migrate the database (`python3.11 manage.py migrate`)
+  * Create the first revisions for newly created models (`python3.11 manage.py createinitialrevisions`)
+  * Serve new and modified templates (`python3.11 manage.py collectstatic`)
   * Activate the pg_fzy module (`psql -u postgres -d fms -c "create extension fzy;"`)
   * Restart the uwsgi (`uwsgi uwsgi.ini &`)
 
@@ -160,3 +181,6 @@ On this page we list the various steps needed for deployments. The first section
   * Add a .env file in the /frontend directory using the exemple.env as a reference. Set FMS_ENV ("DEV", "QC", "PROD") in the file.
 * Version 3.14:
   * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini
+* Version 4.4.0:
+  * Upgrade python version to 3.11
+  * Upgrade Openssl version to 1.1.1u
