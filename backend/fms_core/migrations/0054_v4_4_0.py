@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='samplenextstepbystudy',
-            index=models.Index(fields=['sample_next_step', 'step_order', 'study'], name='samplenextstepbystudy_samplenextstep_steporder_study_idx'),
+            index=models.Index(fields=['sample_next_step', 'step_order', 'study'], name='samplenextstepbystudy_idx'),
         ),
         migrations.AddIndex(
             model_name='steporder',
