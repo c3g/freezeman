@@ -11,7 +11,7 @@ interface PrefillButtonProps {
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
 
-    const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(false);
+    const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(true);
     const [checkedFields, setCheckedFields] = useState({});
     const [formErrors, setFormErrors] = useState({})
 
@@ -98,8 +98,8 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
 
                 <Form
                     form={form}
-                    labelCol={{ span: 10 }}
-                    wrapperCol={{ span: 8 }}
+                    labelCol={{ span: 14 }}
+                    wrapperCol={{ span: 7 }}
                     onValuesChange={onValuesChange}
                     onFinish={onFinish}
                     layout="horizontal"
@@ -112,7 +112,6 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                                 <span key={field} style={{
                                     display: 'flex',
                                     flexDirection: 'row',
-                                    alignItems: 'center'
                                 }}>
                                     <Checkbox checked={checkedFields[field]}
                                         onClick={() => {
@@ -128,8 +127,9 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                                     <Item label={field} {...itemValidation(field)}
                                         style={{
                                             marginBottom: 0,
-                                            flex: 3
-                                        }}>
+                                            flex: 10,
+                                        }}
+                                        >
 
                                         {
                                             data[field] == 'date' ?

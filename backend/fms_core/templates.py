@@ -459,8 +459,14 @@ SAMPLE_EXTRACTION_TEMPLATE = {
   ],
   "user prefill info" : 
       {
+        "Extraction Type" : "select",
         "Volume Used (uL)" : "number",
-        "Extraction Date" : "date"
+        "Extraction Date" : "date",
+        "Destination Container Kind" : "select",
+        "Volume Used (uL)" : "number",
+        "Source Depleted" : "select",
+        "Comment" : "string"
+
       }
   ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
