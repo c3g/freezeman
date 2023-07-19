@@ -45,9 +45,9 @@ class Container(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['coordinate']),
-            models.Index(fields=['barcode']),
-            models.Index(fields=['name']),
+            models.Index(fields=['coordinate'], name='container_coordinate_idx'),
+            models.Index(fields=['barcode'], name='container_barcode_idx'),
+            models.Index(fields=['name'], name='container_name_idx'),
         ]
     @property
     def coordinates(self) -> str:
