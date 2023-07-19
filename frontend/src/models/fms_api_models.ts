@@ -296,6 +296,7 @@ export interface FMSReferenceGenome extends FMSTrackedModel {
     refseq_id?: string                  // RefSeq identifier of the reference genome
     taxon_id: FMSId                        // Reference genome used to analyze samples in the study
     size: number                        // Number of base pairs of the reference genome
+    editable?: boolean
 }
 
 export interface FMSRunType extends FMSTrackedModel {
