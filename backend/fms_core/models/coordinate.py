@@ -20,6 +20,11 @@ class Coordinate(TrackedModel):
     column = models.PositiveIntegerField(help_text="Numeric value of the container coordinate column.")
     row = models.PositiveIntegerField(help_text="Numeric value of the container coordinate row.")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name'], name='coordinate_name_idx'),
+        ]
+    
     def __str__(self) -> str:
         return self.name
 

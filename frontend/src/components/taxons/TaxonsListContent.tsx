@@ -5,8 +5,9 @@ import PageContent from '../PageContent'
 import AddButton from '../AddButton'
 import { Table } from 'antd'
 import { getColumnsForTaxon } from './TaxonTableColumns'
-import { useAppSelector } from '../../hooks'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectAuthState, selectTaxonsByID, selectUsersByID } from '../../selectors'
+import { list } from '../../modules/taxons/actions'
 
 export interface TaxonsListContentProps {
 	taxons: Taxon[],
@@ -19,6 +20,11 @@ function TaxonsListContent() {
 	const usersByID = useAppSelector(selectUsersByID)
 	const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false)
 	const columns = getColumnsForTaxon(hasWritePermission)
+	const dispatch = useAppDispatch();
+
+	useEffect(() => {
+		dispatch(list())
+	}, [])
 
 	useEffect(() => {
 		const taxons: Taxon[] = getAllItems(taxonsByID)

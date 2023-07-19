@@ -109,7 +109,7 @@ const EditTaxon = ({ taxon }: EditTaxonProps) => {
                     form={form}
                     initialValues={taxon}>
                     <Item label={"ncbi_id"} {...itemValidation("ncbi_id")} rules={requiredRules}>
-                        <Input disabled={!taxon?.editable} />
+                        <Input disabled={isAdding ? false : !taxon?.editable} />
                     </Item>
                     <Item label={"name"} {...itemValidation("name")} rules={requiredRules}>
                         <Input />

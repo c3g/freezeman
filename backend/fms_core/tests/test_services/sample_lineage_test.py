@@ -96,8 +96,8 @@ class SampleLineageServicesTestCase(TestCase):
 
         self.import_template(IndexCreationImporter(), 'Index_creation_v3_7_0.xlsx')
         self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_3_0.xlsx')
-        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_1_0.xlsx')
-        self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0.xlsx')
+        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_4_0.xlsx')
+        self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0.xlsx')
 
         sample_obj, _, _ = get_sample_from_container(barcode="ER_Container_BC_01",coordinates="B01")
         library_size = get_library_size_for_derived_sample(sample_obj.derived_sample_not_pool.id)

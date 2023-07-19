@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-
+from fms_core.template_importer._constants import LOAD_ALL
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.sample import get_sample_from_container, transfer_sample
 
@@ -34,10 +34,10 @@ class TransferRowHandler(GenericRowHandler):
             _, self.errors['transfered_sample'], self.warnings['transfered_sample'] = transfer_sample(process=process_measurement['process'],
                                                                                                       sample_source=original_sample,
                                                                                                       container_destination=destination_container,
-                                                                                                      volume_used=process_measurement['volume_used'],
+                                                                                                      volume_used=original_sample.volume if process_measurement['volume_used'] == LOAD_ALL else process_measurement['volume_used'],
                                                                                                       execution_date=process_measurement['execution_date'],
                                                                                                       coordinates_destination=resulting_sample['coordinates'],
-                                                                                                      volume_destination=resulting_sample['volume'],
+                                                                                                      volume_destination=original_sample.volume if resulting_sample['volume'] == LOAD_ALL else resulting_sample['volume'],
                                                                                                       source_depleted=source_depleted,
                                                                                                       comment=process_measurement['comment'],
                                                                                                       workflow=workflow)

@@ -2,7 +2,7 @@ from fms_core.models import Protocol, Process
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
 from fms_core.templates import SAMPLE_TRANSFER_TEMPLATE
-from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
+from .._utils import float_to_decimal_and_none, input_to_date_and_none, load_all_or_float_to_decimal_and_none
 from datetime import datetime
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 from fms_core.services.step import get_step_from_template
@@ -37,8 +37,8 @@ class TransferImporter(GenericImporter):
             self.preloaded_data['process'].save()
 
         for row_id, row_data in enumerate(sheet.rows):
-            volume_used_decimal = float_to_decimal_and_none(row_data['Volume Used (uL)'])
-            transfer_date = input_to_date_and_none(row_data['Transfer Date'])
+            volume_used_decimal = load_all_or_float_to_decimal_and_none(row_data['Volume Used (uL)'])
+            transfer_date = input_to_date_and_none(row_data['Transfer Date (YYYY-MM-DD)'])
 
             source_sample = {
                 'coordinates': str_cast_and_normalize(row_data['Source Container Coord']),

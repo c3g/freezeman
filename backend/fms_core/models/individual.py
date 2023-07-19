@@ -43,6 +43,11 @@ class Individual(TrackedModel):
     alias = models.CharField(blank=True, null=True, max_length=200, help_text="Original individual name used by external client.")
     reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="individuals", help_text="Reference genome used to analyze samples.")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name'], name='individual_name_idx'),
+        ]
+    
     def __str__(self):
         return self.name
 
