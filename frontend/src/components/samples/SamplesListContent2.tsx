@@ -10,7 +10,6 @@ import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
-import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import SampleCategoryChooser, { SampleCategory } from './SampleCategoryChooser'
@@ -20,7 +19,8 @@ import { FILTER_TYPE } from '../../constants'
 import Flexbar from '../shared/Flexbar'
 import FiltersBar from '../filters/FiltersBar'
 import ExportDropdown from '../ExportDropdown'
-import SamplesFilters from './SamplesFilters'
+import FilterPanel from '../filters/filterGroup/FilterPanel'
+import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 
 const samplesTableColumns = [
 	SampleColumns.ID,
@@ -38,10 +38,18 @@ const samplesTableColumns = [
 	SampleColumns.DEPLETED
 ]
 
+const detachedFilters = [
+	SAMPLE_PEDIGREE_FILTER,
+	SAMPLE_COHORT_FILTER,
+	SAMPLE_SEX_FILTER,
+	SAMPLE_COLLECTION_SITE_FILTER,
+	SAMPLE_QPCR_STATUS,
+	SAMPLE_METADATA_FILTER
+]
+
 function wrapSample(sample: Sample) {
 	return { sample }
 }
-
 
 function SamplesListContent() {
 	const samplesTableState = useAppSelector(selectSamplesTable)
@@ -127,7 +135,7 @@ function SamplesListContent() {
 				]}
 			/>
 			<PageContent>
-				<SamplesFilters style={{ flex: 1 }} />
+				<FilterPanel descriptions={detachedFilters} filters={samplesTableState.filters} setFilter={samplesTableCallbacks.setFilterCallback} setFilterOption={samplesTableCallbacks.setFilterOptionsCallback}/>
 				<Flexbar style={{alignItems: 'center'}}>
 					<SampleCategoryChooser
 						disabled={isFetching}

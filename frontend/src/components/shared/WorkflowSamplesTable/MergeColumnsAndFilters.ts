@@ -50,7 +50,7 @@ export function addFiltersToColumns<T>(
 				}
 			}
 
-			const props = getFilterPropsForDescription(column, filter, filterValue, setFilter, setFilterOption)
+			const props = getFilterPropsForDescription(filter, filterValue, setFilter, setFilterOption)
 
 			return {
 				...column,

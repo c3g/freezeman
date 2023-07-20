@@ -49,7 +49,7 @@ export function getFilterPropsIncludingDescriptions(
 		const description = descriptions[key]
 		if (description) {
 			const filterSetting = filters[key]	// Note: filterSetting is allowed to be undefined here.
-			return getFilterPropsForDescription(column, description, filterSetting, setFilter, setFilterOption)
+			return getFilterPropsForDescription(description, filterSetting, setFilter, setFilterOption)
 		}
 	}	
 	return undefined
@@ -65,25 +65,24 @@ export function getFilterPropsIncludingDescriptions(
  * @returns 
  */
 export function getFilterPropsForDescription(
-  column: FreezemanColumnType<any>, 
   description: FilterDescription, 
   filter: FilterSetting | undefined, 
   setFilter: SetFilterFunc, 
   setFilterOption: SetFilterOptionFunc) {
     switch (description.type) {
 			case FILTER_TYPE.INPUT:
-				return getInputFilterProps(column, description, filter, setFilter, setFilterOption)
+				return getInputFilterProps(description, filter, setFilter, setFilterOption)
 			case FILTER_TYPE.INPUT_NUMBER:
-				return getInputNumberFilterProps(column, description, filter, setFilter, isValidInteger)
+				return getInputNumberFilterProps(description, filter, setFilter, isValidInteger)
 			case FILTER_TYPE.INPUT_OBJECT_ID:
-				return getInputNumberFilterProps(column, description, filter, setFilter, isValidObjectID)
+				return getInputNumberFilterProps(description, filter, setFilter, isValidObjectID)
 			case FILTER_TYPE.SELECT:
-				if (description.mode !== 'multiple') return getRadioFilterProps(column, description, filter, setFilter)
-				return getSelectFilterProps(column, description, filter, setFilter)
+				if (description.mode !== 'multiple') return getRadioFilterProps(description, filter, setFilter)
+				return getSelectFilterProps(description, filter, setFilter)
 			case FILTER_TYPE.RANGE:
-				return getRangeFilterProps(column, description, filter, setFilter)
+				return getRangeFilterProps(description, filter, setFilter)
 			case FILTER_TYPE.DATE_RANGE:
-				return getDateRangeFilterProps(column, description, filter, setFilter)
+				return getDateRangeFilterProps(description, filter, setFilter)
 		}
 		throw new Error(`Unknown column filter description type: "${description.type}"`)
   }
@@ -101,7 +100,6 @@ function isValidInteger(value: string) {
 }
 
 function getInputFilterProps(
-	column: FreezemanColumnType<any>,
 	description: FilterDescription,
 	filter : FilterSetting | undefined,
 	setFilter: SetFilterFunc,
@@ -130,7 +128,6 @@ function getInputFilterProps(
 }
 
 function getInputNumberFilterProps(
-	column: FreezemanColumnType<any>,
 	description: FilterDescription,
 	filter: FilterSetting | undefined,
 	setFilter: SetFilterFunc,
@@ -156,11 +153,11 @@ function getInputNumberFilterProps(
 	}
 }
 
-function getSelectFilterProps(column: FreezemanColumnType<any>, description: FilterDescription, filter: FilterSetting | undefined, setFilter: SetFilterFunc) {
+function getSelectFilterProps(description: FilterDescription, filter: FilterSetting | undefined, setFilter: SetFilterFunc) {
 	const filterKey = description.key
 	const value = filter?.value
-	const options = description.options || column.options || []
-	const title = column.title
+	const options = description.options || []
+	const title = description.label
 
 	return {
 		filterIcon: getFilterIcon(Boolean(value)),
@@ -180,10 +177,10 @@ function getSelectFilterProps(column: FreezemanColumnType<any>, description: Fil
 	}
 }
 
-function getRadioFilterProps(column: FreezemanColumnType<any>, description: FilterDescription, filter: FilterSetting | undefined, setFilter : SetFilterFunc) {
+function getRadioFilterProps(description: FilterDescription, filter: FilterSetting | undefined, setFilter : SetFilterFunc) {
 	const filterKey = description.key
 	const value = filter?.value
-	const options = description.options || column.options || []
+	const options = description.options || []
 
 	return {
 		filterIcon: getFilterIcon(Boolean(value)),
@@ -203,7 +200,7 @@ function getRadioFilterProps(column: FreezemanColumnType<any>, description: Filt
 	}
 }
 
-function getRangeFilterProps(column: FreezemanColumnType<any>, description: FilterDescription, filter: FilterSetting | undefined, setFilter : SetFilterFunc) {
+function getRangeFilterProps(description: FilterDescription, filter: FilterSetting | undefined, setFilter : SetFilterFunc) {
 	const defaultMin = description.defaultMin ?? 0
 	const filterKey = description.key
 	const value = filter?.value
@@ -234,7 +231,7 @@ function getRangeFilterProps(column: FreezemanColumnType<any>, description: Filt
 	}
 }
 
-function getDateRangeFilterProps(column: FreezemanColumnType<any>, description: FilterDescription, filter: FilterSetting | undefined, setFilter : SetFilterFunc) {
+function getDateRangeFilterProps(description: FilterDescription, filter: FilterSetting | undefined, setFilter : SetFilterFunc) {
 	const filterKey = description.key
 	const value = filter?.value
 
