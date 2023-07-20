@@ -38,8 +38,11 @@ const getTableColumns = (toggleReleaseStatus, releaseStatusOption, canReleaseOrB
         },
         {
             title: "Sample Name",
-            dataIndex: "sample_name",
+            dataIndex: "readset__sample_name",
             sorter: true,
+            render: (_, file: DatasetFile) => {
+                return <>{file.readset.sample_name}</>
+            }
         },
         {
             title: "Release Status",
