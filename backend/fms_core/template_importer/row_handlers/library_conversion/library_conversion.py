@@ -34,7 +34,7 @@ class LibraryRowHandler(GenericRowHandler):
 
                 # Add a warning if the sample has failed qc
                 if any([sample_source_obj.quality_flag is False, sample_source_obj.quantity_flag is False]):
-                    self.warnings["qc_flags"] = (f"Source library {sample_source_obj.name} has failed QC.")
+                    self.warnings["qc_flags"] = ("Source library {0} has failed QC.", [sample_source_obj.name])
 
                 # Populate the libraries with the batch and  individual information
                 container_coordinates = container['coordinates']
@@ -53,7 +53,7 @@ class LibraryRowHandler(GenericRowHandler):
                     creation_comment=f"Automatically generated on {datetime.utcnow().isoformat()}Z via Library Conversion")
 
                 if container_obj and not created:
-                    self.warnings['library_container'] = f'Using existing container {container_obj.name}'
+                    self.warnings['library_container'] = ('Using existing container {0}', [container_obj.name])
 
                 library_info = dict(
                     execution_date=library_batch_info['execution_date'],

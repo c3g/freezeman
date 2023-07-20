@@ -794,10 +794,10 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
         # Update the QC flags for the given sample
         if quantity_flag and quality_flag:
             if sample.quantity_flag is not None and sample.quantity_flag != (quantity_flag == 'Passed'):
-                warnings.append(f"Sample {sample.name} quantity flag will be changed to {quantity_flag}.")
+                warnings.append(("Sample {0} quantity flag will be changed to {1}.", [sample.name, quantity_flag]))
             sample.quantity_flag = (quantity_flag == 'Passed')
             if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
-                warnings.append(f"Sample {sample.name} quality flag will be changed to {quality_flag}.")
+                warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
             sample.quality_flag = (quality_flag == 'Passed')
             sample.save()
         else:
@@ -859,7 +859,7 @@ def update_sample_metadata(sample, metadata):
                     metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
                     # Add warning if the new value is the same as the old value
                     if metadata_obj.value == value:
-                        warnings.append(f'Sample [{sample.name}] has metadata [{name}] with the same value [{value}]')
+                        warnings.append(('Sample [{0}] has metadata [{1}] with the same value [{2}]', [sample.name, name, value]))
                     metadata_obj.value = value
                     metadata_obj.save()
                 else:

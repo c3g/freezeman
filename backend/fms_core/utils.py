@@ -183,3 +183,19 @@ def make_timestamped_filename(file_name: str) -> str:
     os.environ["TZ"] = settings.LOCAL_TZ
     time.tzset()
     return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
+
+def serialize_warnings(warnings):
+    serialized = []
+    for (k, vs) in (warnings).items():
+        if isinstance(vs, tuple):
+            # should fix the row handler to ensure it's a list
+            vs = [vs]
+        elif isinstance(vs, str):
+            # this warning hasn't been converted yet
+            vs = [(vs, [])]
+        for v in vs:
+            if isinstance(v, str):
+                # this warning hasn't been converted yet
+                v = (v, [])
+            serialized.append({'key': k, 'format': v[0], 'args': v[1] })
+    return serialized

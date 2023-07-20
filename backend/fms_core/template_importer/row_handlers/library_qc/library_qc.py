@@ -55,7 +55,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             if measured_volume < 0:
                 self.errors['measured_volume'] = f'Measured volume ({measured_volume}) must be a positive value.'
             elif measured_volume > initial_volume:
-                self.warnings['measured_volume'] = f"Measured volume {measured_volume} is greater than initial volume {initial_volume}"
+                self.warnings['measured_volume'] = ("Measured volume {0} is greater than initial volume {1}", [measured_volume, initial_volume])
 
             if volume_used < 0:
                 self.errors['volume_used'] = f'Volume used ({volume_used}) must be a positive value.'
@@ -67,7 +67,7 @@ class LibraryQCRowHandler(GenericRowHandler):
 
             change_in_initial_volume = abs(initial_volume - sample_volume)
             if (change_in_initial_volume) > 0.0:
-                self.warnings['initial_volume'] = f"The current library volume ({sample_volume}uL) differs from the initial volume ({initial_volume}uL) in the template. The library volume will be set to {final_volume}uL."
+                self.warnings['initial_volume'] = ("The current library volume ({0}uL) differs from the initial volume ({1}uL) in the template. The library volume will be set to {2}uL.", [sample_volume, initial_volume, final_volume])
 
             if final_volume < 0:
                 self.errors['library_volume'] = f'The library\'s computed final volume would be less than zero ({final_volume}). Please verify the volume currently stored for the library.'

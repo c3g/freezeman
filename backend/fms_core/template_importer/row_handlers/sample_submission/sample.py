@@ -91,9 +91,9 @@ class SampleRowHandler(GenericRowHandler):
                                          mother=mother_obj,
                                          father=father_obj)
             if not created:
-                self.warnings['individual'].append(f'Individual already exists and was not created.')
+                self.warnings['individual'].append(('Individual already exists and was not created.', []))
         else:
-            self.warnings['individual'].append(f'Sample is not tied to any individual.')
+            self.warnings['individual'].append(('Sample is not tied to any individual.', []))
 
         # Sample related section
         sample_kind_obj = None
@@ -153,11 +153,11 @@ class SampleRowHandler(GenericRowHandler):
             if Sample.objects.filter(name__iexact=sample['name']).exists():
                 # Output different warnings depending on whether the name is an exact match or a case insensitive match
                 if Sample.objects.filter(name__exact=sample['name']).exists():
-                    self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists. ' \
-                                            f'A new sample with the same name will be created.'
+                    self.warnings['name'] = ('Sample with the same name [{0}] already exists. ' \
+                                            'A new sample with the same name will be created.', [sample["name"]])
                 else:
-                    self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists. ' \
-                                            f'Please verify the name is correct.'
+                    self.warnings['name'] = ('Sample with the same name [{0}] but different type casing already exists. ' \
+                                            'Please verify the name is correct.', [sample["name"]])
 
             # Container related section
             parent_container_obj = None
