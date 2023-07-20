@@ -218,12 +218,7 @@ class SampleNextStepFilter(GenericFilter):
         fields = _sample_next_step_filterset_fields
 
 class ReadsetFilter(GenericFilter):
-    id__not_in = django_filters.CharFilter(field_name='id', method='filter_id_not_in')
 
     class Meta:
         model = Readset
         fields = _readset_filterset_fields
-    
-    @staticmethod
-    def filter_id_not_in(queryset, _, value):
-        return queryset.exclude(id__in=[int(x) for x in value.split(',')])
