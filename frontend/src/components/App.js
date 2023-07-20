@@ -34,14 +34,14 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
+import { fetchLabworkSummary, fetchListedData, fetchStaticData, fetchSummariesData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
-import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
 import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
 import TaxonsRoute from "./taxons/TaxonsRoute";
+import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
 
 
 const { Title } = Typography;
@@ -203,12 +203,6 @@ const App = ({userID, usersByID, logOut, get}) => {
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
-
-  useEffect(() => {
-    if (!user && isLoggedIn) {
-      get(userID)
-    }
-  }, [user, userID, usersByID, get, isLoggedIn])
 
   const menuItems = getMenuItems(user, logOut);
 
