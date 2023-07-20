@@ -1,4 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
+from fms_core.template_importer._constants import LOAD_ALL
 from fms_core.services.sample import get_sample_from_container, extract_sample
 from fms_core.services.container import get_or_create_container, get_container
 
@@ -34,7 +35,7 @@ class ExtractionRowHandler(GenericRowHandler):
                 extract_sample(process=process_measurement['process'],
                                sample_source=original_sample,
                                container_destination=destination_container,
-                               volume_used=process_measurement['volume_used'],
+                               volume_used=original_sample.volume if process_measurement['volume_used'] == LOAD_ALL else process_measurement['volume_used'],
                                execution_date=process_measurement['execution_date'],
                                concentration_destination=resulting_sample['concentration'],
                                sample_kind_destination=resulting_sample['kind'],

@@ -21,6 +21,9 @@ class SampleNextStep(TrackedModel):
     studies = models.ManyToManyField("Study", blank=True, through="SampleNextStepByStudy", symmetrical=False, related_name="samples_next_steps")
 
     class Meta:
+        indexes = [
+            models.Index(fields=['sample', 'step'], name='samplenextstep_sample_step_idx'),
+        ]
         constraints = [
             models.UniqueConstraint(fields=["step_id", "sample_id"], name="samplenextstep_stepid_sampleid_key")
         ]

@@ -56,7 +56,7 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
                     if not SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step, step_order=step_order, study=study_obj).exists():
                         SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step, step_order=step_order, study=study_obj)
                     else:
-                        warnings.append(f"Sample {sample_obj.name} already queued to this study's workflow.")
+                        warnings.append(("Sample {0} already queued to this study's workflow.", [sample_obj.name]))
             except Exception as err:
                 errors.append(err)
         else:
@@ -324,8 +324,8 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                             if not SampleNextStepByStudy.objects.filter(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order).exists():
                                 SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
                             elif new_sample.is_pool:
-                                warnings.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
-                                                f"of study {study.letter} of project {study.project.name}.")
+                                warnings.append(("Sample {0} is already queued for step {1} "
+                                                "of study {2} of project {3}.", [new_sample.name, next_step_order.order if next_step_order is not None else '', study.letter, study.project.name]))
                             else:
                                 errors.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
                                               f"of study {study.letter} of project {study.project.name}.")
@@ -397,9 +397,9 @@ def dequeue_sample_from_all_study_workflows_matching_step(sample: Sample, step: 
             errors.append(err)
 
     if removed_count == 0:
-        warnings.append(f"Sample {sample.name} does not appear to to be queued to step {step.name}.")
+        warnings.append(("Sample {0} does not appear to to be queued to step {1}.", [sample.name, step.name]))
     elif removed_count > 1:
-        warnings.append(f"Sample {sample.name} is queued to step {step.name} for {removed_count} studies. You are about to remove it from all study workflows.")
+        warnings.append(("Sample {0} is queued to step {1} for {2} studies. You are about to remove it from all study workflows.", [sample.name, step.name, removed_count]))
 
     return removed_count, errors, warnings
 
@@ -492,7 +492,7 @@ def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sa
                                                    process_measurement=process_measurement,
                                                    workflow_action=WorkflowAction.DEQUEUE_SAMPLE)
     elif workflow_action == WorkflowAction.IGNORE_WORKFLOW.label:
-        warnings.append(f"Sample {current_sample.name} current process will not be recorded as part of a workflow.")
+        warnings.append(("Sample {0} current process will not be recorded as part of a workflow.", [current_sample.name]))
     else:
         _, errors, _ = move_sample_to_next_step(current_step=step,
                                                 current_sample=current_sample,
@@ -500,6 +500,6 @@ def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sa
                                                 workflow_action=WorkflowAction.NEXT_STEP,
                                                 next_sample=next_sample,
                                                 keep_current=False)
-        warnings.append(f"Without explicit action, the current process of sample {current_sample.name} will be recorded as part of its workflow.")
+        warnings.append(("Without explicit action, the current process of sample {0} will be recorded as part of its workflow.", [current_sample.name]))
     
     return errors, warnings

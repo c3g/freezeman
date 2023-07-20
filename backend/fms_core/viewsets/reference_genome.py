@@ -48,7 +48,7 @@ class ReferenceGenomeViewSet(viewsets.ModelViewSet):
             raise ValidationError(dict(non_field_errors=err))
 
         try:
-            serializer = ReferenceGenomeSerializer(referenceGenome_data)
+            serializer = ReferenceGenomeSerializer(referenceGenome_to_update)
             referenceGenome_to_update.save()
         except Exception as err:
             raise ValidationError(err)

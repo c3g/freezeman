@@ -60,6 +60,12 @@ const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) =>
         return { name: key }
     }
 
+    const inputDisable = () => {
+        return {
+            disabled: isAdding ? false : !referenceGenome?.editable
+        }
+    }
+
     const onValuesChange = (values) => {
         const key = Object.keys(values)[0];
         if (formErrors && formErrors[key]) {
@@ -113,13 +119,14 @@ const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) =>
                     form={form}
                     initialValues={referenceGenome}>
                     <Item label={"Assembly Name"} {...itemValidation("assembly_name")} rules={requiredRules}>
-                        <Input />
+                        <Input {...inputDisable()} />
                     </Item>
                     <Item label={"Synonym"} {...itemValidation("synonym")}>
                         <Input />
                     </Item>
                     <Item label={"Taxon"} {...itemValidation("taxon_id")} rules={requiredRules}>
                         <Select
+                            {...inputDisable()}
                             showSearch
                             allowClear
                             filterOption={(input, option) => (option?.label?.props.children ?? '').toString().toLowerCase().includes(input.toString().toLowerCase())}
@@ -127,7 +134,7 @@ const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) =>
                         />
                     </Item>
                     <Item label={"Size"} {...itemValidation("size")} rules={requiredRules}>
-                        <Input />
+                        <Input {...inputDisable()} />
                     </Item>
                     <Item label={"Genbank ID"} {...itemValidation("genbank_id")}>
                         <Input />

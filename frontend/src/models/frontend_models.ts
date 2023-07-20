@@ -87,6 +87,22 @@ export function getAllItems<T extends FMSTrackedModel>(itemsByID: ItemsByID<T>):
 	return Object.values(itemsByID) as T[]
 }
 
+/**
+ * Merge a new list of items into an ItemsByID object.
+ * @param itemsByID 
+ * @param items 
+ * @returns 
+ */
+export function mergeItemsByID<T extends FMSTrackedModel>(itemsByID: ItemsByID<T>, items: T[]) {
+	const merged = {...itemsByID}
+	items.forEach(item => {
+		if (item) {
+			merged[item.id] = item
+		}
+	})
+	return merged
+}
+
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {}
 export interface Coordinate extends Readonly<FMSCoordinate>, FetchedObject {}

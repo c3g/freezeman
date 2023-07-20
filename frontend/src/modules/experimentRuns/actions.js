@@ -79,9 +79,6 @@ export const listInstruments = () => async (dispatch, getState) => {
 };
 
 export const listPropertyValues = (params) => async (dispatch, getState) => {
-    if (getState().propertyValues.isFetching)
-        return;
-
     const options = {content_type__app_label: "fms_core", ...params}
 
     return await dispatch(networkAction(LIST_PROPERTY_VALUES,

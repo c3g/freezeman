@@ -1,5 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-
+from fms_core.template_importer._constants import LOAD_ALL
 from fms_core.services.sample import get_sample_from_container
 
 
@@ -13,6 +13,9 @@ class SampleRowHandler(GenericRowHandler):
         sample, self.errors['container'], self.warnings['container'] = get_sample_from_container(barcode=barcode, coordinates=coordinates)
 
         if sample is not None:
+            # Set the actual volumed_used in case the load all option was used
+            volume_used = sample.volume if volume_used == LOAD_ALL else volume_used
+
             self.row_object = sample
 
             for derived_sample in sample.derived_samples.all():
@@ -24,7 +27,7 @@ class SampleRowHandler(GenericRowHandler):
 
             # Add a warning if the sample has failed qc
             if any([sample.quality_flag is False, sample.quantity_flag is False]):
-                self.warnings["qc_flags"] = (f"Sample {sample.name} has failed QC.")
+                self.warnings["qc_flags"] = ("Sample {0} has failed QC.", [sample.name])
 
             if not volume_used:
                 self.errors['volume_used'] = f"Volume used must be entered"

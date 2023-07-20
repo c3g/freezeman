@@ -6,7 +6,7 @@ from fms_core.template_importer.row_handlers.library_conversion import LibraryRo
 from fms_core.templates import LIBRARY_CONVERSION_TEMPLATE
 from collections import defaultdict
 from fms_core.services.step import get_step_from_template
-from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none, load_all_or_float_to_decimal_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 PROPERTIES_STARTING_INDEX = 4
@@ -86,7 +86,7 @@ class LibraryConversionImporter(GenericImporter):
                     {'barcode': str_cast_and_normalize(row_data['Library Source Container Barcode']),
                      'coordinates': str_cast_and_normalize(row_data['Library Source Container Coordinates']),
                      },
-                'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
+                'volume_used': load_all_or_float_to_decimal_and_none(row_data['Volume Used (uL)']),
                 'comment': str_cast_and_normalize(row_data['Comment']),
                 'container':
                     {'barcode': str_cast_and_normalize(row_data['Destination Library Container Barcode']),
