@@ -11,6 +11,7 @@ from .models import (
     Container,
     Dataset,
     DatasetFile,
+    Readset,
     DerivedBySample,
     ExperimentRun,
     RunType,
@@ -55,6 +56,7 @@ __all__ = [
     "ContainerExportSerializer",
     "DatasetSerializer",
     "DatasetFileSerializer",
+    "ReadsetSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
     "ExternalExperimentRunSerializer",
@@ -591,12 +593,22 @@ class DatasetSerializer(serializers.ModelSerializer):
     def get_latest_release_update(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
 
+class ReadsetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Readset
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample")
+
 class DatasetFileSerializer(serializers.ModelSerializer):
-    dataset = serializers.IntegerField(read_only=True, source='readset.dataset.id')
-    sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
+    readset = serializers.SerializerMethodField()
+
     class Meta:
         model = DatasetFile
-        fields = ("id", "readset", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp", "validation_status", "validation_status_timestamp")
+        fields = ("id", "readset", "file_path",
+                  "release_status", "release_status_timestamp",
+                  "validation_status", "validation_status_timestamp")
+
+    def get_readset(self, obj):
+        return ReadsetSerializer(obj.readset).data
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 
