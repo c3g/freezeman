@@ -151,8 +151,7 @@ class SampleRowHandler(GenericRowHandler):
         if library['pool_name'] is None:
             # Output warning if the there is already a sample with the same name
             if Sample.objects.filter(name__exact=sample['name']).exists():
-                self.warnings['name'] = ('Sample with the same name [{0}] already exists. ' \
-                                         'A new sample with the same name will be created.', [sample["name"]])
+                self.warnings['name'] = ('Sample with the same name [{0}] already exists. A new sample with the same name will be created.', [sample["name"]])
 
             # Container related section
             parent_container_obj = None
