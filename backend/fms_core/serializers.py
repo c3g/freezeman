@@ -599,16 +599,13 @@ class ReadsetSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "dataset", "sample_name", "derived_sample")
 
 class DatasetFileSerializer(serializers.ModelSerializer):
-    readset = serializers.SerializerMethodField()
+    readset = ReadsetSerializer(read_only=True)
 
     class Meta:
         model = DatasetFile
         fields = ("id", "readset", "file_path",
                   "release_status", "release_status_timestamp",
                   "validation_status", "validation_status_timestamp")
-
-    def get_readset(self, obj):
-        return ReadsetSerializer(obj.readset).data
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 
