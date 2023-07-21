@@ -183,6 +183,7 @@ const api = {
 
   protocols: {
     list:  (options, abort) => get("/protocols/", options, { abort }),
+    lastProtocols: (options, abort) => get("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {
