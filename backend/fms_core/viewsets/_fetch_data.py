@@ -9,6 +9,7 @@ from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasure
 from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
 from ..utils import decimal_rounded_to_precision
+from ._utils import fix_count_derived_samples
 
 class FetchData:
     """
@@ -84,6 +85,7 @@ class FetchSampleData(FetchData):
 
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
 
+        self.queryset = fix_count_derived_samples(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -243,6 +245,7 @@ class FetchSampleData(FetchData):
 
         location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
 
+        self.queryset = fix_count_derived_samples(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -444,6 +447,7 @@ class FetchLibraryData(FetchData):
 
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
 
+        self.queryset = fix_count_derived_samples(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -537,6 +541,7 @@ class FetchLibraryData(FetchData):
 
         super().fetch_export_data(ids) # Initialize queryset by calling base abstract function
 
+        self.queryset = fix_count_derived_samples(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',

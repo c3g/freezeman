@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, Tuple, Union, List
 from tablib import Dataset
-from django.db.models import CharField, Func, Value
+from django.db.models import CharField, Func, Value, QuerySet, Subquery, OuterRef, F
 from wsgiref.util import FileWrapper
 from django.http import HttpResponseBadRequest, HttpResponse, StreamingHttpResponse
 from django.conf import settings
@@ -15,7 +15,7 @@ import os
 
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
-from fms_core.models import Sample, Protocol, Step
+from fms_core.models import Sample, Protocol, Step, DerivedBySample
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -29,6 +29,13 @@ def _prefix_keys(prefix: str, d: Dict[str, Any]) -> Dict[str, Any]:
 def _list_keys(d: Dict[str, Any]) -> Dict[str, Any]:
     return [k  for k, v in d.items()]
 
+def fix_count_derived_samples(queryset: QuerySet) -> QuerySet:
+    # https://stackoverflow.com/a/69031027
+    return queryset.annotate(count_derived_samples=Subquery(
+        DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .annotate(my_count=Func(F('id'), function='Count'))
+            .values('my_count')[:1]))
 
 class FZY(Func):
     template = "%(function)s(%(expressions)s::cstring)"
