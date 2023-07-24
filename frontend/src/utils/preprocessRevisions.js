@@ -1,9 +1,7 @@
-import {parse} from "querystring";
-
 export function preprocessUserActionRevisions(previousRevisions, /* mut */ revisions) {
   let options = null
   if (revisions.next)
-    options = parse(revisions.next.replace(/^.*\?/, ''))
+    options = new URLSearchParams(revisions.next.replace(/^.*\?/, ''))
 
   return {
     isFetching: false,
@@ -21,7 +19,7 @@ export function preprocessUserActionVersions(previousVersions, /* mut */ version
 
   let options = null
   if (versions.next) {
-    options = parse(versions.next.replace(/^.*\?/, ''))
+    options = new URLSearchParams(versions.next.replace(/^.*\?/, ''))
     delete options.revision__user
   }
 

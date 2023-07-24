@@ -1,5 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
+import { createURLSearchParams } from "./functions";
 
 const api = {
   auth: {
@@ -372,7 +373,7 @@ function apiFetch(method, route, body, options = { abort: false }) {
 }
 
 function get(route, queryParams, options) {
-  const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
+  const fullRoute = route + (queryParams ? '?' + createURLSearchParams(queryParams).toString() : '')
   return apiFetch('GET', fullRoute, undefined, options);
 }
 
