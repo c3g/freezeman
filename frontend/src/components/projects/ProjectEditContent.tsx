@@ -17,9 +17,10 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { add, update, summary } from "../../modules/projects/actions";
 import { project as EMPTY_PROJECT } from "../../models/empty_models";
-import { requiredRules } from "../../constants";
+import { requiredRules, nameRules, externalIdRules } from "../../constants";
 import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { useAppDispatch, useAppSelector } from "../../hooks";
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { selectProjectsByID } from "../../selectors"
 
 
@@ -33,6 +34,9 @@ const ProjectEditContent = () => {
   const isAdding = id === undefined
 
   const project = id ? projectsByID[id] : undefined
+  const user = useCurrentUser()
+  const isAdmin = user ? user.is_staff : false
+
   /*
    * Form Data submission
    */
@@ -122,16 +126,30 @@ const ProjectEditContent = () => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Name" {...props("name")} rules={requiredRules} >
+          <Form.Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
+            extra="Simplified internal name to give the project." >
             <Input />
           </Form.Item>
-          <Form.Item label="Principal Investigator" {...props("principal_investigator")} >
+          <Form.Item label="External ID" {...props("external_id")} rules={isAdmin ? externalIdRules : requiredRules.concat(externalIdRules)}
+            tooltip="Format: P000000."
+            extra="External identifier for the project (Hercules project number)." >
             <Input />
           </Form.Item>
-          <Form.Item label="Requestor Name" {...props("requestor_name")} >
+          <Form.Item label="External Name" {...props("external_name")}
+            extra="Full external name of the project (Hercules name)." >
             <Input />
           </Form.Item>
-          <Form.Item label="Requestor Email" {...props("requestor_email")} rules={[emailRule]} >
+          <Form.Item label="Principal Investigator" {...props("principal_investigator")}
+            extra="Full name of the principal investigator." >
+            <Input />
+          </Form.Item>
+          <Form.Item label="Requestor Name" {...props("requestor_name")}
+            extra="Full name of the contact person that made the project request." >
+            <Input />
+          </Form.Item>
+          <Form.Item label="Requestor Email" {...props("requestor_email")} rules={[emailRule]}
+            extra="Email of the contact for the project." >
             <Input />
           </Form.Item>
           <Form.Item label="Status" {...props("status")} valuePropName="checked">
@@ -139,12 +157,6 @@ const ProjectEditContent = () => {
           </Form.Item>
           <Form.Item label="Target End Date" {...props("targeted_end_date")} >
             <DatePicker />
-          </Form.Item>
-          <Form.Item label="External ID" {...props("external_id")} >
-            <Input />
-          </Form.Item>
-          <Form.Item label="External Name" {...props("external_name")} >
-            <Input />
           </Form.Item>
           <Form.Item label="Comment" {...props("comment")}>
             <TextArea />
