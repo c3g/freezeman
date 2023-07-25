@@ -1,21 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select } from "antd"
+import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps } from "antd"
 
 const { Text } = Typography
 const { Item } = Form
 interface PrefillButtonProps {
     canPrefill: boolean,
     handlePrefillTemplate: (data: { [column: string]: any }) => void,
-    data: any[]
+    data: Record<string, string>
 }
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
-
     const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(true);
-    const [checkedFields, setCheckedFields] = useState({});
-    const [formErrors, setFormErrors] = useState({})
+    const [checkedFields, setCheckedFields] = useState<{ [column: string]: boolean }>({});
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
-    const itemValidation = (key: string): FormItemProps => {
+    const itemValidation = useCallback((key: string): FormItemProps => {
         if (formErrors && formErrors[key]) {
             return {
                 help: formErrors[key],
@@ -24,7 +23,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
             }
         }
         return { name: key }
-    }
+    }, [formErrors])
     const showPrefillColumns = useCallback(() => {
         setIsPrefillColumnsShown(true);
     }, [setIsPrefillColumnsShown]);
@@ -35,35 +34,27 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
 
     const [form] = Form.useForm()
 
-    const checkFormErrors = (key: string) => {
+    const checkFormErrors = useCallback((key: string) => {
         if (formErrors && formErrors[key]) {
             const formErrors_copy = { ...formErrors }
-            formErrors_copy[key] = undefined;
+            delete formErrors_copy[key];
             setFormErrors({ ...formErrors_copy })
         }
-    }
+    }, [formErrors])
 
-    const onValuesChange = (values) => {
-        let key = Object.keys(values)[0]
+    const onValuesChange: NonNullable<FormProps['onValuesChange']> = useCallback((changedValues: any) => {
+        const key = Object.keys(changedValues)[0]
         checkFormErrors(key)
-    }
+    }, [checkFormErrors])
 
-    const onFinish = () => {
-        let prefillData = returnPrefillData()
-        if (prefillData) {
-            handlePrefillTemplate(prefillData)
-            setIsPrefillColumnsShown(false)
-        }
-    }
-
-    const returnPrefillData = () => {
+    const returnPrefillData = useCallback(() => {
         const fieldValues = form.getFieldsValue();
-        const prefillData = {}
+        const prefillData: Record<string, string> = {}
         const errorData = {}
         let error = false
         Object.keys(fieldValues).forEach((column) => {
             if (checkedFields[column]) {
-                console.log(column, fieldValues[column])
+                console.debug(column, fieldValues[column])
                 if (fieldValues[column] == undefined) {
                     errorData[column] = 'Missing Field'
                     error = true
@@ -81,10 +72,18 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
             return null
         }
         return prefillData
-    }
+    }, [checkedFields, form])
+
+    const onFinish: NonNullable<FormProps['onFinish']> = useCallback(() => {
+        const prefillData = returnPrefillData()
+        if (prefillData) {
+            handlePrefillTemplate(prefillData)
+            setIsPrefillColumnsShown(false)
+        }
+    }, [handlePrefillTemplate, returnPrefillData])
 
     useEffect(() => {
-        let fields = {}
+        const fields = {}
         Object.keys(data).forEach((column) => {
             fields[column] = true;
         })
@@ -115,7 +114,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                                 }}>
                                     <Checkbox checked={checkedFields[field]}
                                         onClick={() => {
-                                            let fields = { ...checkedFields }
+                                            const fields = { ...checkedFields }
                                             fields[field] = !checkedFields[field]
                                             setCheckedFields(fields)
                                             checkFormErrors(field)
