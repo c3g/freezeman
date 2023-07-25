@@ -1,6 +1,8 @@
 /*
- * constants.js
+ * constants.tsx
  */
+
+import { Rule } from "antd/lib/form"
 
 export const FILTER_TYPE = {
   RANGE: "RANGE",
@@ -40,8 +42,6 @@ export const TOGGLE_OPTIONS = {
 }
 
 // Validation constants
-
-type Rule = { required, message } | { type, message } | { pattern, message } | { pattern }
 
 export const requiredRules : Rule[] = [{ required: true, message: 'Missing field' }]
 export const externalIdRules : Rule[] = [{ pattern: /^P[0-9]{6}$/, message: 'Format: P000000' }]
