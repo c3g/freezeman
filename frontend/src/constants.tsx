@@ -12,25 +12,25 @@ export const FILTER_TYPE = {
   INPUT_NUMBER: "INPUT_NUMBER",
   INPUT_OBJECT_ID: "INPUT_OBJECT_ID",  // A freezeman object ID - a positive integer value
   METADATA: "METADATA",
-}
+} as const
 
 export const SEX = [
   "M",
   "F",
   "Unknown",
-]
+] as const
 
 export const PROJECT_STATUS = [
   "Open",
   "Closed",
-]
+] as const
 
 export const QPCR_SELECTION_STATUS = [
    "Positive",
    "Negative",
    "Inconclusive",
    "Invalid",
- ]
+ ] as const
 
 export const DATE_FORMAT = "YYYY-MM-DD"
 
@@ -39,7 +39,7 @@ export const TOGGLE_OPTIONS = {
   SAMPLES: "Samples",
   LIBRARIES: "Libraries",
   ALL: "All"
-}
+} as const
 
 // Validation constants
 
