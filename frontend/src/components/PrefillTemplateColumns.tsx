@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps } from "antd"
 
+type ColumnType = 'number' | 'date' | 'select'
+
 const { Text } = Typography
 const { Item } = Form
 interface PrefillButtonProps {
     canPrefill: boolean,
     handlePrefillTemplate: (data: { [column: string]: any }) => void,
-    data: Record<string, string>
+    data: { [column: string]: ColumnType }
 }
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
@@ -106,7 +108,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
 
                     {
                         data &&
-                        Object.keys(data).map((field: any) => {
+                        Object.keys(data).map((field) => {
                             return (
                                 <span key={field} style={{
                                     display: 'flex',
