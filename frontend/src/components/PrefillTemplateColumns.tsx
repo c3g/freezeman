@@ -1,7 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps } from "antd"
+import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps, SelectProps } from "antd"
+import api, { withToken } from '../utils/api'
+import { InstrumentType } from '../models/frontend_models'
+import { useAppSelector } from '../hooks'
+import { useDispatch } from 'react-redux'
+import { selectAuthTokenAccess } from '../selectors'
 
-type ColumnType = 'number' | 'date' | 'select'
+type ColumnType = 'number' | 'date' | 'qc-instrument'
 
 const { Text } = Typography
 const { Item } = Form
@@ -9,6 +14,28 @@ interface PrefillButtonProps {
     canPrefill: boolean,
     handlePrefillTemplate: (data: { [column: string]: any }) => void,
     data: { [column: string]: ColumnType }
+}
+
+
+interface SelectInstrumentTypeProps extends SelectProps {
+    type: string
+}
+function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
+    const dispatch = useDispatch()
+
+    const listInstrumentTypesCallback = useCallback(() => dispatch(api.instrumentTypes.list({ platform__name: type })), [dispatch, type])
+    
+    const [instrumentTypes, setInstrumentTypes] = useState<InstrumentType[]>([])
+
+    const token = useAppSelector(selectAuthTokenAccess)
+
+    useEffect(() => {
+        listInstrumentTypesCallback().then((instrumentTypes: InstrumentType[]) => {
+            setInstrumentTypes(instrumentTypes)
+          })
+    }, [listInstrumentTypesCallback, token, type])
+
+    return <Select {...props} options={instrumentTypes.map((instrumentType) => ({ value: instrumentType.id, label: instrumentType.type }))} />
 }
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
@@ -135,12 +162,8 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                                             data[field] == 'date' ?
                                                 <DatePicker disabled={!checkedFields[field]} />
                                                 :
-                                                data[field] == 'select' ?
-                                                    // might have to fetch options from backend for these select options or define them in `templates.py`
-                                                    <Select
-                                                        disabled={!checkedFields[field]}
-                                                        style={{ textAlign: 'left' }}>
-                                                    </Select>
+                                                data[field] == 'qc-instrument' ?
+                                                    <SelectInstrumentType type={'Quality Control'}/>
                                                     :
                                                     <Input type={data[field]} disabled={!checkedFields[field]} style={{ textAlign: 'right' }} />
                                         }
