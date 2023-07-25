@@ -297,6 +297,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
+                    'Source Container Location Barcode', 'Source Container Location Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                     'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)',
@@ -309,6 +310,8 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Sample Name", "name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
+      ("Normalization", "Source Container Location Barcode", "container__location__barcode", "container_location_barcode"),
+      ("Normalization", "Source Container Location Coord", "container__coodinate__name", "container_location_coordinates"),
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
