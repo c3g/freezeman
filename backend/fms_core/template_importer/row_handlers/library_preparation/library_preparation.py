@@ -37,7 +37,7 @@ class LibraryRowHandler(GenericRowHandler):
 
             # Add a warning if the sample has failed qc
             if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
-                self.warnings["qc_flags"] = (f"Source sample {source_sample_obj.name} has failed QC.")
+                self.warnings["qc_flags"] = ("Source sample {0} has failed QC.", [source_sample_obj.name])
 
             # Populate the libraries with the batch and  individual information
             protocol = library_batch_info['protocol']
@@ -62,7 +62,7 @@ class LibraryRowHandler(GenericRowHandler):
                 creation_comment=comment)
 
             if container_obj and not created:
-                self.warnings['library_container'] = f'Using existing container {container_obj.name}'
+                self.warnings['library_container'] = ('Using existing container {0}', [container_obj.name])
 
             index_obj, self.errors['index'], self.warnings['index'] = get_index(index)
 

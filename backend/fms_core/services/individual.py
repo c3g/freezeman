@@ -78,7 +78,7 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
     else:
         try:
             individual = Individual.objects.get(name=name)
-            warnings.append(f"Using existing individual '{individual}'.")
+            warnings.append(("Using existing individual '{0}'.", [individual.name]))
 
             if sex and sex != individual.sex:
                 errors.append(f"Provided sex {sex} does not match the individual sex {individual.sex} of the individual retrieved using the name {name}.")

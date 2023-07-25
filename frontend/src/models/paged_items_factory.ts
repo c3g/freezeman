@@ -20,7 +20,7 @@ import {
     reduceSetStale,
 } from './paged_items_reducers'
 
-type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
+export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
 
   type SetFixedFilterAction = {
 		type: string
@@ -48,20 +48,20 @@ export type SetFilterOptionsActionType = PagedItemsActions['setFilterOptions']
 type ListType = (option: any) => NetworkActionThunk<any>;
 
 
-interface PagedItemsActionTypes {
-	LIST_PAGE: NetworkActionTypes
-	SET_FIXED_FILTER: string
-	SET_FILTER: string
-	SET_FILTER_OPTIONS: string
-	REMOVE_FILTER: string
-	CLEAR_FILTERS: string
-	SET_SORT_BY: string
-	SET_PAGE_SIZE: string
-    RESET_PAGED_ITEMS: string
-    SET_STALE: string
+interface PagedItemsActionTypes<Prefix extends string> {
+	LIST_PAGE: NetworkActionTypes<`${Prefix}.LIST_PAGE`>
+	SET_FIXED_FILTER: `${Prefix}.SET_FIXED_FILTER`
+	SET_FILTER: `${Prefix}.SET_FILTER`
+	SET_FILTER_OPTIONS: `${Prefix}.SET_FILTER_OPTIONS`
+	REMOVE_FILTER: `${Prefix}.REMOVE_FILTER`
+	CLEAR_FILTERS: `${Prefix}.CLEAR_FILTER`
+	SET_SORT_BY: `${Prefix}.SET_SORT_BY`
+	SET_PAGE_SIZE: `${Prefix}.SET_PAGE_SIZE`
+    RESET_PAGED_ITEMS: `${Prefix}.RESET_PAGED_ITEMS`
+    SET_STALE: `${Prefix}.SET_STATE`
 }
 
-export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTypes {
+export function createPagedItemsActionTypes<Prefix extends string>(prefix: Prefix): PagedItemsActionTypes<Prefix> {
     return {
         LIST_PAGE: createNetworkActionTypes(`${prefix}.LIST_PAGE`),
         SET_FIXED_FILTER: `${prefix}.SET_FIXED_FILTER`,
@@ -83,7 +83,7 @@ export function createPagedItemsActionTypes(prefix: string): PagedItemsActionTyp
 // then a custom function will need to be implemented by the component that uses the state.
 export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
-export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, selectPagedItems: SelectPagedItemsFunc, list: ListType, extra?: object): PagedItemsActions {
+export function createPagedItemsActions<Prefix extends string>(actionTypes: PagedItemsActionTypes<Prefix>, selectPagedItems: SelectPagedItemsFunc, list: ListType, extra?: object): PagedItemsActions {
 
     const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } =
 		actionTypes
@@ -282,7 +282,7 @@ export function createPagedItemsActions(actionTypes: PagedItemsActionTypes, sele
 
 
 // This reducer will support any state that extends PagedItems.
-export function createPagedItemsReducer<P extends PagedItems>(actionTypes: PagedItemsActionTypes, initialState: P): Reducer<P, AnyAction> {
+export function createPagedItemsReducer<P extends PagedItems, Prefix extends string>(actionTypes: PagedItemsActionTypes<Prefix>, initialState: P): Reducer<P, AnyAction> {
     const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } = actionTypes
 
     function reduce(state: P = initialState, action: AnyAction): P {

@@ -134,9 +134,15 @@ _instrument_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_platform_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
 _instrument_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "type": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("platform__", _platform_filterset_fields)
 }
 
 _run_type_filterset_fields: FiltersetFields = {
@@ -192,11 +198,6 @@ _library_selection_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "target": CATEGORICAL_FILTERS_LOOSE,
-}
-
-_platform_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _imported_file_filterset_fields: FiltersetFields = {

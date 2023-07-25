@@ -59,6 +59,7 @@ class Sample(TrackedModel):
 
     class Meta:
         indexes = [
+            models.Index(fields=['name'], name='sample_name_idx'),
             models.Index(fields=['creation_date'], name='sample_creationdate_idx')
         ]
         constraints = [

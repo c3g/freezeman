@@ -67,62 +67,60 @@ export function useFilteredColumns<T>(
  */
 export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsActions): PagedItemsActionsCallbacks {
 	const dispatch = useAppDispatch()
+	return useMemo(() => {
+		const listPageCallback = (pageNumber: number) => {
+			dispatch(pagedItemActions.listPage(pageNumber))
+		}
 
-	const listPageCallback = useCallback((pageNumber: number) => {
-		dispatch(pagedItemActions.listPage(pageNumber))
+		const setFixedFilterCallback = (filter: FilterSetting) => {
+			dispatch(pagedItemActions.setFixedFilter(filter))
+		}
+
+		const setFilterCallback = (value: FilterValue, description: FilterDescription) => {
+			dispatch(pagedItemActions.setFilter(value, description))
+		}
+
+		const setFilterOptionsCallback = (description: FilterDescription, options: FilterOptions) => {
+			dispatch(pagedItemActions.setFilterOptions(description, options))
+		}
+
+		const clearFiltersCallback = () => {
+			dispatch(pagedItemActions.clearFilters())
+		}
+
+		const setSortByCallback = (sortBy: SortBy) => {
+				dispatch(pagedItemActions.setSortBy(sortBy))
+		}
+
+		const setPageSizeCallback =(pageSize: number) => {
+			dispatch(pagedItemActions.setPageSize(pageSize))
+		}
+
+		const resetPagedItemsCallback = () => {
+			dispatch(pagedItemActions.resetPagedItems())
+		}
+
+		const setStaleCallback = (stale: boolean) => {
+			dispatch(pagedItemActions.setStale(stale))
+		}
+
+		const refreshPageCallback = () => {
+			dispatch(pagedItemActions.refreshPage())
+		}
+
+		return {
+			listPageCallback,
+			setFixedFilterCallback,
+			setFilterCallback,
+			setFilterOptionsCallback,
+			clearFiltersCallback,
+			setSortByCallback,
+			setPageSizeCallback,
+			resetPagedItemsCallback,
+			setStaleCallback,
+			refreshPageCallback,	
+		}
 	}, [dispatch, pagedItemActions])
-
-	const setFixedFilterCallback = useCallback((filter: FilterSetting) => {
-		dispatch(pagedItemActions.setFixedFilter(filter))
-	}, [dispatch, pagedItemActions])
-
-	const setFilterCallback = useCallback((value: FilterValue, description: FilterDescription) => {
-		dispatch(pagedItemActions.setFilter(value, description))
-	}, [dispatch, pagedItemActions])
-
-	const setFilterOptionsCallback = useCallback((description: FilterDescription, options: FilterOptions) => {
-		dispatch(pagedItemActions.setFilterOptions(description, options))
-	}, [dispatch, pagedItemActions])
-
-	const clearFiltersCallback = useCallback(() => {
-		dispatch(pagedItemActions.clearFilters())
-	}, [dispatch, pagedItemActions])
-
-	const setSortByCallback = useCallback(
-		(sortBy: SortBy) => {
-			dispatch(pagedItemActions.setSortBy(sortBy))
-		},
-		[dispatch, pagedItemActions]
-	)
-
-	const setPageSizeCallback = useCallback((pageSize: number) => {
-		dispatch(pagedItemActions.setPageSize(pageSize))
-	}, [dispatch, pagedItemActions])
-
-	const resetPagedItemsCallback = useCallback(() => {
-		dispatch(pagedItemActions.resetPagedItems())
-	}, [dispatch, pagedItemActions])
-
-	const setStaleCallback = useCallback((stale: boolean) => {
-		dispatch(pagedItemActions.setStale(stale))
-	}, [dispatch, pagedItemActions])
-
-	const refreshPageCallback = useCallback(() => {
-		dispatch(pagedItemActions.refreshPage())
-	}, [dispatch, pagedItemActions])
-
-	return {
-		listPageCallback,
-		setFixedFilterCallback,
-		setFilterCallback,
-		setFilterOptionsCallback,
-		clearFiltersCallback,
-		setSortByCallback,
-		setPageSizeCallback,
-		resetPagedItemsCallback,
-		setStaleCallback,
-		refreshPageCallback,
-	}
 }
 
 /**
@@ -228,6 +226,8 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 	usingFilters: boolean
 
 	selection?: PagedItemTableSelection<T>
+
+	initialLoad?: boolean
 }
 
 function PagedItemsTable<T extends object>({
@@ -244,6 +244,7 @@ function PagedItemsTable<T extends object>({
 	fixedFilter,
 	usingFilters,
 	selection,
+	initialLoad = true,
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -253,10 +254,13 @@ function PagedItemsTable<T extends object>({
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
 		() => {
+			if (!initialLoad) return;
+
 			// If this table uses a fixed filter then set it before loading any items.
 			if (fixedFilter && fixedFilter.description) {
 				setFixedFilterCallback(fixedFilter)
 			}
+
 			// If a page isn't already loaded in redux then request page 1
 			if (!pagedItems.page?.pageNumber) {
 				listPageCallback(1)

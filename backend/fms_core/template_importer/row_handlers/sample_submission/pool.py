@@ -71,8 +71,8 @@ class PoolsRowHandler(GenericRowHandler):
                       index_warnings = []
                       for i, j in collisions:
                           index_distance = results["distances"][i][j]
-                          index_warnings.append(f"Index {indices[i].name} for sample {samples_name[i]} and "
-                                                f"Index {indices[j].name} for sample {samples_name[j]} are not different enough {index_distance}.")
+                          index_warnings.append(("Index {0} for sample {1} and "
+                                                "Index {2} for sample {3} are not different enough {4}.", [indices[i].name, samples_name[i], indices[j].name, samples_name[j], index_distance]))
                       self.warnings["index_collision"] = index_warnings
 
             # Pool samples

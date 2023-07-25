@@ -40,6 +40,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='sample',
+            index=models.Index(fields=['name'], name='sample_name_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='sample',
             index=models.Index(fields=['creation_date'], name='sample_creationdate_idx'),
         ),
         migrations.AddIndex(

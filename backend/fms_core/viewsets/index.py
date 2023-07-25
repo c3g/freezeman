@@ -10,6 +10,7 @@ from fms_core.models import Index, IndexSet, InstrumentType
 from fms_core.serializers import IndexSerializer, IndexExportSerializer, IndexSetSerializer
 from fms_core.template_importer.importers import IndexCreationImporter
 from fms_core.templates import INDEX_CREATION_TEMPLATE
+from fms_core.utils import serialize_warnings
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _index_filterset_fields
@@ -95,7 +96,7 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             raise ValidationError(form_errors)
         data = {"form_errors": form_errors,
                 "validation_errors": ValidationError(errors),
-                "warnings": warnings,
+                "warnings": serialize_warnings({'validate': warnings}),
                 "results": results}
         return Response(data)
 

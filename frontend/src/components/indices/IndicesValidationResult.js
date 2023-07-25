@@ -21,6 +21,12 @@ import PageContent from "../PageContent";
 import api, {withToken} from "../../utils/api";
 import {list} from "../../modules/indices/actions";
 
+function formatWarning({format, args}) {
+  return args.reduce((prev, curr, index) => {
+    return prev.replace(`{${index}}`, curr)
+  }, format)
+}
+
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -185,7 +191,7 @@ const IndicesValidationResult = ({
           <Alert
              message="Validation Warnings"
              style={{ marginTop: '1rem', whiteSpace: 'pre-wrap' }}
-             description={warnings.join("\n")}
+             description={warnings.map(formatWarning).join("\n")}
              type="warning"
            /> : null
         }

@@ -132,7 +132,7 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
         indices_dict[index.id] = {"obj": index}
         
     if len(indices) == 0:
-        warnings.append(f"No indices were provided for validation.")
+        warnings.append(("No indices were provided for validation.", []))
     else:
         index_read_direction_5_prime = instrument_type.index_read_5_prime
         index_read_direction_3_prime = instrument_type.index_read_3_prime
@@ -201,7 +201,7 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
 
         # Check if both length are default value (0). This means we have to supply the length. Otherwise, validate the length given.
         if not validation_length_is_calculated and (length_5_prime != target_min_5prime_length or length_3_prime != target_min_3prime_length):
-            warnings.append(f"Calculated validation lengths (5 prime : {target_min_5prime_length}, 3 prime : {target_min_3prime_length}) are different than requested ones (5 prime : {length_5_prime}, 3 prime : {length_3_prime}).")
+            warnings.append(("Calculated validation lengths (5 prime : {0}, 3 prime : {1}) are different than requested ones (5 prime : {2}, 3 prime : {3}).", [target_min_5prime_length, target_min_3prime_length, length_5_prime, length_3_prime]))
             target_min_5prime_length = length_5_prime
             target_min_3prime_length = length_3_prime
 
@@ -222,18 +222,18 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
         # warning if the minimal required index length for some indices is larger than the requested index length : sub-optimal validation
         indices_in_warning = list(filter(lambda x: x[1] > target_min_5prime_length, zip(indices, min_5prime_lengths)))
         if indices_in_warning: # 5 prime
-            warnings.append(f"Sub-optimal. Indices in this list {[i.id for i, _ in indices_in_warning]} validate using a length ({target_min_5prime_length}) that is smaller than their sequence length ({[length for _, length in indices_in_warning]}).")
+            warnings.append(("Sub-optimal. Indices in this list {0} validate using a length ({1}) that is smaller than their sequence length ({2}).", [[i.id for i, _ in indices_in_warning], target_min_5prime_length, [length for _, length in indices_in_warning]]))
         indices_in_warning = list(filter(lambda x: x[1] > target_min_3prime_length, zip(indices, min_3prime_lengths)))
         if indices_in_warning: # 3 prime
-            warnings.append(f"Sub-optimal. Indices in this list {[i.id for i, _ in indices_in_warning]} validate using a length ({target_min_3prime_length}) that is smaller than their sequence length ({[length for _, length in indices_in_warning]}).")
+            warnings.append(("Sub-optimal. Indices in this list {0} validate using a length ({1}) that is smaller than their sequence length ({2}).", [[i.id for i, _ in indices_in_warning], target_min_3prime_length, [length for _, length in indices_in_warning]]))
 
         # warning if the minimal required index length for some indices is larger than the minimal required index length for other indices
         indices_in_warning = list(filter(lambda x: x[1] < target_min_5prime_length, zip(indices, min_5prime_lengths)))
         if indices_in_warning: # 5 prime
-            warnings.append(f"Indices in this list {[i.id for i, _ in indices_in_warning]} have smaller 5 prime index length than the length used for validation ({target_min_5prime_length}).")
+            warnings.append(("Indices in this list {0} have smaller 5 prime index length than the length used for validation ({1}).", [[i.id for i, _ in indices_in_warning], target_min_5prime_length]))
         indices_in_warning = list(filter(lambda x: x[1] < target_min_3prime_length, zip(indices, min_3prime_lengths)))
         if indices_in_warning: # 3 prime
-            warnings.append(f"Indices in this list {[i.id for i, _ in indices_in_warning]} have smaller 3 prime index length than the length used for validation ({target_min_3prime_length}).")
+            warnings.append(("Indices in this list {0} have smaller 3 prime index length than the length used for validation ({1}).", [[i.id for i, _ in indices_in_warning], target_min_3prime_length]))
 
         # At this point we have the validation data loaded, validation length calculated and validated.
         # We will now proceed to calculate the hamming distance of the index.
