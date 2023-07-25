@@ -105,9 +105,11 @@ const api = {
 
   instruments: {
     list: () => get("/instruments/"),
-    listTypes: () => get("/instruments/list_types/"),
   },
 
+  instrumentTypes: {
+    list: () => get("/instrument-types/"),
+  },
 
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),

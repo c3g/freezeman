@@ -26,7 +26,7 @@ const listSets = (token, options) =>
   withToken(token, api.indices.listSets)(options).then(res => res.data)
 
 const listInstrumentTypes = (token, options) =>
-  withToken(token, api.instruments.listTypes)(options).then(res => res.data)
+  withToken(token, api.instrumentTypes.list)(options).then(res => res.data)
 
 
 const mapStateToProps = state => ({
