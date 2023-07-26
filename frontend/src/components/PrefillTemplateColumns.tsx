@@ -8,7 +8,14 @@ import store from '../store'
 
 type ColumnType = 'number' | 'date' | 'qc-instrument' | string[]
 
-function handleColumnType(columnType: ColumnType, input: (type: 'number') => ReactNode, date: () => ReactNode, qcInstrument: () => ReactNode, select: (options: string[]) => ReactNode): ReactNode {
+interface ColumnTypeHandlers {
+    input: (type: 'number') => ReactNode
+    date: () => ReactNode
+    qcInstrument: () => ReactNode
+    select: (options: string[]) => ReactNode
+}
+
+function handleColumnType(columnType: ColumnType, { input, date, qcInstrument, select }: ColumnTypeHandlers): ReactNode {
     if (columnType === 'number') {
         return input(columnType)
     }
@@ -133,6 +140,13 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
         setCheckedFields(fields)
     }, [data])
 
+    const ColumnTypeHandlersCallback: (field: string) => ColumnTypeHandlers = useCallback((field: string) => ({
+        input: (type) => <Input type={type} disabled={!checkedFields[field]} style={{ textAlign: 'right' }} />,
+        date: () => <DatePicker disabled={!checkedFields[field]} />,
+        qcInstrument: () => <SelectInstrumentType type={'Quality Control'} disabled={!checkedFields[field]} style={{ textAlign: 'left' }} />,
+        select: (options) => <Select options={options.map((o) =>  ({ label: o, value: o }))} disabled={!checkedFields[field]} style={{ textAlign: 'left' }}/>
+    }), [checkedFields])
+
     return (
         <>
             <Button type='primary' disabled={!canPrefill} onClick={showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
@@ -174,10 +188,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                                         {
                                             handleColumnType(
                                                 data[field],
-                                                (type) => <Input type={type} disabled={!checkedFields[field]} style={{ textAlign: 'right' }} />,
-                                                () => <DatePicker disabled={!checkedFields[field]} />,
-                                                () => <SelectInstrumentType type={'Quality Control'} disabled={!checkedFields[field]} style={{ textAlign: 'left' }} />,
-                                                (options) => <Select options={options.map((o) =>  ({ label: o, value: o }))} disabled={!checkedFields[field]} style={{ textAlign: 'left' }}/>
+                                                ColumnTypeHandlersCallback(field)
                                             )
                                         }
                                     </Item>
