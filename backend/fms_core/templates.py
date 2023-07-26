@@ -260,9 +260,9 @@ LIBRARY_QC_TEMPLATE = {
         'batch': False,
       },
   ],
-  "user prefill info" : {
-      "QC Date (YYYY-MM-DD)" : "date",
-      "Volume Used (uL)" : "number",
+  "user prefill info": {
+      "QC Date (YYYY-MM-DD)": "date",
+      "Volume Used (uL)": "number",
       "Quality Instrument": "qc-instrument",
       "Quantity Instrument": "qc-instrument"
   },
@@ -296,7 +296,6 @@ NORMALIZATION_TEMPLATE = {
         "Normalization Date (YYYY-MM-DD)": "date",
         "Conc. (ng/uL)": "number",
         "Conc. (nM)": "number",
-
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
@@ -457,9 +456,9 @@ SAMPLE_QC_TEMPLATE = {
           'batch': False,
       },
   ],
-  "user prefill info" : {
-      "QC Date (YYYY-MM-DD)" : "date",
-      "Volume Used (uL)" : "number",
+  "user prefill info": {
+      "QC Date (YYYY-MM-DD)": "date",
+      "Volume Used (uL)": "number",
       "Quality Instrument": "qc-instrument",
       "Quantity Instrument": "qc-instrument"
   },
@@ -485,8 +484,8 @@ SAMPLE_EXTRACTION_TEMPLATE = {
           'batch': False,
       },
   ],
-  "user prefill info" : {
-      "Extraction Date (YYYY-MM-DD)" : "date",
+  "user prefill info": {
+      "Extraction Date (YYYY-MM-DD)": "date",
   }
   ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
