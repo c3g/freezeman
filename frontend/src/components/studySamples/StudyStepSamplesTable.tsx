@@ -101,7 +101,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 				...getColumnsForStudySamplesStep(stepDefinition, protocol),
 				{
 					columnID: 'SAMPLE_COUNT',
-					title: 'Sample Count in pool',
+					title: 'Samples in pool',
 					dataIndex: ['sample', 'id'],
 					render: (_, { sample }: SampleAndLibrary) => {
 						return (
