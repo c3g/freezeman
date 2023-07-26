@@ -60,7 +60,7 @@ function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
 }
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
-    const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(true);
+    const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(false);
     const [checkedFields, setCheckedFields] = useState<{ [column: string]: boolean }>({});
     const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
@@ -149,7 +149,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
 
     return (
         <>
-            <Button type='primary' disabled={!canPrefill} onClick={showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
+            <Button type='primary' disabled={!canPrefill} onClick={Object.keys(data).length === 0 ? () => handlePrefillTemplate({}) : showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
             <Modal title={"Prefilled Columns"} visible={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate}>
 
                 <Form
