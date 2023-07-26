@@ -20,8 +20,3 @@ class InstrumentTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_instrument_type_filterset_fields,
     }
-
-    @action(detail=False, methods=["get"])
-    def list_names(self, _request):
-        names = self.filter_queryset(self.get_queryset()).values_list('type', flat=True)
-        return Response(names)
