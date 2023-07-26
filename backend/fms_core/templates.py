@@ -5,6 +5,8 @@ various viewsets. Can be used to calculate URIs for the template files too.
 
 from django.templatetags.static import static
 
+from fms_core.template_importer._constants import VALID_NORM_CHOICES
+
 __all__ = [
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
@@ -304,6 +306,9 @@ NORMALIZATION_PLANNING_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+      "Robot Norm Choice": VALID_NORM_CHOICES
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
