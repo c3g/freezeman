@@ -3,8 +3,8 @@ import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemP
 import api, { withToken } from '../utils/api'
 import { InstrumentType } from '../models/frontend_models'
 import { useAppSelector } from '../hooks'
-import { useDispatch } from 'react-redux'
 import { selectAuthTokenAccess } from '../selectors'
+import store from '../store'
 
 type ColumnType = 'number' | 'date' | 'qc-instrument'
 
@@ -21,21 +21,19 @@ interface SelectInstrumentTypeProps extends SelectProps {
     type: string
 }
 function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
-    const dispatch = useDispatch()
-
-    const listInstrumentTypesCallback = useCallback(() => dispatch(api.instrumentTypes.list({ platform__name: type })), [dispatch, type])
+    const listInstrumentTypesCallback = useCallback(() => store.dispatch(api.instrumentTypes.list({ platform__name: type })), [type])
     
     const [instrumentTypes, setInstrumentTypes] = useState<InstrumentType[]>([])
 
     const token = useAppSelector(selectAuthTokenAccess)
 
     useEffect(() => {
-        listInstrumentTypesCallback().then((instrumentTypes: InstrumentType[]) => {
-            setInstrumentTypes(instrumentTypes)
-          })
+        listInstrumentTypesCallback().then((response) => {
+            setInstrumentTypes(response.data.results)
+        })
     }, [listInstrumentTypesCallback, token, type])
 
-    return <Select {...props} options={instrumentTypes.map((instrumentType) => ({ value: instrumentType.id, label: instrumentType.type }))} />
+    return <Select {...props} options={instrumentTypes.map((instrumentType) => ({ value: instrumentType.type, label: instrumentType.type }))} />
 }
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
