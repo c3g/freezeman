@@ -1,9 +1,8 @@
 import React, { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps, SelectProps } from "antd"
-import api, { withToken } from '../utils/api'
+import api from '../utils/api'
 import { InstrumentType } from '../models/frontend_models'
 import { useAppSelector } from '../hooks'
-import { selectAuthTokenAccess } from '../selectors'
 import store from '../store'
 
 type ColumnType = 'number' | 'date' | 'qc-instrument' | string[]
@@ -48,13 +47,11 @@ function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
     
     const [instrumentTypes, setInstrumentTypes] = useState<InstrumentType[]>([])
 
-    const token = useAppSelector(selectAuthTokenAccess)
-
     useEffect(() => {
         listInstrumentTypesCallback().then((response) => {
             setInstrumentTypes(response.data.results)
         })
-    }, [listInstrumentTypesCallback, token, type])
+    }, [listInstrumentTypesCallback, type])
 
     return <Select {...props} options={instrumentTypes.map((instrumentType) => ({ value: instrumentType.type, label: instrumentType.type }))} />
 }
