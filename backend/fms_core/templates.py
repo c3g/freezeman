@@ -281,6 +281,12 @@ NORMALIZATION_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+        "Normalization Date (YYYY-MM-DD)": "date",
+        "Conc. (ng/uL)": "number",
+        "Conc. (nM)": "number",
+
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
