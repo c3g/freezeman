@@ -6,6 +6,7 @@ various viewsets. Can be used to calculate URIs for the template files too.
 from django.templatetags.static import static
 
 from fms_core.template_importer._constants import VALID_NORM_CHOICES
+from fms_core.models._constants import STRANDEDNESS_CHOICES
 
 __all__ = [
     "CONTAINER_CREATION_TEMPLATE",
@@ -233,6 +234,9 @@ LIBRARY_PREPARATION_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+        "Strandedness": STRANDEDNESS_CHOICES
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Library", "Sample Name", "name", "name"),
