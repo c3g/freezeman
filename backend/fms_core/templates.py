@@ -504,6 +504,9 @@ SAMPLE_TRANSFER_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "Transfer Date (YYYY-MM-DD)": "date",
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("SampleTransfer", "Source Sample Name", "name", "name"),
