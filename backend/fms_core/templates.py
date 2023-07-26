@@ -260,6 +260,13 @@ LIBRARY_QC_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info" : {
+      "QC Date (YYYY-MM-DD)" : "date",
+      "Volume Used (uL)" : "number",
+      "Quality Instrument": "qc-instrument",
+      "Quantity Instrument": "qc-instrument"
+  },
+
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
     ("LibraryQC", "Library Name", "name", "name"),
