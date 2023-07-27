@@ -113,6 +113,14 @@ class Sample(TrackedModel):
         return self.container.location if self.container else None
 
     @property
+    def container_location_barcode(self) -> Optional[str]:
+        return self.container.location.barcode if self.container.location else None
+
+    @property
+    def container_location_coordinates(self) -> Optional[str]:
+        return self.container.coordinate.name if self.container.location and self.container.coordinate else None
+
+    @property
     def context_sensitive_coordinates(self) -> str:
         return self.coordinates if self.coordinates is not None else (self.container.coordinates if self.container else None)
 
