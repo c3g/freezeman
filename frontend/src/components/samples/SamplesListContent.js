@@ -13,7 +13,7 @@ import { QCFlag } from "../QCFlag";
 
 import api, { withToken } from "../../utils/api";
 
-import { TOGGLE_OPTIONS } from "../../constants.js";
+import { TOGGLE_OPTIONS } from "../../constants";
 import { clearFilters, clearSortBy, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/samples/actions";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates";
