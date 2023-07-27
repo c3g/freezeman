@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useState } from 'react'
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps, SelectProps } from "antd"
 import api from '../utils/api'
 import { InstrumentType } from '../models/frontend_models'
@@ -60,6 +60,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
     const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(false);
     const [checkedFields, setCheckedFields] = useState<{ [column: string]: boolean }>({});
     const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+    const maxLabelWidth = useMemo(() => Math.max(...Object.keys(data).map((name) => name.length), 10), [data])
 
     const itemValidation = useCallback((key: string): FormItemProps => {
         if (formErrors && formErrors[key]) {
@@ -132,27 +133,27 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
     useEffect(() => {
         const fields = {}
         Object.keys(data).forEach((column) => {
-            fields[column] = true;
+            fields[column] = false;
         })
         setCheckedFields(fields)
     }, [data])
 
     const ColumnTypeHandlersCallback: (field: string) => ColumnTypeHandlers = useCallback((field: string) => ({
-        input: (type) => <Input type={type} disabled={!checkedFields[field]} style={{ textAlign: 'right' }} />,
+        input: (type) => <Input type={type} disabled={!checkedFields[field]} />,
         date: () => <DatePicker disabled={!checkedFields[field]} />,
-        qcInstrument: () => <SelectInstrumentType type={'Quality Control'} disabled={!checkedFields[field]} style={{ textAlign: 'left' }} />,
-        select: (options) => <Select options={options.map((o) =>  ({ label: o, value: o }))} disabled={!checkedFields[field]} style={{ textAlign: 'left' }}/>
+        qcInstrument: () => <SelectInstrumentType type={'Quality Control'} disabled={!checkedFields[field]} />,
+        select: (options) => <Select options={options.map((o) =>  ({ label: o, value: o }))} disabled={!checkedFields[field]} />
     }), [checkedFields])
 
     return (
         <>
             <Button type='primary' disabled={!canPrefill} onClick={Object.keys(data).length === 0 ? () => handlePrefillTemplate({}) : showPrefillColumns} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
-            <Modal title={"Prefilled Columns"} visible={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate}>
-
+            <Modal title={"Optional Column Prefilling"} visible={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate} width={'30vw'}>
+                <Typography.Paragraph>
+                    Select the columns you would like to prefill with a value for all samples.
+                </Typography.Paragraph>
                 <Form
                     form={form}
-                    labelCol={{ span: 15 }}
-                    wrapperCol={{ span: 7 }}
                     onValuesChange={onValuesChange}
                     onFinish={onFinish}
                     layout="horizontal"
@@ -162,25 +163,22 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                         data &&
                         Object.keys(data).map((field) => {
                             return (
-                                <span key={field} style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                }}>
-                                    <Checkbox checked={checkedFields[field]}
-                                        onClick={() => {
-                                            const fields = { ...checkedFields }
-                                            fields[field] = !checkedFields[field]
-                                            setCheckedFields(fields)
-                                            checkFormErrors(field)
-                                        }}
-                                        style={{
-                                            flex: 1
-                                        }}
-                                    />
-                                    <Item label={field} {...itemValidation(field)}
-                                        style={{
-                                            flex: 10,
-                                        }}
+                                    <Item
+                                        key={field}
+                                        label={<>
+                                            <Checkbox
+                                                checked={checkedFields[field]}
+                                                onClick={() => {
+                                                    const fields = { ...checkedFields }
+                                                    fields[field] = !checkedFields[field]
+                                                    setCheckedFields(fields)
+                                                    checkFormErrors(field)
+                                                }}
+                                            />
+                                            <Typography.Text style={{ marginLeft: '1rem', width: `${maxLabelWidth*0.6}em`, textAlign: 'left' }}>{field}</Typography.Text>
+                                        </>}
+                                        colon={false}
+                                        {...itemValidation(field)}
                                     >
                                         {
                                             handleColumnType(
@@ -189,7 +187,6 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
                                             )
                                         }
                                     </Item>
-                                </span>
                             )
                         })
                     }
