@@ -139,6 +139,13 @@ export interface FMSInstrument extends FMSTrackedModel {
     type: FMSId                         // ID of instrument type
 }
 
+export interface FMSInstrumentType extends FMSTrackedModel {
+    platform: FMSId                     // Platform
+    type: string                        // The product make
+    index_read_5_prime: string          // Instrument specific read direction for the index part at the 5 prime end of the sequence
+    index_read_3_prime: string          // ID Instrument specific read direction for the index part at the 3 prime end of the sequence
+}
+
 export interface FMSLabworkSummary {
     protocols: {[key: string] : FMSLabworkProtocol}  // key: protocol object ID
 }
