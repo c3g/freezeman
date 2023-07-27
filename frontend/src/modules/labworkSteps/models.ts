@@ -10,6 +10,7 @@ export interface LabworkPrefilledTemplateDescriptor {
 	id: number
 	description: string
 	submissionURL?: string
+	prefillFields: any
 }
 
 export interface CoordinateSortDirection {

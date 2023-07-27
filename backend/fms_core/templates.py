@@ -5,6 +5,9 @@ various viewsets. Can be used to calculate URIs for the template files too.
 
 from django.templatetags.static import static
 
+from fms_core.template_importer._constants import VALID_NORM_CHOICES
+from fms_core.models._constants import STRANDEDNESS_CHOICES
+
 __all__ = [
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
@@ -231,6 +234,9 @@ LIBRARY_PREPARATION_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+        "Strandedness": STRANDEDNESS_CHOICES
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Library", "Sample Name", "name", "name"),
@@ -254,6 +260,13 @@ LIBRARY_QC_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+      "QC Date (YYYY-MM-DD)": "date",
+      "Volume Used (uL)": "number",
+      "Quality Instrument": "qc-instrument",
+      "Quantity Instrument": "qc-instrument"
+  },
+
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
     ("LibraryQC", "Library Name", "name", "name"),
@@ -279,6 +292,11 @@ NORMALIZATION_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+        "Normalization Date (YYYY-MM-DD)": "date",
+        "Conc. (ng/uL)": "number",
+        "Conc. (nM)": "number",
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
@@ -304,6 +322,9 @@ NORMALIZATION_PLANNING_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+      "Robot Norm Choice": VALID_NORM_CHOICES
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
@@ -435,6 +456,12 @@ SAMPLE_QC_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "QC Date (YYYY-MM-DD)": "date",
+      "Volume Used (uL)": "number",
+      "Quality Instrument": "qc-instrument",
+      "Quantity Instrument": "qc-instrument"
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("SampleQC", "Sample Name", "name", "name"),
@@ -457,6 +484,10 @@ SAMPLE_EXTRACTION_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "Extraction Date (YYYY-MM-DD)": "date",
+  }
+  ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("ExtractionTemplate", "Current Volume (uL)", "volume", "volume"),
@@ -479,6 +510,9 @@ SAMPLE_TRANSFER_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "Transfer Date (YYYY-MM-DD)": "date",
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("SampleTransfer", "Source Sample Name", "name", "name"),

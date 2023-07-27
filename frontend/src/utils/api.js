@@ -233,7 +233,7 @@ const api = {
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
-      request: (templateID, options) => get('/sample-next-step/prefill_template/', {template: templateID, ...options})
+      request: (templateID, user_prefill_data, options) => get('/sample-next-step/prefill_template/', {user_prefill_data: user_prefill_data, template: templateID, ...options})
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),
