@@ -45,8 +45,8 @@ class RunInfoSample:
 
     project_obj_id: Obj_Id = None
     project_name: Optional[str] = None
-    hercules_project_id: Optional[str] = None
-    hercules_project_name: Optional[str] = None
+    external_project_id: Optional[str] = None
+    external_project_name: Optional[str] = None
 
     pool_volume_ratio: Optional[float] = None
 
@@ -220,8 +220,8 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     row.project_obj_id = project.id
     row.project_name = project.name
-    row.hercules_project_id = project.external_id
-    row.hercules_project_name = project.external_name
+    row.external_project_id = project.external_id
+    row.external_project_name = project.external_name
 
     row.container_coordinates = sample.coordinates
 

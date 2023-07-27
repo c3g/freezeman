@@ -26,8 +26,8 @@ from datetime import datetime
 TEMPLATES_DIR = Path(__file__).parent.parent / "service-templates"
 
 PROJECT_NAME = 'TEST_PROJECT'
-EXTERNAL_PROJECT_ID = 'HERCULES_ID'
-EXTERNAL_PROJECT_NAME = 'HERCULES'
+EXTERNAL_PROJECT_ID = 'EXTERNAL_ID'
+EXTERNAL_PROJECT_NAME = 'EXTERNAL_PROJECT'
 
 class ExperimentRunInfoTemplatesTestCase(TestCase):
     def setUp(self) -> None:
@@ -99,8 +99,8 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             lane= 1,
             project_obj_id= self.project.id,
             project_name= PROJECT_NAME,
-            hercules_project_id= EXTERNAL_PROJECT_ID,
-            hercules_project_name= EXTERNAL_PROJECT_NAME,
+            external_project_id= EXTERNAL_PROJECT_ID,
+            external_project_name= EXTERNAL_PROJECT_NAME,
             pool_volume_ratio= 0.5,
             expected_sex= "M",
             ncbi_taxon_id= 9606,
