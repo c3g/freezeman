@@ -112,6 +112,7 @@ class FetchSampleData(FetchData):
             'updated_by',
             'updated_at',
             'deleted',
+            'count_derived_by_sample',
         )
 
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
@@ -272,6 +273,7 @@ class FetchSampleData(FetchData):
             'comment',
             'count_derived_samples',
             'first_derived_sample',
+            'count_derived_by_sample',
         )
         samples = {s["id"]: s for s in self.queryset}
 
@@ -469,6 +471,7 @@ class FetchLibraryData(FetchData):
             'depleted',
             'count_derived_samples',
             'first_derived_sample',
+            'count_derived_by_sample',
         )
 
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
@@ -563,6 +566,7 @@ class FetchLibraryData(FetchData):
             'depleted',
             'count_derived_samples',
             'first_derived_sample',
+            'count_derived_by_sample',
         )
 
         if not self.queryset:
