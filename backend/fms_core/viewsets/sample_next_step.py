@@ -73,8 +73,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     filterset_class = SampleNextStepFilter
 
-    
-
     # Template actions will need to be filtered by the frontend on the basis of the template -> protocol which contains the protocol name.
     template_action_list = [
         {
