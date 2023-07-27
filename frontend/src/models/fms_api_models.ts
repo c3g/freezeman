@@ -79,7 +79,10 @@ export interface FMSDataset extends FMSTrackedModel {
 }
 
 export interface FMSReadset extends FMSTrackedModel {
-    sample_name: string                // The name of the sample that was processed to produce this readset
+    id: FMSId                          // Unique ID of object in database
+    name: string                       // External name that identifies the readset if the run did not come from Freezeman
+    sample_name: string                // Name that identifies the sample if the run did not come from Freezeman
+    derived_sample: FMSId              // Derived sample matching the readset
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {
