@@ -100,8 +100,20 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			// is already in the project details page.
 			return [
 				...getColumnsForStudySamplesStep(stepDefinition, protocol),
-				actionColumn,
-			]
+				{
+					columnID: 'SAMPLE_COUNT',
+					title: 'Samples in pool',
+					dataIndex: ['sample', 'id'],
+					render: (_, { sample }: SampleAndLibrary) => {
+						return (
+								sample && sample.is_pool
+								? sample.derived_samples_count
+								: ''
+							)
+						},
+					},
+					actionColumn,
+				]
 		} else {
 			return []
 		}

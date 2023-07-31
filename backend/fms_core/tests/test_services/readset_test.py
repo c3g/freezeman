@@ -7,7 +7,7 @@ from fms_core.services.readset import create_readset
 class ReadsetServicesTestCase(TestCase):
 
     def test_create_readset(self):
-        dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1)
+        dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset, errors, warnings = create_readset(dataset=dataset, name="SampleName_RunName", sample_name="SampleName")
        
         self.assertEqual(errors, [])

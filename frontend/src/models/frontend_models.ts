@@ -19,6 +19,7 @@ import {
 	FMSIndex,
 	FMSIndividual,
 	FMSInstrument,
+	FMSInstrumentType,
 	FMSLibrary,
 	FMSLibraryType,
 	FMSPlatform,
@@ -115,6 +116,7 @@ export interface ImportedFile extends Readonly<FMSImportedFile>, FetchedObject {
 export interface Index extends Readonly<FMSIndex>, FetchedObject {}
 export interface Individual extends Readonly<FMSIndividual>, FetchedObject {}
 export interface Instrument extends Readonly<FMSInstrument>, FetchedObject {}
+export interface InstrumentType extends Readonly<FMSInstrumentType>, FetchedObject {}
 export interface Library extends Readonly<FMSLibrary>, FetchedObject {}
 export interface LibraryType extends Readonly<FMSLibraryType>, FetchedObject {}
 export interface Platform extends Readonly<FMSPlatform>, FetchedObject {}

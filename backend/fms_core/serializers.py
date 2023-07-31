@@ -428,15 +428,18 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class SampleSerializer(serializers.Serializer):
+    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
+
     class Meta:
         fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
-                  'extracted_from', 'individual', 'container', 'coordinate', 'sample_kind', 'is_library', 'is_pool', 'project',
-                  'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
-                  'quality_flag', 'quantity_flag', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted', 
-                  'comment')
+                  'extracted_from', 'individual', 'container', 'coordinate', 'sample_kind', 'is_library', 'is_pool',
+                  'derived_samples_counts', 'project', 'process_measurements', 'tissue_source', 'creation_date',
+                  'collection_site', 'experimental_group', 'quality_flag', 'quantity_flag', 'created_by', 'created_at',
+                  'updated_by', 'updated_at', 'deleted', 'comment')
 
 class SampleExportSerializer(serializers.Serializer):
     coordinates = serializers.CharField(read_only=True, source="coordinate.name")
+    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
 
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
@@ -444,13 +447,15 @@ class SampleExportSerializer(serializers.Serializer):
                   'location_barcode', 'location_coord', 'container_full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
-                  'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
+                  'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'derived_samples_counts', 'comment')
 
 
 class LibrarySerializer(serializers.Serializer):
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
+    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
+
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool', 'derived_samples_counts',
                   'concentration', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
@@ -458,8 +463,10 @@ class LibrarySerializer(serializers.Serializer):
 class LibraryExportSerializer(serializers.Serializer):
     coordinates = serializers.CharField(read_only=True, source="coordinate.name")
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
+    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
+
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool', 'derived_samples_counts',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
@@ -579,7 +586,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "metric_report_url")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)

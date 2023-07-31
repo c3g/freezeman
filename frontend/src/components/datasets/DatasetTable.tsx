@@ -36,7 +36,7 @@ const getTableColumns = () => {
         },
         {
             title: "Project",
-            dataIndex: "external_project_id",
+            dataIndex: "project_name",
             sorter: true,
         },
         {

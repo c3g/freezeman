@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'import_export',
     'rest_framework',
+    'rest_framework_simplejwt',
     'reversion',
     'django_filters',
     'django_rest_passwordreset',
@@ -264,8 +265,8 @@ LOGGING = {
 
 # Mechanism in order to automatically logout the user after 4 hours
 SIMPLE_JWT = {
-'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
-'REFRESH_TOKEN_LIFETIME': timedelta(minutes=10),
+'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
+'REFRESH_TOKEN_LIFETIME': timedelta(hours=8),
 'ROTATE_REFRESH_TOKENS': True,
 'BLACKLIST_AFTER_ROTATION': True,
 

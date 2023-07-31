@@ -15,7 +15,7 @@ class SampleMetadataHandler(GenericRowHandler):
 
     def process_row_inner(self, action, sample_info, metadata):
         # Add generic format warning for metadata name
-        self.warnings['metadata_name'] = "Metadata names are stored in a lower case and underscore format. (example_metadata)"
+        self.warnings['metadata_name'] = ("Metadata names are stored in a lower case and underscore format. (example_metadata)", [])
 
         # Get sample object
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample_info['container_barcode'],
