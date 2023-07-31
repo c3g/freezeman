@@ -36,7 +36,7 @@ import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
 import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
-import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
+import { selectAppInitialized, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
 import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
@@ -180,11 +180,12 @@ const App = ({userID, usersByID, logOut, get}) => {
   const env = FMS_ENV
 
   const dispatch = useAppDispatch()
-  const isInitialized = useAppSelector(selectAppInitialzed)
+  const isInitialized = useAppSelector(selectAppInitialized)
   const token = useAppSelector(selectAuthTokenAccess)
 
   useEffect(() => {
     async function loadInitialData() {
+      await get(userID)
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
       dispatch(fetchListedData())
