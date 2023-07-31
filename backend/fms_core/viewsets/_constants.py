@@ -134,9 +134,15 @@ _instrument_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_platform_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
 _instrument_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "type": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("platform__", _platform_filterset_fields)
 }
 
 _run_type_filterset_fields: FiltersetFields = {
@@ -194,11 +200,6 @@ _library_selection_filterset_fields: FiltersetFields = {
     "target": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_platform_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "name": CATEGORICAL_FILTERS_LOOSE,
-}
-
 _imported_file_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "filename": FREE_TEXT_FILTERS,
@@ -232,6 +233,9 @@ _dataset_filterset_fields: FiltersetFields = {
     "run_name": CATEGORICAL_FILTERS_LOOSE,
     "external_project_id": CATEGORICAL_FILTERS_LOOSE,
     "lane": CATEGORICAL_FILTERS,
+    "project_name": CATEGORICAL_FILTERS_LOOSE,
+    "metric_report_url": CATEGORICAL_FILTERS_LOOSE,
+    "experiment_run": FK_FILTERS,
 }
 
 _dataset_file_filterset_fields: FiltersetFields = {

@@ -2,13 +2,20 @@
 import json
 from typing import List, Tuple
 from collections import defaultdict
-from django.db.models import Q, ExpressionWrapper, BooleanField
+from django.db.models import Q, ExpressionWrapper, BooleanField, QuerySet, Subquery, OuterRef, Func, F
 
 from fms.settings import REST_FRAMEWORK
-from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement, SampleMetadata
+from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement, SampleMetadata, DerivedBySample
 from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
 from ..utils import decimal_rounded_to_precision
+
+def count_derived_by_sample(queryset: QuerySet) -> QuerySet:
+    return queryset.annotate(count_derived_by_sample=Subquery(
+        DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .annotate(derivedbysample_count=Func(F('id'), function='Count'))
+            .values('derivedbysample_count')[:1]))
 
 class FetchData:
     """
@@ -84,6 +91,7 @@ class FetchSampleData(FetchData):
 
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
 
+        self.queryset = count_derived_by_sample(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -104,6 +112,7 @@ class FetchSampleData(FetchData):
             'updated_by',
             'updated_at',
             'deleted',
+            'count_derived_by_sample',
         )
 
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
@@ -194,6 +203,7 @@ class FetchSampleData(FetchData):
                     'updated_at': sample["updated_at"],
                     'deleted': sample["deleted"],
                     'comment': sample["comment"],
+                    'derived_samples_count': sample["count_derived_by_sample"]
                 }
                 serialized_data.append(data)
             return (serialized_data, count)
@@ -242,6 +252,7 @@ class FetchSampleData(FetchData):
 
         location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
 
+        self.queryset = count_derived_by_sample(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -262,6 +273,7 @@ class FetchSampleData(FetchData):
             'comment',
             'count_derived_samples',
             'first_derived_sample',
+            'count_derived_by_sample',
         )
         samples = {s["id"]: s for s in self.queryset}
 
@@ -334,6 +346,7 @@ class FetchSampleData(FetchData):
                 'depleted': ["No", "Yes"][sample["depleted"]],
                 'is_library': is_library,
                 'comment': sample["comment"],
+                "derived_samples_counts": sample["count_derived_by_sample"]
             }
             serialized_data.append(data)
 
@@ -442,6 +455,7 @@ class FetchLibraryData(FetchData):
 
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
 
+        self.queryset = count_derived_by_sample(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -457,6 +471,7 @@ class FetchLibraryData(FetchData):
             'depleted',
             'count_derived_samples',
             'first_derived_sample',
+            'count_derived_by_sample',
         )
 
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
@@ -515,6 +530,7 @@ class FetchLibraryData(FetchData):
                     'index': derived_sample["library__index__id"] if not is_pool else None,
                     'library_selection': derived_sample["library__library_selection__name"] if not is_pool else None,
                     'library_selection_target': derived_sample["library__library_selection__target"] if not is_pool else None,
+                    'derived_samples_count': sample["count_derived_by_sample"]
                 }
                 serialized_data.append(data)
             return (serialized_data, count)
@@ -534,6 +550,7 @@ class FetchLibraryData(FetchData):
 
         super().fetch_export_data(ids) # Initialize queryset by calling base abstract function
 
+        self.queryset = count_derived_by_sample(self.queryset)
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -549,6 +566,7 @@ class FetchLibraryData(FetchData):
             'depleted',
             'count_derived_samples',
             'first_derived_sample',
+            'count_derived_by_sample',
         )
 
         if not self.queryset:
@@ -602,6 +620,7 @@ class FetchLibraryData(FetchData):
                     'index': derived_sample["library__index__name"] if not is_pool else None,
                     'library_selection': derived_sample["library__library_selection__name"] if not is_pool else None,
                     'library_selection_target': derived_sample["library__library_selection__target"] if not is_pool else None,
+                    'derived_samples_count': sample["count_derived_by_sample"]
                 }
                 serialized_data.append(data)
             return serialized_data

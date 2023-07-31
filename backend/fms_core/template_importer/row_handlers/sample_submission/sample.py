@@ -149,15 +149,9 @@ class SampleRowHandler(GenericRowHandler):
 
         # Continue creating the sample objects if this sample is not associated with a pool
         if library['pool_name'] is None:
-            # Check if there's a sample with the same name
-            if Sample.objects.filter(name__iexact=sample['name']).exists():
-                # Output different warnings depending on whether the name is an exact match or a case insensitive match
-                if Sample.objects.filter(name__exact=sample['name']).exists():
-                    self.warnings['name'] = ('Sample with the same name [{0}] already exists. ' \
-                                            'A new sample with the same name will be created.', [sample["name"]])
-                else:
-                    self.warnings['name'] = ('Sample with the same name [{0}] but different type casing already exists. ' \
-                                            'Please verify the name is correct.', [sample["name"]])
+            # Output warning if the there is already a sample with the same name
+            if Sample.objects.filter(name__exact=sample['name']).exists():
+                self.warnings['name'] = ('Sample with the same name [{0}] already exists. A new sample with the same name will be created.', [sample["name"]])
 
             # Container related section
             parent_container_obj = None

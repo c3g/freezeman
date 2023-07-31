@@ -105,9 +105,11 @@ const api = {
 
   instruments: {
     list: () => get("/instruments/"),
-    listTypes: () => get("/instruments/list_types/"),
   },
 
+  instrumentTypes: {
+    list: (options) => get("/instrument-types/", options),
+  },
 
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
@@ -183,6 +185,7 @@ const api = {
 
   protocols: {
     list:  (options, abort) => get("/protocols/", options, { abort }),
+    lastProtocols: (options, abort) => get("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {

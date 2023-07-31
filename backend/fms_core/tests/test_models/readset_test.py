@@ -5,7 +5,7 @@ from fms_core.tests.constants import create_sample, create_sample_container
 
 class ReadsetTest(TestCase):
     def setUp(self):
-        self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane=1)
+        self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane=1, project_name="test")
 
     def test_readset(self):
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=self.dataset)

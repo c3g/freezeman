@@ -8,6 +8,7 @@ from .viewsets import (
     IndexViewSet,
     IndividualViewSet,
     InstrumentViewSet,
+    InstrumentTypeViewSet,
     LibraryViewSet,
     LibraryTypeViewSet,
     PlatformViewSet,
@@ -67,6 +68,7 @@ router.register(r"sequences", SequenceViewSet)
 router.register(r"taxons", TaxonViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"instruments", InstrumentViewSet)
+router.register(r"instrument-types", InstrumentTypeViewSet)
 router.register(r"query", QueryViewSet, basename="query")
 router.register(r"versions", VersionViewSet)
 router.register(r"revisions", RevisionViewSet)

@@ -583,7 +583,7 @@ export const DATASET_FILE_FILTERS = {
   },
   sample_name: {
     type: FILTER_TYPE.INPUT,
-    key: "sample_name",
+    key: "readset__sample_name",
     label: "Sample Name",
   },
   release_status: {

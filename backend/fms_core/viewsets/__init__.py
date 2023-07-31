@@ -6,6 +6,7 @@ from .group import GroupViewSet
 from .index import IndexViewSet
 from .individual import IndividualViewSet
 from .instrument import InstrumentViewSet
+from .instrument_type import InstrumentTypeViewSet
 from .process import ProcessViewSet
 from .process_measurement import ProcessMeasurementViewSet
 from .property_value import PropertyValueViewSet
@@ -48,6 +49,7 @@ __all__ = [
     "IndexViewSet",
     "IndividualViewSet",
     "InstrumentViewSet",
+    "InstrumentTypeViewSet",
     "ProcessViewSet",
     "ProcessMeasurementViewSet",
     "ProtocolViewSet",

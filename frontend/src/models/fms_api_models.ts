@@ -75,14 +75,22 @@ export interface FMSDataset extends FMSTrackedModel {
     released_status_count: number       // Number of files released
     blocked_status_count: number        // Number of files blocked
     run_name: string                    // The name of the experiment run that generated this dataset
+    project_name: string                // Human readable name for the project
     metric_report_url?: string          // An external url to a report containing metrics for the dataset run
+}
+
+export interface FMSReadset extends FMSTrackedModel {
+    id: FMSId                          // Unique ID of object in database
+    name: string                       // External name that identifies the readset if the run did not come from Freezeman
+    sample_name: string                // Name that identifies the sample if the run did not come from Freezeman
+    derived_sample: FMSId              // Derived sample matching the readset
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {
     dataset: FMSId                      // The dataset that owns this file
     file_path: string                   // The path to the dataset file (on Abacus?)
     release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
-    sample_name: string                 // The name of the sample that was processed to produce this file
+    readset: FMSReadset                 // The readset of the dataset file
 }
 
 export interface FMSExperimentRun extends FMSTrackedModel {
@@ -138,6 +146,13 @@ export interface FMSInstrument extends FMSTrackedModel {
     type: FMSId                         // ID of instrument type
 }
 
+export interface FMSInstrumentType extends FMSTrackedModel {
+    platform: FMSId                     // Platform
+    type: string                        // The product make
+    index_read_5_prime: string          // Instrument specific read direction for the index part at the 5 prime end of the sequence
+    index_read_3_prime: string          // ID Instrument specific read direction for the index part at the 3 prime end of the sequence
+}
+
 export interface FMSLabworkSummary {
     protocols: {[key: string] : FMSLabworkProtocol}  // key: protocol object ID
 }
@@ -176,6 +191,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     index: FMSId                        // Index ID
     library_selection?: string          // library selection name
     library_selection_target?: string   // library selection target
+    derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
 export interface FMSLibraryType extends FMSTrackedModel {
@@ -331,6 +347,7 @@ export interface FMSSample extends FMSTrackedModel {
     quality_flag?: boolean              // QC quality flag
     quantity_flag?: boolean             // QC quantity flag
     comment: string                     // User comment
+    derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
 export interface FMSSampleKind extends FMSTrackedModel {

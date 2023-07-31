@@ -204,12 +204,6 @@ const App = ({userID, usersByID, logOut, get}) => {
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
 
-  useEffect(() => {
-    if (!user && isLoggedIn) {
-      get(userID)
-    }
-  }, [user, userID, usersByID, get, isLoggedIn])
-
   const menuItems = getMenuItems(user, logOut);
 
   useEffect(onDidMount, []);

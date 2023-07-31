@@ -1,4 +1,4 @@
-from django.db.models import F, Q, When, Case, BooleanField
+from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -20,17 +20,6 @@ from fms_core.template_importer.importers import (ExtractionImporter, SampleQCIm
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin):
     queryset = SampleNextStep.objects.all().distinct()
-    serializer_class = SampleNextStepSerializer
-    permission_classes = [IsAuthenticated]
-
-    filterset_fields = {
-        **_sample_next_step_filterset_fields
-    }
-    ordering_fields = {
-        *_list_keys(_sample_next_step_filterset_fields)
-    }
-
-    filterset_class = SampleNextStepFilter
 
     queryset = queryset.annotate(
         qc_flag=Case(
@@ -44,6 +33,45 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     queryset = queryset.annotate(
         quantity_ng=F('sample__concentration')*F('sample__volume')
     )
+
+    queryset = queryset.annotate(
+        ordering_container_barcode=Case(
+            When(Q(sample__coordinate__isnull=True), then=F('sample__container__location__barcode')),
+            default=F('sample__container__barcode'),
+            output_field=CharField()
+        )
+    )
+
+    queryset = queryset.annotate(
+        ordering_container_coordinate_column=Case(
+            When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__column')),
+            default=F('sample__coordinate__column'),
+            output_field=IntegerField()
+        )
+    )
+
+    queryset = queryset.annotate(
+        ordering_container_coordinate_row=Case(
+            When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__row')),
+            default=F('sample__coordinate__row'),
+            output_field=IntegerField()
+        )
+    )
+
+    serializer_class = SampleNextStepSerializer
+    permission_classes = [IsAuthenticated]
+
+    filterset_fields = {
+        **_sample_next_step_filterset_fields
+    }
+    ordering_fields = {
+        *_list_keys(_sample_next_step_filterset_fields),
+        'ordering_container_barcode',
+        'ordering_container_coordinate_column',
+        'ordering_container_coordinate_row',
+    }
+
+    filterset_class = SampleNextStepFilter
 
     # Template actions will need to be filtered by the frontend on the basis of the template -> protocol which contains the protocol name.
     template_action_list = [
