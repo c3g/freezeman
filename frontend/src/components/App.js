@@ -178,7 +178,7 @@ export const actionCreators = { logOut, get };
 const App = ({userID, usersByID, logOut, get}) => {
   /* global FMS_ENV */
   const env = FMS_ENV
-
+  const isLoggedIn = userID !== null;
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialized)
   const token = useAppSelector(selectAuthTokenAccess)
@@ -192,6 +192,9 @@ const App = ({userID, usersByID, logOut, get}) => {
       dispatch(fetchSummariesData())
     }
 
+    // fast return if user not logged in - not authorized
+    if (!isLoggedIn) return;
+
     loadInitialData()
 
     const interval = setInterval(() => {
@@ -200,9 +203,8 @@ const App = ({userID, usersByID, logOut, get}) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [dispatch, token]);
+  }, [dispatch, token, userID, get, isLoggedIn]);
 
-  const isLoggedIn = userID !== null;
   const user = usersByID[userID];
 
   const menuItems = getMenuItems(user, logOut);
