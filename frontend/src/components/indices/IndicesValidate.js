@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -26,7 +26,7 @@ import store from "../../store";
 const listSets = (token, options) =>
   withToken(token, api.indices.listSets)(options).then(res => res.data)
 
-const listInstrumentTypes = () => store.dispatch(api.instrumentTypes.list({}))
+const listInstrumentTypes = () => store.dispatch(api.instrumentTypes.list({ instruments_isnull: false }))
 
 
 const mapStateToProps = state => ({
@@ -52,10 +52,14 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   const [validationLoading, setValidationLoading] = useState(false)
   const [validationResult, setValidationResult] = useState()
 
+  const instrumentTypesRender = useMemo(() => {
+    instrumentTypes.map(Options.renderInstrumentType)
+  }, [instrumentTypes])
+
   useEffect(() => {
     //List instrument
     listInstrumentTypes().then(response => {
-      setInstrumentTypes(response.data.results.map(Options.renderInstrumentType))
+      setInstrumentTypes(response.data.results)
     })
     //List sets and initialize the cascader options
     listSets(token, {}).then(sets => {
@@ -205,7 +209,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
                 placeholder="Select an instrument type"
                 showSearch
                 allowClear
-                options={instrumentTypes}
+                options={instrumentTypesRender}
                 filterOption={(input, option) =>
                   option.label.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
