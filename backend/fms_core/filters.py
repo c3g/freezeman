@@ -1,7 +1,6 @@
 from django.db.models import Q
 
 from fms_core.models.sample_next_step import SampleNextStep
-from fms_core.models.readset import Readset
 
 from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample
 
@@ -17,7 +16,6 @@ from .viewsets._constants import (
     _dataset_filterset_fields,
     _pooled_sample_filterset_fields,
     _sample_next_step_filterset_fields,
-    _readset_filterset_fields
 )
 
 from .viewsets._utils import _prefix_keys
@@ -216,9 +214,3 @@ class SampleNextStepFilter(GenericFilter):
     class Meta:
         model = SampleNextStep
         fields = _sample_next_step_filterset_fields
-
-class ReadsetFilter(GenericFilter):
-
-    class Meta:
-        model = Readset
-        fields = _readset_filterset_fields

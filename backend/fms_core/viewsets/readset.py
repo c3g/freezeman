@@ -19,4 +19,6 @@ class ReadsetViewSet(viewsets.ModelViewSet):
         *_list_keys(_readset_filterset_fields),
     )
 
-    filterset_class = ReadsetFilter
+    filterset_fields = {
+        **_readset_filterset_fields
+    }

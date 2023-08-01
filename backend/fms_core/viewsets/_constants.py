@@ -250,10 +250,10 @@ _dataset_file_filterset_fields: FiltersetFields = {
 }
 
 _readset_filterset_fields: FiltersetFields = {
-    **_prefix_keys("dataset__", _dataset_filterset_fields),
     "id" : PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "sample_name": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("dataset__", _dataset_filterset_fields),
 }
 
 _pooled_sample_filterset_fields: FiltersetFields = {
