@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'drf_yasg',
-    'import_export',
     'rest_framework',
     'rest_framework_simplejwt',
     'reversion',
@@ -206,10 +205,6 @@ RUN_INFO_OUTPUT_PATH = os.environ.get("FMS_RUN_INFO_PATH", os.path.join(BASE_DIR
 MEDIA_URL = '/media/'
 
 TEMP_ROOT = os.path.join(BASE_DIR, 'tmp/') # for temporary files created during request processing.
-
-# django_import_export
-
-IMPORT_EXPORT_USE_TRANSACTIONS = True  # should it be True with reversion ?
 
 # Tests
 

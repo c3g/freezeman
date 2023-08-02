@@ -8,14 +8,14 @@ import { CoordinateSortDirection } from "./models"
 export function getCoordinateOrderingParams(sort: CoordinateSortDirection) {
 	if (sort.orientation === 'column') {
 		return sort.order === 'descend' ?
-		'sample__container__barcode,-sample__coordinate__column,-sample__coordinate__row'
+		'ordering_container_barcode,-ordering_container_coordinate_column,-ordering_container_coordinate_row'
 		:
-		'sample__container__barcode,sample__coordinate__column,sample__coordinate__row' 
+		'ordering_container_barcode,ordering_container_coordinate_column,ordering_container_coordinate_row' 
 	} else {
 		return sort.order === 'descend' ?
-		'sample__container__barcode,-sample__coordinate__row,-sample__coordinate__column'
+		'ordering_container_barcode,-ordering_container_coordinate_row,-ordering_container_coordinate_column'
 		:
-		'sample__container__barcode,sample__coordinate__row,sample__coordinate__column'
+		'ordering_container_barcode,ordering_container_coordinate_row,ordering_container_coordinate_column'
 	}
 }
 
