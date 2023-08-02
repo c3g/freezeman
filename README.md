@@ -43,9 +43,4 @@ contributors to the Django project. See relevant licenses:
   * `/backend/templates/admin/base_site.html`
 
 Portions copyright: Bojan Mihelac and individual contributors to the 
-`django-import-export` project. See relevant licenses:
-
-  * `/backend/fms_core/templates/admin/fms_core/change_list_export_version.html`
-  * `/backend/fms_core/templates/admin/fms_core/change_list_import_export_version.html`
-  * `/backend/fms_core/templates/admin/fms_core/download_import.html`
-
+`django-import-export` project.
