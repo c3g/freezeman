@@ -46,7 +46,7 @@ import { RootState } from './store'
     const projectsByID = useSelector(selectProjectsByID)
 */
 
-export const selectAppInitialzed = (state: RootState) => state.app.initialized
+export const selectAppInitialized = (state: RootState) => state.app.initialized
 export const selectAuthState = (state: RootState) => state.auth
 export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
