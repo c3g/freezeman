@@ -20,4 +20,3 @@ class InstrumentTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_instrument_type_filterset_fields,
     }
-
