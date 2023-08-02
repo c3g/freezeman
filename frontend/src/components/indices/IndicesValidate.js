@@ -28,6 +28,7 @@ const listSets = (token, options) =>
 
 const listInstrumentTypes = () => store.dispatch(api.instrumentTypes.list({}))
 
+
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   indicesTotalCount: state.indices.totalCount,
