@@ -20,7 +20,7 @@ from fms_core.utils import convert_concentration_from_nm_to_ngbyul, decimal_roun
 class NormalizationTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = NormalizationImporter()
-        self.file = APP_DATA_ROOT / "Normalization_v4_4_0.xlsx"
+        self.file = APP_DATA_ROOT / "Normalization_v4_5_0.xlsx"
 
         self.prefill_data()
 

@@ -21,9 +21,10 @@ from fms_core.services.index import get_or_create_index_set, create_index, creat
 class NormalizationplanningTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = NormalizationPlanningImporter()
-        self.files = [APP_DATA_ROOT / "Normalization_planning_v4_4_0_Library.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v4_4_0_Sample_Tube.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v4_4_0_Sample_Plate.xlsx",
+        self.files = [APP_DATA_ROOT / "Normalization_planning_v4_5_0_Library.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v4_5_0_Sample_Tube.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v4_5_0_Sample_Plate.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v4_5_0_Genotyping_Tube.xlsx",
                      ]
 
         self.INDICES = [{"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001", "sequence_3_prime": ["ACAAAGTC"], "sequence_5_prime": ["CAGGTGTC"]},
@@ -63,6 +64,9 @@ class NormalizationplanningTestCase(TestCase):
             {'barcode': 'SRC_TUBE_NORM_1', 'name': 'SRC_TUBE_NORM_1', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'E01',},
             {'barcode': 'SRC_TUBE_NORM_2', 'name': 'SRC_TUBE_NORM_2', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'F01',},
             {'barcode': 'SRC_TUBE_NORM_3', 'name': 'SRC_TUBE_NORM_3', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'G01',},
+            {'barcode': 'SRC_TUBE_NORM_4', 'name': 'SRC_TUBE_NORM_4', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'E02',},
+            {'barcode': 'SRC_TUBE_NORM_5', 'name': 'SRC_TUBE_NORM_5', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'F02',},
+            {'barcode': 'SRC_TUBE_NORM_6', 'name': 'SRC_TUBE_NORM_6', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'G02',},
         ]
 
         samples_info = [
@@ -79,6 +83,9 @@ class NormalizationplanningTestCase(TestCase):
             {'name': 'Sample11NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D02', 'library': None, 'fragment_size': None},
             {'name': 'Sample12NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D03', 'library': None, 'fragment_size': None},
             {'name': 'Sample13NormPlanning', 'volume': 100, 'conc.': 20, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D04', 'library': None, 'fragment_size': None},
+            {'name': 'Sample14NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_4', 'coordinates': None, 'library': None, 'fragment_size': None},
+            {'name': 'Sample15NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_5', 'coordinates': None, 'library': None, 'fragment_size': None},
+            {'name': 'Sample16NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_6', 'coordinates': None, 'library': None, 'fragment_size': None},
         ]
 
         for info in containers_info:
@@ -114,7 +121,7 @@ class NormalizationplanningTestCase(TestCase):
                             for i, line in enumerate(zfile):
                                 csv_content[i] = line.decode().strip().split(",") # Extract file into dictionary
 
-                        if filename.find("Normalization_libraries_diluent_") != -1:
+                        if filename.find("Normalization_library_diluent_") != -1:
                             # 0: robot_dst_barcode
                             # 1: robot_dst_coord
                             # 2: volume_diluent
@@ -131,8 +138,8 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][0], "Dil1")
                             self.assertEqual(csv_content[3][1], "3")
                             self.assertEqual(csv_content[3][2], "21.036")
-                                
-                        elif filename.find("Normalization_libraries_main_dilution_") != -1:
+
+                        elif filename.find("Normalization_library_main_dilution_") != -1:
                             # 0: container_src_barcode
                             # 1: robot_src_barcode
                             # 2: robot_src_coord
@@ -162,7 +169,7 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][4], "3")
                             self.assertEqual(csv_content[3][5], "28.964")
 
-                        elif filename.find("Normalization_samples_Janus") != -1:
+                        elif filename.find("Normalization_sample_Janus") != -1:
                             # 0: robot_src_barcode
                             # 1: robot_src_coord
                             # 2: robot_dst_barcode
@@ -220,7 +227,7 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[7][4], "100.000")
                             self.assertEqual(csv_content[7][5], "100.000")
 
-                        elif filename.find("Normalization_samples_Biomek") != -1:
+                        elif filename.find("Normalization_sample_Biomek") != -1:
                             # 0: robot_src_barcode
                             # 1: src_coord
                             # 2: robot_dst_barcode
@@ -253,6 +260,44 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][1], "G01")
                             self.assertEqual(csv_content[3][2], "Dst1")
                             self.assertEqual(csv_content[3][3], "C03")
+                            self.assertEqual(csv_content[3][4], "1.000")
+                            self.assertEqual(csv_content[3][5], "Water")
+                            self.assertEqual(csv_content[3][6], "4")                            
+                            self.assertEqual(csv_content[3][7], "99.000")
+
+                        elif filename.find("Normalization_genotyping_Biomek") != -1:
+                            # 0: robot_src_barcode
+                            # 1: src_coord
+                            # 2: robot_dst_barcode
+                            # 3: dst_coord
+                            # 4: Volume_Sample
+                            # 5: Diluant_Bath = "Water"
+                            # 6: Diluant_Well = "4"
+                            # 7: Volume_Diluant
+
+                            # First sample
+                            self.assertEqual(csv_content[1][0], "Src1")
+                            self.assertEqual(csv_content[1][1], "E02")
+                            self.assertEqual(csv_content[1][2], "Dst1")
+                            self.assertEqual(csv_content[1][3], "A04")
+                            self.assertEqual(csv_content[1][4], "0.200")
+                            self.assertEqual(csv_content[1][5], "Water")
+                            self.assertEqual(csv_content[1][6], "4")
+                            self.assertEqual(csv_content[1][7], "99.800")
+                            # Second sample
+                            self.assertEqual(csv_content[2][0], "Src1")
+                            self.assertEqual(csv_content[2][1], "F02")
+                            self.assertEqual(csv_content[2][2], "Dst1")
+                            self.assertEqual(csv_content[2][3], "B04")
+                            self.assertEqual(csv_content[2][4], "0.800")
+                            self.assertEqual(csv_content[2][5], "Water")
+                            self.assertEqual(csv_content[2][6], "4")
+                            self.assertEqual(csv_content[2][7], "99.200")
+                            # Third sample
+                            self.assertEqual(csv_content[3][0], "Src1")
+                            self.assertEqual(csv_content[3][1], "G02")
+                            self.assertEqual(csv_content[3][2], "Dst1")
+                            self.assertEqual(csv_content[3][3], "C04")
                             self.assertEqual(csv_content[3][4], "1.000")
                             self.assertEqual(csv_content[3][5], "Water")
                             self.assertEqual(csv_content[3][6], "4")                            
