@@ -489,7 +489,25 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       },
   ],
   "user prefill info": {
+      # "Extraction Type": ["DNA", "RNA"], # already prefilled by workflow
+      "Volume Used (uL)": "number",
+      # borrowed from extraction template
+      "Destination Container Kind": [
+            "Tube",
+            "96-well plate"
+            "384-well plate",
+            "Tube Strip 2x1",
+            "Tube Strip 3x1",
+            "Tube Strip 4x1",
+            "Tube Strip 5x1",
+            "Tube Strip 6x1",
+            "Tube Strip 7x1",
+            "Tube Strip 8x1",
+      ],
+      "Volume (uL)": "number",
+      "Source Depleted": ["YES", "NO"],
       "Extraction Date (YYYY-MM-DD)": "date",
+      "Comment": "text",
   }
   ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -515,7 +533,23 @@ SAMPLE_TRANSFER_TEMPLATE = {
       },
   ],
   "user prefill info": {
+      # borrowed from transfer template
+      "Destination Container Kind": [
+        "Tube",
+        "96-well plate",
+        "384-well plate",
+        "Tube Strip 2x1",
+        "Tube Strip 3x1",
+        "Tube Strip 4x1",
+        "Tube Strip 5x1",
+        "Tube Strip 6x1",
+        "Tube Strip 7x1",
+        "Tube Strip 8x1",
+      ],
+      "Source Depleted": ["YES", "NO"],
+      "Volume Used (uL)": "number",
       "Transfer Date (YYYY-MM-DD)": "date",
+      "Comment": "text"
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
