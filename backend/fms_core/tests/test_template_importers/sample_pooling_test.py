@@ -157,17 +157,17 @@ class SamplePoolingTestCase(TestCase):
         ds1 = dbs1.derived_sample
         self.assertEqual(ds1.biosample.individual.name, "Bobino")
         self.assertEqual(ds1.library.index, self.index_1)
-        self.assertEqual(dbs1.volume_ratio, Decimal("0.727"))
+        self.assertEqual(dbs1.volume_ratio, Decimal("0.727272727272727"))
         dbs2 = DerivedBySample.objects.get(sample=pool1, derived_sample=DerivedSample.objects.get(id=self.source_sample_2.derived_samples.first().id))
         ds2 = dbs2.derived_sample
         self.assertEqual(ds2.biosample.individual.name, "Bobinette")
         self.assertEqual(ds2.library.index, self.index_2)
-        self.assertEqual(dbs2.volume_ratio, Decimal("0.182"))
+        self.assertEqual(dbs2.volume_ratio, Decimal("0.181818181818182"))
         dbs3 = DerivedBySample.objects.get(sample=pool1, derived_sample=DerivedSample.objects.get(id=self.source_sample_3.derived_samples.first().id))
         ds3 = dbs3.derived_sample
         self.assertEqual(ds3.biosample.individual.name, "Bobinouche")
         self.assertEqual(ds3.library.index, self.index_3)
-        self.assertEqual(dbs3.volume_ratio, Decimal("0.091"))
+        self.assertEqual(dbs3.volume_ratio, Decimal("0.090909090909091"))
 
         pm4 = ProcessMeasurement.objects.get(source_sample=self.source_sample_4, process__protocol=self.protocol_pooling)
         self.assertEqual(pm4.volume_used, 100)

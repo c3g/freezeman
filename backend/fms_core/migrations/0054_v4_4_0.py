@@ -43,6 +43,11 @@ class Migration(migrations.Migration):
             name='project_name',
             field=models.CharField(help_text='Human readable project name.', max_length=200),
         ),
+        migrations.AlterField(
+            model_name='derivedbysample',
+            name='volume_ratio',
+            field=models.DecimalField(decimal_places=15, help_text='Volume ratio in pools.', max_digits=16),
+        ),
         migrations.AddIndex(
             model_name='container',
             index=models.Index(fields=['coordinate'], name='container_coordinate_idx'),
