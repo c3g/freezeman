@@ -42,7 +42,7 @@ const LoginPage = ({isFetching, isAuthenticated, login}) => {
     if (isAuthenticated) {
       history("/dashboard");
     }
-  });
+  }, [history, isAuthenticated]);
 
   return (
     <div style={containerStyle}>
