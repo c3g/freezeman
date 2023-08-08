@@ -18,27 +18,31 @@ import PageContent from "../PageContent";
 import IndicesValidationResult from "./IndicesValidationResult";
 import * as Options from "../../utils/options";
 import api, { withToken } from "../../utils/api";
-import { validate, list } from "../../modules/indices/actions";
+import { list, validate } from "../../modules/indices/actions";
 import { requiredRules } from "../../constants";
-import store from "../../store";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { selectToken } from "../../selectors";
 
 // API functions
 const listSets = (token, options) =>
   withToken(token, api.indices.listSets)(options).then(res => res.data)
 
-const listInstrumentTypes = () => store.dispatch(api.instrumentTypes.list({ instruments_isnull: false }))
-
-
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  indicesTotalCount: state.indices.totalCount,
-  isFetching: state.indices.isFetching,
-});
-
-const actionCreators = { list, validate };
-
-const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate }) => {
+const IndicesValidate = () => {
   const history = useNavigate();
+
+  const dispatch = useAppDispatch()
+
+  const listCallback = useCallback((options) => {
+    return dispatch(list(options))
+  }, [dispatch])
+  const validateCallback = useCallback((options) => {
+    return dispatch(validate(options))
+  }, [dispatch])
+  const listInstrumentTypes = useCallback(() => {
+    return dispatch(api.instrumentTypes.list({ instruments__isnull: false }))
+  }, [dispatch])
+
+  const token = useAppSelector(selectToken)
 
   /*
    * State management
@@ -53,7 +57,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   const [validationResult, setValidationResult] = useState()
 
   const instrumentTypesRender = useMemo(() => {
-    instrumentTypes.map(Options.renderInstrumentType)
+    return instrumentTypes.map(Options.renderInstrumentType)
   }, [instrumentTypes])
 
   useEffect(() => {
@@ -73,6 +77,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
         }])
       })
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadData = (setOptions) => {
@@ -84,7 +89,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
     setIndexCount(prevIndexCount => prevIndexCount + numIndicesInSet)
 
     // load options lazily
-    list({ ...query }).then(response => {
+    listCallback({ ...query }).then(response => {
       const indices = response.results
       const indicesID = indices.map(index => index.id)
       //concatenate existing indices to the retrieved ones
@@ -120,7 +125,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   const onSubmit = () => {
     setValidationLoading(true)
     const data = serialize(formData)
-    validate(data)
+    validateCallback(data)
       .then((response) => {
         setValidationLoading(false)
         setFormErrors({})
@@ -304,4 +309,4 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   );
 }
 
-export default connect(mapStateToProps, actionCreators)(IndicesValidate);
+export default IndicesValidate
