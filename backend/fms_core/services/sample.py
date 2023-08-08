@@ -441,7 +441,7 @@ def pool_samples(process: Process,
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
                 for derived_sample in source_sample.derived_samples.all():
                     parent_volume_ratio = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample).volume_ratio
-                    final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio)
+                    final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio, 15)
 
                     # In case samples with common derived samples (transfer, normalization, pooling) are pooled together
                     if DerivedBySample.objects.filter(sample=sample_destination, derived_sample=derived_sample).exists():
@@ -548,7 +548,7 @@ def pool_submitted_samples(samples_info,
         for sample in samples_info:
             sample_volume = sample["volume"]
             # Calculate the volume ratio of each sample in the pool
-            sample["volume_ratio"] = decimal_rounded_to_precision(sample_volume / pool_volume)
+            sample["volume_ratio"] = decimal_rounded_to_precision(sample_volume / pool_volume, 15)
 
         try:
             coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
