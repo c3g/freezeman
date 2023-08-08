@@ -2,6 +2,8 @@ import jwtDecode from "jwt-decode";
 
 import api from "../../utils/api";
 import { createNetworkActionTypes, networkAction } from "../../utils/actions";
+import { selectAuthState } from "../../selectors"
+import { isNullish } from "../../utils/functions"
 
 
 export const LOG_OUT = "AUTH.LOG_OUT";
@@ -54,11 +56,36 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
             return false;
         }
 
-        return await dispatch(
-            networkAction(
-                REFRESH_AUTH_TOKEN,
-                api.auth.tokenRefresh({ refresh: tokens.refresh })
-            ));
+        try {
+            await dispatch({
+                type: REFRESH_AUTH_TOKEN.REQUEST
+            })
+
+            const response = await dispatch(api.auth.tokenRefresh({ refresh: tokens.refresh }))
+
+            // Race condition check.
+            // It's possible that the user is logged out asynchronously while we are busy refreshing
+            // the token. If this happens, the redux state has been cleared, and we should not stick
+            // the token into redux. Otherwise, it creates a confusing state where the current user ID
+            // is null but there is an access token in the state, and this caused some confusion in the UX.
+            // We will only set the refreshed token if the current user ID is valid.
+            //
+            // The other option would be to set user ID along with the token, but then we are effectively
+            // logging the user back in, which is a bad idea.
+            const authState = selectAuthState(getState())
+            if (!isNullish(authState.currentUserID)) {
+                await dispatch({
+                    type: REFRESH_AUTH_TOKEN.RECEIVE,
+                    data: response.data
+                })
+            }
+        } catch(error) {
+           await dispatch({
+            type: REFRESH_AUTH_TOKEN.ERROR,
+            error
+           })
+           await dispatch(logOut())
+        }
     } catch (e) {
         // Invalid token, should perform auth instead
         console.error(e);

@@ -34,14 +34,15 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
+import { isUserLoggedIn } from "../modules/auth/isLoggedIn";
+import { fetchLabworkSummary, fetchListedData, fetchStaticData, fetchSummariesData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
-import { selectAppInitialized, selectAuthTokenAccess, } from "../selectors";
+import { selectAppInitialized } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
-import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
 import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
 import TaxonsRoute from "./taxons/TaxonsRoute";
+import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
 
 
 const { Title } = Typography;
@@ -178,10 +179,9 @@ export const actionCreators = { logOut, get };
 const App = ({userID, usersByID, logOut, get}) => {
   /* global FMS_ENV */
   const env = FMS_ENV
-  const isLoggedIn = userID !== null;
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialized)
-  const token = useAppSelector(selectAuthTokenAccess)
+  const isLoggedIn = useAppSelector(isUserLoggedIn)
 
   useEffect(() => {
     async function loadInitialData() {
@@ -203,7 +203,7 @@ const App = ({userID, usersByID, logOut, get}) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [dispatch, token, userID, get, isLoggedIn]);
+  }, [dispatch, userID, get, isLoggedIn]);
 
   const user = usersByID[userID];
 
