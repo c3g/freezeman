@@ -100,7 +100,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 			break
 		}
 		case ProtocolNames.Sample_Pooling: {
-			columnsForStep = DEFAULT_SAMPLE_COLUMNS
+			columnsForStep = [...DEFAULT_SAMPLE_COLUMNS, SAMPLE_COLUMNS.SAMPLE_COUNT]
 			break
 		}
 		case ProtocolNames.Library_Preparation: {
@@ -108,19 +108,19 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 			break
 		}
 		case ProtocolNames.Transfer: {
-			columnsForStep = PRE_QC_LIBRARY_COLUMNS
+			columnsForStep = [...PRE_QC_LIBRARY_COLUMNS, SAMPLE_COLUMNS.SAMPLE_COUNT]
 			break
 		}
 		case ProtocolNames.Library_Quality_Control: {
-			columnsForStep = PRE_QC_LIBRARY_COLUMNS
+			columnsForStep = [...PRE_QC_LIBRARY_COLUMNS, SAMPLE_COLUMNS.SAMPLE_COUNT]
 			break
 		}
 		case ProtocolNames.Library_Capture: {
-			columnsForStep = DEFAULT_LIBRARY_COLUMNS
+			columnsForStep = [...DEFAULT_LIBRARY_COLUMNS, SAMPLE_COLUMNS.SAMPLE_COUNT]
 			break
 		}
 		case ProtocolNames.Library_Conversion: {
-			columnsForStep = DEFAULT_LIBRARY_COLUMNS
+			columnsForStep = [...DEFAULT_LIBRARY_COLUMNS, SAMPLE_COLUMNS.SAMPLE_COUNT]
 			break
 		}
 		case ProtocolNames.Normalization: {
@@ -133,11 +133,11 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 			break
 		}
 		case ProtocolNames.DNBSEQ_Preparation: {
-			columnsForStep = EXPERIMENT_COLUMNS
+			columnsForStep = [...EXPERIMENT_COLUMNS, SAMPLE_COLUMNS.SAMPLE_COUNT]
 			break
 		}
 		case ProtocolNames.Illumina_Preparation: {
-			columnsForStep = EXPERIMENT_COLUMNS
+			columnsForStep = [...EXPERIMENT_COLUMNS, SAMPLE_COLUMNS.SAMPLE_COUNT]
 			break
 		}
 		default: {
