@@ -107,10 +107,10 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 			columnsForStep = DEFAULT_SAMPLE_COLUMNS
 			break
 		}
-    case ProtocolNames.Transfer: {
-      columnsForStep = PRE_QC_LIBRARY_COLUMNS
+		case ProtocolNames.Transfer: {
+			columnsForStep = PRE_QC_LIBRARY_COLUMNS
 			break
-    }
+		}
 		case ProtocolNames.Library_Quality_Control: {
 			columnsForStep = PRE_QC_LIBRARY_COLUMNS
 			break
