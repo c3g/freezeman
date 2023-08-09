@@ -20,3 +20,8 @@ class InstrumentTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_instrument_type_filterset_fields,
     }
+
+    def list(self, _request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset()).distinct()
+        return Response({"results": [InstrumentTypeSerializer(it).data for it in queryset], "count": len(queryset)})
+
