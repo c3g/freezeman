@@ -1,4 +1,4 @@
-import { selectAuthCurrentUserID, selectAuthTokenAccess } from "../../selectors"
+import { selectAuthState } from "../../selectors"
 import { RootState } from "../../store"
 
 /**
@@ -14,8 +14,17 @@ import { RootState } from "../../store"
  * @returns boolean
  */
 export function isUserLoggedIn(state: RootState) {
-	const userID = selectAuthCurrentUserID(state)
-	const token = selectAuthTokenAccess(state)
+	const authState = selectAuthState(state)
+	return hasLoginInfo(authState)
+}
 
-	return !!(userID) && !!(token)
+type AuthState = RootState['auth']
+
+/**
+ * Utility function to check if a user ID and tokens are stored in auth state.
+ * @param authState AuthState
+ * @returns boolean
+ */
+export function hasLoginInfo(authState: AuthState) {
+	return !!authState.currentUserID && !!authState.tokens?.access && !!authState.tokens?.refresh
 }

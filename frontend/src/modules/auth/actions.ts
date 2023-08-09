@@ -27,8 +27,26 @@ export const performAuth = (username, password) => async (dispatch, getState) =>
 
 }
 
+/**
+ * This function checks to see if a user is logged in and has access and refresh tokens.
+ * If so, it checks how long it will be before the access token expires. If it is due to
+ * expire then it will try to refresh the token, as long as the refresh token hasn't
+ * also expired.
+ * 
+ * The function will dispatch the LOG_OUT action if it is unable to refresh the tokens.
+ * 
+ * It returns true if the access token is currently valid and can be used to make
+ * api requests, and false otherwise.
+ * 
+ * @returns boolean
+ */
 export const refreshAuthToken = () => async (dispatch, getState) => {
-    if (getState().auth.isFetching) return false;
+    // Refresh the access token if it is within 2 minutes of expiring
+    const TIME_BEFORE_TOKEN_EXPIRES = 2 * 60    
+
+    if (getState().auth.isFetching) {
+        return false
+    } 
 
     // Check token validity
     const tokens = getState().auth.tokens;
@@ -45,9 +63,9 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
 
         const now = Date.now() / 1000;
 
-        if (access.exp > now + 30) {  // 30 second buffer for access token refreshing
+        if (access.exp > now + TIME_BEFORE_TOKEN_EXPIRES) {
             // Access token is still valid for another while, don't refresh yet.
-            return false;
+            return true;
         }
 
         if (refresh.exp <= now) {
@@ -56,11 +74,12 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
             return false;
         }
 
-        try {
-            await dispatch({
-                type: REFRESH_AUTH_TOKEN.REQUEST
-            })
+        await dispatch({
+            type: REFRESH_AUTH_TOKEN.REQUEST
+        })
 
+        try {
+            // Get updated tokens from the server
             const response = await dispatch(api.auth.tokenRefresh({ refresh: tokens.refresh }))
 
             // Race condition check.
@@ -78,6 +97,7 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
                     type: REFRESH_AUTH_TOKEN.RECEIVE,
                     data: response.data
                 })
+                return true
             }
         } catch(error) {
            await dispatch({
