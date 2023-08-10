@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { flushLabworkSummary, getLabworkSummary } from '../../modules/labwork/actions'
-import { selectAppInitialzed, selectLabworkSummaryState } from '../../selectors'
+import { selectAppInitialized, selectLabworkSummaryState } from '../../selectors'
 import ActionContent from '../ActionContent'
 import PageContainer from '../PageContainer'
 import LabworkOverviewRoute from './overview/LabworkOverviewRoute'
@@ -14,7 +14,7 @@ const LabworkPage = () => {
 	// is loaded no matter which route is selected.
 	const [loading, setLoading] = useState(false)
 	const labworkSummaryState = useAppSelector(selectLabworkSummaryState)
-	const appInitialized = useAppSelector(selectAppInitialzed)
+	const appInitialized = useAppSelector(selectAppInitialized)
 	const dispatch = useAppDispatch()
 
 	useEffect(() => {

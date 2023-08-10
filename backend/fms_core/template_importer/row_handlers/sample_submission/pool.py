@@ -43,37 +43,37 @@ class PoolsRowHandler(GenericRowHandler):
             # Validate indices from the samples being pooled
             if seq_instrument_type is not None:
                 instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
+                if instrument_type_obj is not None:
+                    indices = []
+                    samples_name = []
+                    for sample in samples_info:
+                        sample_name = sample["alias"]
+                        indices.append(sample["library"].index)
+                        samples_name.append(sample_name)
+                    results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=INDEX_COLLISION_THRESHOLD)
 
-                indices = []
-                samples_name = []
-                for sample in samples_info:
-                    sample_name = sample["alias"]
-                    indices.append(sample["library"].index)
-                    samples_name.append(sample_name)
-                results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=INDEX_COLLISION_THRESHOLD)
-
-                if not results["is_valid"]:
-                    # Verify first for direct collision (raise error in this case)
-                    index_errors = []
-                    for i, index_ref in enumerate(indices):
-                        for j, index_val in enumerate(indices):
-                            index_distance = results["distances"][i][j]
-                            if index_distance is not None and all(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
-                                index_errors.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
-                                                    f"Index {index_val.name} for sample {samples_name[j]} are not different "
-                                                    f"for index validation length ({results['validation_length_3prime']}, "
-                                                    f"{results['validation_length_5prime']}).")
-                    self.errors["index_collision"] = index_errors
-                else:
-                  # Verify then for near near collision for distances not higher than the default threshold (raise warning in this case)
-                  is_valid, collisions = validate_distance_matrix(results["distances"], DEFAULT_INDEX_VALIDATION_THRESHOLD)
-                  if not is_valid:
-                      index_warnings = []
-                      for i, j in collisions:
-                          index_distance = results["distances"][i][j]
-                          index_warnings.append(f"Index {indices[i].name} for sample {samples_name[i]} and "
-                                                f"Index {indices[j].name} for sample {samples_name[j]} are not different enough {index_distance}.")
-                      self.warnings["index_collision"] = index_warnings
+                    if not results["is_valid"]:
+                        # Verify first for direct collision (raise error in this case)
+                        index_errors = []
+                        for i, index_ref in enumerate(indices):
+                            for j, index_val in enumerate(indices):
+                                index_distance = results["distances"][i][j]
+                                if index_distance is not None and all(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
+                                    index_errors.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
+                                                        f"Index {index_val.name} for sample {samples_name[j]} are not different "
+                                                        f"for index validation length ({results['validation_length_3prime']}, "
+                                                        f"{results['validation_length_5prime']}).")
+                        self.errors["index_collision"] = index_errors
+                    else:
+                      # Verify then for near near collision for distances not higher than the default threshold (raise warning in this case)
+                      is_valid, collisions = validate_distance_matrix(results["distances"], DEFAULT_INDEX_VALIDATION_THRESHOLD)
+                      if not is_valid:
+                          index_warnings = []
+                          for i, j in collisions:
+                              index_distance = results["distances"][i][j]
+                              index_warnings.append(("Index {0} for sample {1} and "
+                                                    "Index {2} for sample {3} are not different enough {4}.", [indices[i].name, samples_name[i], indices[j].name, samples_name[j], index_distance]))
+                          self.warnings["index_collision"] = index_warnings
 
             # Pool samples
             pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=samples_info,

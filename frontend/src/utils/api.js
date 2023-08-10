@@ -105,9 +105,11 @@ const api = {
 
   instruments: {
     list: () => get("/instruments/"),
-    listTypes: () => get("/instruments/list_types/"),
   },
 
+  instrumentTypes: {
+    list: (options) => get("/instrument-types/", options),
+  },
 
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
@@ -183,6 +185,7 @@ const api = {
 
   protocols: {
     list:  (options, abort) => get("/protocols/", options, { abort }),
+    lastProtocols: (options, abort) => get("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {
@@ -226,11 +229,11 @@ const api = {
 
   sampleNextStep: {
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
-    listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {...options, step__id__in: stepId}),
+    listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
-      request: (templateID, options) => get('/sample-next-step/prefill_template/', {template: templateID, ...options})
+      request: (templateID, user_prefill_data, options) => get('/sample-next-step/prefill_template/', {user_prefill_data: user_prefill_data, template: templateID, ...options})
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),

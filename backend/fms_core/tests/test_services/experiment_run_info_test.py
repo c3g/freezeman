@@ -26,8 +26,8 @@ from datetime import datetime
 TEMPLATES_DIR = Path(__file__).parent.parent / "service-templates"
 
 PROJECT_NAME = 'TEST_PROJECT'
-EXTERNAL_PROJECT_ID = 'HERCULES_ID'
-EXTERNAL_PROJECT_NAME = 'HERCULES'
+EXTERNAL_PROJECT_ID = 'EXTERNAL_ID'
+EXTERNAL_PROJECT_NAME = 'EXTERNAL_PROJECT'
 
 class ExperimentRunInfoTemplatesTestCase(TestCase):
     def setUp(self) -> None:
@@ -43,23 +43,23 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_3_0.xlsx')
         
-        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_1_0.xlsx')
+        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_4_0.xlsx')
 
-        self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0.xlsx')
+        self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_2_0.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_4_0.xlsx')
 
-        self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_1_0.xlsx')
+        self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_4_0.xlsx')
 
-        self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0_after_capture.xlsx')
+        self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0_after_capture.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_2_0_after_capture.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_4_0_after_capture.xlsx')
 
         # MGI Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_1_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_4_0.xlsx')
 
         # Illumina Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_1_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_4_0.xlsx')
        
 
     def import_template(self, importer, file):
@@ -99,8 +99,8 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             lane= 1,
             project_obj_id= self.project.id,
             project_name= PROJECT_NAME,
-            hercules_project_id= EXTERNAL_PROJECT_ID,
-            hercules_project_name= EXTERNAL_PROJECT_NAME,
+            external_project_id= EXTERNAL_PROJECT_ID,
+            external_project_name= EXTERNAL_PROJECT_NAME,
             pool_volume_ratio= 0.5,
             expected_sex= "M",
             ncbi_taxon_id= 9606,

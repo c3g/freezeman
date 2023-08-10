@@ -3,10 +3,10 @@ import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useMemo } from 'react'
 import { FMSId } from '../../../models/fms_api_models'
 import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
+import FiltersBar from '../../filters/FiltersBar'
+import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from './ColumnSets'
 import { addFiltersToColumns } from './MergeColumnsAndFilters'
-import { IdentifiedTableColumnType } from './SampleTableColumns'
-import FiltersBar from '../../filters/FiltersBar'
 
 
 export interface PaginationParameters {
@@ -31,7 +31,7 @@ interface WorkflowSamplesTableProps {
 	setSortBy?: SetSortByFunc,
 	pagination?: PaginationParameters,
 	selection?: {
-		selectedSampleIDs: FMSId[]
+		selectedSampleIDs: FMSId[],
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
 	}
 }
@@ -50,6 +50,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 	}, [columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions])
 
 
+
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
 	if (selection) {
 		rowSelection = {
@@ -57,9 +58,6 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},
-			getCheckboxProps: (record: SampleAndLibrary) => ({
-				name: `${record.sample?.id}`,
-			}),
 			selectedRowKeys: [...selection.selectedSampleIDs]
 		}
 	}
@@ -98,7 +96,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 					/>
 					{pagination &&
 						<Pagination
-							
+
 							className="ant-table-pagination ant-table-pagination-right"
 							showSizeChanger={true}
 							showQuickJumper={true}

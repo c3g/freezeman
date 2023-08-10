@@ -351,13 +351,13 @@ class SampleNextStepServicesTestCase(TestCase):
         sample_next_step_2, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, second_study)
         count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample_BLOOD, sample_next_step_1.step)
         self.assertEqual(errors, [])
-        self.assertTrue("You are about to remove it from all study workflows." in warnings[0])
+        self.assertTrue("You are about to remove it from all study workflows." in warnings[0][0])
         self.assertEqual(count, 2)
         self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_1.id).exists())
         self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_2.id).exists())
         count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample_BLOOD, sample_next_step_1.step)
         self.assertEqual(errors, [])
-        self.assertTrue("does not appear to to be queued" in warnings[0])
+        self.assertTrue("does not appear to to be queued" in warnings[0][0])
         self.assertEqual(count, 0)
 
     def test_remove_sample_from_workflow(self):
@@ -413,7 +413,7 @@ class SampleNextStepServicesTestCase(TestCase):
         _, _, _ = queue_sample_to_study_workflow(sample_in, study_D)
         count_removed, errors, warnings = remove_sample_from_workflow(step, sample_in, process_measurement, WorkflowAction.DEQUEUE_SAMPLE)
         self.assertEqual(errors, [])
-        self.assertEqual(warnings, ['Sample TestSampleRemoved_in is queued to step Normalization (Sample) for 2 studies. You are about to remove it from all study workflows.'])
+        self.assertEqual(warnings, [('Sample {0} is queued to step {1} for {2} studies. You are about to remove it from all study workflows.', ['TestSampleRemoved_in', 'Normalization (Sample)', 2])])
         self.assertEqual(count_removed, 2)
         self.assertEqual(SampleNextStep.objects.filter(sample=sample_in).count(), 1)
         self.assertEqual(StepHistory.objects.filter(study=study_B,
@@ -556,8 +556,8 @@ class SampleNextStepServicesTestCase(TestCase):
                                                    current_sample=sample_in,
                                                    process_measurement=process_measurement_1,
                                                    next_sample=sample_out)
-        self.assertEquals(errors, [])
-        self.assertEquals(warnings, [])
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
         
         if order == 1:
              return study_B, step_1, sample_in, process_measurement_1, sample_out
@@ -574,8 +574,8 @@ class SampleNextStepServicesTestCase(TestCase):
                                                    step=step_2,
                                                    current_sample=sample_out,
                                                    process_measurement=process_measurement_2)
-        self.assertEquals(errors, [])
-        self.assertEquals(warnings, [])
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
 
         return study_B, step_2, sample_out, process_measurement_2, sample_out
 

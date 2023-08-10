@@ -8,7 +8,7 @@ class DatasetFileTest(TestCase):
     """ Test module for DatasetFile model """
 
     def setUp(self) -> None:
-        self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane="1")
+        self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane="1", project_name="test")
         self.readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=self.dataset)
 
     def test_dataset_file(self):

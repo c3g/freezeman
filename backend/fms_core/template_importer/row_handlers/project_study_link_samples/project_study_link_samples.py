@@ -30,7 +30,6 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
                 warning_msg = f"Sample in container with barcode {sample['sample_container_barcode']} " + \
                               (f"at coordinate {sample['sample_container_coord']} " if sample['sample_container_coord'] else f"") + \
                               f"is named {sample_obj.name} not {sample['sample_name']}."
-                self.warnings['sample'].append(warning_msg)
 
             # Perform an add project and/or study action
             if action['name'] == ADD_PROJECT_STUDY_ACTION:
@@ -104,7 +103,7 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
                             num_dequeued, self.errors['remove_from_study'], self.warnings['queue_to_study'] = dequeue_sample_from_all_steps_study_workflow(sample_obj, study)
                             num_dequeued += num_dequeued
                     if num_dequeued > 0:
-                        self.warnings['remove_project'] = f"Removing sample [{sample_obj.name}] from project [{project_obj.name}] will also remove the sample from [{project_obj.studies.all().count()}] studies."
+                        self.warnings['remove_project'] = ("Removing sample [{0}] from project [{1}] will also remove the sample from [{2}] studies.", [sample_obj.name, project_obj.name, project_obj.studies.all().count()])
                 
                 if not any(self.errors.values()):
                     # Remove link object if no errors

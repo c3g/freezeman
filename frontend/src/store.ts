@@ -56,6 +56,7 @@ const notificationError: ThunkMiddleware = ({ dispatch }) => next => action => {
 		return next(action)
 
 	if (action.error.message.includes(TOKEN_EXPIRED_MESSAGE)) {
+		console.error('Notification middleware detected an expired token error. Logging out', action)
 		dispatch(logOut())
 		return next(action)
 	}
@@ -82,6 +83,7 @@ const store = configureStore({
 })
 
 export type RootState = ReturnType<typeof store.getState>
+export type GetState = typeof store.getState
 export type AppDispatch = typeof store.dispatch
 
 // TODO hot loading of reducers

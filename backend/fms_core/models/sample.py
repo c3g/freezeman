@@ -58,6 +58,10 @@ class Sample(TrackedModel):
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
 
     class Meta:
+        indexes = [
+            models.Index(fields=['name'], name='sample_name_idx'),
+            models.Index(fields=['creation_date'], name='sample_creationdate_idx')
+        ]
         constraints = [
             models.UniqueConstraint(fields=["container", "coordinate"], name="sample_container_coordinate_key")
         ]
@@ -107,6 +111,14 @@ class Sample(TrackedModel):
     @property
     def container_location(self) -> Optional[Container]:
         return self.container.location if self.container else None
+
+    @property
+    def container_location_barcode(self) -> Optional[str]:
+        return self.container.location.barcode if self.container.location else None
+
+    @property
+    def container_location_coordinates(self) -> Optional[str]:
+        return self.container.coordinate.name if self.container.location and self.container.coordinate else None
 
     @property
     def context_sensitive_coordinates(self) -> str:

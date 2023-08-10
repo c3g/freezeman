@@ -134,7 +134,3 @@ class SampleSubmissionImporter(GenericImporter):
                     samples_info=pools_dict.get(str_cast_and_normalize(row_data['Pool Name']), None),
                     **pool_kwargs
                 )
-
-
-
-

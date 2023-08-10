@@ -1,6 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-from fms_core.template_importer._constants import VALID_NORM_CHOICES, LIBRARY_CHOICE
-
+from fms_core.template_importer._constants import VALID_NORM_CHOICES, LIBRARY_CHOICE, LOAD_ALL
 from fms_core.services.container import get_container, is_container_valid_destination
 from fms_core.services.sample import get_sample_from_container
 from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul
@@ -48,7 +47,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         if source_sample_obj is not None and not self.has_errors():
             # Add a warning if the sample has failed qc
             if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
-                self.warnings["qc_flags"] = (f"Source sample {source_sample_obj.name} has failed QC.")
+                self.warnings["qc_flags"] = ("Source sample {0} has failed QC.", [source_sample_obj.name])
                 
             # ensure that the sample source is a library if the norm choice is library
             # If it is a pool we have to check if it is a pool of libraries
@@ -62,7 +61,10 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
 
             if measurements['concentration_ngul'] is not None:
                 concentration_nguL = measurements['concentration_ngul']
-                na_qty = decimal.Decimal(measurements['volume']) * decimal.Decimal(concentration_nguL)
+                if measurements['volume'] == LOAD_ALL:
+                    na_qty = source_sample_obj.volume * source_sample_obj.concentration
+                else:
+                    na_qty = decimal.Decimal(measurements['volume']) * decimal.Decimal(concentration_nguL)
                 combined_concentration_nguL = concentration_nguL
             elif measurements['concentration_nm'] is not None:
                 if not source_sample_obj.is_library:
@@ -74,12 +76,21 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                         convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, concentration_nm)
                     combined_concentration_nguL = decimal.Decimal(combined_concentration_nguL)
                     if combined_concentration_nguL is None:
-                        self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
-                na_qty = decimal.Decimal(measurements['volume']) * combined_concentration_nguL
+                        self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL.'
+                if measurements['volume'] == LOAD_ALL:
+                    na_qty = source_sample_obj.volume * source_sample_obj.concentration
+                else:
+                    na_qty = decimal.Decimal(measurements['volume']) * combined_concentration_nguL
             elif measurements['na_quantity'] is not None:
-                #compute concentration in ngul
-                concentration_nguL = decimal.Decimal(measurements['na_quantity']) / decimal.Decimal(measurements['volume'])
-                na_qty = decimal.Decimal(measurements['na_quantity'])
+                if measurements['volume'] == LOAD_ALL:
+                    na_qty = str(source_sample_obj.volume * source_sample_obj.concentration)
+                    if measurements['na_quantity'] != na_qty:
+                        self.warnings['na_qty'].append(("The quantity of nucleic acid requested do not match the quantity found in the source sample. Using available quantity : {0} ng.", [na_qty]))
+                    concentration_nguL = source_sample_obj.concentration
+                else:
+                    #compute concentration in ngul
+                    concentration_nguL = decimal.Decimal(measurements['na_quantity']) / decimal.Decimal(measurements['volume'])
+                    na_qty = decimal.Decimal(measurements['na_quantity'])
                 combined_concentration_nguL = concentration_nguL
 
             # Ensure the destination container exist or has enough information to be created.
@@ -98,8 +109,10 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                                                                                                destination_container_dict['name'],
                                                                                                                destination_container_dict['coordinates'],
                                                                                                                container_parent_obj)
-
-            volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
+            if measurements['volume'] == LOAD_ALL:
+                volume_used = source_sample_obj.volume
+            else:
+                volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
 
             if combined_concentration_nguL > source_sample_obj.concentration:
                 self.errors['concentration'] = 'Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution.'
@@ -107,10 +120,13 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             if volume_used > source_sample_obj.volume:
                 adjusted_volume = decimal_rounded_to_precision(source_sample_obj.volume * source_sample_obj.concentration / combined_concentration_nguL)
                 volume_used = source_sample_obj.volume
-                self.warnings['volume'] = f'Insufficient source sample volume to comply. ' \
-                                          f'Requested Final volume ({measurements["volume"]} uL) ' \
-                                          f'will be adjusted to {adjusted_volume} uL to ' \
-                                          f'maintain requested concentration while using all source sample volume.'
+                self.warnings['volume'] = ('Insufficient source sample volume to comply. ' \
+                                          'Requested Final volume ({0} uL) ' \
+                                          'will be adjusted to {1} uL to ' \
+                                          'maintain requested concentration while using all source sample volume.', [measurements["volume"], adjusted_volume])
+            elif measurements['volume'] == LOAD_ALL:
+                adjusted_volume = decimal_rounded_to_precision(na_qty / combined_concentration_nguL)
+                self.warnings['volume'].append(("Final volume will be set to {0} uL to maintain requested concentration while using all source sample volume ({1} uL).", [adjusted_volume, volume_used]))
             else:
                 adjusted_volume = measurements['volume']
 

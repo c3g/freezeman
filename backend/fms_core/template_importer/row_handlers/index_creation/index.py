@@ -16,9 +16,9 @@ class IndexCreationHandler(GenericRowHandler):
         index_set_obj, created, self.errors['index_set'], self.warnings['index_set'] = get_or_create_index_set(set_name)
 
         if not index_set_obj:
-            self.warnings['index_set'] = f'Index will not be associated to a set.'
+            self.warnings['index_set'] = ('Index will not be associated to a set.', [])
         elif not created:
-            self.warnings['index_set'] = f'Using existing set {index_set_obj.name}.'
+            self.warnings['index_set'] = ('Using existing set {0}.', [index_set_obj.name])
 
         #create index
         index_obj, self.errors['index'], self.warnings['index'] = create_index(index_name=index['name'],

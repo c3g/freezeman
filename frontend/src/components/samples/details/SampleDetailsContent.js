@@ -43,6 +43,7 @@ import {
 } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 import useHashURL from "../../../hooks/useHashURL";
+import { isNullish } from "../../../utils/functions";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -120,7 +121,7 @@ const SampleDetailsContent = ({
   const isFetching = !samplesByID[id] || sample.isFetching;
   const sampleKind = sampleKindsByID[sample.sample_kind]?.name
   const tissueSource = sampleKindsByID[sample.tissue_source]?.name
-  const volume = sample.volume ? parseFloat(sample.volume).toFixed(3) : undefined
+  const volume = isNullish(sample.volume) ? '' : parseFloat(sample.volume).toFixed(3)
   const container = containersByID[sample.container]
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;

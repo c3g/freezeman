@@ -21,6 +21,10 @@ class Instrument(TrackedModel):
     type = models.ForeignKey(InstrumentType, on_delete=models.PROTECT, related_name="instruments", help_text="Instrument type")
     serial_id = models.CharField(unique=True, max_length=200, help_text="Internal identifier for the instrument.")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['type'], name='instrument_type_idx'),
+        ]
     def __str__(self):
         return self.name
 

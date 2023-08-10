@@ -6,7 +6,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { add, list, update } from "../../modules/referenceGenomes/actions";
 import { requiredRules } from "../../constants";
-import { selectAppInitialzed, selectAuthState, selectReferenceGenomesByID, selectTaxonsByID, selectUsersByID } from "../../selectors";
+import { selectAppInitialized, selectAuthState, selectReferenceGenomesByID, selectTaxonsByID, selectUsersByID } from "../../selectors";
 import * as Options from "../../utils/options";
 import { ReferenceGenome, getAllItems } from "../../models/frontend_models";
 
@@ -15,14 +15,14 @@ interface EditReferenceGenomesProps {
 }
 
 export const AddReferenceGenomeRoute = () => {
-    const appInitialized = useAppSelector(selectAppInitialzed)
+    const appInitialized = useAppSelector(selectAppInitialized)
     return appInitialized ? <EditReferenceGenomes /> : null
 };
 
 export const EditReferenceGenomeRoute = () => {
     const { id } = useParams()
     const referenceGenomes = useAppSelector(selectReferenceGenomesByID)
-    const appInitialized = useAppSelector(selectAppInitialzed)
+    const appInitialized = useAppSelector(selectAppInitialized)
     const authState = useAppSelector(selectAuthState)
     const usersByID = useAppSelector(selectUsersByID)
     const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false);
@@ -58,6 +58,12 @@ const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) =>
             }
         }
         return { name: key }
+    }
+
+    const inputDisable = () => {
+        return {
+            disabled: isAdding ? false : !referenceGenome?.editable
+        }
     }
 
     const onValuesChange = (values) => {
@@ -113,13 +119,14 @@ const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) =>
                     form={form}
                     initialValues={referenceGenome}>
                     <Item label={"Assembly Name"} {...itemValidation("assembly_name")} rules={requiredRules}>
-                        <Input />
+                        <Input {...inputDisable()} />
                     </Item>
                     <Item label={"Synonym"} {...itemValidation("synonym")}>
                         <Input />
                     </Item>
                     <Item label={"Taxon"} {...itemValidation("taxon_id")} rules={requiredRules}>
                         <Select
+                            {...inputDisable()}
                             showSearch
                             allowClear
                             filterOption={(input, option) => (option?.label?.props.children ?? '').toString().toLowerCase().includes(input.toString().toLowerCase())}
@@ -127,7 +134,7 @@ const EditReferenceGenomes = ({ referenceGenome }: EditReferenceGenomesProps) =>
                         />
                     </Item>
                     <Item label={"Size"} {...itemValidation("size")} rules={requiredRules}>
-                        <Input />
+                        <Input {...inputDisable()} />
                     </Item>
                     <Item label={"Genbank ID"} {...itemValidation("genbank_id")}>
                         <Input />

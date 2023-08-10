@@ -7,11 +7,12 @@ import { StudySampleStep, StudyUXStepSettings } from '../../modules/studySamples
 import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID } from '../../selectors'
 import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../shared/WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../shared/WorkflowSamplesTable/LibraryTableColumns'
-import { IdentifiedTableColumnType, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../shared/WorkflowSamplesTable/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../shared/WorkflowSamplesTable/SampleTableColumns'
 import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'
 import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
+import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 
 interface StudyStepSamplesTableProps {
 	studyID: FMSId
@@ -99,8 +100,20 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			// is already in the project details page.
 			return [
 				...getColumnsForStudySamplesStep(stepDefinition, protocol),
-				actionColumn,
-			]
+				{
+					columnID: 'SAMPLE_COUNT',
+					title: 'Samples in pool',
+					dataIndex: ['sample', 'id'],
+					render: (_, { sample }: SampleAndLibrary) => {
+						return (
+								sample && sample.is_pool
+								? sample.derived_samples_count
+								: ''
+							)
+						},
+					},
+					actionColumn,
+				]
 		} else {
 			return []
 		}

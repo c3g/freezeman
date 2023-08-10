@@ -15,6 +15,7 @@ from fms_core.services.metric import create_metrics_from_run_validation_data
 def create_dataset(external_project_id: str,
                    run_name: str,
                    lane: int,
+                   project_name: str,
                    experiment_run_id: int = None,
                    metric_report_url: str = None,
                    replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
@@ -28,6 +29,7 @@ def create_dataset(external_project_id: str,
         `external_project_id`: Project id from the external system that generate projects.
         `run_name`: Name or id of the experiment run.
         `lane`: Lane (coordinate) on the experiment container.
+        `project_name`: Human readable name of the project.
         `experiment_run_id`: Experiment run ID, None if not recorded on Freezeman.
         `metric_report_url`: Run processing report URL.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
@@ -50,12 +52,14 @@ def create_dataset(external_project_id: str,
             lane=lane,
         )
         dataset, created = Dataset.objects.get_or_create(**kwargs,
-                                                         defaults={"experiment_run_id": experiment_run_id,
+                                                         defaults={"project_name": project_name,
+                                                                   "experiment_run_id": experiment_run_id,
                                                                    "metric_report_url": metric_report_url})
         if not created and replace:  # There is already a dataset with this signature but we replace it's content.
             reset_error, _ = reset_dataset_content(dataset)
             errors.extend(reset_error)
             # update optional content
+            dataset.project_name = project_name
             dataset.experiment_run_id = experiment_run_id
             dataset.metric_report_url = metric_report_url
             dataset.save()
@@ -248,12 +252,14 @@ def ingest_run_validation_report(report_json):
     experiment_run_id = report_json.get("run_obj_id", None)
     metric_report_url = report_json["metrics_report_url"]
     for readset_name, readset in report_json["readsets"].items():
-        external_project_id = readset["barcodes"][0]["PROJECT"]
+        project_name = readset["barcodes"][0]["PROJECT"]
+        external_project_id = readset["barcodes"][0]["external_project_id"]
         dataset_key = (external_project_id, run_name, lane)
         if dataset_key not in datasets:
             dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
                                                        run_name=run_name,
                                                        lane=lane,
+                                                       project_name=project_name,
                                                        experiment_run_id=experiment_run_id,
                                                        metric_report_url=metric_report_url,
                                                        replace=True)

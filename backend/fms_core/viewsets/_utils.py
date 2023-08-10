@@ -196,6 +196,7 @@ class TemplatePrefillsMixin:
                 template_dict = {}
                 template_dict["id"] = i
                 template_dict["description"] = template["template"]["identity"]["description"]
+                template_dict["prefillFields"] = template["template"]["user prefill info"] if ("user prefill info" in template["template"]) else None
                 templates_list.append(template_dict)
         return Response(templates_list)
 
@@ -216,7 +217,7 @@ class TemplatePrefillsMixin:
         try:
             filename = "/".join(template["identity"]["file"].split("/")[-2:]) # Remove the /static/ from the served path to search for local path 
             template_path = os.path.join(settings.STATIC_ROOT, filename)
-        
+
             prefilled_template = PrefillTemplate(template_path, template, queryset)
         except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
@@ -243,6 +244,7 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
         Endpoint off of the parent viewset for filling up the requested template using a field dict and returning it.
         """
         template_id = request.GET.get("template")
+        user_prefill_data = json.loads(request.GET.get("user_prefill_data"))
 
         try:
             template = self.template_prefill_list[int(template_id)]["template"]
@@ -252,7 +254,7 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
 
         queryset = self.filter_queryset(self.get_queryset())
         try:
-            rows_dicts = self._prepare_prefill_dicts(template, queryset)
+            rows_dicts = self._prepare_prefill_dicts(template, queryset, user_prefill_data)
             prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
         except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
@@ -268,7 +270,7 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
 
 class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod
-    def _prepare_prefill_dicts(cls, template, queryset) -> List:
+    def _prepare_prefill_dicts(cls, template, queryset, user_prefill_data) -> List:
         # Create the dictionnary used for prefilling using template definition and step specs. Tolerate templates with 2 sheets max.
         dict_sheets_rows_dicts = {sheet["name"]: [] for sheet in template["sheets info"]} # Initialize each sheet list
 
@@ -288,6 +290,11 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
             for sheet_name, column_name, _, attribute in template["prefill info"]:
                 value = getattr(sample, attribute)
                 sample_row_dict[column_name] = value
+            # Insert user inputted info to prefill template
+            if user_prefill_data:
+                for column_name, value in user_prefill_data.items():
+                    sample_row_dict[column_name] = value
+
             # Use step to extract specifications and attach it to the correct sheet and column
             step = Step.objects.get(id=step_id)
             for spec in step.step_specifications.all():

@@ -20,13 +20,13 @@ import * as Options from "../../utils/options";
 import api, { withToken } from "../../utils/api";
 import { validate, list } from "../../modules/indices/actions";
 import { requiredRules } from "../../constants";
+import store from "../../store";
 
 // API functions
 const listSets = (token, options) =>
   withToken(token, api.indices.listSets)(options).then(res => res.data)
 
-const listInstrumentTypes = (token, options) =>
-  withToken(token, api.instruments.listTypes)(options).then(res => res.data)
+const listInstrumentTypes = () => store.dispatch(api.instrumentTypes.list({}))
 
 
 const mapStateToProps = state => ({
@@ -54,8 +54,8 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
 
   useEffect(() => {
     //List instrument
-    listInstrumentTypes(token).then(instrumentTypes => {
-      setInstrumentTypes(instrumentTypes.map(Options.renderInstrumentType))
+    listInstrumentTypes().then(response => {
+      setInstrumentTypes(response.data.results.map(Options.renderInstrumentType))
     })
     //List sets and initialize the cascader options
     listSets(token, {}).then(sets => {

@@ -49,7 +49,7 @@ class ProjectStudyLinkSamplesServicesTestCase(TestCase):
 
         self.assertTrue(link_created)
         self.assertFalse(link_not_created_again)
-        self.assertTrue("already associated" in warnings[0])
+        self.assertTrue("already associated" in warnings[0][0])
 
     def test_remove_valid_link(self):
         link_created, errors, warnings = create_link(self.full_sample, self.project)
@@ -65,7 +65,7 @@ class ProjectStudyLinkSamplesServicesTestCase(TestCase):
 
         self.assertFalse(link_not_removed)
         self.assertEqual(errors, [])
-        self.assertEqual(warnings, [f"Sample [{self.valid_sample_name}] is not currently associated to project [{self.valid_project_name}]."])
+        self.assertEqual(warnings, [("Sample [{0}] is not currently associated to project [{1}].", [self.valid_sample_name, self.valid_project_name])])
 
     def test_missing_project(self):
         link_not_created, errors, warnings = create_link(self.full_sample, None)
