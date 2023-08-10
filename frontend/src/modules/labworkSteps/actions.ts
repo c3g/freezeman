@@ -1,7 +1,7 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
-import { selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectToken } from "../../selectors"
+import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID } from "../../selectors"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
@@ -129,7 +129,7 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 
 export function refreshSamplesAtStep(stepID: FMSId) {
 	return async (dispatch, getState) => {
-		const token = selectToken(getState())
+		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step) {
@@ -161,7 +161,7 @@ export function refreshSamplesAtStep(stepID: FMSId) {
  */
 export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
 	return async (dispatch, getState) => {
-		const token = selectToken(getState())
+		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step) {
@@ -181,7 +181,7 @@ export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
  */
 function reloadSelectedSamplesAtStep(stepID: FMSId) {
 	return async (dispatch, getState) => {
-		const token = selectToken(getState())
+		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step && step.selectedSamples.length > 0) {
