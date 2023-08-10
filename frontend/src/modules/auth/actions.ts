@@ -41,8 +41,8 @@ export const performAuth = (username, password) => async (dispatch, getState) =>
  * @returns boolean
  */
 export const refreshAuthToken = () => async (dispatch, getState) => {
-    // Refresh the access token if it is within 2 minutes of expiring
-    const TIME_BEFORE_TOKEN_EXPIRES = 2 * 60    
+    // Refresh the access token if it is within 5 minutes of expiring
+    const TIME_BEFORE_TOKEN_EXPIRES = 5 * 60    
 
     if (getState().auth.isFetching) {
         return false
