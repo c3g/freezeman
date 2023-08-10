@@ -238,22 +238,21 @@ _dataset_filterset_fields: FiltersetFields = {
     "experiment_run": FK_FILTERS,
 }
 
-_dataset_file_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "readset__dataset": FK_FILTERS,
-    "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
-    "file_path": CATEGORICAL_FILTERS_LOOSE,
-    "release_status": CATEGORICAL_FILTERS,
-    "release_status_timestamp": DATE_FILTERS,
-    "validation_status": CATEGORICAL_FILTERS,
-    "validation_status_timestamp": DATE_FILTERS,
-}
-
 _readset_filterset_fields: FiltersetFields = {
     "id" : PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "sample_name": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("dataset__", _dataset_filterset_fields),
+}
+
+_dataset_file_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    **_prefix_keys("readset__", _readset_filterset_fields),
+    "file_path": CATEGORICAL_FILTERS_LOOSE,
+    "release_status": CATEGORICAL_FILTERS,
+    "release_status_timestamp": DATE_FILTERS,
+    "validation_status": CATEGORICAL_FILTERS,
+    "validation_status_timestamp": DATE_FILTERS,
 }
 
 _pooled_sample_filterset_fields: FiltersetFields = {
