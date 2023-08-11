@@ -26,7 +26,6 @@ schema_view = get_schema_view(
 
 # noinspection PyUnresolvedReferences
 urlpatterns = [
-    path('', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/info/', SoftwareInformationView.as_view()),
     path('api/csrf/', csrf),
@@ -37,4 +36,5 @@ urlpatterns = [
     path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
+    path('', admin.site.urls),
 ]
