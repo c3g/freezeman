@@ -10,7 +10,7 @@ from rest_framework_simplejwt import views as jwt_views
 from fms_core.router import router
 
 from .info import CONTACT_EMAIL
-from .views import SoftwareInformationView
+from .views import SoftwareInformationView, csrf
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -29,6 +29,7 @@ urlpatterns = [
     path('', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/info/', SoftwareInformationView.as_view()),
+    path('api/csrf/', csrf),
     path('api/api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-redoc'),
     path('api/token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
