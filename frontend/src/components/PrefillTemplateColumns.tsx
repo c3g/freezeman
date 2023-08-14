@@ -13,7 +13,7 @@ interface ColumnTypeHandlers {
     select: (options: string[]) => ReactNode
 }
 
-function handleColumnType(columnType: ColumnType, { input, date, qcInstrument, barcode, select }: ColumnTypeHandlers): ReactNode {
+function handleColumnType(columnType: ColumnType, { input, date, qcInstrument, select }: ColumnTypeHandlers): ReactNode {
     if (columnType === 'number' || columnType === 'text') {
         return input(columnType)
     }
