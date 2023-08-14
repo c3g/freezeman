@@ -1,7 +1,5 @@
-from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.middleware.csrf import get_token
 
 from .info import (
     COMMIT_DATE,
@@ -15,7 +13,7 @@ from .info import (
 )
 
 
-__all__ = ["SoftwareInformationView", "csrf"]
+__all__ = ["SoftwareInformationView"]
 
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
@@ -33,7 +31,3 @@ class SoftwareInformationView(APIView):
             "repository": REPOSITORY,
             "version": VERSION,
         })
-
-
-def csrf(request):
-    return JsonResponse({'csrfToken': get_token(request)})

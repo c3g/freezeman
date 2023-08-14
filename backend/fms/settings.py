@@ -167,8 +167,6 @@ ALLOWED_HOSTS = (([os.environ.get("FMS_HOST", "")] if FMS_ENV == "PROD"
              else [os.environ.get("FMS_HOST", ""), "localhost"]) if not DEBUG 
              else [])
 
-CSRF_TRUSTED_ORIGINS = ALLOWED_HOSTS
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 

@@ -1,6 +1,5 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { getCsrfToken } from "./csrf";
 
 const api = {
   auth: {
@@ -323,7 +322,7 @@ const ongoingRequests = {}
 function apiFetch(method, route, body, options = { abort: false }) {
   const baseRoute = getPathname(route)
 
-  return async (_, getState) => {
+  return (_, getState) => {
 
     const accessToken = getState().auth.tokens.access;
 
@@ -334,8 +333,6 @@ function apiFetch(method, route, body, options = { abort: false }) {
 
     if (!isFormData(body) && isObject(body))
       headers["content-type"] = "application/json"
-    
-    headers["X-CSRFToken"] = await getCsrfToken()
 
     // For abortable requests
     let signal
@@ -361,7 +358,7 @@ function apiFetch(method, route, body, options = { abort: false }) {
           undefined,
     })
 
-    return await request.then(res => {
+    return request.then(res => {
       if (options.abort) {
         delete ongoingRequests[baseRoute]
       }
