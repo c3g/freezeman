@@ -242,6 +242,7 @@ _readset_filterset_fields: FiltersetFields = {
     "id" : PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "sample_name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample": FK_FILTERS,
     **_prefix_keys("dataset__", _dataset_filterset_fields),
 }
 
