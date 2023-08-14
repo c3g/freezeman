@@ -32,7 +32,7 @@ function useLegacySetFilterCallback(setFilter: SetFilterCallback) {
 function useLegacySetFilterOptionCallback(setFilterOption: SetFilterOptionCallback) {
 	return useCallback(
 		(filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => {
-			setFilterOption(description, { propertyName: value })
+			setFilterOption(description, { [propertyName]: value })
 		},
 		[setFilterOption]
 	)
