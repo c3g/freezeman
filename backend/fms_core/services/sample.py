@@ -154,6 +154,19 @@ def update_sample(sample_to_update, volume=None, concentration=None, depleted=No
 
 
 def inherit_sample(sample_source, new_sample_data, derived_samples_destination, volume_ratios):
+    """
+    Copy an original sample and replace attributes with values provided by new_sample_data.
+    Links the new samples to the provided derived samples with the given ratios.
+
+    Args:
+        `sample_source`: Sample object instance to be inherited.
+        `new_sample_data`: Dictionary of sample attributes to replace the matching ones on the inherited sample.
+        `derived_samples_destination`: List of derived sample object instances to be tied to the new sample.
+        `volume_ratios`: Dictionary of volume ratios for each derived sample id received in derived_samples_destination.
+
+    Returns:
+        Tuple with the created sample if successfully created otherwise None, errors and warnings
+    """
     new_sample = None
     errors = []
     warnings = []

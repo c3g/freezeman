@@ -129,10 +129,10 @@ def get_or_create_container(barcode, kind=None, name=None, coordinates=None, con
                 errors.append(f"Provided container kind {kind} does not match the container kind {container.kind} of the container retrieved using the barcode {barcode}.")
             if name and name != container.name:
                 errors.append(f"Provided container name {name} does not match the container name {container.name} of the container retrieved using the barcode {barcode}.")
-            if container_parent and container_parent.id != container.location.id:
-                errors.append(f"Provided parent container {container_parent.barcode} does not match the parent container {container.location.barcode} of the container retrieved using the barcode {barcode}.")
+            if container_parent and container_parent.id != container.location_id:
+                errors.append(f"Provided parent container {container_parent.barcode} does not match the parent container ({container.location.barcode if container.location is not None else 'None'}) of the container retrieved using the barcode {barcode}.")
             if coordinates and coordinates != container.coordinates:
-                errors.append(f"Provided container coordinates {coordinates} do not match the container coordinates {container.coordinates} of the container retrieved using the barcode {barcode}.")
+                errors.append(f"Provided container coordinates ({coordinates}) do not match the container coordinates {container.coordinates} of the container retrieved using the barcode {barcode}.")
 
         except Container.DoesNotExist:
             if container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
