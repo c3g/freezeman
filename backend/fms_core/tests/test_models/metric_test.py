@@ -7,7 +7,7 @@ class MetricTest(TestCase):
     def setUp(self):
         self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane="1", project_name="test")
         self.readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=self.dataset)
-        self.dataset_file = DatasetFile.objects.create(readset=self.readset, file_path="file_path")
+        self.dataset_file = DatasetFile.objects.create(readset=self.readset, file_path="file_path", size=1)
 
     def test_metric_numeric(self):
         metric = Metric.objects.create(name="Reads", readset=self.readset, metric_group="qc", value_numeric=10030302)

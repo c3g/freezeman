@@ -47,7 +47,7 @@ class DatasetServicesTestCase(TestCase):
     def test_create_dataset_with_replace(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset, file_path="file_path", release_status=3)
+        dataset_file, errors, warnings = create_dataset_file(readset, file_path="file_path", size=1, release_status=3)
 
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT_TOO", metric_report_url=self.METRIC_REPORT_URL, replace=True)
         self.assertIsNotNone(dataset)
@@ -61,7 +61,7 @@ class DatasetServicesTestCase(TestCase):
     def test_reset_dataset_content(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT", metric_report_url=self.METRIC_REPORT_URL)
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=ReleaseStatus.BLOCKED)
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=1, release_status=ReleaseStatus.BLOCKED)
         metric = Metric.objects.create(readset=readset, name="Reads", metric_group="RunQC", value_numeric=1000)
 
         self.assertEqual(Dataset.objects.count(), 1)
@@ -82,7 +82,7 @@ class DatasetServicesTestCase(TestCase):
     def test_create_dataset_file(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=ReleaseStatus.BLOCKED)
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=1, release_status=ReleaseStatus.BLOCKED)
 
         self.assertCountEqual(errors, [])
         self.assertCountEqual(warnings, [])
@@ -99,7 +99,7 @@ class DatasetServicesTestCase(TestCase):
     def test_create_dataset_file_with_status_released(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=ReleaseStatus.RELEASED, validation_status=ValidationStatus.PASSED)
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=1, release_status=ReleaseStatus.RELEASED, validation_status=ValidationStatus.PASSED)
 
         self.assertFalse(errors, "errors occured while creating a valid dataset file with create_dataset_file")
         self.assertFalse(warnings, "warnings is expected to be empty")
@@ -112,7 +112,7 @@ class DatasetServicesTestCase(TestCase):
     def test_create_dataset_file_with_validation_status_passed(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", validation_status=ValidationStatus.PASSED)
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=1, validation_status=ValidationStatus.PASSED)
 
         self.assertFalse(errors, "errors occured while creating a valid dataset file with create_dataset_file")
         self.assertFalse(warnings, "warnings is expected to be empty")
@@ -125,13 +125,13 @@ class DatasetServicesTestCase(TestCase):
     def test_create_dataset_file_with_invalid_status(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=3)
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=1, release_status=3)
         self.assertEqual(errors[0], "The release status can only be 0 (Available) or 1 (Released) or 2 (Blocked).")
 
     def test_set_experiment_run_lane_validation_status(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, _, _ = create_dataset_file(readset=readset, file_path="file_path")
+        dataset_file, _, _ = create_dataset_file(readset=readset, file_path="file_path", size=1)
 
         count, errors, warnings = set_experiment_run_lane_validation_status(run_name=dataset.run_name, lane=dataset.lane, validation_status=ValidationStatus.FAILED)
 
@@ -146,7 +146,7 @@ class DatasetServicesTestCase(TestCase):
     def test_get_experiment_run_lane_validation_status(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, _, _ = create_dataset_file(readset=readset, file_path="file_path")
+        dataset_file, _, _ = create_dataset_file(readset=readset, file_path="file_path", size=1)
 
         validation_status, errors, warnings = get_experiment_run_lane_validation_status(run_name=dataset.run_name, lane=dataset.lane)
 
