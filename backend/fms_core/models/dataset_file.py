@@ -13,7 +13,7 @@ class DatasetFile(TrackedModel):
     """ Class to store information about the files associated with their dataset for data deliveries. """
 
     readset = models.ForeignKey(Readset, on_delete=models.PROTECT, help_text="Readset of the file.", related_name="files")
-    path = models.CharField(null=False, max_length=STANDARD_FILE_PATH_LENGTH, help_text="Path to the dataset file.")
+    file_path = models.CharField(null=False, max_length=STANDARD_FILE_PATH_LENGTH, help_text="Path to the dataset file.")
     size = models.IntegerField(null=False, help_text="Size of the dataset file.")
     release_status = models.IntegerField(choices=ReleaseStatus.choices, default=ReleaseStatus.AVAILABLE, help_text="The release status of the file.")
     release_status_timestamp = models.DateTimeField(null=True, blank=True, help_text='The last time the release status of the file was changed.')
@@ -22,7 +22,7 @@ class DatasetFile(TrackedModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["path"], name="Datasetfile_path_key")
+            models.UniqueConstraint(fields=["file_path"], name="Datasetfile_filepath_key"),
         ]
     
     def clean(self):

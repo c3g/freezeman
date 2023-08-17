@@ -138,7 +138,7 @@ def create_dataset_file(readset: Readset,
 
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
-                                                  path=file['final_path'],
+                                                  file_path=file['final_path'],
                                                   size=file['size'],
                                                   validation_status=validation_status,
                                                   **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
