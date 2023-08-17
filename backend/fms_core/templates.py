@@ -7,6 +7,7 @@ from django.templatetags.static import static
 
 from fms_core.template_importer._constants import VALID_NORM_CHOICES
 from fms_core.models._constants import STRANDEDNESS_CHOICES
+from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
 __all__ = [
     "CONTAINER_CREATION_TEMPLATE",
@@ -492,18 +493,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       # "Extraction Type": ["DNA", "RNA"], # already prefilled by workflow
       "Volume Used (uL)": "number",
       # borrowed from extraction template
-      "Destination Container Kind": [
-            "Tube",
-            "96-well plate"
-            "384-well plate",
-            "Tube Strip 2x1",
-            "Tube Strip 3x1",
-            "Tube Strip 4x1",
-            "Tube Strip 5x1",
-            "Tube Strip 6x1",
-            "Tube Strip 7x1",
-            "Tube Strip 8x1",
-      ],
+      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
       "Volume (uL)": "number",
       "Source Depleted": ["YES", "NO"],
       "Extraction Date (YYYY-MM-DD)": "date",
@@ -534,18 +524,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
   ],
   "user prefill info": {
       # borrowed from transfer template
-      "Destination Container Kind": [
-        "Tube",
-        "96-well plate",
-        "384-well plate",
-        "Tube Strip 2x1",
-        "Tube Strip 3x1",
-        "Tube Strip 4x1",
-        "Tube Strip 5x1",
-        "Tube Strip 6x1",
-        "Tube Strip 7x1",
-        "Tube Strip 8x1",
-      ],
+      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
       "Source Depleted": ["YES", "NO"],
       "Volume Used (uL)": "number",
       "Transfer Date (YYYY-MM-DD)": "date",
