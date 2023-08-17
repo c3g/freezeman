@@ -2,7 +2,6 @@ import {LOG_OUT, PERFORM_AUTH, REFRESH_AUTH_TOKEN} from "./actions";
 
 const initialState = {
     isFetching: false,
-    didInvalidate: false,
     currentUserID: null,
     tokens: {
         access: null,

@@ -48,7 +48,8 @@ import { RootState } from './store'
 
 export const selectAppInitialized = (state: RootState) => state.app.initialized
 export const selectAuthState = (state: RootState) => state.auth
-export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access
+export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access as unknown as string | undefined
+export const selectAuthCurrentUserID = (state: RootState) => state.auth?.currentUserID as unknown as string | undefined
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
@@ -96,6 +97,5 @@ export const selectStudiesByID = (state: RootState) => state.studies.itemsByID a
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
-export const selectToken = (state: RootState) => state.auth.tokens.access
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>

@@ -10,7 +10,7 @@ import {BrowserRouter} from "react-router-dom";
 
 import "./utils/platform";
 import { setStore } from "./utils/withItem.js";
-import App from "./components/App";
+import App from "./components/app/App";
 
 import "./styles/global.css";
 import "./styles/antd-adjustments.scss";
