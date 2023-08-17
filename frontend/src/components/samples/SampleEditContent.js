@@ -20,7 +20,7 @@ const { TextArea } = Input
 import { nameRules, requiredRules } from "../../constants";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import { add, listTable, summary, update } from "../../modules/samples/actions";
-import { selectAppInitialzed, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID, selectToken } from "../../selectors";
+import { selectAppInitialized, selectAuthTokenAccess, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID } from "../../selectors";
 import api, { withToken } from "../../utils/api";
 import * as Options from "../../utils/options";
 import AppPageHeader from "../AppPageHeader";
@@ -29,7 +29,7 @@ import { fetchContainers, fetchSamples } from "../../modules/cache/cache";
 
 export const AddSampleRoute = () => {
   const [sample] = useState({...EMPTY_SAMPLE})
-  const isAppReady = useAppSelector(selectAppInitialzed)
+  const isAppReady = useAppSelector(selectAppInitialized)
 
   // The form requires the sampleKinds state, so we have to wait until
   // the app has initialized before loading the form.
@@ -42,7 +42,7 @@ export function EditSampleRoute() {
   const { id } = useParams();
   const samplesByID = useAppSelector(selectSamplesByID)
   const [sample, setSample] = useState()
-  const isAppReady = useAppSelector(selectAppInitialzed)
+  const isAppReady = useAppSelector(selectAppInitialized)
 
   // To handle a page reload, we have to fetch the sample, as it won't be in redux.
   // We also have to wait until the sampleKinds state has been loaded at startup.
@@ -81,7 +81,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const history = useNavigate()
   const dispatch = useAppDispatch()
 
-  const token = useAppSelector(selectToken)
+  const token = useAppSelector(selectAuthTokenAccess)
   const sampleKinds = useAppSelector(selectSampleKindsState)
   const containerKinds = useAppSelector(selectContainerKindsByID);
 

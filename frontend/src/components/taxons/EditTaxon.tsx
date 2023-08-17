@@ -2,7 +2,7 @@ import { Button, Form, FormItemProps, Input, Space } from "antd";
 import React, { useCallback, useState } from "react";
 import { requiredRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectAppInitialzed, selectAuthState, selectTaxonsByID, selectUsersByID } from "../../selectors";
+import { selectAppInitialized, selectAuthState, selectTaxonsByID, selectUsersByID } from "../../selectors";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { add, list, update } from "../../modules/taxons/actions";
 import AppPageHeader from "../AppPageHeader";
@@ -13,14 +13,14 @@ interface EditTaxonProps {
     taxon?: Taxon
 }
 export const AddTaxonRoute = () => {
-    const appInitialized = useAppSelector(selectAppInitialzed)
+    const appInitialized = useAppSelector(selectAppInitialized)
     return appInitialized ? <EditTaxon /> : null
 
 }
 export const EditTaxonRoute = () => {
     const taxons = useAppSelector(selectTaxonsByID)
     const { id } = useParams();
-    const appInitialized = useAppSelector(selectAppInitialzed)
+    const appInitialized = useAppSelector(selectAppInitialized)
     const authState = useAppSelector(selectAuthState)
     const usersByID = useAppSelector(selectUsersByID)
     const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false);
