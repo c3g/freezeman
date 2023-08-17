@@ -132,7 +132,6 @@ RUN_PROCESSING_SCHEMA = {
                         "fastq_1": {
                             "type": "object",
                             "properties": {
-                                "path": {"type": ["string", "null"]},
                                 "final_path": {"type": ["string", "null"]},
                                 "size": {"type": ["number", "null"]},
                             }
@@ -140,7 +139,6 @@ RUN_PROCESSING_SCHEMA = {
                         "fastq_2": {
                             "type": "object",
                             "properties": {
-                                "path": {"type": ["string", "null"]},
                                 "final_path": {"type": ["string", "null"]},
                                 "size": {"type": ["number", "null"]},
                             }
@@ -148,7 +146,6 @@ RUN_PROCESSING_SCHEMA = {
                         "bam": {
                             "type": "object",
                             "properties": {
-                                "path": {"type": ["string", "null"]},
                                 "final_path": {"type": ["string", "null"]},
                                 "size": {"type": ["number", "null"]},
                             }
@@ -156,7 +153,6 @@ RUN_PROCESSING_SCHEMA = {
                         "bai": {
                             "type": "object",
                             "properties": {
-                                "path": {"type": ["string", "null"]},
                                 "final_path": {"type": ["string", "null"]},
                                 "size": {"type": ["number", "null"]},
                             }
