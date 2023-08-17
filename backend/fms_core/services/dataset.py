@@ -101,16 +101,18 @@ class DatasetFileReport(TypedDict):
     size: int
 
 def create_dataset_file(readset: Readset,
-                        file: DatasetFileReport,
+                        file_path: str,
+                        size: int,
                         validation_status: ValidationStatus = ValidationStatus.AVAILABLE,
-                        release_status: ReleaseStatus = ReleaseStatus.AVAILABLE
+                        release_status: ReleaseStatus = ReleaseStatus.AVAILABLE,
                        ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     """
     Create a new dataset_file and return it. A dataset and readset must be created beforehand.
 
     Args:
         `readset`: Readset to which the file is related.
-        `file`: file report of the readset.
+        `file_path`: Path to the file on disk.
+        `size`: Size of the file.
         `validation_status`: Validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
         `release_status`: Release status of the file (choices : Available - 0 (default), Released - 1, Blocked - 2).
 
@@ -124,8 +126,11 @@ def create_dataset_file(readset: Readset,
     if not isinstance(readset, Readset):
         errors.append(f"Dataset file creation requires a valid readset instance.")
     
-    if not file:
-        errors.append(f"Missing file report object for dataset file.")
+    if not file_path:
+        errors.append(f"Missing file path for dataset file.")
+    
+    if not size:
+        errors.append(f"Missing size for dataset file.")
 
     if release_status not in [value for value, _ in ReleaseStatus.choices]:
         errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
@@ -138,8 +143,8 @@ def create_dataset_file(readset: Readset,
 
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
-                                                  file_path=file['final_path'],
-                                                  size=file['size'],
+                                                  file_path=file_path,
+                                                  size=size,
                                                   validation_status=validation_status,
                                                   **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
                                                   release_status=release_status,
@@ -285,7 +290,8 @@ def ingest_run_validation_report(report_json):
                     continue
 
                 dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
-                                                                           file=readset[key])
+                                                                           file_path=file['final_path'],
+                                                                           size=file['size'])
                 errors.extend(newerrors)
                 warnings.extend(newwarnings)
 
