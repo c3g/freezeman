@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, TypedDict
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
@@ -96,8 +96,12 @@ def reset_dataset_content(dataset: Dataset):
         errors.append(str(err))
     return errors, warnings
 
+class DatasetFileReport(TypedDict):
+    final_path: str
+    size: int
+
 def create_dataset_file(readset: Readset,
-                        file_path: str,
+                        file: DatasetFileReport,
                         validation_status: ValidationStatus = ValidationStatus.AVAILABLE,
                         release_status: ReleaseStatus = ReleaseStatus.AVAILABLE
                        ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
@@ -106,7 +110,7 @@ def create_dataset_file(readset: Readset,
 
     Args:
         `readset`: Readset to which the file is related.
-        `file_path`: Path to the file on disk.
+        `file`: file report of the readset.
         `validation_status`: Validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
         `release_status`: Release status of the file (choices : Available - 0 (default), Released - 1, Blocked - 2).
 
@@ -120,8 +124,8 @@ def create_dataset_file(readset: Readset,
     if not isinstance(readset, Readset):
         errors.append(f"Dataset file creation requires a valid readset instance.")
     
-    if not file_path:
-        errors.append(f"Missing file path for dataset file.")
+    if not file:
+        errors.append(f"Missing file report object for dataset file.")
 
     if release_status not in [value for value, _ in ReleaseStatus.choices]:
         errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
@@ -132,11 +136,10 @@ def create_dataset_file(readset: Readset,
     if errors:
         return dataset_file, errors, warnings
 
-    dataset_file_data = {}
-
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
-                                                  file_path=file_path,
+                                                  path=file['final_path'],
+                                                  size=file['size'],
                                                   validation_status=validation_status,
                                                   **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
                                                   release_status=release_status,
@@ -276,8 +279,13 @@ def ingest_run_validation_report(report_json):
         readset_by_name[readset_name] = readset_obj
         for key in readset:
             if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
+                file: DatasetFileReport = readset[key]
+                if file['final_path'] is None:
+                    warnings.append(("final_path not provided for file type {0} of readset {1}", key, readset_name))
+                    continue
+
                 dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
-                                                                           file_path=readset[key])
+                                                                           file=readset[key])
                 errors.extend(newerrors)
                 warnings.extend(newwarnings)
 
