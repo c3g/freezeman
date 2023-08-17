@@ -1,0 +1,9 @@
+import { createPagedItems } from "../../models/paged_items"
+import { createPagedItemsActionTypes, createPagedItemsReducer } from "../../models/paged_items_factory"
+
+export const TAXONS_PREFIX = 'TAXONS_TABLE'
+export const actionTypes = createPagedItemsActionTypes(TAXONS_PREFIX)
+
+const initialState = createPagedItems()
+
+export const taxonsTable = createPagedItemsReducer(actionTypes, initialState)

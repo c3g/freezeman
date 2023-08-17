@@ -97,5 +97,6 @@ export const selectStudiesByID = (state: RootState) => state.studies.itemsByID a
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
+export const selectTaxonsTable = (state: RootState) => state.taxonsTable
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>

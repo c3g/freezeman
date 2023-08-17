@@ -2,6 +2,8 @@ import React from "react"
 import { Link } from "react-router-dom"
 import { Taxon } from "../../models/frontend_models"
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
+import { FilterDescription } from "../../models/paged_items"
+import { FILTER_TYPE } from "../../constants"
 
 enum TaxonColumnID {
     ID = 'ID',
@@ -10,13 +12,17 @@ enum TaxonColumnID {
 }
 export type TaxonColumn = IdentifiedTableColumnType<Taxon>
 
-export const getColumnsForTaxon = (hasWritePermission: boolean): TaxonColumn[] => {
-    const TAXON_COLUMN_DEFINITIONS = TAXON_COLUMNS(hasWritePermission);
-    return TAXON_COLUMN_DEFINITIONS.map((column: TaxonColumn) => { return { ...column } })
+export function getColumnsForTaxon(hasWritePermission: boolean): TaxonColumn[] {
+    const columnDefinitions = TAXON_COLUMN_DEFINITIONS(hasWritePermission)
+    return [
+        columnDefinitions.ID,
+        columnDefinitions.NCBI_ID,
+        columnDefinitions.NAME
+    ]
 }
 
-const TAXON_COLUMNS = (hasWritePermission: boolean): TaxonColumn[] => [
-    {
+export const TAXON_COLUMN_DEFINITIONS = (hasWritePermission: boolean): { [key in TaxonColumnID]: TaxonColumn } => ({
+    [TaxonColumnID.ID]: {
         columnID: TaxonColumnID.ID,
         title: 'ID',
         dataIndex: ['taxon', 'id'],
@@ -32,7 +38,7 @@ const TAXON_COLUMNS = (hasWritePermission: boolean): TaxonColumn[] => [
                     {id}
                 </div>),
     },
-    {
+    [TaxonColumnID.NCBI_ID]: {
         columnID: TaxonColumnID.NCBI_ID,
         title: 'NCBI ID',
         dataIndex: ['taxon', 'ncbi_id'],
@@ -48,7 +54,7 @@ const TAXON_COLUMNS = (hasWritePermission: boolean): TaxonColumn[] => [
                     {ncbi_id}
                 </div>),
     },
-    {
+    [TaxonColumnID.NAME]: {
         columnID: TaxonColumnID.NAME,
         title: 'Name',
         dataIndex: ['taxon', 'name'],
@@ -59,5 +65,28 @@ const TAXON_COLUMNS = (hasWritePermission: boolean): TaxonColumn[] => [
                 <div>{name}</div>
             ),
     }
-]
+})
 
+export const TAXON_FILTERS: { [key in TaxonColumnID]: FilterDescription } = {
+    [TaxonColumnID.ID]: {
+		type: FILTER_TYPE.INPUT_OBJECT_ID,
+		key: 'id',
+		label: 'ID',
+    },
+    [TaxonColumnID.NCBI_ID]: {
+		type: FILTER_TYPE.INPUT_OBJECT_ID,
+		key: 'ncbi_id',
+		label: 'NCBI ID',
+    },
+    [TaxonColumnID.NAME]: {
+		type: FILTER_TYPE.INPUT,
+		key: 'name',
+		label: 'Name',
+    }
+}
+
+export const TAXON_FILTER_KEYS: { [key in TaxonColumnID]: string } = {
+    [TaxonColumnID.ID]: 'id',
+    [TaxonColumnID.NCBI_ID]: 'ncbi_id',
+    [TaxonColumnID.NAME]: 'name'
+}
