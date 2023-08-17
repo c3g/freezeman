@@ -4,7 +4,7 @@ import { useIDParam } from '../../../hooks/useIDParams'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { initSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
-import { selectAppInitialzed, selectLabworkStepsState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
+import { selectAppInitialized, selectLabworkStepsState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
 import LabworkStep from './LabworkStep'
 
 
@@ -16,7 +16,7 @@ import LabworkStep from './LabworkStep'
 
 const LabworkStepRoute = () => {
 	const stepID = useIDParam('stepID')
-	const appInitialized = useAppSelector(selectAppInitialzed)
+	const appInitialized = useAppSelector(selectAppInitialized)
 	const labworkStepsState = useAppSelector(selectLabworkStepsState)
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)

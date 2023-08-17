@@ -9,39 +9,41 @@ import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
-import About from "./About";
-import ContainersPage from "./containers/ContainersPage";
-import DashboardPage from "./DashboardPage";
-import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
-import IndicesPage from "./indices/IndicesPage";
-import IndividualsPage from "./individuals/IndividualsPage";
-import JumpBar from "./JumpBar";
-import LibrariesPage from "./libraries/LibrariesPage";
-import LoginPage from "./login/LoginPage";
-import ProcessesPage from "./processes/ProcessesPage";
-import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
-import ProfilePage from "./profile/ProfilePage";
-import ProjectsPage from "./projects/ProjectsPage";
-import SamplesPage from "./samples/SamplesPage";
-import UsersPage from "./users/UsersPage";
+import About from "../About";
+import ContainersPage from "../containers/ContainersPage";
+import DashboardPage from "../DashboardPage";
+import ExperimentRunsPage from "../experimentRuns/ExperimentRunsPage";
+import IndicesPage from "../indices/IndicesPage";
+import IndividualsPage from "../individuals/IndividualsPage";
+import JumpBar from "../JumpBar";
+import LibrariesPage from "../libraries/LibrariesPage";
+import LoginPage from "../login/LoginPage";
+import ProcessesPage from "../processes/ProcessesPage";
+import ProcessMeasurementsPage from "../processMeasurements/ProcessMeasurementsPage";
+import ProfilePage from "../profile/ProfilePage";
+import ProjectsPage from "../projects/ProjectsPage";
+import SamplesPage from "../samples/SamplesPage";
+import UsersPage from "../users/UsersPage";
 
-import PrivateNavigate from "./PrivateNavigate";
+import PrivateNavigate from "../PrivateNavigate";
 
-import { matchingMenuKeys, renderMenuItem } from "../utils/menus";
-import { hour } from "../utils/time";
-import useUserInputExpiration from "../utils/useUserInputExpiration";
+import { matchingMenuKeys, renderMenuItem } from "../../utils/menus";
+import { hour } from "../../utils/time";
+import useUserInputExpiration from "../../utils/useUserInputExpiration";
 
-import { useAppDispatch, useAppSelector } from "../hooks";
-import { setAppInitialized } from "../modules/app/actions";
-import { logOut } from "../modules/auth/actions";
-import { fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
-import { get } from "../modules/users/actions";
-import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
-import DatasetsPage from "./datasets/DatasetsPage";
-import LabworkPage from "./labwork/LabworkPage";
-import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
-import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
-import TaxonsRoute from "./taxons/TaxonsRoute";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { setAppInitialized } from "../../modules/app/actions";
+import { logOut } from "../../modules/auth/actions";
+import { fetchListedData, fetchStaticData, fetchSummariesData } from "../../modules/shared/actions";
+import { get } from "../../modules/users/actions";
+import { selectAppInitialized } from "../../selectors";
+import DatasetsPage from "../datasets/DatasetsPage";
+import LabworkPage from "../labwork/LabworkPage";
+import ReferenceGenomesRoute from "../referenceGenomes/ReferenceGenomesRoute";
+import TaxonsRoute from "../taxons/TaxonsRoute";
+import WorkflowDefinitionsRoute from "../workflows/WorkflowDefinitionsRoute";
+import { useAuthInit } from "./useAuthInit";
+import { useRefreshHook } from "./useRefreshHook";
 
 
 const { Title } = Typography;
@@ -178,30 +180,27 @@ export const actionCreators = { logOut, get };
 const App = ({userID, usersByID, logOut, get}) => {
   /* global FMS_ENV */
   const env = FMS_ENV
-
   const dispatch = useAppDispatch()
-  const isInitialized = useAppSelector(selectAppInitialzed)
-  const token = useAppSelector(selectAuthTokenAccess)
+  const isInitialized = useAppSelector(selectAppInitialized)
+  const isLoggedIn = useAuthInit()
 
+  // Once the user has a valid auth token, go ahead and load the initial data for the app.
   useEffect(() => {
     async function loadInitialData() {
+      await get(userID)
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
       dispatch(fetchListedData())
       dispatch(fetchSummariesData())
     }
 
-    loadInitialData()
+    if (isLoggedIn) {
+      loadInitialData()
+    }
+  }, [userID, isLoggedIn, get, dispatch]);
 
-    const interval = setInterval(() => {
-      dispatch(fetchSummariesData())
-      dispatch(fetchLabworkSummary())
-    }, 30000);
+  useRefreshHook(isLoggedIn)
 
-    return () => clearInterval(interval);
-  }, [dispatch, token]);
-
-  const isLoggedIn = userID !== null;
   const user = usersByID[userID];
 
   const menuItems = getMenuItems(user, logOut);

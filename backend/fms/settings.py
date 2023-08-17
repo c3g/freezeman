@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'drf_yasg',
-    'import_export',
     'rest_framework',
     'rest_framework_simplejwt',
     'reversion',
@@ -207,10 +206,6 @@ MEDIA_URL = '/media/'
 
 TEMP_ROOT = os.path.join(BASE_DIR, 'tmp/') # for temporary files created during request processing.
 
-# django_import_export
-
-IMPORT_EXPORT_USE_TRANSACTIONS = True  # should it be True with reversion ?
-
 # Tests
 
 TEST_RUNNER = "fms_core.management.runner.PytestTestRunner"
@@ -286,3 +281,5 @@ SIMPLE_JWT = {
 'JTI_CLAIM': 'jti',
 'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

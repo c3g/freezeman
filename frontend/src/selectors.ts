@@ -46,9 +46,10 @@ import { RootState } from './store'
     const projectsByID = useSelector(selectProjectsByID)
 */
 
-export const selectAppInitialzed = (state: RootState) => state.app.initialized
+export const selectAppInitialized = (state: RootState) => state.app.initialized
 export const selectAuthState = (state: RootState) => state.auth
-export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access
+export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access as unknown as string | undefined
+export const selectAuthCurrentUserID = (state: RootState) => state.auth?.currentUserID as unknown as string | undefined
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>

@@ -6,7 +6,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { add, list, update } from "../../modules/referenceGenomes/actions";
 import { requiredRules } from "../../constants";
-import { selectAppInitialzed, selectAuthState, selectReferenceGenomesByID, selectTaxonsByID, selectUsersByID } from "../../selectors";
+import { selectAppInitialized, selectAuthState, selectReferenceGenomesByID, selectTaxonsByID, selectUsersByID } from "../../selectors";
 import * as Options from "../../utils/options";
 import { ReferenceGenome, getAllItems } from "../../models/frontend_models";
 
@@ -15,14 +15,14 @@ interface EditReferenceGenomesProps {
 }
 
 export const AddReferenceGenomeRoute = () => {
-    const appInitialized = useAppSelector(selectAppInitialzed)
+    const appInitialized = useAppSelector(selectAppInitialized)
     return appInitialized ? <EditReferenceGenomes /> : null
 };
 
 export const EditReferenceGenomeRoute = () => {
     const { id } = useParams()
     const referenceGenomes = useAppSelector(selectReferenceGenomesByID)
-    const appInitialized = useAppSelector(selectAppInitialzed)
+    const appInitialized = useAppSelector(selectAppInitialized)
     const authState = useAppSelector(selectAuthState)
     const usersByID = useAppSelector(selectUsersByID)
     const hasWritePermission = ((authState.currentUserID && usersByID[authState.currentUserID]) ? usersByID[authState.currentUserID].is_superuser : false);

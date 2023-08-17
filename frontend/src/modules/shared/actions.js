@@ -13,7 +13,6 @@ import Protocols from "../protocols/actions";
 import ExperimentRuns from "../experimentRuns/actions";
 import Taxons from "../taxons/actions";
 import ReferenceGenomes from "../referenceGenomes/actions"
-import {refreshAuthToken} from "../auth/actions";
 import Datasets from "../datasets/actions";
 import DatasetFiles from "../datasetFiles/actions"
 import Workflows from "../workflows/actions"
@@ -24,11 +23,7 @@ import { refreshAllStudySamples } from "../studySamples/actions";
 import ProjectsTableActions from '../projectsTable/actions'
 
 
-export const fetchSummariesData = () => async (dispatch, getState) => {
-    await dispatch(refreshAuthToken())
-
-    if (!getState().auth.tokens.access) return;
-
+export const fetchSummariesData = () => async (dispatch) => {
     await Promise.all([
         Containers.summary,
         Indices.summary,
@@ -40,23 +35,13 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
     ].map(a => dispatch(a())))
 };
 
-export const fetchLabworkSummary = () => async (dispatch, getState) => {
-    await dispatch(refreshAuthToken())
-
-    if (!getState().auth.tokens.access) {
-        return
-    }
-
+export const fetchLabworkSummary = () => async (dispatch) => {
     const labworkChanged = await dispatch(refreshLabwork())
     if (labworkChanged === true) {
         dispatch(refreshAllStudySamples())
     }
 }
-export const fetchStaticData = () => async (dispatch, getState) => {
-    await dispatch(refreshAuthToken())
-
-    if (!getState().auth.tokens.access) return;
-
+export const fetchStaticData = () => async (dispatch) => {
     await Promise.allSettled([
         Coordinates.list,
         Containers.listKinds,
@@ -88,11 +73,7 @@ export const fetchStaticData = () => async (dispatch, getState) => {
         Containers.listPrefillTemplates,
     ].map(a => dispatch(a())))
 }
-export const fetchListedData = () => async (dispatch, getState) => {
-    await dispatch(refreshAuthToken())
-
-    if (!getState().auth.tokens.access) return;
-
+export const fetchListedData = () => async (dispatch) => {
     // Higher priority
     await Promise.all([
         Containers.listTable,

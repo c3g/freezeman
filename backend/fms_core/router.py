@@ -31,6 +31,7 @@ from .viewsets import (
     ImportedFileViewSet,
     DatasetViewSet,
     DatasetFileViewSet,
+    ReadsetViewSet,
     PooledSamplesViewSet,
     WorkflowViewSet,
     ReferenceGenomeViewSet,
@@ -76,6 +77,7 @@ router.register(r"groups", GroupViewSet)
 router.register(r"sample-lineage", SampleLineageViewSet, basename="sample-lineage")
 router.register(r"imported-files", ImportedFileViewSet, basename="imported-files")
 router.register(r"datasets", DatasetViewSet, basename="datasets")
+router.register(r"readsets", ReadsetViewSet, basename="readsets")
 router.register(r"dataset-files", DatasetFileViewSet, basename="dataset-files")
 router.register(r"workflows", WorkflowViewSet)
 router.register(r"reference-genomes", ReferenceGenomeViewSet)

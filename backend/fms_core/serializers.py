@@ -625,7 +625,7 @@ class PooledSampleSerializer(serializers.Serializer):
     # a list of samples from multiple pools and then group them by pool on the client side.
     pool_id = serializers.IntegerField(read_only=True, source='sample.id')
 
-    volume_ratio = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
+    volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
     # Associated project info
     project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
@@ -680,7 +680,7 @@ class PooledSampleSerializer(serializers.Serializer):
 class PooledSampleExportSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample, for export to CSV.
     '''
-    volume_ratio = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
+    volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
     # Associated project info
     project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
