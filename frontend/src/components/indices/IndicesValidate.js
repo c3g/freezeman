@@ -32,10 +32,10 @@ const IndicesValidate = () => {
 
   const dispatch = useAppDispatch()
 
-  const listCallback = useCallback((options) => {
+  const listIndices = useCallback((options) => {
     return dispatch(list(options))
   }, [dispatch])
-  const validateCallback = useCallback((options) => {
+  const validateIndices = useCallback((options) => {
     return dispatch(validate(options))
   }, [dispatch])
   const listInstrumentTypes = useCallback(() => {
@@ -80,7 +80,7 @@ const IndicesValidate = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const loadData = (setOptions) => {
+  const loadData = useCallback((setOptions) => {
     const targetSet = setOptions[setOptions.length - 1]
     const setID = targetSet.value
     const numIndicesInSet = targetSet.numChildren
@@ -89,7 +89,7 @@ const IndicesValidate = () => {
     setIndexCount(prevIndexCount => prevIndexCount + numIndicesInSet)
 
     // load options lazily
-    listCallback({ ...query }).then(response => {
+    listIndices({ ...query }).then(response => {
       const indices = response.results
       const indicesID = indices.map(index => index.id)
       //concatenate existing indices to the retrieved ones
@@ -104,7 +104,7 @@ const IndicesValidate = () => {
       setIndicesBySet([...indicesBySet])
       setloadedIndices(currentIndices => ([...currentIndices, ...indicesID]))
     })
-  }
+  }, [indicesBySet, listIndices])
 
   /*
    * Form Data submission
@@ -122,10 +122,10 @@ const IndicesValidate = () => {
     setFormData({ ...formData, ...values })
   }
 
-  const onSubmit = () => {
+  const onSubmit = useCallback(() => {
     setValidationLoading(true)
     const data = serialize(formData)
-    validateCallback(data)
+    validateIndices(data)
       .then((response) => {
         setValidationLoading(false)
         setFormErrors({})
@@ -135,7 +135,7 @@ const IndicesValidate = () => {
         setValidationLoading(false)
         setFormErrors(err.data || {})
       })
-  }
+  }, [formData, serialize, validateIndices])
 
   const onCancel = useCallback(() => {
     history(-1)
@@ -155,7 +155,7 @@ const IndicesValidate = () => {
       help: formErrors[name],
     }
 
-  function serialize(values) {
+  const serialize = useCallback((values) => {
     const newValues = { ...values }
 
     if (newValues.indices) {
@@ -174,7 +174,7 @@ const IndicesValidate = () => {
     }
 
     return newValues
-  }
+  }, [indicesBySet])
 
   return (
     <>
