@@ -62,7 +62,7 @@ export const TAXON_COLUMN_DEFINITIONS = (hasWritePermission: boolean): { [key in
         width: '60%',
         render: (_, { name }) =>
             name && (
-                <div>{name}</div>
+                <i>{name}</i>
             ),
     }
 })

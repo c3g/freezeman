@@ -4,6 +4,6 @@ import { createPagedItemsActionTypes, createPagedItemsReducer } from "../../mode
 export const TAXONS_TABLE_PREFIX = 'TAXONS_TABLE'
 export const actionTypes = createPagedItemsActionTypes(TAXONS_TABLE_PREFIX)
 
-const initialState = createPagedItems()
+const initialState = createPagedItems(undefined, 10)
 
 export const taxonsTable = createPagedItemsReducer(actionTypes, initialState)
