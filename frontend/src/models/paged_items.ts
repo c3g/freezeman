@@ -99,7 +99,7 @@ export interface PagedItemsByID<T extends PagedItem> extends PagedItems {
 }
 
 // Create a PagedItems instance, with all properties set to defaults.
-export function createPagedItems(fixedFilters?: FilterSet, pageSize: number = 20) : PagedItems {
+export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
 	const DEFAULT_PAGED_ITEMS: PagedItems = {
 		isFetching: false,
 		items: [],
@@ -108,7 +108,7 @@ export function createPagedItems(fixedFilters?: FilterSet, pageSize: number = 20
 		filters: {},
 		sortBy: {},
 		page: {
-			limit: pageSize
+			limit: 20
 			// Note: The pageNumber is left undefined intentionally. A page number
 			// should only be set when the page items are loaded.
 		},
