@@ -88,7 +88,7 @@ const EditTaxon = ({ taxon }: EditTaxonProps) => {
                 navigate('/taxons')
             })
             .then(() => { dispatch(list()) })
-		    .then(() => { dispatch(TaxonsTableActions.setStale(true)) })
+	    .then(() => { dispatch(TaxonsTableActions.setStale(true)) })
             .catch(err => setFormErrors({ ...err.data }))
         }
     }
