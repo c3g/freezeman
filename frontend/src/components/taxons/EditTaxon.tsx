@@ -74,22 +74,22 @@ const EditTaxon = ({ taxon }: EditTaxonProps) => {
             dispatch(
                 add({ ...new_taxon })
             )
-                .then(() => {
-                    navigate('/taxons')
-                })
-                .then(() => { dispatch(list()) })
-		.then(() => { dispatch(TaxonsTableActions.setStale(true)) })
-                .catch(err => setFormErrors({ ...err.data }))
+            .then(() => {
+                navigate('/taxons')
+            })
+            .then(() => { dispatch(list()) })
+            .then(() => { dispatch(TaxonsTableActions.setStale(true)) })
+            .catch(err => setFormErrors({ ...err.data }))
         } else {
             dispatch(
                 update(taxon.id, { ...new_taxon })
             )
-                .then(() => {
-                    navigate('/taxons')
-                })
-                .then(() => { dispatch(list()) })
-		.then(() => { dispatch(TaxonsTableActions.setStale(true)) })
-                .catch(err => setFormErrors({ ...err.data }))
+            .then(() => {
+                navigate('/taxons')
+            })
+            .then(() => { dispatch(list()) })
+		    .then(() => { dispatch(TaxonsTableActions.setStale(true)) })
+            .catch(err => setFormErrors({ ...err.data }))
         }
     }
     const onCancel = useCallback(() => {
