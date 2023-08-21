@@ -7,7 +7,8 @@ CATEGORICAL_FILTERS = ["exact", "in"]
 CATEGORICAL_FILTERS_LOOSE = [*CATEGORICAL_FILTERS, *FREE_TEXT_FILTERS]
 FK_FILTERS = CATEGORICAL_FILTERS
 PK_FILTERS = ["in"]
-NULLABLE_FK_FILTERS = [*FK_FILTERS, "isnull"]
+NULLABLE_FILTERS = ["isnull"]
+NULLABLE_FK_FILTERS = [*FK_FILTERS, *NULLABLE_FILTERS]
 SCALAR_FILTERS = ["exact", "lt", "lte", "gt", "gte"]
 DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
 
@@ -142,7 +143,8 @@ _platform_filterset_fields: FiltersetFields = {
 _instrument_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "type": CATEGORICAL_FILTERS_LOOSE,
-    **_prefix_keys("platform__", _platform_filterset_fields)
+    "instruments": NULLABLE_FILTERS,
+    **_prefix_keys("platform__", _platform_filterset_fields),
 }
 
 _run_type_filterset_fields: FiltersetFields = {
