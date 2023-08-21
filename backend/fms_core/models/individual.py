@@ -45,7 +45,7 @@ class Individual(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['name']),
+            models.Index(fields=['name'], name='individual_name_idx'),
         ]
     
     def __str__(self):

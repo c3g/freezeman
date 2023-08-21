@@ -3,7 +3,7 @@ import React, { useCallback } from 'react'
 import { useAppSelector } from '../../hooks'
 import { Project } from '../../models/frontend_models'
 import ProjectsTableActions from '../../modules/projectsTable/actions'
-import { selectProjectTemplateActions, selectProjectsByID, selectProjectsTable, selectToken } from '../../selectors'
+import { selectAuthTokenAccess, selectProjectTemplateActions, selectProjectsByID, selectProjectsTable } from '../../selectors'
 import api, { withToken } from '../../utils/api'
 import mergedListQueryParams from '../../utils/mergedListQueryParams'
 import { ActionDropdown } from '../../utils/templateActions'
@@ -33,7 +33,7 @@ const ProjectsListContent = () => {
 	const projectsTableState  = useAppSelector(selectProjectsTable)
 	const { filters, sortBy, totalCount } = projectsTableState
 	const templateActions = useAppSelector(selectProjectTemplateActions)
-	const token = useAppSelector(selectToken)
+	const token = useAppSelector(selectAuthTokenAccess)
 
 	const listExport = useCallback(() => {
 		return withToken(token, api.projects.listExport)

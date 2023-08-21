@@ -55,39 +55,39 @@ class PoolsRowHandler(GenericRowHandler):
                         avg_concentration = sum(concentrations) / len(concentrations)
                         tested_concentration = (sample_tested["Source Sample"].concentration * sample_tested["Volume Used"]) / sample_tested["Volume In Pool"]
                         if abs(tested_concentration - avg_concentration) > TOLERANCE:
-                            self.warnings["concentration"] = [(f"Source sample {sample_tested['Source Sample'].name} in pool {pool['name']} have concentration that is more than "
-                                                              f"{TOLERANCE} ng/uL away from the average concentration of the other samples in the pool. "
-                                                              f"This is likely normal if the sample is a negative control.")]
+                            self.warnings["concentration"] = [("Source sample {0} in pool {1} have concentration that is more than "
+                                                              "{2} ng/uL away from the average concentration of the other samples in the pool. "
+                                                              "This is likely normal if the sample is a negative control.", [sample_tested['Source Sample'].name, pool['name'], TOLERANCE])]
             
             # Validate indices from the samples being pooled
             if pool_is_library and seq_instrument_type is not None:
                 instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
+                if instrument_type_obj is not None:
+                    indices = []
+                    samples_name = []
+                    for sample in samples_info:
+                        sample_name = sample["Source Sample"].name
+                        for derived_sample in sample["Source Sample"].derived_samples.all():
+                            indices.append(derived_sample.library.index)
+                            samples_name.append(sample_name)
+                    results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
 
-                indices = []
-                samples_name = []
-                for sample in samples_info:
-                    sample_name = sample["Source Sample"].name
-                    for derived_sample in sample["Source Sample"].derived_samples.all():
-                        indices.append(derived_sample.library.index)
-                        samples_name.append(sample_name)
-                results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
-
-                if not results["is_valid"]:
-                    index_errors = []
-                    index_warnings = []
-                    for i, index_ref in enumerate(indices):
-                        for j, index_val in enumerate(indices):
-                            index_distance = results["distances"][i][j]
-                            # Errors if collision
-                            if index_distance is not None and all(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
-                                index_errors.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
-                                                    f"Index {index_val.name} for sample {samples_name[j]} are colliding.")
-                            # Warnings if too close
-                            elif index_distance is not None and all(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
-                                index_warnings.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
-                                                      f"Index {index_val.name} for sample {samples_name[j]} are not different enough {index_distance}.")
-                    self.errors["index_colision"] = index_errors
-                    self.warnings["index_colision"] = index_warnings
+                    if not results["is_valid"]:
+                        index_errors = []
+                        index_warnings = []
+                        for i, index_ref in enumerate(indices):
+                            for j, index_val in enumerate(indices):
+                                index_distance = results["distances"][i][j]
+                                # Errors if collision
+                                if index_distance is not None and all(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
+                                    index_errors.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
+                                                        f"Index {index_val.name} for sample {samples_name[j]} are colliding.")
+                                # Warnings if too close
+                                elif index_distance is not None and all(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
+                                    index_warnings.append(("Index {0} for sample {1} and "
+                                                          "Index {2} for sample {3} are not different enough {4}.", [index_ref.name, samples_name[i], index_val.name, samples_name[j], index_distance]))
+                        self.errors["index_colision"] = index_errors
+                        self.warnings["index_colision"] = index_warnings
 
             # Create a process for each pool created
             process_by_protocol, self.errors["process"], self.warnings["process"] = create_process(protocol=protocol,

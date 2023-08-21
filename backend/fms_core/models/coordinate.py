@@ -22,7 +22,7 @@ class Coordinate(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['name']),
+            models.Index(fields=['name'], name='coordinate_name_idx'),
         ]
     
     def __str__(self) -> str:

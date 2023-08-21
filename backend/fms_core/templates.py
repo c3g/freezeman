@@ -5,6 +5,9 @@ various viewsets. Can be used to calculate URIs for the template files too.
 
 from django.templatetags.static import static
 
+from fms_core.template_importer._constants import VALID_NORM_CHOICES
+from fms_core.models._constants import STRANDEDNESS_CHOICES
+
 __all__ = [
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
@@ -17,6 +20,7 @@ __all__ = [
     "LIBRARY_PREPARATION_TEMPLATE",
     "LIBRARY_QC_TEMPLATE",
     "NORMALIZATION_TEMPLATE",
+    "NORMALIZATION_PLANNING_TEMPLATE",
     "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
@@ -231,6 +235,9 @@ LIBRARY_PREPARATION_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+        "Strandedness": STRANDEDNESS_CHOICES
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Library", "Sample Name", "name", "name"),
@@ -254,6 +261,13 @@ LIBRARY_QC_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+      "QC Date (YYYY-MM-DD)": "date",
+      "Volume Used (uL)": "number",
+      "Quality Instrument": "qc-instrument",
+      "Quantity Instrument": "qc-instrument"
+  },
+
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
     ("LibraryQC", "Library Name", "name", "name"),
@@ -279,6 +293,11 @@ NORMALIZATION_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+        "Normalization Date (YYYY-MM-DD)": "date",
+        "Conc. (ng/uL)": "number",
+        "Conc. (nM)": "number",
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
@@ -297,6 +316,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
+                    'Source Container Location Barcode', 'Source Container Location Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                     'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)',
@@ -304,11 +324,16 @@ NORMALIZATION_PLANNING_TEMPLATE = {
         'batch': False,
       },
   ],
+  "user prefill info": {
+      "Robot Norm Choice": VALID_NORM_CHOICES
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
+      ("Normalization", "Source Container Location Barcode", "container__location__barcode", "container_location_barcode"),
+      ("Normalization", "Source Container Location Coord", "container__coodinate__name", "container_location_coordinates"),
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
@@ -435,6 +460,12 @@ SAMPLE_QC_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "QC Date (YYYY-MM-DD)": "date",
+      "Volume Used (uL)": "number",
+      "Quality Instrument": "qc-instrument",
+      "Quantity Instrument": "qc-instrument"
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("SampleQC", "Sample Name", "name", "name"),
@@ -457,6 +488,10 @@ SAMPLE_EXTRACTION_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "Extraction Date (YYYY-MM-DD)": "date",
+  }
+  ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("ExtractionTemplate", "Current Volume (uL)", "volume", "volume"),
@@ -479,6 +514,9 @@ SAMPLE_TRANSFER_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "Transfer Date (YYYY-MM-DD)": "date",
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("SampleTransfer", "Source Sample Name", "name", "name"),

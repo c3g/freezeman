@@ -6,6 +6,7 @@ from .group import GroupViewSet
 from .index import IndexViewSet
 from .individual import IndividualViewSet
 from .instrument import InstrumentViewSet
+from .instrument_type import InstrumentTypeViewSet
 from .process import ProcessViewSet
 from .process_measurement import ProcessMeasurementViewSet
 from .property_value import PropertyValueViewSet
@@ -35,6 +36,7 @@ from .sample_next_step import SampleNextStepViewSet
 from .step import StepViewSet
 from .sample_next_step_by_study import SampleNextStepByStudyViewSet
 from .step_history import StepHistoryViewSet
+from .readset import ReadsetViewSet
 from .coordinate import CoordinateViewSet
 from .metric import MetricViewSet
 
@@ -47,6 +49,7 @@ __all__ = [
     "IndexViewSet",
     "IndividualViewSet",
     "InstrumentViewSet",
+    "InstrumentTypeViewSet",
     "ProcessViewSet",
     "ProcessMeasurementViewSet",
     "ProtocolViewSet",
@@ -76,6 +79,7 @@ __all__ = [
     "StepViewSet",
     "SampleNextStepByStudyViewSet",
     "StepHistoryViewSet",
+    "ReadsetViewSet",
     "CoordinateViewSet",
     "MetricViewset"
 ]

@@ -8,6 +8,7 @@ from .viewsets import (
     IndexViewSet,
     IndividualViewSet,
     InstrumentViewSet,
+    InstrumentTypeViewSet,
     LibraryViewSet,
     LibraryTypeViewSet,
     PlatformViewSet,
@@ -30,6 +31,7 @@ from .viewsets import (
     ImportedFileViewSet,
     DatasetViewSet,
     DatasetFileViewSet,
+    ReadsetViewSet,
     PooledSamplesViewSet,
     WorkflowViewSet,
     ReferenceGenomeViewSet,
@@ -66,6 +68,7 @@ router.register(r"sequences", SequenceViewSet)
 router.register(r"taxons", TaxonViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"instruments", InstrumentViewSet)
+router.register(r"instrument-types", InstrumentTypeViewSet)
 router.register(r"query", QueryViewSet, basename="query")
 router.register(r"versions", VersionViewSet)
 router.register(r"revisions", RevisionViewSet)
@@ -74,6 +77,7 @@ router.register(r"groups", GroupViewSet)
 router.register(r"sample-lineage", SampleLineageViewSet, basename="sample-lineage")
 router.register(r"imported-files", ImportedFileViewSet, basename="imported-files")
 router.register(r"datasets", DatasetViewSet, basename="datasets")
+router.register(r"readsets", ReadsetViewSet, basename="readsets")
 router.register(r"dataset-files", DatasetFileViewSet, basename="dataset-files")
 router.register(r"workflows", WorkflowViewSet)
 router.register(r"reference-genomes", ReferenceGenomeViewSet)

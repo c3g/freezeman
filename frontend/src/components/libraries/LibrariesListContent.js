@@ -12,7 +12,7 @@ import { QCFlag } from "../QCFlag";
 
 import api, { withToken } from "../../utils/api";
 
-import { TOGGLE_OPTIONS } from "../../constants.js";
+import { TOGGLE_OPTIONS } from "../../constants";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import FiltersWarning from "../filters/FiltersWarning";
 import { LIBRARY_FILTERS } from "../filters/descriptions";

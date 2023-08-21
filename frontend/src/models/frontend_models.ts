@@ -19,6 +19,7 @@ import {
 	FMSIndex,
 	FMSIndividual,
 	FMSInstrument,
+	FMSInstrumentType,
 	FMSLibrary,
 	FMSLibraryType,
 	FMSPlatform,
@@ -28,6 +29,7 @@ import {
 	FMSProject,
 	FMSPropertyValue,
 	FMSProtocol,
+	FMSReadset,
 	FMSReferenceGenome,
 	FMSRunType,
 	FMSSample,
@@ -114,6 +116,7 @@ export interface ImportedFile extends Readonly<FMSImportedFile>, FetchedObject {
 export interface Index extends Readonly<FMSIndex>, FetchedObject {}
 export interface Individual extends Readonly<FMSIndividual>, FetchedObject {}
 export interface Instrument extends Readonly<FMSInstrument>, FetchedObject {}
+export interface InstrumentType extends Readonly<FMSInstrumentType>, FetchedObject {}
 export interface Library extends Readonly<FMSLibrary>, FetchedObject {}
 export interface LibraryType extends Readonly<FMSLibraryType>, FetchedObject {}
 export interface Platform extends Readonly<FMSPlatform>, FetchedObject {}
@@ -125,6 +128,7 @@ export interface PropertyValue extends Readonly<FMSPropertyValue>, FetchedObject
 export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
 export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
 export interface RunType extends Readonly<FMSRunType>, FetchedObject {}
+export interface Readset extends Readonly<FMSReadset>, FetchedObject {}
 export interface Sample extends Readonly<FMSSample>, FetchedObject {}
 export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
 export interface SampleNextStep extends Readonly<FMSSampleNextStep>, FetchedObject {}

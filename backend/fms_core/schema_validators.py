@@ -122,9 +122,10 @@ RUN_PROCESSING_SCHEMA = {
                             "items": {
                                 "type": "object",
                                 "properties": {
+                                    "external_project_id": {"type": "string"},
                                     "PROJECT": {"type": "string"},
                                 },
-                                "required": ["PROJECT"]
+                                "required": ["external_project_id", "PROJECT"]
                             },
                             "minItems": 1,
                         },

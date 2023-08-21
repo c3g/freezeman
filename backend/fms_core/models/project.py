@@ -31,7 +31,7 @@ class Project(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['name']),
+            models.Index(fields=['name'], name='project_name_idx'),
         ]
     def clean(self):
         super().clean()

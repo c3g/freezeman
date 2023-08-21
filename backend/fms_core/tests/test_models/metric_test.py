@@ -5,7 +5,7 @@ from fms_core.models import Dataset, Readset, DatasetFile, Metric
 
 class MetricTest(TestCase):
     def setUp(self):
-        self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane="1")
+        self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane="1", project_name="test")
         self.readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=self.dataset)
         self.dataset_file = DatasetFile.objects.create(readset=self.readset, file_path="file_path")
 

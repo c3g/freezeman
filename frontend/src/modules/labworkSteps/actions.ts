@@ -1,7 +1,7 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
-import { selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectToken } from "../../selectors"
+import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID } from "../../selectors"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
@@ -129,7 +129,7 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 
 export function refreshSamplesAtStep(stepID: FMSId) {
 	return async (dispatch, getState) => {
-		const token = selectToken(getState())
+		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step) {
@@ -161,7 +161,7 @@ export function refreshSamplesAtStep(stepID: FMSId) {
  */
 export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
 	return async (dispatch, getState) => {
-		const token = selectToken(getState())
+		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step) {
@@ -181,7 +181,7 @@ export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
  */
 function reloadSelectedSamplesAtStep(stepID: FMSId) {
 	return async (dispatch, getState) => {
-		const token = selectToken(getState())
+		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step && step.selectedSamples.length > 0) {
@@ -280,7 +280,7 @@ export const listTemplateActions = () => (dispatch, getState) => {
  * @param stepID Step ID
  * @returns 
  */
-export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId) => {
+export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_prefill_data: any) => {
 	return async (dispatch, getState) => {
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
@@ -290,7 +290,8 @@ export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId) => {
 				sample__id__in: step.selectedSamples.join(','),
 				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}
-			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, options))
+			// {"Volume Used (uL)" : "30"}
+			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data) , options))
 			return fileData
 		}
 	}

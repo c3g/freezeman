@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
-import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography } from 'antd'
+import { Alert, Button, Checkbox, Form, Input, Modal, Popconfirm, Radio, Select, Space, Tabs, Typography } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
@@ -20,6 +20,7 @@ import { SampleColumnID, SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } f
 import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { clearFilters } from '../../../modules/labworkSteps/actions'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
+import PrefillButton from '../../PrefillTemplateColumns'
 
 const { Text } = Typography
 
@@ -80,7 +81,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// ** Template handling **
 
 	// A selected template picker is used if protocol supports more than one template
-	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>();
+	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
+	
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
@@ -97,10 +99,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
 
 	const handlePrefillTemplate = useCallback(
-		async () => {
+		async (prefillData: { [column: string]: any }) => {
 			if (selectedTemplate) {
 				try {
-					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id))
+					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData))
 					if (result) {
 						downloadFromFile(result.filename, result.data)
 					}
@@ -287,6 +289,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
+
+
 	const canSelectAllSamples = stepSamples.displayedSamples.length > 0;
 	const buttonBar = (
 		<Space>
@@ -312,7 +316,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
+			<PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
 			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
 			<RefreshButton
 				refreshing={isRefreshing}

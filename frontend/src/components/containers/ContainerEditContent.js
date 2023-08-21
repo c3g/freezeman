@@ -132,10 +132,13 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" {...props("name")} rules={nameRules.concat(requiredRules)}>
+          <Item label="Name" {...props("name")} rules={nameRules.concat(requiredRules)}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
+            extra="Unique name given to a container." >
             <Input />
           </Item>
-          <Item label="Kind" {...props("kind")} rules={requiredRules}>
+          <Item label="Kind" {...props("kind")} rules={requiredRules}
+            extra="Format of the container." >
             <Select>
               {containerKinds.map(kind =>
                 kind.is_run_container || <Option key={kind.id} value={kind.id}>{kind.id}</Option>
@@ -146,11 +149,14 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
             label="Barcode"
             {...props("barcode")}
             rules={barcodeRules.concat(requiredRules)}
+            tooltip="Space not allowed."
+            extra="Unique scannable identifier for the container."
           >
             <Input />
           </Item>
           <Item label="Location" style={{ margin: 0 }}>
-            <Item {...props("location")} style={{ display: 'inline-block', width: '60%', marginRight: '1em' }}>
+            <Item {...props("location")} style={{ display: 'inline-block', width: '60%', marginRight: '1em' }}
+              extra="Parent container." >
               <Select
                 showSearch
                 allowClear
@@ -160,7 +166,8 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
                 onFocus={onFocusLocation}
               />
             </Item>
-            <Item label="@" {...props("coordinate")} style={{ display: 'inline-block', width: '38%'}}>
+            <Item label="@" {...props("coordinate")} style={{ display: 'inline-block', width: '38%'}}
+              extra="Coordinates within parent, if applicable." >
               <Select
                 showSearch
                 allowClear

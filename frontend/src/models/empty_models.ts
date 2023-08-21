@@ -13,7 +13,7 @@ export const container = {
     location: null, 
     children: [], 
     samples: [],
-  }
+  } as const
   
   export const sample = {
     id: null,
@@ -33,7 +33,7 @@ export const container = {
     container: null, // container.id
     extracted_from: null, // sample.id
     project: null // project.id
-  }
+  } as const
   
   export const individual = {
     name: "",
@@ -44,7 +44,7 @@ export const container = {
     cohort: "",
     mother: null,
     father: null
-  }
+  } as const
   
   export const user = {
     username: "",
@@ -59,7 +59,7 @@ export const container = {
     is_active: true, // To soft-delete the user
     // last_login: null,
     date_joined: null,
-  }
+  } as const
   
   export const project = {
     name: "",
@@ -69,4 +69,4 @@ export const container = {
     targeted_end_date: "",
     status: "Open",
     comment: "",
-  }
+  } as const

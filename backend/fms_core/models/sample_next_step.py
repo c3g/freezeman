@@ -22,7 +22,7 @@ class SampleNextStep(TrackedModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=['sample', 'step']),
+            models.Index(fields=['sample', 'step'], name='samplenextstep_sample_step_idx'),
         ]
         constraints = [
             models.UniqueConstraint(fields=["step_id", "sample_id"], name="samplenextstep_stepid_sampleid_key")

@@ -154,6 +154,19 @@ def update_sample(sample_to_update, volume=None, concentration=None, depleted=No
 
 
 def inherit_sample(sample_source, new_sample_data, derived_samples_destination, volume_ratios):
+    """
+    Copy an original sample and replace attributes with values provided by new_sample_data.
+    Links the new samples to the provided derived samples with the given ratios.
+
+    Args:
+        `sample_source`: Sample object instance to be inherited.
+        `new_sample_data`: Dictionary of sample attributes to replace the matching ones on the inherited sample.
+        `derived_samples_destination`: List of derived sample object instances to be tied to the new sample.
+        `volume_ratios`: Dictionary of volume ratios for each derived sample id received in derived_samples_destination.
+
+    Returns:
+        Tuple with the created sample if successfully created otherwise None, errors and warnings
+    """
     new_sample = None
     errors = []
     warnings = []
@@ -441,7 +454,7 @@ def pool_samples(process: Process,
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
                 for derived_sample in source_sample.derived_samples.all():
                     parent_volume_ratio = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample).volume_ratio
-                    final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio)
+                    final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio, 15)
 
                     # In case samples with common derived samples (transfer, normalization, pooling) are pooled together
                     if DerivedBySample.objects.filter(sample=sample_destination, derived_sample=derived_sample).exists():
@@ -548,7 +561,7 @@ def pool_submitted_samples(samples_info,
         for sample in samples_info:
             sample_volume = sample["volume"]
             # Calculate the volume ratio of each sample in the pool
-            sample["volume_ratio"] = decimal_rounded_to_precision(sample_volume / pool_volume)
+            sample["volume_ratio"] = decimal_rounded_to_precision(sample_volume / pool_volume, 15)
 
         try:
             coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
@@ -794,10 +807,10 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
         # Update the QC flags for the given sample
         if quantity_flag and quality_flag:
             if sample.quantity_flag is not None and sample.quantity_flag != (quantity_flag == 'Passed'):
-                warnings.append(f"Sample {sample.name} quantity flag will be changed to {quantity_flag}.")
+                warnings.append(("Sample {0} quantity flag will be changed to {1}.", [sample.name, quantity_flag]))
             sample.quantity_flag = (quantity_flag == 'Passed')
             if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
-                warnings.append(f"Sample {sample.name} quality flag will be changed to {quality_flag}.")
+                warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
             sample.quality_flag = (quality_flag == 'Passed')
             sample.save()
         else:
@@ -859,7 +872,7 @@ def update_sample_metadata(sample, metadata):
                     metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
                     # Add warning if the new value is the same as the old value
                     if metadata_obj.value == value:
-                        warnings.append(f'Sample [{sample.name}] has metadata [{name}] with the same value [{value}]')
+                        warnings.append(('Sample [{0}] has metadata [{1}] with the same value [{2}]', [sample.name, name, value]))
                     metadata_obj.value = value
                     metadata_obj.save()
                 else:

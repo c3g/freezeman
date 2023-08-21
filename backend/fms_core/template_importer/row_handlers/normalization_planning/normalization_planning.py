@@ -47,7 +47,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         if source_sample_obj is not None and not self.has_errors():
             # Add a warning if the sample has failed qc
             if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
-                self.warnings["qc_flags"] = (f"Source sample {source_sample_obj.name} has failed QC.")
+                self.warnings["qc_flags"] = ("Source sample {0} has failed QC.", [source_sample_obj.name])
                 
             # ensure that the sample source is a library if the norm choice is library
             # If it is a pool we have to check if it is a pool of libraries
@@ -120,10 +120,10 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             if volume_used > source_sample_obj.volume:
                 adjusted_volume = decimal_rounded_to_precision(source_sample_obj.volume * source_sample_obj.concentration / combined_concentration_nguL)
                 volume_used = source_sample_obj.volume
-                self.warnings['volume'] = f'Insufficient source sample volume to comply. ' \
-                                          f'Requested Final volume ({measurements["volume"]} uL) ' \
-                                          f'will be adjusted to {adjusted_volume} uL to ' \
-                                          f'maintain requested concentration while using all source sample volume.'
+                self.warnings['volume'] = ('Insufficient source sample volume to comply. ' \
+                                          'Requested Final volume ({0} uL) ' \
+                                          'will be adjusted to {1} uL to ' \
+                                          'maintain requested concentration while using all source sample volume.', [measurements["volume"], adjusted_volume])
             elif measurements['volume'] == LOAD_ALL:
                 adjusted_volume = decimal_rounded_to_precision(na_qty / combined_concentration_nguL)
                 self.warnings['volume'].append(("Final volume will be set to {0} uL to maintain requested concentration while using all source sample volume ({1} uL).", [adjusted_volume, volume_used]))

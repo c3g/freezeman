@@ -20,7 +20,7 @@ const { TextArea } = Input
 import { nameRules, requiredRules } from "../../constants";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import { add, listTable, summary, update } from "../../modules/samples/actions";
-import { selectAppInitialzed, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID, selectToken } from "../../selectors";
+import { selectAppInitialized, selectAuthTokenAccess, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID } from "../../selectors";
 import api, { withToken } from "../../utils/api";
 import * as Options from "../../utils/options";
 import AppPageHeader from "../AppPageHeader";
@@ -29,7 +29,7 @@ import { fetchContainers, fetchSamples } from "../../modules/cache/cache";
 
 export const AddSampleRoute = () => {
   const [sample] = useState({...EMPTY_SAMPLE})
-  const isAppReady = useAppSelector(selectAppInitialzed)
+  const isAppReady = useAppSelector(selectAppInitialized)
 
   // The form requires the sampleKinds state, so we have to wait until
   // the app has initialized before loading the form.
@@ -42,7 +42,7 @@ export function EditSampleRoute() {
   const { id } = useParams();
   const samplesByID = useAppSelector(selectSamplesByID)
   const [sample, setSample] = useState()
-  const isAppReady = useAppSelector(selectAppInitialzed)
+  const isAppReady = useAppSelector(selectAppInitialized)
 
   // To handle a page reload, we have to fetch the sample, as it won't be in redux.
   // We also have to wait until the sampleKinds state has been loaded at startup.
@@ -81,7 +81,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const history = useNavigate()
   const dispatch = useAppDispatch()
 
-  const token = useAppSelector(selectToken)
+  const token = useAppSelector(selectAuthTokenAccess)
   const sampleKinds = useAppSelector(selectSampleKindsState)
   const containerKinds = useAppSelector(selectContainerKindsByID);
 
@@ -270,20 +270,25 @@ const SampleEditContent = ({ sample, isAdding}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}>
+          <Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
+            extra="Name given to a sample." >
             <Input />
           </Item>
-          <Item label="Alias" {...props("alias")} extra="Defaults to the name if left empty.">
+          <Item label="Alias" {...props("alias")}
+            extra="Name originally given by the client. Defaults to the name if left empty." >
             <Input />
           </Item>
-          <Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
+          <Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}
+            extra="Biosample nature." >
             <Select
               options={sampleKindOptions}
               onSearch={onSearchSampleKind}
               onFocus={onFocusSampleKind}
             />
           </Item>
-          <Item label="Tissue Source" {...props("tissue_source")}>
+          <Item label="Tissue Source" {...props("tissue_source")}
+            extra="Sample kind before extraction." >
             <Select
               allowClear
               disabled={!isTissueEnabled}
@@ -292,7 +297,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
               onFocus={onFocusTissueSource}
             />
           </Item>
-          <Item label="Individual" {...props("individual")}>
+          <Item label="Individual" {...props("individual")}
+            extra="Individual or identifiable source of a sample." >
             <Select
               showSearch
               allowClear
@@ -302,7 +308,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
               onFocus={onFocusIndividual}
             />
           </Item>
-          <Item label="Container" {...props("container")} rules={requiredRules}>
+          <Item label="Container" {...props("container")} rules={requiredRules}
+            extra="Container holding the sample." >
             <Select
               showSearch
               allowClear
@@ -312,7 +319,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
               onFocus={onFocusContainer}
             />
           </Item>
-          <Item label="Coordinates" {...props("coordinate")}>
+          <Item label="Coordinates" {...props("coordinate")}
+            extra="Coordinates of the sample in the container, if applicable." >
             <Select
               showSearch
               allowClear
@@ -323,7 +331,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
               onFocus={onFocusCoordinate}
             />
           </Item>
-          <Item label="Depleted" {...props("depleted")} valuePropName="checked">
+          <Item label="Depleted" {...props("depleted")} valuePropName="checked"
+            extra="Indicator that reflects insufficient volume for more processing." >
             <Switch />
           </Item>
           {isAdding &&
@@ -331,6 +340,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
               label="Vol. (µL)"
               {...props("volume")}
               rules={requiredRules}
+              extra="Volume in µL."
             >
               <InputNumber step={0.001} />
             </Item>
@@ -342,17 +352,20 @@ const SampleEditContent = ({ sample, isAdding}) => {
           >
             <InputNumber step={0.001} />
           </Item>
-          <Item label="Exp. Group" {...props("experimental_group")}>
+          <Item label="Exp. Group" {...props("experimental_group")}
+            extra="Comma separated list of experimental groups to associate sample to experimental or control conditions." >
             <Select mode="tags" />
           </Item>
-          <Item label="Collection Site" {...props("collection_site")}>
+          <Item label="Collection Site" {...props("collection_site")}
+            extra="Location of the sample collection." >
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
             />
           </Item>
-          <Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
+          <Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}
+            extra="Date the sample was received from the client or was created in the lab." >
             <DatePicker />
           </Item>
           <Item label="Comment" {...props("comment")}>

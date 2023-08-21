@@ -1,5 +1,5 @@
 import React from "react";
-import {Popover, Table, Tabs, Badge} from "antd";
+import {Popover, Table, Tabs, Badge, Space} from "antd";
 import {WarningOutlined} from "@ant-design/icons";
 import innerHTMLPurified from "../../utils/innerHTMLPurified";
 const {TabPane} = Tabs;
@@ -18,10 +18,9 @@ export const TemplatePreview = ({checkResult}) => {
     <Tabs size="large" type="card">
       {checkResult.result_previews?.map((preview, index) =>
          <TabPane tab={preview.name} key={index}>
-                {!checkResult.valid && renderResultWithErrors(preview)}
-            <p>
-                {renderPreviewSheetTable(preview)}
-            </p>
+            {!checkResult.valid && renderResultWithErrors(preview)}
+            {renderResultWithWarnings(preview)}
+            {renderPreviewSheetTable(preview)}
          </TabPane>
       )}
     </Tabs>
@@ -35,17 +34,17 @@ const renderResultWithErrors = (previewSheetInfo) => {
   previewSheetInfo.rows?.forEach((row, index) => {
     row.errors.forEach(e => {
       errors.push(
-        <div key={'row-' + index}>
+        <li key={'row-' + index}>
           Row {row.row_repr}: {e.error}
-        </div>
+        </li>
       )
     })
     row.validation_error?.forEach(field => {
       field[1].forEach(reason => {
         errors.push(
-          <div key={'row-' + index + field[0] + reason}>
+          <li key={'row-' + index + field[0] + reason}>
             Row {row.row_repr}: {field[0]} - {reason}
-          </div>
+          </li>
         )
       })
     })
@@ -61,11 +60,44 @@ const renderResultWithErrors = (previewSheetInfo) => {
         { errors.length > 0 &&
           <p>
             <h4>ERRORS: </h4>
+            <ul>
             {errors}
+            </ul>
           </p>
         }
     </>
   )
+}
+
+const renderResultWithWarnings = (previewSheetInfo) => {
+  const warnings = {}
+  previewSheetInfo.rows?.forEach((row) => {
+    row.warnings.forEach((warning) => {
+      warnings[warning.format] = warnings[warning.format] ?? []
+      warnings[warning.format].push({
+        args: warning.args,
+        row: row.row_repr.substring(1)
+      })
+    })
+  })
+
+  return Object.keys(warnings).length > 0 ? <>
+    <h4>WARNINGS:</h4>
+    <ul>
+      {Object.entries(warnings).sort(([_1, a], [_2, b]) => a.length - b.length).map(([format, array]) => {
+        const MAX_ROWS_DISPLAYED = 10
+        const warning = format.replace(/\{[0-9]*\}/g, "...")
+        const rows = array.map((x) => x.row)
+        const extra = rows.length > MAX_ROWS_DISPLAYED ? `... (+${rows.length - MAX_ROWS_DISPLAYED} others)` : ''
+        return <li key={format}>
+            <Space>
+              <Badge count={array.length} style={{backgroundColor: 'gray'}} overflowCount={Number.MAX_SAFE_INTEGER}/>
+              {`${warning} (Row # ${rows.slice(0, MAX_ROWS_DISPLAYED).join(", ")}${extra})`}
+            </Space>
+          </li>
+      })}
+    </ul>
+  </> : null
 }
 
 const renderPreviewSheetTable = (previewSheetInfo) => {
@@ -110,7 +142,9 @@ const renderPreviewSheetTable = (previewSheetInfo) => {
     row.warnings.length > 0 && (
       row_data['warning'] = (
         <div key={`warning-${index}`}>
-          {row.warnings.map(warning => <p>{warning}</p>)}
+          {row.warnings.map(({key, format, args}, index) => <p key={index}>{`${key} : ${args.reduce((prev, curr, index) => {
+            return prev.replace(`{${index}}`, curr)
+          }, format)}`}</p>)}
         </div>
       )
     )

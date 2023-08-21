@@ -13,7 +13,7 @@ class SamplesToPoolRowHandler(GenericRowHandler):
 
         # Add a warning if the sample has failed qc
         if any([sample.quality_flag is False, sample.quantity_flag is False]):
-            self.warnings["qc_flags"] = (f"Sample {sample.name} has failed QC.")
+            self.warnings["qc_flags"] = ("Sample {0} has failed QC.", [sample.name])
 
         if volume_used is None:
             self.errors["volume_used"] = f"Volume used is required."

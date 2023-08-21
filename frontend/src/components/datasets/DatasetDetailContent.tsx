@@ -38,8 +38,11 @@ const getTableColumns = (toggleReleaseStatus, releaseStatusOption, canReleaseOrB
         },
         {
             title: "Sample Name",
-            dataIndex: "sample_name",
+            dataIndex: "readset__sample_name",
             sorter: true,
+            render: (_, file: DatasetFile) => {
+                return <>{file.readset.sample_name}</>
+            }
         },
         {
             title: "Release Status",
@@ -255,7 +258,7 @@ const DatasetDetailContent = () => {
     <PageContent>
         <Descriptions bordered={true} size={"small"} column={4}>
             <Descriptions.Item label={"ID"} span={1}>{loading(dataset?.id)}</Descriptions.Item>
-            <Descriptions.Item label={"Project"} span={1}>{loading(dataset?.external_project_id)}</Descriptions.Item>
+            <Descriptions.Item label={"Project"} span={1}>{loading(dataset?.project_name)}</Descriptions.Item>
             <Descriptions.Item label={"Run Name"} span={2}>{loading(dataset?.run_name)}</Descriptions.Item>
             <Descriptions.Item label={"Lane"} span={1}>{loading(dataset?.lane)}</Descriptions.Item>
             <Descriptions.Item label={"Lane Validation Status"} span={1}>{laneValidationStatus !== undefined && 
