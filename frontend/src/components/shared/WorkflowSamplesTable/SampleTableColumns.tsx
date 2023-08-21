@@ -43,6 +43,7 @@ export enum SampleColumnID {
 	DEPLETED = 'DEPLETED',
 	PROJECT = 'PROJECT',
 	COHORT = 'COHORT',
+	SAMPLE_COUNT = 'SAMPLE_COUNT',
 }
 
 export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
@@ -228,7 +229,19 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""}/>
 			</Link>)
 		}
-	}
+	},
+	[SampleColumnID.SAMPLE_COUNT]: 	{
+		columnID: SampleColumnID.SAMPLE_COUNT,
+		title: 'Samples in pool',
+		dataIndex: ['sample', 'id'],
+		render: (_, { sample }) => {
+			return (
+					sample && sample.is_pool
+					? sample.derived_samples_count
+					: ''
+				)
+			},
+	},
 }
 
 /**
@@ -345,6 +358,11 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: "Cohort",
+	},
+	[SampleColumnID.SAMPLE_COUNT]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: "Samples in pool",
 	}
 }
 
@@ -366,7 +384,8 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.DEPLETED]: 'sample__depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'sample__derived_samples__project__name',
-	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort'
+	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
 export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: string } = {
@@ -383,7 +402,8 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: s
 	[SampleColumnID.DEPLETED]: 'sample_next_step__sample__depleted',
 	[SampleColumnID.QC_FLAG]: 'sample_next_step__qc_flag',
 	[SampleColumnID.PROJECT]: 'sample_next_step__sample__derived_samples__project__name',
-	[SampleColumnID.COHORT]: 'sample_next_step__sample__derived_samples__biosample__individual__cohort'
+	[SampleColumnID.COHORT]: 'sample_next_step__sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
 export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
@@ -400,5 +420,6 @@ export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.DEPLETED]: 'depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'derived_samples__project__name',
-	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort'
+	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.SAMPLE_COUNT]: '',
 }
