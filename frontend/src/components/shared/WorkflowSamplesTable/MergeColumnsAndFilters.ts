@@ -67,3 +67,29 @@ export function addFiltersToColumns<T>(
 	})
 	return mergedColumns
 }
+
+/**
+ * Filters definitions and filter keys are defined separately, because we need to reuse some
+ * filter definitions in different tables, where the filter keys are different in each table.
+ * 
+ * This function just sets the proper keys in a filter set. For each filter, the function looks
+ * up the corresponding key and sets it in the filter.
+ * 
+ * An updated copy of the FilterSet is returned containing the proper keys.
+ * @param filters 
+ * @param filterKeys 
+ * @returns 
+ */
+export function mergeFiltersAndFilterKeys(filters: FilterDescriptionSet, filterKeys: FilterKeySet): FilterDescriptionSet {
+	const mergedFilters = {}
+	for(const columnID in filters) {
+		const sourceFilter = filters[columnID]
+
+		const key = filterKeys[columnID] ?? sourceFilter.key
+		mergedFilters[columnID] = {
+			...sourceFilter,
+			key
+		}
+	}
+	return mergedFilters
+}

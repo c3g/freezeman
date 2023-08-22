@@ -112,3 +112,13 @@ export function serializeSortByParams(sortBy: SortBy) {
 	}
 	return undefined
 }
+
+/**
+ * Converts a set of filters to a list of query params that can be sent to a 'list' endpoint.
+ * @param filters 
+ * @param sortBy 
+ * @returns 
+ */
+export function filtersQueryParams(filters: FilterSet, sortBy: SortBy){
+	return {...serializeFilterParamsWithDescriptions(filters), ordering: serializeSortByParams(sortBy)}
+  }

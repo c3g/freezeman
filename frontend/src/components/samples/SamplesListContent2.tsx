@@ -1,11 +1,10 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
 import { useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
 import SamplesTableActions from '../../modules/samplesTable/actions'
 import { selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable, selectToken } from '../../selectors'
 import api, { withToken } from '../../utils/api'
-import mergedListQueryParams from '../../utils/mergedListQueryParams'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
@@ -21,6 +20,7 @@ import FiltersBar from '../filters/FiltersBar'
 import ExportDropdown from '../ExportDropdown'
 import FilterPanel from '../filters/filterGroup/FilterPanel'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
+import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
 
 const samplesTableColumns = [
 	SampleColumns.ID,
@@ -60,19 +60,19 @@ function SamplesListContent() {
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(SampleCategory.ALL)
 
 	const prefillTemplate = useCallback(({template}) =>
-		withToken(token, api.samples.prefill.request)(mergedListQueryParams(SAMPLE_COLUMN_FILTERS, filters, sortBy), template)
+		withToken(token, api.samples.prefill.request)(filtersQueryParams(filters, sortBy), template)
 		.then(response => response)
 	, [token, filters, sortBy])
 
 	const listExport = useCallback(() => {
-		return withToken(token, api.projects.listExport)
-			(mergedListQueryParams(SAMPLE_COLUMN_FILTERS, filters, sortBy))
+		return withToken(token, api.samples.listExport)
+			(filtersQueryParams(filters, sortBy))
 			.then(response => response.data)
 	}
 	, [token, filters, sortBy])
 
 	const listExportMetadata = useCallback(() =>
-		withToken(token, api.samples.listExportMetadata)(mergedListQueryParams(SAMPLE_COLUMN_FILTERS, filters, sortBy))
+		withToken(token, api.samples.listExportMetadata)(filtersQueryParams(filters, sortBy))
 		.then(response => response.data)
 	, [token, filters, sortBy])
 

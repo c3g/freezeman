@@ -162,9 +162,8 @@ export function isRangeFilterValue(value?: FilterValue): value is RangeFilterVal
 }
 
 export function isMetadataFilterValue(value?: FilterValue): value is MetadataFilterValue {
-	if (value) {
-		const v = value as MetadataFilterValue
-		return ('name' in v)
+	if (Array.isArray(value)) {
+		return (value as Array<any>).every(v => ('name' in v))
 	}
 	return false
 }
