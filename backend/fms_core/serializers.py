@@ -4,7 +4,7 @@ from fms_core.services.taxon import can_edit_taxon
 from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from django.db.models import Max, F
+from django.db.models import Max, F, Sum
 from fms_core.services.study import can_remove_study
 
 from .models import (
@@ -601,9 +601,14 @@ class DatasetSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
 
 class ReadsetSerializer(serializers.ModelSerializer):
+    total_size = serializers.SerializerMethodField()
+
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample")
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "total_size")
+
+    def get_total_size(self, obj: Readset):
+        return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)
