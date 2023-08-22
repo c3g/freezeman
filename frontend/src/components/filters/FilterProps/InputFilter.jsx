@@ -3,6 +3,8 @@ import { Switch, Tooltip } from 'antd'
 import DebouncedInput from './DebouncedInput'
 
 
+
+
 const InputFilter = ({value, options, description, filterKey, setFilter, setFilterOption, confirm, visible}) => {
 
     const inputRef = useRef()
@@ -34,12 +36,12 @@ const InputFilter = ({value, options, description, filterKey, setFilter, setFilt
     }, [visible])
   
     return (
-      <div style={{ padding: 8, alignItems: 'center' }}>
+      <div style={{ alignItems: 'center' }}>
             <DebouncedInput
               ref={inputRef}
               allowClear
               placeholder={`Search ${description.label}`}
-              style={{ marginRight: 8 }}
+              style={{ marginRight: 8, width: description.width }}
               value={value}
               onInputChange={text => onSearch(text)}
               onPressEnter={confirm}

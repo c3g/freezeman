@@ -29,7 +29,7 @@ const RangeFilterComponent = ({minValue, defaultMin, maxValue, filterKey, setFil
       }, [visible])
   
     return (
-      <div style={{ padding: 8 }}>
+      <div>
           <Input.Group compact style={{ marginBottom: 8 }}>
             <InputNumber
                 ref = {inputRef}

@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors";
+import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
-import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../shared/WorkflowSamplesTable/SampleTableColumns";
+import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
-import { Project, Protocol, Sample } from "../../models/frontend_models";
+import { Project, Protocol, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
 
 const lastProtocols = api.protocols.lastProtocols;

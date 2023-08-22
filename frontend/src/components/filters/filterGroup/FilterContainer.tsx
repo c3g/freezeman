@@ -7,18 +7,17 @@ export const filterContainer: React.CSSProperties = {
 	border: '1px solid #ddd',
 	borderRadius: '2px',
 	padding: '0.5rem',
-	marginRight: '0.75rem',
-	marginBottom: '0.75rem',
+	// marginRight: '0.75rem',
+	// marginBottom: '0.75rem',
 }
 
-interface FilterInputProps extends React.PropsWithChildren {
+interface FilterContainerProps extends React.PropsWithChildren {
 	label: string
-	width?: React.CSSProperties['width']
 }
 
-const FilterContainer = ({ label, width = 200, children }: FilterInputProps) => {
+const FilterContainer = ({ label, children }: FilterContainerProps) => {
 	return (
-		<div style={{...filterContainer, width}}>
+		<div style={{...filterContainer}}>
 			<FilterLabel>{label}</FilterLabel>
 			{ children }
 		</div>

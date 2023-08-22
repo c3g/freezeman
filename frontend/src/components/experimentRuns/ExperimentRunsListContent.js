@@ -8,7 +8,7 @@ import PaginatedTable from "../PaginatedTable";
 import { clearFilters, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/experimentRuns/actions";
 import { EXPERIMENT_RUN_FILTERS } from "../filters/descriptions";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
-import { getFilterPropsIncludingDescriptions } from '../shared/WorkflowSamplesTable/getFilterPropsTS';
+import { getFilterPropsIncludingDescriptions } from '../filters/getFilterPropsTS';
 import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard";
 
 

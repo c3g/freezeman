@@ -384,6 +384,8 @@ export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.DEPLETED]: 'depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'derived_samples__project__name',
+	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
 export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } = {
@@ -422,20 +424,3 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: s
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
-export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
-	[SampleColumnID.ID]: 'id',
-	[SampleColumnID.KIND]: 'derived_samples__sample_kind__name',
-	[SampleColumnID.NAME]: 'name',
-	[SampleColumnID.INDIVIDUAL]: 'derived_samples__biosample__individual__name',
-	[SampleColumnID.CONTAINER_NAME]: 'container__name',
-	[SampleColumnID.CONTAINER_BARCODE]: 'container__barcode',
-	[SampleColumnID.COORDINATES]: 'coordinate__name',
-	[SampleColumnID.VOLUME]: 'volume',
-	[SampleColumnID.CONCENTRATION]: 'concentration',
-	[SampleColumnID.CREATION_DATE]: 'creation_date',
-	[SampleColumnID.DEPLETED]: 'depleted',
-	[SampleColumnID.QC_FLAG]: 'qc_flag',
-	[SampleColumnID.PROJECT]: 'derived_samples__project__name',
-	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
-	[SampleColumnID.SAMPLE_COUNT]: '',
-}

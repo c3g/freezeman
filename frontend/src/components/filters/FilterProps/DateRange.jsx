@@ -32,7 +32,7 @@ const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, vis
       }, [visible])
   
     return (
-      <div style={{ padding: 8 }}>
+      <div>
         <Input.Group compact style={{ marginBottom: 8 }}>
           <RangePicker
             ref = {dateRangeRef}

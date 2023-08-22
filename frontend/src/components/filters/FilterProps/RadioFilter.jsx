@@ -23,7 +23,7 @@ const RadioFilter = ({value, options, description, filterKey, setFilter, confirm
       }, [visible])
 
     return (
-      <div style={{ padding: 8 }}>
+      <div>
           <Radio.Group
             value={value}
             onChange={ev => onSearch(ev, confirm)}

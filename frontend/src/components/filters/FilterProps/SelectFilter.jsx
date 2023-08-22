@@ -23,7 +23,7 @@ const SelectFilter = ({value, title, options, filterKey, setFilter, confirm, vis
       }, [visible])
   
     return (
-      <div style={{ padding: 8 }}>
+      <div>
           <Select
             ref={selectRef}
             style={{ width: 200, display: 'block' }}

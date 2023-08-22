@@ -38,12 +38,11 @@ const InputNumberFilter = ({value, validationFunc, description, filterKey, setFi
   
   
     return (
-        <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
             <DebouncedInput
               ref={inputRef}
               allowClear
               placeholder={`Search ${description.label}`}
-              style={{ marginRight: 8 }}
               value={value}
               onInputChange={num => onSearch(num)}
               onPressEnter={confirm}
