@@ -23,11 +23,10 @@ import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithSample
 function getContainerKindOptions() {
 	const containerKinds = selectContainerKindsByID(store.getState())
 	if (containerKinds) {
-		const options = Object.values(containerKinds).map((containerKind) => {
+		const options = Object.keys(containerKinds).map((containerKind) => {
 			return {
-				label: containerKind.name,
-				value: containerKind.name
-	
+				label: containerKind,
+				value: containerKind
 			}
 		})
 		return options
@@ -146,7 +145,7 @@ export enum ContainerFilterID {
 	KIND = ContainerColumnID.KIND,
 	LOCATION = ContainerColumnID.LOCATION,
 	COORDINATE = ContainerColumnID.COORDINATE,
-	COMMENT = 'COMMENT,'
+	COMMENT = 'COMMENT'
 }
 
 export const CONTAINER_COLUMN_FILTERS: { [key in ContainerFilterID]: FilterDescription } = {
@@ -202,9 +201,9 @@ export const CONTAINER_FILTER_KEYS: {[key in ContainerFilterID] : string } = {
 	[ContainerFilterID.ID]: 'id',
 	[ContainerFilterID.NAME]: 'name',
 	[ContainerFilterID.BARCODE]: 'barcode',
-	[ContainerFilterID.SAMPLES]: 'samples',
+	[ContainerFilterID.SAMPLES]: 'samples__name',
 	[ContainerFilterID.KIND]: 'kind',
 	[ContainerFilterID.COMMENT]: 'comment',
 	[ContainerFilterID.COORDINATE]: 'coordinate__name',
-	[ContainerFilterID.LOCATION]: 'location',
+	[ContainerFilterID.LOCATION]: 'location__name',
 }

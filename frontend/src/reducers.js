@@ -93,6 +93,7 @@ import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
 import { projectsTable} from './modules/projectsTable/reducers'
 import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { samplesTable } from './modules/samplesTable/reducers'
+import { containersTable } from './modules/containersTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -108,6 +109,7 @@ const allReducers = combineReducers({
   containerTemplateActions,
   containerPrefillTemplates,
   containers,
+  containersTable,
   datasets,
   datasetFiles,
   experimentRuns,

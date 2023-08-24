@@ -1,4 +1,5 @@
 import {
+	Container,
 	Coordinate,
 	Dataset,
 	DatasetFile,
@@ -51,7 +52,10 @@ export const selectAuthState = (state: RootState) => state.auth
 export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access as unknown as string | undefined
 export const selectAuthCurrentUserID = (state: RootState) => state.auth?.currentUserID as unknown as string | undefined
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
-export const selectContainersByID = (state: RootState) => state.containers.itemsByID
+export const selectContainerPrefillTemplates = (state: RootState) => state.containerPrefillTemplates
+export const selectContainersByID = (state: RootState) => state.containers.itemsByID as ItemsByID<Container>
+export const selectContainersTable = (state: RootState) => state.containersTable
+export const selectContainerTemplateActions = (state: RootState) => state.containerTemplateActions
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
 export const selectDatasetFilesState = (state: RootState) => state.datasetFiles

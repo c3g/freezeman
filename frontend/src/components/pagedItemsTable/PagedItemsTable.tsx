@@ -11,6 +11,7 @@ import { RootState } from '../../store'
 import FiltersBar from '../filters/FiltersBar'
 import { addFiltersToColumns } from '../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
+import { selectAppInitialized } from '../../selectors'
 
 
 /*  This is a hook that merges column definitions with filter definitions to produce
@@ -24,6 +25,12 @@ export function useFilteredColumns<T>(
 	setFilterCallback: PagedItemsActionsCallbacks['setFilterCallback'],
 	setFilterOptionsCallback: PagedItemsActionsCallbacks['setFilterOptionsCallback']
 ) {
+	// This is a hack for SELECT filters that need static redux state that is loaded when
+	// the app starts. It forces the filters to be rebuilt after the static data has been
+	// loaded. This is needed when the user reloads a page containing a table with dynamic
+	// filter values initialize from static app state. Ideally, we wouldn't render the UX
+	// until after the static data is loaded, in which case we wouldn't need hacks like this.
+	const isAppInitialized = useAppSelector(selectAppInitialized)
 
 	const wrappedSetFilterCallback = useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
@@ -49,7 +56,7 @@ export function useFilteredColumns<T>(
 			wrappedSetFilterOptionsCallback
 		)
 		return mergedColumns
-	}, [columns, filterDefinitions, filterKeys, filters, wrappedSetFilterCallback, wrappedSetFilterOptionsCallback])
+	}, [columns, filterDefinitions, filterKeys, filters, wrappedSetFilterCallback, wrappedSetFilterOptionsCallback, isAppInitialized])
 
 	return tableColumns
 }
