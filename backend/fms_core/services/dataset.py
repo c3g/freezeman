@@ -261,7 +261,7 @@ def ingest_run_validation_report(report_json):
     metric_report_url = report_json["metrics_report_url"]
     for readset_name, readset in report_json["readsets"].items():
         project_name = readset["barcodes"][0]["PROJECT"]
-        external_project_id = readset["barcodes"][0]["external_project_id"]
+        external_project_id = readset["external_project_id"]
         dataset_key = (external_project_id, run_name, lane)
         if dataset_key not in datasets:
             dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
