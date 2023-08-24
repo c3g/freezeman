@@ -1,8 +1,8 @@
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 
 from fms_core.models.sample_next_step import SampleNextStep
 
-from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample
+from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Readset, DatasetFile, Biosample
 
 import django_filters
 
@@ -14,6 +14,7 @@ from .viewsets._constants import (
     _index_filterset_fields,
     _library_filterset_fields,
     _dataset_filterset_fields,
+    _readset_filterset_fields,
     _pooled_sample_filterset_fields,
     _sample_next_step_filterset_fields,
 )
@@ -172,6 +173,16 @@ class DatasetFilter(GenericFilter):
     class Meta:
         model = Dataset
         fields = _dataset_filterset_fields
+
+class ReadsetFilter(GenericFilter):
+    has_released_files = django_filters.BooleanFilter(method="has_released_files_filter")
+
+    def has_released_files_filter(self, queryset, name, value):
+        return queryset.annotate(has_released_files=Exists(DatasetFile.objects.filter(readset=OuterRef("pk"), release_status=1))).filter(has_released_files=value)
+
+    class Meta:
+        model = Readset
+        fields = _readset_filterset_fields
 
 class PooledSamplesFilter(GenericFilter):
     parent_sample_name__icontains = django_filters.CharFilter(method="parent_sample_name_filter")
