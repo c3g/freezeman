@@ -1,11 +1,9 @@
 import { Collapse } from 'antd'
 import React, { useCallback } from 'react'
 
-import { FILTER_TYPE } from '../../../constants'
 import { FilterDescription, FilterOptions, FilterSet, FilterSetting, FilterValue } from '../../../models/paged_items'
-import InputFilter from '../FilterProps/InputFilter'
-import FilterContainer from './FilterContainer'
 import { getFilterComponent } from '../getFilterComponent'
+import FilterContainer from './FilterContainer'
 
 // TODO: Clean up the setFilter function definition and define this in one place.
 type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
@@ -35,7 +33,12 @@ function useLegacySetFilterOptionCallback(setFilterOption: SetFilterOptionCallba
 		[setFilterOption]
 	)
 }
-
+/**
+ * FilterPanel displays a set of filters used in the 'advanced filters' sections of our tables.
+ * These are filters that are not associated with any columns in the table.
+ * @param props
+ * @returns FilterPanel
+ */
 const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption }: FilterPanelProps) => {
 
 	// TODO is this necessary anymore?

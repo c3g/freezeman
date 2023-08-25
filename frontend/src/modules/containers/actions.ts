@@ -1,19 +1,11 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
-import serializeFilterParams from "../../utils/serializeFilterParams";
-import serializeSortByParams from "../../utils/serializeSortByParams";
-import {CONTAINER_FILTERS} from "../../components/filters/descriptions";
-import {DEFAULT_PAGINATION_LIMIT} from "../../config";
+
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
 export const ADD = createNetworkActionTypes("CONTAINERS.ADD");
 export const UPDATE = createNetworkActionTypes("CONTAINERS.UPDATE");
-export const SET_SORT_BY = "CONTAINERS.SET_SORT_BY";
-export const SET_FILTER = "CONTAINERS.SET_FILTER";
-export const SET_FILTER_OPTION = "CONTAINERS.SET_FILTER_OPTION"
-export const CLEAR_FILTERS = "CONTAINERS.CLEAR_FILTERS";
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
-export const LIST_TABLE = createNetworkActionTypes("CONTAINERS.LIST_TABLE");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
 export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
@@ -52,50 +44,6 @@ export const list = (options) => async (dispatch, getState) => {
         { meta: params }
     ));
 };
-
-export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
-    const containers = getState().containers
-    if (containers.isFetching && !abort)
-        return
-
-    const limit = getState().pagination.pageSize;
-    const filters = serializeFilterParams(containers.filters, CONTAINER_FILTERS)
-    const ordering = serializeSortByParams(containers.sortBy)
-    const options = { limit, offset, ordering, ...filters}
-
-    const res =  await dispatch(networkAction(LIST_TABLE,
-        api.containers.list(options, abort),
-        { meta: { ...options, ignoreError: 'AbortError' } }
-    ));
-    return res
-};
-
-export const setSortBy = thenList((key, order) => {
-    return {
-        type: SET_SORT_BY,
-        data: { key, order }
-    }
-});
-
-export const setFilter = thenList((name, value) => {
-    return {
-        type: SET_FILTER,
-        data: { name, value}
-    }
-});
-
-export const setFilterOption = thenList((name, option, value) => {
-    return {
-        type: SET_FILTER_OPTION,
-        data: { name, option, value }
-    }
-});
-
-export const clearFilters = thenList(() => {
-    return {
-        type: CLEAR_FILTERS,
-    }
-});
 
 export const listParents = (id) => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
@@ -147,12 +95,7 @@ export default {
     GET,
     ADD,
     UPDATE,
-    SET_SORT_BY,
-    SET_FILTER,
-    SET_FILTER_OPTION,
-    CLEAR_FILTERS,
     LIST,
-    LIST_TABLE,
     LIST_PARENTS,
     LIST_CHILDREN,
     LIST_KINDS,
@@ -162,12 +105,7 @@ export default {
     get,
     add,
     update,
-    setSortBy,
-    setFilter,
-    setFilterOption,
-    clearFilters,
     list,
-    listTable,
     listParents,
     listChildren,
     listKinds,
@@ -176,10 +114,3 @@ export default {
     summary,
 };
 
-// Helper to call list() after another action
-function thenList(fn) {
-    return (...args) => async dispatch => {
-        dispatch(fn(...args))
-        dispatch(listTable(undefined, true))
-    }
-}

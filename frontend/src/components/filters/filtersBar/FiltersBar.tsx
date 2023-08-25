@@ -1,8 +1,8 @@
 import React from "react";
 import FiltersWarning from "./FiltersWarningTS";
 import { Button } from "antd";
-import { FilterSet } from "../../models/paged_items";
-import getNFilters from "./getNFilters";
+import { FilterSet } from "../../../models/paged_items";
+import getNFilters from "../getNFilters";
 export interface FiltersBarProps {
     filters: FilterSet,
     clearFilters: () => void

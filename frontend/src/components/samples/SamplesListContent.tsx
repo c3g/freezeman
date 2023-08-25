@@ -16,9 +16,9 @@ import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COL
 import { FilterSetting } from '../../models/paged_items'
 import { FILTER_TYPE } from '../../constants'
 import Flexbar from '../shared/Flexbar'
-import FiltersBar from '../filters/FiltersBar'
+import FiltersBar from '../filters/filtersBar/FiltersBar'
 import ExportDropdown from '../ExportDropdown'
-import FilterPanel from '../filters/filterGroup/FilterPanel'
+import FilterPanel from '../filters/filterPanel/FilterPanel'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
 

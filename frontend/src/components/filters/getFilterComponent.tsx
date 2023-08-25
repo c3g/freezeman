@@ -9,14 +9,14 @@ import {
 	isRangeFilterValue
 } from '../../models/paged_items'
 import { nullize } from '../../utils/nullize'
-import DateRangeFilter from './FilterProps/DateRange'
-import InputFilter from './FilterProps/InputFilter'
-import InputNumberFilter from './FilterProps/InputNumberFilter'
-import RadioFilter from './FilterProps/RadioFilter'
-import RangeFilterComponent from './FilterProps/RangeFilter'
-import SelectFilter from './FilterProps/SelectFilter'
+import DateRangeFilter from './filterComponents/DateRange'
+import InputFilter from './filterComponents/InputFilter'
+import InputNumberFilter from './filterComponents/InputNumberFilter'
+import RadioFilter from './filterComponents/RadioFilter'
+import RangeFilterComponent from './filterComponents/RangeFilter'
+import SelectFilter from './filterComponents/SelectFilter'
 import { isValidInteger, isValidObjectID } from './validators'
-import MetadataFilter from './FilterProps/MetadataFilter'
+import MetadataFilter from './filterComponents/MetadataFilter'
 
 export function getFilterComponent(
 	description: FilterDescription,

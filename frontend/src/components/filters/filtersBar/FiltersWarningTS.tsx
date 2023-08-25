@@ -2,7 +2,7 @@ import React from "react";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { Tooltip, Typography } from "antd";
 import FiltersInfo from "./FiltersInfoTS";
-import { FilterSet } from "../../models/paged_items";
+import { FilterSet } from "../../../models/paged_items";
 const { Text } = Typography
 
 interface FiltersWarningProps {

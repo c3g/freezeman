@@ -21,6 +21,8 @@ import * as SampleNextStep from '../labworkSteps/actions'
 import { refreshLabwork } from "../labwork/actions";
 import { refreshAllStudySamples } from "../studySamples/actions";
 import ProjectsTableActions from '../projectsTable/actions'
+import SamplesTableActions from '../samplesTable/actions'
+import ContainersTableActions from '../containersTable/actions'
 
 
 export const fetchSummariesData = () => async (dispatch) => {
@@ -76,11 +78,11 @@ export const fetchStaticData = () => async (dispatch) => {
 export const fetchListedData = () => async (dispatch) => {
     // Higher priority
     await Promise.all([
-        Containers.listTable,
+        ContainersTableActions.refreshPage,
         ExperimentRuns.listTable,
         Indices.listTable,
         Individuals.listTable,
-        Samples.listTable,
+        SamplesTableActions.refreshPage,
         Libraries.listTable,
         ProjectsTableActions.refreshPage,
         ProcessMeasurements.listTable,

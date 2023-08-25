@@ -1,13 +1,12 @@
-import {merge, set} from "object-path-immutable";
-import {indexByID} from "../../utils/objects";
-import mergeArray from "../../utils/mergeArray";
-import {summaryReducerFactory} from "../../utils/summary";
-import {templateActionsReducerFactory} from "../../utils/templateActions";
-import {prefillTemplatesReducerFactory} from "../../utils/prefillTemplates";
-import {resetTable} from "../../utils/reducers";
-
-import CONTAINERS from "./actions";
-import SAMPLES from "../samples/actions";
+import { merge, set } from "object-path-immutable"
+import { indexByID } from "../../utils/objects"
+import { prefillTemplatesReducerFactory } from "../../utils/prefillTemplates"
+import { resetTable } from "../../utils/reducers"
+import { summaryReducerFactory } from "../../utils/summary"
+import { templateActionsReducerFactory } from "../../utils/templateActions"
+import { AnyAction } from "redux"
+import { Container, ItemsByID } from "../../models/frontend_models"
+import CONTAINERS from "./actions"
 
 export const containerKinds = (
   state = {
@@ -45,18 +44,20 @@ export const containersSummary = summaryReducerFactory(CONTAINERS);
 export const containerTemplateActions = templateActionsReducerFactory(CONTAINERS);
 export const containerPrefillTemplates = prefillTemplatesReducerFactory(CONTAINERS);
 
+export interface ContainersState {
+  itemsByID: ItemsByID<Container>
+  isFetching: boolean
+  error?: any
+}
+
+const initialState: ContainersState = {
+  itemsByID: {},
+  isFetching: false
+}
+
 export const containers = (
-  state = {
-    itemsByID: {},
-    items: [],
-    page: { offset: 0 },
-    totalCount: 0,
-    isFetching: false,
-    error: undefined,
-    filters: {},
-    sortBy: { key: undefined, order: undefined },
-  },
-  action
+  state: ContainersState = initialState,
+  action: AnyAction
 ) => {
   switch (action.type) {
     case CONTAINERS.GET.REQUEST:
@@ -84,37 +85,6 @@ export const containers = (
       return merge(state, ['itemsByID', action.meta.id],
         { error: action.error, isFetching: false });
 
-    case CONTAINERS.SET_SORT_BY:
-      return { ...state, sortBy: action.data, items: []};
-    case CONTAINERS.SET_FILTER:
-      return {
-        ...state,
-        filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-        items: [],
-        totalCount: 0,
-        page: set(state.page, ['offset'], 0),
-      };
-    case CONTAINERS.SET_FILTER_OPTION:
-      return {
-        ...state,
-        filters: set(
-          state.filters,
-          [action.data.name, 'options', action.data.option],
-          action.data.value
-        ),
-        items: [],
-        totalCount: 0,
-        page: set(state.page, ['offset'], 0),
-      };
-    case CONTAINERS.CLEAR_FILTERS:
-      return {
-        ...state,
-        filters: {},
-        items: [],
-        totalCount: 0,
-        page: set(state.page, ['offset'], 0),
-      };
-
     case CONTAINERS.LIST.REQUEST:
       return { ...state, isFetching: true };
     case CONTAINERS.LIST.RECEIVE: {
@@ -124,38 +94,6 @@ export const containers = (
     }
     case CONTAINERS.LIST.ERROR:
       return { ...state, isFetching: false, error: action.error };
-
-    case CONTAINERS.LIST_TABLE.REQUEST:
-      return { ...state, isFetching: true };
-    case CONTAINERS.LIST_TABLE.RECEIVE: {
-      const totalCount = action.data.count;
-      const hasChanged = state.totalCount !== action.data.count;
-      const currentItems = hasChanged ? [] : state.items;
-      const results = action.data.results.map(preprocess)
-      const itemsByID = merge(state.itemsByID, [], indexByID(results, "id"));
-      const itemsID = results.map(r => r.id)
-      const items = mergeArray(currentItems, action.meta.offset, itemsID)
-      return {
-        ...state,
-        itemsByID,
-        items,
-        totalCount,
-        page: action.meta,
-        isFetching: false,
-        error: undefined,
-      };
-    }
-    case CONTAINERS.LIST_TABLE.ERROR:
-      return { ...state, isFetching: false, error: action.error };
-
-    /* Normalize samples[].container */
-    case SAMPLES.LIST.RECEIVE:
-    case SAMPLES.LIST_TABLE.RECEIVE: {
-      const samples = action.data.results;
-      const containers = samples.map(s => s.container).filter(Boolean)
-      const itemsByID = merge(state.itemsByID, [], indexByID(containers, "id"));
-      return { ...state, itemsByID };
-    }
 
     case CONTAINERS.LIST_PARENTS.REQUEST:
       return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });

@@ -7,14 +7,15 @@ import { selectAppInitialized, selectContainerPrefillTemplates, selectContainerT
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import FilterPanel from '../filters/filterGroup/FilterPanel'
+import FilterPanel from '../filters/filterPanel/FilterPanel'
 import api, { withToken } from '../../utils/api'
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
 import ContainersTableActions from '../../modules/containersTable/actions'
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import { CONTAINER_COLUMN_FILTERS as ContainerFilters, CONTAINER_COLUMN_DEFINITIONS as ContainerColumns, ObjectWithContainer, CONTAINER_COLUMN_FILTERS, CONTAINER_FILTER_KEYS } from './ContainersTableColumns'
-import FiltersBar from '../filters/FiltersBar'
+import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { Container } from '../../models/frontend_models'
+import { FilterSet, FilterSetting, SortBy } from '../../models/paged_items'
 
 const containersTableColumns = [
 	ContainerColumns.ID,
@@ -32,7 +33,8 @@ const commentFilter = {
 	key: CONTAINER_FILTER_KEYS.COMMENT
 }
 
-function wrapContainer(container: Container) {
+// Convert a container instance to an ObjectWithContainer
+function wrapContainer(container: Container): ObjectWithContainer {
 	return {container}
 }
 

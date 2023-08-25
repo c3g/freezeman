@@ -1,6 +1,6 @@
 import React from "react";
-import { FILTER_TYPE } from "../../constants";
-import { FilterDescription, FilterSet, FilterValue, isMetadataFilterValue, isRangeFilterValue, isStringArrayFilterValue } from "../../models/paged_items";
+import { FILTER_TYPE } from "../../../constants";
+import { FilterDescription, FilterSet, FilterValue, isMetadataFilterValue, isRangeFilterValue, isStringArrayFilterValue } from "../../../models/paged_items";
 
 interface FiltersInfosProps {
     filters: FilterSet

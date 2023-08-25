@@ -4,7 +4,7 @@ import {Navigate, Route, Routes} from "react-router-dom";
 
 import { AddSampleRoute, EditSampleRoute } from "./SampleEditContent";
 import SamplesDetailContent from "./details/SampleDetailsContent";
-import SamplesListContent from "./SamplesListContent2";
+import SamplesListContent from "./SamplesListContent";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 

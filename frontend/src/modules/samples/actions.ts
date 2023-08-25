@@ -1,20 +1,10 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
-import serializeFilterParams from "../../utils/serializeFilterParams";
-import serializeSortByParams from "../../utils/serializeSortByParams";
-import {SAMPLE_FILTERS} from "../../components/filters/descriptions";
-import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET                   = createNetworkActionTypes("SAMPLES.GET");
 export const ADD                   = createNetworkActionTypes("SAMPLES.ADD");
 export const UPDATE                = createNetworkActionTypes("SAMPLES.UPDATE");
 export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
-export const LIST_TABLE            = createNetworkActionTypes("SAMPLES.LIST_TABLE");
-export const LIST_FILTER           = createNetworkActionTypes("SAMPLES.LIST_FILTER");
-export const SET_SORT_BY           = "SAMPLES.SET_SORT_BY";
-export const SET_FILTER            = "SAMPLES.SET_FILTER";
-export const SET_FILTER_OPTION     = "SAMPLES.SET_FILTER_OPTION"
-export const CLEAR_FILTERS         = "SAMPLES.CLEAR_FILTERS";
 export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
 export const LIST_KINDS            = createNetworkActionTypes("SAMPLES.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
@@ -53,71 +43,6 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy }, abort) => async (dispatch, getState) => {
-    if(getState().samples.isFetching && !abort)
-      return
-
-    limit = getState().pagination.pageSize;
-    filters = serializeFilterParams(filters, SAMPLE_FILTERS)
-    const ordering = serializeSortByParams(sortBy)
-    const options = { limit, offset, ordering, ...filters}
-
-    return await dispatch(networkAction(LIST_FILTER,
-        api.samples.list(options, abort),
-        { meta: {...options} }
-    ));
-};
-
-export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
-    const samples = getState().samples
-    if (samples.isFetching && !abort)
-        return
-
-    const limit = getState().pagination.pageSize;
-    const filters = serializeFilterParams(samples.filters, SAMPLE_FILTERS)
-    const ordering = serializeSortByParams(samples.sortBy)
-    const options = { limit, offset, ordering, ...filters}
-
-    return await dispatch(networkAction(LIST_TABLE,
-        api.samples.list(options, abort),
-        { meta: { ...options, ignoreError: 'AbortError' } }
-    ));
-};
-
-export const setSortBy = thenList((key, order) => {
-    return {
-        type: SET_SORT_BY,
-        data: { key, order }
-    }
-});
-
-export const clearSortBy = () => async dispatch => {
-    return dispatch({
-        type: SET_SORT_BY,
-        data: { }
-    })
-};
-
-export const setFilter = thenList((name, value) => {
-    return {
-        type: SET_FILTER,
-        data: { name, value}
-    }
-});
-
-export const setFilterOption = thenList((name, option, value) => {
-    return {
-        type: SET_FILTER_OPTION,
-        data: { name, option, value }
-    }
-});
-
-export const clearFilters = thenList(() => {
-    return {
-        type: CLEAR_FILTERS,
-    }
-});
-
 export const listKinds = () => async (dispatch, getState) => {
     // Check if we're already fetching or have fetched sample kinds first
     if (getState().sampleKinds.isFetching || getState().sampleKinds.items.length > 0)
@@ -153,13 +78,7 @@ export default {
     GET,
     ADD,
     UPDATE,
-    SET_SORT_BY,
-    SET_FILTER,
-    SET_FILTER_OPTION,
-    CLEAR_FILTERS,
     LIST,
-    LIST_FILTER,
-    LIST_TABLE,
     SUMMARY,
     LIST_VERSIONS,
     LIST_KINDS,
@@ -168,25 +87,10 @@ export default {
     get,
     add,
     update,
-    setSortBy,
-    clearSortBy,
-    setFilter,
-    setFilterOption,
-    clearFilters,
     list,
-    listTable,
-    listFilter,
     listVersions,
     listKinds,
     listTemplateActions,
     listPrefillTemplates,
     summary,
 };
-
-// Helper to call list() after another action
-function thenList(fn) {
-    return (...args) => async dispatch => {
-        dispatch(fn(...args))
-        dispatch(listTable(undefined, true))
-    }
-}

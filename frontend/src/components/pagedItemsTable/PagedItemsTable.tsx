@@ -8,7 +8,7 @@ import { DataID, FilterDescription, FilterDescriptionSet, FilterKeySet, FilterOp
 import { PagedItemsActions } from '../../models/paged_items_factory'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import { RootState } from '../../store'
-import FiltersBar from '../filters/FiltersBar'
+import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { addFiltersToColumns } from '../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { selectAppInitialized } from '../../selectors'
