@@ -75,6 +75,8 @@ export const selectInstrumentsByID = (state: RootState) => state.instruments.ite
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
+export const selectLibrariesTable = (state: RootState) => state.librariesTable
+export const selectLibraryPrefillTemplates = (state: RootState) => state.libraryPrefillTemplates
 export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions
 export const selectPageSize = (state: RootState) => state.pagination.pageSize
 export const selectProcessesByID = (state: RootState) => state.processes.itemsByID as ItemsByID<Process>

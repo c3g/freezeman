@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback } from 'react'
 
 import { useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
@@ -9,18 +9,16 @@ import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
-import PageContent from '../PageContent'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
-import SampleCategoryChooser, { SampleCategory } from './SampleCategoryChooser'
-import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
-import { FilterSetting } from '../../models/paged_items'
-import { FILTER_TYPE } from '../../constants'
-import Flexbar from '../shared/Flexbar'
-import FiltersBar from '../filters/filtersBar/FiltersBar'
 import ExportDropdown from '../ExportDropdown'
+import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
-import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
+import FiltersBar from '../filters/filtersBar/FiltersBar'
+import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import Flexbar from '../shared/Flexbar'
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
+import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
+import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
+import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
 
 const samplesTableColumns = [
 	SampleColumns.ID,
@@ -53,35 +51,34 @@ function wrapSample(sample: Sample) {
 
 function SamplesListContent() {
 	const samplesTableState = useAppSelector(selectSamplesTable)
-	const { filters, sortBy, totalCount, isFetching } = samplesTableState
+	const { filters, fixedFilters, sortBy, totalCount, isFetching } = samplesTableState
 	const templateActions = useAppSelector(selectSampleTemplateActions)
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
 	const token = useAppSelector(selectToken)
-	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(SampleCategory.ALL)
 
 	const prefillTemplate = useCallback(({template}) =>
-		withToken(token, api.samples.prefill.request)(filtersQueryParams(filters, sortBy), template)
+		withToken(token, api.samples.prefill.request)(filtersQueryParams({...filters, ...fixedFilters}, sortBy), template)
 		.then(response => response)
-	, [token, filters, sortBy])
+	, [token, filters, fixedFilters, sortBy])
 
 	const listExport = useCallback(() => {
 		return withToken(token, api.samples.listExport)
-			(filtersQueryParams(filters, sortBy))
+			(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
 			.then(response => response.data)
 	}
-	, [token, filters, sortBy])
+	, [token, filters, fixedFilters, sortBy])
 
 	const listExportMetadata = useCallback(() =>
-		withToken(token, api.samples.listExportMetadata)(filtersQueryParams(filters, sortBy))
+		withToken(token, api.samples.listExportMetadata)(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
 		.then(response => response.data)
-	, [token, filters, sortBy])
+	, [token, filters, fixedFilters, sortBy])
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
 	// Special clearFilters callback that also sets the sample category back to ALL whenever
 	// filters are cleared. Do we still want that to happen?
 	const clearFiltersAndCategory = useCallback(() => {
-		setSampleCategory(SampleCategory.ALL)
+		samplesTableCallbacks.setFixedFilterCallback(getSampleCategoryFilterSetting(SampleCategory.ALL))
 		samplesTableCallbacks.clearFiltersCallback()
 	}, [samplesTableCallbacks])
 
@@ -95,33 +92,6 @@ function SamplesListContent() {
 	)
 
 	const mapSampleIDs = useItemsByIDToDataObjects(selectSamplesByID, wrapSample)
-
-	const handleSampleCategoryChange = useCallback((category: SampleCategory) => {
-		let value : string
-		switch(category) {
-			case SampleCategory.POOLS: {
-				value = 'true'
-				break
-			}
-			case SampleCategory.SAMPLES: {
-				value= 'false'
-				break
-			}
-			default:
-				value = ''
-		}
-		const filterSetting: FilterSetting = {
-			value,
-			description: {
-				key: 'is_pooled',
-				label: 'Pooled Samples',
-				type: FILTER_TYPE.SELECT
-			}
-		}
-		samplesTableCallbacks.setFixedFilterCallback(filterSetting)
-		samplesTableCallbacks.refreshPageCallback()
-		setSampleCategory(category)
-	}, [sampleCategory, samplesTableCallbacks])
 
 	return (
 		<>
@@ -139,8 +109,9 @@ function SamplesListContent() {
 				<Flexbar style={{alignItems: 'center'}}>
 					<SampleCategoryChooser
 						disabled={isFetching}
-						value={sampleCategory}
-						onChange={category => handleSampleCategoryChange(category)}
+						filters={fixedFilters}
+						setFixedFilter={samplesTableCallbacks.setFixedFilterCallback}
+						onChange={() => samplesTableCallbacks.refreshPageCallback()}
 					/>
 					<FiltersBar filters={samplesTableState.filters} clearFilters={clearFiltersAndCategory}/>
 				</Flexbar>

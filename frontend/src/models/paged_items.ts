@@ -37,6 +37,7 @@ export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilt
 // Callback function definitions for functions that are passed to filter components.
 export type SetFilterFunc = (filterKey: string, value: FilterValue, description: FilterDescription) => void
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
+export type SetFixedFilterFunc = (filter: FilterSetting) => void
 export type FilterValidationFunc = (string: string) => boolean
 export type SetSortByFunc = (sortBy: SortBy) => void
 

@@ -372,7 +372,7 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						style={{ overflowX: 'auto' }}
+						style={{ overflowX: 'auto'}}
 						onChange={sortByCallback}
 						pagination={false}
 						bordered={true}
