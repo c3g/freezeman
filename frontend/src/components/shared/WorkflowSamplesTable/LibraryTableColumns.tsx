@@ -348,11 +348,11 @@ export const LIBRARY_COLUMN_FILTERS: { [key: string]: FilterDescription } = {
 }
 
 export const LIBARY_TABLE_FILTER_KEYS : {[key in LibraryColumnID] : string} = {
-	[LibraryColumnID.LIBRARY_TYPE]: 'sample__derived_samples__library__library_type__name',
-	[LibraryColumnID.SELECTION_TARGET]: 'sample__derived_samples__library__library_selection__target',
-	[LibraryColumnID.INDEX_NAME]: 'sample__derived_samples__library__index__name',
-	[LibraryColumnID.PLATFORM_NAME]: 'sample__derived_samples__library__platform__name',
-	[LibraryColumnID.PROJECT_NAME]: 'sample__derived_samples__project__name',
+	[LibraryColumnID.LIBRARY_TYPE]: 'derived_samples__library__library_type__name',
+	[LibraryColumnID.SELECTION_TARGET]: 'derived_samples__library__library_selection__target',
+	[LibraryColumnID.INDEX_NAME]: 'derived_samples__library__index__name',
+	[LibraryColumnID.PLATFORM_NAME]: 'derived_samples__library__platform__name',
+	[LibraryColumnID.PROJECT_NAME]: 'derived_samples__project__name',
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',
 	[LibraryColumnID.LIBRARY_SIZE]: 'sample__fragment_size',
 	[LibraryColumnID.CONCENTRATION_NM]: '', // unused
