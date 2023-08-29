@@ -26,16 +26,24 @@ On this page we list the various steps needed for deployments. The first section
     ```
     yum install centos-release-scl -y
     yum install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-    yum install postgresql15-server postgresql15-devel -y
+    yum install postgresql15 postgresql15-server postgresql15-devel -y
+
+    cat >/etc/profile.d/pg_conf.sh <<EOF
+      #!/bin/bash
+      export PATH=/usr/pgsql-15/bin:\$PATH
+    EOF
     export PATH=$PATH:/usr/pgsql-15/bin
 
     /usr/pgsql-15/bin/postgresql-15-setup initdb
     systemctl enable postgresql-15
     systemctl start postgresql-15
+
+    cd /
     sudo -u postgres createdb fms
     sudo -u postgres createuser admin
     echo "alter user admin with encrypted password 'XXXXXX';" | sudo -u postgres psql
     echo "grant all privileges on database fms to admin ;" | sudo -u postgres psql
+    echo "GRANT USAGE, CREATE ON SCHEMA public TO admin ;" | sudo -u postgres psql -d fms
 
     cat >/var/lib/pgsql/15/data/pg_hba.conf <<EOT
 
