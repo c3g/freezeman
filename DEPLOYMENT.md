@@ -184,3 +184,6 @@ On this page we list the various steps needed for deployments. The first section
 * Version 4.4.0:
   * Upgrade python version to 3.11
   * Upgrade Openssl version to 1.1.1u
+* Version 4.5.0:
+  * Backend Django version upgrade to 4.2.4 (run `pip3.11 install -r requirements.txt`)
+  * PostgreSQL version upgrade to 15.4 (Verify permissions for user and re-compile and install the fzy extension.)
