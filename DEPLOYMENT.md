@@ -22,22 +22,22 @@ On this page we list the various steps needed for deployments. The first section
 
     EOT
     ```
-  * Install / setup postgress
+  * Install / setup postgreSQL 15
     ```
     yum install centos-release-scl -y
     yum install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-    yum install postgresql11-server postgresql11-devel -y
-    export PATH=$PATH:/usr/pgsql-11/bin
+    yum install postgresql15-server postgresql15-devel -y
+    export PATH=$PATH:/usr/pgsql-15/bin
 
-    /usr/pgsql-11/bin/postgresql-11-setup initdb
-    systemctl enable postgresql-11
-    systemctl start postgresql-11
+    /usr/pgsql-15/bin/postgresql-15-setup initdb
+    systemctl enable postgresql-15
+    systemctl start postgresql-15
     sudo -u postgres createdb fms
     sudo -u postgres createuser admin
     echo "alter user admin with encrypted password 'XXXXXX';" | sudo -u postgres psql
     echo "grant all privileges on database fms to admin ;" | sudo -u postgres psql
 
-    cat >/var/lib/pgsql/11/data/pg_hba.conf <<EOT
+    cat >/var/lib/pgsql/15/data/pg_hba.conf <<EOT
 
         # TYPE  DATABASE        USER            ADDRESS                 METHOD
 
@@ -56,7 +56,7 @@ On this page we list the various steps needed for deployments. The first section
 
     EOT
 
-    service postgresql-11 restart
+    service postgresql-15 restart
     ```
   * Install essential packages
     ```
