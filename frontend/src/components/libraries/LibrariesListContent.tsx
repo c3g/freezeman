@@ -13,7 +13,7 @@ import FiltersBar from '../filters/filtersBar/FiltersBar'
 import PagedItemsTable, { useDynamicSorters, useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from '../samples/SampleCategoryChooser'
 import FlexBar from '../shared/Flexbar'
-import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "../shared/WorkflowSamplesTable/LibraryTableColumns"
+import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "./LibraryTableColumns"
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
 
 const LIBRARY_TABLE_COLUMNS = [

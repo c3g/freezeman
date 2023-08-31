@@ -6,7 +6,7 @@ import { clearFilters, refreshStudySamples, setStudyStepFilter, setStudyStepFilt
 import { StudySampleStep, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID } from '../../selectors'
 import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../shared/WorkflowSamplesTable/ColumnSets'
-import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../shared/WorkflowSamplesTable/LibraryTableColumns'
+import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../samples/SampleTableColumns'
 import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'

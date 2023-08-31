@@ -1,14 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { FILTER_TYPE } from '../../../constants'
-import { Library } from '../../../models/frontend_models'
-import { FilterDescription } from '../../../models/paged_items'
-import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndexRenderComponent, WithProjectRenderComponent } from '../WithItemRenderComponent'
-import { isNullish } from '../../../utils/functions'
-import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
-import { UNDEFINED_FILTER_KEY } from '../../pagedItemsTable/PagedItemsFilters'
-import { QCFlag } from '../../QCFlag'
-import { Depletion } from '../../Depletion'
+import { FILTER_TYPE } from '../../constants'
+import { Library } from '../../models/frontend_models'
+import { FilterDescription } from '../../models/paged_items'
+import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndexRenderComponent, WithProjectRenderComponent } from '../shared/WithItemRenderComponent'
+import { isNullish } from '../../utils/functions'
+import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
+import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
+import { QCFlag } from '../QCFlag'
+import { Depletion } from '../Depletion'
 
 /*
 	Defines a set of Ant Table column descriptors for library fields. Each column
