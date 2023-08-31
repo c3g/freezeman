@@ -9,6 +9,7 @@ from fms_core.template_importer._constants import VALID_NORM_CHOICES
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 
 __all__ = [
+    "AXIOM_PREPARATION_TEMPLATE",
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
     "CONTAINER_RENAME_TEMPLATE",
@@ -33,6 +34,29 @@ __all__ = [
 ]
 
 MAX_HEADER_OFFSET = 20
+
+AXIOM_PREPARATION_TEMPLATE = {
+  "identity": {"description": "Template to prepare samples for Axiom genotyping.",
+               "file": static("submission_templates/Axiom_experiment_preparation_v4_5_0.xlsx"),
+               "protocol": "Axiom Experiment Preparation"},
+  "sheets info": [
+      {
+          'name': 'Axiom Batch',
+          'headers': ['Container Barcode', 'Container Name', 'Preparation Start Date (YYYY-MM-DD)', 'Comment', 'Workflow Action',
+                      'Axiom Module 1 Barcode', 'Incubation time In Amplification', 'Incubation time Out Amplification',
+                      'Liquid Handler Instrument Amplification', 'Stored Before Fragmentation', 'Comment Amplification',
+                      'Axiom Module 2.1 Barcode Fragmentation', 'Axiom Module 2.2 Barcode Fragmentation',
+                      'Liquid Handler Instrument Fragmentation', 'Comment Fragmentation', 'Axiom Module 2.1 Barcode Precipitation',
+                      'Axiom Module 2.2 Barcode Precipitation', 'Liquid Handler Instrument Precipitation', 'Comment Precipitation'],
+          'batch': True,
+      },
+  ],
+  "user prefill info": {
+        "Preparation Start Date (YYYY-MM-DD)": "date",
+  },
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  "prefill info": [],
+}
 
 CONTAINER_CREATION_TEMPLATE = {
   "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v4_2_0.xlsx")},
