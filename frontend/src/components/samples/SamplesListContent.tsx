@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
@@ -13,14 +13,14 @@ import ExportDropdown from '../ExportDropdown'
 import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable, { useDynamicSorters, useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import Flexbar from '../shared/Flexbar'
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
-import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
+import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
 
-const samplesTableColumns = [
+const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
 	SampleColumns.KIND,
 	SampleColumns.NAME,
@@ -55,6 +55,7 @@ function SamplesListContent() {
 	const templateActions = useAppSelector(selectSampleTemplateActions)
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
 	const token = useAppSelector(selectToken)
+	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
 	const prefillTemplate = useCallback(({template}) =>
 		withToken(token, api.samples.prefill.request)(filtersQueryParams({...filters, ...fixedFilters}, sortBy), template)
@@ -82,14 +83,36 @@ function SamplesListContent() {
 		samplesTableCallbacks.clearFiltersCallback()
 	}, [samplesTableCallbacks])
 
+	// Set the sorter properties on the columns, depending on the sample category.
+	// Sorting is disabled for some columns when pools are listed because the backend
+	// doesn't handle pool sorting well.
+	const sortableColumns = useDynamicSorters(
+		SAMPLES_TABLE_COLUMNS, 
+		[
+			SampleColumnID.KIND,
+			SampleColumnID.INDIVIDUAL,
+			SampleColumnID.PROJECT,
+		]
+		, sampleCategory === SampleCategory.SAMPLES
+	)
+
+
 	const baseColumns = useFilteredColumns(
-		samplesTableColumns,
+		sortableColumns,
 		SAMPLE_COLUMN_FILTERS,
 		SAMPLE_FILTER_KEYS,
 		filters,
 		samplesTableCallbacks.setFilterCallback,
 		samplesTableCallbacks.setFilterOptionsCallback
 	)
+
+	// When the user switches between Samples/Pools/All we have to refresh the page.
+	const onSampleCategoryChange = useCallback(
+		(sampleCategory: SampleCategory) => {
+			setSampleCategory(sampleCategory)
+			samplesTableCallbacks.refreshPageCallback()
+		}
+	, [samplesTableCallbacks])
 
 	const mapSampleIDs = useItemsByIDToDataObjects(selectSamplesByID, wrapSample)
 
@@ -111,7 +134,7 @@ function SamplesListContent() {
 						disabled={isFetching}
 						filters={fixedFilters}
 						setFixedFilter={samplesTableCallbacks.setFixedFilterCallback}
-						onChange={() => samplesTableCallbacks.refreshPageCallback()}
+						onChange={(category) => onSampleCategoryChange(category)}
 					/>
 					<FiltersBar filters={samplesTableState.filters} clearFilters={clearFiltersAndCategory}/>
 				</Flexbar>

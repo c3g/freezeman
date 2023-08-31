@@ -47,11 +47,12 @@ interface SampleCategoryChooserProps {
 	filters: FilterSet
 	setFixedFilter: SetFixedFilterFunc
 	onChange: (category: SampleCategory) => void
+	samplesLabel?: string		// Used to override the "Samples" radio button name for Libraries
 	isPooledFilterKey?: string
 }
 
 function SampleCategoryChooser({
-	disabled, filters, setFixedFilter, onChange, isPooledFilterKey = 'is_pooled'
+	disabled, filters, setFixedFilter, onChange, samplesLabel, isPooledFilterKey = 'is_pooled'
 }: SampleCategoryChooserProps) {
 
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(SampleCategory.ALL)
@@ -78,7 +79,7 @@ function SampleCategoryChooser({
 
 	return (
 		<Radio.Group disabled={disabled} value={sampleCategory} onChange={evt => {handleSampleCategoryChange(evt.target.value)}}>
-         <Radio.Button value={SampleCategory.SAMPLES}> Samples </Radio.Button>
+         <Radio.Button value={SampleCategory.SAMPLES}> {samplesLabel ?? 'Samples'} </Radio.Button>
          <Radio.Button value={SampleCategory.POOLS}> Pools </Radio.Button>
          <Radio.Button value={SampleCategory.ALL}> All </Radio.Button>
       </Radio.Group>

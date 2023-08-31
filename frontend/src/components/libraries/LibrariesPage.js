@@ -2,7 +2,7 @@ import React from "react";
 
 import {Navigate, Route, Routes} from "react-router-dom";
 
-import LibrariesListContent from "./LibrariesListContent2";
+import LibrariesListContent from "./LibrariesListContent";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 

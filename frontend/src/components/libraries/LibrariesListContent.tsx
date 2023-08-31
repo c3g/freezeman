@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import { useAppSelector } from "../../hooks"
 import { Library } from '../../models/frontend_models'
 import LibrariesTableActions from '../../modules/librariesTable/actions'
@@ -10,13 +10,13 @@ import AppPageHeader from "../AppPageHeader"
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable, { useDynamicSorters, useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from '../samples/SampleCategoryChooser'
 import FlexBar from '../shared/Flexbar'
-import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, ObjectWithLibrary } from "../shared/WorkflowSamplesTable/LibraryTableColumns"
+import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "../shared/WorkflowSamplesTable/LibraryTableColumns"
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
 
-const tableColumns = [
+const LIBRARY_TABLE_COLUMNS = [
 	LIBRARY_COLUMN_DEFINITIONS.ID,
 	LIBRARY_COLUMN_DEFINITIONS.PLATFORM_NAME,
 	LIBRARY_COLUMN_DEFINITIONS.PROJECT_NAME,
@@ -41,11 +41,13 @@ function wrapLibrary(library: Library) {
 }
 
 export default function LibariesListContent() {
+
 	const librariesTableState = useAppSelector(selectLibrariesTable)
 	const { filters, fixedFilters, sortBy, totalCount, isFetching } = librariesTableState
 	const templateActions = useAppSelector(selectLibraryTemplateActions)
 	const prefills = useAppSelector(selectLibraryPrefillTemplates)
 	const token = useAppSelector(selectToken)
+	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
 	const prefillTemplate = useCallback(({template}) =>
 		withToken(token, api.libraries.prefill.request)(filtersQueryParams({...filters, ...fixedFilters}, sortBy), template)
@@ -65,14 +67,39 @@ export default function LibariesListContent() {
 		librariesTableCallbacks.clearFiltersCallback()
 	}, [librariesTableCallbacks])
 
+	// Set the sorter properties on the columns, depending on the sample category.
+	// Sorting is disabled for some columns when pools are listed because the backend
+	// doesn't handle pool sorting well.
+	const sortableColumns = useDynamicSorters(
+		LIBRARY_TABLE_COLUMNS, 
+		[
+			LibraryColumnID.PLATFORM_NAME,
+			LibraryColumnID.PROJECT_NAME,
+			LibraryColumnID.LIBRARY_TYPE,
+			LibraryColumnID.SELECTION_TARGET,
+			LibraryColumnID.INDEX_NAME,
+			LibraryColumnID.LIBRARY_SIZE,
+		]
+		, sampleCategory === SampleCategory.SAMPLES	// TODO "LIBRARIES"
+	)
+
+	// Now apply the filters to the columns.
 	const baseColumns = useFilteredColumns(
-		tableColumns,
+		sortableColumns,
 		LIBRARY_COLUMN_FILTERS,
 		LIBARY_TABLE_FILTER_KEYS,
 		filters,
 		librariesTableCallbacks.setFilterCallback,
 		librariesTableCallbacks.setFilterOptionsCallback
 	)
+
+	// When the user switches between Samples/Pools/All we have to refresh the page.
+	const onSampleCategoryChange = useCallback(
+		(sampleCategory: SampleCategory) => {
+			setSampleCategory(sampleCategory)
+			librariesTableCallbacks.refreshPageCallback()
+		}
+	, [librariesTableCallbacks])
 
 	const mapLibaryIDs = useItemsByIDToDataObjects(selectLibrariesByID, wrapLibrary)
 
@@ -92,7 +119,8 @@ export default function LibariesListContent() {
 						disabled={isFetching}
 						filters={fixedFilters}
 						setFixedFilter={librariesTableCallbacks.setFixedFilterCallback}
-						onChange={() => librariesTableCallbacks.refreshPageCallback()}
+						onChange={(sampleCategory) => onSampleCategoryChange(sampleCategory)}
+						samplesLabel='Libraries'
 					/>
 					<FiltersBar filters={filters} clearFilters={clearFiltersAndCategory}/>
 				</FlexBar>
