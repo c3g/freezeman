@@ -49,6 +49,11 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 	initialLoad?: boolean
 }
 
+interface TableDataState<T> {
+	objectMap: DataObjectsByID<T>
+	tableData: T[]
+}
+
 function PagedItemsTable<T extends object>({
 	getDataObjectsByID,
 	listPageCallback,
@@ -68,7 +73,7 @@ function PagedItemsTable<T extends object>({
 	const dispatch = useAppDispatch()
 
 	const { items, sortBy, stale } = pagedItems
-	const [dataObjects, setDataObjects] = useState<DataObjectsByID<T>>({})
+	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
 
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
@@ -89,19 +94,6 @@ function PagedItemsTable<T extends object>({
 			/* Only call once when the component is mounted*/
 		]
 	)
-
-	//
-	useEffect(() => {
-		async function retrieveItems(ids: number[]) {
-			try {
-				const objectMap = await getDataObjectsByID(ids)
-				setDataObjects(objectMap)
-			} catch (error) {
-				console.error(error)
-			}
-		}
-		retrieveItems([...items])
-	}, [getDataObjectsByID, items])
 
 	// Refresh the page if the paged items are marked as stale, if using 
 	// the refresh mechanism.
@@ -151,21 +143,36 @@ function PagedItemsTable<T extends object>({
 		}
 	}
 
-	// Get the objects by ID, in the order defined by 'items'
-	const tableData = items.reduce((acc, id) => {
-		const data = dataObjects[id]
-		if (data) {
-			acc.push(data)
+	// When 'items' changes we have to fetch the data object corresponding with the item id's.
+	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.
+	// We also create a map that maps object id's to objects, which is used to lookup row keys.
+	useEffect(() => {
+		async function retrieveItems(ids: number[]) {
+			try {
+				const objectMap = await getDataObjectsByID(ids)
+				const tableData = items.reduce((acc, id) => {
+					const data = objectMap[id]
+					if (data) {
+						acc.push(data)
+					}
+					return acc
+				}, [] as T[])
+
+				setTableDataState({objectMap, tableData})
+			} catch (error) {
+				console.error(error)
+			}
 		}
-		return acc
-	}, [] as T[])
+		retrieveItems([...items])
+	}, [getDataObjectsByID, items])
+
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
 	// key. This allows us to use data objects that don't have an explicit 'id' property.
 	function getRowKeyForDataObject(data: T) {
-		for (const key in dataObjects) {
-			if (dataObjects[key] === data) {
+		for (const key in tableDataState.objectMap) {
+			if (tableDataState.objectMap[key] === data) {
 				return key
 			}
 		}
@@ -181,7 +188,7 @@ function PagedItemsTable<T extends object>({
 					)}
 					<Table
 						rowSelection={rowSelection}
-						dataSource={tableData}
+						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
 						scroll={{x: 300}}
@@ -189,6 +196,7 @@ function PagedItemsTable<T extends object>({
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
+
 					/>
 					{true && (
 						<Pagination
