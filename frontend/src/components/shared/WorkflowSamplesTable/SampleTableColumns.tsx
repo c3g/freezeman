@@ -439,7 +439,7 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.NAME]: 'sample__name',
 	[SampleColumnID.INDIVIDUAL]: 'sample__derived_samples__biosample__individual__name',
 	[SampleColumnID.PARENT_CONTAINER]: 'sample__container__location__barcode',
-	[SampleColumnID.PARENT_COORDINATES]: 'sample__container__location__coordinate__name',
+	[SampleColumnID.PARENT_COORDINATES]: 'sample__container__coordinate__name',
 	[SampleColumnID.CONTAINER_NAME]: 'sample__container__name',
 	[SampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
 	[SampleColumnID.COORDINATES]: 'sample__coordinate__name',
