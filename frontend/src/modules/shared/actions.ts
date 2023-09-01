@@ -22,6 +22,7 @@ import { refreshLabwork } from "../labwork/actions";
 import { refreshAllStudySamples } from "../studySamples/actions";
 import ProjectsTableActions from '../projectsTable/actions'
 import SamplesTableActions from '../samplesTable/actions'
+import LibrariesTableActions from '../librariesTable/actions'
 import ContainersTableActions from '../containersTable/actions'
 
 
@@ -83,7 +84,7 @@ export const fetchListedData = () => async (dispatch) => {
         Indices.listTable,
         Individuals.listTable,
         SamplesTableActions.refreshPage,
-        Libraries.listTable,
+        LibrariesTableActions.refreshPage,
         ProjectsTableActions.refreshPage,
         ProcessMeasurements.listTable,
         Protocols.list,
