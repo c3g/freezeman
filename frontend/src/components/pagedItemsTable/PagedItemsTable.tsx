@@ -12,47 +12,7 @@ import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { addFiltersToColumns } from '../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { selectAppInitialized } from '../../selectors'
-import { String } from 'rambda/_ts-toolbelt/src/String/String'
 
-/**
- * This hook is for the samples a libraries tables that need to enable or disable
- * sorting on columns dynamically, depending on whether the user is viewing
- * pools or samples.
- * 
- * Given an array of column definitions and an array of column ID's, this
- * hook will set the sorter property of the selected columns to the specified
- * value (true or false).
- * 
- * The hook returns the original list of columns, with the sorter value set on
- * the specified columns. 
- * 
- * Note: A copy of the original column is returned for any column that is modified by the hook.
- * 
- * @param columns An input array of column definitions
- * @param columnIDs The column ID's of the columns you want to modify
- * @param sorterValue The sorter value to set 
- * @returns The entire list of columns, with sorter values set on the specified columns.
- */
-export function useDynamicSorters<T>(
-	columns: IdentifiedTableColumnType<T>[],
-	columnIDs: string[],
-	sorterValue: boolean
-) {
-	const dynamicColumns = useMemo(() => {
-		return columns.map((column) => {
-			if (columnIDs.includes(column.columnID)) {
-				return {
-					...column,
-					sorter: sorterValue
-				}
-			} else {
-				return column
-			}
-		})
-	}, [columns, columnIDs, sorterValue])
-
-	return dynamicColumns
-}
 
 /*  This is a hook that merges column definitions with filter definitions to produce
 	complete column descriptions for the table. 

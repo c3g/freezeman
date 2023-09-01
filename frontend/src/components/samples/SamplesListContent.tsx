@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
 import { useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
@@ -13,12 +13,13 @@ import ExportDropdown from '../ExportDropdown'
 import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import PagedItemsTable, { useDynamicSorters, useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import Flexbar from '../shared/Flexbar'
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
+import { setColumnWidths, setDynamicSorters } from '../shared/tableColumnUtilities'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
@@ -83,22 +84,31 @@ function SamplesListContent() {
 		samplesTableCallbacks.clearFiltersCallback()
 	}, [samplesTableCallbacks])
 
-	// Set the sorter properties on the columns, depending on the sample category.
-	// Sorting is disabled for some columns when pools are listed because the backend
-	// doesn't handle pool sorting well.
-	const sortableColumns = useDynamicSorters(
-		SAMPLES_TABLE_COLUMNS, 
-		[
+	// Tweak the columns to customize them for this table.	
+	const tweakedColumns = useMemo(() => {
+		let columns = setColumnWidths(SAMPLES_TABLE_COLUMNS, {
+			[SampleColumnID.ID]: 90,
+			[SampleColumnID.KIND]: 80,
+			[SampleColumnID.COORDINATES]: 70,
+			[SampleColumnID.VOLUME]: 100,
+			[SampleColumnID.CONCENTRATION]: 115,
+			[SampleColumnID.CREATION_DATE]: 115,
+			[SampleColumnID.DEPLETED]: 85
+		})
+
+		// Only allow sorting on these columns when the table is displaying only samples (and not pools).
+		columns = setDynamicSorters(columns, [
 			SampleColumnID.KIND,
 			SampleColumnID.INDIVIDUAL,
 			SampleColumnID.PROJECT,
-		]
-		, sampleCategory === SampleCategory.SAMPLES
-	)
+		], sampleCategory === SampleCategory.SAMPLES)
+
+		return columns
+	}, [sampleCategory])
 
 
 	const baseColumns = useFilteredColumns(
-		sortableColumns,
+		tweakedColumns,
 		SAMPLE_COLUMN_FILTERS,
 		SAMPLE_FILTER_KEYS,
 		filters,

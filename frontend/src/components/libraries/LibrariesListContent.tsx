@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useAppSelector } from "../../hooks"
 import { Library } from '../../models/frontend_models'
 import LibrariesTableActions from '../../modules/librariesTable/actions'
@@ -10,11 +10,12 @@ import AppPageHeader from "../AppPageHeader"
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import PagedItemsTable, { useDynamicSorters, useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from '../samples/SampleCategoryChooser'
 import FlexBar from '../shared/Flexbar'
 import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "./LibraryTableColumns"
 import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
+import { setColumnWidths, setDynamicSorters } from '../shared/tableColumnUtilities'
 
 const LIBRARY_TABLE_COLUMNS = [
 	LIBRARY_COLUMN_DEFINITIONS.ID,
@@ -67,12 +68,27 @@ export default function LibariesListContent() {
 		librariesTableCallbacks.clearFiltersCallback()
 	}, [librariesTableCallbacks])
 
-	// Set the sorter properties on the columns, depending on the sample category.
-	// Sorting is disabled for some columns when pools are listed because the backend
-	// doesn't handle pool sorting well.
-	const sortableColumns = useDynamicSorters(
-		LIBRARY_TABLE_COLUMNS, 
-		[
+
+	// Tweak the column definitions a bit for this table.
+	const tweakedColumns = useMemo(() => {
+
+		// Set the widths of selected columns in this table.
+		let columns = setColumnWidths(LIBRARY_TABLE_COLUMNS, {
+			[LibraryColumnID.ID] : 90,
+			[LibraryColumnID.COORDINATES]: 70,
+			[LibraryColumnID.VOLUME] : 100,
+			[LibraryColumnID.LIBRARY_SIZE]: 80,
+			[LibraryColumnID.CONCENTRATION_NM]: 115,
+			[LibraryColumnID.CONCENTRATION]: 115,
+			[LibraryColumnID.NA_QUANTITY]: 115,
+			[LibraryColumnID.CREATION_DATE]: 115,
+			[LibraryColumnID.DEPLETED]: 85,
+		})
+
+		// Set the sorter properties on the columns, depending on the sample category.
+		// Sorting is disabled for some columns when pools are listed because the backend
+		// doesn't handle pool sorting well.
+		columns = setDynamicSorters(columns, [
 			LibraryColumnID.PLATFORM_NAME,
 			LibraryColumnID.PROJECT_NAME,
 			LibraryColumnID.LIBRARY_TYPE,
@@ -80,12 +96,15 @@ export default function LibariesListContent() {
 			LibraryColumnID.INDEX_NAME,
 			LibraryColumnID.LIBRARY_SIZE,
 		]
-		, sampleCategory === SampleCategory.SAMPLES	// TODO "LIBRARIES"
-	)
+		, sampleCategory === SampleCategory.SAMPLES)
+
+		return columns
+
+	}, [sampleCategory])
 
 	// Now apply the filters to the columns.
 	const baseColumns = useFilteredColumns(
-		sortableColumns,
+		tweakedColumns,
 		LIBRARY_COLUMN_FILTERS,
 		LIBARY_TABLE_FILTER_KEYS,
 		filters,
