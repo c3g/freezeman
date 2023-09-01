@@ -1,6 +1,6 @@
-import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc } from "../../../models/paged_items"
-import { getFilterPropsForDescription } from "../../filters/getFilterPropsTS"
-import { IdentifiedTableColumnType } from "../../pagedItemsTable/PagedItemsColumns"
+import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc } from "../../models/paged_items"
+import { getFilterPropsForDescription } from "../filters/getFilterPropsTS"
+import { IdentifiedTableColumnType } from "./PagedItemsColumns"
 
 
 /**

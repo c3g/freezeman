@@ -1,4 +1,4 @@
-import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
+import { IdentifiedTableColumnType } from "./PagedItemsColumns"
 
 
 /**

@@ -1,11 +1,11 @@
 import React, { useMemo, useCallback } from "react"
 import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS, SAMPLE_COLUMN_FILTERS, SampleColumnID } from '../samples/SampleTableColumns';
-import WorkflowSamplesTable from "../shared/WorkflowSamplesTable/WorkflowSamplesTable"
 import { clearFilters, setFilter, setSortBy } from '../../modules/individualDetails/actions'
 import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items";
 import { useAppDispatch } from "../../hooks";
 import { IndividualDetails } from "../../modules/individualDetails/models";
-import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
+import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
+import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
 
 interface IndividualAssociatedSamplesProps {
     samples: SampleAndLibrary[],

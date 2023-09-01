@@ -1,12 +1,12 @@
 import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useMemo } from 'react'
-import { FMSId } from '../../../models/fms_api_models'
-import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
-import FiltersBar from '../../filters/filtersBar/FiltersBar'
-import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
+import { FMSId } from '../../models/fms_api_models'
+import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../models/paged_items'
+import FiltersBar from '../filters/filtersBar/FiltersBar'
+import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from './ColumnSets'
-import { addFiltersToColumns } from './MergeColumnsAndFilters'
+import { addFiltersToColumns } from '../pagedItemsTable/MergeColumnsAndFilters'
 
 
 export interface PaginationParameters {

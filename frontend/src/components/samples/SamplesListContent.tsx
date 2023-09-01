@@ -15,11 +15,11 @@ import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
 import Flexbar from '../shared/Flexbar'
-import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
+import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
-import { setColumnWidths, setDynamicSorters } from '../shared/tableColumnUtilities'
+import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,

@@ -2,7 +2,7 @@
  * serializeFilterParams.js
  */
 
-import { FILTER_TYPE } from '../../../constants'
+import { FILTER_TYPE } from '../../constants'
 import {
 	FilterSet,
 	isMetadataFilterValue,
@@ -11,7 +11,7 @@ import {
 	isStringFilterValue,
 	MetadataFilterValue,
 	SortBy,
-} from '../../../models/paged_items'
+} from '../../models/paged_items'
 
 export default function serializeFilterParamsWithDescriptions(filters: FilterSet) {
 	const params = {}

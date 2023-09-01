@@ -14,8 +14,8 @@ import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePage
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from '../samples/SampleCategoryChooser'
 import FlexBar from '../shared/Flexbar'
 import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "./LibraryTableColumns"
-import { filtersQueryParams } from '../shared/WorkflowSamplesTable/serializeFilterParamsTS'
-import { setColumnWidths, setDynamicSorters } from '../shared/tableColumnUtilities'
+import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
+import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 
 const LIBRARY_TABLE_COLUMNS = [
 	LIBRARY_COLUMN_DEFINITIONS.ID,
