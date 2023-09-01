@@ -3,7 +3,10 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
+import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
+import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
+import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
+import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import { Project, Protocol, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
 

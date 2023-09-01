@@ -13,7 +13,10 @@ import ExportDropdown from '../ExportDropdown'
 import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import Flexbar from '../shared/Flexbar'
 import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
@@ -64,8 +67,7 @@ function SamplesListContent() {
 	, [token, filters, fixedFilters, sortBy])
 
 	const listExport = useCallback(() => {
-		return withToken(token, api.samples.listExport)
-			(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
+		return withToken(token, api.samples.listExport)(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
 			.then(response => response.data)
 	}
 	, [token, filters, fixedFilters, sortBy])

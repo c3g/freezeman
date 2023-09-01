@@ -12,8 +12,11 @@ import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
 import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
+import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import { CONTAINER_COLUMN_FILTERS, CONTAINER_FILTER_KEYS, CONTAINER_COLUMN_DEFINITIONS as ContainerColumns, CONTAINER_COLUMN_FILTERS as ContainerFilters, ObjectWithContainer } from './ContainersTableColumns'
 
 const containersTableColumns = [

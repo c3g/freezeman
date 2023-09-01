@@ -11,7 +11,10 @@ import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
 
 

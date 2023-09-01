@@ -10,7 +10,10 @@ import AppPageHeader from "../AppPageHeader"
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from '../samples/SampleCategoryChooser'
 import FlexBar from '../shared/Flexbar'
 import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "./LibraryTableColumns"
