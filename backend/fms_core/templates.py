@@ -37,8 +37,8 @@ MAX_HEADER_OFFSET = 20
 
 AXIOM_PREPARATION_TEMPLATE = {
   "identity": {"description": "Template to prepare samples for Axiom genotyping.",
-               "file": static("submission_templates/Axiom_experiment_preparation_v4_5_0.xlsx"),
-               "protocol": "Axiom Experiment Preparation"},
+               "file": static("submission_templates/Axiom_sample_preparation_v4_5_0.xlsx"),
+               "protocol": "Axiom Sample Preparation"},
   "sheets info": [
       {
           'name': 'Axiom Batch',
