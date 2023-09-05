@@ -96,6 +96,7 @@ import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
+import { individualsTable } from './modules/individualsTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -121,6 +122,7 @@ const allReducers = combineReducers({
   experimentRunTemplateActions,
   runTypes,
   individuals,
+  individualsTable,
   taxons,
   taxonsTable,
   referenceGenomes,

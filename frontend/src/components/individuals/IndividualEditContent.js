@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Alert, Button, Form, Input, Radio, Select, Space } from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import { add, update, listTable } from "../../modules/individuals/actions";
+import { add, update } from "../../modules/individuals/actions";
 import { individual as EMPTY_INDIVIDUAL } from "../../models/empty_models";
 import { SEX } from "../../constants";
 import api, { withToken } from "../../utils/api";
 import { requiredRules, nameRules } from "../../constants";
+import IndividualsTableActions from '../../modules/individualsTable/actions'
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { selectAuthTokenAccess, selectIndividualsByID, selectReferenceGenomesByID, selectTaxonsByID } from "../../selectors";
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
@@ -24,19 +26,16 @@ const searchReferenceGenomes = (token, input) =>
 const toOptions = values =>
   values.map(v => ({ label: v, value: v }))
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  individualsByID: state.individuals.itemsByID,
-  taxonsByID: state.taxons.itemsByID,
-  referenceGenomesByID: state.referenceGenomes.itemsByID,
-});
-
-const actionCreators = { add, update, listTable };
-
-const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGenomesByID, add, update, listTable }) => {
+const IndividualEditContent = () => {
+  const dispatch = useAppDispatch()
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
+
+  const token = useAppSelector(selectAuthTokenAccess)
+  const individualsByID = useAppSelector(selectIndividualsByID)
+  const taxonsByID = useAppSelector(selectTaxonsByID)
+  const referenceGenomesByID = useAppSelector(selectReferenceGenomesByID)
 
   const individual = individualsByID[id];
 
@@ -66,12 +65,12 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(individual => { history(`/individuals/${individual.id}`) }) :
-        update(id, data).then(() => { history(`/individuals/${id}`) })
+        dispatch(add(data)).then(individual => { history(`/individuals/${individual.id}`) }) :
+        dispatch(update(id, data)).then(() => { history(`/individuals/${id}`) })
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(listTable)
+      .then(dispatch(IndividualsTableActions.refreshPage()))
   }
 
   const onCancel = useCallback(() => {
@@ -274,4 +273,4 @@ function serialize(values) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(IndividualEditContent);
+export default IndividualEditContent

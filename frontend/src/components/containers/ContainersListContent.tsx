@@ -1,9 +1,9 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import { useAppSelector } from '../../hooks'
 import { Container } from '../../models/frontend_models'
 import ContainersTableActions from '../../modules/containersTable/actions'
-import { selectContainerPrefillTemplates, selectContainerTemplateActions, selectContainersByID, selectContainersTable, selectToken } from '../../selectors'
-import api, { withToken } from '../../utils/api'
+import { selectContainerPrefillTemplates, selectContainerTemplateActions, selectContainersByID, selectContainersTable } from '../../selectors'
+import api from '../../utils/api'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
@@ -13,10 +13,11 @@ import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
-import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
 import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
-import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
+import useListExportCallback from '../pagedItemsTable/useListExportCallback'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTemplateCallback'
 import { CONTAINER_COLUMN_FILTERS, CONTAINER_FILTER_KEYS, CONTAINER_COLUMN_DEFINITIONS as ContainerColumns, CONTAINER_COLUMN_FILTERS as ContainerFilters, ObjectWithContainer } from './ContainersTableColumns'
 
 const containersTableColumns = [
@@ -45,18 +46,10 @@ export default function ContainersListContent() {
 	const { filters, sortBy, totalCount } = containersTableState
 	const templateActions = useAppSelector(selectContainerTemplateActions)
 	const prefills = useAppSelector(selectContainerPrefillTemplates)
-	const token = useAppSelector(selectToken)
 
-	const prefillTemplate = useCallback(({template}) =>
-		withToken(token, api.containers.prefill.request)(filtersQueryParams(filters, sortBy), template)
-		.then(response => response)
-	, [token, filters, sortBy])
+	const prefillTemplate = usePrefilledTemplateCallback(api.containers.prefill.request, filters, sortBy)
 
-	const listExport = useCallback(() => {
-		return withToken(token, api.containers.listExport)(filtersQueryParams(filters, sortBy))
-			.then(response => response.data)
-	}
-	, [token, filters, sortBy])
+	const listExport = useListExportCallback(api.containers.listExport, filters, sortBy)
 
 	const containersTableCallbacks = usePagedItemsActionsCallbacks(ContainersTableActions)
 

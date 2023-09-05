@@ -71,6 +71,7 @@ export const selectHideEmptySteps = (state: RootState) => state.studySamples.hid
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
 export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
+export const selectIndividualsTable = (state: RootState) => state.individualsTable
 export const selectInstrumentsByID = (state: RootState) => state.instruments.itemsByID as ItemsByID<Instrument>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState

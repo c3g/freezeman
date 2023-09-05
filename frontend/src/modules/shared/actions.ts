@@ -24,6 +24,7 @@ import ProjectsTableActions from '../projectsTable/actions'
 import SamplesTableActions from '../samplesTable/actions'
 import LibrariesTableActions from '../librariesTable/actions'
 import ContainersTableActions from '../containersTable/actions'
+import IndividualsTableActions from '../individualsTable/actions'
 
 
 export const fetchSummariesData = () => async (dispatch) => {
@@ -82,7 +83,7 @@ export const fetchListedData = () => async (dispatch) => {
         ContainersTableActions.refreshPage,
         ExperimentRuns.listTable,
         Indices.listTable,
-        Individuals.listTable,
+        IndividualsTableActions.refreshPage,
         SamplesTableActions.refreshPage,
         LibrariesTableActions.refreshPage,
         ProjectsTableActions.refreshPage,

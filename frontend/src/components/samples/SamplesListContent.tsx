@@ -23,6 +23,8 @@ import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting }
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
 import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
+import useListExportCallback from '../pagedItemsTable/useListExportCallback'
+import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTemplateCallback'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
@@ -58,24 +60,13 @@ function SamplesListContent() {
 	const { filters, fixedFilters, sortBy, totalCount, isFetching } = samplesTableState
 	const templateActions = useAppSelector(selectSampleTemplateActions)
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
-	const token = useAppSelector(selectToken)
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
-	const prefillTemplate = useCallback(({template}) =>
-		withToken(token, api.samples.prefill.request)(filtersQueryParams({...filters, ...fixedFilters}, sortBy), template)
-		.then(response => response)
-	, [token, filters, fixedFilters, sortBy])
+	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortBy)
 
-	const listExport = useCallback(() => {
-		return withToken(token, api.samples.listExport)(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
-			.then(response => response.data)
-	}
-	, [token, filters, fixedFilters, sortBy])
+	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortBy)
 
-	const listExportMetadata = useCallback(() =>
-		withToken(token, api.samples.listExportMetadata)(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
-		.then(response => response.data)
-	, [token, filters, fixedFilters, sortBy])
+	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortBy)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
