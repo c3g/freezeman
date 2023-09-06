@@ -65,12 +65,14 @@ const IndividualEditContent = () => {
     const data = serialize(formData)
     const action =
       isAdding ?
-        dispatch(add(data)).then(individual => { history(`/individuals/${individual.id}`) }) :
+        dispatch(add(data)).then(individual => { history(`/individuals/${individual.id}`)  }) :
         dispatch(update(id, data)).then(() => { history(`/individuals/${id}`) })
     action
-      .then(() => { setFormErrors({}) })
+      .then(() => { 
+        setFormErrors({})
+        dispatch(IndividualsTableActions.refreshPage())
+      })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(dispatch(IndividualsTableActions.refreshPage()))
   }
 
   const onCancel = useCallback(() => {
