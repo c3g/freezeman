@@ -153,7 +153,7 @@ const IndividualEditContent = () => {
             extra="Individual name given by the client. Use if client name duplicates an existing individual name in Freezeman." >
             <Input />
           </Form.Item>
-          <Form.Item label="Taxon" {...props("taxon")}
+          <Form.Item label="Taxon" {...props("taxon")} rules={requiredRules}
             extra="Taxon identifying the individual. Add taxon to Freezeman if missing from the list." >
             <Select
               showSearch
@@ -175,7 +175,7 @@ const IndividualEditContent = () => {
               onFocus={onFocusReferenceGenome}
             />
           </Form.Item>
-          <Form.Item label="Sex" {...props("sex")}
+          <Form.Item label="Sex" {...props("sex")} rules={requiredRules}
             extra="Sex of the individual if applicable, unknown otherwise." >
             <Radio.Group
               optionType="button"
