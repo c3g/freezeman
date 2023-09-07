@@ -495,7 +495,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       # borrowed from extraction template
       "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
       "Volume (uL)": "number",
-      "Source Depleted": ["YES", "NO"],
+      "Source Depleted": ["YES"],
       "Extraction Date (YYYY-MM-DD)": "date",
       "Comment": "text",
   }
@@ -525,7 +525,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
   "user prefill info": {
       # borrowed from transfer template
       "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
-      "Source Depleted": ["YES", "NO"],
+      "Source Depleted": ["YES"],
       "Volume Used (uL)": "number",
       "Transfer Date (YYYY-MM-DD)": "date",
       "Comment": "text"

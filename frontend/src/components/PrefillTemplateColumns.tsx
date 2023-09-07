@@ -102,7 +102,6 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
         let error = false
         Object.keys(fieldValues).forEach((column) => {
             if (checkedFields[column]) {
-                console.debug(column, fieldValues[column])
                 if (fieldValues[column] == undefined) {
                     errorData[column] = 'Missing Field'
                     error = true
