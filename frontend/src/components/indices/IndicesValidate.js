@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,27 +18,31 @@ import PageContent from "../PageContent";
 import IndicesValidationResult from "./IndicesValidationResult";
 import * as Options from "../../utils/options";
 import api, { withToken } from "../../utils/api";
-import { validate, list } from "../../modules/indices/actions";
+import { list, validate } from "../../modules/indices/actions";
 import { requiredRules } from "../../constants";
-import store from "../../store";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { selectToken } from "../../selectors";
 
 // API functions
 const listSets = (token, options) =>
   withToken(token, api.indices.listSets)(options).then(res => res.data)
 
-const listInstrumentTypes = () => store.dispatch(api.instrumentTypes.list({}))
-
-
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  indicesTotalCount: state.indices.totalCount,
-  isFetching: state.indices.isFetching,
-});
-
-const actionCreators = { list, validate };
-
-const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate }) => {
+const IndicesValidate = () => {
   const history = useNavigate();
+
+  const dispatch = useAppDispatch()
+
+  const listIndices = useCallback((options) => {
+    return dispatch(list(options))
+  }, [dispatch])
+  const validateIndices = useCallback((options) => {
+    return dispatch(validate(options))
+  }, [dispatch])
+  const listInstrumentTypes = useCallback(() => {
+    return dispatch(api.instrumentTypes.list({ instruments__isnull: false }))
+  }, [dispatch])
+
+  const token = useAppSelector(selectToken)
 
   /*
    * State management
@@ -52,10 +56,14 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   const [validationLoading, setValidationLoading] = useState(false)
   const [validationResult, setValidationResult] = useState()
 
+  const instrumentTypesRender = useMemo(() => {
+    return instrumentTypes.map(Options.renderInstrumentType)
+  }, [instrumentTypes])
+
   useEffect(() => {
     //List instrument
     listInstrumentTypes().then(response => {
-      setInstrumentTypes(response.data.results.map(Options.renderInstrumentType))
+      setInstrumentTypes(response.data.results)
     })
     //List sets and initialize the cascader options
     listSets(token, {}).then(sets => {
@@ -69,9 +77,10 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
         }])
       })
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const loadData = (setOptions) => {
+  const loadData = useCallback((setOptions) => {
     const targetSet = setOptions[setOptions.length - 1]
     const setID = targetSet.value
     const numIndicesInSet = targetSet.numChildren
@@ -80,7 +89,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
     setIndexCount(prevIndexCount => prevIndexCount + numIndicesInSet)
 
     // load options lazily
-    list({ ...query }).then(response => {
+    listIndices({ ...query }).then(response => {
       const indices = response.results
       const indicesID = indices.map(index => index.id)
       //concatenate existing indices to the retrieved ones
@@ -95,7 +104,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
       setIndicesBySet([...indicesBySet])
       setloadedIndices(currentIndices => ([...currentIndices, ...indicesID]))
     })
-  }
+  }, [indicesBySet, listIndices])
 
   /*
    * Form Data submission
@@ -113,10 +122,10 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
     setFormData({ ...formData, ...values })
   }
 
-  const onSubmit = () => {
+  const onSubmit = useCallback(() => {
     setValidationLoading(true)
     const data = serialize(formData)
-    validate(data)
+    validateIndices(data)
       .then((response) => {
         setValidationLoading(false)
         setFormErrors({})
@@ -126,7 +135,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
         setValidationLoading(false)
         setFormErrors(err.data || {})
       })
-  }
+  }, [formData, serialize, validateIndices])
 
   const onCancel = useCallback(() => {
     history(-1)
@@ -146,7 +155,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
       help: formErrors[name],
     }
 
-  function serialize(values) {
+  const serialize = useCallback((values) => {
     const newValues = { ...values }
 
     if (newValues.indices) {
@@ -165,7 +174,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
     }
 
     return newValues
-  }
+  }, [indicesBySet])
 
   return (
     <>
@@ -205,7 +214,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
                 placeholder="Select an instrument type"
                 showSearch
                 allowClear
-                options={instrumentTypes}
+                options={instrumentTypesRender}
                 filterOption={(input, option) =>
                   option.label.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
@@ -300,4 +309,4 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   );
 }
 
-export default connect(mapStateToProps, actionCreators)(IndicesValidate);
+export default IndicesValidate

@@ -38,7 +38,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'barcode': str_cast_and_normalize(row_data['Location Barcode']),
             }
             individual = {
-                'name': str_cast_and_normalize(row_data['Individual ID']),
+                'name': str_cast_and_normalize(row_data['Individual Name']),
                 'alias': str_cast_and_normalize(row_data['Individual Alias']),
                 'sex': str_cast_and_normalize(row_data['Sex']),
                 'pedigree': str_cast_and_normalize(row_data['Pedigree']),
@@ -47,10 +47,10 @@ class SampleSubmissionImporter(GenericImporter):
                 'cohort': str_cast_and_normalize(row_data['Cohort']),
             }
             individual_mother = {
-                'name': str_cast_and_normalize(row_data['Mother ID']),
+                'name': str_cast_and_normalize(row_data['Mother Name']),
             }
             individual_father = {
-                'name': str_cast_and_normalize(row_data['Father ID']),
+                'name': str_cast_and_normalize(row_data['Father Name']),
             }
             library = {
                 'library_type': str_cast_and_normalize(row_data['Library Type']),

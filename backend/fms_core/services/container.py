@@ -129,13 +129,15 @@ def get_or_create_container(barcode, kind=None, name=None, coordinates=None, con
                 errors.append(f"Provided container kind {kind} does not match the container kind {container.kind} of the container retrieved using the barcode {barcode}.")
             if name and name != container.name:
                 errors.append(f"Provided container name {name} does not match the container name {container.name} of the container retrieved using the barcode {barcode}.")
-            if container_parent and container_parent.id != container.location.id:
-                errors.append(f"Provided parent container {container_parent.barcode} does not match the parent container {container.location.barcode} of the container retrieved using the barcode {barcode}.")
+            if container_parent and container_parent.id != container.location_id:
+                errors.append(f"Provided parent container {container_parent.barcode} does not match the parent container ({container.location.barcode if container.location is not None else 'None'}) of the container retrieved using the barcode {barcode}.")
             if coordinates and coordinates != container.coordinates:
-                errors.append(f"Provided container coordinates {coordinates} do not match the container coordinates {container.coordinates} of the container retrieved using the barcode {barcode}.")
+                errors.append(f"Provided container coordinates ({coordinates}) do not match the container coordinates {container.coordinates} of the container retrieved using the barcode {barcode}.")
 
         except Container.DoesNotExist:
-            if container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
+            if kind is None:
+                errors.append(f"Container kind is required to create a container.")
+            elif container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
                 errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
             else:
                 try:
@@ -158,32 +160,35 @@ def create_container(barcode, kind, name=None, coordinates=None, container_paren
     warnings = []
 
     if barcode:
-        if Container.objects.filter(barcode=barcode).exists():
-            errors.append(f"Container with barcode {barcode} already exists.")
-        else:
-            try:
-                coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
-            except Coordinate.DoesNotExist as err:
-                errors.append(f"Provided coordinates {coordinates} are not valid (Coordinates format example: A01).")
-            container_data = dict(
-                **(dict(location=container_parent) if container_parent else dict()),
-                **(dict(barcode=barcode) if barcode is not None else dict()),
-                **(dict(name=name) if name is not None else dict(name=barcode)), # By default, a container name will be his barcode
-                **(dict(coordinate=coordinate) if coordinate is not None else dict()),
-                **(dict(kind=kind) if kind is not None else dict()),
-            )
-
-            comment = creation_comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")
-
-            if container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
-                errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
+        if kind:
+            if Container.objects.filter(barcode=barcode).exists():
+                errors.append(f"Container with barcode {barcode} already exists.")
             else:
                 try:
-                    container= Container.objects.create(**container_data, comment=comment)
+                    coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
+                except Coordinate.DoesNotExist as err:
+                    errors.append(f"Provided coordinates {coordinates} are not valid (Coordinates format example: A01).")
+                container_data = dict(
+                    **(dict(location=container_parent) if container_parent else dict()),
+                    **(dict(barcode=barcode) if barcode is not None else dict()),
+                    **(dict(name=name) if name is not None else dict(name=barcode)), # By default, a container name will be his barcode
+                    **(dict(coordinate=coordinate) if coordinate is not None else dict()),
+                    **(dict(kind=kind) if kind is not None else dict()),
+                )
 
-                # Pile up all validation error raised during the creation of the container
-                except ValidationError as e:
-                    errors.append(';'.join(e.messages))
+                comment = creation_comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")
+
+                if container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
+                    errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
+                else:
+                    try:
+                        container= Container.objects.create(**container_data, comment=comment)
+
+                    # Pile up all validation error raised during the creation of the container
+                    except ValidationError as e:
+                        errors.append(';'.join(e.messages))
+        else:
+            errors.append(f"Container kind is required to create a container.")  
     else:
         errors.append(f"Barcode is required to create a container.")
 

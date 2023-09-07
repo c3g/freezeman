@@ -86,6 +86,7 @@ import { steps } from './modules/steps/reducers';
 import { studies } from "./modules/studies/reducers";
 import { studySamples } from "./modules/studySamples/reducers";
 import { taxons } from "./modules/taxons/reducers";
+import { taxonsTable } from './modules/taxonsTable/reducers'
 import { users } from "./modules/users/reducers";
 import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
@@ -117,6 +118,7 @@ const allReducers = combineReducers({
   runTypes,
   individuals,
   taxons,
+  taxonsTable,
   referenceGenomes,
   instruments,
   sampleKinds,

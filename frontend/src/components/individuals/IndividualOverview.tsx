@@ -24,7 +24,7 @@ const IndividualOverview = ({ individual }) => {
                                 <Link to={`/individuals/${individual.mother}`}>
                                     <WithIndividualRenderComponent
                                         objectID={individual.mother}
-                                        render={(individual) => <span>{individual.mother}</span>}
+                                        render={(individual) => <span>{individual.name}</span>}
                                     />
                                 </Link>
                             ) :
@@ -36,7 +36,7 @@ const IndividualOverview = ({ individual }) => {
                                 <Link to={`/individuals/${individual.father}`}>
                                     <WithIndividualRenderComponent
                                         objectID={individual.father}
-                                        render={(individual) => <span>{individual.father}</span>}
+                                        render={(individual) => <span>{individual.name}</span>}
                                     />
                                 </Link>
                             ) :

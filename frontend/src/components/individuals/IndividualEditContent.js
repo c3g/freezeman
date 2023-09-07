@@ -10,7 +10,7 @@ import { add, update, listTable } from "../../modules/individuals/actions";
 import { individual as EMPTY_INDIVIDUAL } from "../../models/empty_models";
 import { SEX } from "../../constants";
 import api, { withToken } from "../../utils/api";
-import { requiredRules } from "../../constants";
+import { requiredRules, nameRules } from "../../constants";
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
@@ -55,6 +55,7 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
   useEffect(() => {
     const newData = deserialize(individualValue)
     onSearchIndividual(newData.mother)
+    onSearchIndividual(newData.father)
   }, [individualValue])
 
   const onValuesChange = (values) => {
@@ -144,13 +145,17 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Name" {...props("name")} rules={requiredRules}>
+          <Form.Item label="Name" {...props("name")} rules={nameRules.concat(requiredRules)}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
+            extra="Anonymized unique individual ID." >
             <Input />
           </Form.Item>
-          <Form.Item label="Alias" {...props("alias")}>
+          <Form.Item label="Alias" {...props("alias")}
+            extra="Individual name given by the client. Use if client name duplicates an existing individual name in Freezeman." >
             <Input />
           </Form.Item>
-          <Form.Item label="Taxon" {...props("taxon")}>
+          <Form.Item label="Taxon" {...props("taxon")}
+            extra="Taxon identifying the individual. Add taxon to Freezeman if missing from the list." >
             <Select
               showSearch
               allowClear
@@ -160,7 +165,8 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
               onFocus={onFocusTaxon}
             />
           </Form.Item>
-          <Form.Item name="referenceGenome" label="Refererence Genome" {...props('reference_genome')}>
+          <Form.Item name="referenceGenome" label="Refererence Genome" {...props('reference_genome')}
+            extra="Reference genome to be used for this individual." >
             <Select
               showSearch
               allowClear
@@ -170,19 +176,23 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
               onFocus={onFocusReferenceGenome}
             />
           </Form.Item>
-          <Form.Item label="Sex" {...props("sex")}>
+          <Form.Item label="Sex" {...props("sex")}
+            extra="Sex of the individual if applicable, unknown otherwise." >
             <Radio.Group
               optionType="button"
               options={toOptions(SEX)}
             />
           </Form.Item>
-          <Form.Item label="Pedigree" {...props("pedigree")}>
+          <Form.Item label="Pedigree" {...props("pedigree")}
+            extra="Pedigree of the individual." >
             <Input />
           </Form.Item>
-          <Form.Item label="Cohort" {...props("cohort")}>
+          <Form.Item label="Cohort" {...props("cohort")}
+            extra="Cohort of the individual.">
             <Input />
           </Form.Item>
-          <Form.Item label="Mother" {...props("mother")}>
+          <Form.Item label="Mother" {...props("mother")}
+            extra="Mother of the individual. Must be an existing female individual in Freezeman." >
             <Select
               showSearch
               allowClear
@@ -192,7 +202,8 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
               onFocus={onFocusIndividual}
             />
           </Form.Item>
-          <Form.Item label="Father" {...props("father")}>
+          <Form.Item label="Father" {...props("father")}
+            extra="Father of the individual. Must be an existing male individual in Freezeman." >
             <Select
               showSearch
               allowClear
