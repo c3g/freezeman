@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from typing import List, Tuple, Union, TypedDict
+from typing import List, Tuple, Union, TypedDict, NotRequired
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
@@ -97,8 +97,8 @@ def reset_dataset_content(dataset: Dataset):
     return errors, warnings
 
 class DatasetFileReport(TypedDict):
-    final_path: str
-    size: int
+    final_path: NotRequired[str]
+    size: NotRequired[str]
 
 def create_dataset_file(readset: Readset,
                         file_path: str,
@@ -285,7 +285,7 @@ def ingest_run_validation_report(report_json):
         for key in readset:
             if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
                 file: DatasetFileReport = readset[key]
-                if file['final_path'] is None:
+                if file.get('final_path') is None:
                     warnings.append(("final_path not provided for file type {0} of readset {1}", key, readset_name))
                     continue
 
