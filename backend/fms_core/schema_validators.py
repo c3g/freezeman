@@ -109,13 +109,13 @@ RUN_PROCESSING_SCHEMA = {
         "lane": {"type": "string", "pattern": str(r"^([1-9][0-9]*|0)$")},
         "run_obj_id": {"type": ["null", "number"]},
         "metrics_report_url": {"type": "string"},
-        "external_project_id": {"type": "string"},
         "readsets": {
             "type": "object",
             "patternProperties": {
                 "^.*$": {
                     "type": "object",
                     "properties": {
+                        "external_project_id": {"type": "string"},
                         "sample_name": {"type": "string"},
                         "derived_sample_id": {"type": ["null", "number"]},
                         "barcodes": {
@@ -125,7 +125,7 @@ RUN_PROCESSING_SCHEMA = {
                                 "properties": {
                                     "PROJECT": {"type": "string"},
                                 },
-                                "required": ["external_project_id", "PROJECT"]
+                                "required": ["PROJECT"]
                             },
                             "minItems": 1,
                         },
