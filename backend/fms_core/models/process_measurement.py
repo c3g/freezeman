@@ -15,7 +15,7 @@ from ._utils import add_error as _add_error
 
 __all__ = ["ProcessMeasurement"]
 
-PROTOCOLS_WITH_VOLUME_USED_OPTIONAL = ['Update']
+PROTOCOLS_WITH_VOLUME_USED_OPTIONAL = ['Update', 'Axiom Sample Preparation']
 PROTOCOLS_WITH_NEGATIVE_VOLUME_USED_ALLOWED = ['Update']
 
 @reversion.register()

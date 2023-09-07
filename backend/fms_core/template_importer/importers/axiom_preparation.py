@@ -1,9 +1,7 @@
-from fms_core.models import RunType, PropertyType, Protocol
+from fms_core.models import PropertyType, Protocol
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.axiom_batch import AxiomBatchRowHandler
-from fms_core.templates import AXIOM_PREPARATION_TEMPLATE_SHEET_INFO
-from collections import defaultdict
-from datetime import datetime
+from fms_core.template_importer.row_handlers.axiom_preparation.axiom_batch import AxiomBatchRowHandler
+from fms_core.templates import AXIOM_PREPARATION_TEMPLATE
 from fms_core.services.step import get_step_from_template
 from .._utils import input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize
@@ -11,7 +9,7 @@ from fms_core.utils import str_cast_and_normalize
 PROPERTIES_STARTING_INDEX = 5
 
 class AxiomPreparationImporter(GenericImporter):
-    SHEETS_INFO = AXIOM_PREPARATION_TEMPLATE_SHEET_INFO
+    SHEETS_INFO = AXIOM_PREPARATION_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()
@@ -50,7 +48,7 @@ class AxiomPreparationImporter(GenericImporter):
         self.initialize_data_for_template(properties=batch_df.values[batch_sheet.header_row_nb][self.properties_starting_index:].tolist())
 
         # Identify for each row of the matching workflow step
-        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO, True)
         self.base_errors.extend(errors)
 
         """
