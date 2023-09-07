@@ -98,7 +98,7 @@ def reset_dataset_content(dataset: Dataset):
 
 class DatasetFileReport(TypedDict):
     final_path: NotRequired[str]
-    size: NotRequired[str]
+    size: int
 
 def create_dataset_file(readset: Readset,
                         file_path: str,
