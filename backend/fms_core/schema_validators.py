@@ -109,6 +109,7 @@ RUN_PROCESSING_SCHEMA = {
         "lane": {"type": "string", "pattern": str(r"^([1-9][0-9]*|0)$")},
         "run_obj_id": {"type": ["null", "number"]},
         "metrics_report_url": {"type": "string"},
+        "external_project_id": {"type": "string"},
         "readsets": {
             "type": "object",
             "patternProperties": {
@@ -122,7 +123,6 @@ RUN_PROCESSING_SCHEMA = {
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "external_project_id": {"type": "string"},
                                     "PROJECT": {"type": "string"},
                                 },
                                 "required": ["external_project_id", "PROJECT"]

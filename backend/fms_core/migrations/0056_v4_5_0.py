@@ -19,6 +19,12 @@ class Migration(migrations.Migration):
             name='release_status_timestamp',
         ),
         migrations.AddField(
+            model_name='datasetfile',
+            name='size',
+            field=models.IntegerField(default=1, help_text='Size of the dataset file.'),
+            preserve_default=False,
+        ),
+        migrations.AddField(
             model_name='readset',
             name='release_status',
             field=models.IntegerField(choices=[(0, 'Available'), (1, 'Released'), (2, 'Blocked')], default=0, help_text='The release status of the file.'),
@@ -27,11 +33,5 @@ class Migration(migrations.Migration):
             model_name='readset',
             name='release_status_timestamp',
             field=models.DateTimeField(blank=True, help_text='The last time the release status of the file was changed.', null=True),
-        ),
-        migrations.AddField(
-            model_name='datasetfile',
-            name='size',
-            field=models.IntegerField(default=1, help_text='Size of the dataset file.'),
-            preserve_default=False,
-        ),
+        )
     ]

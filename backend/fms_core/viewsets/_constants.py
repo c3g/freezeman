@@ -254,6 +254,7 @@ _dataset_file_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     **_prefix_keys("readset__", _readset_filterset_fields),
     "file_path": CATEGORICAL_FILTERS_LOOSE,
+    "size": SCALAR_FILTERS,
     "validation_status": CATEGORICAL_FILTERS,
     "validation_status_timestamp": DATE_FILTERS,
 }
