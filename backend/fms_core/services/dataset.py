@@ -136,8 +136,6 @@ def create_dataset_file(readset: Readset,
     if errors:
         return dataset_file, errors, warnings
 
-    dataset_file_data = {}
-
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
                                                   file_path=file_path,

@@ -5,7 +5,6 @@ from rest_framework.decorators import action
 
 from fms_core.models.readset import Readset
 from fms_core.serializers import ReadsetSerializer
-from fms_core.filters import ReadsetFilter
 
 from ._utils import _list_keys
 from ._constants import _readset_filterset_fields
@@ -19,4 +18,6 @@ class ReadsetViewSet(viewsets.ModelViewSet):
         *_list_keys(_readset_filterset_fields),
     )
 
-    filterset_class = ReadsetFilter
+    filterset_fields = {
+        **_readset_filterset_fields
+    }
