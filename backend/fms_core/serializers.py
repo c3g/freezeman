@@ -592,18 +592,18 @@ class DatasetSerializer(serializers.ModelSerializer):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
 
     def get_released_status_count(self, obj):
-        return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
+        return Readset.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
     
     def get_blocked_status_count(self, obj):
-        return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.BLOCKED).count()
+        return Readset.objects.filter(dataset=obj.id, release_status=ReleaseStatus.BLOCKED).count()
     
     def get_latest_release_update(self, obj):
-        return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
+        return Readset.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
 
 class ReadsetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample")
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp")
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)
@@ -611,7 +611,6 @@ class DatasetFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = DatasetFile
         fields = ("id", "readset", "file_path",
-                  "release_status", "release_status_timestamp",
                   "validation_status", "validation_status_timestamp")
 
 class PooledSampleSerializer(serializers.Serializer):

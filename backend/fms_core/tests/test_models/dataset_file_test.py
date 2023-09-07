@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 
 from fms_core.models import Dataset, DatasetFile, Readset
-from fms_core.models._constants import ReleaseStatus, ValidationStatus
+from fms_core.models._constants import ValidationStatus
 
 class DatasetFileTest(TestCase):
     """ Test module for DatasetFile model """
@@ -18,8 +18,6 @@ class DatasetFileTest(TestCase):
         self.assertEqual(dataset_file.readset.dataset, self.dataset)
         self.assertEqual(dataset_file.file_path, "file_path")
         self.assertEqual(dataset_file.readset.sample_name, "My")
-        self.assertEqual(dataset_file.release_status, ReleaseStatus.AVAILABLE)
-        self.assertEqual(dataset_file.release_status_timestamp, None)
         self.assertEqual(dataset_file.validation_status, ValidationStatus.AVAILABLE)
         self.assertEqual(dataset_file.validation_status_timestamp, None)
 

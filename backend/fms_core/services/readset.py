@@ -1,12 +1,14 @@
 from typing import List, Tuple
 
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from fms_core.models import Dataset
 from fms_core.models import Readset
+from fms_core.models._constants import ReleaseStatus
 
 
-def create_readset(dataset: Dataset, name: str, sample_name: str, derived_sample_id: int = None) -> Tuple[Readset, List[str], List[str]]:
+def create_readset(dataset: Dataset, name: str, sample_name: str, derived_sample_id: int = None, release_status: ReleaseStatus = ReleaseStatus.AVAILABLE) -> Tuple[Readset, List[str], List[str]]:
     """
     Creates a readset instance to tie in the dataset files and metrics received from the run processing JSON.
 
@@ -32,12 +34,16 @@ def create_readset(dataset: Dataset, name: str, sample_name: str, derived_sample
     if not sample_name:
         errors.append(f"Missing readset sample name.")
         return readset, errors, warnings
+    if release_status not in [value for value, _ in ReleaseStatus.choices]:
+        errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
 
     try:
         readset = Readset.objects.create(dataset=dataset,
                                          name=name,
                                          sample_name=sample_name,
-                                         derived_sample_id=derived_sample_id)
+                                         derived_sample_id=derived_sample_id,
+                                         release_status=release_status,
+                                         **(dict(release_status_timestamp=timezone.now()) if release_status != ReleaseStatus.AVAILABLE else dict())) # Set timestamp if setting Status to non-default
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 

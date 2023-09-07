@@ -60,8 +60,8 @@ class DatasetServicesTestCase(TestCase):
 
     def test_reset_dataset_content(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT", metric_report_url=self.METRIC_REPORT_URL)
-        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=ReleaseStatus.BLOCKED)
+        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset, release_status=ReleaseStatus.BLOCKED)
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path")
         metric = Metric.objects.create(readset=readset, name="Reads", metric_group="RunQC", value_numeric=1000)
 
         self.assertEqual(Dataset.objects.count(), 1)
@@ -81,8 +81,8 @@ class DatasetServicesTestCase(TestCase):
 
     def test_create_dataset_file(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
-        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=ReleaseStatus.BLOCKED)
+        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset, release_status=ReleaseStatus.BLOCKED)
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path")
 
         self.assertCountEqual(errors, [])
         self.assertCountEqual(warnings, [])
@@ -91,24 +91,9 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(DatasetFile.objects.count(), 1)
         self.assertEqual(dataset_file.readset, readset)
         self.assertEqual(dataset_file.file_path, "file_path")
-        self.assertEqual(dataset_file.release_status, ReleaseStatus.BLOCKED)
-        self.assertIsNotNone(dataset_file.release_status_timestamp)
         self.assertEqual(dataset_file.validation_status, ValidationStatus.AVAILABLE)
         self.assertIsNone(dataset_file.validation_status_timestamp)
 
-    def test_create_dataset_file_with_status_released(self):
-        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
-        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=ReleaseStatus.RELEASED, validation_status=ValidationStatus.PASSED)
-
-        self.assertFalse(errors, "errors occured while creating a valid dataset file with create_dataset_file")
-        self.assertFalse(warnings, "warnings is expected to be empty")
-        self.assertIsNotNone(dataset_file)
-        self.assertEqual(dataset_file.release_status, ReleaseStatus.RELEASED)
-        self.assertIsNotNone(dataset_file.release_status_timestamp)
-        self.assertEqual(dataset_file.validation_status, ValidationStatus.PASSED)
-        self.assertIsNotNone(dataset_file.validation_status_timestamp)
-    
     def test_create_dataset_file_with_validation_status_passed(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
         readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
@@ -121,12 +106,6 @@ class DatasetServicesTestCase(TestCase):
         self.assertIsNone(dataset_file.release_status_timestamp)
         self.assertEqual(dataset_file.validation_status, ValidationStatus.PASSED)
         self.assertIsNotNone(dataset_file.validation_status_timestamp)
-
-    def test_create_dataset_file_with_invalid_status(self):
-        dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
-        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", release_status=3)
-        self.assertEqual(errors[0], "The release status can only be 0 (Available) or 1 (Released) or 2 (Blocked).")
 
     def test_set_experiment_run_lane_validation_status(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")

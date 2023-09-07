@@ -84,12 +84,12 @@ export interface FMSReadset extends FMSTrackedModel {
     name: string                       // External name that identifies the readset if the run did not come from Freezeman
     sample_name: string                // Name that identifies the sample if the run did not come from Freezeman
     derived_sample: FMSId              // Derived sample matching the readset
+    release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {
     dataset: FMSId                      // The dataset that owns this file
     file_path: string                   // The path to the dataset file (on Abacus?)
-    release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
     readset: FMSReadset                 // The readset of the dataset file
 }
 

@@ -99,7 +99,6 @@ def reset_dataset_content(dataset: Dataset):
 def create_dataset_file(readset: Readset,
                         file_path: str,
                         validation_status: ValidationStatus = ValidationStatus.AVAILABLE,
-                        release_status: ReleaseStatus = ReleaseStatus.AVAILABLE
                        ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     """
     Create a new dataset_file and return it. A dataset and readset must be created beforehand.
@@ -123,8 +122,6 @@ def create_dataset_file(readset: Readset,
     if not file_path:
         errors.append(f"Missing file path for dataset file.")
 
-    if release_status not in [value for value, _ in ReleaseStatus.choices]:
-        errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
 
     if validation_status not in [value for value, _ in ValidationStatus.choices]:
         errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
@@ -138,9 +135,7 @@ def create_dataset_file(readset: Readset,
         dataset_file = DatasetFile.objects.create(readset=readset,
                                                   file_path=file_path,
                                                   validation_status=validation_status,
-                                                  **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
-                                                  release_status=release_status,
-                                                  **(dict(release_status_timestamp=timezone.now()) if release_status != ReleaseStatus.AVAILABLE else dict())) # Set timestamp if setting Status to non-default
+                                                  **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict())) # Set timestamp if setting Status to non-default
     except ValidationError as e:
         errors.extend(e.messages)
 
