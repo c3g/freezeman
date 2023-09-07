@@ -129,34 +129,6 @@ RUN_PROCESSING_SCHEMA = {
                             },
                             "minItems": 1,
                         },
-                        "fastq_1": {
-                            "type": "object",
-                            "properties": {
-                                "final_path": {"type": ["string", "null"]},
-                                "size": {"type": ["number", "null"]},
-                            }
-                        },
-                        "fastq_2": {
-                            "type": "object",
-                            "properties": {
-                                "final_path": {"type": ["string", "null"]},
-                                "size": {"type": ["number", "null"]},
-                            }
-                        },
-                        "bam": {
-                            "type": "object",
-                            "properties": {
-                                "final_path": {"type": ["string", "null"]},
-                                "size": {"type": ["number", "null"]},
-                            }
-                        },
-                        "bai": {
-                            "type": "object",
-                            "properties": {
-                                "final_path": {"type": ["string", "null"]},
-                                "size": {"type": ["number", "null"]},
-                            }
-                        },
                     },
                     "required": ["sample_name", "barcodes"]
                 },
