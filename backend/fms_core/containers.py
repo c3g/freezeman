@@ -623,6 +623,9 @@ RUN_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in Contai
 SAMPLE_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
                                                 if c.sample_holding)
 
+SAMPLE_NON_RUN_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
+                                                if c.sample_holding and not c.is_run_container)
+
 NON_SAMPLE_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
                                                     if not c.sample_holding)
 

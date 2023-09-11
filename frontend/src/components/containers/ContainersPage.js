@@ -3,7 +3,7 @@ import {Navigate, Route, Routes} from "react-router-dom";
 
 import ContainerEditContent from "./ContainerEditContent";
 import ContainersDetailContent from "./ContainersDetailContent";
-import ContainersListContent from "./ContainersListContent";
+import ContainersListContent from './ContainersListContent'
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 

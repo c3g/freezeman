@@ -1,11 +1,11 @@
-import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
+import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
 import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID } from "../../selectors"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
-import Sample from "../samples/actions.js"
+import { list as listSamples} from "../samples/actions"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
@@ -122,7 +122,7 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 			// Load the associated samples/libraries
 			const sampleIDs = response.results.map(nextStep => nextStep.sample)
 			const options = { id__in: sampleIDs.join(',') }
-			dispatch(Sample.list(options))
+			dispatch(listSamples(options))
 		}
 	}
 }

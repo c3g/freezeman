@@ -1,21 +1,20 @@
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps, SelectProps } from "antd"
+import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps, SelectProps, InputProps } from "antd"
 import api from '../utils/api'
 import { InstrumentType } from '../models/frontend_models'
-import { useAppSelector } from '../hooks'
 import store from '../store'
 
-type ColumnType = 'number' | 'date' | 'qc-instrument' | string[]
+type ColumnType = 'number' | 'text' | 'date' | 'qc-instrument' | string[]
 
 interface ColumnTypeHandlers {
-    input: (type: 'number') => ReactNode
+    input: (type: 'number' | 'text') => ReactNode
     date: () => ReactNode
     qcInstrument: () => ReactNode
     select: (options: string[]) => ReactNode
 }
 
 function handleColumnType(columnType: ColumnType, { input, date, qcInstrument, select }: ColumnTypeHandlers): ReactNode {
-    if (columnType === 'number') {
+    if (columnType === 'number' || columnType === 'text') {
         return input(columnType)
     }
     if (columnType === 'date') {
@@ -30,8 +29,8 @@ function handleColumnType(columnType: ColumnType, { input, date, qcInstrument, s
     return <></>
 }
 
-const { Text } = Typography
 const { Item } = Form
+
 interface PrefillButtonProps {
     canPrefill: boolean,
     handlePrefillTemplate: (data: { [column: string]: any }) => void,
@@ -55,6 +54,7 @@ function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
 
     return <Select {...props} options={instrumentTypes.map((instrumentType) => ({ value: instrumentType.type, label: instrumentType.type }))} />
 }
+
 
 const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButtonProps) => {
     const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(false);
@@ -102,7 +102,6 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
         let error = false
         Object.keys(fieldValues).forEach((column) => {
             if (checkedFields[column]) {
-                console.debug(column, fieldValues[column])
                 if (fieldValues[column] == undefined) {
                     errorData[column] = 'Missing Field'
                     error = true
@@ -138,12 +137,12 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data }: PrefillButto
         setCheckedFields(fields)
     }, [data])
 
-    const ColumnTypeHandlersCallback: (field: string) => ColumnTypeHandlers = useCallback((field: string) => ({
+    const ColumnTypeHandlersCallback = useCallback((field: string) => ({
         input: (type) => <Input type={type} disabled={!checkedFields[field]} />,
         date: () => <DatePicker disabled={!checkedFields[field]} />,
         qcInstrument: () => <SelectInstrumentType type={'Quality Control'} disabled={!checkedFields[field]} />,
         select: (options) => <Select options={options.map((o) =>  ({ label: o, value: o }))} disabled={!checkedFields[field]} />
-    }), [checkedFields])
+    } as ColumnTypeHandlers), [checkedFields])
 
     return (
         <>
