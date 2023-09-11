@@ -1,13 +1,13 @@
 import React from "react"
 import {SearchOutlined} from "@ant-design/icons"
 import moment from 'moment'
-import InputFilter from './FilterProps/InputFilter'
+import InputFilter from './filterComponents/InputFilter'
 // import DebouncedInputFilter from "./FilterProps/DebouncedInputFilter"
-import InputNumberFilter from './FilterProps/InputNumberFilter'
-import SelectFilter from './FilterProps/SelectFilter'
-import RadioFilter from "./FilterProps/RadioFilter"
-import RangeFilterComponent from "./FilterProps/RangeFilter"
-import DateRangeFilter from "./FilterProps/DateRange"
+import InputNumberFilter from './filterComponents/InputNumberFilter'
+import SelectFilter from './filterComponents/SelectFilter'
+import RadioFilter from "./filterComponents/RadioFilter"
+import RangeFilterComponent from "./filterComponents/RangeFilter"
+import DateRangeFilter from "./filterComponents/DateRange"
 import { nullize } from '../../utils/nullize'
 
 import {FILTER_TYPE} from "../../constants"

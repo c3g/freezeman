@@ -163,7 +163,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 
 	return (
 		<>
-			<FlexBar>
+			<FlexBar style={{padding: '1em'}}>
 				{urlSet.size > 0 ? (
 					// Display the list of metrics url's associated with the lane's datasets.
 					<List>

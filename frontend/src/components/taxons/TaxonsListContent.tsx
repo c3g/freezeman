@@ -7,7 +7,10 @@ import { TAXON_FILTERS, TAXON_FILTER_KEYS, getColumnsForTaxon } from './TaxonTab
 import { useAppSelector } from '../../hooks'
 import { selectAuthState, selectTaxonsByID, selectTaxonsTable, selectUsersByID } from '../../selectors'
 import TaxonsTableActions from '../../modules/taxonsTable/actions'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 
 export interface TaxonsListContentProps {}
 

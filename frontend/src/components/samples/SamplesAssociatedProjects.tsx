@@ -4,7 +4,10 @@ import { useAppSelector } from "../../hooks"
 import { FilterSetting, createFixedFilter } from "../../models/paged_items"
 import ProjectsOfSamplesActions from '../../modules/projectsOfSamples/actions'
 import { selectProjectsByID, selectProjectsOfSamples } from "../../selectors"
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from "../pagedItemsTable/PagedItemsTable"
+import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
+import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
+import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
+import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from '../projects/ProjectsTableColumns'
 
 const projectColumns = [
