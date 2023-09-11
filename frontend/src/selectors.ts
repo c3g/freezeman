@@ -12,6 +12,7 @@ import {
 	Project,
 	PropertyValue,
 	Protocol,
+	Readset,
 	ReferenceGenome,
 	RunType,
 	Sample,
@@ -54,6 +55,7 @@ export const selectContainerKindsByID = (state: RootState) => state.containerKin
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
+export const selectReadsetsByID = (state:RootState) => state.readsets.itemsByID as ItemsByID<Readset>
 export const selectDatasetFilesState = (state: RootState) => state.datasetFiles
 export const selectDatasetsByID = (state: RootState) => state.datasets.itemsByID as ItemsByID<Dataset>
 export const selectDatasetsState = (state: RootState) => state.datasets

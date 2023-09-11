@@ -1,7 +1,7 @@
 import { Dispatch } from "redux"
 import { FMSId, FMSTrackedModel } from "../../models/fms_api_models"
-import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Sample, Study, User, Workflow } from "../../models/frontend_models"
-import { selectContainersByID, selectLibrariesByID, selectProcessMeasurementsByID, selectProcessesByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
+import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Readset, Sample, Study, User, Workflow } from "../../models/frontend_models"
+import { selectContainersByID, selectLibrariesByID, selectProcessMeasurementsByID, selectProcessesByID, selectPropertyValuesByID, selectReadsetsByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
 import { list as listContainers } from '../containers/actions'
 import { listPropertyValues } from "../experimentRuns/actions"
@@ -12,6 +12,7 @@ import { list as listSamples } from "../samples/actions"
 import { list as listStudies } from '../studies/actions'
 import { list as listUsers } from "../users/actions"
 import { list as listWorkflows } from '../workflows/actions'
+import { list as listReadsets } from '../readsets/actions'
 import { isDefined } from "../../utils/functions"
 
 
@@ -98,3 +99,4 @@ export const fetchSamples = createFetchItemsByID<Sample>(selectSamplesByID, list
 export const fetchStudies = createFetchItemsByID<Study>(selectStudiesByID, listStudies)
 export const fetchUsers = createFetchItemsByID<User>(selectUsersByID, listUsers)
 export const fetchWorkflows = createFetchItemsByID<Workflow>(selectWorkflowsByID, listWorkflows)
+export const fetchReadsets = createFetchItemsByID<Readset>(selectReadsetsByID, listReadsets)

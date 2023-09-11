@@ -14,6 +14,7 @@ import {
 import { coordinates } from "./modules/coordinates/reducers";
 import { datasetFiles } from "./modules/datasetFiles/reducers";
 import { datasets } from "./modules/datasets/reducers";
+import { readsets } from "./modules/readsets/reducers";
 import {
   experimentRunLanes
 } from './modules/experimentRunLanes/reducers';
@@ -110,6 +111,7 @@ const allReducers = combineReducers({
   containers,
   datasets,
   datasetFiles,
+  readsets,
   experimentRuns,
   experimentRunLanes,
   externalExperimentRuns,
