@@ -2,8 +2,8 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useAppSelector } from "../../hooks"
 import { Library } from '../../models/frontend_models'
 import LibrariesTableActions from '../../modules/librariesTable/actions'
-import { selectLibrariesByID, selectLibrariesTable, selectLibraryPrefillTemplates, selectLibraryTemplateActions, selectToken } from "../../selectors"
-import api, { withToken } from '../../utils/api'
+import { selectLibrariesByID, selectLibrariesTable, selectLibraryPrefillTemplates, selectLibraryTemplateActions } from "../../selectors"
+import api from '../../utils/api'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
 import AppPageHeader from "../AppPageHeader"
@@ -11,14 +11,15 @@ import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
-import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
+import useListExportCallback from '../pagedItemsTable/useListExportCallback'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTemplateCallback'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from '../samples/SampleCategoryChooser'
 import FlexBar from '../shared/Flexbar'
 import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "./LibraryTableColumns"
-import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
-import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 
 const LIBRARY_TABLE_COLUMNS = [
 	LIBRARY_COLUMN_DEFINITIONS.ID,
@@ -50,19 +51,11 @@ export default function LibariesListContent() {
 	const { filters, fixedFilters, sortBy, totalCount, isFetching } = librariesTableState
 	const templateActions = useAppSelector(selectLibraryTemplateActions)
 	const prefills = useAppSelector(selectLibraryPrefillTemplates)
-	const token = useAppSelector(selectToken)
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
-	const prefillTemplate = useCallback(({template}) =>
-		withToken(token, api.libraries.prefill.request)(filtersQueryParams({...filters, ...fixedFilters}, sortBy), template)
-		.then(response => response)
-	, [token, filters, fixedFilters, sortBy])
+	const prefillTemplate = usePrefilledTemplateCallback(api.libraries.prefill.request, {...filters, ...fixedFilters}, sortBy)
 
-	const listExport = useCallback(() => {
-		return withToken(token, api.libraries.listExport)(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
-			.then(response => response.data)
-	}
-	, [token, filters, fixedFilters, sortBy])
+	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortBy)
 
 	const librariesTableCallbacks = usePagedItemsActionsCallbacks(LibrariesTableActions)
 

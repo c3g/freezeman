@@ -1,29 +1,29 @@
-import Containers from "../containers/actions";
-import Indices from "../indices/actions";
-import Individuals from "../individuals/actions";
-import Users from "../users/actions";
-import Groups from "../groups";
-import Coordinates from "../coordinates/actions"
-import Samples from "../samples/actions";
-import Libraries from "../libraries/actions";
-import LibraryTypes from "../libraryTypes/actions";
-import ProcessMeasurements from "../processMeasurements/actions";
-import Projects from "../projects/actions";
-import Protocols from "../protocols/actions";
-import ExperimentRuns from "../experimentRuns/actions";
-import Taxons from "../taxons/actions";
-import ReferenceGenomes from "../referenceGenomes/actions"
-import Datasets from "../datasets/actions";
-import DatasetFiles from "../datasetFiles/actions"
-import Workflows from "../workflows/actions"
-import Steps from '../steps/actions'
-import * as SampleNextStep from '../labworkSteps/actions'
-import { refreshLabwork } from "../labwork/actions";
-import { refreshAllStudySamples } from "../studySamples/actions";
-import ProjectsTableActions from '../projectsTable/actions'
-import SamplesTableActions from '../samplesTable/actions'
-import LibrariesTableActions from '../librariesTable/actions'
+import Containers from "../containers/actions"
 import ContainersTableActions from '../containersTable/actions'
+import Coordinates from "../coordinates/actions"
+import DatasetFiles from "../datasetFiles/actions"
+import Datasets from "../datasets/actions"
+import ExperimentRuns from "../experimentRuns/actions"
+import Groups from "../groups"
+import Indices from "../indices/actions"
+import IndividualsTableActions from '../individualsTable/actions'
+import { refreshLabwork } from "../labwork/actions"
+import * as SampleNextStep from '../labworkSteps/actions'
+import Libraries from "../libraries/actions"
+import LibrariesTableActions from '../librariesTable/actions'
+import LibraryTypes from "../libraryTypes/actions"
+import ProcessMeasurements from "../processMeasurements/actions"
+import Projects from "../projects/actions"
+import ProjectsTableActions from '../projectsTable/actions'
+import Protocols from "../protocols/actions"
+import ReferenceGenomes from "../referenceGenomes/actions"
+import Samples from "../samples/actions"
+import SamplesTableActions from '../samplesTable/actions'
+import Steps from '../steps/actions'
+import { refreshAllStudySamples } from "../studySamples/actions"
+import Taxons from "../taxons/actions"
+import Users from "../users/actions"
+import Workflows from "../workflows/actions"
 
 
 export const fetchSummariesData = () => async (dispatch) => {
@@ -82,7 +82,7 @@ export const fetchListedData = () => async (dispatch) => {
         ContainersTableActions.refreshPage,
         ExperimentRuns.listTable,
         Indices.listTable,
-        Individuals.listTable,
+        IndividualsTableActions.refreshPage,
         SamplesTableActions.refreshPage,
         LibrariesTableActions.refreshPage,
         ProjectsTableActions.refreshPage,
