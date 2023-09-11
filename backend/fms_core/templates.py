@@ -7,6 +7,7 @@ from django.templatetags.static import static
 
 from fms_core.template_importer._constants import VALID_NORM_CHOICES
 from fms_core.models._constants import STRANDEDNESS_CHOICES
+from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
 __all__ = [
     "CONTAINER_CREATION_TEMPLATE",
@@ -403,15 +404,15 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_3_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_5_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
           'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Name',
                       'Container Barcode', 'Sample Coord', 'Location Barcode', 'Container Coord', 'Project', 'Study',
-                      'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias', 'Cohort', 'Sex', 'Pedigree',
-                      'Mother ID', 'Father ID', 'Reference Genome', 'Library Type', 'Platform', 'Strandedness',
+                      'Experimental Group','NCBI Taxon ID #','Individual Name', 'Individual Alias', 'Cohort', 'Sex', 'Pedigree',
+                      'Mother Name', 'Father Name', 'Reference Genome', 'Library Type', 'Platform', 'Strandedness',
                       'Index Set', 'Index', 'Selection', 'Selection Target', 'Comment'],
           'stitch_column': 'Pool Name',
           'batch': False,
@@ -489,7 +490,14 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       },
   ],
   "user prefill info": {
+      # "Extraction Type": ["DNA", "RNA"], # already prefilled by workflow
+      "Volume Used (uL)": "number",
+      # borrowed from extraction template
+      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
+      "Volume (uL)": "number",
+      "Source Depleted": ["YES"],
       "Extraction Date (YYYY-MM-DD)": "date",
+      "Comment": "text",
   }
   ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -515,7 +523,12 @@ SAMPLE_TRANSFER_TEMPLATE = {
       },
   ],
   "user prefill info": {
+      # borrowed from transfer template
+      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
+      "Source Depleted": ["YES"],
+      "Volume Used (uL)": "number",
       "Transfer Date (YYYY-MM-DD)": "date",
+      "Comment": "text"
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [

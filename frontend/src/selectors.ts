@@ -1,4 +1,5 @@
 import {
+	Container,
 	Coordinate,
 	Dataset,
 	DatasetFile,
@@ -51,7 +52,10 @@ export const selectAuthState = (state: RootState) => state.auth
 export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access as unknown as string | undefined
 export const selectAuthCurrentUserID = (state: RootState) => state.auth?.currentUserID as unknown as string | undefined
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
-export const selectContainersByID = (state: RootState) => state.containers.itemsByID
+export const selectContainerPrefillTemplates = (state: RootState) => state.containerPrefillTemplates
+export const selectContainersByID = (state: RootState) => state.containers.itemsByID as ItemsByID<Container>
+export const selectContainersTable = (state: RootState) => state.containersTable
+export const selectContainerTemplateActions = (state: RootState) => state.containerTemplateActions
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
 export const selectDatasetFilesState = (state: RootState) => state.datasetFiles
@@ -71,6 +75,8 @@ export const selectInstrumentsByID = (state: RootState) => state.instruments.ite
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
+export const selectLibrariesTable = (state: RootState) => state.librariesTable
+export const selectLibraryPrefillTemplates = (state: RootState) => state.libraryPrefillTemplates
 export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions
 export const selectPageSize = (state: RootState) => state.pagination.pageSize
 export const selectProcessesByID = (state: RootState) => state.processes.itemsByID as ItemsByID<Process>
@@ -89,7 +95,9 @@ export const selectRunTypesByID = (state: RootState) => state.runTypes.itemsByID
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectSampleKindsState = (state: RootState) => state.sampleKinds
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
+export const selectSamplePrefillTemplates = (state: RootState) => state.samplePrefillTemplates
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
+export const selectSamplesTable = (state: RootState) => state.samplesTable
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
 export const selectSequencesByID = (state: RootState) => state.sequences.itemsByID as ItemsByID<Sequence>
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID

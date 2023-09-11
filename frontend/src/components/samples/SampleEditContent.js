@@ -19,7 +19,8 @@ const { TextArea } = Input
 
 import { nameRules, requiredRules } from "../../constants";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
-import { add, listTable, summary, update } from "../../modules/samples/actions";
+import { add, summary, update } from "../../modules/samples/actions";
+import SamplesTableActions from '../../modules/samplesTable/actions'
 import { selectAppInitialized, selectAuthTokenAccess, selectContainerKindsByID, selectSampleKindsState, selectSamplesByID } from "../../selectors";
 import api, { withToken } from "../../utils/api";
 import * as Options from "../../utils/options";
@@ -226,7 +227,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
         dispatch(add(data)).then(sample => { history(`/samples/${sample.id}`) }) :
         dispatch(update(sample.id, data)).then(() => { history(`/samples/${sample.id}`) })
     action
-      .then(() => { setFormErrors({}); Promise.all([dispatch(listTable()), dispatch(summary())]) })
+      .then(() => { setFormErrors({}); Promise.all([dispatch(SamplesTableActions.refreshPage()), dispatch(summary())]) })
       .catch(err => { setFormErrors(err.data || {}) })
   }
 

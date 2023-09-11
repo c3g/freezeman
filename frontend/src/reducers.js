@@ -93,6 +93,9 @@ import { workflows } from "./modules/workflows/reducers";
 import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
 import { projectsTable} from './modules/projectsTable/reducers'
 import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
+import { samplesTable } from './modules/samplesTable/reducers'
+import { containersTable } from './modules/containersTable/reducers'
+import { librariesTable } from './modules/librariesTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -108,6 +111,7 @@ const allReducers = combineReducers({
   containerTemplateActions,
   containerPrefillTemplates,
   containers,
+  containersTable,
   datasets,
   datasetFiles,
   experimentRuns,
@@ -128,6 +132,7 @@ const allReducers = combineReducers({
   samples,
   projectSamplesTable,
   pooledSamples,
+  samplesTable,
   protocols,
   processes,
   processMeasurementsSummary,
@@ -146,6 +151,7 @@ const allReducers = combineReducers({
   sequences,
   librariesSummary,
   libraries,
+  librariesTable,
   libraryTemplateActions,
   libraryPrefillTemplates,
   libraryTypes,
