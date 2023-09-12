@@ -333,7 +333,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
       ("Normalization", "Source Container Location Barcode", "container__location__barcode", "container_location_barcode"),
-      ("Normalization", "Source Container Location Coord", "container__coodinate__name", "container_location_coordinates"),
+      ("Normalization", "Source Container Location Coord", "container__coordinate__name", "container_location_coordinates"),
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
@@ -472,7 +472,7 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
       ("SampleQC", "Sample Container Location Barcode", "container__location__barcode", "container_location_barcode"),
-      ("SampleQC", "Sample Container Location Coord", "container__coodinate__name", "container_location_coordinates"),
+      ("SampleQC", "Sample Container Location Coord", "container__coordinate__name", "container_location_coordinates"),
       ("SampleQC", "Current Volume (uL)", "volume", "volume"),
   ],
 }
@@ -502,7 +502,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       ("ExtractionTemplate", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),
       ("ExtractionTemplate", "Source Container Location Barcode", "container__location__barcode", "container_location_barcode"),
-      ("ExtractionTemplate", "Source Container Location Coord", "container__coodinate__name", "container_location_coordinates"),
+      ("ExtractionTemplate", "Source Container Location Coord", "container__coordinate__name", "container_location_coordinates"),
   ],
 }
 
