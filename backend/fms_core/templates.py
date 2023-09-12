@@ -316,7 +316,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
-                    'Source Container Location Barcode', 'Source Container Location Coord',
+                    'Source Parent Container Barcode', 'Source Parent Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                     'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)',
@@ -332,8 +332,8 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Sample Name", "name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("Normalization", "Source Container Location Barcode", "container__location__barcode", "container_location_barcode"),
-      ("Normalization", "Source Container Location Coord", "container__coordinate__name", "container_location_coordinates"),
+      ("Normalization", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("Normalization", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
@@ -453,8 +453,8 @@ SAMPLE_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Container Location Barcode',
-                      'Sample Container Location Coord', 'Current Volume (uL)', 'Measured Volume (uL)', 'Volume Used (uL)',
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
+                      'Sample Parent Container Coord', 'Current Volume (uL)', 'Measured Volume (uL)', 'Volume Used (uL)',
                       'Concentration (ng/uL)', 'NA Quantity (ng)', 'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag',
                       'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
@@ -471,8 +471,8 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Name", "name", "name"),
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
-      ("SampleQC", "Sample Container Location Barcode", "container__location__barcode", "container_location_barcode"),
-      ("SampleQC", "Sample Container Location Coord", "container__coordinate__name", "container_location_coordinates"),
+      ("SampleQC", "Sample Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("SampleQC", "Sample Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
       ("SampleQC", "Current Volume (uL)", "volume", "volume"),
   ],
 }
@@ -485,7 +485,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       {
           'name': 'ExtractionTemplate',
           'headers': ['Extraction Type', 'Current Volume (uL)', 'Volume Used (uL)', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
-                      'Source Container Location Barcode', 'Source Container Location Coord', 'Destination Container Barcode', 'Destination Container Coord',
+                      'Source Parent Container Barcode', 'Source Parent Container Coord', 'Destination Container Barcode', 'Destination Container Coord',
                       'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
@@ -501,8 +501,8 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       ("ExtractionTemplate", "Source Sample Name", "name", "name"),
       ("ExtractionTemplate", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("ExtractionTemplate", "Source Container Location Barcode", "container__location__barcode", "container_location_barcode"),
-      ("ExtractionTemplate", "Source Container Location Coord", "container__coordinate__name", "container_location_coordinates"),
+      ("ExtractionTemplate", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("ExtractionTemplate", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
   ],
 }
 
