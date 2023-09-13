@@ -105,9 +105,9 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		},
 	},
 
-	[SampleColumnID.PARENT_CONTAINER]: {
+	[SampleColumnID.PARENT_CONTAINER]:  {
 		columnID: SampleColumnID.PARENT_CONTAINER,
-		title: 'Parent Container',
+		title: 'Parent Container Barcode',
 		dataIndex: ['sample', 'container'],
 		render: (_, { sample }) => {
 			return (
@@ -129,10 +129,10 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			)
 		},
 	},
-	
+
 	[SampleColumnID.PARENT_COORDINATES]: {
 		columnID: SampleColumnID.PARENT_COORDINATES,
-		title: 'Parent Coordinates',
+		title: 'Parent Coords',
 		dataIndex: ['sample', 'coordinate'],
 		render: (_, { sample }) => {
 			return (
@@ -142,11 +142,14 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 						objectID={sample.container}
 						placeholder={<span>loading...</span>}
 						render={(container) =>
-							<WithCoordinateRenderComponent
-								objectID={container.coordinate}
-								placeholder={<span>loading...</span>}
-								render={(coordinate) => <span>{coordinate.name}</span>}
-							/>
+							container.coordinate ?
+								<WithCoordinateRenderComponent
+									objectID={container.coordinate}
+									placeholder={<span>loading...</span>}
+									render={(coordinate) => <span>{coordinate.name}</span>}
+								/>
+								:
+								<></>
 						}
 					/>
 				)
@@ -277,7 +280,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			const individual = sample?.individual
 			return (individual !== undefined &&
 				<Link to={`/individuals/${individual}`}>
-					<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""}/>
+					<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""} />
 				</Link>)
 		}
 	},
@@ -316,7 +319,7 @@ function getSampleKindOptions() {
 			}
 		})
 		return options
-	}return []
+	} return []
 }
 
 export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription } = {
@@ -351,7 +354,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		label: 'Parent Container',
 		recursive: true,
 	},
-	[SampleColumnID.PARENT_COORDINATES]:{
+	[SampleColumnID.PARENT_COORDINATES]: {
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Parent Coordinates',
