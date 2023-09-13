@@ -351,13 +351,13 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 	[SampleColumnID.PARENT_CONTAINER]: {
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
-		label: 'Parent Container',
+		label: 'Parent Container Barcode',
 		recursive: true,
 	},
 	[SampleColumnID.PARENT_COORDINATES]: {
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
-		label: 'Parent Coordinates',
+		label: 'Parent Coords',
 		recursive: true,
 	},
 	[SampleColumnID.CONTAINER_NAME]: {
