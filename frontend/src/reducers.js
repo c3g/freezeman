@@ -97,6 +97,7 @@ import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
+import { readsetsTable } from './modules/readsetsTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -135,6 +136,7 @@ const allReducers = combineReducers({
   projectSamplesTable,
   pooledSamples,
   samplesTable,
+  readsetsTable,
   protocols,
   processes,
   processMeasurementsSummary,
