@@ -6,7 +6,7 @@ from typing import List, Tuple, Union, TypedDict, NotRequired
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
-from fms_core.models._constants import ReleaseStatus, ValidationStatus
+from fms_core.models._constants import ValidationStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
 from fms_core.services.readset import create_readset
@@ -102,8 +102,7 @@ class DatasetFileReport(TypedDict):
 
 def create_dataset_file(readset: Readset,
                         file_path: str,
-                        size: int,
-                        validation_status: ValidationStatus = ValidationStatus.AVAILABLE,
+                        size: int
                        ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     """
     Create a new dataset_file and return it. A dataset and readset must be created beforehand.
@@ -129,19 +128,14 @@ def create_dataset_file(readset: Readset,
     
     if not size:
         errors.append(f"Missing size for dataset file.")
-
-    if validation_status not in [value for value, _ in ValidationStatus.choices]:
-        errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
-
+        
     if errors:
         return dataset_file, errors, warnings
 
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
                                                   file_path=file_path,
-                                                  size=size,
-                                                  validation_status=validation_status,
-                                                  **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict())) # Set timestamp if setting Status to non-default
+                                                  size=size) # Set timestamp if setting Status to non-default
     except ValidationError as e:
         errors.extend(e.messages)
 
@@ -174,10 +168,10 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
 
     if not errors:
         for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
-            for dataset_file in DatasetFile.objects.filter(readset__dataset=dataset).all():
-                dataset_file.validation_status = validation_status
-                dataset_file.validation_status_timestamp = timestamp
-                dataset_file.save()
+            for readset in Readset.objects.filter(dataset=dataset).all():
+                readset.validation_status = validation_status
+                readset.validation_status_timestamp = timestamp
+                readset.save()
                 count_status += 1
     else: # Error returns None, while a non-existant run name or lane will return 0.
         return None, errors, warnings
@@ -204,8 +198,8 @@ def get_experiment_run_lane_validation_status(run_name: str, lane: int):
     if not lane:
         errors.append(f"Missing lane.")
 
-    if not errors and DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).exists():
-        validation_status = DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).first().validation_status
+    if not errors and Readset.objects.filter(dataset__run_name=run_name, dataset__lane=lane).exists():
+        validation_status = Readset.objects.filter(dataset__run_name=run_name, dataset__lane=lane).first().validation_status
     else:
         errors.append(f"No dataset file found matching the requested run name ({run_name}) and lane ({str(lane)}).")
 

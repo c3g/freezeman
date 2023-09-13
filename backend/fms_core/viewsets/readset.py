@@ -1,4 +1,4 @@
-
+from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -21,3 +21,9 @@ class ReadsetViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_readset_filterset_fields
     }
+    
+    def update(self, request, *args, **kwargs):
+        validation_status = request.data.get("validation_status")
+        if validation_status is not None:
+            request.data["validation_status_timestamp"] = timezone.now()
+        return super().update(request, *args, **kwargs)

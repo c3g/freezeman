@@ -17,9 +17,3 @@ class DatasetFileViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_dataset_file_filterset_fields,
     }
-
-    def update(self, request, *args, **kwargs):
-        validation_status = request.data.get("validation_status")
-        if validation_status is not None:
-            request.data["validation_status_timestamp"] = timezone.now()
-        return super().update(request, *args, **kwargs)

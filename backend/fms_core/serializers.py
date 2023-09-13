@@ -604,7 +604,7 @@ class ReadsetSerializer(serializers.ModelSerializer):
     total_size = serializers.SerializerMethodField()
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size")
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
@@ -614,8 +614,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DatasetFile
-        fields = ("id", "readset", "file_path", "size",
-                  "validation_status", "validation_status_timestamp")
+        fields = ("id", "readset", "file_path", "size")
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 

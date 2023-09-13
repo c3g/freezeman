@@ -90,7 +90,7 @@ export interface FMSReadset extends FMSTrackedModel {
     number_reads?: string
     number_bases?:string
     mean_quality_score?:string
-    blash_hit?: string
+    blast_hit?: string
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {
