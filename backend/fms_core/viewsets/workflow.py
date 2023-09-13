@@ -16,3 +16,5 @@ class WorkflowViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_workflow_filterset_fields,
     }
+
+    ordering = ["name"]

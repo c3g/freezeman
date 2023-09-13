@@ -25,6 +25,8 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         **_project_filterset_fields,
     }
 
+    ordering = ["-status", "name"]
+
     template_action_list = [
         {
             "name": "Link Projects and Studies with Samples",

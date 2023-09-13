@@ -84,6 +84,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         **_library_filterset_fields,
     }
 
+    ordering = ["-id"]
+
     filterset_class = LibraryFilter
 
     template_action_list = [

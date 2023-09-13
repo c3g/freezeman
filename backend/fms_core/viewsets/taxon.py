@@ -20,6 +20,7 @@ class TaxonViewSet(viewsets.ModelViewSet):
         **_taxon_filterset_fields,
     }
 
+    ordering = ["name"]
 
     def create(self, request, *args, **kwargs):
         taxon_data = request.data
