@@ -19,7 +19,6 @@ export interface FilterDescription {
 	options?: FilterOption[]
 	dynamicOptions?: () => FilterOption[]	// A function that generates options when the filter is initialized.
 	width?: React.CSSProperties['width']
-	detached?: boolean	// TODO remove this after filter groups are redone
 	defaultMin?: number
 }
 
