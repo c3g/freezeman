@@ -19,17 +19,6 @@ const hiddenField = {
   left: -10000,
 }
 
-// const mapStateToProps = state => ({
-//   requestorID: state.auth.currentUserID,
-//   isFetching: state.users.isFetching,
-//   usersByID: state.users.itemsByID,
-//   groupsByID: state.groups.itemsByID,
-//   error: state.users.error,
-//   groups: Object.values(state.groups.itemsByID),
-// });
-
-// const actionCreators = { add, update };
-
 function UserEditContent() {
   const dispatch = useAppDispatch()
   const history = useNavigate();
