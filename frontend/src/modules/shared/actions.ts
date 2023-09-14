@@ -53,7 +53,7 @@ export const fetchStaticData = () => async (dispatch) => {
         Samples.listKinds,
         LibraryTypes.list,
         Protocols.list,
-        Users.listTable,
+        Users.list,
         Groups.list,
         Taxons.list,
         ReferenceGenomes.list,
