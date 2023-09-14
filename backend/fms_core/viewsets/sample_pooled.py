@@ -61,6 +61,8 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         "parent_sample_name"
     }
 
+    ordering = ["id"]
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
