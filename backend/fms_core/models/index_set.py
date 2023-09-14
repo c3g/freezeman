@@ -1,6 +1,7 @@
 import reversion
 
 from django.db import models
+from django.db.models.functions import Lower
 from django.core.exceptions import ValidationError
 
 from .tracked_model import TrackedModel
@@ -16,6 +17,11 @@ class IndexSet(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="The name of the index set.")
 
+    class Meta:
+        indexes = [
+            models.Index(Lower("name"), name='indexset_ciname_idx'),
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
@@ -23,9 +29,8 @@ class IndexSet(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        index_set_similar_name = IndexSet.objects.filter(name__iexact=self.name).first()
-        if index_set_similar_name and index_set_similar_name.id != self.id:
-            add_error("name", f"Another index set with a similar name ({index_set_similar_name.name}) exists. Two index set names cannot be distinguished only by letter case.")
+        if IndexSet.objects.annotate(name_lower=Lower("name")).filter(name_lower=self.name.lower()).exclude(id=self.id).exists():
+            add_error("name", f"Another index set with a similar name exists. Two index set names cannot be distinguished only by letter case.")
 
         if errors:
             raise ValidationError(errors)
