@@ -1,6 +1,7 @@
 import reversion
 
 from django.db import models
+from django.db.models.functions import Lower
 from django.core.exceptions import ValidationError
 from typing import List
 
@@ -29,6 +30,11 @@ class Index(TrackedModel):
     sequences_5prime = models.ManyToManyField("Sequence", through="SequenceByIndex5Prime",
                                               symmetrical=False, related_name="indices_5prime")
     
+    class Meta:
+        indexes = [
+            models.Index(Lower('name'), name='index_ciname_idx'),
+        ]
+
     @property
     def list_3prime_sequences(self) -> List["str"]:
         list_sequences = [sequence.value for sequence in self.sequences_3prime.all()]
@@ -46,9 +52,8 @@ class Index(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        index_similar_name = Index.objects.filter(name__iexact=self.name).first()
-        if index_similar_name and index_similar_name.id != self.id:
-            add_error("name", f"Another index with a similar name ({index_similar_name.name}) exists. Two index names cannot be distinguished only by letter case.")
+        if Index.objects.annotate(name_lower=Lower("name")).filter(name_lower=self.name.lower()).exclude(id=self.id).exists():
+            add_error("name", f"Another index with a similar name exists. Two index names cannot be distinguished only by letter case.")
 
         if errors:
             raise ValidationError(errors)

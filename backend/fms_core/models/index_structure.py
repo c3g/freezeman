@@ -1,6 +1,7 @@
 import reversion
 
 from django.db import models
+from django.db.models.functions import Lower
 from django.core.exceptions import ValidationError
 
 from .tracked_model import TrackedModel
@@ -25,6 +26,11 @@ class IndexStructure(TrackedModel):
     flanker_5prime_reverse = models.ForeignKey("Sequence", related_name="flanker_5prime_reverse",
                                                on_delete=models.PROTECT, help_text="Flanker on the 5 prime reverse direction")
 
+    class Meta:
+        indexes = [
+            models.Index(Lower("name"), name='indexstructure_ciname_idx'),
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
@@ -32,9 +38,8 @@ class IndexStructure(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        index_structure_similar_name = IndexStructure.objects.filter(name__iexact=self.name).first()
-        if index_structure_similar_name and index_structure_similar_name.id != self.id:
-            add_error("name", f"Another index structure with a similar name ({index_structure_similar_name.name}) exists. Two index structure names cannot be distinguished only by letter case.")
+        if IndexStructure.objects.annotate(name_lower=Lower("name")).filter(name_lower=self.name.lower()).exclude(id=self.id).exists():
+            add_error("name", f"Another index structure with a similar name exists. Two index structure names cannot be distinguished only by letter case.")
 
         if errors:
             raise ValidationError(errors)
