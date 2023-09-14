@@ -70,7 +70,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'library_type'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && <div> {readset.library_type} </div>
+                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
             }
         },
         [ReadsetColumnID.INDEX]: {
@@ -79,7 +79,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'index'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && <div> {readset.index} </div>
+                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
             }
         },
         [ReadsetColumnID.NUM_READS]: {
@@ -88,7 +88,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'number_reads'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && <div> {readset.number_reads} </div>
+                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
             }
         },
         [ReadsetColumnID.NUM_BASES]: {
@@ -97,7 +97,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'number_bases'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && <div> {readset.number_bases} </div>
+                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
             }
         },
         [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
@@ -106,7 +106,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'mean_quality_score'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && <div> {readset.mean_quality_score} </div>
+                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
             }
         },
         [ReadsetColumnID.BLAST_HIT]: {
@@ -115,7 +115,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'blast_hit'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && <div> {readset.blast_hit} </div>
+                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
             }
         },
     }

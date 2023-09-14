@@ -258,9 +258,9 @@ const DatasetDetailContent = () => {
 
         <PageContent>
             <div style={{
-                'display': 'flex',
-                'flex-direction': 'column',
-                'grid-gap': '2em'
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2em'
             }}>
                 <Descriptions bordered={true} size={"small"} column={4}>
                     <Descriptions.Item label={"ID"} span={1}>{loading(dataset?.id)}</Descriptions.Item>

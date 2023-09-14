@@ -143,6 +143,7 @@ export function createPagedItemsActions<Prefix extends string>(actionTypes: Page
 		const ordering = serializeSortByParams(sortBy)
 
         const params = {
+            withMetrics: true,
 			offset,
 			limit,
 			ordering,

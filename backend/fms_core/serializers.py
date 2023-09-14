@@ -609,6 +609,20 @@ class ReadsetSerializer(serializers.ModelSerializer):
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
+class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
+    total_size = serializers.SerializerMethodField()
+    metrics = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = Readset
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics")
+    def get_metrics(self, instance):
+        metrics = instance.metrics.all()
+        serialized_metrics = MetricSerializer(metrics, many=True)
+        return serialized_metrics.data
+    
+    def get_total_size(self, obj: Readset):
+        return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
+
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)
 

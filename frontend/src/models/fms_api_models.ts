@@ -85,12 +85,10 @@ export interface FMSReadset extends FMSTrackedModel {
     sample_name: string                // Name that identifies the sample if the run did not come from Freezeman
     derived_sample: FMSId              // Derived sample matching the readset
     release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
-    library_type?: string
-    index?: string
-    number_reads?: string
-    number_bases?:string
-    mean_quality_score?:string
-    blast_hit?: string
+    release_status_timestamp: Date
+    validation_status: number
+    validation_status_timestamp: Date
+    metrics?: FMSMetric[]
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {
