@@ -37,6 +37,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
         **_dataset_filterset_fields,
     }
 
+    ordering = ["-id"]
+
     filterset_class = DatasetFilter
 
     @action(detail=False, methods=["post"])
