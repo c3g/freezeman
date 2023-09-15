@@ -2,7 +2,7 @@ import React from "react";
 
 import {Navigate, Route, Routes} from "react-router-dom";
 
-import IndicesListContent from "./IndicesListContent";
+import IndicesListContent from "./IndicesListContent2";
 import IndicesDetailedContent from "./IndicesDetailedContent";
 import IndicesValidate from "./IndicesValidate";
 import IndicesValidationResult from "./IndicesValidationResult";

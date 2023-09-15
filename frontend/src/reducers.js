@@ -98,6 +98,7 @@ import { containersTable } from './modules/containersTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
 import { individualsTable } from './modules/individualsTable/reducers'
 import { usersTable } from "./modules/usersTable/reducers"
+import { indicesTable } from './modules/indicesTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -150,6 +151,7 @@ const allReducers = combineReducers({
   indicesSummary,
   indices,
   indicesTemplateActions,
+  indicesTable,
   propertyValues,
   sequences,
   librariesSummary,
