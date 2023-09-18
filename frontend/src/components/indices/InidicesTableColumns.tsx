@@ -50,15 +50,15 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 		render: (_, {index}) => <FixedLengthText text={index.index_set} fixedLength={40} />,
 	},
 	[IndexColumnID.INDEX_STRUCTURE]: {
-		columnID: IndexColumnID.ID,
+		columnID: IndexColumnID.INDEX_STRUCTURE,
 		title: "Index Structure",
-    	dataIndex: "index_structure",
+    	dataIndex: ['index', 'index_structure'],
 		render: (_, {index}) => index.index_structure
 	},
 	[IndexColumnID.SEQUENCE_3_PRIME]: {
 		columnID: IndexColumnID.SEQUENCE_3_PRIME,
 		title: "Sequence 3 prime (i7)",
-      	dataIndex: "sequences_3prime",
+      	dataIndex: ['index', 'sequences_3prime'],
 		  render: (_, {index}) => { return index && index.sequences_3prime &&
 			<DropdownListItems listItems={index.sequences_3prime.map(sequence =>
 			  sequence && <WithSequenceRenderComponent objectID={sequence} render={sequence => <>{sequence.value}</>} />)}
@@ -68,7 +68,7 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 	[IndexColumnID.SEQUENCE_5_PRIME]: {
 		columnID: IndexColumnID.SEQUENCE_5_PRIME,
 		title: "Sequence 5 prime (i5)",
-      	dataIndex: "sequences_5prime",
+      	dataIndex: ['index', 'sequences_5prime'],
 		  render: (_, {index}) => { return index && index.sequences_5prime &&
 			<DropdownListItems listItems={index.sequences_5prime.map(sequence =>
 			  sequence && <WithSequenceRenderComponent objectID={sequence} render={sequence => <>{sequence.value}</>} />
