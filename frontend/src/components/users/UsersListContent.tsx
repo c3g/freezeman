@@ -10,11 +10,11 @@ import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
-import { useCanWrite } from "../pagedItemsTable/useCanWrite"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
 import { USER_COLUMN_DEFINITIONS, USER_FILTER_DEFINITIONS, USER_FILTER_KEYS } from "./UsersTableColumns"
+import { useIsStaff } from "./useIsStaff"
 
 const usersTableColumns = [
 	USER_COLUMN_DEFINITIONS.ID,
@@ -35,7 +35,7 @@ function UsersListContent() {
 
 	const usersTableState = useAppSelector(selectUsersTable)
 	const {filters} = usersTableState 
-	const canAdd = useCanWrite()
+	const canAdd = useIsStaff()
 
 	const usersTableActions = usePagedItemsActionsCallbacks(UserTableActions)
 
