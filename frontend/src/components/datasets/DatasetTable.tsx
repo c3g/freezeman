@@ -45,7 +45,7 @@ const getTableColumns = () => {
             sorter: true,
         },
         {
-            title: "Files Released",
+            title: "Readsets Released",
             dataIndex: "released_status_count",
             sorter: true,
             render: (released_status_count, dataset) => {

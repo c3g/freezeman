@@ -3,7 +3,8 @@ import api from "../../utils/api";
 
 export const GET = createNetworkActionTypes("READSETS.GET")
 export const LIST = createNetworkActionTypes("READSETS.LIST");
-
+export const UPDATE = createNetworkActionTypes("READSETS.UPDATE")
+export const UPDATE_RELEASE_STATUS = createNetworkActionTypes("READSETS.UPDATE_RELEASE_STATUS")
 export const get = id => async (dispatch, getState) => {
     const readset = getState().readsets.itemsByID[id];
     if (readset && readset.isFetching)
@@ -20,7 +21,13 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
+export const update = (readset) => async (dispatch, getState) => {
+    return await dispatch(networkAction(UPDATE,
+        api.readsets.update(readset)), { meta: readset.id})
+}
+
 export default {
     GET,
-    LIST
+    LIST,
+    UPDATE
 }

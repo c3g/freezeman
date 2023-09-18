@@ -92,16 +92,11 @@ export const clearFilters = thenList(() => {
 
 export const setReleaseStatus = (id, releaseStatus, exceptions = [], filters = {}) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
-    const datasetFiles = getState().datasetFiles.itemsByID
     filters = serializeFilterParams(filters, DATASET_FILE_FILTERS)
 
     if (dataset && !dataset.isFetching) {
         const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
             { meta: { id }}));
-        
-        if (datasetFiles && !datasetFiles.isFetching) {
-            await dispatch(listFiles({ id__in: Object.values(datasetFiles).filter((file) => file.dataset === id).map((file) => file.id).join(",") }))
-        }
 
         return result
     }

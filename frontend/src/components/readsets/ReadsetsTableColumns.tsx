@@ -10,10 +10,10 @@ import { Button } from "antd";
 export interface ObjectWithReadset {
     readset: Readset
 }
-const RELEASED = 1
-const BLOCKED = 2
-const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
-const OPPOSITE_STATUS = [RELEASED, BLOCKED, RELEASED]
+export const RELEASED = 1
+export const BLOCKED = 2
+export const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
+export const OPPOSITE_STATUS = [RELEASED, BLOCKED, RELEASED]
 export type ReadsetColumn = IdentifiedTableColumnType<ObjectWithReadset>
 
 export enum ReadsetColumnID {
@@ -22,13 +22,13 @@ export enum ReadsetColumnID {
     RELEASE_STATUS = 'RELEASE_STATUS',
     LIBRARY_TYPE = 'LIBRARY_TYPE',
     INDEX = 'INDEX',
-    NUM_READS = 'NUM_READS',
-    NUM_BASES = 'NUM_BASES',
+    NB_READS = 'NUM_READS',
+    NB_BASES = 'NUM_BASES',
     MEAN_QUALITY_SCORE = 'MEAN_QUALITY_SCORE',
     BLAST_HIT = 'BLAST_HIT'
 }
 
-export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOption): { [key in ReadsetColumnID]: ReadsetColumn } => {
+export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOption, canReleaseOrBlockFiles): { [key in ReadsetColumnID]: ReadsetColumn } => {
     return {
         [ReadsetColumnID.ID]: {
             columnID: ReadsetColumnID.ID,
@@ -41,7 +41,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
         },
         [ReadsetColumnID.SAMPLE_NAME]: {
             columnID: ReadsetColumnID.SAMPLE_NAME,
-            title: "SAMPLE_NAME",
+            title: "Sample name",
             dataIndex: ['readset', 'sample_name'],
             sorter: true,
             render: (_, { readset }) => {
@@ -50,72 +50,72 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
         },
         [ReadsetColumnID.RELEASE_STATUS]: {
             columnID: ReadsetColumnID.RELEASE_STATUS,
-            title: "RELEASE_STATUS",
+            title: "Release Status",
             dataIndex: ['readset', 'release_status'],
             sorter: true,
             render: (_, { readset }) => {
-                const id = 0
-                // const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? readset.release_status
-                // const changed = (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
+                const { id } = readset;
+                const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? readset.release_status
+                const changed = (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
                 return readset && <Button
-                    // disabled={!canReleaseOrBlockFiles}
-                    // style={{ color: changed ? "red" : "grey", width: "6em" }}
-                    onClick={() => toggleReleaseStatus(OPPOSITE_STATUS[readset.release_status])}>{RELEASE_STATUS_STRING[readset.release_status]}
+                    disabled={!canReleaseOrBlockFiles}
+                    style={{ color: changed ? "red" : "grey", width: "6em" }}
+                    onClick={() => toggleReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}
                 </Button>
             }
         },
         [ReadsetColumnID.LIBRARY_TYPE]: {
             columnID: ReadsetColumnID.LIBRARY_TYPE,
-            title: "LIBRARY_TYPE",
+            title: "Library Type",
             dataIndex: ['readset', 'library_type'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
+                return readset && readset.metrics && readset.library_type ? <div> {readset.library_type} </div> : ''
             }
         },
         [ReadsetColumnID.INDEX]: {
             columnID: ReadsetColumnID.INDEX,
-            title: "INDEX",
+            title: "Index",
             dataIndex: ['readset', 'index'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
+                return readset && readset.metrics && readset.index ? <div> {readset.index} </div> : ''
             }
         },
-        [ReadsetColumnID.NUM_READS]: {
-            columnID: ReadsetColumnID.NUM_READS,
-            title: "NUM_READS",
-            dataIndex: ['readset', 'number_reads'],
+        [ReadsetColumnID.NB_READS]: {
+            columnID: ReadsetColumnID.NB_READS,
+            title: "Number of Reads",
+            dataIndex: ['readset', 'nb_reads'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
+                return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric).toFixed(3)} </div> : ''
             }
         },
-        [ReadsetColumnID.NUM_BASES]: {
-            columnID: ReadsetColumnID.NUM_BASES,
-            title: "NUM_BASES",
-            dataIndex: ['readset', 'number_bases'],
+        [ReadsetColumnID.NB_BASES]: {
+            columnID: ReadsetColumnID.NB_BASES,
+            title: "Number of bases",
+            dataIndex: ['readset', 'nb_bases'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
+                return readset && readset.metrics && readset.metrics['nb_bases'] ? <div> {Number(readset.metrics['nb_bases'].value_numeric).toFixed(3)} </div> : ''
             }
         },
         [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
             columnID: ReadsetColumnID.MEAN_QUALITY_SCORE,
-            title: "MEAN_QUALITY_SCORE",
+            title: "Mean quality score",
             dataIndex: ['readset', 'mean_quality_score'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
+                return readset && readset.metrics && readset.metrics['mean_quality_score'] ? <div> {Number(readset.metrics['mean_quality_score'].value_numeric).toFixed(3)} </div> : ''
             }
         },
         [ReadsetColumnID.BLAST_HIT]: {
             columnID: ReadsetColumnID.BLAST_HIT,
-            title: "BLAST_HIT",
+            title: "Blast hit",
             dataIndex: ['readset', 'blast_hit'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics ? <div> {readset.metrics[0].id} </div> : ''
+                return readset && readset.metrics && readset.metrics['1st_hit'] ? <div> {readset.metrics['1st_hit'].value_string} </div> : ''
             }
         },
     }
@@ -127,8 +127,8 @@ export enum ReadsetFilterID {
     RELEASE_STATUS = ReadsetColumnID.RELEASE_STATUS,
     LIBRARY_TYPE = ReadsetColumnID.LIBRARY_TYPE,
     INDEX = ReadsetColumnID.INDEX,
-    NUM_READS = ReadsetColumnID.NUM_READS,
-    NUM_BASES = ReadsetColumnID.NUM_BASES,
+    NUM_READS = ReadsetColumnID.NB_READS,
+    NUM_BASES = ReadsetColumnID.NB_BASES,
     MEAN_QUALITY_SCORE = ReadsetColumnID.MEAN_QUALITY_SCORE,
     BLAST_HIT = ReadsetColumnID.BLAST_HIT,
 }
@@ -159,15 +159,15 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescripti
         key: UNDEFINED_FILTER_KEY,
         label: "index",
     },
-    [ReadsetColumnID.NUM_READS]: {
+    [ReadsetColumnID.NB_READS]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
         key: UNDEFINED_FILTER_KEY,
-        label: "number_reads",
+        label: "nb_reads",
     },
-    [ReadsetColumnID.NUM_BASES]: {
+    [ReadsetColumnID.NB_BASES]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
         key: UNDEFINED_FILTER_KEY,
-        label: "number_bases",
+        label: "nb_bases",
     },
     [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
@@ -187,8 +187,8 @@ export const READSET_FILTER_KEYS: { [key in ReadsetColumnID]: string } = {
     [ReadsetColumnID.RELEASE_STATUS]: 'release_status',
     [ReadsetColumnID.LIBRARY_TYPE]: 'library_type',
     [ReadsetColumnID.INDEX]: 'index',
-    [ReadsetColumnID.NUM_READS]: 'number_reads',
-    [ReadsetColumnID.NUM_BASES]: 'number_bases',
+    [ReadsetColumnID.NB_READS]: 'nb_reads',
+    [ReadsetColumnID.NB_BASES]: 'nb_bases',
     [ReadsetColumnID.MEAN_QUALITY_SCORE]: 'mean_quality_score',
     [ReadsetColumnID.BLAST_HIT]: 'blast_hit',
 }

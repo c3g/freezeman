@@ -88,7 +88,9 @@ export interface FMSReadset extends FMSTrackedModel {
     release_status_timestamp: Date
     validation_status: number
     validation_status_timestamp: Date
-    metrics?: FMSMetric[]
+    library_type: string
+    index: string
+    metrics?: FMSMetric[] | {[key:string]: FMSMetric}
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {

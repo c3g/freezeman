@@ -49,7 +49,8 @@ const api = {
   },
   readsets: {
     get: id => get(`/readsets/${id}`),
-    list: (options, abort) => get(`/readsets/`, options, { abort })
+    list: (options, abort) => get(`/readsets/`, options, { abort }),
+    update: readset => patch(`/readsets/${readset.id}/`, readset),
   },
   datasetFiles: {
     get: id => get(`/dataset-files/${id}/`),
