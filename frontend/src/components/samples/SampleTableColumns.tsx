@@ -353,6 +353,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Project',
+		batch: true,
 	},
 	[SampleColumnID.COHORT]: {
 		type: FILTER_TYPE.INPUT,
