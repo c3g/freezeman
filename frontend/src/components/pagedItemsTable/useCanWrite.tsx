@@ -2,7 +2,11 @@ import { useMemo } from "react"
 import { useAppSelector } from "../../hooks"
 import { selectAuthState, selectUsersByID } from "../../selectors"
 
-
+/**
+ * Checks to see if the currently logged in user has "write" access, ie. if they are staff
+ * or a superuser.
+ * @returns boolean
+ */
 export function useCanWrite() {
 	const auth = useAppSelector(selectAuthState)
 	const usersByID = useAppSelector(selectUsersByID)

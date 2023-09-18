@@ -5,7 +5,6 @@ import {Navigate, Route, Routes} from "react-router-dom";
 import IndicesListContent from "./IndicesListContent2";
 import IndicesDetailedContent from "./IndicesDetailedContent";
 import IndicesValidate from "./IndicesValidate";
-import IndicesValidationResult from "./IndicesValidationResult";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
