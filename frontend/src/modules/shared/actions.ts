@@ -24,6 +24,7 @@ import { refreshAllStudySamples } from "../studySamples/actions"
 import Taxons from "../taxons/actions"
 import Users from "../users/actions"
 import Workflows from "../workflows/actions"
+import IndicesTableActions from '../indicesTable/actions'
 
 
 export const fetchSummariesData = () => async (dispatch) => {
@@ -81,7 +82,7 @@ export const fetchListedData = () => async (dispatch) => {
     await Promise.all([
         ContainersTableActions.refreshPage,
         ExperimentRuns.listTable,
-        Indices.listTable,
+        IndicesTableActions.refreshPage,
         IndividualsTableActions.refreshPage,
         SamplesTableActions.refreshPage,
         LibrariesTableActions.refreshPage,

@@ -1,12 +1,8 @@
-import {merge, set} from "object-path-immutable";
-import {map} from "rambda"
+import { merge } from "object-path-immutable";
 
-import {preprocessSampleVersions} from "../../utils/preprocessRevisions";
-import {indexByID} from "../../utils/objects";
-import mergeArray from "../../utils/mergeArray";
-import {summaryReducerFactory} from "../../utils/summary";
-import {templateActionsReducerFactory} from "../../utils/templateActions";
-import {resetTable} from "../../utils/reducers";
+import { indexByID } from "../../utils/objects";
+import { summaryReducerFactory } from "../../utils/summary";
+import { templateActionsReducerFactory } from "../../utils/templateActions";
 
 import INDICES from "./actions";
 
@@ -16,13 +12,7 @@ export const indicesTemplateActions = templateActionsReducerFactory(INDICES);
 export const indices = (
     state = {
         itemsByID: {},
-        items: [],
-        filteredItems: [],
-        page: { offset: 0 },
-        totalCount: 0,
         isFetching: false,
-        filters: {},
-        sortBy: { key: undefined, order: undefined },
     },
     action
 ) => {
@@ -36,37 +26,6 @@ export const indices = (
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
-        case INDICES.SET_SORT_BY:
-            return { ...state, sortBy: action.data, items: [] };
-        case INDICES.SET_FILTER:
-            return {
-                ...state,
-                filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
-        case INDICES.SET_FILTER_OPTION:
-            return {
-                ...state,
-                filters: set(
-                    state.filters,
-                    [action.data.name, 'options', action.data.option],
-                    action.data.value
-                ),
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
-        case INDICES.CLEAR_FILTERS:
-            return {
-                ...state,
-                filters: {},
-                items: [],
-                totalCount: 0,
-                page: set(state.page, ['offset'], 0),
-            };
-
         case INDICES.LIST.REQUEST:
             return { ...state, isFetching: true, };
         case INDICES.LIST.RECEIVE: {
@@ -77,41 +36,15 @@ export const indices = (
         case INDICES.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
-        case INDICES.LIST_TABLE.REQUEST:
-            return { ...state, isFetching: true, };
-        case INDICES.LIST_TABLE.RECEIVE: {
-            const totalCount = action.data.count;
-            const hasChanged = state.totalCount !== action.data.count;
-            const currentItems = hasChanged ? [] : state.items;
-            const results = action.data.results.map(preprocess)
-            const newItemsByID = map(
-                s => ({ ...s, container: s.container }),
-                indexByID(results)
-            );
-            const itemsByID = merge(state.itemsByID, [], newItemsByID);
-            const itemsID = action.data.results.map(r => r.id)
-            const items = mergeArray(currentItems, action.meta.offset, itemsID)
-            return {
-                ...state,
-                itemsByID,
-                items,
-                totalCount,
-                page: action.meta,
-                isFetching: false,
-                error: undefined,
-            };
-        }
-        case INDICES.LIST_TABLE.ERROR:
-            return { ...state, isFetching: false, error: action.error, };
-        default:
-            return state;
-
         case INDICES.VALIDATE.REQUEST:
             return { ...state, error: undefined, isFetching: true };
         case INDICES.VALIDATE.RECEIVE:
             return {...state, isFetching: false };
         case INDICES.VALIDATE.ERROR:
             return { ...state, error: action.error, isFetching: false };
+
+        default:
+            return state
     }
 };
 

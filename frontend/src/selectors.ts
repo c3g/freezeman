@@ -70,6 +70,8 @@ export const selectExternalExperimentRunsState = (state: RootState) => state.ext
 export const selectGroupsByID = (state: RootState) => state.groups.itemsByID
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
+export const selectIndicesTable = (state: RootState) => state.indicesTable
+export const selectIndicesTemplateActions = (state: RootState) => state.indicesTemplateActions
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
 export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
 export const selectIndividualsTable = (state: RootState) => state.individualsTable
