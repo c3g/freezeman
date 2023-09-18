@@ -1,5 +1,5 @@
 import { AnyAction, Reducer } from "redux"
-import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
+import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../components/pagedItemsTable/serializeFilterParamsTS"
 import { selectPageSize } from "../selectors"
 import { AppDispatch, RootState } from "../store"
 import { NetworkActionThunk, NetworkActionTypes, createNetworkActionTypes } from "../utils/actions"

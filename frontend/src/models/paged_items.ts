@@ -18,8 +18,7 @@ export interface FilterDescription {
 	placeholder?: string
 	options?: FilterOption[]
 	dynamicOptions?: () => FilterOption[]	// A function that generates options when the filter is initialized.
-	width?: number
-	detached?: boolean
+	width?: React.CSSProperties['width']
 	defaultMin?: number
 }
 
@@ -37,6 +36,7 @@ export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilt
 // Callback function definitions for functions that are passed to filter components.
 export type SetFilterFunc = (filterKey: string, value: FilterValue, description: FilterDescription) => void
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
+export type SetFixedFilterFunc = (filter: FilterSetting) => void
 export type FilterValidationFunc = (string: string) => boolean
 export type SetSortByFunc = (sortBy: SortBy) => void
 
@@ -162,9 +162,8 @@ export function isRangeFilterValue(value?: FilterValue): value is RangeFilterVal
 }
 
 export function isMetadataFilterValue(value?: FilterValue): value is MetadataFilterValue {
-	if (value) {
-		const v = value as MetadataFilterValue
-		return ('name' in v)
+	if (Array.isArray(value)) {
+		return (value as Array<any>).every(v => ('name' in v))
 	}
 	return false
 }

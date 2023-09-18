@@ -86,12 +86,18 @@ import { steps } from './modules/steps/reducers';
 import { studies } from "./modules/studies/reducers";
 import { studySamples } from "./modules/studySamples/reducers";
 import { taxons } from "./modules/taxons/reducers";
+import { taxonsTable } from './modules/taxonsTable/reducers'
 import { users } from "./modules/users/reducers";
 import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
 import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
 import { projectsTable} from './modules/projectsTable/reducers'
 import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
+import { samplesTable } from './modules/samplesTable/reducers'
+import { containersTable } from './modules/containersTable/reducers'
+import { librariesTable } from './modules/librariesTable/reducers'
+import { individualsTable } from './modules/individualsTable/reducers'
+import { usersTable } from "./modules/usersTable/reducers"
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -107,6 +113,7 @@ const allReducers = combineReducers({
   containerTemplateActions,
   containerPrefillTemplates,
   containers,
+  containersTable,
   datasets,
   datasetFiles,
   experimentRuns,
@@ -116,7 +123,9 @@ const allReducers = combineReducers({
   experimentRunTemplateActions,
   runTypes,
   individuals,
+  individualsTable,
   taxons,
+  taxonsTable,
   referenceGenomes,
   instruments,
   sampleKinds,
@@ -126,6 +135,7 @@ const allReducers = combineReducers({
   samples,
   projectSamplesTable,
   pooledSamples,
+  samplesTable,
   protocols,
   processes,
   processMeasurementsSummary,
@@ -144,11 +154,13 @@ const allReducers = combineReducers({
   sequences,
   librariesSummary,
   libraries,
+  librariesTable,
   libraryTemplateActions,
   libraryPrefillTemplates,
   libraryTypes,
   platforms,
   users,
+  usersTable,
   groups,
   pagination,
   versions,

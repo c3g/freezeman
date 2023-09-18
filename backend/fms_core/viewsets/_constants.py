@@ -7,7 +7,8 @@ CATEGORICAL_FILTERS = ["exact", "in"]
 CATEGORICAL_FILTERS_LOOSE = [*CATEGORICAL_FILTERS, *FREE_TEXT_FILTERS]
 FK_FILTERS = CATEGORICAL_FILTERS
 PK_FILTERS = ["in"]
-NULLABLE_FK_FILTERS = [*FK_FILTERS, "isnull"]
+NULLABLE_FILTERS = ["isnull"]
+NULLABLE_FK_FILTERS = [*FK_FILTERS, *NULLABLE_FILTERS]
 SCALAR_FILTERS = ["exact", "lt", "lte", "gt", "gte"]
 DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
 
@@ -142,7 +143,8 @@ _platform_filterset_fields: FiltersetFields = {
 _instrument_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "type": CATEGORICAL_FILTERS_LOOSE,
-    **_prefix_keys("platform__", _platform_filterset_fields)
+    "instruments": NULLABLE_FILTERS,
+    **_prefix_keys("platform__", _platform_filterset_fields),
 }
 
 _run_type_filterset_fields: FiltersetFields = {
@@ -238,10 +240,17 @@ _dataset_filterset_fields: FiltersetFields = {
     "experiment_run": FK_FILTERS,
 }
 
+_readset_filterset_fields: FiltersetFields = {
+    "id" : PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "sample_name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample": FK_FILTERS,
+    **_prefix_keys("dataset__", _dataset_filterset_fields),
+}
+
 _dataset_file_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "readset__dataset": FK_FILTERS,
-    "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("readset__", _readset_filterset_fields),
     "file_path": CATEGORICAL_FILTERS_LOOSE,
     "release_status": CATEGORICAL_FILTERS,
     "release_status_timestamp": DATE_FILTERS,

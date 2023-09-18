@@ -1,15 +1,18 @@
-import React, { useState, useRef, useCallback } from "react";
-import { connect } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
 import { Alert, Button, Checkbox, Form, Input, Select, Space, Tag } from "antd";
+import React, { useCallback, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { withUser } from "../../utils/withItem"
+import { requiredRules } from "../../constants";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { user as EMPTY_USER } from "../../models/empty_models";
+import { add, update } from "../../modules/users/actions";
+import UsersTableActions from '../../modules/usersTable/actions';
+import { selectGroupsByID, selectUsersByID, selectUsersState } from "../../selectors";
+import * as Options from "../../utils/options";
+import { withUser } from "../../utils/withItem";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import * as Options from "../../utils/options"
-import { add, update, listTable } from "../../modules/users/actions";
-import { user as EMPTY_USER } from "../../models/empty_models";
-import { requiredRules } from "../../constants";
+import { useIsStaff } from "./useIsStaff";
 
 const hiddenField = {
   position: "absolute",
@@ -17,22 +20,18 @@ const hiddenField = {
   left: -10000,
 }
 
-const mapStateToProps = state => ({
-  requestorID: state.auth.currentUserID,
-  isFetching: state.users.isFetching,
-  usersByID: state.users.itemsByID,
-  groupsByID: state.groups.itemsByID,
-  error: state.users.error,
-  groups: Object.values(state.groups.itemsByID),
-});
-
-const actionCreators = { add, update, listTable };
-
-const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByID, error, add, update, listTable }) => {
+function UserEditContent() {
+  const dispatch = useAppDispatch()
   const history = useNavigate();
+  const usersByID = useAppSelector(selectUsersByID)
+  const { isFetching, error } = useAppDispatch(selectUsersState)
+  const groupsByID = useAppSelector(selectGroupsByID)
+  const groups = Object.values(groupsByID)
+
+
   const { id } = useParams();
   const isAdding = id === undefined
-  const isAdmin = withUser(usersByID, requestorID, user => user.is_staff, false)
+  const isAdmin = useIsStaff()
 
   const user = usersByID[id];
 
@@ -61,12 +60,14 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
     const data = serialize(formData, user)
     const action =
       isAdding ?
-        add(data).then(user => { history(`/users/${user.id}`) }) :
-        update(id, data).then(() => { history(`/users/${id}`) })
+        dispatch(add(data)).then(user => { history(`/users/${user.id}`) }) :
+        dispatch(update(id, data)).then(() => { history(`/users/${id}`) })
     action
-      .then(() => { setFormErrors({}) })
+      .then(() => { 
+          setFormErrors({})
+          dispatch(UsersTableActions.refreshPage())
+      })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(listTable)
   }
 
   const onCancel = useCallback(() => {
@@ -210,16 +211,6 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
   );
 };
 
-function uniqueKey(object) {
-  const ref = useRef(object)
-  let key = 1
-  if (ref.current !== object) {
-    ref.current = object
-    key++
-  }
-  return key
-}
-
 function deserialize(values) {
   if (!values)
     return undefined
@@ -244,4 +235,4 @@ function serialize(values, original) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(UserEditContent);
+export default UserEditContent

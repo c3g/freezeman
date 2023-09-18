@@ -1,4 +1,5 @@
 import {
+	Container,
 	Coordinate,
 	Dataset,
 	DatasetFile,
@@ -51,7 +52,10 @@ export const selectAuthState = (state: RootState) => state.auth
 export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access as unknown as string | undefined
 export const selectAuthCurrentUserID = (state: RootState) => state.auth?.currentUserID as unknown as string | undefined
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
-export const selectContainersByID = (state: RootState) => state.containers.itemsByID
+export const selectContainerPrefillTemplates = (state: RootState) => state.containerPrefillTemplates
+export const selectContainersByID = (state: RootState) => state.containers.itemsByID as ItemsByID<Container>
+export const selectContainersTable = (state: RootState) => state.containersTable
+export const selectContainerTemplateActions = (state: RootState) => state.containerTemplateActions
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
 export const selectDatasetFilesState = (state: RootState) => state.datasetFiles
@@ -63,14 +67,18 @@ export const selectExperimentRunsState = (state: RootState) => state.experimentR
 export const selectExperimentRunsTemplateActions = (state: RootState) => state.experimentRunTemplateActions
 export const selectExternalExperimentRuns = (state: RootState) => state.externalExperimentRuns.runs
 export const selectExternalExperimentRunsState = (state: RootState) => state.externalExperimentRuns
+export const selectGroupsByID = (state: RootState) => state.groups.itemsByID
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
 export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
+export const selectIndividualsTable = (state: RootState) => state.individualsTable
 export const selectInstrumentsByID = (state: RootState) => state.instruments.itemsByID as ItemsByID<Instrument>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
+export const selectLibrariesTable = (state: RootState) => state.librariesTable
+export const selectLibraryPrefillTemplates = (state: RootState) => state.libraryPrefillTemplates
 export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions
 export const selectPageSize = (state: RootState) => state.pagination.pageSize
 export const selectProcessesByID = (state: RootState) => state.processes.itemsByID as ItemsByID<Process>
@@ -89,7 +97,9 @@ export const selectRunTypesByID = (state: RootState) => state.runTypes.itemsByID
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectSampleKindsState = (state: RootState) => state.sampleKinds
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
+export const selectSamplePrefillTemplates = (state: RootState) => state.samplePrefillTemplates
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
+export const selectSamplesTable = (state: RootState) => state.samplesTable
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
 export const selectSequencesByID = (state: RootState) => state.sequences.itemsByID as ItemsByID<Sequence>
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID
@@ -97,5 +107,9 @@ export const selectStudiesByID = (state: RootState) => state.studies.itemsByID a
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
+export const selectTaxonsTable = (state: RootState) => state.taxonsTable
+export const selectToken = (state: RootState) => state.auth.tokens.access as unknown as string | null
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
+export const selectUsersState = (state: RootState) => state.users
+export const selectUsersTable = (state: RootState) => state.usersTable
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>

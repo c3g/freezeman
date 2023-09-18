@@ -12,7 +12,7 @@ import mergedListQueryParams from '../../utils/mergedListQueryParams'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectAuthTokenAccess, selectExperimentRunsState, selectExperimentRunsTemplateActions } from '../../selectors'
 import { EXPERIMENT_RUN_FILTERS } from '../filters/descriptions'
-import FiltersBar from '../filters/FiltersBar'
+import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { clearFilters } from '../../modules/experimentRuns/actions'
 
 const { TabPane } = Tabs

@@ -9,7 +9,8 @@ const { TextArea } = Input;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import { add, update, listTable, summary } from "../../modules/containers/actions";
+import { add, update, summary } from "../../modules/containers/actions";
+import ContainersTableActions from '../../modules/containersTable/actions'
 import { container as EMPTY_CONTAINER } from "../../models/empty_models";
 import api, { withToken } from "../../utils/api";
 import { requiredRules, barcodeRules, nameRules } from "../../constants";
@@ -28,9 +29,11 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
 });
 
-const actionCreators = { add, update, listTable, summary };
+const refreshTable = ContainersTableActions.refreshPage
 
-const ContainerEditContent = ({ token, containerKinds, containersByID, add, update, listTable, summary }) => {
+const actionCreators = { add, update, refreshTable, summary };
+
+const ContainerEditContent = ({ token, containerKinds, containersByID, add, update, refreshTable, summary }) => {
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -93,7 +96,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(() => Promise.all([listTable(), summary()]))
+      .then(() => Promise.all([refreshTable(), summary()]))
   }
 
   const onCancel = useCallback(() => {

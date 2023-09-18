@@ -7,6 +7,7 @@ from django.templatetags.static import static
 
 from fms_core.template_importer._constants import VALID_NORM_CHOICES
 from fms_core.models._constants import STRANDEDNESS_CHOICES
+from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
 __all__ = [
     "CONTAINER_CREATION_TEMPLATE",
@@ -403,15 +404,15 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_3_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_5_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
           'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Name',
                       'Container Barcode', 'Sample Coord', 'Location Barcode', 'Container Coord', 'Project', 'Study',
-                      'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias', 'Cohort', 'Sex', 'Pedigree',
-                      'Mother ID', 'Father ID', 'Reference Genome', 'Library Type', 'Platform', 'Strandedness',
+                      'Experimental Group','NCBI Taxon ID #','Individual Name', 'Individual Alias', 'Cohort', 'Sex', 'Pedigree',
+                      'Mother Name', 'Father Name', 'Reference Genome', 'Library Type', 'Platform', 'Strandedness',
                       'Index Set', 'Index', 'Selection', 'Selection Target', 'Comment'],
           'stitch_column': 'Pool Name',
           'batch': False,
@@ -453,10 +454,10 @@ SAMPLE_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Current Volume (uL)',
-                      'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
-                      'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
-                      'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
+                      'Sample Parent Container Coord','Current Volume (uL)', 'Measured Volume (uL)', 'Volume Used (uL)',
+                      'Concentration (ng/uL)', 'NA Quantity (ng)', 'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag',
+                      'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
   ],
@@ -471,7 +472,10 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Name", "name", "name"),
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
-      ("SampleQC", "Current Volume (uL)", "volume", "volume"),],
+      ("SampleQC", "Sample Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("SampleQC", "Sample Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
+      ("SampleQC", "Current Volume (uL)", "volume", "volume"),
+  ],
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
@@ -482,14 +486,21 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       {
           'name': 'ExtractionTemplate',
           'headers': ['Extraction Type', 'Current Volume (uL)', 'Volume Used (uL)', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
-                      'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
-                      'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
+                      'Source Parent Container Barcode', 'Source Parent Container Coord', 'Destination Container Barcode', 'Destination Container Coord',
+                      'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
   ],
   "user prefill info": {
+      # "Extraction Type": ["DNA", "RNA"], # already prefilled by workflow
+      "Volume Used (uL)": "number",
+      # borrowed from extraction template
+      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
+      "Volume (uL)": "number",
+      "Source Depleted": ["YES"],
       "Extraction Date (YYYY-MM-DD)": "date",
+      "Comment": "text",
   }
   ,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -497,7 +508,10 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       ("ExtractionTemplate", "Current Volume (uL)", "volume", "volume"),
       ("ExtractionTemplate", "Source Sample Name", "name", "name"),
       ("ExtractionTemplate", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),],
+      ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),
+      ("ExtractionTemplate", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("ExtractionTemplate", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
+  ],
 }
 
 SAMPLE_TRANSFER_TEMPLATE = {
@@ -515,7 +529,12 @@ SAMPLE_TRANSFER_TEMPLATE = {
       },
   ],
   "user prefill info": {
+      # borrowed from transfer template
+      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
+      "Source Depleted": ["YES"],
+      "Volume Used (uL)": "number",
       "Transfer Date (YYYY-MM-DD)": "date",
+      "Comment": "text"
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
