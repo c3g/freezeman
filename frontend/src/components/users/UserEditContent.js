@@ -7,11 +7,12 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { user as EMPTY_USER } from "../../models/empty_models";
 import { add, update } from "../../modules/users/actions";
 import UsersTableActions from '../../modules/usersTable/actions';
-import { selectAuthCurrentUserID, selectGroupsByID, selectUsersByID, selectUsersState } from "../../selectors";
+import { selectGroupsByID, selectUsersByID, selectUsersState } from "../../selectors";
 import * as Options from "../../utils/options";
 import { withUser } from "../../utils/withItem";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import { useIsStaff } from "./useIsStaff";
 
 const hiddenField = {
   position: "absolute",
@@ -22,7 +23,6 @@ const hiddenField = {
 function UserEditContent() {
   const dispatch = useAppDispatch()
   const history = useNavigate();
-  const requestorID = useAppSelector(selectAuthCurrentUserID)
   const usersByID = useAppSelector(selectUsersByID)
   const { isFetching, error } = useAppDispatch(selectUsersState)
   const groupsByID = useAppSelector(selectGroupsByID)
@@ -31,7 +31,7 @@ function UserEditContent() {
 
   const { id } = useParams();
   const isAdding = id === undefined
-  const isAdmin = withUser(usersByID, requestorID, user => user.is_staff, false)
+  const isAdmin = useIsStaff()
 
   const user = usersByID[id];
 
