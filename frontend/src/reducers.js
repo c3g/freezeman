@@ -97,6 +97,7 @@ import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
 import { individualsTable } from './modules/individualsTable/reducers'
+import { usersTable } from "./modules/usersTable/reducers"
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -159,6 +160,7 @@ const allReducers = combineReducers({
   libraryTypes,
   platforms,
   users,
+  usersTable,
   groups,
   pagination,
   versions,

@@ -67,6 +67,7 @@ export const selectExperimentRunsState = (state: RootState) => state.experimentR
 export const selectExperimentRunsTemplateActions = (state: RootState) => state.experimentRunTemplateActions
 export const selectExternalExperimentRuns = (state: RootState) => state.externalExperimentRuns.runs
 export const selectExternalExperimentRunsState = (state: RootState) => state.externalExperimentRuns
+export const selectGroupsByID = (state: RootState) => state.groups.itemsByID
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
@@ -109,4 +110,6 @@ export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as 
 export const selectTaxonsTable = (state: RootState) => state.taxonsTable
 export const selectToken = (state: RootState) => state.auth.tokens.access as unknown as string | null
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
+export const selectUsersState = (state: RootState) => state.users
+export const selectUsersTable = (state: RootState) => state.usersTable
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
