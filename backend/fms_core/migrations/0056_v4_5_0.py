@@ -133,7 +133,6 @@ def initialize_axiom_sample_preparation(apps, schema_editor):
                                        expected_sample_type=step_info["expected_sample_type"],
                                        created_by_id=admin_user_id,
                                        updated_by_id=admin_user_id)
-
             reversion.add_to_revision(step)
 
 

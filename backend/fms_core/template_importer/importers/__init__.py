@@ -18,6 +18,7 @@ from .library_qc import LibraryQCImporter
 from .normalization import NormalizationImporter
 from .normalization_planning import NormalizationPlanningImporter
 from .sample_pooling import SamplePoolingImporter
+from .axiom_preparation import AxiomPreparationImporter
 
 
 __all__ = [
@@ -40,5 +41,6 @@ __all__ = [
     "LibraryQCImporter",
     "NormalizationImporter",
     "NormalizationPlanningImporter",
-    "SamplePoolingImporter"
+    "SamplePoolingImporter",
+    "AxiomPreparationImporter"
 ]
