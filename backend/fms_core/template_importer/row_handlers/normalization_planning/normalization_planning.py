@@ -1,5 +1,7 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-from fms_core.template_importer._constants import VALID_NORM_CHOICES, LIBRARY_CHOICE, LOAD_ALL
+from fms_core.template_importer._constants import (VALID_NORM_CHOICES,
+                                                   LIBRARY_CHOICE,
+                                                   LOAD_ALL)
 from fms_core.services.container import get_container, is_container_valid_destination
 from fms_core.services.sample import get_sample_from_container
 from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul

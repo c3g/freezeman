@@ -89,7 +89,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
 
     return (
         <>
-            <FlexBar style={{padding: 0}}>
+            <FlexBar>
                 <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
                 <Space>
                     {!study?.removable && <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies that contain samples or that have been initiated cannot be removed.</Typography.Text>}

@@ -11,8 +11,13 @@ import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import PagedItemsTable, { useFilteredColumns, useItemsByIDToDataObjects, usePagedItemsActionsCallbacks } from '../pagedItemsTable/PagedItemsTable'
+import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
+import useListExportCallback from '../pagedItemsTable/useListExportCallback'
+import { sort } from 'rambda'
 
 
 const projectsListContentColumns = [
@@ -33,14 +38,8 @@ const ProjectsListContent = () => {
 	const projectsTableState  = useAppSelector(selectProjectsTable)
 	const { filters, sortBy, totalCount } = projectsTableState
 	const templateActions = useAppSelector(selectProjectTemplateActions)
-	const token = useAppSelector(selectAuthTokenAccess)
-
-	const listExport = useCallback(() => {
-		return withToken(token, api.projects.listExport)
-			(mergedListQueryParams(PROJECT_FILTERS, filters, sortBy))
-			.then(response => response.data)
-	}
-	, [token, filters, sortBy])
+	
+	const listExport = useListExportCallback(api.projects.listExport, filters, sortBy)
 
 	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
 

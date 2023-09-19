@@ -74,10 +74,19 @@ select:-webkit-autofill:focus {
   opacity: 0;
 }
 
+/*TODO remove SamplesFilters*/
 .SamplesFilters .ant-collapse-header {
   text-align: left;
 }
 .SamplesFilters .ant-collapse-content-box {
+  padding: 0;
+  text-align: left;
+}
+
+.FiltersPanel .ant-collapse-header {
+  text-align: left;
+}
+.FiltersPanel .ant-collapse-content-box {
   padding: 0;
   text-align: left;
 }

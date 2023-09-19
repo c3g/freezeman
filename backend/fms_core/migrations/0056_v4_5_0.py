@@ -7,6 +7,50 @@ from fms_core.models._constants import SampleType
 
 ADMIN_USERNAME = 'biobankadmin'
 
+def create_normalization_genotyping_step(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+    Step = apps.get_model("fms_core", "Step")
+    StepSpecification = apps.get_model("fms_core", "StepSpecification")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Create normalization (Genotyping) step and specification.")
+        reversion.set_user(admin_user)
+
+        STEPS = [
+            # {name, protocol_name}
+            {"name": "Normalization (Library)", "protocol_name": "Normalization", "expected_sample_type": SampleType.LIBRARY,
+             "specifications": [{"display_name": "Normalization Type", "sheet_name": "Normalization", "column_name": "Type", "value": "Library"}]},
+            {"name": "Normalization (Genotyping)", "protocol_name": "Normalization", "expected_sample_type": SampleType.EXTRACTED_SAMPLE,
+             "specifications": [{"display_name": "Normalization Type", "sheet_name": "Normalization", "column_name": "Type", "value": "Genotyping"}]},
+        ]
+
+        # Create Step and specification
+        for step_info in STEPS:
+            protocol = Protocol.objects.get(name=step_info["protocol_name"])
+
+            step = Step.objects.create(name=step_info["name"],
+                                       protocol=protocol,
+                                       expected_sample_type=step_info["expected_sample_type"],
+                                       created_by_id=admin_user_id,
+                                       updated_by_id=admin_user_id)
+
+            reversion.add_to_revision(step)
+
+            for specification in step_info["specifications"]:
+                step_specification = StepSpecification.objects.create(display_name=specification["display_name"],
+                                                                      sheet_name=specification["sheet_name"],
+                                                                      column_name=specification["column_name"],
+                                                                      value=specification["value"],
+                                                                      step=step,
+                                                                      created_by_id=admin_user_id,
+                                                                      updated_by_id=admin_user_id)
+
+                reversion.add_to_revision(step_specification)
+
+
 def initialize_axiom_sample_preparation(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "Protocol")
     ProtocolBySubprotocol = apps.get_model("fms_core", "ProtocolBySubprotocol")
@@ -89,7 +133,6 @@ def initialize_axiom_sample_preparation(apps, schema_editor):
                                        expected_sample_type=step_info["expected_sample_type"],
                                        created_by_id=admin_user_id,
                                        updated_by_id=admin_user_id)
-            
             reversion.add_to_revision(step)
 
 
@@ -101,6 +144,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            create_normalization_genotyping_step,
+            reverse_code=migrations.RunPython.noop,
+        ),
         migrations.RunPython(
             initialize_axiom_sample_preparation,
             reverse_code=migrations.RunPython.noop,
