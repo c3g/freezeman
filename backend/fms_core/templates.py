@@ -281,7 +281,7 @@ LIBRARY_QC_TEMPLATE = {
 
 NORMALIZATION_TEMPLATE = {
   "identity": {"description": "Template to perform normalization",
-               "file": static("submission_templates/Normalization_v4_4_0.xlsx"),
+               "file": static("submission_templates/Normalization_v4_5_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
@@ -311,7 +311,7 @@ NORMALIZATION_TEMPLATE = {
 
 NORMALIZATION_PLANNING_TEMPLATE = {
   "identity": {"description": "Template to perform normalization planning",
-               "file": static("submission_templates/Normalization_planning_v4_4_0.xlsx"),
+               "file": static("submission_templates/Normalization_planning_v4_5_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
