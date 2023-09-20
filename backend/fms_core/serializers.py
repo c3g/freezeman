@@ -583,10 +583,10 @@ class DatasetSerializer(serializers.ModelSerializer):
     released_status_count = serializers.SerializerMethodField()
     blocked_status_count = serializers.SerializerMethodField()
     latest_release_update = serializers.SerializerMethodField()
-
+    total_readsets = serializers.SerializerMethodField()
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url", "total_readsets")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
@@ -599,6 +599,9 @@ class DatasetSerializer(serializers.ModelSerializer):
     
     def get_latest_release_update(self, obj):
         return Readset.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
+    
+    def get_total_readsets(self, obj):
+        return Readset.objects.filter(dataset=obj.id).count()
 
 class ReadsetSerializer(serializers.ModelSerializer):
     total_size = serializers.SerializerMethodField()

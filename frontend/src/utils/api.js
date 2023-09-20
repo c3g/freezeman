@@ -50,7 +50,7 @@ const api = {
   readsets: {
     get: id => get(`/readsets/${id}`),
     list: (options, abort) => get(`/readsets/`, options, { abort }),
-    update: readset => patch(`/readsets/${readset.id}/`, readset),
+    set_release_status: readset => post(`/readsets/set_release_status/`, readset),
   },
   datasetFiles: {
     get: id => get(`/dataset-files/${id}/`),

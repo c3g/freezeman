@@ -20,13 +20,12 @@ export const readsets = (
         case READSETS.GET.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
                 { error: action.error, isFetching: false, didFail: true });
-        case READSETS.UPDATE.REQUEST:
+        case READSETS.SET_RELEASE_STATUS.REQUEST:
             return { ...state, isFetching: true, };
-        case READSETS.UPDATE.RECEIVE: {
-            console.log("update",action)
+        case READSETS.SET_RELEASE_STATUS.RECEIVE: {
             return { ...state, isFetching: false };
         }
-        case READSETS.UPDATE.ERROR:
+        case READSETS.SET_RELEASE_STATUS.ERROR:
             return { ...state, isFetching: false, error: action.error, };
         case READSETS.LIST.REQUEST:
             return { ...state, isFetching: true, };

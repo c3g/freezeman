@@ -4,7 +4,7 @@ import PageContent from "../PageContent"
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import ReadsetTableActions from "../../modules/readsetsTable/actions"
 import { selectDatasetFilesByID, selectReadsetsByID, selectReadsetsTable } from "../../selectors";
-import { BLOCKED, ObjectWithReadset, READSET_COLUMN_DEFINITIONS, READSET_COLUMN_FILTERS, READSET_FILTER_KEYS, RELEASED } from "./ReadsetsTableColumns";
+import { BLOCKED, OPPOSITE_STATUS, ObjectWithReadset, READSET_COLUMN_DEFINITIONS, READSET_COLUMN_FILTERS, READSET_FILTER_KEYS, RELEASED } from "./ReadsetsTableColumns";
 import { Dataset, Readset } from "../../models/frontend_models";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
@@ -13,10 +13,8 @@ import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
 // import FiltersBar from "../filters/filtersBar/FiltersBar";
 // import FilterPanel from "../filters/filterPanel/FilterPanel";
 import { Button } from "antd";
-import { setReleaseStatus } from "../../modules/datasets/actions";
-import { update } from "../../modules/readsets/actions";
+import { set_release_status } from "../../modules/readsets/actions";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
-import api from "../../utils/api";
 
 
 interface ReadsetsListContentProps {
@@ -27,7 +25,7 @@ interface ReadsetsListContentProps {
 const wrapReadset = (readset: Readset): ObjectWithReadset => {
     return { readset }
 }
-const ReadsetsListContent = ({ dataset, laneValidationStatus}: ReadsetsListContentProps) => {
+const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListContentProps) => {
     const readsetsByID = useAppSelector(selectReadsetsByID)
     const readsetTableState = useAppSelector(selectReadsetsTable)
     const readsetTableCallbacks = usePagedItemsActionsCallbacks(ReadsetTableActions)
@@ -52,7 +50,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus}: ReadsetsListConte
                 break
         }
     }
-    
+
     const releaseStatusOptionReducer = (state, action) => {
         switch (action.type) {
             case "all":
@@ -113,7 +111,15 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus}: ReadsetsListConte
     const mapContainerIDs = useItemsByIDToDataObjects(selectReadsetsByID, wrapReadset)
     const specificStatusToggled = Object.keys(releaseStatusOption.specific).length > 0
     const dispatchReleaseStatusOptionTypeAll = (release_status) => {
-        dispatchReleaseStatusOption({ type: "all", release_status })
+        if (release_status) {
+            readsetTableState.items.forEach((id) => {
+                const status = readsetsByID[id].release_status
+                if (status != release_status)
+                    dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus: OPPOSITE_STATUS[readsetsByID[id].release_status], readsetsByID })
+            })
+        } else {
+            dispatchReleaseStatusOption({ type: "all", release_status })
+        }
     }
 
     const extraButtons = <>
@@ -147,17 +153,15 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus}: ReadsetsListConte
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={() => {
+            onClick={async () => {
                 const { all, specific } = releaseStatusOption
-                if (all) {
-                    dispatch(setReleaseStatus(dataset?.id, all, Object.keys(specific), filters))
-                } else {
-                    Object.entries(specific).forEach(([id, release_status]) => {
-                        const rs = readsetsByID[id];
-                        rs.release_status = release_status
-                        dispatch(update(rs))
-                    })
-                }
+                let actions: Promise<any>[] = []
+                Object.entries(specific).forEach(([id, release_status]) => {
+                    const rs = readsetsByID[id];
+                    rs.release_status = release_status
+                    actions.push(dispatch(set_release_status(rs)))
+                })
+                await Promise.all(actions)
                 dispatchReleaseStatusOptionTypeAll(undefined)
             }}
             type={"primary"}
@@ -175,7 +179,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus}: ReadsetsListConte
                 setFilterOption={readsetTableCallbacks.setFilterOptionsCallback}
             /> */}
             {/* <FiltersBar filters={filters} clearFilters={readsetTableCallbacks.clearFiltersCallback} /> */}
-            { extraButtons }
+            {extraButtons}
             <PagedItemsTable<ObjectWithReadset>
                 columns={columns}
                 getDataObjectsByID={mapContainerIDs}
