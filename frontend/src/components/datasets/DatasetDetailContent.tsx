@@ -1,23 +1,16 @@
-import { Button, Descriptions, Space, Typography } from "antd"
-import moment from "moment"
-import React, { useCallback, useEffect, useReducer, useState } from "react"
+import { Descriptions } from "antd"
+import React, { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import useFilteredList from "../../hooks/useFilteredList"
-import { listFilter, update } from "../../modules/datasetFiles/actions"
-import { get, setReleaseStatus } from "../../modules/datasets/actions"
-import { selectDatasetFilesByID, selectDatasetFilesState, selectDatasetsByID } from "../../selectors"
+import { get } from "../../modules/datasets/actions"
+import { selectDatasetsByID } from "../../selectors"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
-import { DATASET_FILE_FILTERS } from "../filters/descriptions"
-import PaginatedList from "../shared/PaginatedList"
-import { Dataset, DatasetFile } from "../../models/frontend_models"
+import { Dataset } from "../../models/frontend_models"
 import { ValidationStatus } from "../../modules/experimentRunLanes/models"
 import api from "../../utils/api"
-import { InfoCircleOutlined } from "@ant-design/icons"
 import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
 import ReadsetsListContent from "../readsets/ReadsetsListContent"
-const { Title, Text } = Typography
 
 
 const DatasetDetailContent = () => {
@@ -58,7 +51,7 @@ const DatasetDetailContent = () => {
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '2em'
+                gap: '1em'
             }}>
                 <Descriptions bordered={true} size={"small"} column={4}>
                     <Descriptions.Item label={"ID"} span={1}>{loading(dataset?.id)}</Descriptions.Item>
@@ -78,7 +71,7 @@ const DatasetDetailContent = () => {
                     <Descriptions.Item label={"Total Readsets"} span={1}>{loading(dataset?.total_readsets)}</Descriptions.Item>
                     <Descriptions.Item label={"Readsets Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
                 </Descriptions>
-                <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus}/>
+                <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} />
             </div>
         </PageContent>
     </>

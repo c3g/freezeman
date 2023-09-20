@@ -1,22 +1,23 @@
-import React, { useEffect, useReducer, useState } from "react"
+import React, { useCallback, useEffect, useReducer } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
-import { useAppDispatch, useAppSelector } from "../../hooks";
 import ReadsetTableActions from "../../modules/readsetsTable/actions"
-import { selectDatasetFilesByID, selectReadsetsByID, selectReadsetsTable } from "../../selectors";
+import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
+import FilterPanel from "../filters/filterPanel/FilterPanel";
+import FiltersBar from "../filters/filtersBar/FiltersBar";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { selectReadsetsByID, selectReadsetsTable } from "../../selectors";
 import { BLOCKED, OPPOSITE_STATUS, ObjectWithReadset, READSET_COLUMN_DEFINITIONS, READSET_COLUMN_FILTERS, READSET_FILTER_KEYS, RELEASED } from "./ReadsetsTableColumns";
 import { Dataset, Readset } from "../../models/frontend_models";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
-import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
-// import FiltersBar from "../filters/filtersBar/FiltersBar";
-// import FilterPanel from "../filters/filterPanel/FilterPanel";
 import { Button } from "antd";
 import { set_release_status } from "../../modules/readsets/actions";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
-import { FMSMetric } from "../../models/fms_api_models";
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
+import { FilterSetting } from "../../models/paged_items";
+import { FILTER_TYPE } from "../../constants";
 
 
 interface ReadsetsListContentProps {
@@ -109,7 +110,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         }
     }
 
-    const extraButtons = <>
+    const extraButtons = <div>
         <Button
             style={{ margin: 6 }}
             onClick={() => {
@@ -155,19 +156,24 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             disabled={!releaseStatusOption.all && !specificStatusToggled}>
             Save Changes
         </Button>
-    </>
+    </div>
 
-    return <>
+    return <div>
         <AppPageHeader title="Readsets" />
         <PageContent>
-            {/* <FilterPanel
+            <FilterPanel
                 descriptions={[]}
                 filters={filters}
                 setFilter={readsetTableCallbacks.setFilterCallback}
                 setFilterOption={readsetTableCallbacks.setFilterOptionsCallback}
-            /> */}
-            {/* <FiltersBar filters={filters} clearFilters={readsetTableCallbacks.clearFiltersCallback} /> */}
-            {extraButtons}
+            />
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between'
+            }}>
+                {extraButtons}
+                <FiltersBar filters={filters} clearFilters={readsetTableCallbacks.clearFiltersCallback} />
+            </div>
             <PagedItemsTable<ObjectWithReadset>
                 columns={columns}
                 expandable={{
@@ -233,6 +239,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             />
 
         </PageContent>
-    </>;
+    </div>;
 }
 export default ReadsetsListContent
