@@ -2,6 +2,7 @@ import reversion
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.functions import Lower
 
 from .tracked_model import TrackedModel
 from django.contrib.auth.models import User
@@ -32,6 +33,7 @@ class Project(TrackedModel):
     class Meta:
         indexes = [
             models.Index(fields=['name'], name='project_name_idx'),
+            models.Index(Lower("name"), name='project_ciname_idx'),
         ]
     def clean(self):
         super().clean()
@@ -40,9 +42,8 @@ class Project(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        project_similar_name = Project.objects.filter(name__iexact=self.name).first()
-        if project_similar_name and project_similar_name.id != self.id:
-            add_error("name", f"Another project with a similar name ({project_similar_name.name}) exists. Two project names cannot be distinguished only by letter case.")
+        if Project.objects.annotate(name_lower=Lower("name")).filter(name_lower=Lower(self.name)).exclude(id=self.id).exists():
+            add_error("name", f"Another project with a similar name exists. Two project names cannot be distinguished only by letter case.")
 
         if errors:
             raise ValidationError(errors)

@@ -16,8 +16,8 @@ class Taxon(TrackedModel):
     
     class Meta:
         indexes = [
-            models.Index(Lower("name"), name='taxon_ciname_idx'),
             models.Index(fields=["ncbi_id"], name='taxon_ncbiid_idx'),
+            models.Index(Lower("name"), name='taxon_ciname_idx'),
         ]
 
     def __str__(self):

@@ -42,7 +42,11 @@ class SampleLineage(TrackedModel):
                     add_error("tissue_source", "Extracted sample need to have a tissue source.")
                 elif child_derived.tissue_source != parent_derived.sample_kind:
                     add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
-        elif any([protocol_name == "Transfer", protocol_name == "Illumina Infinium Preparation", protocol_name == "DNBSEQ Preparation"]):
+        elif any([protocol_name == "Transfer",
+                  protocol_name == "Normalization",
+                  protocol_name == "Illumina Infinium Preparation",
+                  protocol_name == "DNBSEQ Preparation",
+                  protocol_name == "Illumina Preparation"]):
             if list(self.child.derived_samples.values_list("id", flat=True).order_by("id")) != list(self.parent.derived_samples.values_list("id", flat=True).order_by("id")):
                 add_error("derived_sample", f"Transferred sample {self.child.name} need to have the same derived samples as its parent.")
         elif protocol_name == "Sample Pooling":

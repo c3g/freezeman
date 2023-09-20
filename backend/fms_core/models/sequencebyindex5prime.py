@@ -25,8 +25,7 @@ class SequenceByIndex5Prime(TrackedModel):
         if self.sequence.value == "":
             add_error("sequence", f"Index sequence for ({self.index.name}) need to have at least one character.")
 
-        SameEntry = SequenceByIndex5Prime.objects.filter(index=self.index, sequence=self.sequence).first()
-        if SameEntry and SameEntry.id != self.id:
+        if SequenceByIndex5Prime.objects.filter(index_id=self.index_id, sequence_id=self.sequence_id).exclude(id=self.id).exists():
             add_error("sequence", f"Sequence [{self.sequence.value}] is already associated to index {self.index.name}.")
 
         if errors:

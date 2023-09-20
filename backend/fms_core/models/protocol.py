@@ -19,6 +19,11 @@ class Protocol(TrackedModel):
     child_of = models.ManyToManyField("self", blank=True, through="ProtocolBySubprotocol",
                                       symmetrical=False, related_name="parent_of")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name'], name='protocol_name_idx'),
+        ]
+
     def __str__(self):
         return self.name
 
