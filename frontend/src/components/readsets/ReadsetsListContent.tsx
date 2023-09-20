@@ -15,6 +15,8 @@ import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
 import { Button } from "antd";
 import { set_release_status } from "../../modules/readsets/actions";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
+import { FMSMetric } from "../../models/fms_api_models";
+import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 
 
 interface ReadsetsListContentProps {
@@ -35,21 +37,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const allFilesBlocked = dataset?.blocked_status_count === Object.keys(readsetsByID).length
 
     const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
-
-    let laneValidationStatusString = ''
-    if (laneValidationStatus !== undefined) {
-        switch (laneValidationStatus) {
-            case ValidationStatus.AVAILABLE:
-                laneValidationStatusString = 'Awaiting validation'
-                break
-            case ValidationStatus.PASSED:
-                laneValidationStatusString = 'Passed'
-                break
-            case ValidationStatus.FAILED:
-                laneValidationStatusString = 'Failed'
-                break
-        }
-    }
 
     const releaseStatusOptionReducer = (state, action) => {
         switch (action.type) {
@@ -169,6 +156,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             Save Changes
         </Button>
     </>
+
     return <>
         <AppPageHeader title="Readsets" />
         <PageContent>
@@ -182,6 +170,62 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             {extraButtons}
             <PagedItemsTable<ObjectWithReadset>
                 columns={columns}
+                expandable={{
+                    expandIcon: ({ expanded, onExpand, record }) =>
+                        expanded ? (
+                            <div>
+                                Hide Metrics
+                                <MinusCircleTwoTone onClick={e => onExpand(record, e)} />
+                            </div>
+                        ) : (
+                            <div>
+                                View Metrics
+                                <PlusCircleTwoTone onClick={e => onExpand(record, e)} />
+                            </div>
+
+                        )
+                    ,
+                    expandedRowRender: (record) => {
+                        const readset: Readset = record.readset
+                        return (
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                gap: '1em'
+                            }} key={readset.id}>
+                                {
+                                    readset.metrics ?
+                                        Object.keys(readset.metrics).map(
+                                            (name) => {
+                                                return (
+                                                    readset.metrics && (readset.metrics[name].value_numeric || readset.metrics[name].value_string) &&
+                                                    <>
+
+                                                        <div style={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            width: '10em'
+                                                        }} key={name}>
+                                                            {<b >
+                                                                {name.replace(/_/g, " ")}
+                                                            </b>
+                                                            }
+                                                            {readset.metrics[name].value_numeric
+                                                                ?
+                                                                Number(readset.metrics[name].value_numeric).toFixed(3)
+                                                                :
+                                                                readset.metrics[name].value_string}
+                                                        </div>
+                                                    </>)
+                                            })
+                                        :
+                                        <div>No metrics</div>
+                                }
+                            </div>
+                        )
+                    }
+                    ,
+                }}
                 getDataObjectsByID={mapContainerIDs}
                 pagedItems={readsetTableState}
                 usingFilters={false}
