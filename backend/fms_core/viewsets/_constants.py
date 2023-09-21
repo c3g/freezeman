@@ -302,6 +302,8 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     "sample__derived_samples__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__container__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
+    "sample__container__location__barcode": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("sample__container__coordinate__", _coordinate_filterset_fields),
     **_prefix_keys("sample__coordinate__", _coordinate_filterset_fields),
     "sample__volume": SCALAR_FILTERS,
     "sample__concentration": SCALAR_FILTERS,
