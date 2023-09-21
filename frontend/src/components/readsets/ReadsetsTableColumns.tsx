@@ -55,8 +55,8 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             sorter: true,
             render: (_, { readset }) => {
                 const { id } = readset;
-                const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? readset.release_status
-                const changed = (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
+                const releaseStatus = releaseStatusOption.specific[id] ?? readset.release_status
+                const changed = (releaseStatusOption.specific[id])
                 return readset && <Button
                     disabled={!canReleaseOrBlockFiles}
                     style={{ color: changed ? "red" : "grey", width: "6em" }}

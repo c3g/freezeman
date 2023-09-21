@@ -16,8 +16,9 @@ import { Button } from "antd";
 import { set_release_status } from "../../modules/readsets/actions";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
-import { FilterSetting } from "../../models/paged_items";
+import { createFixedFilter } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
+
 
 
 interface ReadsetsListContentProps {
@@ -36,13 +37,20 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const { filters, sortBy, totalCount } = readsetTableState
     const allFilesReleased = dataset?.released_status_count === Object.keys(readsetsByID).length
     const allFilesBlocked = dataset?.blocked_status_count === Object.keys(readsetsByID).length
+    useEffect(() => {
+        if (dataset) {
+            dispatch(ReadsetTableActions.resetPagedItems())
+            dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(dataset?.id))))
+            dispatch(ReadsetTableActions.listPage(1))
+        }
+    }, [dataset, dispatch])
 
     const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
 
     const releaseStatusOptionReducer = (state, action) => {
         switch (action.type) {
-            case "all":
-                return { all: action.release_status, specific: {} }
+            case "clear":
+                return { specific: {} }
             case "toggle": {
                 const { all } = state
                 const { id, releaseStatus, readsetsByID } = action
@@ -69,7 +77,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const [releaseStatusOption, dispatchReleaseStatusOption] = useReducer(
         releaseStatusOptionReducer,
         {
-            all: undefined,
             specific: {},
         }
     )
@@ -96,26 +103,38 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         readsetTableCallbacks.setFilterCallback,
         readsetTableCallbacks.setFilterOptionsCallback
     )
+    const saveReleaseStatus = async () => {
+        const { specific } = releaseStatusOption
+        let actions: Promise<any>[] = []
+        Object.entries(specific).forEach(([id, release_status]) => {
+            const rs = readsetsByID[id];
+            rs.release_status = release_status
+            actions.push(dispatch(set_release_status(rs)))
+        })
+        await Promise.all(actions)
+        dispatchReleaseStatusOptionTypeAll(undefined)
+    }
     const mapContainerIDs = useItemsByIDToDataObjects(selectReadsetsByID, wrapReadset)
     const specificStatusToggled = Object.keys(releaseStatusOption.specific).length > 0
     const dispatchReleaseStatusOptionTypeAll = (release_status) => {
         if (release_status) {
             readsetTableState.items.forEach((id) => {
                 const status = readsetsByID[id].release_status
-                if (status != release_status)
+                if (status != release_status) {
                     dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus: OPPOSITE_STATUS[readsetsByID[id].release_status], readsetsByID })
+                } else {
+                    dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus: readsetsByID[id].release_status, readsetsByID })
+                }
             })
         } else {
-            dispatchReleaseStatusOption({ type: "all", release_status })
+            dispatchReleaseStatusOption({ type: "clear", release_status })
         }
     }
 
     const extraButtons = <div>
         <Button
             style={{ margin: 6 }}
-            onClick={() => {
-                dispatchReleaseStatusOptionTypeAll(RELEASED)
-            }}
+            onClick={() => dispatchReleaseStatusOptionTypeAll(RELEASED)}
             disabled={
                 (releaseStatusOption.all === RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !specificStatusToggled
             }>
@@ -123,9 +142,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={() => {
-                dispatchReleaseStatusOptionTypeAll(BLOCKED)
-            }}
+            onClick={() => dispatchReleaseStatusOptionTypeAll(BLOCKED)}
             disabled={
                 (releaseStatusOption.all === BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !specificStatusToggled
             }>
@@ -133,25 +150,13 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={() => {
-                dispatchReleaseStatusOptionTypeAll(undefined)
-            }}
+            onClick={() => dispatchReleaseStatusOptionTypeAll(undefined)}
             disabled={!releaseStatusOption.all && !specificStatusToggled}>
             Undo Changes
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={async () => {
-                const { all, specific } = releaseStatusOption
-                let actions: Promise<any>[] = []
-                Object.entries(specific).forEach(([id, release_status]) => {
-                    const rs = readsetsByID[id];
-                    rs.release_status = release_status
-                    actions.push(dispatch(set_release_status(rs)))
-                })
-                await Promise.all(actions)
-                dispatchReleaseStatusOptionTypeAll(undefined)
-            }}
+            onClick={saveReleaseStatus}
             type={"primary"}
             disabled={!releaseStatusOption.all && !specificStatusToggled}>
             Save Changes
@@ -176,6 +181,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             </div>
             <PagedItemsTable<ObjectWithReadset>
                 columns={columns}
+                // setFixedFilterCallback={}
                 expandable={{
                     expandIcon: ({ expanded, onExpand, record }) =>
                         expanded ? (
@@ -236,6 +242,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 pagedItems={readsetTableState}
                 usingFilters={false}
                 {...readsetTableCallbacks}
+                initialLoad={false}
             />
 
         </PageContent>
