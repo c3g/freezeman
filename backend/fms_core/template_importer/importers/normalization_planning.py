@@ -14,12 +14,15 @@ from ...containers import CONTAINER_KIND_SPECS
 from fms_core.services.id_generator import get_unique_id
 
 from ._generic import GenericImporter
-from .._utils import float_to_decimal_and_none, load_all_or_float_to_decimal_and_none, zip_files
-from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, unique
+from .._utils import float_to_decimal_and_none, zip_files
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, unique, check_truth_like
 
 from io import BytesIO
 from datetime import datetime
 import decimal
+
+BYPASS_INDEX_ROW = 1
+BYPASS_INDEX_COLUMN = 4
 
 class NormalizationPlanningImporter(GenericImporter):
     """
@@ -43,6 +46,10 @@ class NormalizationPlanningImporter(GenericImporter):
 
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
+        sheet_df = sheet.dataframe
+
+        # PRELOADING - Set values for global data
+        bypass_input_requirement = sheet_df.values[BYPASS_INDEX_ROW][BYPASS_INDEX_COLUMN]
 
         normalization_mapping_rows = []
         norm_choice = []
@@ -66,10 +73,11 @@ class NormalizationPlanningImporter(GenericImporter):
             }
 
             measurements = {
-                'volume': load_all_or_float_to_decimal_and_none(row_data['Final Volume (uL)']),
+                'volume': float_to_decimal_and_none(row_data['Final Volume (uL)']),
                 'na_quantity': float_to_decimal_and_none(row_data['Norm. NA Quantity (ng)']),
                 'concentration_ngul': float_to_decimal_and_none(row_data['Norm. Conc. (ng/uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Norm. Conc. (nM)']),
+                'bypass_input_requirement': check_truth_like(bypass_input_requirement) # Defaults to false
             }
 
             robot = {

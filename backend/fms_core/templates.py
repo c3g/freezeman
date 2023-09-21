@@ -344,7 +344,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
                     'Source Parent Container Barcode', 'Source Parent Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
-                    'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)',
+                    'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)', 'Available Input (ng)',
                     'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
         'batch': False,
       },
