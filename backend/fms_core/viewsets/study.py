@@ -22,6 +22,8 @@ class StudyViewSet(viewsets.ModelViewSet):
         **_study_filterset_fields,
     }
 
+    ordering = ["project_id", "letter"]
+
     def create(self, request, *args, **kwargs):
         errors = defaultdict(list)
         study_data = request.data

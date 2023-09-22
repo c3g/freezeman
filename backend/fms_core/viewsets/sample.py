@@ -64,6 +64,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         *_list_keys(_sample_filterset_fields),
     )
 
+    ordering = ["-id"]
+
     filterset_fields = {
         **_sample_filterset_fields,
     }

@@ -15,3 +15,5 @@ class SequenceViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_sequence_filterset_fields,
     }
+
+    ordering = ["id"]

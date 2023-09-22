@@ -19,6 +19,8 @@ class DatasetFileViewSet(viewsets.ModelViewSet):
         **_dataset_file_filterset_fields,
     }
 
+    ordering = ["id"]
+
     def update(self, request, *args, **kwargs):
         release_status = request.data.get("release_status")
         validation_status = request.data.get("validation_status")

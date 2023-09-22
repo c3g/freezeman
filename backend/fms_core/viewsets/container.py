@@ -35,6 +35,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         *_list_keys(_container_filterset_fields),
     )
 
+    ordering = ["-id"]
+
     template_action_list = [
         {
             "name": "Add Containers",

@@ -30,6 +30,8 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         **_process_measurement_filterset_fields,
     }
 
+    ordering = ["-id"]
+
     template_action_list = [
         {
             "name": "Process Extractions",

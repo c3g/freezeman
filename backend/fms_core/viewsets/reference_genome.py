@@ -20,6 +20,9 @@ class ReferenceGenomeViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_reference_genome_filterset_fields,
     }
+
+    ordering = ["id"]
+
     def create(self, request, *args, **kwargs):
         referenceGenome_data = request.data
 

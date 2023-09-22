@@ -20,3 +20,5 @@ class PropertyValueViewSet(viewsets.ModelViewSet):
         "content_type__app_label": CATEGORICAL_FILTERS,
         "content_type__model": CATEGORICAL_FILTERS,
     }
+    
+    ordering = ["id"]

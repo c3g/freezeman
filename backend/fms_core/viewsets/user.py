@@ -17,6 +17,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filterset_fields = _user_filterset_fields
 
+    ordering = ["-is_active", "username"]
+
     def get_permissions(self):
         if self.action == "update_self":
             permission_classes = [IsAuthenticated]

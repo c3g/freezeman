@@ -28,6 +28,8 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         *_list_keys( _sample_next_step_by_study_filterset_fields),
     }
 
+    ordering = ["id"]
+
     def destroy(self, request, pk=None):
         removed = False
         errors = []

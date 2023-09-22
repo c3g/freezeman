@@ -21,3 +21,5 @@ class ReadsetViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_readset_filterset_fields
     }
+
+    ordering = ["id"]
