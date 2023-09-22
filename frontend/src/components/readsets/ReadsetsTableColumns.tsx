@@ -165,7 +165,7 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescripti
         label: "nb_reads",
     },
     [ReadsetColumnID.NB_BASES]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.RANGE,
         key: UNDEFINED_FILTER_KEY,
         label: "nb_bases",
     },

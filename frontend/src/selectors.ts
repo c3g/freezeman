@@ -59,6 +59,7 @@ export const selectContainersTable = (state: RootState) => state.containersTable
 export const selectContainerTemplateActions = (state: RootState) => state.containerTemplateActions
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
+export const selectDatasetsTable = (state: RootState) => state.datasetsTable
 export const selectReadsetsByID = (state:RootState) => state.readsets.itemsByID as ItemsByID<Readset>
 export const selectReadsetsTable = (state: RootState) => state.readsetsTable
 export const selectDatasetFilesState = (state: RootState) => state.datasetFiles

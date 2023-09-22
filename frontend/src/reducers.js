@@ -98,6 +98,7 @@ import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
 import { readsetsTable } from './modules/readsetsTable/reducers'
+import { datasetsTable } from './modules/datasetsTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -116,6 +117,7 @@ const allReducers = combineReducers({
   containersTable,
   datasets,
   datasetFiles,
+  datasetsTable,
   readsets,
   experimentRuns,
   experimentRunLanes,
