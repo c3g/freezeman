@@ -272,6 +272,12 @@ function serialize(values) {
   if (newValues.reference_genome)
     newValues.reference_genome = Number(newValues.reference_genome)
 
+  if (!newValues.father)
+    newValues.father = null
+
+  if (!newValues.mother)
+    newValues.mother = null 
+
   return newValues
 }
 
