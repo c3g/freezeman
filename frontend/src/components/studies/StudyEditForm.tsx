@@ -114,6 +114,13 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 					onChange={onChangeForStepRange}
 				/>
 			</Item>
+			<Item label="Workflow Details">
+				<WorkflowCollapsableList
+					workflows={workflows}
+					selectedWorkflow={selectedWorkflow}
+					onChange={workflowWasSelected}
+				/>
+			</Item>
 			<Item
 				name="description"
 				label="Description"
@@ -122,13 +129,6 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 				<Input
 					defaultValue={''}
 					onChange={onChangeForDescription}
-				/>
-			</Item>
-			<Item label="Workflow Details">
-				<WorkflowCollapsableList
-					workflows={workflows}
-					selectedWorkflow={selectedWorkflow}
-					onChange={workflowWasSelected}
 				/>
 			</Item>
 			<Item>
