@@ -21,7 +21,7 @@ export const list = (options) => async (dispatch) => {
 };
 
 export const add =
-	(study: { project: Project, workflow: Workflow, stepRange: WorkflowStepRange }) =>
+	(study: { project: Project, workflow: Workflow, stepRange: WorkflowStepRange, description: string }) =>
 	async (dispatch: AppDispatch, getState: () => RootState) => {
 		if (getState().studies.isFetching) return
 
@@ -30,6 +30,7 @@ export const add =
 			workflow: study.workflow.id,
 			start: study.stepRange.start,
 			end: study.stepRange.end,
+			description: study.description,
 			// TODO: The reference_genome parameter is obsolete, but the backend still expects it.
 			// Remove it when the backend is updated.
 			reference_genome: null	

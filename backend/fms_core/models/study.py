@@ -20,6 +20,7 @@ class Study(TrackedModel):
     workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT, related_name="studies", help_text="Workflow assigned to the study.")
     start = models.PositiveIntegerField(help_text="Index to the order of the start of the assigned workflow for this study.")
     end = models.PositiveIntegerField(help_text="Index to the order of the end of the assigned workflow for this study.")
+    description = models.TextField(blank=True, help_text="Description of the study.")
 
     class Meta:
         constraints = [

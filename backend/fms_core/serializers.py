@@ -844,7 +844,7 @@ class StudySerializer(serializers.ModelSerializer):
     removable = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Study
-        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "removable")
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "description", "removable")
 
     def get_removable(self, instance: Study):
         is_removable, *_ = can_remove_study(instance.pk)

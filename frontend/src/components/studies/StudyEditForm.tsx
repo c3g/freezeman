@@ -1,5 +1,5 @@
-import { Button, Form, FormItemProps, Space } from 'antd'
-import React from 'react'
+import { Button, Form, FormItemProps, Input, Space } from 'antd'
+import React, { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import WorkflowCascadeMenu from './WorkflowCascadeMenu'
@@ -22,9 +22,10 @@ interface CreateStudyFormProps {
 interface FormData {
 	workflow?: Workflow
 	stepRange?: WorkflowStepRange
+	description?: string
 }
 
-type StudyEditCallback = (workflow?: Workflow, stepRange?: WorkflowStepRange) => void
+type StudyEditCallback = (workflow?: Workflow, stepRange?: WorkflowStepRange, description?: string) => void
 
 const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: CreateStudyFormProps) => {
 	const navigate = useNavigate()
@@ -33,15 +34,15 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 	const selectedWorkflow = Form.useWatch<Workflow>('workflow', form)
 	const stepRange = Form.useWatch<WorkflowStepRange>('stepRange', form)
 
-	function handleSubmit(values: FormData) {
-		onSubmit(values.workflow, values.stepRange)
-	}
+	const handleSubmit = useCallback((values: FormData) => {
+		onSubmit(values.workflow, values.stepRange, values.description)
+	}, [onSubmit])
 
-	function handleCancel() {
+	const handleCancel = useCallback(() => {
 		navigate(-1)
-	}
+	}, [navigate])
 
-	function workflowWasSelected(workflow?: Workflow) {
+	const workflowWasSelected = useCallback((workflow?: Workflow) => {
 		// Both the cascader menu and the collapse components can be used to
 		// set the selected workflow, so this method sets the workflow
 		// field in the form data (instead of antd setting it automatically).
@@ -54,17 +55,25 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 		} else {
 			form.setFieldValue('stepRange', undefined)
 		}
-	}
+	}, [form])
 
-	function itemValidation(key: string): FormItemProps {
+	const itemValidation = useCallback((key: string) => {
 		if (formErrors && formErrors[key]) {
 			return {
 				validateStatus: 'error',
 				help: formErrors[key]
-			}
+			} as Pick<FormItemProps, 'validateStatus' | 'help'>
 		}
 		return {}
-	}
+	}, [formErrors])
+
+	const onChangeForStepRange = useCallback((stepRange: WorkflowStepRange) => {
+		form.setFieldValue('stepRange', stepRange)
+	}, [form])
+
+	const onChangeForDescription = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+		form.setFieldValue('description', event.target.value)
+	}, [form])
 
 	return (
 		<Form form={form} name="edit-study" labelCol={{ span: 4 }} wrapperCol={{ span: 12 }} layout="horizontal" onFinish={handleSubmit}>
@@ -102,9 +111,17 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 					workflow={selectedWorkflow}
 					startStep={stepRange?.start}
 					endStep={stepRange?.end}
-					onChange={(stepRange) => {
-						form.setFieldValue('stepRange', stepRange)
-					}}
+					onChange={onChangeForStepRange}
+				/>
+			</Item>
+			<Item
+				name="description"
+				label="Description"
+				{...itemValidation('description')}
+			>
+				<Input
+					defaultValue={''}
+					onChange={onChangeForDescription}
 				/>
 			</Item>
 			<Item label="Workflow Details">

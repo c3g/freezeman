@@ -64,14 +64,15 @@ const StudyEditContent = ({ action }: StudyEditContentProps) => {
 		title = `Edit ${'a Study'}`
 	}
 
-	async function handleFormSubmit(workflow?: Workflow, stepRange?: WorkflowStepRange) {
+	async function handleFormSubmit(workflow?: Workflow, stepRange?: WorkflowStepRange, description = '') {
 		if (isCreating) {
 			if (project && workflow && stepRange) {
 				const result = await dispatch(
 					add({
 						project,
 						workflow,
-						stepRange
+						stepRange,
+						description,
 					})
 				).then((studyData?: FMSStudy) => {
 					setApiError(undefined)
