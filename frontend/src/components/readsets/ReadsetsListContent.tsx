@@ -12,7 +12,7 @@ import { Dataset, Readset } from "../../models/frontend_models";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
-import { Button } from "antd";
+import { Button, Tooltip } from "antd";
 import { set_release_status } from "../../modules/readsets/actions";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
@@ -43,7 +43,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(dataset?.id))))
             dispatch(ReadsetTableActions.listPage(1))
         }
-    }, [dataset, dispatch])
+    }, [dataset?.id, dispatch])
 
     const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
 
@@ -181,19 +181,17 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             </div>
             <PagedItemsTable<ObjectWithReadset>
                 columns={columns}
-                // setFixedFilterCallback={}
                 expandable={{
+                    columnTitle: () => <div>View Metrics</div>,
                     expandIcon: ({ expanded, onExpand, record }) =>
                         expanded ? (
-                            <div>
-                                Hide Metrics
+                            <Tooltip title="Hide Metrics">
                                 <MinusCircleTwoTone onClick={e => onExpand(record, e)} />
-                            </div>
+                            </Tooltip>
                         ) : (
-                            <div>
-                                View Metrics
+                            <Tooltip title="View Metrics">
                                 <PlusCircleTwoTone onClick={e => onExpand(record, e)} />
-                            </div>
+                            </Tooltip>
 
                         )
                     ,
@@ -201,8 +199,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                         const readset: Readset = record.readset
                         return (
                             <div style={{
-                                display: 'flex',
-                                flexDirection: 'row',
+                                display: 'grid',
+                                gridTemplateColumns:'repeat(8,1fr)',
                                 gap: '1em'
                             }} key={readset.id}>
                                 {
@@ -211,24 +209,22 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                                             (name) => {
                                                 return (
                                                     readset.metrics && (readset.metrics[name].value_numeric || readset.metrics[name].value_string) &&
-                                                    <>
 
-                                                        <div style={{
-                                                            display: 'flex',
-                                                            flexDirection: 'column',
-                                                            width: '10em'
-                                                        }} key={name}>
-                                                            {<b >
-                                                                {name.replace(/_/g, " ")}
-                                                            </b>
-                                                            }
-                                                            {readset.metrics[name].value_numeric
-                                                                ?
-                                                                Number(readset.metrics[name].value_numeric).toFixed(3)
-                                                                :
-                                                                readset.metrics[name].value_string}
-                                                        </div>
-                                                    </>)
+
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                    }} key={name}>
+                                                        {<b >
+                                                            {name.replace(/_/g, " ")}
+                                                        </b>
+                                                        }
+                                                        {readset.metrics[name].value_numeric
+                                                            ?
+                                                            Number(readset.metrics[name].value_numeric).toFixed(3)
+                                                            :
+                                                            readset.metrics[name].value_string}
+                                                    </div>)
                                             })
                                         :
                                         <div>No metrics</div>

@@ -88,7 +88,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'nb_reads'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric).toFixed(3)} </div> : ''
+                return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric)} </div> : ''
             }
         },
         [ReadsetColumnID.NB_BASES]: {
@@ -97,7 +97,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             dataIndex: ['readset', 'nb_bases'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics && readset.metrics['nb_bases'] ? <div> {Number(readset.metrics['nb_bases'].value_numeric).toFixed(3)} </div> : ''
+                return readset && readset.metrics && readset.metrics['nb_bases'] ? <div> {Number(readset.metrics['nb_bases'].value_numeric)} </div> : ''
             }
         },
         [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
@@ -140,42 +140,43 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescripti
         label: "id",
     },
     [ReadsetColumnID.SAMPLE_NAME]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "sample_name",
     },
     [ReadsetColumnID.RELEASE_STATUS]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.SELECT,
+        options: [],
         key: UNDEFINED_FILTER_KEY,
         label: "release_status",
     },
     [ReadsetColumnID.LIBRARY_TYPE]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "library_type",
     },
     [ReadsetColumnID.INDEX]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "index",
     },
     [ReadsetColumnID.NB_READS]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.RANGE,
         key: UNDEFINED_FILTER_KEY,
         label: "nb_reads",
     },
     [ReadsetColumnID.NB_BASES]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.RANGE,
         key: UNDEFINED_FILTER_KEY,
         label: "nb_bases",
     },
     [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.RANGE,
         key: UNDEFINED_FILTER_KEY,
-        label: "mean_qualirt_score",
+        label: "mean_quality_score",
     },
     [ReadsetColumnID.BLAST_HIT]: {
-        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "blast_hit",
     }
