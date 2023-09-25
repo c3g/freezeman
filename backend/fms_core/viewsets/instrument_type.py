@@ -21,3 +21,4 @@ class InstrumentTypeViewSet(viewsets.ModelViewSet):
         **_instrument_type_filterset_fields,
     }
 
+    ordering = ["type"]

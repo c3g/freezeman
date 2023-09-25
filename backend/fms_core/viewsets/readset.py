@@ -23,6 +23,7 @@ class ReadsetViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_readset_filterset_fields
     }
+    ordering = ["id"]
 
     def get_serializer_class(self):
         with_metrics = self.request.query_params.get("withMetrics", False)

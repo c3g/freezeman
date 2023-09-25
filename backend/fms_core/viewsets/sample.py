@@ -11,10 +11,11 @@ from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
+from fms_core.template_importer.importers import AxiomPreparationImporter
 
 from fms_core.templates import SAMPLE_POOLING_TEMPLATE, SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_STUDY_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, AXIOM_PREPARATION_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._fetch_data import FetchSampleData
@@ -62,6 +63,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),
     )
+
+    ordering = ["-id"]
 
     filterset_fields = {
         **_sample_filterset_fields,
@@ -130,6 +133,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "template": [SAMPLE_POOLING_TEMPLATE["identity"]],
             "importer": SamplePoolingImporter,
         },
+        {
+            "name": "Prepare Samples for Axiom Genotyping",
+            "description": "Upload the provided template with information to prepare samples Axiom genotyping.",
+            "template": [AXIOM_PREPARATION_TEMPLATE["identity"]],
+            "importer": AxiomPreparationImporter,
+        },
     ]
 
     template_prefill_list = [
@@ -145,6 +154,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE},
         {"template": SAMPLE_POOLING_TEMPLATE},
+        {"template": AXIOM_PREPARATION_TEMPLATE},
     ]
     
     def get_queryset(self):

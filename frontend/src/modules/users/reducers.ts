@@ -1,11 +1,9 @@
-import {merge, set} from "object-path-immutable";
-import {indexByID} from "../../utils/objects";
-import mergeArray from "../../utils/mergeArray";
+import { merge, set } from "object-path-immutable"
+import { indexByID } from "../../utils/objects"
 
-import shouldIgnoreError from "../../utils/shouldIgnoreError";
-import {preprocessUserActionVersions, preprocessUserActionRevisions} from "../../utils/preprocessRevisions";
-import {resetTable} from "../../utils/reducers";
-import USERS from "./actions";
+import { preprocessUserActionRevisions, preprocessUserActionVersions } from "../../utils/preprocessRevisions"
+import { resetTable } from "../../utils/reducers"
+import USERS from "./actions"
 
 export const users = (
   state = {
@@ -21,33 +19,6 @@ export const users = (
   action
 ) => {
   switch (action.type) {
-    case USERS.SET_SORT_BY:
-      return { ...state, sortBy: action.data, items: [] };
-    case USERS.SET_FILTER:
-      return {
-        ...state,
-        filters: set(state.filters, [action.data.name, 'value'], action.data.value),
-        items: [],
-        totalCount: 0,
-        page: set(state.page, ['offset'], 0),
-      };
-    case USERS.SET_FILTER_OPTION:
-      return {
-        ...state,
-        filters: set(state.filters, [action.data.name, 'options'], action.data.options),
-        items: [],
-        totalCount: 0,
-        page: set(state.page, ['offset'], 0),
-      };
-    case USERS.CLEAR_FILTERS:
-      return {
-        ...state,
-        filters: {},
-        items: [],
-        totalCount: 0,
-        page: set(state.page, ['offset'], 0),
-      };
-
     case USERS.GET.REQUEST:
         return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
     case USERS.GET.RECEIVE:
@@ -87,30 +58,6 @@ export const users = (
     }
     case USERS.LIST.ERROR:
       return { ...state, isFetching: false, error: action.error };
-
-    case USERS.LIST_TABLE.REQUEST:
-      return { ...state, isFetching: true };
-    case USERS.LIST_TABLE.RECEIVE: {
-      const totalCount = action.data.count;
-      const hasChanged = state.totalCount !== action.data.count;
-      const currentItems = hasChanged ? [] : state.items;
-      const results = action.data.results.map(preprocess)
-      const itemsByID = merge(state.itemsByID, [], indexByID(results, "id"));
-      const itemsID = results.map(r => r.id)
-      const items = mergeArray(currentItems, action.meta.offset, itemsID)
-      return {
-        ...state,
-        itemsByID,
-        items,
-        totalCount,
-        page: action.meta,
-        isFetching: false,
-        error: undefined,
-      };
-    }
-    case USERS.LIST_TABLE.ERROR:
-      return { ...state, isFetching: false, error: shouldIgnoreError(action) ? undefined : action.error };
-
     case USERS.LIST_REVISIONS.REQUEST:
       return set(state, ['itemsByID', action.meta.id, 'revisions', 'isFetching'], true);
     case USERS.LIST_REVISIONS.RECEIVE:

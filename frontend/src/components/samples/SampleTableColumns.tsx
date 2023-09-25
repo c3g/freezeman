@@ -33,6 +33,8 @@ export enum SampleColumnID {
 	KIND = 'KIND',
 	NAME = 'NAME',
 	INDIVIDUAL = 'INDIVIDUAL',
+	PARENT_CONTAINER = 'PARENT_CONTAINER',
+	PARENT_COORDINATES = 'PARENT_COORDINATES',
 	CONTAINER_NAME = 'CONTAINER_NAME',
 	CONTAINER_BARCODE = 'CONTAINER_BARCODE',
 	COORDINATES = 'COORDINATES',
@@ -103,6 +105,58 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		},
 	},
 
+	[SampleColumnID.PARENT_CONTAINER]:  {
+		columnID: SampleColumnID.PARENT_CONTAINER,
+		title: 'Parent Container Barcode',
+		dataIndex: ['sample', 'container'],
+		render: (_, { sample }) => {
+			return (
+				sample &&
+				sample.container && (
+					<WithContainerRenderComponent
+						objectID={sample.container}
+						placeholder={<span>loading...</span>}
+						render={(container) =>
+							container.location ?
+								<WithContainerRenderComponent
+									objectID={container.location}
+									placeholder={<span>loading...</span>}
+									render={(container) => <Link to={`/containers/${container.id}`}>{container.barcode}</Link>}
+								/>
+								: <></>}
+					/>
+				)
+			)
+		},
+	},
+
+	[SampleColumnID.PARENT_COORDINATES]: {
+		columnID: SampleColumnID.PARENT_COORDINATES,
+		title: 'Parent Coords',
+		dataIndex: ['sample', 'coordinate'],
+		render: (_, { sample }) => {
+			return (
+				sample &&
+				sample.container && (
+					<WithContainerRenderComponent
+						objectID={sample.container}
+						placeholder={<span>loading...</span>}
+						render={(container) =>
+							container.coordinate ?
+								<WithCoordinateRenderComponent
+									objectID={container.coordinate}
+									placeholder={<span>loading...</span>}
+									render={(coordinate) => <span>{coordinate.name}</span>}
+								/>
+								:
+								<></>
+						}
+					/>
+				)
+			)
+		},
+	},
+
 	[SampleColumnID.CONTAINER_NAME]: {
 		columnID: SampleColumnID.CONTAINER_NAME,
 		title: 'Container Name',
@@ -143,7 +197,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.COORDINATES,
 		title: 'Coords',
 		dataIndex: ['sample', 'coordinate'],
-    render: (_, { sample }) => {
+		render: (_, { sample }) => {
 			return (
 				sample &&
 				sample.coordinate && (
@@ -207,9 +261,9 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		title: 'Project',
 		dataIndex: ['sample', 'project'],
 		sorter: false,	// Disable project sorting, due to pools not being sortable by project
-		render: (projectID) => 
+		render: (projectID) =>
 			projectID && (
-				<WithProjectRenderComponent 
+				<WithProjectRenderComponent
 					objectID={projectID}
 					render={
 						(project) => <Link to={`/projects/${project.id}`}>{project.name}</Link>
@@ -225,22 +279,22 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		render: (_, { sample }) => {
 			const individual = sample?.individual
 			return (individual !== undefined &&
-			<Link to={`/individuals/${individual}`}>
-				<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""}/>
-			</Link>)
+				<Link to={`/individuals/${individual}`}>
+					<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""} />
+				</Link>)
 		}
 	},
-	[SampleColumnID.SAMPLE_COUNT]: 	{
+	[SampleColumnID.SAMPLE_COUNT]: {
 		columnID: SampleColumnID.SAMPLE_COUNT,
 		title: 'Samples in pool',
 		dataIndex: ['sample', 'id'],
 		render: (_, { sample }) => {
 			return (
-					sample && sample.is_pool
+				sample && sample.is_pool
 					? sample.derived_samples_count
 					: ''
-				)
-			},
+			)
+		},
 	},
 }
 
@@ -261,11 +315,11 @@ function getSampleKindOptions() {
 			return {
 				label: sampleKind.name,
 				value: sampleKind.name
-	
+
 			}
 		})
 		return options
-	}return []
+	} return []
 }
 
 export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription } = {
@@ -277,7 +331,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 	},
 	[SampleColumnID.KIND]: {
 		type: FILTER_TYPE.SELECT,
-		key: UNDEFINED_FILTER_KEY, 
+		key: UNDEFINED_FILTER_KEY,
 		label: 'Type',
 		mode: 'multiple',
 		placeholder: 'All',
@@ -293,6 +347,18 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Individual Name',
+	},
+	[SampleColumnID.PARENT_CONTAINER]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Parent Container Barcode',
+		recursive: true,
+	},
+	[SampleColumnID.PARENT_COORDINATES]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Parent Coords',
+		recursive: true,
 	},
 	[SampleColumnID.CONTAINER_NAME]: {
 		type: FILTER_TYPE.INPUT,
@@ -353,6 +419,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Project',
+		batch: true,
 	},
 	[SampleColumnID.COHORT]: {
 		type: FILTER_TYPE.INPUT,
@@ -375,6 +442,8 @@ export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.KIND]: 'derived_samples__sample_kind__name',
 	[SampleColumnID.NAME]: 'name',
 	[SampleColumnID.INDIVIDUAL]: 'derived_samples__biosample__individual__name',
+	[SampleColumnID.PARENT_CONTAINER]: 'container__location__barcode',
+	[SampleColumnID.PARENT_COORDINATES]: 'container__coordinate__name',
 	[SampleColumnID.CONTAINER_NAME]: 'container__name',
 	[SampleColumnID.CONTAINER_BARCODE]: 'container__barcode',
 	[SampleColumnID.COORDINATES]: 'coordinate__name',
@@ -393,6 +462,8 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.KIND]: 'sample__derived_samples__sample_kind__name',
 	[SampleColumnID.NAME]: 'sample__name',
 	[SampleColumnID.INDIVIDUAL]: 'sample__derived_samples__biosample__individual__name',
+	[SampleColumnID.PARENT_CONTAINER]: 'sample__container__location__barcode',
+	[SampleColumnID.PARENT_COORDINATES]: 'sample__container__coordinate__name',
 	[SampleColumnID.CONTAINER_NAME]: 'sample__container__name',
 	[SampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
 	[SampleColumnID.COORDINATES]: 'sample__coordinate__name',
@@ -411,6 +482,8 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: s
 	[SampleColumnID.KIND]: 'sample_next_step__sample__derived_samples__sample_kind__name',
 	[SampleColumnID.NAME]: 'sample_next_step__sample__name',
 	[SampleColumnID.INDIVIDUAL]: 'sample_next_step__sample__derived_samples__biosample__individual__name',
+	[SampleColumnID.PARENT_CONTAINER]: 'sample_next_step__sample__container__location__barcode',
+	[SampleColumnID.PARENT_COORDINATES]: 'sample_next_step__sample__container__coordinate__name',
 	[SampleColumnID.CONTAINER_NAME]: 'sample_next_step__sample__container__name',
 	[SampleColumnID.CONTAINER_BARCODE]: 'sample_next_step__sample__container__barcode',
 	[SampleColumnID.COORDINATES]: 'sample_next_step__sample__coordinate__name',
@@ -423,4 +496,5 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: s
 	[SampleColumnID.COHORT]: 'sample_next_step__sample__derived_samples__biosample__individual__cohort',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
+
 

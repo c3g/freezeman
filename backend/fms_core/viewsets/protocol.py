@@ -14,6 +14,8 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     pagination_class = None
     permission_classes = [IsAuthenticated]
 
+    ordering = ["name"]
+
     @action(detail=False, methods=["get"])
     def last_protocols(self, _request):
         samples = [int(x) for x in self.request.query_params.get("samples").split(",")]

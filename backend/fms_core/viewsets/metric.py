@@ -21,3 +21,5 @@ class MetricViewSet(viewsets.ModelViewSet):
     ordering_fields = (
         *_list_keys(_metric_filterset_fields),
     )
+
+    ordering = ["readset_id", "name"]

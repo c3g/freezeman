@@ -10,6 +10,7 @@ from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
 __all__ = [
+    "AXIOM_PREPARATION_TEMPLATE",
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
     "CONTAINER_RENAME_TEMPLATE",
@@ -34,6 +35,29 @@ __all__ = [
 ]
 
 MAX_HEADER_OFFSET = 20
+
+AXIOM_PREPARATION_TEMPLATE = {
+  "identity": {"description": "Template to prepare samples for Axiom genotyping",
+               "file": static("submission_templates/Axiom_sample_preparation_v4_5_0.xlsx"),
+               "protocol": "Axiom Sample Preparation"},
+  "sheets info": [
+      {
+          'name': 'Axiom Batch',
+          'headers': ['Container Barcode', 'Container Name', 'Preparation Start Date (YYYY-MM-DD)', 'Comment', 'Workflow Action',
+                      'Axiom Module 1 Barcode', 'Incubation Time In Amplification', 'Incubation Time Out Amplification',
+                      'Liquid Handler Instrument Amplification', 'Stored Before Fragmentation', 'Comment Amplification',
+                      'Axiom Module 2.1 Barcode Fragmentation', 'Axiom Module 2.2 Barcode Fragmentation',
+                      'Liquid Handler Instrument Fragmentation', 'Comment Fragmentation', 'Axiom Module 2.1 Barcode Precipitation',
+                      'Axiom Module 2.2 Barcode Precipitation', 'Liquid Handler Instrument Precipitation', 'Comment Precipitation'],
+          'batch': True,
+      },
+  ],
+  #"user prefill info": {
+  #      "Preparation Start Date (YYYY-MM-DD)": "date",
+  #},
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  "prefill info": [],
+}
 
 CONTAINER_CREATION_TEMPLATE = {
   "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v4_2_0.xlsx")},
@@ -281,7 +305,7 @@ LIBRARY_QC_TEMPLATE = {
 
 NORMALIZATION_TEMPLATE = {
   "identity": {"description": "Template to perform normalization",
-               "file": static("submission_templates/Normalization_v4_4_0.xlsx"),
+               "file": static("submission_templates/Normalization_v4_5_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
@@ -311,13 +335,13 @@ NORMALIZATION_TEMPLATE = {
 
 NORMALIZATION_PLANNING_TEMPLATE = {
   "identity": {"description": "Template to perform normalization planning",
-               "file": static("submission_templates/Normalization_planning_v4_4_0.xlsx"),
+               "file": static("submission_templates/Normalization_planning_v4_5_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
-                    'Source Container Location Barcode', 'Source Container Location Coord',
+                    'Source Parent Container Barcode', 'Source Parent Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                     'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)',
@@ -333,8 +357,8 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Sample Name", "name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("Normalization", "Source Container Location Barcode", "container__location__barcode", "container_location_barcode"),
-      ("Normalization", "Source Container Location Coord", "container__coodinate__name", "container_location_coordinates"),
+      ("Normalization", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("Normalization", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
@@ -454,10 +478,10 @@ SAMPLE_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Current Volume (uL)',
-                      'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
-                      'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
-                      'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
+                      'Sample Parent Container Coord','Current Volume (uL)', 'Measured Volume (uL)', 'Volume Used (uL)',
+                      'Concentration (ng/uL)', 'NA Quantity (ng)', 'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag',
+                      'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
   ],
@@ -472,7 +496,10 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Name", "name", "name"),
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
-      ("SampleQC", "Current Volume (uL)", "volume", "volume"),],
+      ("SampleQC", "Sample Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("SampleQC", "Sample Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
+      ("SampleQC", "Current Volume (uL)", "volume", "volume"),
+  ],
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
@@ -483,8 +510,8 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       {
           'name': 'ExtractionTemplate',
           'headers': ['Extraction Type', 'Current Volume (uL)', 'Volume Used (uL)', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
-                      'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
-                      'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
+                      'Source Parent Container Barcode', 'Source Parent Container Coord', 'Destination Container Barcode', 'Destination Container Coord',
+                      'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
@@ -505,7 +532,10 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       ("ExtractionTemplate", "Current Volume (uL)", "volume", "volume"),
       ("ExtractionTemplate", "Source Sample Name", "name", "name"),
       ("ExtractionTemplate", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),],
+      ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),
+      ("ExtractionTemplate", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
+      ("ExtractionTemplate", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
+  ],
 }
 
 SAMPLE_TRANSFER_TEMPLATE = {

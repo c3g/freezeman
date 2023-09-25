@@ -15,3 +15,5 @@ class StepViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_step_filterset_fields,
     }
+
+    ordering = ["name"]

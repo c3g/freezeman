@@ -15,3 +15,5 @@ class LibraryTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_library_type_filterset_fields,
     }
+
+    ordering = ["name"]

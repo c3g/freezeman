@@ -13,6 +13,8 @@ class InstrumentViewSet(viewsets.ModelViewSet):
     pagination_class = None
     permission_classes = [IsAuthenticated]
 
+    ordering = ["type_id", "name"]
+
     @action(detail=False, methods=["get"])
     def list_types(self, _request):
         serializer = InstrumentTypeSerializer(InstrumentType.objects.all(), many=True)

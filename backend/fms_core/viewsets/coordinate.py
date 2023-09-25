@@ -19,6 +19,8 @@ class CoordinateViewSet(viewsets.ModelViewSet):
         **_coordinate_filterset_fields,
     }
 
+    ordering = ["id"]
+
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """

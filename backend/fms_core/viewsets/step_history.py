@@ -19,6 +19,7 @@ class StepHistoryViewSet(viewsets.ModelViewSet):
         **_stephistory_filterset_fields,
     }
 
+    ordering = ["id"]
    
     @action(detail=False, methods=["get"])    
     def summary_by_study(self, request):

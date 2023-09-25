@@ -19,6 +19,8 @@ class SampleMetadataViewSet(viewsets.ModelViewSet):
         **_sample_metadata_filterset_fields
     }
 
+    ordering = ["biosample_id", "name"]
+
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """

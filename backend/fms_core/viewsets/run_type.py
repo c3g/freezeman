@@ -9,3 +9,5 @@ class RunTypeViewSet(viewsets.ModelViewSet):
     serializer_class = RunTypeSerializer
     pagination_class = None
     permission_classes = [IsAuthenticated]
+
+    ordering = ["name"]

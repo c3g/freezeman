@@ -22,6 +22,8 @@ class IndividualViewSet(viewsets.ModelViewSet):
     )
     filterset_class = IndividualFilter
 
+    ordering = ["-id"]
+
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):

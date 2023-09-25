@@ -17,3 +17,5 @@ class DatasetFileViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_dataset_file_filterset_fields,
     }
+
+    ordering = ["id"]

@@ -3,8 +3,8 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
 import SamplesTableActions from '../../modules/samplesTable/actions'
-import { selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable, selectToken } from '../../selectors'
-import api, { withToken } from '../../utils/api'
+import { selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable } from '../../selectors'
+import api from '../../utils/api'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
@@ -14,15 +14,16 @@ import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
-import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
+import useListExportCallback from '../pagedItemsTable/useListExportCallback'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTemplateCallback'
 import Flexbar from '../shared/Flexbar'
-import { filtersQueryParams } from '../pagedItemsTable/serializeFilterParamsTS'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
-import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
@@ -58,24 +59,13 @@ function SamplesListContent() {
 	const { filters, fixedFilters, sortBy, totalCount, isFetching } = samplesTableState
 	const templateActions = useAppSelector(selectSampleTemplateActions)
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
-	const token = useAppSelector(selectToken)
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
-	const prefillTemplate = useCallback(({template}) =>
-		withToken(token, api.samples.prefill.request)(filtersQueryParams({...filters, ...fixedFilters}, sortBy), template)
-		.then(response => response)
-	, [token, filters, fixedFilters, sortBy])
+	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortBy)
 
-	const listExport = useCallback(() => {
-		return withToken(token, api.samples.listExport)(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
-			.then(response => response.data)
-	}
-	, [token, filters, fixedFilters, sortBy])
+	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortBy)
 
-	const listExportMetadata = useCallback(() =>
-		withToken(token, api.samples.listExportMetadata)(filtersQueryParams({...filters, ...fixedFilters}, sortBy))
-		.then(response => response.data)
-	, [token, filters, fixedFilters, sortBy])
+	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortBy)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 

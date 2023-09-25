@@ -98,6 +98,9 @@ import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
 import { readsetsTable } from './modules/readsetsTable/reducers'
+import { individualsTable } from './modules/individualsTable/reducers'
+import { usersTable } from "./modules/usersTable/reducers"
+import { indicesTable } from './modules/indicesTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -124,6 +127,7 @@ const allReducers = combineReducers({
   experimentRunTemplateActions,
   runTypes,
   individuals,
+  individualsTable,
   taxons,
   taxonsTable,
   referenceGenomes,
@@ -151,6 +155,7 @@ const allReducers = combineReducers({
   indicesSummary,
   indices,
   indicesTemplateActions,
+  indicesTable,
   propertyValues,
   sequences,
   librariesSummary,
@@ -161,6 +166,7 @@ const allReducers = combineReducers({
   libraryTypes,
   platforms,
   users,
+  usersTable,
   groups,
   pagination,
   versions,

@@ -72,10 +72,10 @@ class Individual(TrackedModel):
             add_error("father", e)
 
         if self.mother_id is not None and self.mother_id == self.id:
-            add_error("mother", "Mother can't be same as self.")
+            add_error("mother", "Mother cannot be same as self.")
 
         if self.father_id is not None and self.father_id == self.id:
-            add_error("father", "Father can't be same as self.")
+            add_error("father", "Father cannot be same as self.")
 
         if self.mother_id is not None and self.pedigree != self.mother.pedigree:
             add_error("pedigree", "Pedigree between individual and mother must match")
@@ -85,6 +85,12 @@ class Individual(TrackedModel):
 
         if self.reference_genome is not None and self.taxon_id != self.reference_genome.taxon_id:
             add_error("reference_genome", "Reference genome must match the individual taxon.")
+
+        if self.father_id is not None and self.father.sex == self.SEX_FEMALE:
+            add_error("father", "Father cannot be of female sex.")
+
+        if self.mother_id is not None and self.mother.sex == self.SEX_MALE:
+            add_error("mother", "Mother cannot be of male sex.")
 
         if errors:
             raise ValidationError(errors)
