@@ -3,7 +3,7 @@ from fms_core.template_importer._constants import (VALID_NORM_CHOICES,
                                                    LIBRARY_CHOICE)
 from fms_core.services.container import get_container, is_container_valid_destination
 from fms_core.services.sample import get_sample_from_container
-from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul
+from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul, convert_library_concentration_from_ngbyul_to_nm
 
 from fms_core.utils import decimal_rounded_to_precision
 
@@ -100,33 +100,43 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                                                                                                destination_container_dict['name'],
                                                                                                                destination_container_dict['coordinates'],
                                                                                                                container_parent_obj)
-            if input_requested <= input_available and combined_concentration_nguL < source_sample_obj.concentration:
-                volume_used = input_requested / source_sample_obj.concentration # calculate the volume of source sample to use.
-            elif combined_concentration_nguL > source_sample_obj.concentration and measurements['bypass_input_requirement']:
-                volume_used = input_available / source_sample_obj.concentration
-                adjusted_concentration = input_available / decimal.Decimal(measurements['volume'])
-                self.warnings['concentration'] = ('Insufficient concentration to comply. Bypassing input requirement by adjusting requested concentration to {0} ng/uL.', [adjusted_concentration])
-            elif input_requested > input_available and measurements['bypass_input_requirement']:
-                volume_used = input_available / source_sample_obj.concentration
-                adjusted_concentration = input_available / decimal.Decimal(measurements['volume'])
-                self.warnings['concentration'] = ('Insufficient NA material to comply. Bypassing input requirement by adjusting requested concentration to {0} ng/uL.', [adjusted_concentration])
-            elif combined_concentration_nguL > source_sample_obj.concentration:
-                self.errors['concentration'] = 'Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution.'
-            elif combined_concentration_nguL > source_sample_obj.concentration:
-                self.errors['concentration'] = 'Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution.'
-
-            if volume_used > source_sample_obj.volume:
-                adjusted_volume = decimal_rounded_to_precision(source_sample_obj.volume * source_sample_obj.concentration / combined_concentration_nguL)
+           
+            # Rule of thumb for Normalization (with bypass):
+            # When making the planning for the normalization, the requested input is the product of requested concentration and final volume.
+            # We compare this value with the available input (source sample concentration * volume).
+            # If the source concentration is too low we put as much from the source sample to reach final volume if not enough material is available
+            # buffer is used to ensure that the final volume is reached.
+            # If requested input is greater than available input, we put all source volume and add the difference in volume as buffer.
+           
+            adjusted_concentration = source_sample_obj.concentration
+            # is concentration insufficient ?
+            if combined_concentration_nguL > source_sample_obj.concentration:
+                volume_used = min(source_sample_obj.volume, decimal.Decimal(measurements['volume']))
+                adjusted_concentration = (volume_used / decimal.Decimal(measurements['volume'])) * adjusted_concentration
+                if measurements['bypass_input_requirement']:    
+                    self.warnings['concentration'] = ('Insufficient concentration to comply. Bypassing input requirement by adjusting requested concentration to {0} ng/uL.', [adjusted_concentration])
+                else:
+                    self.errors['concentration'] = 'Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution. Use bypass if you want to submit using this final volume value.'
+            # is source sample available input sufficient ?
+            elif input_requested > input_available:
                 volume_used = source_sample_obj.volume
-                self.warnings['volume'] = ('Insufficient source sample volume to comply. ' \
-                                          'Requested Final volume ({0} uL) ' \
-                                          'will be adjusted to {1} uL to ' \
-                                          'maintain requested concentration while using all source sample volume.', [measurements["volume"], adjusted_volume])
+                adjusted_concentration = (volume_used / decimal.Decimal(measurements['volume'])) * adjusted_concentration
+                if measurements['bypass_input_requirement']:    
+                    self.warnings['concentration'] = ('Insufficient available NA material to comply. Bypassing input requirement by adjusting requested concentration to {0} ng/uL.', [adjusted_concentration])
+                else:
+                    self.errors['concentration'] = 'Insufficient available NA material to comply. Use bypass if you want to submit using this final volume value.'
+            # Input sufficient
             else:
-                adjusted_volume = measurements['volume']
+                volume_used = input_requested / source_sample_obj.concentration # calculate the volume of source sample to use.
+                adjusted_concentration = combined_concentration_nguL
 
             volume_used = decimal_rounded_to_precision(volume_used)
-            adjusted_volume = decimal_rounded_to_precision(adjusted_volume)
+            final_volume = decimal_rounded_to_precision(decimal.Decimal(measurements['volume']))
+
+            if concentration_nm is not None:
+                adjusted_concentration_nm, errors_conversion, warnings_conversion = convert_library_concentration_from_ngbyul_to_nm(source_sample_obj, adjusted_concentration)
+                self.errors['concentration_conversion'].extend(errors_conversion)
+                self.warnings['concentration_conversion'].extend(warnings_conversion)
 
             if not self.has_errors():
                 self.row_object = {
@@ -147,10 +157,11 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     'Destination Parent Container Coord': destination_container_dict['coordinates'],
                     'Source Depleted': '',
                     'Initial Conc. (ng/uL)': source_sample_obj.concentration,
+                    'Current Volume (uL)': source_sample_obj.volume,
                     'Volume Used (uL)': str(volume_used),
-                    'Volume (uL)': str(adjusted_volume),
-                    'Conc. (ng/uL)': str(concentration_nguL) if concentration_nguL is not None else '',
-                    'Conc. (nM)': str(concentration_nm) if concentration_nm is not None else '',
+                    'Volume (uL)': str(final_volume),
+                    'Conc. (ng/uL)': str(adjusted_concentration) if concentration_nguL is not None else '',
+                    'Conc. (nM)': str(adjusted_concentration_nm) if concentration_nm is not None else '',
                     'Normalization Date (YYYY-MM-DD)': '',
                     'Comment': '',
                 }

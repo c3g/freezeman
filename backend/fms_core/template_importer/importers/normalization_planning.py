@@ -77,7 +77,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 'na_quantity': float_to_decimal_and_none(row_data['Norm. NA Quantity (ng)']),
                 'concentration_ngul': float_to_decimal_and_none(row_data['Norm. Conc. (ng/uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Norm. Conc. (nM)']),
-                'bypass_input_requirement': check_truth_like(bypass_input_requirement) # Defaults to false
+                'bypass_input_requirement': check_truth_like(str(bypass_input_requirement)) # Defaults to false
             }
 
             robot = {

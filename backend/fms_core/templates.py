@@ -313,8 +313,8 @@ NORMALIZATION_TEMPLATE = {
         'headers': ['Type', 'Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
-                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Current Volume (uL)', 'Volume Used (uL)', 'Volume (uL)',
-                    'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Current Volume (uL)', 'Volume Used (uL)',
+                    'Input (ng)', 'Volume (uL)', 'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
         'batch': False,
       },
   ],
@@ -350,7 +350,11 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       },
   ],
   "user prefill info": {
-      "Robot Norm Choice": VALID_NORM_CHOICES
+      "Robot Norm Choice": VALID_NORM_CHOICES,
+      "Norm. NA Quantity (ng)": "number",
+      "Norm. Conc. (ng/uL)": "number",
+      "Norm. Conc. (nM)": "number",
+      "Final Volume (uL)": "number",
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
