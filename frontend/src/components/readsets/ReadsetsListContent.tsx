@@ -92,8 +92,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         columnDefinitions.INDEX,
         columnDefinitions.NUM_READS,
         columnDefinitions.NUM_BASES,
-        columnDefinitions.MEAN_QUALITY_SCORE,
-        columnDefinitions.BLAST_HIT
+        // columnDefinitions.MEAN_QUALITY_SCORE,
+        // columnDefinitions.BLAST_HIT
     ]
     const columns = useFilteredColumns(
         readsetTableColumns,
