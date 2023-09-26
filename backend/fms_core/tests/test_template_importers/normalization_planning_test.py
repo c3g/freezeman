@@ -203,8 +203,8 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[4][1], "4")
                             self.assertEqual(csv_content[4][2], "Dst2")
                             self.assertEqual(csv_content[4][3], "9")
-                            self.assertEqual(csv_content[4][4], "26.000")
-                            self.assertEqual(csv_content[4][5], "4.000")
+                            self.assertEqual(csv_content[4][4], "0.000")
+                            self.assertEqual(csv_content[4][5], "100.000")
                             # Fifth sample
                             self.assertEqual(csv_content[5][0], "Src1")
                             self.assertEqual(csv_content[5][1], "12")
@@ -224,7 +224,7 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[7][1], "28")
                             self.assertEqual(csv_content[7][2], "Dst2")
                             self.assertEqual(csv_content[7][3], "12")
-                            self.assertEqual(csv_content[7][4], "100.000")
+                            self.assertEqual(csv_content[7][4], "10.000")
                             self.assertEqual(csv_content[7][5], "100.000")
 
                         elif filename.find("Normalization_sample_Biomek") != -1:
