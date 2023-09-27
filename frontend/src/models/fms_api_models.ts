@@ -92,7 +92,6 @@ export interface FMSReadset extends FMSTrackedModel {
     library_type: string
     index: string
     metrics?: FMSMetric[] | {[key:string]: FMSMetric}
-    number_reads?: string
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {

@@ -13,7 +13,7 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const list = (options) => async (dispatch, getState) => {
-    const params = { limit: 100000, ...options }
+    const params = { limit: 100000, ...options, withMetrics: true, }
     return await dispatch(networkAction(LIST,
         api.readsets.list(params),
         { meta: params }

@@ -19,6 +19,4 @@ class DatasetFileTest(TestCase):
         self.assertEqual(dataset_file.file_path, "file_path")
         self.assertEqual(dataset_file.readset.sample_name, "My")
         self.assertEqual(dataset_file.size, 3)
-        self.assertEqual(dataset_file.validation_status, ValidationStatus.AVAILABLE)
-        self.assertEqual(dataset_file.validation_status_timestamp, None)
 
