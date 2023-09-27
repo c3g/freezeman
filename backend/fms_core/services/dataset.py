@@ -273,7 +273,7 @@ def ingest_run_validation_report(report_json):
             if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
                 file: DatasetFileReport = readset[key]
                 if file.get('final_path') is None:
-                    warnings.append(("final_path not provided for file type {0} of readset {1}", key, readset_name))
+                    errors.append(("final_path not provided for file type {0} of readset {1}", key, readset_name))
                     continue
                 dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
                                                                            file_path=file['final_path'], size=file['size'])

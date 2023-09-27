@@ -13,7 +13,7 @@ class DatasetFile(TrackedModel):
     """ Class to store information about the files associated with their dataset for data deliveries. """
 
     readset = models.ForeignKey(Readset, on_delete=models.PROTECT, help_text="Readset of the file.", related_name="files")
-    file_path = models.CharField(null=False, max_length=STANDARD_FILE_PATH_LENGTH, help_text="Path to the dataset file.")
+    file_path = models.CharField(max_length=STANDARD_FILE_PATH_LENGTH, help_text="Path to the dataset file.")
     size = models.IntegerField(null=False, help_text="Size of the dataset file.")
 
     class Meta:
