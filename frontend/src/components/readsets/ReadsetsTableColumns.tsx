@@ -22,9 +22,6 @@ export enum ReadsetColumnID {
     LIBRARY_TYPE = 'LIBRARY_TYPE',
     INDEX = 'INDEX',
     NUMBER_READS = 'NUMBER_READS',
-    // NB_BASES = 'NUM_BASES',
-    // MEAN_QUALITY_SCORE = 'MEAN_QUALITY_SCORE',
-    // BLAST_HIT = 'BLAST_HIT'
 }
 
 export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOption, canReleaseOrBlockFiles): { [key in ReadsetColumnID]: ReadsetColumn } => {
@@ -90,33 +87,6 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
                 return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric)} </div> : ''
             }
         },
-        // [ReadsetColumnID.NB_BASES]: {
-        //     columnID: ReadsetColumnID.NB_BASES,
-        //     title: "Number of bases",
-        //     dataIndex: ['readset', 'nb_bases'],
-        //     sorter: true,
-        //     render: (_, { readset }) => {
-        //         return readset && readset.metrics && readset.metrics['nb_bases'] ? <div> {Number(readset.metrics['nb_bases'].value_numeric)} </div> : ''
-        //     }
-        // },
-        // [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
-        //     columnID: ReadsetColumnID.MEAN_QUALITY_SCORE,
-        //     title: "Mean quality score",
-        //     dataIndex: ['readset', 'mean_quality_score'],
-        //     sorter: true,
-        //     render: (_, { readset }) => {
-        //         return readset && readset.metrics && readset.metrics['mean_quality_score'] ? <div> {Number(readset.metrics['mean_quality_score'].value_numeric).toFixed(3)} </div> : ''
-        //     }
-        // },
-        // [ReadsetColumnID.BLAST_HIT]: {
-        //     columnID: ReadsetColumnID.BLAST_HIT,
-        //     title: "Blast hit",
-        //     dataIndex: ['readset', 'blast_hit'],
-        //     sorter: true,
-        //     render: (_, { readset }) => {
-        //         return readset && readset.metrics && readset.metrics['1st_hit'] ? <div> {readset.metrics['1st_hit'].value_string} </div> : ''
-        //     }
-        // },
     }
 }
 
@@ -127,9 +97,6 @@ export enum ReadsetFilterID {
     LIBRARY_TYPE = ReadsetColumnID.LIBRARY_TYPE,
     INDEX = ReadsetColumnID.INDEX,
     NUM_READS = ReadsetColumnID.NUMBER_READS,
-    // NUM_BASES = ReadsetColumnID.NB_BASES,
-    // MEAN_QUALITY_SCORE = ReadsetColumnID.MEAN_QUALITY_SCORE,
-    // BLAST_HIT = ReadsetColumnID.BLAST_HIT,
 }
 
 export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescription } = {
@@ -165,21 +132,6 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescripti
         key: UNDEFINED_FILTER_KEY,
         label: "NUMBER_READS",
     },
-    // [ReadsetColumnID.NB_BASES]: {
-    //     type: FILTER_TYPE.RANGE,
-    //     key: UNDEFINED_FILTER_KEY,
-    //     label: "nb_bases",
-    // },
-    // [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
-    //     type: FILTER_TYPE.RANGE,
-    //     key: UNDEFINED_FILTER_KEY,
-    //     label: "mean_quality_score",
-    // },
-    // [ReadsetColumnID.BLAST_HIT]: {
-    //     type: FILTER_TYPE.INPUT,
-    //     key: UNDEFINED_FILTER_KEY,
-    //     label: "blast_hit",
-    // }
 }
 
 export const READSET_FILTER_KEYS: { [key in ReadsetColumnID]: string } = {
@@ -189,7 +141,4 @@ export const READSET_FILTER_KEYS: { [key in ReadsetColumnID]: string } = {
     [ReadsetColumnID.LIBRARY_TYPE]: 'derived_sample__library__library_type__name',
     [ReadsetColumnID.INDEX]: 'derived_sample__library__index__name',
     [ReadsetColumnID.NUMBER_READS]: 'number_reads',
-    // [ReadsetColumnID.NB_BASES]: 'nb_bases',
-    // [ReadsetColumnID.MEAN_QUALITY_SCORE]: 'mean_quality_score',
-    // [ReadsetColumnID.BLAST_HIT]: 'blast_hit',
 }

@@ -90,17 +90,6 @@ export const clearFilters = thenList(() => {
     }
 });
 
-export const setReleaseStatus = (id, releaseStatus, exceptions = [], filters = {}) => async (dispatch, getState) => {
-    const dataset = getState().datasets.itemsByID[id]
-    filters = serializeFilterParams(filters, DATASET_FILE_FILTERS)
-
-    if (dataset && !dataset.isFetching) {
-        const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
-            { meta: { id }}));
-
-        return result
-    }
-};
 
 export default {
     GET,
@@ -120,7 +109,6 @@ export default {
     list,
     listTable,
     listFilter,
-    setReleaseStatus,
 };
 
 // Helper to call list() after another action

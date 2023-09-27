@@ -13,7 +13,7 @@ import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsA
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import { Button, Tooltip } from "antd";
-import { set_release_status } from "../../modules/readsets/actions";
+import { setReleaseStatus } from "../../modules/readsets/actions";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import { createFixedFilter } from "../../models/paged_items";
@@ -121,7 +121,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         Object.entries(readsetIds).forEach(([id, release_status]) => {
             const rs = readsetsByID[id];
             rs.release_status = release_status
-            actions.push(dispatch(set_release_status(rs)))
+            actions.push(dispatch(setReleaseStatus(rs)))
         })
         await Promise.all(actions)
         dispatchReleaseStatusOptionTypeAll(undefined)
