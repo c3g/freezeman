@@ -37,12 +37,14 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const dispatch = useAppDispatch()
     const { filters, totalCount } = readsetTableState
 
+    const allFilesReleased = dataset?.released_status_count === totalCount
+    const allfilesBlocked = dataset?.blocked_status_count === totalCount
+
     useEffect(() => {
         if (dataset) {
             dispatch(ReadsetTableActions.resetPagedItems())
             dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(dataset?.id))))
             dispatch(ReadsetTableActions.listPage(1))
-            dispatchReleaseStatusOption({type: "all"})
         }
     }, [dataset?.id, dispatch])
 
@@ -51,7 +53,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const releaseStatusOptionReducer = (state, action) => {
         switch (action.type) {
             case "clear":
-                return { readsetIds: {}, all: '' }
+                return { readsetIds: {}}
             case "toggle": {
 
                 const { id, releaseStatus, readsetsByID } = action
@@ -64,11 +66,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 }
                 return newState
             }
-            case "all": {
-                const newState = {...state}
-                newState.all = dataset?.released_status_count === totalCount ? 1 : (dataset?.blocked_status_count === totalCount ? 2 : 0)
-                return newState
-            }
         }
     }
 
@@ -76,7 +73,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         releaseStatusOptionReducer,
         {
             readsetIds: {},
-            all: 0
         }
     )
     const columnDefinitions = READSET_COLUMN_DEFINITIONS((id, releaseStatus) => {
@@ -143,14 +139,13 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             dispatchReleaseStatusOption({ type: "clear", release_status })
         }
     }
-    const { all } = releaseStatusOption
-    console.log(all)
+
     const extraButtons = <div>
         <Button
             style={{ margin: 6 }}
             onClick={() => dispatchReleaseStatusOptionTypeAll(RELEASED)}
             disabled={
-                (all == 1 || !canReleaseOrBlockFiles) && !statusToggled
+                ( allFilesReleased || !canReleaseOrBlockFiles) && !statusToggled
             }>
             Release All
         </Button>
@@ -158,7 +153,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             style={{ margin: 6 }}
             onClick={() => dispatchReleaseStatusOptionTypeAll(BLOCKED)}
             disabled={
-                (all == 2 || !canReleaseOrBlockFiles) && !statusToggled
+                ( allfilesBlocked || !canReleaseOrBlockFiles) && !statusToggled
             }>
             Block All
         </Button>
