@@ -68,7 +68,7 @@ const DatasetDetailContent = () => {
                             <span>Unavailable</span>
                         }
                     </Descriptions.Item>
-                    <Descriptions.Item label={"Total Readsets"} span={1}>{loading(dataset?.total_readsets)}</Descriptions.Item>
+                    <Descriptions.Item label={"Total Readsets"} span={1}>{loading(dataset?.readset_count)}</Descriptions.Item>
                     <Descriptions.Item label={"Readsets Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
                 </Descriptions>
                 <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} />

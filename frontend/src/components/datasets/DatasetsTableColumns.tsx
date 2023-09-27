@@ -56,7 +56,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		title: 'Readsets Released',
 		dataIndex: ['dataset', 'released_status_count'],
 		render: (_, {dataset}) => {
-			return `${dataset.released_status_count}/${dataset.total_readsets}`	// TODO display the total number of readsets
+			return `${dataset.released_status_count}/${dataset.readset_count}`	// TODO display the total number of readsets
 		}
 	},
 	[DatasetColumnID.LATEST_UPDATE]: {

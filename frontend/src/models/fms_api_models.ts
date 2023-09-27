@@ -77,7 +77,7 @@ export interface FMSDataset extends FMSTrackedModel {
     run_name: string                    // The name of the experiment run that generated this dataset
     project_name: string                // Human readable name for the project
     metric_report_url?: string          // An external url to a report containing metrics for the dataset run
-    total_readsets: number
+    readset_count: number
 }
 
 export interface FMSReadset extends FMSTrackedModel {

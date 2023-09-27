@@ -135,7 +135,7 @@ def create_dataset_file(readset: Readset,
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
                                                   file_path=file_path,
-                                                  size=size) # Set timestamp if setting Status to non-default
+                                                  size=size)
     except ValidationError as e:
         errors.extend(e.messages)
 
