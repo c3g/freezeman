@@ -24,7 +24,7 @@ def new_letter(project):
     
     return new_letter
 
-def create_study(project, workflow, start, end, description=''):
+def create_study(project, workflow, start, end, description=None):
     """
      Create a study for a given project. The service generates a sequential letter that serves to identify the study.
 

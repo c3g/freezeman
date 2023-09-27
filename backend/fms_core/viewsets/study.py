@@ -53,7 +53,7 @@ class StudyViewSet(viewsets.ModelViewSet):
                                                     workflow=workflow,
                                                     start=study_data['start'],
                                                     end=study_data['end'],
-                                                    description=study_data['description'])
+                                                    description=study_data['description'] or None)
 
             for key, value in errors_service.items():
                 errors[key].append(value)
