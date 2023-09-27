@@ -5,10 +5,9 @@ import zipfile
 from io import BytesIO
 
 from fms_core.template_importer.importers import NormalizationPlanningImporter
-from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
 from fms_core.models._constants import DOUBLE_STRANDED
-
 from fms_core.models import SampleKind
 
 from fms_core.services.container import create_container, get_container
@@ -27,9 +26,19 @@ class NormalizationplanningTestCase(TestCase):
                       APP_DATA_ROOT / "Normalization_planning_v4_5_0_Genotyping_Tube.xlsx",
                      ]
 
+        self.invalid_template_tests = [TEST_DATA_ROOT / "Normalization_planning_v4_5_0_Concentration_Too_Low.xlsx",
+                                       TEST_DATA_ROOT / "Normalization_planning_v4_5_0_Missing_Input.xlsx",
+                                      ]
+
         self.INDICES = [{"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001", "sequence_3_prime": ["ACAAAGTC"], "sequence_5_prime": ["CAGGTGTC"]},
                         {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002", "sequence_3_prime": ["ACTTTGTC"], "sequence_5_prime": ["CAGGTGTC"]},
                         {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_003-IDT_10nt_UDI_i5_003", "sequence_3_prime": ["ACAATGTC"], "sequence_5_prime": ["CAGGTGTC"]},]
+
+        self.DNA_sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+        self.RNA_sample_kind, _ = SampleKind.objects.get_or_create(name="RNA")
+
+        self.plate_source_name_and_barcode = "NormSourcePlate1"
+        self.source_sample_initial_volume = 100
 
         self.prefill_data()
 
@@ -302,3 +311,30 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][5], "Water")
                             self.assertEqual(csv_content[3][6], "4")                            
                             self.assertEqual(csv_content[3][7], "99.000")
+
+    def test_invalid_normalization_planning(self):
+        self.container_1, _, _ = create_container(barcode=self.plate_source_name_and_barcode,
+                                                  kind='96-well plate',
+                                                  name=self.plate_source_name_and_barcode)
+
+        self.source_sample_1, _, _ = \
+            create_full_sample(name="SOURCESAMPLENORM1", alias="SOURCESAMPLENORM1", volume=self.source_sample_initial_volume, concentration=5,
+                               collection_site="Site1", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_1, coordinates="A01",
+                               sample_kind=self.DNA_sample_kind)
+                    
+        self.source_sample_2, _, _ = \
+            create_full_sample(name="SOURCESAMPLENORM2", alias="SOURCESAMPLENORM2", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="Site2", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_1, coordinates="A02",
+                               sample_kind=self.DNA_sample_kind)
+        
+        result = {}
+        result = load_template(importer=self.importer, file=self.invalid_template_tests[0])
+        self.assertEqual(result['valid'], False)
+        print(result["base_errors"])
+        print(result["result_previews"][0]["rows"][0]["validation_error"])
+        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["concentration"].message, "Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution. Use bypass if you want to submit using this final volume value.")
+
+        result = load_template(importer=self.importer, file=self.invalid_template_tests[1])
+        self.assertEqual(result['valid'], False)
+        print(result["validation_errors"])
+        self.assertEqual(result["validation_errors"].error_dict["concentration"], "Insufficient available NA material to comply. Use bypass if you want to submit using this final volume value.")

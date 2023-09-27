@@ -98,6 +98,8 @@ class NormalizationPlanningImporter(GenericImporter):
                 **normalization_kwargs
             )
 
+            if (normalization_row_mapping is None):
+                self.base_errors.append(f"Row {row_id} has errors.")
             normalization_mapping_rows.append(normalization_row_mapping)
             norm_choice.append(robot["norm_choice"])
 
