@@ -313,8 +313,8 @@ NORMALIZATION_TEMPLATE = {
         'headers': ['Type', 'Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
-                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Current Volume (uL)', 'Volume Used (uL)', 'Volume (uL)',
-                    'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Current Volume (uL)', 'Volume Used (uL)',
+                    'Input (ng)', 'Volume (uL)', 'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
         'batch': False,
       },
   ],
@@ -344,13 +344,17 @@ NORMALIZATION_PLANNING_TEMPLATE = {
                     'Source Parent Container Barcode', 'Source Parent Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
-                    'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)',
+                    'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)', 'Available Input (ng)',
                     'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
         'batch': False,
       },
   ],
   "user prefill info": {
-      "Robot Norm Choice": VALID_NORM_CHOICES
+      "Robot Norm Choice": VALID_NORM_CHOICES,
+      "Norm. NA Quantity (ng)": "number",
+      "Norm. Conc. (ng/uL)": "number",
+      "Norm. Conc. (nM)": "number",
+      "Final Volume (uL)": "number",
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
