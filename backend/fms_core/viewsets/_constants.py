@@ -249,6 +249,8 @@ _readset_filterset_fields: FiltersetFields = {
     "release_status_timestamp": DATE_FILTERS,
     "validation_status": CATEGORICAL_FILTERS,
     "validation_status_timestamp": DATE_FILTERS,
+    "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("dataset__", _dataset_filterset_fields),
 }
 

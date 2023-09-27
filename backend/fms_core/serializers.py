@@ -617,13 +617,20 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     metrics = serializers.SerializerMethodField(read_only=True)
     library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
+    number_reads = serializers.SerializerMethodField()
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index", "number_reads")
     def get_metrics(self, instance):
         metrics = instance.metrics.all()
         serialized_metrics = MetricSerializer(metrics, many=True)
         return serialized_metrics.data
+    
+    def get_number_reads(self, obj):
+        try:
+            return obj.number_reads
+        except:
+            return None
     
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]

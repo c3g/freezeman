@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer } from "react"
+import React, { useEffect, useReducer } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import ReadsetTableActions from "../../modules/readsetsTable/actions"
@@ -35,8 +35,9 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const readsetTableCallbacks = usePagedItemsActionsCallbacks(ReadsetTableActions)
     const dispatch = useAppDispatch()
     const { filters, sortBy, totalCount } = readsetTableState
-    const allFilesReleased = dataset?.released_status_count === Object.keys(readsetsByID).length
-    const allFilesBlocked = dataset?.blocked_status_count === Object.keys(readsetsByID).length
+    const allFilesReleased = dataset?.released_status_count === totalCount
+    const allFilesBlocked = dataset?.blocked_status_count === totalCount
+    
     useEffect(() => {
         if (dataset) {
             dispatch(ReadsetTableActions.resetPagedItems())
@@ -90,8 +91,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         columnDefinitions.RELEASE_STATUS,
         columnDefinitions.LIBRARY_TYPE,
         columnDefinitions.INDEX,
-        columnDefinitions.NUM_READS,
-        columnDefinitions.NUM_BASES,
+        columnDefinitions.NUMBER_READS,
+        // columnDefinitions.NUM_BASES,
         // columnDefinitions.MEAN_QUALITY_SCORE,
         // columnDefinitions.BLAST_HIT
     ]
@@ -136,7 +137,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             style={{ margin: 6 }}
             onClick={() => dispatchReleaseStatusOptionTypeAll(RELEASED)}
             disabled={
-                (releaseStatusOption.all === RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !specificStatusToggled
+                (allFilesReleased || !canReleaseOrBlockFiles) && !specificStatusToggled
             }>
             Release All
         </Button>
@@ -144,7 +145,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             style={{ margin: 6 }}
             onClick={() => dispatchReleaseStatusOptionTypeAll(BLOCKED)}
             disabled={
-                (releaseStatusOption.all === BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !specificStatusToggled
+                (allFilesBlocked || !canReleaseOrBlockFiles) && !specificStatusToggled
             }>
             Block All
         </Button>

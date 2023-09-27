@@ -2,7 +2,7 @@ from django.db.models import Q
 
 from fms_core.models.sample_next_step import SampleNextStep
 
-from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample
+from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample, Readset
 
 import django_filters
 
@@ -16,6 +16,7 @@ from .viewsets._constants import (
     _dataset_filterset_fields,
     _pooled_sample_filterset_fields,
     _sample_next_step_filterset_fields,
+    _readset_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -214,3 +215,20 @@ class SampleNextStepFilter(GenericFilter):
     class Meta:
         model = SampleNextStep
         fields = _sample_next_step_filterset_fields
+
+class ReadsetFilter(GenericFilter):
+
+    number_reads__lte = django_filters.NumberFilter(method="number_reads_lte_filter")
+    number_reads__gte = django_filters.NumberFilter(method="number_reads_gte_filter")
+    
+    def number_reads_lte_filter(self, queryset, name, value):
+        condition = Q(number_reads__lte=value)
+        return queryset.filter(condition)
+    
+    def number_reads_gte_filter(self, queryset, name, value):
+        condition = Q(number_reads__gte=value)
+        return queryset.filter(condition)
+    
+    class Meta:
+        model = Readset
+        fields = _readset_filterset_fields

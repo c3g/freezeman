@@ -21,8 +21,8 @@ export enum ReadsetColumnID {
     RELEASE_STATUS = 'RELEASE_STATUS',
     LIBRARY_TYPE = 'LIBRARY_TYPE',
     INDEX = 'INDEX',
-    NB_READS = 'NUM_READS',
-    NB_BASES = 'NUM_BASES',
+    NUMBER_READS = 'NUMBER_READS',
+    // NB_BASES = 'NUM_BASES',
     // MEAN_QUALITY_SCORE = 'MEAN_QUALITY_SCORE',
     // BLAST_HIT = 'BLAST_HIT'
 }
@@ -81,24 +81,24 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
                 return readset && readset.metrics && readset.index ? <div> {readset.index} </div> : ''
             }
         },
-        [ReadsetColumnID.NB_READS]: {
-            columnID: ReadsetColumnID.NB_READS,
+        [ReadsetColumnID.NUMBER_READS]: {
+            columnID: ReadsetColumnID.NUMBER_READS,
             title: "Number of Reads",
-            dataIndex: ['readset', 'nb_reads'],
+            dataIndex: ['readset', 'number_reads'],
             sorter: true,
             render: (_, { readset }) => {
                 return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric)} </div> : ''
             }
         },
-        [ReadsetColumnID.NB_BASES]: {
-            columnID: ReadsetColumnID.NB_BASES,
-            title: "Number of bases",
-            dataIndex: ['readset', 'nb_bases'],
-            sorter: true,
-            render: (_, { readset }) => {
-                return readset && readset.metrics && readset.metrics['nb_bases'] ? <div> {Number(readset.metrics['nb_bases'].value_numeric)} </div> : ''
-            }
-        },
+        // [ReadsetColumnID.NB_BASES]: {
+        //     columnID: ReadsetColumnID.NB_BASES,
+        //     title: "Number of bases",
+        //     dataIndex: ['readset', 'nb_bases'],
+        //     sorter: true,
+        //     render: (_, { readset }) => {
+        //         return readset && readset.metrics && readset.metrics['nb_bases'] ? <div> {Number(readset.metrics['nb_bases'].value_numeric)} </div> : ''
+        //     }
+        // },
         // [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
         //     columnID: ReadsetColumnID.MEAN_QUALITY_SCORE,
         //     title: "Mean quality score",
@@ -126,8 +126,8 @@ export enum ReadsetFilterID {
     RELEASE_STATUS = ReadsetColumnID.RELEASE_STATUS,
     LIBRARY_TYPE = ReadsetColumnID.LIBRARY_TYPE,
     INDEX = ReadsetColumnID.INDEX,
-    NUM_READS = ReadsetColumnID.NB_READS,
-    NUM_BASES = ReadsetColumnID.NB_BASES,
+    NUM_READS = ReadsetColumnID.NUMBER_READS,
+    // NUM_BASES = ReadsetColumnID.NB_BASES,
     // MEAN_QUALITY_SCORE = ReadsetColumnID.MEAN_QUALITY_SCORE,
     // BLAST_HIT = ReadsetColumnID.BLAST_HIT,
 }
@@ -160,16 +160,16 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescripti
         key: UNDEFINED_FILTER_KEY,
         label: "index",
     },
-    [ReadsetColumnID.NB_READS]: {
+    [ReadsetColumnID.NUMBER_READS]: {
         type: FILTER_TYPE.RANGE,
         key: UNDEFINED_FILTER_KEY,
-        label: "nb_reads",
+        label: "NUMBER_READS",
     },
-    [ReadsetColumnID.NB_BASES]: {
-        type: FILTER_TYPE.RANGE,
-        key: UNDEFINED_FILTER_KEY,
-        label: "nb_bases",
-    },
+    // [ReadsetColumnID.NB_BASES]: {
+    //     type: FILTER_TYPE.RANGE,
+    //     key: UNDEFINED_FILTER_KEY,
+    //     label: "nb_bases",
+    // },
     // [ReadsetColumnID.MEAN_QUALITY_SCORE]: {
     //     type: FILTER_TYPE.RANGE,
     //     key: UNDEFINED_FILTER_KEY,
@@ -188,8 +188,8 @@ export const READSET_FILTER_KEYS: { [key in ReadsetColumnID]: string } = {
     [ReadsetColumnID.RELEASE_STATUS]: 'release_status',
     [ReadsetColumnID.LIBRARY_TYPE]: 'derived_sample__library__library_type__name',
     [ReadsetColumnID.INDEX]: 'derived_sample__library__index__name',
-    [ReadsetColumnID.NB_READS]: 'nb_reads',
-    [ReadsetColumnID.NB_BASES]: 'nb_bases',
+    [ReadsetColumnID.NUMBER_READS]: 'number_reads',
+    // [ReadsetColumnID.NB_BASES]: 'nb_bases',
     // [ReadsetColumnID.MEAN_QUALITY_SCORE]: 'mean_quality_score',
     // [ReadsetColumnID.BLAST_HIT]: 'blast_hit',
 }
