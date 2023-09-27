@@ -35,8 +35,6 @@ class NormalizationplanningTestCase(TestCase):
                         {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_003-IDT_10nt_UDI_i5_003", "sequence_3_prime": ["ACAATGTC"], "sequence_5_prime": ["CAGGTGTC"]},]
 
         self.DNA_sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
-        self.RNA_sample_kind, _ = SampleKind.objects.get_or_create(name="RNA")
-
         self.plate_source_name_and_barcode = "NormSourcePlate1"
         self.source_sample_initial_volume = 100
 
@@ -44,8 +42,6 @@ class NormalizationplanningTestCase(TestCase):
 
 
     def prefill_data(self):
-        sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
-
         platform_illumina, _, _ = get_platform(name="ILLUMINA")
         library_type, _, _ = get_library_type(name="PCR-free")
 
@@ -111,7 +107,7 @@ class NormalizationplanningTestCase(TestCase):
                                               creation_date=datetime(2022, 7, 5, 0, 0),
                                               container=container,
                                               coordinates=info['coordinates'],
-                                              sample_kind=sample_kind_DNA,
+                                              sample_kind=self.DNA_sample_kind,
                                               library=info['library'],
                                               fragment_size=info['fragment_size'])
 
@@ -312,7 +308,7 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][6], "4")                            
                             self.assertEqual(csv_content[3][7], "99.000")
 
-    def test_invalid_normalization_planning(self):
+    def test_insufficient_concentration_normalization_planning(self):
         self.container_1, _, _ = create_container(barcode=self.plate_source_name_and_barcode,
                                                   kind='96-well plate',
                                                   name=self.plate_source_name_and_barcode)
@@ -322,19 +318,22 @@ class NormalizationplanningTestCase(TestCase):
                                collection_site="Site1", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_1, coordinates="A01",
                                sample_kind=self.DNA_sample_kind)
                     
+        result = {}
+        result = load_template(importer=self.importer, file=self.invalid_template_tests[0])
+        self.assertEqual(result['valid'], False)
+        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["concentration"][0].messages[0], "Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution. Use bypass if you want to submit using this final volume value.")
+
+    def test_insufficient_material_normalization_planning(self):
+        self.container_1, _, _ = create_container(barcode=self.plate_source_name_and_barcode,
+                                                  kind='96-well plate',
+                                                  name=self.plate_source_name_and_barcode)
+
         self.source_sample_2, _, _ = \
             create_full_sample(name="SOURCESAMPLENORM2", alias="SOURCESAMPLENORM2", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="Site2", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_1, coordinates="A02",
                                sample_kind=self.DNA_sample_kind)
         
         result = {}
-        result = load_template(importer=self.importer, file=self.invalid_template_tests[0])
-        self.assertEqual(result['valid'], False)
-        print(result["base_errors"])
-        print(result["result_previews"][0]["rows"][0]["validation_error"])
-        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["concentration"].message, "Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution. Use bypass if you want to submit using this final volume value.")
-
         result = load_template(importer=self.importer, file=self.invalid_template_tests[1])
         self.assertEqual(result['valid'], False)
-        print(result["validation_errors"])
-        self.assertEqual(result["validation_errors"].error_dict["concentration"], "Insufficient available NA material to comply. Use bypass if you want to submit using this final volume value.")
+        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["concentration"][0].messages[0], "Insufficient available NA material to comply. Use bypass if you want to submit using this final volume value.")
