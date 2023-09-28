@@ -108,7 +108,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
                 <Descriptions.Item label="Start Step" span={2}>{getStepWithOrder(study?.start)}</Descriptions.Item>
                 <Descriptions.Item label="End Step" span={2}>{getStepWithOrder(study?.end)}</Descriptions.Item>
                 <Descriptions.Item label="Description" span={4}>{
-                    <div style={{ overflowY: 'auto', maxHeight: '20em' }}>
+                    <div style={{ overflowY: 'auto', maxHeight: '9.5em' }}>
                         {study?.description?.split("\n")?.map((line, key) => <div key={key}>{line}</div>)}
                     </div>
                 }</Descriptions.Item>
