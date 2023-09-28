@@ -72,7 +72,7 @@ function StudyEditForm({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 		form.setFieldValue('stepRange', stepRange)
 	}, [form])
 
-	const onChangeForDescription = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+	const onChangeForDescription = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		form.setFieldValue('description', event.target.value)
 	}, [form])
 
@@ -127,7 +127,7 @@ function StudyEditForm({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 				label="Description"
 				{...itemValidation('description')}
 			>
-				<Input
+				<Input.TextArea
 					defaultValue={''}
 					onChange={onChangeForDescription}
 				/>
