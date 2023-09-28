@@ -128,6 +128,7 @@ function StudyEditForm({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 				{...itemValidation('description')}
 			>
 				<Input.TextArea
+					autoSize
 					defaultValue={''}
 					onChange={onChangeForDescription}
 				/>
