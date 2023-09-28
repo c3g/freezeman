@@ -2,9 +2,8 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {DATASET_FILE_FILTERS, DATASET_FILTERS} from "../../components/filters/descriptions";
+import {READSET_FILTERS, DATASET_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
-import { list as listFiles } from "../datasetFiles/actions";
 
 export const GET                   = createNetworkActionTypes("DATASETS.GET");
 export const LIST                  = createNetworkActionTypes("DATASETS.LIST");
@@ -90,6 +89,17 @@ export const clearFilters = thenList(() => {
     }
 });
 
+export const setReleaseStatusAll = (id, releaseStatus, exceptions = [], filters = {}) => async (dispatch, getState) => {
+    const dataset = getState().datasets.itemsByID[id]
+    filters = serializeFilterParams(filters, READSET_FILTERS)
+
+    if (dataset && !dataset.isFetching) {
+        const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
+            { meta: { id }}));
+
+        return result
+    }
+};
 
 export default {
     GET,

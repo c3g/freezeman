@@ -542,6 +542,39 @@ export const LIBRARY_FILTERS = {
   }
 }
 
+export const READSET_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Readset ID",
+  },
+  sample_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "sample_name",
+    label: "Sample Name",
+  },
+  release_status: {
+    type: FILTER_TYPE.SELECT,
+    key: "release_status",
+    label: "Release Status",
+  },
+  library_type: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__library__library_type__name",
+    label: "Library Type",
+  },
+  index: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_sample__library__index__name",
+    label: "Index",
+  },
+  number_reads: {
+    type: FILTER_TYPE.INPUT,
+    key: "number_reads",
+    label: "Number of Reads",
+  },
+}
+
 export const DATASET_FILTERS = {
   id: {
     type: FILTER_TYPE.INPUT_NUMBER,

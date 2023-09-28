@@ -20,9 +20,10 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const setReleaseStatus = (readset) => async (dispatch, getState) => {
+
+export const setReleaseStatus = (id, releaseStatus) => async (dispatch, getState) => {
     return await dispatch(networkAction(SET_RELEASE_STATUS,
-        api.readsets.setReleaseStatus(readset)), { meta: readset.id})
+        api.readsets.setReleaseStatus(releaseStatus)), { meta: id})
 }
 
 export default {

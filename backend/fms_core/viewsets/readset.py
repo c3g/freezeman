@@ -59,7 +59,7 @@ class ReadsetViewSet(viewsets.ModelViewSet):
             raise ValidationError(dict(non_field_errors=err))
         try:
 
-            serializer = ReadsetSerializer(readset_to_update)
+            serializer = self.get_serializer_class(readset_to_update)
             readset_to_update.save()
         except Exception as err:
             raise ValidationError(err)

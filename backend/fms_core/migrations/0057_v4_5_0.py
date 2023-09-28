@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='datasetfile',
             name='size',
-            field=models.IntegerField(default=1, help_text='Size of the dataset file.'),
+            field=models.BigIntegerField(default=1, help_text='Size of the dataset file.'),
             preserve_default=False,
         ),
         migrations.AddField(

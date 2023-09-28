@@ -51,8 +51,8 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             sorter: true,
             render: (_, { readset }) => {
                 const { id } = readset;
-                const releaseStatus = releaseStatusOption.readsetIds[id] ?? readset.release_status
-                const changed = (releaseStatusOption.readsetIds[id])
+                const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? readset.release_status
+                const changed = (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
                 return readset && <Button
                     disabled={!canReleaseOrBlockFiles}
                     style={{ color: changed ? "red" : "grey", width: "6em" }}
@@ -103,34 +103,34 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescripti
     [ReadsetColumnID.ID]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
         key: UNDEFINED_FILTER_KEY,
-        label: "id",
+        label: "Readset ID",
     },
     [ReadsetColumnID.SAMPLE_NAME]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
-        label: "sample_name",
+        label: "Sample Name",
     },
     [ReadsetColumnID.RELEASE_STATUS]: {
         type: FILTER_TYPE.SELECT,
         placeholder: 'All',
         options: [{ label: 'Available', value: '0' }, { label: 'Released', value: '1' }, { label: 'Blocked', value: '2' }],
         key: UNDEFINED_FILTER_KEY,
-        label: "release_status",
+        label: "Release Status",
     },
     [ReadsetColumnID.LIBRARY_TYPE]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
-        label: "library_type",
+        label: "Library Type",
     },
     [ReadsetColumnID.INDEX]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
-        label: "index",
+        label: "Index",
     },
     [ReadsetColumnID.NUMBER_READS]: {
         type: FILTER_TYPE.RANGE,
         key: UNDEFINED_FILTER_KEY,
-        label: "NUMBER_READS",
+        label: "Number of Reads",
     },
 }
 
