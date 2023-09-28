@@ -21,7 +21,7 @@ export const list = (options) => async (dispatch) => {
 };
 
 export const add =
-	(study: { project: Project, workflow: Workflow, stepRange: WorkflowStepRange, description: string }) =>
+	(study: { project: Project, workflow: Workflow, stepRange: WorkflowStepRange, description: string | null }) =>
 	async (dispatch: AppDispatch, getState: () => RootState) => {
 		if (getState().studies.isFetching) return
 

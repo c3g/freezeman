@@ -25,9 +25,9 @@ interface FormData {
 	description?: string
 }
 
-type StudyEditCallback = (workflow?: Workflow, stepRange?: WorkflowStepRange, description?: string) => void
+type StudyEditCallback = (workflow?: Workflow, stepRange?: WorkflowStepRange, description?: string | null) => void
 
-const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: CreateStudyFormProps) => {
+function StudyEditForm({ workflows, isCreatingStudy, onSubmit, formErrors }: CreateStudyFormProps) {
 	const navigate = useNavigate()
 
 	const [form] = Form.useForm<FormData>()
@@ -35,7 +35,8 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 	const stepRange = Form.useWatch<WorkflowStepRange>('stepRange', form)
 
 	const handleSubmit = useCallback((values: FormData) => {
-		onSubmit(values.workflow, values.stepRange, values.description)
+		const finalValues = serialize(values)
+		onSubmit(finalValues.workflow, finalValues.stepRange, finalValues.description)
 	}, [onSubmit])
 
 	const handleCancel = useCallback(() => {
@@ -142,5 +143,18 @@ const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: Cre
 		</Form>
 	)
 }
+
+interface SerializedFormData {
+	workflow?: Workflow
+	stepRange?: WorkflowStepRange
+	description?: string | null
+}
+
+function serialize(values: FormData): SerializedFormData {
+	return {
+		...values,
+		description: values.description === '' ? null : values.description
+	}
+  }
 
 export default StudyEditForm

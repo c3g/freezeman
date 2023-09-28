@@ -64,10 +64,10 @@ const StudyEditContent = ({ action }: StudyEditContentProps) => {
 		title = `Edit ${'a Study'}`
 	}
 
-	async function handleFormSubmit(workflow?: Workflow, stepRange?: WorkflowStepRange, description = '') {
+	async function handleFormSubmit(workflow?: Workflow, stepRange?: WorkflowStepRange, description: string | null = null) {
 		if (isCreating) {
 			if (project && workflow && stepRange) {
-				const result = await dispatch(
+				await dispatch(
 					add({
 						project,
 						workflow,

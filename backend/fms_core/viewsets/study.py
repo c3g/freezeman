@@ -43,9 +43,6 @@ class StudyViewSet(viewsets.ModelViewSet):
                 workflow = None
         except Workflow.DoesNotExist:
             errors['workflow'].append(f"Workflow with id {study_data['workflow']} does not exist.")
-        
-        if 'description' not in study_data:
-            errors['description'].append(f"'description' key must be present")
 
         if not any(bool(error) for error in errors.values()): 
             # Call create study service
@@ -53,7 +50,7 @@ class StudyViewSet(viewsets.ModelViewSet):
                                                     workflow=workflow,
                                                     start=study_data['start'],
                                                     end=study_data['end'],
-                                                    description=study_data['description'] or None)
+                                                    description=study_data.get('description'))
 
             for key, value in errors_service.items():
                 errors[key].append(value)
