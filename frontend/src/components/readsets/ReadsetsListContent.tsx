@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from "react"
+import React, { useCallback, useEffect, useReducer } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import ReadsetTableActions from "../../modules/readsetsTable/actions"
@@ -41,11 +41,15 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const allFilesReleased = dataset?.released_status_count === totalCount
     const allFilesBlocked = dataset?.blocked_status_count === totalCount
 
+    const refreshTable = useCallback(() => {
+        dispatch(ReadsetTableActions.resetPagedItems())
+        dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT, 'dataset__id', String(dataset?.id))))
+        dispatch(ReadsetTableActions.listPage(1))
+    }, [dataset?.id])
+
     useEffect(() => {
         if (dataset) {
-            dispatch(ReadsetTableActions.resetPagedItems())
-            dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(dataset?.id))))
-            dispatch(ReadsetTableActions.listPage(1))
+            refreshTable()
         }
     }, [dataset?.id, dispatch])
 
@@ -57,7 +61,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 return { all: action.release_status, specific: {} }
             case "toggle": {
                 const { all } = state
-                const { id, releaseStatus, filesById } = action
+                const { id, releaseStatus } = action
                 const newState = { ...state, specific: { ...state.specific } }
 
                 if (all) {
@@ -67,7 +71,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                         delete newState.specific[id]
                     }
                 } else {
-                    if (filesById[id]?.release_status !== releaseStatus) {
+                    if (readsetsByID[id]?.release_status !== releaseStatus) {
                         newState.specific[id] = releaseStatus
                     } else {
                         delete newState.specific[id]
@@ -86,6 +90,14 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             specific: {},
         }
     )
+    const wholeNumber = (str) => {
+        const num = parseFloat((str))
+        if (String(num).includes('.')) {
+            return num.toFixed(3)
+        } else {
+            return num
+        }
+    }
     const columnDefinitions = READSET_COLUMN_DEFINITIONS((id, releaseStatus) => {
         dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus, readsetsByID })
     }, releaseStatusOption, canReleaseOrBlockFiles)
@@ -133,7 +145,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 dispatchReleaseStatusOptionTypeAll(RELEASED)
             }}
             disabled={
-                (releaseStatusOption.all === RELEASED  || (!releaseStatusOption.all && allFilesReleased)) && !statusToggled
+                (releaseStatusOption.all === RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !statusToggled
             }>
             Release All
         </Button>
@@ -143,7 +155,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 dispatchReleaseStatusOptionTypeAll(BLOCKED)
             }}
             disabled={
-                (releaseStatusOption.all === BLOCKED  || (!releaseStatusOption.all && allFilesBlocked)) && !statusToggled
+                (releaseStatusOption.all === BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !statusToggled
             }>
             Block All
         </Button>
@@ -160,13 +172,13 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             onClick={() => {
                 const { all, specific } = releaseStatusOption
                 if (all) {
-                    dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters))
+                    dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, refreshTable))
                 } else {
+                    console.log(specific)
                     Object.entries(specific).forEach(([id, release_status]) => {
-                        dispatch(setReleaseStatus(id, {
-                            id,
-                            release_status
-                        }))
+                        dispatch(setReleaseStatus(id,
+                            release_status, refreshTable
+                        ))
                     })
                 }
                 dispatchReleaseStatusOptionTypeAll(undefined)
@@ -180,12 +192,14 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     return <div>
         <AppPageHeader title="Readsets" />
         <PageContent>
-            <FilterPanel
-                descriptions={[]}
-                filters={filters}
-                setFilter={readsetTableCallbacks.setFilterCallback}
-                setFilterOption={readsetTableCallbacks.setFilterOptionsCallback}
-            />
+            {Object.keys(filters).length > 0 &&
+                <FilterPanel
+                    descriptions={[]}
+                    filters={filters}
+                    setFilter={readsetTableCallbacks.setFilterCallback}
+                    setFilterOption={readsetTableCallbacks.setFilterOptionsCallback}
+                />
+            }
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between'
@@ -235,7 +249,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                                                         }
                                                         {readset.metrics[name].value_numeric
                                                             ?
-                                                            Number(readset.metrics[name].value_numeric).toFixed(3)
+                                                            wholeNumber(readset.metrics[name].value_numeric)
                                                             :
                                                             readset.metrics[name].value_string}
                                                     </div>)

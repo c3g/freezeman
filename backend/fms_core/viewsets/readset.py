@@ -5,7 +5,7 @@ from fms_core.filters import ReadsetFilter
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import Subquery, OuterRef
+from django.db.models import Subquery, OuterRef, Q
 from fms_core.models.metric import Metric
 from fms_core.models.readset import Readset
 from fms_core.serializers import ReadsetSerializer, ReadsetWithMetricsSerializer
@@ -45,22 +45,19 @@ class ReadsetViewSet(viewsets.ModelViewSet):
     def set_release_status(self, request, *args, **kwargs):
         data = request.data
         try:
-            release_status = data.get("release_status")
-            if release_status is not None:
-                data["release_status_timestamp"] = timezone.now()
-            
-            readset_to_update = Readset.objects.filter(pk=data['id']).exclude(validation_status=ValidationStatus.AVAILABLE)
-            if not readset_to_update.exists():
+            release_status = data.get("release_status")            
+            validation = Readset.objects.filter(pk=data['id']).exclude(validation_status=ValidationStatus.AVAILABLE)
+            if not validation.exists():
                 return HttpResponseBadRequest(f"Run must first be validated before release status can be changed.")
             
-            readset_to_update = Readset.objects.select_for_update().get(pk=data['id'], validation_status=ValidationStatus.PASSED)
-            readset_to_update.__dict__.update(data)
+            readset_to_update = Readset.objects.select_for_update().get(pk=data['id'])
+            # sample_to_update = Sample.objects.select_for_update().get(pk=full_sample['id'])
+            readset_to_update.__dict__.update(release_status=release_status, release_status_timestamp=timezone.now())
         except Exception as err:
             raise ValidationError(dict(non_field_errors=err))
         try:
-
-            serializer = self.get_serializer_class(readset_to_update)
             readset_to_update.save()
+            serializer = ReadsetSerializer(readset_to_update)
         except Exception as err:
             raise ValidationError(err)
 

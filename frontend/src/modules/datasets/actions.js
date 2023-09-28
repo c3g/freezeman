@@ -89,13 +89,15 @@ export const clearFilters = thenList(() => {
     }
 });
 
-export const setReleaseStatusAll = (id, releaseStatus, exceptions = [], filters = {}) => async (dispatch, getState) => {
+export const setReleaseStatusAll = (id, releaseStatus, exceptions = [], filters = {}, refreshCallback) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
     filters = serializeFilterParams(filters, READSET_FILTERS)
 
     if (dataset && !dataset.isFetching) {
         const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
             { meta: { id }}));
+
+            await dispatch(refreshCallback)
 
         return result
     }
