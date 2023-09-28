@@ -7,7 +7,7 @@ import FilterPanel from "../filters/filterPanel/FilterPanel";
 import FiltersBar from "../filters/filtersBar/FiltersBar";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectReadsetsByID, selectReadsetsTable } from "../../selectors";
-import { BLOCKED, OPPOSITE_STATUS, ObjectWithReadset, READSET_COLUMN_DEFINITIONS, READSET_COLUMN_FILTERS, READSET_FILTER_KEYS, RELEASED, ReadsetColumnID } from "./ReadsetsTableColumns";
+import { BLOCKED, ObjectWithReadset, READSET_COLUMN_DEFINITIONS, READSET_COLUMN_FILTERS, READSET_FILTER_KEYS, RELEASED, ReadsetColumnID } from "./ReadsetsTableColumns";
 import { Dataset, Readset } from "../../models/frontend_models";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
@@ -43,12 +43,12 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
 
     const refreshTable = useCallback(() => {
         dispatch(ReadsetTableActions.resetPagedItems())
-        dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT, 'dataset__id', String(dataset?.id))))
+        dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(dataset?.id))))
         dispatch(ReadsetTableActions.listPage(1))
     }, [dataset?.id])
 
     useEffect(() => {
-        if (dataset) {
+        if (dataset && dataset.id) {
             refreshTable()
         }
     }, [dataset?.id, dispatch])
@@ -90,8 +90,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             specific: {},
         }
     )
-    const wholeNumber = (str) => {
-        const num = parseFloat((str))
+    const checkIfDecimal = (str) => {
+        const num = parseFloat(str)
         if (String(num).includes('.')) {
             return num.toFixed(3)
         } else {
@@ -138,6 +138,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         dispatchReleaseStatusOption({ type: "all", release_status })
     }
 
+    console.log("canReleaseOrBlockFiles", canReleaseOrBlockFiles)
     const extraButtons = <div>
         <Button
             style={{ margin: 6 }}
@@ -145,7 +146,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 dispatchReleaseStatusOptionTypeAll(RELEASED)
             }}
             disabled={
-                (releaseStatusOption.all === RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !statusToggled
+                (!canReleaseOrBlockFiles || (releaseStatusOption.all === RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !statusToggled)
             }>
             Release All
         </Button>
@@ -155,7 +156,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 dispatchReleaseStatusOptionTypeAll(BLOCKED)
             }}
             disabled={
-                (releaseStatusOption.all === BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !statusToggled
+                (!canReleaseOrBlockFiles || (releaseStatusOption.all === BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !statusToggled)
             }>
             Block All
         </Button>
@@ -176,9 +177,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 } else {
                     console.log(specific)
                     Object.entries(specific).forEach(([id, release_status]) => {
-                        dispatch(setReleaseStatus(id,
-                            release_status, refreshTable
-                        ))
+                        dispatch(setReleaseStatus(id, release_status, refreshTable))
                     })
                 }
                 dispatchReleaseStatusOptionTypeAll(undefined)
@@ -249,7 +248,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                                                         }
                                                         {readset.metrics[name].value_numeric
                                                             ?
-                                                            wholeNumber(readset.metrics[name].value_numeric)
+                                                            checkIfDecimal(readset.metrics[name].value_numeric)
                                                             :
                                                             readset.metrics[name].value_string}
                                                     </div>)

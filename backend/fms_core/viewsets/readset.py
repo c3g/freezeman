@@ -51,7 +51,6 @@ class ReadsetViewSet(viewsets.ModelViewSet):
                 return HttpResponseBadRequest(f"Run must first be validated before release status can be changed.")
             
             readset_to_update = Readset.objects.select_for_update().get(pk=data['id'])
-            # sample_to_update = Sample.objects.select_for_update().get(pk=full_sample['id'])
             readset_to_update.__dict__.update(release_status=release_status, release_status_timestamp=timezone.now())
         except Exception as err:
             raise ValidationError(dict(non_field_errors=err))

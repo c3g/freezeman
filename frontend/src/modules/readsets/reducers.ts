@@ -27,9 +27,9 @@ export const readsets = (
         }
         case READSETS.SET_RELEASE_STATUS.ERROR:
             return { ...state, isFetching: false, error: action.error, };
-        case READSETS.LIST.REQUEST:
+        case READSETS.LIST_WITH_METRICS.REQUEST:
             return { ...state, isFetching: true, };
-        case READSETS.LIST.RECEIVE: {
+        case READSETS.LIST_WITH_METRICS.RECEIVE: {
             let list: Readset[] = []
             action.data.results.forEach(readset => {
                 if (readset.metrics && Array.isArray(readset.metrics)) {
@@ -42,6 +42,14 @@ export const readsets = (
                 }
             })
             const itemsByID = merge(state.itemsByID, [], indexByID(list));
+            return { ...state, itemsByID, isFetching: false, error: undefined };
+        }
+        case READSETS.LIST_WITH_METRICS.ERROR:
+            return { ...state, isFetching: false, error: action.error, };
+        case READSETS.LIST.REQUEST:
+            return { ...state, isFetching: true, };
+        case READSETS.LIST.RECEIVE: {
+            const itemsByID = merge(state.itemsByID, [], indexByID(action.data.results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case READSETS.LIST.ERROR:

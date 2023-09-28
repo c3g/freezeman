@@ -605,9 +605,11 @@ class DatasetSerializer(serializers.ModelSerializer):
 
 class ReadsetSerializer(serializers.ModelSerializer):
     total_size = serializers.SerializerMethodField()
+    library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
+    index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp")
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
