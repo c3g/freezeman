@@ -49,7 +49,8 @@ class StudyViewSet(viewsets.ModelViewSet):
             study, errors_service, _ = create_study(project=project,
                                                     workflow=workflow,
                                                     start=study_data['start'],
-                                                    end=study_data['end'])
+                                                    end=study_data['end'],
+                                                    description=study_data.get('description'))
 
             for key, value in errors_service.items():
                 errors[key].append(value)

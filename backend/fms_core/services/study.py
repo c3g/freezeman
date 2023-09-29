@@ -24,7 +24,7 @@ def new_letter(project):
     
     return new_letter
 
-def create_study(project, workflow, start, end):
+def create_study(project, workflow, start, end, description=None):
     """
      Create a study for a given project. The service generates a sequential letter that serves to identify the study.
 
@@ -33,6 +33,7 @@ def create_study(project, workflow, start, end):
          `workflow`: Workflow model instance linked to the study.
          `start`: The start step on the workflow for the study.
          `end`: The end step on the workflow for the study.
+         `description`: Description of the study.
 
      Returns:
          Tuple containing the created study object (or None), the error messages and the warning messages. 
@@ -64,7 +65,8 @@ def create_study(project, workflow, start, end):
                                      project=project,
                                      workflow=workflow,
                                      start=start,
-                                     end=end)
+                                     end=end,
+                                     description=description)
     except ValidationError as e:
         errors = { **errors, **e.message_dict }
 
