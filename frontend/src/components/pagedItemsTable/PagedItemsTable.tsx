@@ -47,7 +47,7 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 	usingFilters: boolean
 
 	selection?: PagedItemTableSelection<T>
-
+	expandable?: any
 	initialLoad?: boolean
 }
 
@@ -71,6 +71,7 @@ function PagedItemsTable<T extends object>({
 	usingFilters,
 	selection,
 	initialLoad = true,
+	expandable
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -189,6 +190,7 @@ function PagedItemsTable<T extends object>({
 						<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback}></FiltersBar>
 					)}
 					<Table
+						expandable={expandable}
 						rowSelection={rowSelection}
 						dataSource={tableDataState.tableData}
 						columns={columns}

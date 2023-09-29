@@ -245,6 +245,12 @@ _readset_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
     "sample_name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample": FK_FILTERS,
+    "release_status": CATEGORICAL_FILTERS,
+    "release_status_timestamp": DATE_FILTERS,
+    "validation_status": CATEGORICAL_FILTERS,
+    "validation_status_timestamp": DATE_FILTERS,
+    "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("dataset__", _dataset_filterset_fields),
 }
 
@@ -252,10 +258,7 @@ _dataset_file_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     **_prefix_keys("readset__", _readset_filterset_fields),
     "file_path": CATEGORICAL_FILTERS_LOOSE,
-    "release_status": CATEGORICAL_FILTERS,
-    "release_status_timestamp": DATE_FILTERS,
-    "validation_status": CATEGORICAL_FILTERS,
-    "validation_status_timestamp": DATE_FILTERS,
+    "size": SCALAR_FILTERS,
 }
 
 _pooled_sample_filterset_fields: FiltersetFields = {

@@ -1,6 +1,6 @@
 import { Dispatch } from "redux"
 import { FMSId, FMSTrackedModel } from "../../models/fms_api_models"
-import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Sample, Study, User, Workflow } from "../../models/frontend_models"
+import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Readset, Sample, Study, User, Workflow } from "../../models/frontend_models"
 import { selectContainersByID, selectLibrariesByID, selectProcessMeasurementsByID, selectProcessesByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
 import { list as listContainers } from '../containers/actions'

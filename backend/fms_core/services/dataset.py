@@ -1,12 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, TypedDict, NotRequired
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
-from fms_core.models._constants import ReleaseStatus, ValidationStatus
+from fms_core.models._constants import ValidationStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
 from fms_core.services.readset import create_readset
@@ -96,10 +96,13 @@ def reset_dataset_content(dataset: Dataset):
         errors.append(str(err))
     return errors, warnings
 
+class DatasetFileReport(TypedDict):
+    final_path: NotRequired[str]
+    size: int
+
 def create_dataset_file(readset: Readset,
                         file_path: str,
-                        validation_status: ValidationStatus = ValidationStatus.AVAILABLE,
-                        release_status: ReleaseStatus = ReleaseStatus.AVAILABLE
+                        size: int
                        ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     """
     Create a new dataset_file and return it. A dataset and readset must be created beforehand.
@@ -107,8 +110,8 @@ def create_dataset_file(readset: Readset,
     Args:
         `readset`: Readset to which the file is related.
         `file_path`: Path to the file on disk.
+        `size`: Size of the file.
         `validation_status`: Validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
-        `release_status`: Release status of the file (choices : Available - 0 (default), Released - 1, Blocked - 2).
 
     Returns:
         Tuple containing the created dataset_file, the error messages and the warning messages.
@@ -122,25 +125,17 @@ def create_dataset_file(readset: Readset,
     
     if not file_path:
         errors.append(f"Missing file path for dataset file.")
-
-    if release_status not in [value for value, _ in ReleaseStatus.choices]:
-        errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
-
-    if validation_status not in [value for value, _ in ValidationStatus.choices]:
-        errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
-
+    
+    if not size:
+        errors.append(f"Missing size for dataset file.")
+        
     if errors:
         return dataset_file, errors, warnings
-
-    dataset_file_data = {}
 
     try:
         dataset_file = DatasetFile.objects.create(readset=readset,
                                                   file_path=file_path,
-                                                  validation_status=validation_status,
-                                                  **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
-                                                  release_status=release_status,
-                                                  **(dict(release_status_timestamp=timezone.now()) if release_status != ReleaseStatus.AVAILABLE else dict())) # Set timestamp if setting Status to non-default
+                                                  size=size)
     except ValidationError as e:
         errors.extend(e.messages)
 
@@ -173,10 +168,10 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
 
     if not errors:
         for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
-            for dataset_file in DatasetFile.objects.filter(readset__dataset=dataset).all():
-                dataset_file.validation_status = validation_status
-                dataset_file.validation_status_timestamp = timestamp
-                dataset_file.save()
+            for readset in Readset.objects.filter(dataset=dataset).all():
+                readset.validation_status = validation_status
+                readset.validation_status_timestamp = timestamp
+                readset.save()
                 count_status += 1
     else: # Error returns None, while a non-existant run name or lane will return 0.
         return None, errors, warnings
@@ -203,8 +198,8 @@ def get_experiment_run_lane_validation_status(run_name: str, lane: int):
     if not lane:
         errors.append(f"Missing lane.")
 
-    if not errors and DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).exists():
-        validation_status = DatasetFile.objects.filter(readset__dataset__run_name=run_name, readset__dataset__lane=lane).first().validation_status
+    if not errors and Readset.objects.filter(dataset__run_name=run_name, dataset__lane=lane).exists():
+        validation_status = Readset.objects.filter(dataset__run_name=run_name, dataset__lane=lane).first().validation_status
     else:
         errors.append(f"No dataset file found matching the requested run name ({run_name}) and lane ({str(lane)}).")
 
@@ -253,7 +248,7 @@ def ingest_run_validation_report(report_json):
     metric_report_url = report_json["metrics_report_url"]
     for readset_name, readset in report_json["readsets"].items():
         project_name = readset["barcodes"][0]["PROJECT"]
-        external_project_id = readset["barcodes"][0]["external_project_id"]
+        external_project_id = readset["external_project_id"]
         dataset_key = (external_project_id, run_name, lane)
         if dataset_key not in datasets:
             dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
@@ -276,8 +271,12 @@ def ingest_run_validation_report(report_json):
         readset_by_name[readset_name] = readset_obj
         for key in readset:
             if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
+                file: DatasetFileReport = readset[key]
+                if file.get('final_path') is None:
+                    errors.append(("final_path not provided for file type {0} of readset {1}", key, readset_name))
+                    continue
                 dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
-                                                                           file_path=readset[key])
+                                                                           file_path=file['final_path'], size=file['size'])
                 errors.extend(newerrors)
                 warnings.extend(newwarnings)
 

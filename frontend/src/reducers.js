@@ -14,6 +14,7 @@ import {
 import { coordinates } from "./modules/coordinates/reducers";
 import { datasetFiles } from "./modules/datasetFiles/reducers";
 import { datasets } from "./modules/datasets/reducers";
+import { readsets } from "./modules/readsets/reducers";
 import {
   experimentRunLanes
 } from './modules/experimentRunLanes/reducers';
@@ -96,9 +97,11 @@ import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
+import { readsetsTable } from './modules/readsetsTable/reducers'
 import { individualsTable } from './modules/individualsTable/reducers'
 import { usersTable } from "./modules/usersTable/reducers"
 import { indicesTable } from './modules/indicesTable/reducers'
+import { datasetsTable } from './modules/datasetsTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -117,6 +120,8 @@ const allReducers = combineReducers({
   containersTable,
   datasets,
   datasetFiles,
+  datasetsTable,
+  readsets,
   experimentRuns,
   experimentRunLanes,
   externalExperimentRuns,
@@ -137,6 +142,7 @@ const allReducers = combineReducers({
   projectSamplesTable,
   pooledSamples,
   samplesTable,
+  readsetsTable,
   protocols,
   processes,
   processMeasurementsSummary,
