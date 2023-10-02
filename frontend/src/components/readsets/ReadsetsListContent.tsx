@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer } from "react"
+import React, { useEffect, useReducer, useState } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import ReadsetTableActions from "../../modules/readsetsTable/actions"
@@ -20,6 +20,7 @@ import { FILTER_TYPE } from "../../constants";
 import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities";
 import { setReleaseStatusAll } from "../../modules/datasets/actions";
 import { setReleaseStatus } from "../../modules/readsets/actions";
+import { FMSId } from "../../models/fms_api_models"
 
 
 
@@ -41,17 +42,24 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const allFilesReleased = dataset?.released_status_count === totalCount
     const allFilesBlocked = dataset?.blocked_status_count === totalCount
 
-    const refreshTable = useCallback(() => {
-        dispatch(ReadsetTableActions.resetPagedItems())
-        dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(dataset?.id))))
-        dispatch(ReadsetTableActions.listPage(1))
-    }, [dataset?.id])
 
+    // For this table, there is a single PagedItems redux state. We need to reset the paged items
+    // state whenever a new dataset is selected by the user. This component keeps track of the
+    // last dataset that was loaded so that it can detect when it has received a new dataset
+    // and has to flush the state.
+    const [lastDatasetID, setLastDatasetID] = useState<FMSId>()
+    const currentDatasetID = dataset?.id
     useEffect(() => {
-        if (dataset && dataset.id) {
-            refreshTable()
+        
+        if (currentDatasetID) {
+            if (currentDatasetID !== lastDatasetID) {
+                setLastDatasetID(currentDatasetID)
+                dispatch(ReadsetTableActions.resetPagedItems())
+                dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(currentDatasetID))))
+                dispatch(ReadsetTableActions.listPage(1))
+            }
         }
-    }, [dataset?.id, dispatch])
+    }, [dispatch, currentDatasetID])
 
     const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
 
@@ -138,7 +146,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         dispatchReleaseStatusOption({ type: "all", release_status })
     }
 
-    console.log("canReleaseOrBlockFiles", canReleaseOrBlockFiles)
     const extraButtons = <div>
         <Button
             style={{ margin: 6 }}
@@ -173,11 +180,10 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             onClick={() => {
                 const { all, specific } = releaseStatusOption
                 if (all) {
-                    dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, refreshTable))
+                    dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, ReadsetTableActions.refreshPage()))
                 } else {
-                    console.log(specific)
                     Object.entries(specific).forEach(([id, release_status]) => {
-                        dispatch(setReleaseStatus(id, release_status, refreshTable))
+                        dispatch(setReleaseStatus(id, release_status, ReadsetTableActions.refreshPage()))
                     })
                 }
                 dispatchReleaseStatusOptionTypeAll(undefined)
