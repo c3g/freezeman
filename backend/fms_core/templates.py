@@ -157,6 +157,17 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
   ],
 }
 
+EXPERIMENT_AXIOM_TEMPLATE = {
+    "identity" : {"description": "Template to add Axiom experiments",
+                  "file": static("submission_templates/Experiment_run_axiom_v4_5_0.xlsx"),
+                  "protocol": "Axiom Preparation"},
+    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+    "prefill info": [
+
+    ]
+}
+
 INDEX_CREATION_TEMPLATE = {
   "identity": {"description": "Template to create indices", "file": static("submission_templates/Index_creation_v3_7_0.xlsx")},
   "sheets info": [
