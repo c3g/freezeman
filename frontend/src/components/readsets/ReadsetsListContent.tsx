@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react"
+import React, { useEffect, useReducer } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import ReadsetTableActions from "../../modules/readsetsTable/actions"
@@ -20,9 +20,6 @@ import { FILTER_TYPE } from "../../constants";
 import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities";
 import { setReleaseStatusAll } from "../../modules/datasets/actions";
 import { setReleaseStatus } from "../../modules/readsets/actions";
-import { FMSId } from "../../models/fms_api_models"
-
-
 
 interface ReadsetsListContentProps {
     dataset?: Dataset
@@ -42,22 +39,16 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const allFilesReleased = dataset?.released_status_count === totalCount
     const allFilesBlocked = dataset?.blocked_status_count === totalCount
 
-
     // For this table, there is a single PagedItems redux state. We need to reset the paged items
     // state whenever a new dataset is selected by the user. This component keeps track of the
     // last dataset that was loaded so that it can detect when it has received a new dataset
     // and has to flush the state.
-    const [lastDatasetID, setLastDatasetID] = useState<FMSId>()
-    const currentDatasetID = dataset?.id
+    const currentDatasetID = dataset ? +dataset.id : undefined
     useEffect(() => {
-        
         if (currentDatasetID) {
-            if (currentDatasetID !== lastDatasetID) {
-                setLastDatasetID(currentDatasetID)
-                dispatch(ReadsetTableActions.resetPagedItems())
-                dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(currentDatasetID))))
-                dispatch(ReadsetTableActions.listPage(1))
-            }
+            dispatch(ReadsetTableActions.resetPagedItems())
+            dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(currentDatasetID))))
+            dispatch(ReadsetTableActions.listPage(1))
         }
     }, [dispatch, currentDatasetID])
 
