@@ -108,7 +108,9 @@ const api = {
   },
 
   instruments: {
-    list: () => get("/instruments/"),
+    list: (options) => get("/instruments/", options),
+    add: (instrument) => post("/instruments/", instrument),
+    update: (instrument) => patch(`/instruments/${instrument.id}/`, instrument)
   },
 
   instrumentTypes: {

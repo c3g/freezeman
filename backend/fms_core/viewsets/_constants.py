@@ -133,6 +133,8 @@ _process_measurement_filterset_fields: FiltersetFields = {
 _instrument_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
+    "serial_id": CATEGORICAL_FILTERS_LOOSE,
+    "type__id": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _platform_filterset_fields: FiltersetFields = {
