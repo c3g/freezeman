@@ -1,4 +1,4 @@
-from .axiom_create_folder import AxiomCreateFolders
+from .axiom_create_folders import AxiomCreateFolders
 
 __all__ = [
     "AxiomCreateFolders"
