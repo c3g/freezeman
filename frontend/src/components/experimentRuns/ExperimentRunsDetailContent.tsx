@@ -126,7 +126,7 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 			<AppPageHeader title={`Experiment ${experimentRun.id}`} />
 
 			<PageContent loading={false} style={pageStyle} tabs={true}>
-				<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
+				<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={{padding: "1em"}}>
 					<TabPane tab="Overview" key="overview">
 						<ExperimentRunOverview experimentRun={experimentRun} container={container} process={process}/>
 					</TabPane>

@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectAppInitialized, selectAuthState, selectTaxonsByID, selectUsersByID } from "../../selectors";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { add, list, update } from "../../modules/taxons/actions";
+import TaxonsTableActions from "../../modules/taxonsTable/actions";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { Taxon } from "../../models/frontend_models";
@@ -73,20 +74,22 @@ const EditTaxon = ({ taxon }: EditTaxonProps) => {
             dispatch(
                 add({ ...new_taxon })
             )
-                .then(() => {
-                    navigate('/taxons')
-                })
-                .then(() => { dispatch(list()) })
-                .catch(err => setFormErrors({ ...err.data }))
+            .then(() => {
+                navigate('/taxons')
+            })
+            .then(() => { dispatch(list()) })
+            .then(() => { dispatch(TaxonsTableActions.setStale(true)) })
+            .catch(err => setFormErrors({ ...err.data }))
         } else {
             dispatch(
                 update(taxon.id, { ...new_taxon })
             )
-                .then(() => {
-                    navigate('/taxons')
-                })
-                .then(() => { dispatch(list()) })
-                .catch(err => setFormErrors({ ...err.data }))
+            .then(() => {
+                navigate('/taxons')
+            })
+            .then(() => { dispatch(list()) })
+	    .then(() => { dispatch(TaxonsTableActions.setStale(true)) })
+            .catch(err => setFormErrors({ ...err.data }))
         }
     }
     const onCancel = useCallback(() => {

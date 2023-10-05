@@ -10,3 +10,5 @@ class SampleKindViewSet(viewsets.ModelViewSet):
     serializer_class = SampleKindSerializer
     pagination_class = None
     permission_classes = [IsAuthenticated]
+
+    ordering = ["name"]

@@ -14,6 +14,7 @@ import {
 import { coordinates } from "./modules/coordinates/reducers";
 import { datasetFiles } from "./modules/datasetFiles/reducers";
 import { datasets } from "./modules/datasets/reducers";
+import { readsets } from "./modules/readsets/reducers";
 import {
   experimentRunLanes
 } from './modules/experimentRunLanes/reducers';
@@ -86,12 +87,21 @@ import { steps } from './modules/steps/reducers';
 import { studies } from "./modules/studies/reducers";
 import { studySamples } from "./modules/studySamples/reducers";
 import { taxons } from "./modules/taxons/reducers";
+import { taxonsTable } from './modules/taxonsTable/reducers'
 import { users } from "./modules/users/reducers";
 import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
 import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
 import { projectsTable} from './modules/projectsTable/reducers'
 import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
+import { samplesTable } from './modules/samplesTable/reducers'
+import { containersTable } from './modules/containersTable/reducers'
+import { librariesTable } from './modules/librariesTable/reducers'
+import { readsetsTable } from './modules/readsetsTable/reducers'
+import { individualsTable } from './modules/individualsTable/reducers'
+import { usersTable } from "./modules/usersTable/reducers"
+import { indicesTable } from './modules/indicesTable/reducers'
+import { datasetsTable } from './modules/datasetsTable/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -107,8 +117,11 @@ const allReducers = combineReducers({
   containerTemplateActions,
   containerPrefillTemplates,
   containers,
+  containersTable,
   datasets,
   datasetFiles,
+  datasetsTable,
+  readsets,
   experimentRuns,
   experimentRunLanes,
   externalExperimentRuns,
@@ -116,7 +129,9 @@ const allReducers = combineReducers({
   experimentRunTemplateActions,
   runTypes,
   individuals,
+  individualsTable,
   taxons,
+  taxonsTable,
   referenceGenomes,
   instruments,
   sampleKinds,
@@ -126,6 +141,8 @@ const allReducers = combineReducers({
   samples,
   projectSamplesTable,
   pooledSamples,
+  samplesTable,
+  readsetsTable,
   protocols,
   processes,
   processMeasurementsSummary,
@@ -140,15 +157,18 @@ const allReducers = combineReducers({
   indicesSummary,
   indices,
   indicesTemplateActions,
+  indicesTable,
   propertyValues,
   sequences,
   librariesSummary,
   libraries,
+  librariesTable,
   libraryTemplateActions,
   libraryPrefillTemplates,
   libraryTypes,
   platforms,
   users,
+  usersTable,
   groups,
   pagination,
   versions,

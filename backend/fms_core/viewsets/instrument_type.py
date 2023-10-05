@@ -9,7 +9,7 @@ from ._utils import _list_keys
 from ._constants import _instrument_type_filterset_fields
 
 class InstrumentTypeViewSet(viewsets.ModelViewSet):
-    queryset = InstrumentType.objects.all()
+    queryset = InstrumentType.objects.all().distinct()
 
     serializer_class = InstrumentTypeSerializer
 
@@ -20,3 +20,5 @@ class InstrumentTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_instrument_type_filterset_fields,
     }
+
+    ordering = ["type"]

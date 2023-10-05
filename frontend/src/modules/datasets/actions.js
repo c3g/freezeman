@@ -2,9 +2,8 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {DATASET_FILE_FILTERS, DATASET_FILTERS} from "../../components/filters/descriptions";
+import {READSET_FILTERS, DATASET_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
-import { list as listFiles } from "../datasetFiles/actions";
 
 export const GET                   = createNetworkActionTypes("DATASETS.GET");
 export const LIST                  = createNetworkActionTypes("DATASETS.LIST");
@@ -90,18 +89,15 @@ export const clearFilters = thenList(() => {
     }
 });
 
-export const setReleaseStatus = (id, releaseStatus, exceptions = [], filters = {}) => async (dispatch, getState) => {
+export const setReleaseStatusAll = (id, releaseStatus, exceptions = [], filters = {}, refreshCallback) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
-    const datasetFiles = getState().datasetFiles.itemsByID
-    filters = serializeFilterParams(filters, DATASET_FILE_FILTERS)
+    filters = serializeFilterParams(filters, READSET_FILTERS)
 
     if (dataset && !dataset.isFetching) {
         const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
             { meta: { id }}));
-        
-        if (datasetFiles && !datasetFiles.isFetching) {
-            await dispatch(listFiles({ id__in: Object.values(datasetFiles).filter((file) => file.dataset === id).map((file) => file.id).join(",") }))
-        }
+
+            await dispatch(refreshCallback)
 
         return result
     }
@@ -125,7 +121,6 @@ export default {
     list,
     listTable,
     listFilter,
-    setReleaseStatus,
 };
 
 // Helper to call list() after another action

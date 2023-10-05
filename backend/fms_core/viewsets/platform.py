@@ -15,3 +15,5 @@ class PlatformViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_platform_filterset_fields,
     }
+
+    ordering = ["name"]

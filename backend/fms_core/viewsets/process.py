@@ -15,3 +15,5 @@ class ProcessViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_process_filterset_fields,
     }
+
+    ordering = ["-id"]

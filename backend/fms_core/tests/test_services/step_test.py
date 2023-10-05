@@ -10,22 +10,20 @@ from fms_core.utils import str_normalize
 from pandas import pandas as pd
 
 class StepServicesTestCase(TestCase):
-    def setUp(self) -> None:
-        # extract sheets from library prep for test
-        self.sheet_info = templates.LIBRARY_PREPARATION_TEMPLATE["sheets info"]
-        self.file = APP_DATA_ROOT / "Library_preparation_v4_4_0.xlsx"
-        self.sheets = {}
-        for sheet in self.sheet_info:
-            pd_sheet = pd.read_excel(self.file, sheet_name=sheet["name"], header=None)
-            dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
-            self.sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
-
-        self.protocol = Protocol.objects.get(name="Library Preparation")
-
     def test_get_step_from_template(self):
-        matches_dict, errors, warnings = get_step_from_template(protocol=self.protocol,
-                                                                template_sheets=self.sheets,
-                                                                template_sheet_definition=self.sheet_info)
+        # extract sheets from library prep for test
+        sheet_info = templates.LIBRARY_PREPARATION_TEMPLATE["sheets info"]
+        file = APP_DATA_ROOT / "Library_preparation_v4_4_0.xlsx"
+        sheets = {}
+        for sheet in sheet_info:
+            pd_sheet = pd.read_excel(file, sheet_name=sheet["name"], header=None)
+            dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
+            sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
+
+        protocol = Protocol.objects.get(name="Library Preparation")
+        matches_dict, errors, warnings = get_step_from_template(protocol=protocol,
+                                                                template_sheets=sheets,
+                                                                template_sheet_definition=sheet_info)
         
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
@@ -33,3 +31,24 @@ class StepServicesTestCase(TestCase):
         self.assertEqual(matches_dict[1].name, "Library Preparation (PCR-free, DNBSEQ)")
         self.assertEqual(matches_dict[2].name, "Library Preparation (PCR-enriched, Illumina)")
         self.assertEqual(matches_dict[3].name, "Library Preparation (PCR-enriched, Illumina)")
+
+    def test_get_step_from_template_batch(self):
+        # extract sheets from axiom sample preparation for test
+        sheet_info = templates.AXIOM_PREPARATION_TEMPLATE["sheets info"]
+        file = APP_DATA_ROOT / "Axiom_sample_preparation_v4_5_0.xlsx"
+        sheets = {}
+        for sheet in sheet_info:
+            pd_sheet = pd.read_excel(file, sheet_name=sheet["name"], header=None)
+            dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
+            sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
+
+        protocol = Protocol.objects.get(name="Axiom Sample Preparation")
+        matches_dict, errors, warnings = get_step_from_template(protocol=protocol,
+                                                                template_sheets=sheets,
+                                                                template_sheet_definition=sheet_info,
+                                                                batch_centric=True)
+        
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(matches_dict[0].name, "Axiom Sample Preparation")
+        self.assertEqual(len(matches_dict), 1)

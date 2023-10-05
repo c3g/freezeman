@@ -29,6 +29,8 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         *_list_keys(_index_filterset_fields),
     )
 
+    ordering = ["id"]
+
     template_action_list = [
         {
             "name": "Add indices",

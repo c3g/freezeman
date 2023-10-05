@@ -1,194 +1,13 @@
 import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useAppDispatch, useAppSelector } from '../../hooks'
-import { FMSTrackedModel } from '../../models/fms_api_models'
-import { ItemsByID } from '../../models/frontend_models'
-import { DataID, FilterDescription, FilterDescriptionSet, FilterKeySet, FilterOptions, FilterSet, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
-import { PagedItemsActions } from '../../models/paged_items_factory'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useAppDispatch } from '../../hooks'
+import { DataID, FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
-import { RootState } from '../../store'
-import FiltersBar from '../filters/FiltersBar'
-import { addFiltersToColumns } from '../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
+import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
+import { useRefreshWhenStale } from './useRefreshWhenStale'
 
-
-/*  This is a hook that merges column definitions with filter definitions to produce
-	complete column descriptions for the table. 
-*/
-export function useFilteredColumns<T>(
-	columns: IdentifiedTableColumnType<T>[],
-	filterDefinitions: FilterDescriptionSet,
-	filterKeys: FilterKeySet,
-	filters: FilterSet,
-	setFilterCallback: PagedItemsActionsCallbacks['setFilterCallback'],
-	setFilterOptionsCallback: PagedItemsActionsCallbacks['setFilterOptionsCallback']
-) {
-
-	const wrappedSetFilterCallback = useCallback(
-		(filterKey: string, value: FilterValue, description: FilterDescription) => {
-			setFilterCallback(value, description)
-		},
-		[setFilterCallback]
-	)
-
-	const wrappedSetFilterOptionsCallback = useCallback(
-		(filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => {
-			setFilterOptionsCallback(description, { [propertyName]: value })
-		},
-		[setFilterOptionsCallback]
-	)
-
-	const tableColumns = useMemo(() => {
-		const mergedColumns = addFiltersToColumns(
-			columns,
-			filterDefinitions ?? {},
-			filterKeys ?? {},
-			filters ?? {},
-			wrappedSetFilterCallback,
-			wrappedSetFilterOptionsCallback
-		)
-		return mergedColumns
-	}, [columns, filterDefinitions, filterKeys, filters, wrappedSetFilterCallback, wrappedSetFilterOptionsCallback])
-
-	return tableColumns
-}
-
-/**
- * Given an instance of PagedItemsActions, this hook returns a set of callbacks
- * that are given to the PagedItemsTable, and which will dispatch the actions
- * when called from the table.
- * 
- * This is just a utility to make it easy to pass the callbacks to the table, when
- * you don't need to implement custom callbacks for the table functions.
- * 
- * @param pagedItemActions 
- * @returns 
- */
-export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsActions): PagedItemsActionsCallbacks {
-	const dispatch = useAppDispatch()
-	return useMemo(() => {
-		const listPageCallback = (pageNumber: number) => {
-			dispatch(pagedItemActions.listPage(pageNumber))
-		}
-
-		const setFixedFilterCallback = (filter: FilterSetting) => {
-			dispatch(pagedItemActions.setFixedFilter(filter))
-		}
-
-		const setFilterCallback = (value: FilterValue, description: FilterDescription) => {
-			dispatch(pagedItemActions.setFilter(value, description))
-		}
-
-		const setFilterOptionsCallback = (description: FilterDescription, options: FilterOptions) => {
-			dispatch(pagedItemActions.setFilterOptions(description, options))
-		}
-
-		const clearFiltersCallback = () => {
-			dispatch(pagedItemActions.clearFilters())
-		}
-
-		const setSortByCallback = (sortBy: SortBy) => {
-				dispatch(pagedItemActions.setSortBy(sortBy))
-		}
-
-		const setPageSizeCallback =(pageSize: number) => {
-			dispatch(pagedItemActions.setPageSize(pageSize))
-		}
-
-		const resetPagedItemsCallback = () => {
-			dispatch(pagedItemActions.resetPagedItems())
-		}
-
-		const setStaleCallback = (stale: boolean) => {
-			dispatch(pagedItemActions.setStale(stale))
-		}
-
-		const refreshPageCallback = () => {
-			dispatch(pagedItemActions.refreshPage())
-		}
-
-		return {
-			listPageCallback,
-			setFixedFilterCallback,
-			setFilterCallback,
-			setFilterOptionsCallback,
-			clearFiltersCallback,
-			setSortByCallback,
-			setPageSizeCallback,
-			resetPagedItemsCallback,
-			setStaleCallback,
-			refreshPageCallback,	
-		}
-	}, [dispatch, pagedItemActions])
-}
-
-/**
- * This hook can be used for the getDataObjectsByID callback, if a simple selector
- * can be used to lookup the data items displayed in the table, such as projectByID
- * or samplesByID.
- * 
- * The hook returns a callback function that takes a list of item ID's as input
- * and outputs an object mapping the id's to data objects.
- * 
- * The transform function is used to convert from the data type stored in itemsByID
- * to the data type used in the table. Normally this is to transform something like a
- * project to an object containing a project, ie.
- * 
- * {
- * 	project: <some project>
- * }
- * 
- * This hook is intended for simple tables such as the samples, containers, individuals,
- * projects and libraries tables. For more complicated tables (such as workflow tables)
- * you should probably write your own custom function.
- * 
- * @param itemsByIDSelector 
- * @returns 
- */
-export function useItemsByIDToDataObjects<T extends FMSTrackedModel, D>(
-	itemsByIDSelector: (state: RootState) => ItemsByID<T>,
-	transform: (item: T) => D
-) {
-	const itemsByID = useAppSelector(itemsByIDSelector)
-	
-	const callback = useCallback((ids: DataID[]) => {
-		async function mapItemIDs(ids: DataID[]) : Promise<DataObjectsByID<D>> {
-			return ids.reduce((acc, id) => {
-				const item = itemsByID[id]
-				if (item) {
-					acc[id] = transform(item)
-				}
-				return acc
-			}, {})
-		}
-
-		return mapItemIDs(ids)
-	}, [itemsByID, transform])
-
-	return callback
-}
-
-/**
- * This hook creates a callback that automatically refreshes the table if
- * the stale flag in PagedItems is set. The flag is cleared and the table
- * items are refreshed.
- * 
- * PagedItems table will call the callback whenever the paged items state changes,
- * to check for the stale flag.
- * @param pagedItemActions 
- * @returns 
- */
-export function useRefreshWhenStale(refreshPageCallback: PagedItemsActionsCallbacks['refreshPageCallback'], setStaleCallback: PagedItemsActionsCallbacks['setStaleCallback']) {
-	const refreshWhenStale = useCallback((stale: PagedItems['stale']) => {
-		if (stale) {
-			refreshPageCallback()
-			setStaleCallback(false)
-		}
-	}, [refreshPageCallback, setStaleCallback])
-
-	return refreshWhenStale
-}
 
 export interface PagedItemTableSelection<T extends PageableData> {
 	selectedItemIDs: DataID[]
@@ -223,11 +42,18 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 
 	columns: IdentifiedTableColumnType<T>[]
 	fixedFilter?: FilterSetting
+
+	// If true, a FiltersBar component is rendered with the table.
 	usingFilters: boolean
 
 	selection?: PagedItemTableSelection<T>
-
+	expandable?: any
 	initialLoad?: boolean
+}
+
+interface TableDataState<T> {
+	objectMap: DataObjectsByID<T>
+	tableData: T[]
 }
 
 function PagedItemsTable<T extends object>({
@@ -245,11 +71,12 @@ function PagedItemsTable<T extends object>({
 	usingFilters,
 	selection,
 	initialLoad = true,
+	expandable
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
 	const { items, sortBy, stale } = pagedItems
-	const [dataObjects, setDataObjects] = useState<DataObjectsByID<T>>({})
+	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
 
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
@@ -270,19 +97,6 @@ function PagedItemsTable<T extends object>({
 			/* Only call once when the component is mounted*/
 		]
 	)
-
-	//
-	useEffect(() => {
-		async function retrieveItems(ids: number[]) {
-			try {
-				const objectMap = await getDataObjectsByID(ids)
-				setDataObjects(objectMap)
-			} catch (error) {
-				console.error(error)
-			}
-		}
-		retrieveItems([...items])
-	}, [getDataObjectsByID, items])
 
 	// Refresh the page if the paged items are marked as stale, if using 
 	// the refresh mechanism.
@@ -332,21 +146,36 @@ function PagedItemsTable<T extends object>({
 		}
 	}
 
-	// Get the objects by ID, in the order defined by 'items'
-	const tableData = items.reduce((acc, id) => {
-		const data = dataObjects[id]
-		if (data) {
-			acc.push(data)
+	// When 'items' changes we have to fetch the data object corresponding with the item id's.
+	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.
+	// We also create a map that maps object id's to objects, which is used to lookup row keys.
+	useEffect(() => {
+		async function retrieveItems(ids: number[]) {
+			try {
+				const objectMap = await getDataObjectsByID(ids)
+				const tableData = items.reduce((acc, id) => {
+					const data = objectMap[id]
+					if (data) {
+						acc.push(data)
+					}
+					return acc
+				}, [] as T[])
+
+				setTableDataState({objectMap, tableData})
+			} catch (error) {
+				console.error(error)
+			}
 		}
-		return acc
-	}, [] as T[])
+		retrieveItems([...items])
+	}, [getDataObjectsByID, items])
+
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
 	// key. This allows us to use data objects that don't have an explicit 'id' property.
 	function getRowKeyForDataObject(data: T) {
-		for (const key in dataObjects) {
-			if (dataObjects[key] === data) {
+		for (const key in tableDataState.objectMap) {
+			if (tableDataState.objectMap[key] === data) {
 				return key
 			}
 		}
@@ -361,15 +190,17 @@ function PagedItemsTable<T extends object>({
 						<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback}></FiltersBar>
 					)}
 					<Table
+						expandable={expandable}
 						rowSelection={rowSelection}
-						dataSource={tableData}
+						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						style={{ overflowX: 'auto' }}
+						scroll={{x: 300}}
 						onChange={sortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
+
 					/>
 					{true && (
 						<Pagination

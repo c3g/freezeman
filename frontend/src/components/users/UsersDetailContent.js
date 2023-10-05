@@ -29,8 +29,8 @@ import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
 import { listRevisions, listVersions, get } from "../../modules/users/actions";
 import routes from "./routes";
-import canWrite from "./canWrite";
 import useTimeline from "../../utils/useTimeline";
+import { useIsStaff } from "./useIsStaff";
 
 const { Title, Text } = Typography;
 
@@ -46,7 +46,6 @@ const columns = [
 ];
 
 const mapStateToProps = state => ({
-  canWrite: canWrite(state),
   isFetching: state.users.isFetching,
   usersError: state.users.error,
   usersByID: state.users.itemsByID,
@@ -55,13 +54,13 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = { get, listRevisions, listVersions };
 
-const ReportsUserContent = ({ canWrite, isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions }) => {
+const ReportsUserContent = ({ isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions }) => {
   const history = useNavigate();
   const { id } = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
   const [isLoadRevisions, setIsLoadRevisions] = useState(false);
-
   const user = usersByID[id];
+  const canEdit = useIsStaff()
 
   if (!isFetching && !user) {
     get(id)
@@ -81,7 +80,7 @@ const ReportsUserContent = ({ canWrite, isFetching, usersError, usersByID, group
       <AppPageHeader
         title="User"
         breadcrumb={{ routes: routes.concat(route), itemRender }}
-        extra={canWrite ?
+        extra={canEdit ?
           <EditButton url={`/users/${id}/update`} /> : undefined
         }
       />

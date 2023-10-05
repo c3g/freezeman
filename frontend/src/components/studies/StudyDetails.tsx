@@ -89,7 +89,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
 
     return (
         <>
-            <FlexBar style={{padding: 0}}>
+            <FlexBar>
                 <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
                 <Space>
                     {!study?.removable && <Typography.Text italic style={{color: 'gray'}}>&#9432; Studies that contain samples or that have been initiated cannot be removed.</Typography.Text>}
@@ -107,6 +107,11 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
                 <Descriptions.Item label="Workflow" span={4}>{workflow?.name ?? ''}</Descriptions.Item>
                 <Descriptions.Item label="Start Step" span={2}>{getStepWithOrder(study?.start)}</Descriptions.Item>
                 <Descriptions.Item label="End Step" span={2}>{getStepWithOrder(study?.end)}</Descriptions.Item>
+                <Descriptions.Item label="Description" span={4}>{
+                    <div style={{ overflowY: 'auto', maxHeight: '9.5em' }}>
+                        {study?.description?.split("\n")?.map((line, key) => <div key={key}>{line}</div>)}
+                    </div>
+                }</Descriptions.Item>
             </Descriptions>
             { study && studySamples ? 
                 <StudySamples studyID={study.id} studySamples={studySamples} refreshSamples={refreshSamples}/>

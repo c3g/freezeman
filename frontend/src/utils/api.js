@@ -17,7 +17,7 @@ const api = {
     get: id => get(`/containers/${id}/`),
     add: container => post("/containers/", container),
     update: container => patch(`/containers/${container.id}/`, container),
-    list: (options, abort) => get("/containers", options, { abort }),
+    list: (options, abort) => get("/containers/", options, { abort }),
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
@@ -47,7 +47,11 @@ const api = {
     list: (options, abort) => get("/datasets/", options, { abort }),
     setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters })
   },
-
+  readsets: {
+    get: id => get(`/readsets/${id}`),
+    list: (options, abort) => get(`/readsets/`, options, { abort }),
+    setReleaseStatus: (id, release_status) => post(`/readsets/set_release_status/`, {id, release_status}),
+  },
   datasetFiles: {
     get: id => get(`/dataset-files/${id}/`),
     update: dataset => patch(`/dataset-files/${dataset.id}/`, dataset),
@@ -55,7 +59,7 @@ const api = {
   },
 
   experimentRuns: {
-    get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
+    get: experimentRunId => get(`/experiment-runs/${experimentRunId}/`),
     list: (options, abort) => get("/experiment-runs/", options, {abort}),
     listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
     listExternalRuns: (options, abort) => get("/experiment-runs/list_external_experiment_run/", {limit: 100000, ...options}, {abort}),

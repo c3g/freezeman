@@ -36,6 +36,8 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         **_experiment_run_filterset_fields,
     }
 
+    ordering = ["-id"]
+
     template_action_list = []
 
     def get_renderer_context(self):

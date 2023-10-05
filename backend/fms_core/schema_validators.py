@@ -115,6 +115,7 @@ RUN_PROCESSING_SCHEMA = {
                 "^.*$": {
                     "type": "object",
                     "properties": {
+                        "external_project_id": {"type": "string"},
                         "sample_name": {"type": "string"},
                         "derived_sample_id": {"type": ["null", "number"]},
                         "barcodes": {
@@ -122,10 +123,9 @@ RUN_PROCESSING_SCHEMA = {
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "external_project_id": {"type": "string"},
                                     "PROJECT": {"type": "string"},
                                 },
-                                "required": ["external_project_id", "PROJECT"]
+                                "required": ["PROJECT"]
                             },
                             "minItems": 1,
                         },

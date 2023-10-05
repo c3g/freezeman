@@ -1,4 +1,4 @@
-import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
+import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
 import { FMSId } from "../../models/fms_api_models"
 import { Individual } from "../../models/frontend_models"
 import { FilterDescription, FilterValue, SortBy } from "../../models/paged_items"

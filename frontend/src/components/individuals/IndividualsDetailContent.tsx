@@ -12,7 +12,7 @@ import IndividualAssociatedSamples from "./IndividualAssociatedSamples";
 import { flushIndividualDetails, listTable } from "../../modules/individualDetails/actions";
 import { IndividualDetails, IndividualDetailsById } from "../../modules/individualDetails/models";
 import { Sample } from "../../models/frontend_models";
-import { SampleAndLibrary } from "../shared/WorkflowSamplesTable/ColumnSets";
+import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
 
 const IndividualsDetailContent = () => {
     const { id } = useParams();

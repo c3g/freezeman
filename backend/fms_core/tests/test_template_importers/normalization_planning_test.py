@@ -5,10 +5,9 @@ import zipfile
 from io import BytesIO
 
 from fms_core.template_importer.importers import NormalizationPlanningImporter
-from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
 from fms_core.models._constants import DOUBLE_STRANDED
-
 from fms_core.models import SampleKind
 
 from fms_core.services.container import create_container, get_container
@@ -21,21 +20,28 @@ from fms_core.services.index import get_or_create_index_set, create_index, creat
 class NormalizationplanningTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = NormalizationPlanningImporter()
-        self.files = [APP_DATA_ROOT / "Normalization_planning_v4_4_0_Library.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v4_4_0_Sample_Tube.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v4_4_0_Sample_Plate.xlsx",
+        self.files = [APP_DATA_ROOT / "Normalization_planning_v4_5_0_Library.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v4_5_0_Sample_Tube.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v4_5_0_Sample_Plate.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v4_5_0_Genotyping_Tube.xlsx",
                      ]
+
+        self.invalid_template_tests = [TEST_DATA_ROOT / "Normalization_planning_v4_5_0_Concentration_Too_Low.xlsx",
+                                       TEST_DATA_ROOT / "Normalization_planning_v4_5_0_Missing_Input.xlsx",
+                                      ]
 
         self.INDICES = [{"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001", "sequence_3_prime": ["ACAAAGTC"], "sequence_5_prime": ["CAGGTGTC"]},
                         {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002", "sequence_3_prime": ["ACTTTGTC"], "sequence_5_prime": ["CAGGTGTC"]},
                         {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_003-IDT_10nt_UDI_i5_003", "sequence_3_prime": ["ACAATGTC"], "sequence_5_prime": ["CAGGTGTC"]},]
 
+        self.DNA_sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+        self.plate_source_name_and_barcode = "NormSourcePlate1"
+        self.source_sample_initial_volume = 100
+
         self.prefill_data()
 
 
     def prefill_data(self):
-        sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
-
         platform_illumina, _, _ = get_platform(name="ILLUMINA")
         library_type, _, _ = get_library_type(name="PCR-free")
 
@@ -63,6 +69,9 @@ class NormalizationplanningTestCase(TestCase):
             {'barcode': 'SRC_TUBE_NORM_1', 'name': 'SRC_TUBE_NORM_1', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'E01',},
             {'barcode': 'SRC_TUBE_NORM_2', 'name': 'SRC_TUBE_NORM_2', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'F01',},
             {'barcode': 'SRC_TUBE_NORM_3', 'name': 'SRC_TUBE_NORM_3', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'G01',},
+            {'barcode': 'SRC_TUBE_NORM_4', 'name': 'SRC_TUBE_NORM_4', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'E02',},
+            {'barcode': 'SRC_TUBE_NORM_5', 'name': 'SRC_TUBE_NORM_5', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'F02',},
+            {'barcode': 'SRC_TUBE_NORM_6', 'name': 'SRC_TUBE_NORM_6', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'G02',},
         ]
 
         samples_info = [
@@ -79,6 +88,9 @@ class NormalizationplanningTestCase(TestCase):
             {'name': 'Sample11NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D02', 'library': None, 'fragment_size': None},
             {'name': 'Sample12NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D03', 'library': None, 'fragment_size': None},
             {'name': 'Sample13NormPlanning', 'volume': 100, 'conc.': 20, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D04', 'library': None, 'fragment_size': None},
+            {'name': 'Sample14NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_4', 'coordinates': None, 'library': None, 'fragment_size': None},
+            {'name': 'Sample15NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_5', 'coordinates': None, 'library': None, 'fragment_size': None},
+            {'name': 'Sample16NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_6', 'coordinates': None, 'library': None, 'fragment_size': None},
         ]
 
         for info in containers_info:
@@ -95,7 +107,7 @@ class NormalizationplanningTestCase(TestCase):
                                               creation_date=datetime(2022, 7, 5, 0, 0),
                                               container=container,
                                               coordinates=info['coordinates'],
-                                              sample_kind=sample_kind_DNA,
+                                              sample_kind=self.DNA_sample_kind,
                                               library=info['library'],
                                               fragment_size=info['fragment_size'])
 
@@ -114,7 +126,7 @@ class NormalizationplanningTestCase(TestCase):
                             for i, line in enumerate(zfile):
                                 csv_content[i] = line.decode().strip().split(",") # Extract file into dictionary
 
-                        if filename.find("Normalization_libraries_diluent_") != -1:
+                        if filename.find("Normalization_library_diluent_") != -1:
                             # 0: robot_dst_barcode
                             # 1: robot_dst_coord
                             # 2: volume_diluent
@@ -131,8 +143,8 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][0], "Dil1")
                             self.assertEqual(csv_content[3][1], "3")
                             self.assertEqual(csv_content[3][2], "21.036")
-                                
-                        elif filename.find("Normalization_libraries_main_dilution_") != -1:
+
+                        elif filename.find("Normalization_library_main_dilution_") != -1:
                             # 0: container_src_barcode
                             # 1: robot_src_barcode
                             # 2: robot_src_coord
@@ -162,7 +174,7 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][4], "3")
                             self.assertEqual(csv_content[3][5], "28.964")
 
-                        elif filename.find("Normalization_samples_Janus") != -1:
+                        elif filename.find("Normalization_sample_Janus") != -1:
                             # 0: robot_src_barcode
                             # 1: robot_src_coord
                             # 2: robot_dst_barcode
@@ -196,8 +208,8 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[4][1], "4")
                             self.assertEqual(csv_content[4][2], "Dst2")
                             self.assertEqual(csv_content[4][3], "9")
-                            self.assertEqual(csv_content[4][4], "26.000")
-                            self.assertEqual(csv_content[4][5], "4.000")
+                            self.assertEqual(csv_content[4][4], "0.000")
+                            self.assertEqual(csv_content[4][5], "100.000")
                             # Fifth sample
                             self.assertEqual(csv_content[5][0], "Src1")
                             self.assertEqual(csv_content[5][1], "12")
@@ -217,10 +229,10 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[7][1], "28")
                             self.assertEqual(csv_content[7][2], "Dst2")
                             self.assertEqual(csv_content[7][3], "12")
-                            self.assertEqual(csv_content[7][4], "100.000")
+                            self.assertEqual(csv_content[7][4], "10.000")
                             self.assertEqual(csv_content[7][5], "100.000")
 
-                        elif filename.find("Normalization_samples_Biomek") != -1:
+                        elif filename.find("Normalization_sample_Biomek") != -1:
                             # 0: robot_src_barcode
                             # 1: src_coord
                             # 2: robot_dst_barcode
@@ -257,3 +269,71 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][5], "Water")
                             self.assertEqual(csv_content[3][6], "4")                            
                             self.assertEqual(csv_content[3][7], "99.000")
+
+                        elif filename.find("Normalization_genotyping_Biomek") != -1:
+                            # 0: robot_src_barcode
+                            # 1: src_coord
+                            # 2: robot_dst_barcode
+                            # 3: dst_coord
+                            # 4: Volume_Sample
+                            # 5: Diluant_Bath = "Water"
+                            # 6: Diluant_Well = "4"
+                            # 7: Volume_Diluant
+
+                            # First sample
+                            self.assertEqual(csv_content[1][0], "Src1")
+                            self.assertEqual(csv_content[1][1], "E02")
+                            self.assertEqual(csv_content[1][2], "Dst1")
+                            self.assertEqual(csv_content[1][3], "A04")
+                            self.assertEqual(csv_content[1][4], "0.200")
+                            self.assertEqual(csv_content[1][5], "Water")
+                            self.assertEqual(csv_content[1][6], "4")
+                            self.assertEqual(csv_content[1][7], "99.800")
+                            # Second sample
+                            self.assertEqual(csv_content[2][0], "Src1")
+                            self.assertEqual(csv_content[2][1], "F02")
+                            self.assertEqual(csv_content[2][2], "Dst1")
+                            self.assertEqual(csv_content[2][3], "B04")
+                            self.assertEqual(csv_content[2][4], "0.800")
+                            self.assertEqual(csv_content[2][5], "Water")
+                            self.assertEqual(csv_content[2][6], "4")
+                            self.assertEqual(csv_content[2][7], "99.200")
+                            # Third sample
+                            self.assertEqual(csv_content[3][0], "Src1")
+                            self.assertEqual(csv_content[3][1], "G02")
+                            self.assertEqual(csv_content[3][2], "Dst1")
+                            self.assertEqual(csv_content[3][3], "C04")
+                            self.assertEqual(csv_content[3][4], "1.000")
+                            self.assertEqual(csv_content[3][5], "Water")
+                            self.assertEqual(csv_content[3][6], "4")                            
+                            self.assertEqual(csv_content[3][7], "99.000")
+
+    def test_insufficient_concentration_normalization_planning(self):
+        self.container_1, _, _ = create_container(barcode=self.plate_source_name_and_barcode,
+                                                  kind='96-well plate',
+                                                  name=self.plate_source_name_and_barcode)
+
+        self.source_sample_1, _, _ = \
+            create_full_sample(name="SOURCESAMPLENORM1", alias="SOURCESAMPLENORM1", volume=self.source_sample_initial_volume, concentration=5,
+                               collection_site="Site1", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_1, coordinates="A01",
+                               sample_kind=self.DNA_sample_kind)
+                    
+        result = {}
+        result = load_template(importer=self.importer, file=self.invalid_template_tests[0])
+        self.assertEqual(result['valid'], False)
+        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["concentration"][0].messages[0], "Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution. Use bypass if you want to submit using this final volume value.")
+
+    def test_insufficient_material_normalization_planning(self):
+        self.container_1, _, _ = create_container(barcode=self.plate_source_name_and_barcode,
+                                                  kind='96-well plate',
+                                                  name=self.plate_source_name_and_barcode)
+
+        self.source_sample_2, _, _ = \
+            create_full_sample(name="SOURCESAMPLENORM2", alias="SOURCESAMPLENORM2", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="Site2", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_1, coordinates="A02",
+                               sample_kind=self.DNA_sample_kind)
+        
+        result = {}
+        result = load_template(importer=self.importer, file=self.invalid_template_tests[1])
+        self.assertEqual(result['valid'], False)
+        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["concentration"][0].messages[0], "Insufficient available NA material to comply. Use bypass if you want to submit using this final volume value.")

@@ -4,7 +4,7 @@ from fms_core.services.taxon import can_edit_taxon
 from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from django.db.models import Max, F
+from django.db.models import Max, F, Sum
 from fms_core.services.study import can_remove_study
 
 from .models import (
@@ -583,36 +583,59 @@ class DatasetSerializer(serializers.ModelSerializer):
     released_status_count = serializers.SerializerMethodField()
     blocked_status_count = serializers.SerializerMethodField()
     latest_release_update = serializers.SerializerMethodField()
-
+    readset_count = serializers.SerializerMethodField()
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url", "readset_count")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
 
     def get_released_status_count(self, obj):
-        return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
+        return Readset.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
     
     def get_blocked_status_count(self, obj):
-        return DatasetFile.objects.filter(readset__dataset=obj.id, release_status=ReleaseStatus.BLOCKED).count()
+        return Readset.objects.filter(dataset=obj.id, release_status=ReleaseStatus.BLOCKED).count()
     
     def get_latest_release_update(self, obj):
-        return DatasetFile.objects.filter(readset__dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
+        return Readset.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
+    
+    def get_readset_count(self, obj):
+        return Readset.objects.filter(dataset=obj.id).count()
 
 class ReadsetSerializer(serializers.ModelSerializer):
+    total_size = serializers.SerializerMethodField()
+    library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
+    index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample")
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
+
+    def get_total_size(self, obj: Readset):
+        return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
+
+class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
+    total_size = serializers.SerializerMethodField()
+    metrics = serializers.SerializerMethodField(read_only=True)
+    library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
+    index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
+    class Meta:
+        model = Readset
+        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index")
+    def get_metrics(self, instance):
+        metrics = instance.metrics.all()
+        serialized_metrics = MetricSerializer(metrics, many=True)
+        return serialized_metrics.data
+    
+    def get_total_size(self, obj: Readset):
+        return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)
 
     class Meta:
         model = DatasetFile
-        fields = ("id", "readset", "file_path",
-                  "release_status", "release_status_timestamp",
-                  "validation_status", "validation_status_timestamp")
+        fields = ("id", "readset", "file_path", "size")
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 
@@ -821,7 +844,7 @@ class StudySerializer(serializers.ModelSerializer):
     removable = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Study
-        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "removable")
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "description", "removable")
 
     def get_removable(self, instance: Study):
         is_removable, *_ = can_remove_study(instance.pk)
