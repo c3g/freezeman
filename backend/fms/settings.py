@@ -202,6 +202,9 @@ TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
 # Directory where experiment run info files are output
 RUN_INFO_OUTPUT_PATH = os.environ.get("FMS_RUN_INFO_PATH", os.path.join(BASE_DIR, 'lims-run-info'))
 
+# Directory where folders are created for Axiom experiment run data
+FMS_AXIOM_ARRAYS_PATH = os.environ.get("FMS_AXIOM_ARRAYS_PATH", os.path.join(BASE_DIR, 'axiom-arrays'))
+
 MEDIA_URL = '/media/'
 
 TEMP_ROOT = os.path.join(BASE_DIR, 'tmp/') # for temporary files created during request processing.
