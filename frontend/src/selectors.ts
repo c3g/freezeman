@@ -67,6 +67,7 @@ export const selectDatasetsByID = (state: RootState) => state.datasets.itemsByID
 export const selectDatasetsState = (state: RootState) => state.datasets
 export const selectExperimentRunLanesState = (state: RootState) => state.experimentRunLanes
 export const selectExperimentRunsByID = (state: RootState) => state.experimentRuns.itemsByID as ItemsByID<ExperimentRun>
+export const selectExperimentRunsTable = (state: RootState) => state.experimentRunsTable
 export const selectExperimentRunsState = (state: RootState) => state.experimentRuns
 export const selectExperimentRunsTemplateActions = (state: RootState) => state.experimentRunTemplateActions
 export const selectExternalExperimentRuns = (state: RootState) => state.externalExperimentRuns.runs

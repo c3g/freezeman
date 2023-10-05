@@ -102,6 +102,7 @@ import { individualsTable } from './modules/individualsTable/reducers'
 import { usersTable } from "./modules/usersTable/reducers"
 import { indicesTable } from './modules/indicesTable/reducers'
 import { datasetsTable } from './modules/datasetsTable/reducers'
+import { experimentRunsTable } from "./modules/experimentRunsTable/reducers"
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -121,6 +122,7 @@ const allReducers = combineReducers({
   datasets,
   datasetFiles,
   datasetsTable,
+  experimentRunsTable,
   readsets,
   experimentRuns,
   experimentRunLanes,
