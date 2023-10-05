@@ -53,6 +53,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
         normalization_mapping_rows = []
         norm_choice = []
+        base_error_rows = []
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
             source_sample = {
@@ -99,9 +100,15 @@ class NormalizationPlanningImporter(GenericImporter):
             )
 
             if (normalization_row_mapping is None):
-                self.base_errors.append(f"Row {row_id} has errors.")
+                base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
+            
             normalization_mapping_rows.append(normalization_row_mapping)
             norm_choice.append(robot["norm_choice"])
+
+        if len(base_error_rows) > 1:
+            self.base_errors.append(f"Rows {base_error_rows} have errors.")
+        elif len(base_error_rows) == 1:
+            self.base_errors.append(f"Row {base_error_rows[0]} has errors.")
 
         # Make sure all the normalization choices and formats for outputs are the same
         if len(set(norm_choice)) != 1:
