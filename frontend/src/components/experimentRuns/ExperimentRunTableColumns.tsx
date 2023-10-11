@@ -105,6 +105,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Start date',
         dataIndex: ['experimentRun', 'start_date'],
         sorter: true,
+        width: 120,
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.start_date}</div>
         }
