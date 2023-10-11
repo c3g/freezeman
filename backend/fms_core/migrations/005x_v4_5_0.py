@@ -5,7 +5,7 @@ from fms_core.models._constants import SampleType
 
 ADMIN_USERNAME = 'biobankadmin'
 
-def create_axiom_related_objects(apps, scheme_editor):
+def create_axiom_experiment_run_related_objects(apps, scheme_editor):
     Platform = apps.get_model("fms_core", "Platform")
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
     Instrument = apps.get_model("fms_core", "Instrument")
@@ -37,7 +37,7 @@ def create_axiom_related_objects(apps, scheme_editor):
 
             reversion.add_to_revision(it)
 
-        # Instrument dictionary {NAME: TYPE} for creation
+        # Create Instruments
         INSTRUMENTS = {
             "Protected": "GeneTitan",
             "OnNetwork": "GeneTitan",
@@ -122,7 +122,7 @@ class Migration(migrations.Migration):
     ]
     operations = [
         migrations.RunPython(
-            create_axiom_related_objects,
+            create_axiom_experiment_run_related_objects,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
