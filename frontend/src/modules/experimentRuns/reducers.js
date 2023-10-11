@@ -140,7 +140,7 @@ export const experimentRuns = (
         case LIST.REQUEST:
             return { ...state, isFetching: true, };
         case LIST.RECEIVE: {
-            const results = action.data
+            const results = action.data.results
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }

@@ -4,6 +4,10 @@ import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 import { FilterDescription } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
+import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard";
+import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
+import { Link } from "react-router-dom";
+import { Tag } from "antd";
 
 export interface ObjectWithExperimentRun {
     experimentRun: ExperimentRun
@@ -20,14 +24,33 @@ export enum ExperimentRunColumnID {
     LAUNCH = "LAUNCH"
 }
 
-export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]: ExperimentRunColumn } = {
+export function getColumnsForExperimentRun(launchesById, runTypesById, instrumentsById): ExperimentRunColumn[] {
+    const columnDefinitions = EXPERIMENT_RUN_COLUMN_DEFINITIONS(launchesById, runTypesById, instrumentsById)
+    return [
+        columnDefinitions.ID,
+        columnDefinitions.NAME,
+        columnDefinitions.RUN_TYPE,
+        columnDefinitions.INSTRUMENT,
+        columnDefinitions.INSTRUMENT_TYPE,
+        columnDefinitions.CONTAINER_BARCODE,
+        columnDefinitions.START_DATE,
+        columnDefinitions.LAUNCH,
+    ]
+}
+
+
+export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, instrumentsById): { [key in ExperimentRunColumnID]: ExperimentRunColumn } => ({
     [ExperimentRunColumnID.ID]: {
         columnID: ExperimentRunColumnID.ID,
         title: 'ID',
         dataIndex: ['experimentRun', 'id'],
         sorter: true,
+        width: '5%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return (experimentRun.id &&
+                <Link to={`/experiment-runs/${experimentRun.id}`}>
+                    {experimentRun.id}
+                </Link>)
         }
     },
     [ExperimentRunColumnID.NAME]: {
@@ -35,8 +58,9 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]
         title: 'Name',
         dataIndex: ['experimentRun', 'name'],
         sorter: true,
+        width: '5%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return <div>{experimentRun.name}</div>
         }
     },
     [ExperimentRunColumnID.RUN_TYPE]: {
@@ -44,8 +68,9 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]
         title: 'Run Type',
         dataIndex: ['experimentRun', 'run_type'],
         sorter: true,
+        width: '5%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return <Tag>{runTypesById[experimentRun.run_type]?.name}</Tag>
         }
     },
     [ExperimentRunColumnID.INSTRUMENT]: {
@@ -53,8 +78,9 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]
         title: 'Instrument',
         dataIndex: ['experimentRun', 'instrument'],
         sorter: true,
+        width: '5%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return <div>{instrumentsById[experimentRun.instrument]?.name}</div>
         }
     },
     [ExperimentRunColumnID.INSTRUMENT_TYPE]: {
@@ -62,8 +88,9 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]
         title: 'Instrument Type',
         dataIndex: ['experimentRun', 'instrument_type'],
         sorter: true,
+        width: '10%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return <div>{experimentRun.instrument_type}</div>
         }
     },
     [ExperimentRunColumnID.CONTAINER_BARCODE]: {
@@ -71,8 +98,12 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]
         title: 'Container Barcode',
         dataIndex: ['experimentRun', 'container_barcode'],
         sorter: true,
+        width: '15%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return (experimentRun.container &&
+                <Link to={`/containers/${experimentRun.container}`}>
+                    <WithContainerRenderComponent objectID={experimentRun.container} placeholder={'loading...'} render={container => <span>{container.barcode}</span>} />
+                </Link>)
         }
     },
     [ExperimentRunColumnID.START_DATE]: {
@@ -80,8 +111,9 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]
         title: 'Start date',
         dataIndex: ['experimentRun', 'start_date'],
         sorter: true,
+        width: '10%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return <div>{experimentRun.start_date}</div>
         }
     },
     [ExperimentRunColumnID.LAUNCH]: {
@@ -89,12 +121,15 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS: { [key in ExperimentRunColumnID]
         title: 'Launch',
         dataIndex: ['experimentRun', 'launch'],
         sorter: true,
+        width: '30%',
         render: (_, { experimentRun }) => {
-            return <div></div>
+            return (<div>
+                <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
+            </div>)
         }
     }
 
-}
+})
 
 export enum ExperimentRunFilterID {
     ID = ExperimentRunColumnID.ID,

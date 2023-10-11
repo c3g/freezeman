@@ -80,6 +80,7 @@ export const selectIndicesTemplateActions = (state: RootState) => state.indicesT
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
 export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
 export const selectIndividualsTable = (state: RootState) => state.individualsTable
+export const selectExperimentRunLaunches = (state: RootState) => state.experimentRunLaunches
 export const selectInstrumentsByID = (state: RootState) => state.instruments.itemsByID as ItemsByID<Instrument>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
