@@ -45,7 +45,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'ID',
         dataIndex: ['experimentRun', 'id'],
         sorter: true,
-        width: '5%',
         render: (_, { experimentRun }) => {
             return (experimentRun.id &&
                 <Link to={`/experiment-runs/${experimentRun.id}`}>
@@ -58,7 +57,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Name',
         dataIndex: ['experimentRun', 'name'],
         sorter: true,
-        width: '5%',
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.name}</div>
         }
@@ -68,7 +66,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Run Type',
         dataIndex: ['experimentRun', 'run_type'],
         sorter: true,
-        width: '5%',
         render: (_, { experimentRun }) => {
             return <Tag>{runTypesById[experimentRun.run_type]?.name}</Tag>
         }
@@ -78,7 +75,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Instrument',
         dataIndex: ['experimentRun', 'instrument'],
         sorter: true,
-        width: '5%',
         render: (_, { experimentRun }) => {
             return <div>{instrumentsById[experimentRun.instrument]?.name}</div>
         }
@@ -88,7 +84,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Instrument Type',
         dataIndex: ['experimentRun', 'instrument_type'],
         sorter: true,
-        width: '10%',
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.instrument_type}</div>
         }
@@ -98,7 +93,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Container Barcode',
         dataIndex: ['experimentRun', 'container_barcode'],
         sorter: true,
-        width: '15%',
         render: (_, { experimentRun }) => {
             return (experimentRun.container &&
                 <Link to={`/containers/${experimentRun.container}`}>
@@ -111,7 +105,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Start date',
         dataIndex: ['experimentRun', 'start_date'],
         sorter: true,
-        width: '10%',
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.start_date}</div>
         }
@@ -121,7 +114,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Launch',
         dataIndex: ['experimentRun', 'launch'],
         sorter: true,
-        width: '30%',
+        width: 180,
         render: (_, { experimentRun }) => {
             return (<div>
                 <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
