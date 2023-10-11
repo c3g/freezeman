@@ -44,10 +44,10 @@ class NormalizationRowHandler(GenericRowHandler):
 
             concentration = None
             # Case when ng/uL is given
-            if destination_sample['concentration_ngul']:
+            if destination_sample['concentration_ngul'] is not None:
                 concentration = destination_sample['concentration_ngul']
             # Case when nM is given
-            elif destination_sample['concentration_nm']:
+            elif destination_sample['concentration_nm'] is not None:
                 if source_sample_obj.is_library:
                     # Calculate the concentration taking into account volume ratios
                     concentration, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
