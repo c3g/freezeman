@@ -203,7 +203,7 @@ TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
 RUN_INFO_OUTPUT_PATH = os.environ.get("FMS_RUN_INFO_PATH", os.path.join(BASE_DIR, 'lims-run-info'))
 
 # Directory where folders are created for Axiom experiment run data
-FMS_AXIOM_ARRAYS_PATH = os.environ.get("FMS_AXIOM_ARRAYS_PATH", os.path.join(BASE_DIR, 'axiom-arrays'))
+FMS_AUTOMATIONS_WORK_PATH = os.environ.get("FMS_AUTOMATIONS_WORK_PATH", os.path.join(BASE_DIR, "automations_work"))
 
 MEDIA_URL = '/media/'
 

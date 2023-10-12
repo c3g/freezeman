@@ -31,7 +31,7 @@ class Step(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         if (self.type == StepType.PROTOCOL and self.protocol is None):
-            add_error("protocol", f"Protocol step {self.name} needs a reference to their protocol.")
+            add_error("protocol", f"Protocol step {self.name} needs a reference to its protocol.")
 
         if errors:
             raise ValidationError(errors)

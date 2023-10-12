@@ -16,8 +16,8 @@ __all__ = ["StepSpecification"]
 @reversion.register()
 class StepSpecification(TrackedModel):
     display_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name used to describe the value to the user.", validators=[name_validator_with_spaces])
-    sheet_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the step template sheet.", validators=[name_validator_with_spaces])
-    column_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the step template column.", validators=[name_validator_with_spaces])
+    sheet_name = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the step template sheet.", validators=[name_validator_with_spaces])
+    column_name = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the step template column.", validators=[name_validator_with_spaces])
     step = models.ForeignKey(Step, on_delete=models.PROTECT, related_name="step_specifications", help_text="The step of the step specification.")
     value = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Value of the step specification", validators=[name_validator_with_spaces])
 
@@ -30,6 +30,12 @@ class StepSpecification(TrackedModel):
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
+
+        # Ensure that sheet_name and column_name are only empty when the there is no protocol attached to the step (automation)
+        if self.sheet_name is None and self.step.protocol is not None:
+            add_error("sheet_name", f"Sheet name is required to define a protocol step specification.")
+        if self.column_name is None and self.step.protocol is not None:
+            add_error("column_name", f"Column name is required to define a protocol step specification.")
 
         if errors:
             raise ValidationError(errors)
