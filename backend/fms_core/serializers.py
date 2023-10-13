@@ -793,7 +793,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
 class StepSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StepSpecification
-        fields = ("id", "display_name", "sheet_name", "column_name", "value")
+        fields = ("id", "name", "sheet_name", "column_name", "value")
 
 class StepSerializer(serializers.ModelSerializer):
     step_specifications = serializers.SerializerMethodField(read_only=True)

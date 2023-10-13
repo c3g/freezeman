@@ -13,9 +13,10 @@ from reversion.models import Version
 import json
 import os
 
+from fms_core import automations
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
-from fms_core.models import Sample, Protocol, Step
+from fms_core.models import Sample, Protocol, Step, StepSpecification
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -41,7 +42,33 @@ class FZY(Func):
             **extras
         )
 
+class AutomationsMixin:
+    # Automation are defined in their workflow step specification.
+    # To launch an automation we only require the step id and the parameters from the request are forwarded to the automation.
 
+    @action(detail=False, methods=["post"])
+    def execute_automation(self, request):
+        errors = {}
+        warnings = {}
+        result = None
+        step_id = request.POST.get("step_id")
+        if step_id is not None:
+            automation_class_name = StepSpecification.objects.filter(step_id=step_id, name=automations._constants.AUTOMATION_CLASS).values_list("value", flat=True)[:1]
+            if automation_class_name is not None:
+                queryset = self.filter_queryset(self.get_queryset())
+                sample_ids = queryset.values_list("sample_id", flat=True)
+                result, errors, warnings = getattr(automations, automation_class_name).execute(sample_ids=sample_ids)
+            else:
+                errors["Automation Class"] = f"Automation class not found for step ID {step_id}."
+        else:
+            errors["Step ID"] = f"Missing step ID for automation."
+        results = {
+            "result": result,
+            "errors": errors,
+            "warnings": warnings,
+        }
+        return Response(results)
+    
 class TemplateActionsMixin:
     # When this mixin is used, this list will be overridden to provide a list
     # of template actions for the viewset implementation.

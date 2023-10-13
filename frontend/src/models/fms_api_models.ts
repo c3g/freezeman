@@ -406,7 +406,7 @@ export interface FMSStepHistory extends FMSTrackedModel {
 }
 
 export interface FMSStepSpecification extends FMSTrackedModel {
-    display_name: string
+    name: string
     sheet_name: string
     column_name: string
     value: string

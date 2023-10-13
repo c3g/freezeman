@@ -22,7 +22,7 @@ class AxiomCreateFolders(GenericAutomation):
         `sample_ids`: A list of samples that are ready for the Axiom experiment run. 
 
         Returns:
-        A tuple containing errors and warnings encountered during execution.
+        A tuple containing None (no result), errors and warnings encountered during execution.
         
         """
         
@@ -32,4 +32,4 @@ class AxiomCreateFolders(GenericAutomation):
             with open(path.join(self.work_folder, project, project + FILE_SUFFIX), "w") as fp:
                 fp.write(project)
 
-        return (self.errors, self.warnings)
+        return (None, self.errors, self.warnings)

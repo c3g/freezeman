@@ -134,7 +134,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 			break
 		}
 		case ProtocolNames.Normalization: {
-			const type = getStepSpecificationValue(step, 'Normalization Type')
+			const type = getStepSpecificationValue(step, 'NormalizationType')
 			if (type === 'Library') {
 				columnsForStep = DEFAULT_LIBRARY_COLUMNS
 			} else {

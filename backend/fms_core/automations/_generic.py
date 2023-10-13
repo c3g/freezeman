@@ -10,4 +10,4 @@ class GenericAutomation(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def execute(self, **kwargs):
         self.errors["UndefinedAutomation"] = f"Automation called without being defined." # Overload
-        return (self.errors, self.warnings)
+        return (None, self.errors, self.warnings)

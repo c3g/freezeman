@@ -1,3 +1,4 @@
+import re
 import reversion
 from django.contrib.auth.models import User
 
@@ -5,8 +6,24 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 from fms_core.models._constants import SampleType
+from fms_core.automations._constants import AUTOMATION_CLASS
 
 ADMIN_USERNAME = 'biobankadmin'
+
+def move_display_name_to_name(apps, schema_editor):
+    StepSpecification = apps.get_model("fms_core", "StepSpecification")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Move display_name to name field and remove spaces.")
+        reversion.set_user(admin_user)
+
+        for step_specification in StepSpecification.objects.all():
+            step_specification.name = step_specification.display_name.replace(" ", "")
+            step_specification.save()
+            reversion.add_to_revision(step_specification)
 
 def create_axiom_automation_step(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
@@ -22,7 +39,7 @@ def create_axiom_automation_step(apps, schema_editor):
         STEPS = [
             # {name, protocol_name}
             {"name": "Axiom Create Folders", "expected_sample_type": SampleType.EXTRACTED_SAMPLE,
-             "specifications": [{"display_name": "Automation class", "value": "AxiomCreateFolders"}]},
+             "specifications": [{"name": AUTOMATION_CLASS, "value": "AxiomCreateFolders"}]},
         ]
 
         # Create Step and specification
@@ -35,7 +52,7 @@ def create_axiom_automation_step(apps, schema_editor):
             reversion.add_to_revision(step)
 
             for specification in step_info["specifications"]:
-                step_specification = StepSpecification.objects.create(display_name=specification["display_name"],
+                step_specification = StepSpecification.objects.create(name=specification["name"],
                                                                       value=specification["value"],
                                                                       step=step,
                                                                       created_by_id=admin_user_id,
@@ -51,6 +68,20 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='stepspecification',
+            name='name',
+            field=models.CharField(default='DEFAULT', help_text='Name used to describe the value.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))]),
+            preserve_default=False,
+        ),
+        migrations.RunPython(
+            move_display_name_to_name,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RemoveField(
+            model_name='stepspecification',
+            name='display_name',
+        ),
         migrations.AddField(
             model_name='step',
             name='type',

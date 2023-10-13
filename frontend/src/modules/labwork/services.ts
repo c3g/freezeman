@@ -113,8 +113,8 @@ export function processFMSLabworkSummary(
 	return result
 }
 
-function getSpecifiedValue(step: LabworkSummaryStep, displayName: string) {
-	const spec = step.specifications.find(spec => spec.display_name === displayName)
+function getSpecifiedValue(step: LabworkSummaryStep, name: string) {
+	const spec = step.specifications.find(spec => spec.name === name)
 	if (spec) {
 		return spec.value
 	}

@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from fms_core.filters import SampleNextStepFilter
 
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, _list_keys
+from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin, _list_keys
 from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, Workflow
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
@@ -18,7 +18,7 @@ from fms_core.template_importer.importers import (ExtractionImporter, SampleQCIm
                                                   LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter, LibraryCaptureImporter,
                                                   LibraryConversionImporter, ExperimentRunImporter)
 
-class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin):
+class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin):
     queryset = SampleNextStep.objects.all().distinct()
 
     queryset = queryset.annotate(
