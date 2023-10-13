@@ -60,6 +60,21 @@ def create_axiom_automation_step(apps, schema_editor):
 
                 reversion.add_to_revision(step_specification)
 
+def initialize_step_history_sample(apps, schema_editor):
+    StepHistory = apps.get_model("fms_core", "StepHistory")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Initialize the sample field for pre-existing step history.")
+        reversion.set_user(admin_user)
+
+        for step_history in StepHistory.objects.all():
+            step_history.sample_id = step_history.process_measurement.source_sample_id
+            step_history.save()
+            reversion.add_to_revision(step_history)
+
+    assert not StepHistory.objects.filter(sample_id=0).exists()
 
 class Migration(migrations.Migration):
 
@@ -106,5 +121,20 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             create_axiom_automation_step,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AddField(
+            model_name='stephistory',
+            name='sample',
+            field=models.ForeignKey(default=0, help_text='Source sample that completed the step.', on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.sample'),
+            preserve_default=False,
+        ),
+        migrations.RunPython(
+            initialize_step_history_sample,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='stephistory',
+            name='process_measurement',
+            field=models.ForeignKey(blank=True, help_text='Process measurement associated to the study step.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.processmeasurement'),
         ),
     ]

@@ -272,7 +272,7 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
 
     return samples_has_completed, errors, warnings
 
-def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
+def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
     """
     Service that move the sample to the next step order in a workflow. The service verifies the SampleNextStep instances that match current_step and current_sample.
     A new SampleNextStep instance is created and returned for each current instance using the next_step_order. The current SampleNextStep instances are removed.
@@ -298,9 +298,6 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
     if not isinstance(current_sample, Sample):
         errors.append(f"A valid current sample instance must be provided.")
     
-    if not isinstance(process_measurement, ProcessMeasurement):
-        errors.append(f"A valid process measurement instance must be provided.")
-
     if not isinstance(workflow_action, WorkflowAction):
         errors.append(f"A valid workflow action instance must be provided.")
 
@@ -342,6 +339,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                     StepHistory.objects.create(study=study,
                                                step_order=current_step_order,
                                                process_measurement=process_measurement,
+                                               sample=current_sample,
                                                workflow_action=workflow_action)
                 except Exception as err:
                     errors.append(f"Failed to create StepHistory.")
@@ -462,7 +460,7 @@ def remove_sample_from_workflow(current_step: Step, current_sample: Sample, proc
     return removed_count, errors, warnings
 
 
-def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sample, process_measurement: ProcessMeasurement, next_sample: Sample=None) -> Tuple[List[str], List[str]]:
+def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, next_sample: Sample=None) -> Tuple[List[str], List[str]]:
     """
     Execute the workflow action listed in the template.
 
