@@ -5,6 +5,7 @@ import { FilterDescription } from "../../models/paged_items";
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
 import { Link } from "react-router-dom";
+import { Tag } from "antd";
 
 export interface ObjectWithInstrument {
     instrument: Instrument
@@ -19,7 +20,17 @@ enum InstrumentColumnID {
 
 type InstrumentColumn = IdentifiedTableColumnType<ObjectWithInstrument>
 
-export const INSTRUMENT_COLUMN_DEFINITIONS: { [key in InstrumentColumnID]: InstrumentColumn } = {
+export function getColumnsForInstruments(instrumentTypesById) {
+    const columnDefinitions = INSTRUMENT_COLUMN_DEFINITIONS(instrumentTypesById)
+    return [
+        columnDefinitions.ID,
+        columnDefinitions.NAME,
+        columnDefinitions.SERIAL_ID,
+        columnDefinitions.TYPE
+    ]
+}
+
+export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in InstrumentColumnID]: InstrumentColumn } => ({
     [InstrumentColumnID.ID]: {
         columnID: InstrumentColumnID.ID,
         title: 'ID',
@@ -29,7 +40,6 @@ export const INSTRUMENT_COLUMN_DEFINITIONS: { [key in InstrumentColumnID]: Instr
                 <div>{instrument.id}</div>
             </Link>
         }
-
     },
     [InstrumentColumnID.NAME]: {
         columnID: InstrumentColumnID.NAME,
@@ -52,10 +62,10 @@ export const INSTRUMENT_COLUMN_DEFINITIONS: { [key in InstrumentColumnID]: Instr
         title: 'Type',
         dataIndex: ['instrument', 'type'],
         render: (_, { instrument }) => {
-            return <div>{instrument.type}</div>
+            return <Tag>{instrumentTypesById[instrument.type]?.name}</Tag>
         }
     }
-}
+})
 enum InstrumentFilterID {
     ID = InstrumentColumnID.ID,
     NAME = InstrumentColumnID.NAME,

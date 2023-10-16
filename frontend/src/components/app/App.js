@@ -133,9 +133,9 @@ const MENU_ITEMS = [
         text: "Indices",
       },
       {
-        url: "/taxons",
+        url: "/instruments",
         icon: <BarcodeOutlined />,
-        text: "Taxons",
+        text: "Instruments",
       },
       {
         url: "/genomes",
@@ -143,14 +143,14 @@ const MENU_ITEMS = [
         text: "Reference Genomes",
       },
       {
+        url: "/taxons",
+        icon: <BarcodeOutlined />,
+        text: "Taxons",
+      },
+      {
         url: "/workflows",
         icon: <BarcodeOutlined />,
         text: "Workflows",
-      },
-      {
-        url: "/instruments",
-        icon: <BarcodeOutlined />,
-        text: "Instruments",
       },
     ]
   },

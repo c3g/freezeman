@@ -6,6 +6,7 @@ import {
 	ExperimentRun,
 	Index,
 	Instrument,
+	InstrumentType,
 	ItemsByID,
 	Library,
 	Process,
@@ -81,6 +82,7 @@ export const selectIndividualsByID = (state: RootState) => state.individuals.ite
 export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
 export const selectIndividualsTable = (state: RootState) => state.individualsTable
 export const selectInstrumentsByID = (state: RootState) => state.instruments.itemsByID as ItemsByID<Instrument>
+export const selectInstrumentTypesByID = (state: RootState) => state.instrumentTypes.itemsByID as ItemsByID<InstrumentType>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>

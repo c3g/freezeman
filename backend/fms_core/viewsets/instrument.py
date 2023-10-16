@@ -22,7 +22,6 @@ class InstrumentViewSet(viewsets.ModelViewSet):
     }
     ordering_fields = (
         *_list_keys(_instrument_filterset_fields),
-        "quantity_ng"
     )
 
     @action(detail=False, methods=["get"])

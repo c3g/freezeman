@@ -26,6 +26,7 @@ import {
   experimentRunTemplateActions,
   experimentRuns,
   instruments,
+  instrumentTypes,
   propertyValues,
   runTypes
 } from "./modules/experimentRuns/reducers";
@@ -136,6 +137,7 @@ const allReducers = combineReducers({
   taxonsTable,
   referenceGenomes,
   instruments,
+  instrumentTypes,
   sampleKinds,
   samplesSummary,
   sampleTemplateActions,

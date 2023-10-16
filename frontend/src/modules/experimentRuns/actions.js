@@ -12,6 +12,7 @@ import {
     LAUNCH_EXPERIMENT_RUN,
     LIST,
     LIST_INSTRUMENTS,
+    LIST_INSTRUMENT_TYPES,
     LIST_PROPERTY_VALUES,
     LIST_TABLE,
     LIST_TEMPLATE_ACTIONS,
@@ -78,6 +79,11 @@ export const listInstruments = (options) => async (dispatch, getState) => {
     return await dispatch(networkAction(LIST_INSTRUMENTS, api.instruments.list(params)));
 };
 
+export const listInstrumentTypes = (options) => async (dispatch, getState) => {
+    const params = {limit: 100000, ...options};
+    return await dispatch(networkAction(LIST_INSTRUMENT_TYPES, api.instrumentTypes.list(params)));
+}
+
 export const addInstrument = (instrument) => async (dispatch, getState) => {
     return await dispatch(networkAction(
         ADD_INSTRUMENT, api.instruments.add(instrument), { meta: { ignoreError: 'APIError' } }
@@ -135,6 +141,7 @@ export default {
     list,
     listTable,
     listTypes,
+    listInstrumentTypes,
     listInstruments,
     listPropertyValues,
     listTemplateActions,
