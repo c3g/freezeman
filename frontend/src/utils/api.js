@@ -232,9 +232,8 @@ const api = {
   },
 
   sampleNextStep: {
-    getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
+    execute_automation: (stepId, options) => post(`/sample-next-step/execute_automation/`, {...options, step__id__in: stepId}),
     listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}),
-    labworkSummary: () => get('/sample-next-step/labwork_info/'),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
       request: (templateID, user_prefill_data, options) => get('/sample-next-step/prefill_template/', {user_prefill_data: user_prefill_data, template: templateID, ...options})
@@ -244,7 +243,6 @@ const api = {
       check:  (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/sample-next-step/template_submit/`, form({ action, template })),
     },
-    list: (options, abort) => get("/sample-next-step/", { limit: 100000, ...options }, { abort }),
   },
 
   sampleNextStepByStudy: {

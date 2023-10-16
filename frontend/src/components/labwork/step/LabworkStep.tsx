@@ -24,7 +24,7 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 const { Text } = Typography
 
 interface LabworkStepPageProps {
-	protocol: Protocol
+	protocol: Protocol | undefined
 	step: Step
 	stepSamples: LabworkStepSamples
 }

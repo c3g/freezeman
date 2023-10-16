@@ -1,6 +1,6 @@
 import { FMSId, FMSLabworkSummary } from "../../models/fms_api_models"
 import { Workflow } from "../../models/frontend_models"
-import { LabworkStepGroup, LabworkSummary, LabworkSummaryProtocol, LabworkSummaryStep } from "./models"
+import { LabworkStepGroup, LabworkSummary, LabworkSummaryAutomation, LabworkSummaryProtocol, LabworkSummaryStep } from "./models"
 
 
 let sortedProtocols: FMSId[] = []
@@ -14,8 +14,24 @@ export function processFMSLabworkSummary(
 	fmsSummary: FMSLabworkSummary,
 	workflows: Workflow[]): LabworkSummary {
 	
-	const result: LabworkSummary = {
-		protocols: []
+  const automationSteps = fmsSummary.automations.steps.map(fmsStep => {
+    const step: LabworkSummaryStep = {
+      id: fmsStep.id,
+      name: fmsStep.name,
+      count: fmsStep.count,
+      specifications: [...fmsStep.step_specifications]
+    }
+    return step
+  })
+
+  const automations : LabworkSummaryAutomation = {
+    count: fmsSummary.automations.count,
+    steps: automationSteps
+  }
+
+	const result : LabworkSummary = {
+		protocols: [],
+    automations: automations
 	}
 
 	for (const protocolID in fmsSummary.protocols) {
@@ -28,7 +44,7 @@ export function processFMSLabworkSummary(
 			groups: []
 		}
 
-		const steps = fmsProtocol.steps.map(fmsStep => {
+		const protocolSteps = fmsProtocol.steps.map(fmsStep => {
 			const step: LabworkSummaryStep = {
 				id: fmsStep.id,
 				name: fmsStep.name,
@@ -50,7 +66,7 @@ export function processFMSLabworkSummary(
 			})
 
 			// Create a group for each unique platform found in step specs
-			for(const step of steps) {
+			for(const step of protocolSteps) {
 				let group
 				const platform = getSpecifiedValue(step, 'Library Platform')
 				if (platform) {
@@ -85,7 +101,7 @@ export function processFMSLabworkSummary(
 		} else {
 			const defaultGroup : LabworkStepGroup = {
 				defaultGroup: true,
-				steps
+				steps: protocolSteps
 			}
 			addGroupIfNotEmpty(protocol, defaultGroup)
 		}		
@@ -130,16 +146,24 @@ function addGroupIfNotEmpty(protocol: LabworkSummaryProtocol, group: LabworkStep
 export function findStepInSummary(summary: LabworkSummary, stepID: FMSId) {
 	for (const protocol of summary.protocols) {
 		for (const group of protocol.groups) {
-			const foundStep = group.steps.find(step => step.id === stepID)
-			if (foundStep) {
+			const foundStepProtocol = group.steps.find(step => step.id === stepID)
+			if (foundStepProtocol) {
 				return {
 					protocol,
 					group,
-					step: foundStep
+					step: foundStepProtocol
 				}
 			}
 		}
 	}
+  const foundStepAutomation = summary.automations.steps.find(step => step.id === stepID)
+  if (foundStepAutomation) {
+    return {
+      protocol: undefined,
+      group: undefined,
+      step: foundStepAutomation
+    }
+  }
 	return undefined
 }
 

@@ -162,6 +162,10 @@ export interface FMSInstrumentType extends FMSTrackedModel {
 
 export interface FMSLabworkSummary {
     protocols: {[key: string] : FMSLabworkProtocol}  // key: protocol object ID
+    automations: {
+      count: number                                  // total samples on automations steps
+      steps: FMSLabworkStep[]                        // automations steps
+    }
 }
 
 export interface FMSLabworkProtocol {
