@@ -62,7 +62,7 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         title: 'Type',
         dataIndex: ['instrument', 'type'],
         render: (_, { instrument }) => {
-            return <Tag>{instrumentTypesById[instrument.type]?.name}</Tag>
+            return <Tag>{instrumentTypesById[instrument.type]?.type}</Tag>
         }
     }
 })
