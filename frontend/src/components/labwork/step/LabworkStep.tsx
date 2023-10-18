@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
@@ -43,6 +43,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
 
+  const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
 
 	useEffect(() => {
@@ -85,7 +86,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
-			if (stepSamples.prefill.templates.length > 0) {
+			if (stepSamples.prefill.templates.length > 0 || isAutomationStep) {
 				const template = stepSamples.prefill.templates[0]
 				setSelectedTemplate(template)
 			} else {
@@ -123,6 +124,19 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 		}
 		, [step, selectedTemplate, navigate, dispatch])
+  
+  const handleExecuteAutomation = useCallback(
+    async () => {
+      try {
+        const response = await dispatch(requestAutomationExecution(step.id))
+        if (response?.result.success) {
+          // TODO: Add action on completion
+        }
+      } catch (err) {
+        console.error(err)
+      }
+		}
+		, [step, dispatch])
 
 	/** Table columns **/
 
@@ -315,13 +329,22 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
-			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
-			<RefreshButton
-				refreshing={isRefreshing}
-				onRefresh={handleRefresh}
-				title='Refresh the list of samples'
-			/>
+      {!isAutomationStep &&
+        <>
+          <PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+          <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
+        </>
+      }
+      {isAutomationStep &&
+        <>
+          <Button type='default' disabled={!canSubmit} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
+        </>
+      }
+      <RefreshButton
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        title='Refresh the list of samples'
+      />
 		</Space>
 	)
 

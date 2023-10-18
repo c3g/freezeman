@@ -395,6 +395,7 @@ export interface FMSSampleNextStep extends FMSTrackedModel {
 
 export interface FMSStep extends FMSTrackedModel {
     name: string
+    type: string
     protocol_id: FMSId
     step_specifications: FMSStepSpecification[]
 }

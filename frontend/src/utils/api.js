@@ -233,7 +233,7 @@ const api = {
 
   sampleNextStep: {
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
-    execute_automation: (stepId, options) => post(`/sample-next-step/execute_automation/`, {...options, step__id__in: stepId}),
+    executeAutomation: (options) => post(`/sample-next-step/execute_automation/`, {...options}),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
     listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}),
     prefill: {

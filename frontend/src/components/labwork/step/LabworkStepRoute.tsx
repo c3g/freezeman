@@ -38,7 +38,7 @@ const LabworkStepRoute = () => {
 	}, [appInitialized, stepsByID, stepID, step])
 
 	useEffect(() => {
-		if(step && !protocol) {
+		if(step && protocol === undefined) {
 			const foundProtocol = protocolsByID[step.protocol_id]
 			if(foundProtocol) {
 				setProtocol(foundProtocol)

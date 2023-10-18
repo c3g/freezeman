@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-from fms_core.models._constants import SampleType
+from fms_core.models._constants import SampleType, StepType
 from fms_core.automations._constants import AUTOMATION_CLASS
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -38,7 +38,7 @@ def create_axiom_automation_step(apps, schema_editor):
 
         STEPS = [
             # {name, protocol_name}
-            {"name": "Axiom Create Folders", "expected_sample_type": SampleType.EXTRACTED_SAMPLE,
+            {"name": "Axiom Create Folders", "expected_sample_type": SampleType.EXTRACTED_SAMPLE, "type": StepType.AUTOMATION,
              "specifications": [{"name": AUTOMATION_CLASS, "value": "AxiomCreateFolders"}]},
         ]
 
@@ -46,6 +46,7 @@ def create_axiom_automation_step(apps, schema_editor):
         for step_info in STEPS:
             step = Step.objects.create(name=step_info["name"],
                                        expected_sample_type=step_info["expected_sample_type"],
+                                       type=step_info["type"],
                                        created_by_id=admin_user_id,
                                        updated_by_id=admin_user_id)
 
