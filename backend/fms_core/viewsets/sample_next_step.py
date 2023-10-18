@@ -204,7 +204,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         """
         self.queryset = self.filter_queryset(self.get_queryset())
         # The objects that is going to be returned
-        sample_next_step_summary = dict(protocols={}, automations={})
+        sample_next_step_summary = {"protocols":{}, "automations": {"count": 0, "steps": []}}
         
         # Iterate through protocols
         for protocol in Protocol.objects.all():
@@ -257,11 +257,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             step_specifications = StepSpecificationSerializer(step_specifications, many=True).data
 
             # Add step information to the protocol
-            sample_next_step_summary['automations']["steps"].append({
+            sample_next_step_summary["automations"]["steps"].append({
                 "id": step.id,
                 "name" : step.name, 
                 "count": step_sample_count,
-                "step_specifications": step_specifications
+                "step_specifications": step_specifications,
             })
-        sample_next_step_summary['automations']["count"] = automation_sample_count
+        sample_next_step_summary["automations"]["count"] = automation_sample_count
+
         return Response({"results": sample_next_step_summary})
