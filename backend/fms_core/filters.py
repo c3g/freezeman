@@ -189,6 +189,8 @@ class PooledSamplesFilter(GenericFilter):
         fields = _pooled_sample_filterset_fields
 
 class SampleNextStepFilter(GenericFilter):
+    sample__container__barcode = django_filters.CharFilter(field_name="sample__container__barcode", method="batch_filter")
+    sample__container__location__barcode = django_filters.CharFilter(field_name="sample__container__location__barcode", method="batch_filter")
 
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")

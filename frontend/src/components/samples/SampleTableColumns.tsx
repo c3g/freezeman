@@ -353,12 +353,12 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Parent Container Barcode',
 		recursive: true,
+		batch: true,
 	},
 	[SampleColumnID.PARENT_COORDINATES]: {
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Parent Coords',
-		recursive: true,
 	},
 	[SampleColumnID.CONTAINER_NAME]: {
 		type: FILTER_TYPE.INPUT,
