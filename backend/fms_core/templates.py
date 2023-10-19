@@ -527,6 +527,18 @@ SAMPLE_QC_TEMPLATE = {
   ],
 }
 
+SAMPLE_QC_SPARK_TEMPLATE = {
+  "identity": {"description": "Template to perform sample quantity control from a Spark result file",
+               "protocol": "Sample Quality Control"},
+  "sheets info": [
+      {
+          'name': 'SampleQCSpark',
+          'headers': ['Well positions', '260nm', '280nm', '320nm', 'Concentration ug/ul', 'Purity 260/280', 'Mass/rxn (ug)'],
+          'batch': False,
+      },
+  ]
+}
+
 SAMPLE_EXTRACTION_TEMPLATE = {
   "identity": {"description": "Template to extract NA from samples",
                "file": static("submission_templates/Sample_extraction_v4_4_0.xlsx"),
