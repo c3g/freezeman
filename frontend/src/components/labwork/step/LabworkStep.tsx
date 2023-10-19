@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
-import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography } from 'antd'
+import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
@@ -113,6 +113,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 		, [step, selectedTemplate, dispatch])
 
+  // Submit Automation handler
+  const haveSelectedSamples = stepSamples.selectedSamples.length > 0
 	// Submit Template handler
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
@@ -129,8 +131,24 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
     async () => {
       try {
         const response = await dispatch(requestAutomationExecution(step.id))
-        if (response?.result.success) {
-          // TODO: Add action on completion
+        const success = response?.result.success
+        if (success) {
+          dispatch(flushSamplesAtStep(step.id))
+          const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
+					notification.info({
+						message: `Automation completed with success. Moving samples to next step.`,
+						key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
+            duration: 5
+					})
+          navigate(`/labwork`)
+        }
+        else {
+          const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
+          notification.info({
+						message: `Automation failed. Errors:${response?.errors}`,
+						key: AUTOMATION_FAILED_NOTIFICATION_KEY,
+            duration: 20
+					})
         }
       } catch (err) {
         console.error(err)
@@ -337,7 +355,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
       }
       {isAutomationStep &&
         <>
-          <Button type='default' disabled={!canSubmit} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
+          <Button type='default' disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
         </>
       }
       <RefreshButton

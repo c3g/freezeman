@@ -77,6 +77,43 @@ def initialize_step_history_sample(apps, schema_editor):
 
     assert not StepHistory.objects.filter(sample_id=0).exists()
 
+def create_test_workflow(apps, schema_editor):
+    Workflow = apps.get_model("fms_core", "Workflow")
+    Step = apps.get_model("fms_core", "Step")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Create Axiom Create Folders automation workflow.")
+        reversion.set_user(admin_user)
+
+        WORKFLOWS = [
+            # (name, step_names)
+            # Test Axiom Automation
+            ("Automation Axiom", "Automation Axiom", ["Axiom Create Folders"]),
+        ]
+
+        for name, structure, step_names in WORKFLOWS:
+                workflow = Workflow.objects.create(name=name,
+                                                  structure=structure,
+                                                  created_by_id=admin_user_id,
+                                                  updated_by_id=admin_user_id)
+                next_step_order = None
+                for i, step_name in enumerate(reversed(step_names)):
+                    step = Step.objects.get(name=step_name)
+                    order = len(step_names) - i
+                    step_order = StepOrder.objects.create(workflow=workflow,
+                                                          step=step,
+                                                          next_step_order=next_step_order,
+                                                          order=order,
+                                                          created_by_id=admin_user_id,
+                                                          updated_by_id=admin_user_id)
+                    next_step_order = step_order
+
+                    reversion.add_to_revision(step_order)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -137,5 +174,9 @@ class Migration(migrations.Migration):
             model_name='stephistory',
             name='process_measurement',
             field=models.ForeignKey(blank=True, help_text='Process measurement associated to the study step.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.processmeasurement'),
+        ),
+        migrations.RunPython(
+            create_test_workflow,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

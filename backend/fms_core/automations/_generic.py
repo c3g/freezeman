@@ -2,6 +2,7 @@ import abc
 from collections import defaultdict
 
 class GenericAutomation(metaclass=abc.ABCMeta):
+    work_folder = None
 
     def __init__(self):
         self.errors = defaultdict(list)

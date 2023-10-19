@@ -69,13 +69,17 @@ class AutomationsMixin:
         errors = {}
         warnings = {}
         result = {"success": False, "data": None}
+        print(request.POST)
         step_id = request.POST.get("step_id")
+        print(step_id)
         if step_id is not None:
-            automation_class_name = StepSpecification.objects.filter(step_id=step_id, name=automations._constants.AUTOMATION_CLASS).values_list("value", flat=True)[:1]
+            automation_class_name = StepSpecification.objects.filter(step_id=step_id, name=automations._constants.AUTOMATION_CLASS).values_list("value", flat=True)[0]
+            print(automation_class_name)
             if automation_class_name is not None:
                 queryset = self.filter_queryset(self.get_queryset())
                 sample_ids = queryset.values_list("sample_id", flat=True)
-                result, errors, warnings = getattr(automations, automation_class_name).execute(sample_ids=sample_ids)
+                automation = getattr(automations, automation_class_name)()              # Instantiate
+                result, errors, warnings = automation.execute(sample_ids=sample_ids)    # Execute
                 # if no errors move to next worflow step
                 if len(errors) == 0:
                     samples = Sample.objects.filter(id__in=sample_ids).all()
@@ -89,14 +93,15 @@ class AutomationsMixin:
                                                                                      current_sample=current_sample)
                         errors.extend(errors_workflow)
                         warnings.extend(warnings_workflow)
+                    result["success"] = True
             else:
                 errors["Automation Class"] = f"Automation class not found for step ID {step_id}."
         else:
             errors["Step ID"] = f"Missing step ID for automation."
-        results = {
-            "result": result,
-            "errors": errors,
-            "warnings": warnings,
+        results = { 
+                "result": result,
+                "errors": errors,
+                "warnings": warnings,
         }
         if len(errors) != 0:
             transaction.set_rollback(True)

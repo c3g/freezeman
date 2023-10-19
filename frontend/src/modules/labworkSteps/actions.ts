@@ -320,7 +320,7 @@ export const requestAutomationExecution = (stepID: FMSId) => {
 				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}
 			// {"Volume Used (uL)" : "30"}
-			const response = await dispatch(api.sampleNextStep.executeAutomation(options))
+			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, options))
 			return response
 		}
 	}
