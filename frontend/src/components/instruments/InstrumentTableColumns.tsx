@@ -36,9 +36,7 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         title: 'ID',
         dataIndex: ['instrument', 'id'],
         render: (_, { instrument }) => {
-            return <Link to={`/instruments/update/${instrument.id}`}>
-                <div>{instrument.id}</div>
-            </Link>
+            return <div>{instrument.id}</div>
         }
     },
     [InstrumentColumnID.NAME]: {
@@ -100,5 +98,5 @@ export const INSTRUMENT_FILTER_KEYS: { [key in InstrumentFilterID]: string } = {
     [InstrumentFilterID.ID]: 'id',
     [InstrumentFilterID.NAME]: 'name',
     [InstrumentFilterID.SERIAL_ID]: 'serial_id',
-    [InstrumentFilterID.TYPE]: 'type__id'
+    [InstrumentFilterID.TYPE]: 'type__type'
 }
