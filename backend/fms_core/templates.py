@@ -10,6 +10,7 @@ from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
 __all__ = [
+    "EXPERIMENT_AXIOM_TEMPLATE",
     "AXIOM_PREPARATION_TEMPLATE",
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
@@ -159,13 +160,20 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
 
 EXPERIMENT_AXIOM_TEMPLATE = {
     "identity" : {"description": "Template to add Axiom experiments",
-                  "file": static("submission_templates/Experiment_run_axiom_v4_5_0.xlsx"),
-                  "protocol": "Axiom Preparation"},
-    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+                  "file": static("submission_templates/Experiment_run_AXIOM_v4_6_0.xlsx"),
+                  "protocol": "Axiom Experiment Run"},
+    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO + 
+    [{
+          'name': 'GeneTitanSetup',
+          'headers': ['Coord', 'Array Barcode', 'Unique Sample ID','Sample Name', 'ID'],
+    }],
     # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
     "prefill info": [
-
-    ]
+        ("Samples", "Source Sample Name", "name", "name"),
+        ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
+        ("GeneTitanSetup", "Sample Name", "name", "name"),
+        ("GeneTitanSetup", "ID", "id", "id"),
+  ],
 }
 
 INDEX_CREATION_TEMPLATE = {

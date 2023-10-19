@@ -15,6 +15,8 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
     ContentType = apps.get_model('contenttypes', 'ContentType')
     Step = apps.get_model("fms_core", "Step")
     ProtocolBySubprotocol = apps.get_model("fms_core", "ProtocolBySubprotocol")
+    Workflow = apps.get_model("fms_core", "Workflow")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -39,13 +41,20 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
 
         # Create Instruments
         INSTRUMENTS = {
-            "Protected": "GeneTitan",
-            "OnNetwork": "GeneTitan",
+            "Protected": {
+                "type" : "GeneTitan",
+                "serial_id" : "GeneTitan_Protected"
+            },
+            "OnNetwork": {
+                "type" : "GeneTitan",
+                "serial_id" : "GeneTitan_OnNetwork"
+            },
         }
         for name in INSTRUMENTS.keys():
-            it = InstrumentType.objects.get(type=INSTRUMENTS[name])
+            it = InstrumentType.objects.get(type=INSTRUMENTS[name]["type"])
             i = Instrument.objects.create(name=name,
                                           type=it,
+                                          serial_id=INSTRUMENTS[name]["serial_id"],
                                           created_by_id=admin_user_id,
                                           updated_by_id=admin_user_id)
             reversion.add_to_revision(i)
@@ -94,7 +103,7 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
         # Create Step
         STEP = [
             # {name, protocol_name}
-            {"name": "Axiom Experiment Run", "protocol_name": "Axiom Experiment Run", "expected_sample_type": SampleType.POOLED_LIBRARY},
+            {"name": "Axiom Experiment Run", "protocol_name": "Axiom Experiment Run", "expected_sample_type": SampleType.EXTRACTED_SAMPLE},
         ]
         
         for step_info in STEP:
@@ -116,9 +125,32 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
                                     updated_by_id=admin_user_id)
         reversion.add_to_revision(rt)
 
+        WORKFLOWS = [
+            ("Axiom", "Axiom", ["Axiom Experiment Run"])
+        ]
+
+        for name, structure, step_names in WORKFLOWS:
+            workflow = Workflow.objects.create(name=name,
+                                               structure=structure,
+                                               created_by_id=admin_user_id,
+                                               updated_by_id=admin_user_id)
+            next_step_order = None
+            for i, step_name in enumerate(reversed(step_names)):
+                step = Step.objects.get(name=step_name)
+                order = len(step_names) - i
+                step_order = StepOrder.objects.create(workflow=workflow,
+                                                      step=step,
+                                                      next_step_order=next_step_order,
+                                                      order=order,
+                                                      created_by_id=admin_user_id,
+                                                      updated_by_id=admin_user_id)
+                next_step_order = step_order
+
+                reversion.add_to_revision(step_order)
+
 class Migration(migrations.Migration):
     dependencies = [
-        ('fms_core', '0056_v4_5_0'),
+        ('fms_core', '0057_v4_5_0'),
     ]
     operations = [
         migrations.RunPython(
