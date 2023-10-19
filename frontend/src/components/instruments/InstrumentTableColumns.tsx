@@ -4,7 +4,6 @@ import { Instrument } from "../../models/frontend_models";
 import { FilterDescription } from "../../models/paged_items";
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
-import { Link } from "react-router-dom";
 import { Tag } from "antd";
 
 export interface ObjectWithInstrument {

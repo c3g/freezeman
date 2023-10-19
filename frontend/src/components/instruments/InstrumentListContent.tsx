@@ -1,5 +1,5 @@
 import { useAppSelector } from "../../hooks"
-import { selectInstrumentTypesByID, selectInstrumentsByID, selectInstrumentsTable, selectRunTypesByID } from "../../selectors"
+import { selectInstrumentTypesByID, selectInstrumentsByID, selectInstrumentsTable } from "../../selectors"
 import InstrumentTableActions from '../../modules/instrumentsTable/actions'
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
