@@ -35,9 +35,9 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     )
 
     queryset = queryset.annotate(
-        ordering_container_barcode=Case(
-            When(Q(sample__coordinate__isnull=True), then=F('sample__container__location__barcode')),
-            default=F('sample__container__barcode'),
+        ordering_container_name=Case(
+            When(Q(sample__coordinate__isnull=True), then=F('sample__container__location__name')),
+            default=F('sample__container__name'),
             output_field=CharField()
         )
     )
@@ -66,7 +66,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     }
     ordering_fields = {
         *_list_keys(_sample_next_step_filterset_fields),
-        'ordering_container_barcode',
+        'ordering_container_name',
         'ordering_container_coordinate_column',
         'ordering_container_coordinate_row',
     }
