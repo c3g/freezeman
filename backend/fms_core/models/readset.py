@@ -36,6 +36,11 @@ class Readset(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
+        if self.release_status != ReleaseStatus.AVAILABLE and self.release_status_timestamp is None:
+            add_error("release_status_timestamp", f"Release status timestamp required if status is not {ReleaseStatus.AVAILABLE.label}.")
+        if self.validation_status != ValidationStatus.AVAILABLE and self.validation_status_timestamp is None:
+            add_error("validation_status_timestamp", f"Validation status timestamp required if status is not {ValidationStatus.AVAILABLE.label}.")
+
         self.normalize()
 
         if errors:

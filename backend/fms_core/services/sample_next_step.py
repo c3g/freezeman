@@ -444,6 +444,7 @@ def remove_sample_from_workflow(current_step: Step, current_sample: Sample, proc
                     StepHistory.objects.create(study=study,
                                                step_order=current_step_order,
                                                process_measurement=process_measurement,
+                                               sample=current_sample,
                                                workflow_action=workflow_action)
                 except Exception as err:
                     errors.append(f"Failed to create StepHistory.")
