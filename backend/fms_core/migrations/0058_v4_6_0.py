@@ -77,7 +77,7 @@ def initialize_step_history_sample(apps, schema_editor):
 
     assert not StepHistory.objects.filter(sample_id=0).exists()
 
-def create_test_workflow(apps, schema_editor):
+def create_axiom_workflow(apps, schema_editor):
     Workflow = apps.get_model("fms_core", "Workflow")
     Step = apps.get_model("fms_core", "Step")
     StepOrder = apps.get_model("fms_core", "StepOrder")
@@ -86,13 +86,13 @@ def create_test_workflow(apps, schema_editor):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         admin_user_id = admin_user.id
 
-        reversion.set_comment("Create Axiom Create Folders automation workflow.")
+        reversion.set_comment("Create Axiom workflow.")
         reversion.set_user(admin_user)
 
         WORKFLOWS = [
             # (name, step_names)
             # Test Axiom Automation
-            ("Automation Axiom", "Automation Axiom", ["Axiom Create Folders"]),
+            ("Automation Axiom", "Automation Axiom", ["Extraction (DNA)", "Sample QC", "Normalization (Genotyping)", "Axiom Sample Preparation", "Axiom Create Folders"]),
         ]
 
         for name, structure, step_names in WORKFLOWS:
@@ -176,7 +176,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, help_text='Process measurement associated to the study step.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.processmeasurement'),
         ),
         migrations.RunPython(
-            create_test_workflow,
+            create_axiom_workflow,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
