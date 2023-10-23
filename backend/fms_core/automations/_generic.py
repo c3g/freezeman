@@ -1,14 +1,11 @@
 import abc
-from collections import defaultdict
 
 class GenericAutomation(metaclass=abc.ABCMeta):
     work_folder = None
 
     def __init__(self):
-        self.errors = defaultdict(list)
-        self.warnings = defaultdict(list)
+        pass
 
     @abc.abstractmethod
     def execute(self, **kwargs):
-        self.errors["UndefinedAutomation"] = f"Automation called without being defined." # Overload
-        return (None, self.errors, self.warnings)
+        raise f"Automation called without being defined." # Overload

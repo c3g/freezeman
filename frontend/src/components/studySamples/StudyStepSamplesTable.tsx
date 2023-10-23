@@ -95,7 +95,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 	}), [dispatch, step.sampleNextStepByStudyBySampleID, step.stepID, step.stepName, studyID])
 
 	const columns: IdentifiedTableColumnType<SampleAndLibrary>[] = useMemo(() => {
-		if (protocol && stepDefinition) {
+		if (stepDefinition) { // missing protocol leads to default columns
 			// Same columns as labwork, but we don't want the Project column, since the user
 			// is already in the project details page.
 			return [

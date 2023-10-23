@@ -199,3 +199,9 @@ def serialize_warnings(warnings):
                 v = (v, [])
             serialized.append({'key': k, 'format': v[0], 'args': v[1] })
     return serialized
+
+def has_errors(error_dict):
+    has_errors = False
+    for error in error_dict.values():
+        has_errors = has_errors or bool(error)
+    return has_errors

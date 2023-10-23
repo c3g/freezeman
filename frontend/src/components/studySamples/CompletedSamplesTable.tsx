@@ -59,7 +59,7 @@ const COMMENT: CompletedSampleColumn = {
 	title: 'Comment',
 	dataIndex: 'comment',
 	render: (comment) => {
-		if ((comment as string).startsWith('Automatically generated on')) {
+		if (comment && (comment as string).startsWith('Automatically generated on')) {
 			return null
 		}
 		return comment

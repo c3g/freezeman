@@ -233,7 +233,7 @@ const api = {
 
   sampleNextStep: {
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
-    executeAutomation: (stepID, options) => post(`/sample-next-step/execute_automation/`, form({step_id: stepID, ...options}),),
+    executeAutomation: (stepId, options) => filteredpost(`/sample-next-step/execute_automation/`, {...options}, form({step_id: stepId, ...options}),),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
     listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}),
     prefill: {
@@ -381,6 +381,11 @@ function apiFetch(method, route, body, options = { abort: false }) {
 function get(route, queryParams, options) {
   const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
   return apiFetch('GET', fullRoute, undefined, options);
+}
+
+function filteredpost(route, queryParams, body, options) {
+  const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
+  return apiFetch('POST', fullRoute, body, options);
 }
 
 function post(route, body, options) {

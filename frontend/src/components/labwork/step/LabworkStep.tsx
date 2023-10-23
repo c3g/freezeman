@@ -131,24 +131,27 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
     async () => {
       try {
         const response = await dispatch(requestAutomationExecution(step.id))
-        const success = response?.result.success
-        if (success) {
-          dispatch(flushSamplesAtStep(step.id))
-          const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
-					notification.info({
-						message: `Automation completed with success. Moving samples to next step.`,
-						key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
-            duration: 5
-					})
-          navigate(`/labwork`)
-        }
-        else {
-          const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
-          notification.info({
-						message: `Automation failed. Errors:${response?.errors}`,
-						key: AUTOMATION_FAILED_NOTIFICATION_KEY,
-            duration: 20
-					})
+        if (response) {
+          const success = response.data.result.success
+          if (success) {
+            dispatch(flushSamplesAtStep(step.id))
+            const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
+            notification.info({
+              message: `Automation completed with success. Moving samples to next step.`,
+              key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
+              duration: 5
+            })
+            navigate(`/lab-work/`)
+          }
+          else {
+            const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
+            const errors = response.data.errors
+            notification.error({
+              message: `Automation failed. Errors:${Object.values(errors).filter(value => (typeof value === "string" && value.length > 0)).map(value => "[" + value + "]")}`,
+              key: AUTOMATION_FAILED_NOTIFICATION_KEY,
+              duration: 20
+            })
+          }
         }
       } catch (err) {
         console.error(err)

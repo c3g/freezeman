@@ -3,6 +3,7 @@ from os import path, makedirs
 from fms.settings import FMS_AUTOMATIONS_WORK_PATH
 from typing import List
 from fms_core.models import Container
+from collections import defaultdict
 
 WORK_FOLDER = "axiom_arrays"
 FILE_SUFFIX = ".PROJECT"
@@ -14,7 +15,6 @@ class AxiomCreateFolders(GenericAutomation):
   
     def __init__(self):
         super().__init__()
-        print("Bob")
 
     @classmethod
     def execute(self, sample_ids: List):
@@ -29,8 +29,8 @@ class AxiomCreateFolders(GenericAutomation):
         A tuple containing None (no result), errors and warnings encountered during execution.
         
         """
-        print("Allo")
-
+        errors = defaultdict(list)
+        warnings = defaultdict(list)
         # build list of folder from sample plate info
         for container in Container.objects.filter(samples__id__in=sample_ids).all().distinct():
             project = container.name.replace(REMOVED_CONTAINER_SUFFIX, "") + str(container.id)
@@ -44,4 +44,4 @@ class AxiomCreateFolders(GenericAutomation):
             with open(path.join(filepath, project + FILE_SUFFIX), "w") as fp:
                 fp.write(project)
 
-        return ({"success": True, "data": None}, self.errors, self.warnings)
+        return ({"success": True, "data": None}, errors, warnings)

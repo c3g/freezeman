@@ -319,7 +319,6 @@ export const requestAutomationExecution = (stepID: FMSId) => {
 				sample__id__in: step.selectedSamples.join(','),
 				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}
-			// {"Volume Used (uL)" : "30"}
 			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, options))
 			return response
 		}

@@ -20,6 +20,7 @@ from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTempla
 from fms_core.models import Sample, Protocol, Step, StepSpecification
 from fms_core.services.sample_next_step import execute_workflow_action
 from fms_core._constants import WorkflowAction
+from fms_core.utils import has_errors
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -69,12 +70,9 @@ class AutomationsMixin:
         errors = {}
         warnings = {}
         result = {"success": False, "data": None}
-        print(request.POST)
         step_id = request.POST.get("step_id")
-        print(step_id)
         if step_id is not None:
             automation_class_name = StepSpecification.objects.filter(step_id=step_id, name=automations._constants.AUTOMATION_CLASS).values_list("value", flat=True)[0]
-            print(automation_class_name)
             if automation_class_name is not None:
                 queryset = self.filter_queryset(self.get_queryset())
                 sample_ids = queryset.values_list("sample_id", flat=True)
@@ -88,23 +86,26 @@ class AutomationsMixin:
                     except Step.DoesNotExist:
                         errors.append(f"No step matches the requested automation step ID {step_id}.")
                     for current_sample in samples:
-                        errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP,
+                        errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
                                                                                      step=step,
                                                                                      current_sample=current_sample)
-                        errors.extend(errors_workflow)
-                        warnings.extend(warnings_workflow)
+                        errors["workflow"].extend(errors_workflow)
+                        warnings["workflow"].extend(warnings_workflow)
                     result["success"] = True
             else:
                 errors["Automation Class"] = f"Automation class not found for step ID {step_id}."
         else:
             errors["Step ID"] = f"Missing step ID for automation."
+
+        if has_errors(errors):
+            result["success"] = False
+            transaction.set_rollback(True)
+
         results = { 
                 "result": result,
                 "errors": errors,
                 "warnings": warnings,
         }
-        if len(errors) != 0:
-            transaction.set_rollback(True)
         return Response(results)
     
 class TemplateActionsMixin:
