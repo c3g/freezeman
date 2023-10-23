@@ -23,12 +23,12 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
         admin_user_id = admin_user.id
         
         # Create Platform and InstrumentType
-        platform = Platform.objects.create(name="AXIOM", created_by_id=admin_user_id, updated_by_id=admin_user_id)
+        platform = Platform.objects.create(name="Axiom", created_by_id=admin_user_id, updated_by_id=admin_user_id)
         reversion.add_to_revision(platform)
 
         # DICT { TYPE : PLATFORM }
         INSTRUMENT_TYPES = {
-            "GeneTitan": "AXIOM",
+            "GeneTitan": "Axiom",
         }
         for type in INSTRUMENT_TYPES:
             platform = Platform.objects.get(name=INSTRUMENT_TYPES[type])
