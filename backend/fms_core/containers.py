@@ -17,6 +17,7 @@ __all__ = [
     "CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL",
+    "CONTAINER_SPEC_AXIOM_ARRAY",
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
@@ -145,6 +146,14 @@ class ContainerSpec:
 
 # Run Containers
 
+CONTAINER_SPEC_AXIOM_ARRAY = ContainerSpec(
+    container_kind_id="axiom genetitan array",
+    coordinate_spec=(alphas(8), ints(12, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(), # Leaf node; sample-holding
+    is_run_container=True,
+)
+
 CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     container_kind_id="infinium gs 24 beadchip",
     coordinate_spec=(alphas(12), ints(2, pad_to=2)),
@@ -242,6 +251,7 @@ CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL = ContainerSpec(
 )
 
 RUN_CONTAINER_SPECS = (
+    CONTAINER_SPEC_AXIOM_ARRAY,
     CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
     CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL,
     CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL,
