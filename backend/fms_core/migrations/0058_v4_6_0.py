@@ -23,12 +23,12 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
         admin_user_id = admin_user.id
         
         # Create Platform and InstrumentType
-        platform = Platform.objects.create(name="Axiom", created_by_id=admin_user_id, updated_by_id=admin_user_id)
+        platform = Platform.objects.create(name="AXIOM_ARRAY", created_by_id=admin_user_id, updated_by_id=admin_user_id)
         reversion.add_to_revision(platform)
 
         # DICT { TYPE : PLATFORM }
         INSTRUMENT_TYPES = {
-            "GeneTitan": "Axiom",
+            "GeneTitan MC": "AXIOM_ARRAY",
         }
         for type in INSTRUMENT_TYPES:
             platform = Platform.objects.get(name=INSTRUMENT_TYPES[type])
@@ -42,11 +42,11 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
         # Create Instruments
         INSTRUMENTS = {
             "Protected": {
-                "type" : "GeneTitan",
+                "type" : "GeneTitan MC",
                 "serial_id" : "GeneTitan_Protected"
             },
             "OnNetwork": {
-                "type" : "GeneTitan",
+                "type" : "GeneTitan MC",
                 "serial_id" : "GeneTitan_OnNetwork"
             },
         }
@@ -83,11 +83,12 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
             reversion.add_to_revision(protocol)
 
             for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+                is_optional = True if 'comment' in property.lower() else False
                 pt = PropertyType.objects.create(name=property,
                                                  object_id=protocol.id,
                                                  content_type=protocol_content_type,
                                                  value_type=value_type,
-                                                 is_optional=False,
+                                                 is_optional=is_optional,
                                                  created_by_id=admin_user_id, updated_by_id=admin_user_id)
                 reversion.add_to_revision(pt)
 
@@ -120,7 +121,7 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
         rt = RunType.objects.create(name="Axiom",
                                     platform=platform,
                                     protocol=protocol,
-                                    needs_run_processing=True,
+                                    needs_run_processing=False,
                                     created_by_id=admin_user_id,
                                     updated_by_id=admin_user_id)
         reversion.add_to_revision(rt)
