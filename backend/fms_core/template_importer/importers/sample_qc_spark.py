@@ -80,8 +80,8 @@ class SampleSparkQCImporter(GenericImporter):
             row_data: SampleQCSparkSheet = row_data
             process_measurement_properties = self.preloaded_data['process_properties']
 
-            quantity_flag = str_cast_and_normalize(float(row_data['Mass/rxn (ug)']) > 1000)
-            concentration = float_to_decimal_and_none(float(row_data['Concentration ug/ul']) * 1000)
+            quantity_flag = str_cast_and_normalize(row_data['Mass/rxn (ug)'] > 1000)
+            concentration = float_to_decimal_and_none(row_data['Concentration ug/ul'] * 1000)
 
             process_measurement_properties['Sample Quantity QC Flag']['value'] = quantity_flag
             process_measurement_properties['Concentration (ng/uL)']['value'] = concentration
