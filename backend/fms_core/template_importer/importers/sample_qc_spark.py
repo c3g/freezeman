@@ -81,10 +81,8 @@ class SampleSparkQCImporter(GenericImporter):
             process_measurement_properties = self.preloaded_data['process_properties']
 
             quantity_flag = str_cast_and_normalize(row_data['Mass/rxn (ug)'] > 1000)
-            concentration = float_to_decimal_and_none(row_data['Concentration ug/ul'] * 1000)
 
             process_measurement_properties['Sample Quantity QC Flag']['value'] = quantity_flag
-            process_measurement_properties['Concentration (ng/uL)']['value'] = concentration
 
             sample = {
                 'coordinates': str_cast_and_normalize(row_data['Well positions']),
@@ -92,17 +90,12 @@ class SampleSparkQCImporter(GenericImporter):
             }
 
             sample_information = {
-                # 'initial_volume': None,
-                # 'measured_volume': None,
-                'concentration': concentration,
                 'quantity_flag': quantity_flag,
-                # 'quality_flag': None,
             }
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
                 'execution_date': input_to_date_and_none(self.preloaded_data["execution_date"]),
-                # 'volume_used': None,
                 'comment': 'Axiom Sample QC workflow step (based on Sample absorbance QC Tecan-Spark)',
             }
 

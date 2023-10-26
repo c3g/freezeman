@@ -1,6 +1,5 @@
 import datetime
-from typing import TypedDict, Dict, Literal
-from decimal import Decimal
+from typing import TypedDict
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
@@ -14,27 +13,6 @@ from fms_core.models import InstrumentType, Process, Step
 INSTRUMENT_PROPERTIES = ['Quantity Instrument']
 QC_PLATFORM = "Quality Control"
 
-SampleDict = TypedDict('SampleDict', {
-    'coordinates': str,
-    'container': Dict[Literal['barcode'], str]
-})
-
-SampleInformationDict = TypedDict('SampleInformationDict', {
-    'concentration': Decimal | None,
-    'quantity_flag': 'False' | 'True' | None
-})
-
-ProcessMeasurementDict = TypedDict('ProcessMeasurementDict', {
-    'process': Process,
-    'execution_date': datetime.date | datetime.datetime | None,
-    'comment': str
-})
-
-ProcessMeasurementPropertiesDict = TypedDict('ProcessMeasurementPropertiesDict', {
-    'Sample Quantity QC Flag': Dict[Literal['value'], str],
-    'Concentration (ng/uL)': Dict[Literal['value'], str],
-})
-
 WorkflowDict = TypedDict('WorkflowDict', {
     'step_action': str,
     'step': Step
@@ -45,10 +23,10 @@ class SampleQCSparkRowHandler(GenericRowHandler):
         super().__init__()
 
     def process_row_inner(self,
-                          sample: SampleDict,
-                          sample_information: SampleInformationDict,
-                          process_measurement: ProcessMeasurementDict,
-                          process_measurement_properties: ProcessMeasurementPropertiesDict,
+                          sample,
+                          sample_information,
+                          process_measurement,
+                          process_measurement_properties,
                           workflow: WorkflowDict):
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=sample['container']['barcode'],
@@ -59,14 +37,6 @@ class SampleQCSparkRowHandler(GenericRowHandler):
             # Check if sample is not a library or a pool of libraries
             if sample_obj.is_library:
                 self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
-
-            # Update sample with sample_information
-            if sample_information['concentration'] is None:
-                self.errors['concentration'] = 'Concentration value is required'
-
-            _, self.errors['sample_update'], self.warnings['sample_update'] = \
-                update_sample(sample_to_update=sample_obj,
-                              concentration=sample_information['concentration'])
 
             # Update the sample's flags with sample information
             _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj,
