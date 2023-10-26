@@ -68,12 +68,12 @@ class SampleQCSparkRowHandler(GenericRowHandler):
                 # Validate instruments according to platform
                 for instrument in INSTRUMENT_PROPERTIES:
                     try:
-                        type = process_measurement_properties[instrument]['value']
-                        it = InstrumentType.objects.get(type=type)
+                        instrument_type_type = process_measurement_properties[instrument]['value']
+                        instrument_type = InstrumentType.objects.get(type=instrument_type_type)
                         # Validate platform and type
-                        if it.platform.name != QC_PLATFORM:
-                            self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
+                        if instrument_type.platform.name != QC_PLATFORM:
+                            self.errors['instrument_type'] = f'Invalid type: {instrument_type.platform} for instrument: {instrument_type.type}.'
                     except Exception as e:
-                        self.errors['instrument'] = f'Invalid instrument {type}.'
+                        self.errors['instrument'] = f'Invalid instrument {instrument_type_type}.'
 
 
