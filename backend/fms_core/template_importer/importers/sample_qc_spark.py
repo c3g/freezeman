@@ -7,7 +7,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_qc_spark import SampleQCSparkRowHandler
 from fms_core.templates import SAMPLE_QC_SPARK_TEMPLATE
 from fms_core.services.step import get_step_from_template
-from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none, zero_pad_number
 from fms_core.utils import str_cast_and_normalize
 from fms_core._constants import WorkflowAction
 
@@ -85,7 +85,7 @@ class SampleSparkQCImporter(GenericImporter):
             process_measurement_properties['Sample Quantity QC Flag']['value'] = quantity_flag
 
             sample = {
-                'coordinates': str_cast_and_normalize(row_data['Well positions']),
+                'coordinates': str_cast_and_normalize(row_data['Well positions'][0] + zero_pad_number(row_data['Well positions'][1:], 2)),
                 'container': {'barcode': self.preloaded_data['plate_barcode']}
             }
 

@@ -73,3 +73,7 @@ def zip_files(output_zip_name, file_list):
         raise e
 
     return zip_buffer
+
+def zero_pad_number(number: str | int, width: int) -> str:
+    number = str(number)
+    return number.rjust(width, '0')
