@@ -56,7 +56,7 @@ class SampleSparkQCImporter(GenericImporter):
         self.preloaded_data = {'process': None, 'protocol': protocol, 'process_properties': {}, 'plate_barcode': None}
 
         self.preloaded_data['process'] = Process.objects.create(protocol=protocol,
-                                                                comment='Sample Quality Control (imported from template)')
+                                                                comment='Sample Quality Control (imported from Spark QC result file)')
 
         # Preload PropertyType objects for the sample qc in a dictionary for faster access
         try:
