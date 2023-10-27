@@ -179,19 +179,21 @@ On this page we list the various steps needed for deployments. The first section
 # Specific deployments
 
 * Version 3.1 : 
-  * Upgrade python version to 3.8
-  * Clone the new repository
+  * Upgrade python version to 3.8.
+  * Clone the new repository.
   * Modify the nginx and uwsgi for the new locations.
 * Version 3.2 : 
-  * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini
+  * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini.
 * Version 3.3 :
   * Update uwsgi.ini file with the latest options (Process tracking, process number, ...).
   * Add a .env file in the /frontend directory using the exemple.env as a reference. Set FMS_ENV ("DEV", "QC", "PROD") in the file.
 * Version 3.14:
-  * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini
+  * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini.
 * Version 4.4.0:
-  * Upgrade python version to 3.11
-  * Upgrade Openssl version to 1.1.1u
+  * Upgrade python version to 3.11.
+  * Upgrade Openssl version to 1.1.1u.
 * Version 4.5.0:
-  * Backend Django version upgrade to 4.2.4 (run `pip3.11 install -r requirements.txt`)
-  * PostgreSQL version upgrade to 15.4 (Verify permissions for user and re-compile and install the fzy extension.)
+  * Backend Django version upgrade to 4.2.4 (run `pip3.11 install -r requirements.txt`).
+  * PostgreSQL version upgrade to 15.4 (Verify permissions for user and re-compile and install the fzy extension).
+* Version 4.6.0:
+  * Add FMS_AUTOMATIONS_WORK_PATH to env variables through uwsgi.ini.

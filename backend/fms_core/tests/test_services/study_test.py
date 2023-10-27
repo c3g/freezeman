@@ -126,8 +126,9 @@ class StudyServicesTestCase(TestCase):
         # StepHistory
         self.setup_stephistory()
         StepHistory.objects.create(study=self.study,
-            step_order=self.step_order_before,
-            process_measurement=self.process_measurement)
+                                   step_order=self.step_order_before,
+                                   process_measurement=self.process_measurement,
+                                   sample=self.sample_BLOOD)
         is_removable, errors, warnings = can_remove_study(study.pk)
         self.assertEqual(False, is_removable)
         self.assertListEqual(['At least one StepHistory is associated with the Study'], errors)

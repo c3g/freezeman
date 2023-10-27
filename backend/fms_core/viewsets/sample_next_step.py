@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from fms_core.filters import SampleNextStepFilter
 
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, _list_keys
+from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin, _list_keys
 from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, Workflow
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
@@ -18,7 +18,7 @@ from fms_core.template_importer.importers import (ExtractionImporter, SampleQCIm
                                                   LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter, LibraryCaptureImporter,
                                                   LibraryConversionImporter, ExperimentRunImporter)
 
-class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin):
+class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin):
     queryset = SampleNextStep.objects.all().distinct()
 
     queryset = queryset.annotate(
@@ -189,50 +189,80 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                             step_specifications
                         }]
                     }
+                },
+                automations:
+                {
+                    count
+                    steps: [{
+                        name
+                        count
+                        step_specifications
+                    }]    
                 }
             }
           }
         """
         self.queryset = self.filter_queryset(self.get_queryset())
         # The objects that is going to be returned
-        sample_next_step_by_protocol = dict(protocols={})
+        sample_next_step_summary = {"protocols":{}, "automations": {"count": 0, "steps": []}}
         
         # Iterate through protocols
         for protocol in Protocol.objects.all():
             # Get the sample count waiting for this protocol
             protocol_sample_count = SampleNextStep.objects.filter(step__protocol=protocol).count()
 
-            if protocol.id not in sample_next_step_by_protocol.keys():
+            protocolSteps = Step.objects.filter(protocol=protocol)
 
-                protocolSteps = Step.objects.filter(protocol=protocol)
+            # Make sure that at least one workflow uses one of the steps for this protocol, since
+            # labwork doesn't need protocols that are not used by any workflow (Infinium...)
+            if not Workflow.objects.filter(steps__in=protocolSteps).exists():
+                continue
+            
+            # Some protocols have no associated steps, so don't include those in labwork info.
+            if protocolSteps.count() > 0:
+                # Add protocol info to the results
+                sample_next_step_summary['protocols'][protocol.id] = {
+                    "name" : protocol.name, 
+                    "count": protocol_sample_count,
+                    "steps": []
+                }
 
-                # Make sure that at least one workflow uses one of the steps for this protocol, since
-                # labwork doesn't need protocols that are not used by any workflow (Infinium...)
-                if not Workflow.objects.filter(steps__in=protocolSteps).exists():
-                    continue
-                
-                # Some protocols have no associated steps, so don't include those in labwork info.
-                if protocolSteps.count() > 0:
-                    # Add protocol info to the results
-                    sample_next_step_by_protocol['protocols'][protocol.id] = {
-                        "name" : protocol.name, 
-                        "count": protocol_sample_count,
-                        "steps": []
-                    }
+                # Iterate through the objects within the protocol
+                for step in protocolSteps:
+                    # Get the precise count of sample for the specific step within the protocol and the specifications
+                    step_sample_count = SampleNextStep.objects.filter(step=step).count()
+                    step_specifications = StepSpecification.objects.filter(step=step)
+                    step_specifications = StepSpecificationSerializer(step_specifications, many=True).data
 
-                    # Iterate through the objects within the protocol
-                    for step in protocolSteps:
-                        # Get the precise count of sample for the specific step within the protocol and the specifications
-                        step_sample_count = SampleNextStep.objects.filter(step=step).count()
-                        step_specifications = StepSpecification.objects.filter(step=step)
-                        step_specifications = StepSpecificationSerializer(step_specifications, many=True).data
+                    # Add step information to the protocol
+                    sample_next_step_summary['protocols'][protocol.id]["steps"].append({
+                        "id": step.id,
+                        "name" : step.name, 
+                        "count": step_sample_count,
+                        "step_specifications": step_specifications
+                    })
+        # Iterate through automation steps
+        automationlSteps = Step.objects.filter(protocol__isnull=True)
+        automation_sample_count = 0
+        for step in automationlSteps:
+            # Make sure that at least one workflow uses this automation step, since
+            # labwork doesn't need steps that are not used by any workflow
+#            if not Workflow.objects.filter(steps__in=step).exists():
+#                continue
+            
+            # Get the precise count of sample for the specific step and the specifications
+            step_sample_count = SampleNextStep.objects.filter(step=step).count()
+            automation_sample_count = automation_sample_count + step_sample_count
+            step_specifications = StepSpecification.objects.filter(step=step)
+            step_specifications = StepSpecificationSerializer(step_specifications, many=True).data
 
-                        # Add step information to the protocol
-                        sample_next_step_by_protocol['protocols'][protocol.id]["steps"].append({
-                            "id": step.id,
-                            "name" : step.name, 
-                            "count": step_sample_count,
-                            "step_specifications": step_specifications
-                        })
+            # Add step information to the protocol
+            sample_next_step_summary["automations"]["steps"].append({
+                "id": step.id,
+                "name" : step.name, 
+                "count": step_sample_count,
+                "step_specifications": step_specifications,
+            })
+        sample_next_step_summary["automations"]["count"] = automation_sample_count
 
-        return Response({"results": sample_next_step_by_protocol})
+        return Response({"results": sample_next_step_summary})

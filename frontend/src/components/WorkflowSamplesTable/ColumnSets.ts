@@ -18,7 +18,7 @@ export function getColumnsForStudySamplesStep(step: Step, protocol: Protocol) {
 	Returns the default set of columns that should be used to display samples/libraries
 	for a given protocol and step.
 */
-export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTableColumnType<SampleAndLibrary>[] {
+export function getColumnsForStep(step: Step, protocol: Protocol | undefined): IdentifiedTableColumnType<SampleAndLibrary>[] {
 
 	const DEFAULT_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
@@ -100,7 +100,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	let columnsForStep: (SampleColumn | LibraryColumn)[] = DEFAULT_SAMPLE_COLUMNS
 
-	switch(protocol.name) {
+	switch(protocol?.name) {
 		case ProtocolNames.Extraction: {
 			columnsForStep = PRE_QC_SAMPLE_COLUMNS
 			break
@@ -134,7 +134,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 			break
 		}
 		case ProtocolNames.Normalization: {
-			const type = getStepSpecificationValue(step, 'Normalization Type')
+			const type = getStepSpecificationValue(step, 'NormalizationType')
 			if (type === 'Library') {
 				columnsForStep = DEFAULT_LIBRARY_COLUMNS
 			} else {

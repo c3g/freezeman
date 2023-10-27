@@ -25,38 +25,45 @@ export function initSamplesAtStep(stepID: FMSId) {
 
 		// Get the step's protocol
 		const protocol = protocolsByID[step.protocol_id]
-		if (!protocol) {
+		if (!protocol && step.type === "PROTOCOL") {
 			throw Error(`Protocol with ID ${step.protocol_id} from step ${step.name} could not be found in store.`)
 		}
+    else if (!protocol) {
+      await dispatch({
+        type: INIT_SAMPLES_AT_STEP,
+        stepID,
+        templates: []
+      })
+    }
+    else {
+      // Request the list of template actions for the protocol
+      const templateActions = selectSampleNextStepTemplateActions(getState())
 
-		// Request the list of template actions for the protocol
-		const templateActions = selectSampleNextStepTemplateActions(getState())
+      // Request the list of templates for the protocol
+      const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id))
 
-		// Request the list of templates for the protocol
-		const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id))
+      // Convert templates to a list of template descriptors, which include a 'Submit Templates' url.
+      const templates = templatesResponse.data.map((templateItem: LabworkPrefilledTemplateDescriptor) => {
 
-		// Convert templates to a list of template descriptors, which include a 'Submit Templates' url.
-		const templates = templatesResponse.data.map((templateItem: LabworkPrefilledTemplateDescriptor) => {
+        // Find the action ID for the template
+        const templateAction = templateActions.find((action) => {
+          const matchedTemplate = action.template.find(actionTemplate => actionTemplate.description === templateItem.description)
+          return !!matchedTemplate
+        })
 
-			// Find the action ID for the template
-			const templateAction = templateActions.find((action) => {
-				const matchedTemplate = action.template.find(actionTemplate => actionTemplate.description === templateItem.description)
-				return !!matchedTemplate
-			})
-
-			const submissionURL = templateAction ? `actions/${templateAction.id}` : undefined
-			return {
-				...templateItem,
-				submissionURL
-			}
-		})
-
-		// dispatch an action to init the state for this step
-		await dispatch({
-			type: INIT_SAMPLES_AT_STEP,
-			stepID,
-			templates
-		})
+        const submissionURL = templateAction ? `actions/${templateAction.id}` : undefined
+        return {
+          ...templateItem,
+          submissionURL
+        }
+      })
+      // dispatch an action to init the state for this step
+      await dispatch({
+        type: INIT_SAMPLES_AT_STEP,
+        stepID,
+        templates
+      })
+    }		
 
 		// Now load the samples for the step
 		await dispatch(loadSamplesAtStep(stepID, 1))
@@ -293,6 +300,27 @@ export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_
 			// {"Volume Used (uL)" : "30"}
 			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data) , options))
 			return fileData
+		}
+	}
+}
+
+/**
+ * Request the execution of a step automation, containing a list selected samples.
+ * @param stepID Step ID
+ * @returns 
+ */
+export const requestAutomationExecution = (stepID: FMSId) => {
+	return async (dispatch, getState) => {
+		const labworkStepsState = selectLabworkStepsState(getState())
+		const step = labworkStepsState.steps[stepID]
+		if (step) {
+			const options = {
+				step__id__in: stepID,
+				sample__id__in: step.selectedSamples.join(','),
+				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
+			}
+			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, options))
+			return response
 		}
 	}
 }
