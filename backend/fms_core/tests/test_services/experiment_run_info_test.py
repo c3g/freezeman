@@ -62,7 +62,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_4_0.xlsx')
         
         #Axiom Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_AXIOM_v4_6_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_6_0.xlsx')
 
     def import_template(self, importer, file):
         template_path = TEMPLATES_DIR / file

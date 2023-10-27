@@ -147,7 +147,7 @@ class ContainerSpec:
 # Run Containers
 
 CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY = ContainerSpec(
-    container_kind_id="axiom genetitan array",
+    container_kind_id="axiom 96-format array",
     coordinate_spec=(alphas(8), ints(12, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding
