@@ -15,7 +15,7 @@ class InstrumentViewSet(viewsets.ModelViewSet):
     serializer_class = InstrumentSerializer
     permission_classes = [IsAuthenticated]
 
-    ordering = ["type_id", "name"]
+    ordering = ["type__type", "name"]
 
     filterset_fields = {
         **_instrument_filterset_fields,
