@@ -12,7 +12,7 @@ import { getFilterPropsIncludingDescriptions } from '../filters/getFilterPropsTS
 import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard";
 
 
-const getTableColumns = (runTypes, instruments, launchesById) => [
+const getTableColumns = (runTypes, instruments, launchesById, runTypesById) => [
   {
     title: "ID",
     dataIndex: "id",
@@ -72,7 +72,7 @@ const getTableColumns = (runTypes, instruments, launchesById) => [
     render: (_, experimentRun) => (
       <div style={{ minWidth: "12rem" }}>
         {
-          experimentRun.platform !== "AXIOM_ARRAY" &&
+          runTypesById[experimentRun.run_type].name !== "Axiom" &&
           <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
         }
       </div>
@@ -112,8 +112,8 @@ const ExperimentRunsListContent = ({
   setFilterOption,
   setSortBy,
 }) => {
-
-  const columns = getTableColumns(runTypes, instruments, launchesById)
+console.log(runTypes)
+  const columns = getTableColumns(runTypes, instruments, launchesById, runTypes.itemsByID)
     .map(c => Object.assign(c, getFilterPropsIncludingDescriptions(
       c,
       EXPERIMENT_RUN_FILTERS,
