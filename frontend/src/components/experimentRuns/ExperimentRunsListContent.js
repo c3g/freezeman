@@ -112,7 +112,7 @@ const ExperimentRunsListContent = ({
   setFilterOption,
   setSortBy,
 }) => {
-console.log(runTypes)
+
   const columns = getTableColumns(runTypes, instruments, launchesById, runTypes.itemsByID)
     .map(c => Object.assign(c, getFilterPropsIncludingDescriptions(
       c,
