@@ -56,7 +56,7 @@ const getTableColumns = (runTypes, instruments, launchesById) => [
     sorter: true,
     render: (_, experimentRun) => (experimentRun.container &&
       <Link to={`/containers/${experimentRun.container}`}>
-        <WithContainerRenderComponent objectID={experimentRun.container} placeholder={'loading...'} render={container => <span>{container.barcode}</span>}/>
+        <WithContainerRenderComponent objectID={experimentRun.container} placeholder={'loading...'} render={container => <span>{container.barcode}</span>} />
       </Link>),
   },
   {
@@ -70,8 +70,11 @@ const getTableColumns = (runTypes, instruments, launchesById) => [
     dataIndex: "run_processing_launch_time",
     sorter: true,
     render: (_, experimentRun) => (
-      <div style={{minWidth: "12rem"}}>
-        <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]}/>
+      <div style={{ minWidth: "12rem" }}>
+        {
+          experimentRun.platform !== "AXIOM_ARRAY" &&
+          <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
+        }
       </div>
     )
   },
@@ -91,7 +94,7 @@ const mapStateToProps = state => ({
   actions: state.experimentRunTemplateActions,
 });
 
-const mapDispatchToProps = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
+const mapDispatchToProps = { listTable, setFilter, setFilterOption, clearFilters, setSortBy };
 
 const ExperimentRunsListContent = ({
   experimentRuns,
@@ -111,13 +114,13 @@ const ExperimentRunsListContent = ({
 }) => {
 
   const columns = getTableColumns(runTypes, instruments, launchesById)
-  .map(c => Object.assign(c, getFilterPropsIncludingDescriptions(
-    c,
-    EXPERIMENT_RUN_FILTERS,
-    filters,
-    setFilter,
-    setFilterOption
-  )))
+    .map(c => Object.assign(c, getFilterPropsIncludingDescriptions(
+      c,
+      EXPERIMENT_RUN_FILTERS,
+      filters,
+      setFilter,
+      setFilterOption
+    )))
 
   return <>
     <>

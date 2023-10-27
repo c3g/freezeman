@@ -172,6 +172,7 @@ EXPERIMENT_AXIOM_TEMPLATE = {
         ("Samples", "Source Sample Name", "name", "name"),
         ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
         ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
+        ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
         ("GeneTitanSetup", "Sample Name", "name", "name"),
         ("GeneTitanSetup", "ID", "id", "id"),
   ],
