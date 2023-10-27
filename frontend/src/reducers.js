@@ -26,6 +26,7 @@ import {
   experimentRunTemplateActions,
   experimentRuns,
   instruments,
+  instrumentTypes,
   propertyValues,
   runTypes
 } from "./modules/experimentRuns/reducers";
@@ -96,6 +97,7 @@ import { projectsTable} from './modules/projectsTable/reducers'
 import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
+import { instrumentsTable } from './modules/instrumentsTable/reducers'
 import { librariesTable } from './modules/librariesTable/reducers'
 import { readsetsTable } from './modules/readsetsTable/reducers'
 import { individualsTable } from './modules/individualsTable/reducers'
@@ -118,6 +120,7 @@ const allReducers = combineReducers({
   containerPrefillTemplates,
   containers,
   containersTable,
+  instrumentsTable,
   datasets,
   datasetFiles,
   datasetsTable,
@@ -134,6 +137,7 @@ const allReducers = combineReducers({
   taxonsTable,
   referenceGenomes,
   instruments,
+  instrumentTypes,
   sampleKinds,
   samplesSummary,
   sampleTemplateActions,

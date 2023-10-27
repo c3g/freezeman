@@ -16,6 +16,9 @@ export const FILTER_ACTION_TYPES = createFilterActionTypes('EXPERIMENT_RUNS')
 export const { SET_FILTER, SET_FILTER_OPTION, CLEAR_FILTERS} = FILTER_ACTION_TYPES
 export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
 export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
+export const LIST_INSTRUMENT_TYPES = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENT_TYPES")
+export const ADD_INSTRUMENT = createNetworkActionTypes("EXPERIMENT_RUNS.ADD_INSTRUMENT")
+export const UPDATE_INSTRUMENT = createNetworkActionTypes("EXPERIMENT_RUNS.UPDATE_INSTRUMENT")
 export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TEMPLATE_ACTIONS");
 export const LAUNCH_EXPERIMENT_RUN = createNetworkActionTypes("EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN")
@@ -55,6 +58,43 @@ export const runTypes = (
     }
 };
 
+export const instrumentTypes = (
+    state = {
+        items: [],
+        itemsByID: {},
+        isFetching: false,
+    }, action
+    ) => {
+        switch (action.type) {
+            case LIST_INSTRUMENT_TYPES.REQUEST:{
+                return {
+                    ...state,
+                    isFetching: true,
+                };
+            }
+            case LIST_INSTRUMENT_TYPES.RECEIVE:{
+                const results = action.data.results
+                const itemsByID = merge(state.itemsByID, [], indexByID(results));
+                return {
+                    ...state,
+                    items: results.map(result => result.id),
+                    itemsByID: itemsByID,
+                    isFetching: false,
+                };
+            }
+            case LIST_INSTRUMENT_TYPES.ERROR:{
+                return {
+                    ...state,
+                    isFetching: false,
+                    error: action.error,
+                };
+            }
+            default:{
+                return state;
+            }
+        }
+    }
+
 export const instruments = (
   state = {
       items: [],
@@ -70,10 +110,12 @@ export const instruments = (
                 isFetching: true,
             };
         case LIST_INSTRUMENTS.RECEIVE:
+            const results = action.data.results
+            const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return {
                 ...state,
-                items: action.data,
-                itemsByID: indexByID(action.data, "id"),
+                items: results.map(result => result.id),
+                itemsByID: itemsByID,
                 isFetching: false,
             };
         case LIST_INSTRUMENTS.ERROR:
@@ -82,6 +124,38 @@ export const instruments = (
                 isFetching: false,
                 error: action.error,
             };
+        case ADD_INSTRUMENT.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            }
+        case ADD_INSTRUMENT.RECEIVE:
+            return {
+                ...state,
+                isFetching: false
+            }
+        case ADD_INSTRUMENT.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error
+            }
+        case UPDATE_INSTRUMENT.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            }
+        case UPDATE_INSTRUMENT.RECEIVE:
+            return {
+                ...state,
+                isFetching: false
+            }
+        case UPDATE_INSTRUMENT.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error
+            }
         default:
             return state;
     }

@@ -108,7 +108,7 @@ const api = {
   },
 
   instruments: {
-    list: () => get("/instruments/"),
+    list: (options) => get("/instruments/", options),
   },
 
   instrumentTypes: {
