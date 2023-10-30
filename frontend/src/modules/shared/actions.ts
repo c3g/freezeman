@@ -50,6 +50,7 @@ export const fetchStaticData = () => async (dispatch) => {
     await Promise.allSettled([
         Coordinates.list,
         Containers.listKinds,
+        ExperimentRuns.listInstrumentTypes,
         ExperimentRuns.listInstruments,
         ExperimentRuns.listTypes,
         Samples.listKinds,

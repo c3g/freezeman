@@ -6,6 +6,7 @@ import { FMSStepSpecification } from '../../models/fms_api_models'
 
 export interface LabworkSummary {
 	protocols: LabworkSummaryProtocol[]
+  automations: LabworkSummaryAutomation
 }
 
 export interface LabworkSummaryProtocol {
@@ -13,6 +14,11 @@ export interface LabworkSummaryProtocol {
 	name: string					// protocol name
 	count: number					// total count of samples waiting for protocol
 	groups: LabworkStepGroup[]		// Grouped steps
+}
+
+export interface LabworkSummaryAutomation {
+	count: number					// total count of samples waiting for protocol
+	steps: LabworkSummaryStep[]		// Steps
 }
 
 export interface LabworkStepGroup {

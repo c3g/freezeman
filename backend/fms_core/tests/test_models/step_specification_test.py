@@ -7,23 +7,23 @@ from fms_core.models import StepSpecification, Step
 class StepSpecificationTest(TestCase):
     def setUp(self):
         self.step = Step.objects.get(name="Extraction (DNA)")
-        self.display_name_new = "TestSpec"
+        self.name_new = "TestSpec"
         self.sheet_name = "Samples"
         self.column_name = "TestColumn"
         self.value = "Tested"
 
     def test_step_specification(self):
-        step_specification = StepSpecification.objects.create(display_name=self.display_name_new,
+        step_specification = StepSpecification.objects.create(name=self.name_new,
                                                               sheet_name=self.sheet_name,
                                                               column_name=self.column_name,
                                                               step=self.step,
                                                               value=self.value)
-        self.assertEqual(step_specification.display_name, self.display_name_new)
+        self.assertEqual(step_specification.name, self.name_new)
 
     def test_no_step(self):
         with self.assertRaises(ValidationError):
             try:
-                StepSpecification.objects.create(display_name=self.display_name_new,
+                StepSpecification.objects.create(name=self.name_new,
                                                  sheet_name=self.sheet_name,
                                                  column_name=self.column_name,
                                                  step=None,
@@ -35,7 +35,7 @@ class StepSpecificationTest(TestCase):
     def test_no_value(self):
         with self.assertRaises(ValidationError):
             try:
-                StepSpecification.objects.create(display_name=self.display_name_new,
+                StepSpecification.objects.create(name=self.name_new,
                                                  sheet_name=self.sheet_name,
                                                  column_name=self.column_name,
                                                  step=self.step,

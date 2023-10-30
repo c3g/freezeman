@@ -7,6 +7,7 @@ from fms_core._constants import WorkflowAction
 
 from .tracked_model import TrackedModel
 from .step_order import StepOrder
+from .sample import Sample
 from .process_measurement import ProcessMeasurement
 from .study import Study
 
@@ -19,7 +20,8 @@ __all__ = ["StepHistory"]
 class StepHistory(TrackedModel):
     study = models.ForeignKey(Study, on_delete=models.PROTECT, related_name="StepHistory", help_text="Study associated to the process measurement.")
     step_order = models.ForeignKey(StepOrder, on_delete=models.PROTECT, related_name="StepHistory", help_text="Step order in the study that is associated to the process measurement.")
-    process_measurement = models.ForeignKey(ProcessMeasurement, on_delete=models.PROTECT, related_name="StepHistory", help_text="Process measurement associated to the study step.")
+    process_measurement = models.ForeignKey(ProcessMeasurement, null=True, blank=True, on_delete=models.PROTECT, related_name="StepHistory", help_text="Process measurement associated to the study step.")
+    sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="StepHistory", help_text="Source sample that completed the step.")
     workflow_action = models.CharField(max_length=30,
                                        choices=WorkflowAction.choices,
                                        default=WorkflowAction.NEXT_STEP,
@@ -37,6 +39,9 @@ class StepHistory(TrackedModel):
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
+
+        if self.process_measurement is None and self.step_order.step.protocol is not None:
+            add_error("process_measurement", f"process_measurement required to create protocol step step_history.")
 
         if errors:
             raise ValidationError(errors)

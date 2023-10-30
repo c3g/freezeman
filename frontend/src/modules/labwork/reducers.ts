@@ -1,16 +1,16 @@
 import { AnyAction } from "redux"
 import { LabworkSummary } from "./models"
-import { FLUSH_LABWORK_SUMMARY, GET_LABWORK_SUMMARY, SET_HIDE_EMPTY_PROTOCOLS } from "./actions"
+import { FLUSH_LABWORK_SUMMARY, GET_LABWORK_SUMMARY, SET_HIDE_EMPTY_SECTIONS } from "./actions"
 
 
 export interface LabworkSummaryState {
 	isFetching: boolean
 	summary?: LabworkSummary
 	error?: any
-	hideEmptyProtocols: boolean
+	hideEmptySections: boolean
 }
 
-export const labworkSummary = (state: LabworkSummaryState = {isFetching: false, hideEmptyProtocols: false}, action: AnyAction) : LabworkSummaryState => {
+export const labworkSummary = (state: LabworkSummaryState = {isFetching: false, hideEmptySections: false}, action: AnyAction) : LabworkSummaryState => {
 	switch(action.type) {
 		case GET_LABWORK_SUMMARY.REQUEST: {
 			return {
@@ -35,10 +35,10 @@ export const labworkSummary = (state: LabworkSummaryState = {isFetching: false, 
 			}
 		}
 
-		case SET_HIDE_EMPTY_PROTOCOLS: {
+		case SET_HIDE_EMPTY_SECTIONS: {
 			return {
 				...state,
-				hideEmptyProtocols: action.hideEmptyProtocols
+				hideEmptySections: action.hideEmptySections
 			}
 		}
 

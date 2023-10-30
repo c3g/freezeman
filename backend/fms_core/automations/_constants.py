@@ -1,0 +1,1 @@
+AUTOMATION_CLASS = "AutomationClass"

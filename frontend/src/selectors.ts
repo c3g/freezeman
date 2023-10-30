@@ -6,6 +6,7 @@ import {
 	ExperimentRun,
 	Index,
 	Instrument,
+	InstrumentType,
 	ItemsByID,
 	Library,
 	Process,
@@ -60,6 +61,7 @@ export const selectContainerTemplateActions = (state: RootState) => state.contai
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectDatasetFilesByID = (state: RootState) => state.datasetFiles.itemsByID as ItemsByID<DatasetFile>
 export const selectDatasetsTable = (state: RootState) => state.datasetsTable
+export const selectInstrumentsTable = (state: RootState) => state.instrumentsTable
 export const selectReadsetsByID = (state:RootState) => state.readsets.itemsByID as ItemsByID<Readset>
 export const selectReadsetsTable = (state: RootState) => state.readsetsTable
 export const selectDatasetFilesState = (state: RootState) => state.datasetFiles
@@ -82,6 +84,7 @@ export const selectIndividualsDetailsById = (state: RootState) => state.individu
 export const selectIndividualsTable = (state: RootState) => state.individualsTable
 export const selectExperimentRunLaunches = (state: RootState) => state.experimentRunLaunches
 export const selectInstrumentsByID = (state: RootState) => state.instruments.itemsByID as ItemsByID<Instrument>
+export const selectInstrumentTypesByID = (state: RootState) => state.instrumentTypes.itemsByID as ItemsByID<InstrumentType>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>

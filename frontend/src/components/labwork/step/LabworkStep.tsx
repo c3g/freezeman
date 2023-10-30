@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
-import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography } from 'antd'
+import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
@@ -24,7 +24,7 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 const { Text } = Typography
 
 interface LabworkStepPageProps {
-	protocol: Protocol
+	protocol: Protocol | undefined
 	step: Step
 	stepSamples: LabworkStepSamples
 }
@@ -43,6 +43,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
 
+  const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
 
 	useEffect(() => {
@@ -85,7 +86,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
-			if (stepSamples.prefill.templates.length > 0) {
+			if (stepSamples.prefill.templates.length > 0 || isAutomationStep) {
 				const template = stepSamples.prefill.templates[0]
 				setSelectedTemplate(template)
 			} else {
@@ -112,6 +113,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 		, [step, selectedTemplate, dispatch])
 
+  // Submit Automation handler
+  const haveSelectedSamples = stepSamples.selectedSamples.length > 0
 	// Submit Template handler
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
@@ -123,6 +126,38 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 		}
 		, [step, selectedTemplate, navigate, dispatch])
+  
+  const handleExecuteAutomation = useCallback(
+    async () => {
+      try {
+        const response = await dispatch(requestAutomationExecution(step.id))
+        if (response) {
+          const success = response.data.result.success
+          if (success) {
+            dispatch(flushSamplesAtStep(step.id))
+            const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
+            notification.info({
+              message: `Automation completed with success. Moving samples to next step.`,
+              key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
+              duration: 5
+            })
+            navigate(`/lab-work/`)
+          }
+          else {
+            const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
+            const errors = response.data.errors
+            notification.error({
+              message: `Automation failed. Errors:${Object.values(errors).filter(value => (typeof value === "string" && value.length > 0)).map(value => "[" + value + "]")}`,
+              key: AUTOMATION_FAILED_NOTIFICATION_KEY,
+              duration: 20
+            })
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+		}
+		, [step, dispatch])
 
 	/** Table columns **/
 
@@ -315,13 +350,22 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
-			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
-			<RefreshButton
-				refreshing={isRefreshing}
-				onRefresh={handleRefresh}
-				title='Refresh the list of samples'
-			/>
+      {!isAutomationStep &&
+        <>
+          <PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+          <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
+        </>
+      }
+      {isAutomationStep &&
+        <>
+          <Button type='default' disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
+        </>
+      }
+      <RefreshButton
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        title='Refresh the list of samples'
+      />
 		</Space>
 	)
 
@@ -408,7 +452,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							selection={selectionProps}
 							setSortBy={handleSelectionTableSortChange}
 						/>
-						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by container barcode and then by coordinate.</Text></Space>
+						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 					</Tabs.TabPane>
 				</Tabs>
 			</PageContent>

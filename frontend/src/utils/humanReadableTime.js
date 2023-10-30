@@ -57,3 +57,7 @@ export function compact(date, options = {}) {
 export function full(date) {
   return date.getFullYear() + '-' + asDate(date) + ' ' + asTime(date)
 }
+
+export function timestampStringAsDate(timestampStr) {
+  return timestampStr.slice(0, 10)
+}
