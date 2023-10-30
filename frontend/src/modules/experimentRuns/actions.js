@@ -10,12 +10,6 @@ import {
     LIST_PROPERTY_VALUES,
     LIST_TEMPLATE_ACTIONS,
     LIST_TYPES,
-<<<<<<< HEAD
-=======
-    SET_SORT_BY,
-    ADD_INSTRUMENT,
-    UPDATE_INSTRUMENT
->>>>>>> origin/master
 } from './reducers';
 
 export const get = id => async (dispatch, getState) => {
@@ -50,17 +44,6 @@ export const listInstruments = (options) => async (dispatch, getState) => {
 export const listInstrumentTypes = (options) => async (dispatch, getState) => {
     const params = {limit: 100000, ...options};
     return await dispatch(networkAction(LIST_INSTRUMENT_TYPES, api.instrumentTypes.list(params)));
-}
-
-export const addInstrument = (instrument) => async (dispatch, getState) => {
-    return await dispatch(networkAction(
-        ADD_INSTRUMENT, api.instruments.add(instrument), { meta: { ignoreError: 'APIError' } }
-    ));
-}
-export const updateInstrument = (instrument) => async (dispatch, getState) => {
-    return await dispatch(networkAction(
-        UPDATE_INSTRUMENT, api.instruments.update(instrument), { meta: {id: instrument.id, ignoreError: 'APIError' } }
-    ));
 }
 
 export const listPropertyValues = (params) => async (dispatch, getState) => {

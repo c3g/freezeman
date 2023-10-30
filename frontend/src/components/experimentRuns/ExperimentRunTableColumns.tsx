@@ -119,7 +119,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         render: (_, { experimentRun }) => {
             return (<div>
                 {
-                    runTypesById[experimentRun.run_type].needs_run_processing &&
+                    runTypesById && runTypesById[experimentRun.run_type] && runTypesById[experimentRun.run_type].needs_run_processing &&
                     <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
                 }
             </div>)
