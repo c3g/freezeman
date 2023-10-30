@@ -151,7 +151,7 @@ def create_axiom_experiment_run_related_objects(apps, scheme_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('fms_core', '0057_v4_5_0'),
+        ('fms_core', '0058_v4_5_0'),
     ]
     operations = [
         migrations.RunPython(
