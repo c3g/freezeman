@@ -18,7 +18,7 @@ WorkflowDict = TypedDict('WorkflowDict', {
     'step': Step
 })
 
-class SampleQCSparkRowHandler(GenericRowHandler):
+class QCIntegrationSparkRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
@@ -28,10 +28,8 @@ class SampleQCSparkRowHandler(GenericRowHandler):
                           process_measurement,
                           process_measurement_properties,
                           workflow: WorkflowDict):
-        sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
-            barcode=sample['container']['barcode'],
-            coordinates=sample['coordinates'],
-        )
+        sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample['container']['barcode'],
+                                                                                               coordinates=sample['coordinates'])
 
         if sample_obj:
             # Check if sample is not a library or a pool of libraries
@@ -40,8 +38,7 @@ class SampleQCSparkRowHandler(GenericRowHandler):
 
             # Update the sample's flags with sample information
             _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj,
-                                                                              quantity_flag=sample_information['quantity_flag'],
-                                                                              quality_flag=sample_information['quality_flag'])
+                                                                              quantity_flag=sample_information['quantity_flag'])
 
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(

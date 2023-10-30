@@ -195,6 +195,85 @@ def initialize_step_history_sample(apps, schema_editor):
 
     assert not StepHistory.objects.filter(sample_id=0).exists()
 
+def create_qc_integration_spark_entities(apps, schema_editor):
+    Platform = apps.get_model("fms_core", "Platform")
+    InstumentType = apps.get_model("fms_core", "InstrumentType")
+    Protocol = apps.get_model("fms_core", "Protocol")
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+    PropertyType = apps.get_model("fms_core", "PropertyType")
+    Step = apps.get_model("fms_core", "Step")
+    StepSpecification = apps.get_model("fms_core", "StepSpecification")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Create Quality Control - Integration (Spark) protocol, step and property types.")
+        reversion.set_user(admin_user)
+
+        INSTRUMENT_TYPE = "Spark 10M"
+
+        PROPERTY_TYPES_BY_PROTOCOL = {
+            # Each integration will possibly require adding new optional property types 
+            "Quality Control - Integration":     [("Quantity QC Flag", "str"),
+                                                  ("Quantity Instrument", "str"),
+                                                  ("Mass/rxn (ug)", "str"),
+                                                 ],
+        }
+
+        STEPS = [
+            # {name, protocol_name}
+            {"name": "Quality Control - Integration (Spark)", "expected_sample_type": SampleType.EXTRACTED_SAMPLE, "type": StepType.PROTOCOL,
+             # Adding a specification to be able to normalize the step selection if other steps are added to the protocol.
+             "specifications": [{"name": "Instrument", "sheet_name": "Default", "column_name": "Instrument", "value": INSTRUMENT_TYPE}]},
+        ]
+
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+
+        # Create the Instrument Type
+        platform = Platform.object.get(name="Quality Control")
+        instrument_type = InstumentType.objects.create(platform=platform,
+                                                       type=INSTRUMENT_TYPE,
+                                                       created_by_id=admin_user_id,
+                                                       updated_by_id=admin_user_id)
+        reversion.add_to_revision(instrument_type)
+
+        # Create protocols and properties
+        for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
+            protocol = Protocol.objects.create(name=protocol_name,
+                                               created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            reversion.add_to_revision(protocol)
+
+            is_optional = True
+            for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+
+                property_type = PropertyType.objects.create(name=property,
+                                                            object_id=protocol.id,
+                                                            content_type=protocol_content_type,
+                                                            value_type=value_type,
+                                                            is_optional=is_optional,
+                                                            created_by_id=admin_user_id, updated_by_id=admin_user_id)
+                reversion.add_to_revision(property_type)
+
+        # Create Step and specification
+        for step_info in STEPS:
+            step = Step.objects.create(name=step_info["name"],
+                                       expected_sample_type=step_info["expected_sample_type"],
+                                       type=step_info["type"],
+                                       created_by_id=admin_user_id,
+                                       updated_by_id=admin_user_id)
+
+            reversion.add_to_revision(step)
+
+            for specification in step_info["specifications"]:
+                step_specification = StepSpecification.objects.create(name=specification["name"],
+                                                                      value=specification["value"],
+                                                                      step=step,
+                                                                      created_by_id=admin_user_id,
+                                                                      updated_by_id=admin_user_id)
+
+                reversion.add_to_revision(step_specification)
+
 def create_axiom_workflow(apps, schema_editor):
     Workflow = apps.get_model("fms_core", "Workflow")
     Step = apps.get_model("fms_core", "Step")
@@ -209,8 +288,7 @@ def create_axiom_workflow(apps, schema_editor):
 
         WORKFLOWS = [
             # (name, step_names)
-            # Test Axiom Automation
-            ("Automation Axiom", "Automation Axiom", ["Extraction (DNA)", "Sample QC", "Normalization (Genotyping)", "Axiom Sample Preparation", "Axiom Create Folders", "Axiom Experiment Run"]),
+            ("Axiom Genotyping", "Axiom Genotyping", ["Extraction (DNA)", "Sample QC", "Normalization (Genotyping)", "Axiom Sample Preparation", "Quality Control - Integration (Spark)", "Axiom Create Folders", "Axiom Experiment Run"]),
         ]
 
         for name, structure, step_names in WORKFLOWS:
@@ -296,6 +374,10 @@ class Migration(migrations.Migration):
             model_name='stephistory',
             name='process_measurement',
             field=models.ForeignKey(blank=True, help_text='Process measurement associated to the study step.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.processmeasurement'),
+        ),
+        migrations.RunPython(
+            create_qc_integration_spark_entities,
+            reverse_code=migrations.RunPython.noop,
         ),
         migrations.RunPython(
             create_axiom_workflow,

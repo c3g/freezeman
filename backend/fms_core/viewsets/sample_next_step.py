@@ -13,10 +13,11 @@ from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, W
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
 from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
                                 LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE,
-                                LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
+                                LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE,
+                                QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
 from fms_core.template_importer.importers import (ExtractionImporter, SampleQCImporter, NormalizationPlanningImporter, NormalizationImporter,
                                                   LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter, LibraryCaptureImporter,
-                                                  LibraryConversionImporter, ExperimentRunImporter)
+                                                  LibraryConversionImporter, ExperimentRunImporter, QCIntegrationSparkImporter)
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin):
     queryset = SampleNextStep.objects.all().distinct()
@@ -88,6 +89,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             "description": "Upload the provided template with samples that underwent a quality control.",
             "template": [SAMPLE_QC_TEMPLATE["identity"]],
             "importer": SampleQCImporter,
+        },
+        {
+            "name": "Quality Control - Integration",
+            "description": "Upload the result file with samples that underwent a quality control.",
+            "template": [QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE["identity"]],
+            "importer": QCIntegrationSparkImporter,
         },
         {
             "name": "Perform Normalization Planning",

@@ -24,6 +24,7 @@ __all__ = [
     "LIBRARY_QC_TEMPLATE",
     "NORMALIZATION_TEMPLATE",
     "NORMALIZATION_PLANNING_TEMPLATE",
+    "QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE",
     "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
@@ -389,6 +390,18 @@ NORMALIZATION_PLANNING_TEMPLATE = {
   ],
 }
 
+QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE = {
+  "identity": {"description": "Template to perform quality control from a Spark instrument result file.",
+               "protocol": "Quality Control - Integration"},
+  "sheets info": [
+      {
+          'name': 'Default',
+          'headers': ['Instrument', 'Well positions', '260nm', '280nm', '320nm', 'Concentration ug/ul', 'Purity 260/280', 'Mass/rxn (ug)'],
+          'batch': False,
+      },
+  ]
+}
+
 SAMPLE_METADATA_TEMPLATE = {
   "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_14_0.xlsx")},
   "sheets info": [
@@ -525,18 +538,6 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
       ("SampleQC", "Current Volume (uL)", "volume", "volume"),
   ],
-}
-
-SAMPLE_QC_SPARK_TEMPLATE = {
-  "identity": {"description": "Template to perform sample quantity control from a Spark result file",
-               "protocol": "Sample Quality Control"},
-  "sheets info": [
-      {
-          'name': 'SampleQCSpark',
-          'headers': ['Well positions', '260nm', '280nm', '320nm', 'Concentration ug/ul', 'Purity 260/280', 'Mass/rxn (ug)'],
-          'batch': False,
-      },
-  ]
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
