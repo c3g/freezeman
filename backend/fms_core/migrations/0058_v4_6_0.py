@@ -45,11 +45,11 @@ def create_axiom_experiment_run_related_objects(apps, schema_editor):
         INSTRUMENTS = {
             "Protected": {
                 "type" : "GeneTitan MC",
-                "serial_id" : "GeneTitan_Protected"
+                "serial_id" : "E0102900"
             },
             "OnNetwork": {
                 "type" : "GeneTitan MC",
-                "serial_id" : "GeneTitan_OnNetwork"
+                "serial_id" : "E0101520"
             },
         }
         for name in INSTRUMENTS.keys():
