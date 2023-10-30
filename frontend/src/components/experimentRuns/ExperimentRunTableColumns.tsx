@@ -118,7 +118,10 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         width: 180,
         render: (_, { experimentRun }) => {
             return (<div>
-                <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
+                {
+                    runTypesById[experimentRun.run_type].needs_run_processing &&
+                    <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
+                }
             </div>)
         }
     }
@@ -168,12 +171,12 @@ export const EXPERIMENT_RUN_FILTER_DEFINITIONS: { [key in ExperimentRunColumnID]
         label: "Container Barcode",
     },
     [ExperimentRunColumnID.START_DATE]: {
-        type: FILTER_TYPE.INPUT,
+        type: FILTER_TYPE.DATE_RANGE,
         key: UNDEFINED_FILTER_KEY,
         label: "Start Date",
     },
     [ExperimentRunColumnID.LAUNCH]: {
-        type: FILTER_TYPE.INPUT,
+        type: FILTER_TYPE.DATE_RANGE,
         key: UNDEFINED_FILTER_KEY,
         label: "Launch",
     }
