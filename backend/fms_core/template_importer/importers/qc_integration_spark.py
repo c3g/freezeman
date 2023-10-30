@@ -103,7 +103,7 @@ class QCIntegrationSparkImporter(GenericImporter):
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
-                'volume_used': float_to_decimal_and_none("2"), # Default value used for QC
+                'volume_used': float_to_decimal_and_none("5"), # Default value used for QC
                 'execution_date': input_to_date_and_none(self.preloaded_data["execution_date"]),
                 'comment': 'Quality Control - Integration workflow step (based on Tecan-Spark absorbance QC)',
             }
