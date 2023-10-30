@@ -72,7 +72,7 @@ const getTableColumns = (runTypes, instruments, launchesById) => [
     render: (_, experimentRun) => (
       <div style={{ minWidth: "12rem" }}>
         {
-          runTypes.itemsByID[experimentRun.run_type].name !== "Axiom" &&
+          runTypes.itemsByID[experimentRun.run_type].needs_run_processing &&
           <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} />
         }
       </div>
