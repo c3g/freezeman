@@ -3,7 +3,7 @@ import { LabworkSummaryState } from '../../../modules/labwork/reducers'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import LabworkOverviewProtocols from './LabworkOverviewProtocols'
-
+import LabworkOverviewAutomations from './LabworkOverviewAutomations'
 
 interface LabworkOverviewProps {
 	state: LabworkSummaryState
@@ -20,7 +20,11 @@ const LabworkOverview = ({state} : LabworkOverviewProps) => {
 
 			<PageContent loading={loading} style={{maxWidth: '50rem'} as any}>
 				{state.summary && 
-					<LabworkOverviewProtocols summary={state.summary} hideEmptyProtocols={state.hideEmptyProtocols} refreshing={refreshing}/>
+          <div>
+					  <LabworkOverviewProtocols summary={state.summary} hideEmptySections={state.hideEmptySections} refreshing={refreshing}/>
+            <div style={{ padding: '1rem' }}></div>
+            <LabworkOverviewAutomations summary={state.summary} hideEmptySections={state.hideEmptySections}/>
+          </div>
 				}
 			</PageContent>
 		</>

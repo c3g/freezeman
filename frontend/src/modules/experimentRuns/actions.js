@@ -12,11 +12,14 @@ import {
     LAUNCH_EXPERIMENT_RUN,
     LIST,
     LIST_INSTRUMENTS,
+    LIST_INSTRUMENT_TYPES,
     LIST_PROPERTY_VALUES,
     LIST_TABLE,
     LIST_TEMPLATE_ACTIONS,
     LIST_TYPES,
-    SET_SORT_BY
+    SET_SORT_BY,
+    ADD_INSTRUMENT,
+    UPDATE_INSTRUMENT
 } from './reducers';
 
 export const get = id => async (dispatch, getState) => {
@@ -71,12 +74,26 @@ export const listTypes = () => async (dispatch, getState) => {
     return await dispatch(networkAction(LIST_TYPES, api.runTypes.list()));
 };
 
-export const listInstruments = () => async (dispatch, getState) => {
-    if (getState().instruments.isFetching || getState().instruments.items.length > 0)
-        return;
-
-    return await dispatch(networkAction(LIST_INSTRUMENTS, api.instruments.list()));
+export const listInstruments = (options) => async (dispatch, getState) => {
+    const params = { limit: 100000, ...options }
+    return await dispatch(networkAction(LIST_INSTRUMENTS, api.instruments.list(params)));
 };
+
+export const listInstrumentTypes = (options) => async (dispatch, getState) => {
+    const params = {limit: 100000, ...options};
+    return await dispatch(networkAction(LIST_INSTRUMENT_TYPES, api.instrumentTypes.list(params)));
+}
+
+export const addInstrument = (instrument) => async (dispatch, getState) => {
+    return await dispatch(networkAction(
+        ADD_INSTRUMENT, api.instruments.add(instrument), { meta: { ignoreError: 'APIError' } }
+    ));
+}
+export const updateInstrument = (instrument) => async (dispatch, getState) => {
+    return await dispatch(networkAction(
+        UPDATE_INSTRUMENT, api.instruments.update(instrument), { meta: {id: instrument.id, ignoreError: 'APIError' } }
+    ));
+}
 
 export const listPropertyValues = (params) => async (dispatch, getState) => {
     const options = {content_type__app_label: "fms_core", ...params}
@@ -124,6 +141,7 @@ export default {
     list,
     listTable,
     listTypes,
+    listInstrumentTypes,
     listInstruments,
     listPropertyValues,
     listTemplateActions,

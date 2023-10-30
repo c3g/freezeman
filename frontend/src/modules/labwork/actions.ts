@@ -5,7 +5,7 @@ import { refreshSamplesAtStep } from '../labworkSteps/actions'
 import { findChangedStepsInSummary, processFMSLabworkSummary } from './services'
 
 export const GET_LABWORK_SUMMARY = createNetworkActionTypes('SAMPLE-NEXT-STEP.GET_LABWORK_SUMMARY')
-export const SET_HIDE_EMPTY_PROTOCOLS = 'SAMPLE-NEXT-STEP.SET_HIDE_EMPTY_PROTOCOLS'
+export const SET_HIDE_EMPTY_SECTIONS = 'SAMPLE-NEXT-STEP.SET_HIDE_EMPTY_SECTIONS'
 export const FLUSH_LABWORK_SUMMARY = 'SAMPLE-NEXT-STEP.FLUSH_LABWORK_SUMMARY'
 
 export const getLabworkSummary = () => async (dispatch, getState) => {
@@ -73,10 +73,10 @@ export const refreshLabwork = () => {
 	}
 }
 
-export const setHideEmptyProtocols = (hide: boolean) => {
+export const setHideEmptySections = (hide: boolean) => {
 	return {
-		type: SET_HIDE_EMPTY_PROTOCOLS,
-		hideEmptyProtocols: hide
+		type: SET_HIDE_EMPTY_SECTIONS,
+		hideEmptySections: hide
 	}
 }
 
@@ -89,9 +89,9 @@ export const flushLabworkSummary = () => {
 
 export default {
 	GET_LABWORK_SUMMARY,
-	SET_HIDE_EMPTY_PROTOCOLS,
+	SET_HIDE_EMPTY_SECTIONS,
 	FLUSH_LABWORK_SUMMARY,
 	getLabworkSummary,
-	setHideEmptyProtocols,
+	setHideEmptySections,
 	flushLabworkSummary,
 }

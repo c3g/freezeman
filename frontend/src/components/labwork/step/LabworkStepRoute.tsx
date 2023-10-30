@@ -38,7 +38,7 @@ const LabworkStepRoute = () => {
 	}, [appInitialized, stepsByID, stepID, step])
 
 	useEffect(() => {
-		if(step && !protocol) {
+		if(step && protocol === undefined) {
 			const foundProtocol = protocolsByID[step.protocol_id]
 			if(foundProtocol) {
 				setProtocol(foundProtocol)
@@ -47,7 +47,7 @@ const LabworkStepRoute = () => {
 	}, [step, protocolsByID, protocol])
 	
 	useEffect(() => {
-		if(step && protocol) {
+		if(step) {
 			const foundLabwork = labworkStepsState.steps[step.id]
 			if(foundLabwork) {
 				setLabworkStepSamples(foundLabwork)
@@ -55,10 +55,10 @@ const LabworkStepRoute = () => {
 				dispatch(initSamplesAtStep(step.id))
 			}
 		}
-	}, [step, protocol, labworkStepsState, dispatch])
+	}, [step, labworkStepsState, dispatch])
 
 	return (
-		step && protocol && labworkStepSamples ?
+		step && labworkStepSamples ?
 			<LabworkStep protocol={protocol} step={step} stepSamples={labworkStepSamples}/>
 		: 
 			null

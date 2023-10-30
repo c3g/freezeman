@@ -4,6 +4,8 @@ import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
 import { selectStudySettingsByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
+import { isNullish } from "../../utils/functions"
+import { timestampStringAsDate } from "../../utils/humanReadableTime"
 import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models"
 
@@ -150,7 +152,7 @@ export async function buildStudySamplesFromWorkflow(
 	}) 
 
 	// Get the process measurements for the completed samples
-	const processMeasurementIDs = completedSamplesByStudy.map(completed => completed.process_measurement)
+	const processMeasurementIDs = completedSamplesByStudy.filter((completed) => !isNullish(completed.process_measurement)).map(completed => completed.process_measurement)
 	const processMeasurements = await fetchProcessMeasurements(processMeasurementIDs)
 	const processMeasurementsByID = createItemsByID(processMeasurements)
 
@@ -160,7 +162,10 @@ export async function buildStudySamplesFromWorkflow(
 	const processesByID = createItemsByID(processes)
 
 	// Get the user ID's for the processes
-	const userIDs = processes.map(process => process.created_by)
+	const processesUserIDs = processes.map(process => process.created_by)
+  // Get the user ID's for the step history without processes
+  const stepHistoryUserIDs = completedSamplesByStudy.filter((completed) => isNullish(completed.process_measurement)).map(completed => completed.created_by)
+  const userIDs = processesUserIDs.concat(stepHistoryUserIDs)
 	const users = await fetchUsers(userIDs)
 	const usersByID = createItemsByID(users)
 
@@ -169,7 +174,7 @@ export async function buildStudySamplesFromWorkflow(
 		if (step) {
 			const processMeasurement = processMeasurementsByID[stepHistory.process_measurement]
 			const process = processMeasurement ? processesByID[processMeasurement.process] : undefined
-			const user = process && process.created_by ? usersByID[process.created_by] : undefined
+			const user = process && process.created_by ? usersByID[process.created_by] : stepHistory.created_by ? usersByID[stepHistory.created_by] : undefined
 			
 			const completedSample : CompletedStudySample = {
 				id: stepHistory.id,
@@ -177,7 +182,7 @@ export async function buildStudySamplesFromWorkflow(
 				generatedSampleID: processMeasurement?.child_sample,
 				processID: processMeasurement?.process,
 				processMeasurementID: stepHistory.process_measurement,
-				executionDate: processMeasurement?.execution_date,
+				executionDate: processMeasurement ? processMeasurement?.execution_date : timestampStringAsDate(stepHistory.created_at),
 				executedBy: user?.username,
 				comment: processMeasurement?.comment,
 				removedFromWorkflow: stepHistory.workflow_action === 'DEQUEUE_SAMPLE'
