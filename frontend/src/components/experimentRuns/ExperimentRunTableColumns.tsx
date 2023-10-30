@@ -190,5 +190,5 @@ export const EXPERIMENT_RUN_FILTER_KEYS: { [key in ExperimentRunColumnID]: strin
     [ExperimentRunColumnID.INSTRUMENT_TYPE]: 'instrument_type',
     [ExperimentRunColumnID.CONTAINER_BARCODE]: 'container_barcode',
     [ExperimentRunColumnID.START_DATE]: 'start_date',
-    [ExperimentRunColumnID.LAUNCH]: 'launch',
+    [ExperimentRunColumnID.LAUNCH]: 'run_processing_launch_time',
 }

@@ -2,7 +2,7 @@ import { Tabs } from 'antd'
 import React from 'react'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import ExperimentRunsListContent from './ExperimentRunListContent'
+import ExperimentRunListContent from './ExperimentRunListContent'
 import ExternalExperimentRunsListContent from './ExternalExperimentRunsListContent'
 import { ActionDropdown } from '../../utils/templateActions'
 import ExportButton from '../ExportButton'
@@ -66,7 +66,7 @@ function ExperimentRunsTabs() {
 		<PageContent style={pageStyle}>
 			<Tabs onChange={setActiveKey} type='card' style={tabsStyle}>
 				<TabPane tab='FreezeMan' key={FREEZEMAN_TAB_KEY} style={tabStyle}>
-					<ExperimentRunsListContent/>
+					<ExperimentRunListContent/>
 				</TabPane>
 				<TabPane tab='External' key={EXTERNAL_TAB_KEY}  style={tabStyle}>
 					<ExternalExperimentRunsListContent/>
