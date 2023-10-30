@@ -32,17 +32,13 @@ function ExperimentRunListContent() {
 
     return (
         <>
-			<AppPageHeader title="Experiment Runs"/>
-			<PageContent>
 				<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
 				<PagedItemsTable<ObjectWithExperimentRun> 
 					columns={columns}
 					getDataObjectsByID={getDataObjectsByID}
 					pagedItems={pagedItems}
 					usingFilters={false}
-					{...callbacks}
-				/>
-			</PageContent>
+					{...callbacks}/>
 		</>
     )
 }
