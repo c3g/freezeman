@@ -805,16 +805,18 @@ def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
 
     try:
         # Update the QC flags for the given sample
-        if quantity_flag or quality_flag:
-            if sample.quantity_flag is not None and sample.quantity_flag != (quantity_flag == 'Passed'):
-                warnings.append(("Sample {0} quantity flag will be changed to {1}.", [sample.name, quantity_flag]))
-            sample.quantity_flag = (quantity_flag == 'Passed')
-            if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
-                warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
-            sample.quality_flag = (quality_flag == 'Passed')
-            sample.save()
-        else:
+        if (quantity_flag is None and quality_flag is None):
             errors.append('At least one QC flag is required.')
+        else:
+            if quantity_flag is not None:
+                if sample.quantity_flag is not None and sample.quantity_flag != (quantity_flag == 'Passed'):
+                    warnings.append(("Sample {0} quantity flag will be changed to {1}.", [sample.name, quantity_flag]))
+                sample.quantity_flag = (quantity_flag == 'Passed')
+            if quality_flag is not None:
+                if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
+                    warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
+                sample.quality_flag = (quality_flag == 'Passed')
+            sample.save()
     except Error as e:
         errors.append(';'.join(e.messages))
 

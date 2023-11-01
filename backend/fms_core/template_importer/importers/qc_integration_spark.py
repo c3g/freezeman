@@ -31,11 +31,10 @@ class QCIntegrationSparkImporter(GenericImporter):
     
     def preprocess_file(self, path: os.PathLike) -> StringIO:
         new_content = StringIO()
-
-        with open(path) as original:
-            lines = original.readlines()
+        with path.open(mode="r") as original:
+            lines = [line.decode(encoding="utf-8", errors="ignore") for line in original.readlines()]
             # Add Instrument to header
-            new_content.write("Instrument," + lines[0].strip(",") + "\n")
+            new_content.write("Instrument," + lines[0].strip()[:-1] + "\n")
             has_reached_cutoff = False
             DATE_KEY = "Date of measurement: "
             PLATE_KEY = "Plate ID: "
@@ -47,8 +46,8 @@ class QCIntegrationSparkImporter(GenericImporter):
                     self.preloaded_data['plate_barcode'] = line[len(PLATE_KEY):]
 
                 if not has_reached_cutoff:
-                    new_content.write(self.INSTRUMENT_TYPE + "," + line.strip() + "\n")
-
+                    new_content.write(self.INSTRUMENT_TYPE + "," + line.strip()[:-1] + "\n")
+        new_content.seek(0)
         return new_content
 
     def initialize_data_for_template(self):

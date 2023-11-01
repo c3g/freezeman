@@ -87,8 +87,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
-			if (stepSamples.prefill.templates.length > 0 || isAutomationStep || isIntegrationStep) {
+			if (stepSamples.prefill.templates.length > 0) {
 				const template = stepSamples.prefill.templates[0]
+				setSelectedTemplate(template)
+      } else if (stepSamples.action.templates.length > 0) {
+        const template = stepSamples.action.templates[0]
 				setSelectedTemplate(template)
 			} else {
 				console.error('No templates are associated with step!')
@@ -97,7 +100,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
-	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
+	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0 && stepSamples.prefill.templates.length > 0
 
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
@@ -354,7 +357,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
       {!isAutomationStep &&
         <>
           <PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
-          <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
+          <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
         </>
       }
       {isAutomationStep &&

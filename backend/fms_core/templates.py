@@ -54,9 +54,6 @@ AXIOM_PREPARATION_TEMPLATE = {
           'batch': True,
       },
   ],
-  #"user prefill info": {
-  #      "Preparation Start Date (YYYY-MM-DD)": "date",
-  #},
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [],
 }

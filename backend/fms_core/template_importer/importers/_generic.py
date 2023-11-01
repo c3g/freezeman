@@ -110,7 +110,7 @@ class GenericImporter():
         try:
             if self.format == ".xlsx":
                 pd_sheet = pd.read_excel(self.preprocess_file(self.file), sheet_name=name, header=None)
-            elif self.format == ".csv" or format == ".txt":
+            elif self.format == ".csv" or self.format == ".txt" or self.format == ".asc":
                 pd_sheet = pd.read_csv(self.preprocess_file(self.file), header=None)
             elif self.format == ".tsv":
                 pd_sheet = pd.read_csv(self.preprocess_file(self.file), sep="\t", header=None)

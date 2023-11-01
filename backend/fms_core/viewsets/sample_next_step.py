@@ -160,7 +160,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     # Template prefills will need to be filtered by the frontend on the basis of the template -> identity -> protocol which contains the protocol name.
     template_prefill_list = [
-        {"template": AXIOM_PREPARATION_TEMPLATE},
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_QC_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
