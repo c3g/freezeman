@@ -60,7 +60,9 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         # Illumina Experiment
         self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_4_0.xlsx')
-       
+        
+        #Axiom Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_6_0.xlsx')
 
     def import_template(self, importer, file):
         template_path = TEMPLATES_DIR / file
@@ -141,6 +143,15 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertIsNotNone(illumina_experiment)
         
         run_info = generate_run_info(illumina_experiment)
+
+        self.assertIsNotNone(run_info)
+
+    def test_axiom_experiment_run(self):
+        # This test just verifies that an axiom experiment run can be processed.
+        axiom_experiment = ExperimentRun.objects.get(name='ER-AXIOM-EXPERIMENT')
+        self.assertIsNotNone(axiom_experiment)
+        
+        run_info = generate_run_info(axiom_experiment)
 
         self.assertIsNotNone(run_info)
 
