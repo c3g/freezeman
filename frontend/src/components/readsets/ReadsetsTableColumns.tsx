@@ -96,49 +96,49 @@ export enum ReadsetFilterID {
     RELEASE_STATUS = ReadsetColumnID.RELEASE_STATUS,
     LIBRARY_TYPE = ReadsetColumnID.LIBRARY_TYPE,
     INDEX = ReadsetColumnID.INDEX,
-    NUM_READS = ReadsetColumnID.NUMBER_READS,
+    NUMBER_READS = ReadsetColumnID.NUMBER_READS,
 }
 
-export const READSET_COLUMN_FILTERS: { [key in ReadsetColumnID]: FilterDescription } = {
-    [ReadsetColumnID.ID]: {
+export const READSET_COLUMN_FILTERS: { [key in ReadsetFilterID]: FilterDescription } = {
+    [ReadsetFilterID.ID]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
         key: UNDEFINED_FILTER_KEY,
         label: "Readset ID",
     },
-    [ReadsetColumnID.SAMPLE_NAME]: {
+    [ReadsetFilterID.SAMPLE_NAME]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Sample Name",
     },
-    [ReadsetColumnID.RELEASE_STATUS]: {
+    [ReadsetFilterID.RELEASE_STATUS]: {
         type: FILTER_TYPE.SELECT,
         placeholder: 'All',
         options: [{ label: 'Available', value: '0' }, { label: 'Released', value: '1' }, { label: 'Blocked', value: '2' }],
         key: UNDEFINED_FILTER_KEY,
         label: "Release Status",
     },
-    [ReadsetColumnID.LIBRARY_TYPE]: {
+    [ReadsetFilterID.LIBRARY_TYPE]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Library Type",
     },
-    [ReadsetColumnID.INDEX]: {
+    [ReadsetFilterID.INDEX]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Index",
     },
-    [ReadsetColumnID.NUMBER_READS]: {
+    [ReadsetFilterID.NUMBER_READS]: {
         type: FILTER_TYPE.RANGE,
         key: UNDEFINED_FILTER_KEY,
         label: "Number of Reads",
     },
 }
 
-export const READSET_FILTER_KEYS: { [key in ReadsetColumnID]: string } = {
-    [ReadsetColumnID.ID]: 'id',
-    [ReadsetColumnID.SAMPLE_NAME]: 'sample_name',
-    [ReadsetColumnID.RELEASE_STATUS]: 'release_status',
-    [ReadsetColumnID.LIBRARY_TYPE]: 'derived_sample__library__library_type__name',
-    [ReadsetColumnID.INDEX]: 'derived_sample__library__index__name',
-    [ReadsetColumnID.NUMBER_READS]: 'number_reads',
+export const READSET_FILTER_KEYS: { [key in ReadsetFilterID]: string } = {
+    [ReadsetFilterID.ID]: 'id',
+    [ReadsetFilterID.SAMPLE_NAME]: 'sample_name',
+    [ReadsetFilterID.RELEASE_STATUS]: 'release_status',
+    [ReadsetFilterID.LIBRARY_TYPE]: 'derived_sample__library__library_type__name',
+    [ReadsetFilterID.INDEX]: 'derived_sample__library__index__name',
+    [ReadsetFilterID.NUMBER_READS]: 'number_reads',
 }

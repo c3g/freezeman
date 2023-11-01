@@ -114,7 +114,6 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         columnID: ExperimentRunColumnID.LAUNCH,
         title: 'Launch',
         dataIndex: ['experimentRun', 'launch'],
-        sorter: true,
         width: 180,
         render: (_, { experimentRun }) => {
             return (<div>
@@ -136,59 +135,52 @@ export enum ExperimentRunFilterID {
     INSTRUMENT_TYPE = ExperimentRunColumnID.INSTRUMENT_TYPE,
     CONTAINER_BARCODE = ExperimentRunColumnID.CONTAINER_BARCODE,
     START_DATE = ExperimentRunColumnID.START_DATE,
-    LAUNCH = ExperimentRunColumnID.LAUNCH
 }
 
-export const EXPERIMENT_RUN_FILTER_DEFINITIONS: { [key in ExperimentRunColumnID]: FilterDescription } = {
-    [ExperimentRunColumnID.ID]: {
+export const EXPERIMENT_RUN_FILTER_DEFINITIONS: { [key in ExperimentRunFilterID]: FilterDescription } = {
+    [ExperimentRunFilterID.ID]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
         key: UNDEFINED_FILTER_KEY,
         label: "ExperimentRun ID",
     },
-    [ExperimentRunColumnID.NAME]: {
+    [ExperimentRunFilterID.NAME]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Name",
     },
-    [ExperimentRunColumnID.RUN_TYPE]: {
+    [ExperimentRunFilterID.RUN_TYPE]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Run Type",
     },
-    [ExperimentRunColumnID.INSTRUMENT]: {
+    [ExperimentRunFilterID.INSTRUMENT]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Instrument",
     },
-    [ExperimentRunColumnID.INSTRUMENT_TYPE]: {
+    [ExperimentRunFilterID.INSTRUMENT_TYPE]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Instrument Type",
     },
-    [ExperimentRunColumnID.CONTAINER_BARCODE]: {
+    [ExperimentRunFilterID.CONTAINER_BARCODE]: {
         type: FILTER_TYPE.INPUT,
         key: UNDEFINED_FILTER_KEY,
         label: "Container Barcode",
     },
-    [ExperimentRunColumnID.START_DATE]: {
+    [ExperimentRunFilterID.START_DATE]: {
         type: FILTER_TYPE.DATE_RANGE,
         key: UNDEFINED_FILTER_KEY,
         label: "Start Date",
-    },
-    [ExperimentRunColumnID.LAUNCH]: {
-        type: FILTER_TYPE.DATE_RANGE,
-        key: UNDEFINED_FILTER_KEY,
-        label: "Launch",
     }
 }
 
-export const EXPERIMENT_RUN_FILTER_KEYS: { [key in ExperimentRunColumnID]: string } = {
-    [ExperimentRunColumnID.ID]: 'id',
-    [ExperimentRunColumnID.NAME]: 'name',
-    [ExperimentRunColumnID.RUN_TYPE]: 'run_type',
-    [ExperimentRunColumnID.INSTRUMENT]: 'instrument',
-    [ExperimentRunColumnID.INSTRUMENT_TYPE]: 'instrument_type',
-    [ExperimentRunColumnID.CONTAINER_BARCODE]: 'container_barcode',
-    [ExperimentRunColumnID.START_DATE]: 'start_date',
-    [ExperimentRunColumnID.LAUNCH]: 'run_processing_launch_time',
+export const EXPERIMENT_RUN_FILTER_KEYS: { [key in ExperimentRunFilterID]: string } = {
+    [ExperimentRunFilterID.ID]: 'id',
+    [ExperimentRunFilterID.NAME]: 'name',
+    [ExperimentRunFilterID.RUN_TYPE]: 'run_type',
+    [ExperimentRunFilterID.INSTRUMENT]: 'instrument',
+    [ExperimentRunFilterID.INSTRUMENT_TYPE]: 'instrument_type',
+    [ExperimentRunFilterID.CONTAINER_BARCODE]: 'container_barcode',
+    [ExperimentRunFilterID.START_DATE]: 'start_date',
 }
