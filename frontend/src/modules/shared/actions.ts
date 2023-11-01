@@ -1,5 +1,6 @@
 import Containers from "../containers/actions"
 import ContainersTableActions from '../containersTable/actions'
+import ExperimentRunTableActions from '../experimentRunsTable/actions'
 import Coordinates from "../coordinates/actions"
 import DatasetFiles from "../datasetFiles/actions"
 import Datasets from "../datasets/actions"
@@ -82,7 +83,7 @@ export const fetchListedData = () => async (dispatch) => {
     // Higher priority
     await Promise.all([
         ContainersTableActions.refreshPage,
-        ExperimentRuns.listTable,
+        ExperimentRunTableActions.refreshPage,
         IndicesTableActions.refreshPage,
         IndividualsTableActions.refreshPage,
         SamplesTableActions.refreshPage,

@@ -197,11 +197,7 @@ export const experimentRuns = (
     state = {
         itemsByID: {},
         items: [],
-        page: { limit: 0, offset: 0 },
-        totalCount: 0,
         isFetching: false,
-        filters: {},
-        sortBy: { key: undefined, order: undefined },
     },
     action
 ) => {
@@ -215,19 +211,10 @@ export const experimentRuns = (
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
-        case SET_SORT_BY:
-            return { ...state, sortBy: action.data, items: [] };
-        case SET_FILTER:
-            return reduceSetFilter(state, action.description, action.value)
-        case SET_FILTER_OPTION:
-            return reduceSetFilterOptions(state, action.description, action.options)
-        case CLEAR_FILTERS:
-            return reduceClearFilters(state)
-
         case LIST.REQUEST:
             return { ...state, isFetching: true, };
         case LIST.RECEIVE: {
-            const results = action.data
+            const results = action.data.results
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }

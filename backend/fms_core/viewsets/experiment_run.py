@@ -23,7 +23,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = ExperimentRun.objects.select_related("run_type", "container", "instrument")
     serializer_class = ExperimentRunSerializer
     serializer_export_class = ExperimentRunExportSerializer
-    pagination_class = None
+
 
     permission_classes = [IsAuthenticated]
 

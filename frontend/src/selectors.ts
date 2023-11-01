@@ -69,6 +69,7 @@ export const selectDatasetsByID = (state: RootState) => state.datasets.itemsByID
 export const selectDatasetsState = (state: RootState) => state.datasets
 export const selectExperimentRunLanesState = (state: RootState) => state.experimentRunLanes
 export const selectExperimentRunsByID = (state: RootState) => state.experimentRuns.itemsByID as ItemsByID<ExperimentRun>
+export const selectExperimentRunsTable = (state: RootState) => state.experimentRunsTable
 export const selectExperimentRunsState = (state: RootState) => state.experimentRuns
 export const selectExperimentRunsTemplateActions = (state: RootState) => state.experimentRunTemplateActions
 export const selectExternalExperimentRuns = (state: RootState) => state.externalExperimentRuns.runs
@@ -81,6 +82,7 @@ export const selectIndicesTemplateActions = (state: RootState) => state.indicesT
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
 export const selectIndividualsDetailsById = (state: RootState) => state.individualDetails as IndividualDetailsById
 export const selectIndividualsTable = (state: RootState) => state.individualsTable
+export const selectExperimentRunLaunches = (state: RootState) => state.experimentRunLaunches
 export const selectInstrumentsByID = (state: RootState) => state.instruments.itemsByID as ItemsByID<Instrument>
 export const selectInstrumentTypesByID = (state: RootState) => state.instrumentTypes.itemsByID as ItemsByID<InstrumentType>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState

@@ -1,12 +1,6 @@
-import { EXPERIMENT_RUN_FILTERS } from "../../components/filters/descriptions";
-import { DEFAULT_PAGINATION_LIMIT } from "../../config";
-import { createFiltersActions } from "../../models/filter_set_actions";
 import { networkAction } from "../../utils/actions";
 import api from "../../utils/api";
-import serializeFilterParams from "../../utils/serializeFilterParams";
-import serializeSortByParams from "../../utils/serializeSortByParams";
 import {
-    FILTER_ACTION_TYPES,
     FLUSH_EXPERIMENT_RUN_LAUNCH,
     GET,
     LAUNCH_EXPERIMENT_RUN,
@@ -14,12 +8,8 @@ import {
     LIST_INSTRUMENTS,
     LIST_INSTRUMENT_TYPES,
     LIST_PROPERTY_VALUES,
-    LIST_TABLE,
     LIST_TEMPLATE_ACTIONS,
     LIST_TYPES,
-    SET_SORT_BY,
-    ADD_INSTRUMENT,
-    UPDATE_INSTRUMENT
 } from './reducers';
 
 export const get = id => async (dispatch, getState) => {
@@ -38,34 +28,6 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
-    const experimentRuns = getState().experimentRuns
-    if (experimentRuns.isFetching && !abort)
-        return
-
-    const filters = serializeFilterParams(experimentRuns.filters, EXPERIMENT_RUN_FILTERS)
-    const ordering = serializeSortByParams(experimentRuns.sortBy)
-    const options = { limit, offset, ordering, ...filters}
-
-    return await dispatch(networkAction(LIST_TABLE,
-        api.experimentRuns.list(options, abort),
-        { meta: { ...options, ignoreError: 'AbortError' } }
-    ));
-};
-
-export const setSortBy = thenList((key, order) => {
-    return {
-        type: SET_SORT_BY,
-        data: { key, order }
-    }
-});
-
-
-const { setFilter: setFilterAction, setFilterOption: setFilterOptionAction, clearFilters: clearFiltersAction} = createFiltersActions(FILTER_ACTION_TYPES)
-
-export const setFilter = thenList(setFilterAction)
-export const setFilterOption = thenList(setFilterOptionAction)
-export const clearFilters = thenList(clearFiltersAction)
 
 export const listTypes = () => async (dispatch, getState) => {
     if (getState().runTypes.isFetching || getState().runTypes.items.length > 0)
@@ -82,17 +44,6 @@ export const listInstruments = (options) => async (dispatch, getState) => {
 export const listInstrumentTypes = (options) => async (dispatch, getState) => {
     const params = {limit: 100000, ...options};
     return await dispatch(networkAction(LIST_INSTRUMENT_TYPES, api.instrumentTypes.list(params)));
-}
-
-export const addInstrument = (instrument) => async (dispatch, getState) => {
-    return await dispatch(networkAction(
-        ADD_INSTRUMENT, api.instruments.add(instrument), { meta: { ignoreError: 'APIError' } }
-    ));
-}
-export const updateInstrument = (instrument) => async (dispatch, getState) => {
-    return await dispatch(networkAction(
-        UPDATE_INSTRUMENT, api.instruments.update(instrument), { meta: {id: instrument.id, ignoreError: 'APIError' } }
-    ));
 }
 
 export const listPropertyValues = (params) => async (dispatch, getState) => {
@@ -134,12 +85,7 @@ export const flushExperimentRunLaunch = (experimentRunId) => {
 
 export default {
     get,
-    setSortBy,
-    setFilter,
-    setFilterOption,
-    clearFilters,
     list,
-    listTable,
     listTypes,
     listInstrumentTypes,
     listInstruments,
@@ -148,11 +94,3 @@ export default {
     launchExperimentRun,
     flushExperimentRunLaunch
 };
-
-// Helper to call list() after another action
-function thenList(fn) {
-    return (...args) => async dispatch => {
-        dispatch(fn(...args))
-        dispatch(listTable(undefined, true))
-    }
-}
