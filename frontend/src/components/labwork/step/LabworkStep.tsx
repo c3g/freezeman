@@ -44,6 +44,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
 
   const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
+  const isIntegrationStep = step.type === "INTEGRATION"
 
 
 	useEffect(() => {
@@ -86,7 +87,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
-			if (stepSamples.prefill.templates.length > 0 || isAutomationStep) {
+			if (stepSamples.prefill.templates.length > 0 || isAutomationStep || isIntegrationStep) {
 				const template = stepSamples.prefill.templates[0]
 				setSelectedTemplate(template)
 			} else {

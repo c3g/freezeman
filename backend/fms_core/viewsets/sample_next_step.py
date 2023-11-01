@@ -14,10 +14,10 @@ from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSeri
 from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
                                 LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE,
                                 LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE,
-                                QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
+                                AXIOM_PREPARATION_TEMPLATE, QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
 from fms_core.template_importer.importers import (ExtractionImporter, SampleQCImporter, NormalizationPlanningImporter, NormalizationImporter,
                                                   LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter, LibraryCaptureImporter,
-                                                  LibraryConversionImporter, ExperimentRunImporter, QCIntegrationSparkImporter)
+                                                  LibraryConversionImporter, ExperimentRunImporter, AxiomPreparationImporter, QCIntegrationSparkImporter)
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin):
     queryset = SampleNextStep.objects.all().distinct()
@@ -78,6 +78,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     # Template actions will need to be filtered by the frontend on the basis of the template -> protocol which contains the protocol name.
     template_action_list = [
+        {
+            "name": "Prepare Axiom Samples",
+            "description": "Upload the provided template with Axiom preparation information.",
+            "template": [AXIOM_PREPARATION_TEMPLATE["identity"]],
+            "importer": AxiomPreparationImporter,
+        },
         {
             "name": "DNA or RNA Extractions",
             "description": "Upload the provided template with extraction information.",
@@ -154,6 +160,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     # Template prefills will need to be filtered by the frontend on the basis of the template -> identity -> protocol which contains the protocol name.
     template_prefill_list = [
+        {"template": AXIOM_PREPARATION_TEMPLATE},
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_QC_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
@@ -255,8 +262,8 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         for step in automationlSteps:
             # Make sure that at least one workflow uses this automation step, since
             # labwork doesn't need steps that are not used by any workflow
-#            if not Workflow.objects.filter(steps__in=step).exists():
-#                continue
+            if not Workflow.objects.filter(steps__in=[step]).exists():
+                continue
             
             # Get the precise count of sample for the specific step and the specifications
             step_sample_count = SampleNextStep.objects.filter(step=step).count()

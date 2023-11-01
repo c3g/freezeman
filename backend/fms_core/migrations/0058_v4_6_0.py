@@ -223,7 +223,7 @@ def create_qc_integration_spark_entities(apps, schema_editor):
 
         STEPS = [
             # {name, protocol_name}
-            {"name": "Quality Control - Integration (Spark)", "expected_sample_type": SampleType.EXTRACTED_SAMPLE, "type": StepType.PROTOCOL,
+            {"name": "Quality Control - Integration (Spark)", "expected_sample_type": SampleType.EXTRACTED_SAMPLE, "type": StepType.INTEGRATION,
              # Adding a specification to be able to normalize the step selection if other steps are added to the protocol.
              "specifications": [{"name": "Instrument", "sheet_name": "Default", "column_name": "Instrument", "value": INSTRUMENT_TYPE}]},
         ]
@@ -231,7 +231,7 @@ def create_qc_integration_spark_entities(apps, schema_editor):
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
 
         # Create the Instrument Type
-        platform = Platform.object.get(name="Quality Control")
+        platform = Platform.objects.get(name="Quality Control")
         instrument_type = InstumentType.objects.create(platform=platform,
                                                        type=INSTRUMENT_TYPE,
                                                        created_by_id=admin_user_id,
@@ -258,6 +258,7 @@ def create_qc_integration_spark_entities(apps, schema_editor):
         # Create Step and specification
         for step_info in STEPS:
             step = Step.objects.create(name=step_info["name"],
+                                       protocol=protocol,
                                        expected_sample_type=step_info["expected_sample_type"],
                                        type=step_info["type"],
                                        created_by_id=admin_user_id,
