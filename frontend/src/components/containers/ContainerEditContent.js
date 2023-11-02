@@ -137,7 +137,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
         >
           <Item label="Name" {...props("name")}
             tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
-            extra="Unique name given to a container." >
+            extra="Unique name given to a container. (Default to barcode if empty)" >
             <Input />
           </Item>
           <Item label="Kind" {...props("kind")} rules={requiredRules}
@@ -236,6 +236,7 @@ function serialize(values) {
 
   if (!newValues.coordinate)
     newValues.coordinate = null
+
   return newValues
 }
 
