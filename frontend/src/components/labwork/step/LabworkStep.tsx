@@ -1,4 +1,4 @@
-import { InfoCircleOutlined } from '@ant-design/icons'
+import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
 import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -42,9 +42,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const librariesByID = useAppSelector(selectLibrariesByID)
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
+  const [waitResponse, setWaitResponse] = useState<boolean>(false)
 
   const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
-  const isIntegrationStep = step.type === "INTEGRATION"
 
 
 	useEffect(() => {
@@ -93,6 +93,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
       } else if (stepSamples.action.templates.length > 0) {
         const template = stepSamples.action.templates[0]
 				setSelectedTemplate(template)
+      } else if (isAutomationStep) {
+				setSelectedTemplate(undefined)
 			} else {
 				console.error('No templates are associated with step!')
 			}
@@ -134,8 +136,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
   const handleExecuteAutomation = useCallback(
     async () => {
       try {
+        setWaitResponse(true)
         const response = await dispatch(requestAutomationExecution(step.id))
         if (response) {
+          setWaitResponse(false)
           const success = response.data.result.success
           if (success) {
             dispatch(flushSamplesAtStep(step.id))
@@ -158,6 +162,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
           }
         }
       } catch (err) {
+        setWaitResponse(false)
         console.error(err)
       }
 		}
@@ -362,7 +367,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
       }
       {isAutomationStep &&
         <>
-          <Button type='default' disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
+          <Button type='default' icon={<SyncOutlined spin={waitResponse}/>} disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
         </>
       }
       <RefreshButton
