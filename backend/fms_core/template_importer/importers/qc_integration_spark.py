@@ -31,22 +31,22 @@ class QCIntegrationSparkImporter(GenericImporter):
     
     def preprocess_file(self, path: os.PathLike) -> StringIO:
         new_content = StringIO()
-        with path.open(mode="r") as original:
-            lines = [line.decode(encoding="utf-8", errors="ignore") for line in original.readlines()]
-            # Add Instrument to header
-            new_content.write("Instrument," + lines[0].strip()[:-1] + "\n")
-            has_reached_cutoff = False
-            DATE_KEY = "Date of measurement: "
-            PLATE_KEY = "Plate ID: "
-            for line in lines[1:]:
-                if line.startswith(DATE_KEY):
-                    has_reached_cutoff = True
-                    self.preloaded_data["execution_date"] = line[len(DATE_KEY):len(DATE_KEY)+10]
-                if line.startswith(PLATE_KEY):
-                    self.preloaded_data['plate_barcode'] = line[len(PLATE_KEY):]
+        original = path.open()
+        lines = [line.decode(encoding="utf-8", errors="ignore") for line in original.readlines()]
+        # Add Instrument to header
+        new_content.write("Instrument," + lines[0].strip()[:-1] + "\n")
+        has_reached_cutoff = False
+        DATE_KEY = "Date of measurement: "
+        PLATE_KEY = "Plate ID: "
+        for line in lines[1:]:
+            if line.startswith(DATE_KEY):
+                has_reached_cutoff = True
+                self.preloaded_data["execution_date"] = line[len(DATE_KEY):len(DATE_KEY)+10]
+            if line.startswith(PLATE_KEY):
+                self.preloaded_data['plate_barcode'] = line[len(PLATE_KEY):]
 
-                if not has_reached_cutoff:
-                    new_content.write(self.INSTRUMENT_TYPE + "," + line.strip()[:-1] + "\n")
+            if not has_reached_cutoff:
+                new_content.write(self.INSTRUMENT_TYPE + "," + line.strip()[:-1] + "\n")
         new_content.seek(0)
         return new_content
 
