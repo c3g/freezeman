@@ -135,7 +135,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" {...props("name")} rules={nameRules.concat(requiredRules)}
+          <Item label="Name" {...props("name")}
             tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
             extra="Unique name given to a container." >
             <Input />
@@ -236,7 +236,6 @@ function serialize(values) {
 
   if (!newValues.coordinate)
     newValues.coordinate = null
-
   return newValues
 }
 

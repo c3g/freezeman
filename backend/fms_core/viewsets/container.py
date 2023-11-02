@@ -1,4 +1,6 @@
+from xml.dom import ValidationErr
 from django.db.models import Count, Q, Prefetch
+from fms_core.services.container import create_container
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -92,6 +94,15 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
         return self.queryset
 
+    def create(self, request):
+        container = request.data
+        try:
+            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['barcode'], coordinates=container['coordinate'], container_parent=container['location'], creation_comment=container['comment'])
+            serializer = ContainerSerializer(container_obj)
+        except Exception as err:
+            raise ValidationErr(err)
+        else:
+            return Response(serializer.data)
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
