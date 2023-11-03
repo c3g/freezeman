@@ -32,7 +32,8 @@ export function initSamplesAtStep(stepID: FMSId) {
       await dispatch({
         type: INIT_SAMPLES_AT_STEP,
         stepID,
-        templates: []
+        templates: [],
+        actions: []
       })
     }
     else {
@@ -57,11 +58,27 @@ export function initSamplesAtStep(stepID: FMSId) {
           submissionURL
         }
       })
+      // List of template descriptors for available actions, which include a 'Submit Templates' url.      
+      const actionsAvailable = templateActions.filter((action) => {
+        const matchedTemplate = action.template.find(actionTemplate => actionTemplate.protocol === protocol.name)
+        return !!matchedTemplate
+      })
+      
+      const actions = actionsAvailable.map((templateAction) => {
+        const submissionURL = templateAction ? `actions/${templateAction.id}` : undefined
+        return {
+          id: templateAction.id,
+          description: templateAction.description,
+          prefillFields: [],
+          submissionURL,
+        }
+      })
       // dispatch an action to init the state for this step
       await dispatch({
         type: INIT_SAMPLES_AT_STEP,
         stepID,
-        templates
+        templates,
+        actions
       })
     }		
 

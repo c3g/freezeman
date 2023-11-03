@@ -249,7 +249,7 @@ const SampleDetailsContent = ({
               {(sample.coordinate && withCoordinate(coordinatesByID, sample.coordinate, coordinate => coordinate.name, "Loading...")) || "—"}
             </Descriptions.Item>
             <Descriptions.Item label="QC Flag">
-              {flags.quantity !== null && flags.quality !== null
+              {!isNullish(flags.quantity) || !isNullish(flags.quality)
                 ? <QCFlag flags={flags} />
                 : null}
             </Descriptions.Item>

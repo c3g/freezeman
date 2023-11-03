@@ -788,14 +788,14 @@ def _process_sample(process,
     return (sample_destination, errors, warnings)
 
 
-def update_qc_flags(sample, quantity_flag, quality_flag):
+def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
     """
     Set the quantity_flag and quality_flag to given values.
 
     Args:
       `sample`: Sample receiving the new flags.
-      `quantity_flag`: 'Passed' or 'Failed' values to set the quantity flag.
-      `quality_flag`: 'Passed' or 'Failed' values to set the quantity flag.
+      `quantity_flag`: 'Passed', 'Failed' or None values to set the quantity flag.
+      `quality_flag`: 'Passed', 'Failed' or None values to set the quantity flag.
       
     Returns:
       The updated sample, errors and warnings
@@ -805,16 +805,18 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
 
     try:
         # Update the QC flags for the given sample
-        if quantity_flag and quality_flag:
-            if sample.quantity_flag is not None and sample.quantity_flag != (quantity_flag == 'Passed'):
-                warnings.append(("Sample {0} quantity flag will be changed to {1}.", [sample.name, quantity_flag]))
-            sample.quantity_flag = (quantity_flag == 'Passed')
-            if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
-                warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
-            sample.quality_flag = (quality_flag == 'Passed')
-            sample.save()
+        if (quantity_flag is None and quality_flag is None):
+            errors.append('At least one QC flag is required.')
         else:
-            errors.append('Quantity and Quality flags are required.')
+            if quantity_flag is not None:
+                if sample.quantity_flag is not None and sample.quantity_flag != (quantity_flag == 'Passed'):
+                    warnings.append(("Sample {0} quantity flag will be changed to {1}.", [sample.name, quantity_flag]))
+                sample.quantity_flag = (quantity_flag == 'Passed')
+            if quality_flag is not None:
+                if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
+                    warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
+                sample.quality_flag = (quality_flag == 'Passed')
+            sample.save()
     except Error as e:
         errors.append(';'.join(e.messages))
 

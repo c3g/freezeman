@@ -161,7 +161,8 @@ class TemplateActionsMixin:
                 if protocol and current_template_protocol_name and protocol.name != current_template_protocol_name:
                     pass
                 else:
-                    template["file"] = request.build_absolute_uri(template["file"]) # Return the file as an URI
+                    file = template.get("file", None)
+                    template["file"] = request.build_absolute_uri(template["file"]) if file is not None else file # Return the file as an URI
                     list_templates.append(template)
             if len(list_templates) > 0:
                 action_dict = {}
@@ -319,20 +320,23 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
         queryset = self.filter_queryset(self.get_queryset())
-        try:
-            rows_dicts = self._prepare_prefill_dicts(template, queryset, user_prefill_data)
-            prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
-        except Exception as err:
-            return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
-        
-        try:
-            response = HttpResponse(content=prefilled_template)
-            response["Content-Type"] = "application/ms-excel"
-            response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
-        except Exception as err:
-            return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
-        
-        return response
+        if not user_prefill_data and not template["prefill info"]:
+            return HttpResponseBadRequest(json.dumps({"detail": f"No prefilling available for current template."}), content_type="application/json")
+        else:
+            try:
+                rows_dicts = self._prepare_prefill_dicts(template, queryset, user_prefill_data)
+                prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
+            except Exception as err:
+                return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
+            
+            try:
+                response = HttpResponse(content=prefilled_template)
+                response["Content-Type"] = "application/ms-excel"
+                response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
+            except Exception as err:
+                return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
+            
+            return response
 
 class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod

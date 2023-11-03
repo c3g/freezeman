@@ -38,3 +38,4 @@ class SampleType(models.TextChoices):
 class StepType(models.TextChoices):
     PROTOCOL = "PROTOCOL", "Protocol"
     AUTOMATION = "AUTOMATION", "Automation"
+    INTEGRATION = "INTEGRATION", "Integration"

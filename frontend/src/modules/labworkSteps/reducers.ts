@@ -133,7 +133,7 @@ function handleListError(state: LabworkStepsState, stepID: FMSId, error: any) {
 export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: AnyAction) => {
 	switch (action.type) {
 		case INIT_SAMPLES_AT_STEP: {
-			const { stepID, templates } = action
+			const { stepID, templates, actions } = action
 			const stepSamples: LabworkStepSamples = {
 				stepID,
 				pagedItems: createPagedItemsByID(),
@@ -143,6 +143,9 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 				prefill: {
 					templates
 				},
+        action: {
+          templates: actions
+        },
 				showSelectionChangedWarning: false
 			}
 			return updateStepSamples(state, stepSamples)

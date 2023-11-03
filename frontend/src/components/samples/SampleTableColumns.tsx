@@ -7,6 +7,7 @@ import { selectSampleKindsByID } from '../../selectors'
 import store from '../../store'
 import { Depletion } from '../Depletion'
 import { QCFlag } from '../QCFlag'
+import { isNullish } from '../../utils/functions'
 import SampleKindTag from '../SampleKindTag'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
@@ -235,7 +236,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		render: (_, { sample }) => {
 			if (sample) {
 				const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag }
-				if (flags.quantity !== null && flags.quality !== null) {
+				if (!isNullish(flags.quantity) || !isNullish(flags.quality)) {
 					return <QCFlag flags={flags} />
 				}
 			}

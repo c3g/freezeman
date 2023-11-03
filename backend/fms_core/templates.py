@@ -24,6 +24,7 @@ __all__ = [
     "LIBRARY_QC_TEMPLATE",
     "NORMALIZATION_TEMPLATE",
     "NORMALIZATION_PLANNING_TEMPLATE",
+    "QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE",
     "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
@@ -53,9 +54,6 @@ AXIOM_PREPARATION_TEMPLATE = {
           'batch': True,
       },
   ],
-  #"user prefill info": {
-  #      "Preparation Start Date (YYYY-MM-DD)": "date",
-  #},
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [],
 }
@@ -387,6 +385,18 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
+}
+
+QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE = {
+  "identity": {"description": "Template to perform quality control from a Spark instrument result file.",
+               "protocol": "Quality Control - Integration"},
+  "sheets info": [
+      {
+          'name': 'Default',
+          'headers': ['Instrument', 'Well positions', '260nm', '280nm', '320nm', 'Concentration ug/ul', 'Purity 260/280', 'Mass/rxn (ug)'],
+          'batch': False,
+      },
+  ]
 }
 
 SAMPLE_METADATA_TEMPLATE = {

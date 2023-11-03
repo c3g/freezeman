@@ -33,7 +33,7 @@ class AxiomCreateFolders(GenericAutomation):
         warnings = defaultdict(list)
         # build list of folder from sample plate info
         for container in Container.objects.filter(samples__id__in=sample_ids).all().distinct():
-            project = container.name.replace(REMOVED_CONTAINER_SUFFIX, "") + str(container.id)
+            project = container.name.replace(REMOVED_CONTAINER_SUFFIX, "") + "_" + str(container.id)
             filepath = path.join(self.work_folder, project)
             # Create directory if it doesn't already exist
             try:
