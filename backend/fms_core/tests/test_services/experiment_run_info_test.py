@@ -55,14 +55,6 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         
         self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_4_0_after_capture.xlsx')
 
-        # MGI Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_4_0.xlsx')
-
-        # Illumina Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_4_0.xlsx')
-        
-        #Axiom Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_6_0.xlsx')
 
     def import_template(self, importer, file):
         template_path = TEMPLATES_DIR / file
@@ -72,6 +64,9 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
 
     def test_mgi_experiment_run(self):
+        # MGI Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_4_0.xlsx')
+
         mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
         self.assertIsNotNone(mgi_experiment)
         
@@ -138,6 +133,8 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             self.assertEqual(run_info_sample[key], values_dict[key])
 
     def test_illumina_experiment_run(self):
+        # Illumina Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_4_0.xlsx')
         # This test just verifies that an illumina experiment run can be processed.
         illumina_experiment = ExperimentRun.objects.get(name='ER-DNA-ILLUMINA-EXPERIMENT')
         self.assertIsNotNone(illumina_experiment)
@@ -147,6 +144,8 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertIsNotNone(run_info)
 
     def test_axiom_experiment_run(self):
+        #Axiom Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_6_0.xlsx')
         # This test just verifies that an axiom experiment run can be processed.
         axiom_experiment = ExperimentRun.objects.get(name='ER-AXIOM-EXPERIMENT')
         self.assertIsNotNone(axiom_experiment)
@@ -156,6 +155,8 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertIsNotNone(run_info)
 
     def test_service_start_experiment_run_processing(self):
+        # MGI Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_4_0.xlsx')
         # Just verify that no exception is thrown
         mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
         event_file, errors, warnings = start_experiment_run_processing(mgi_experiment.id)
@@ -165,6 +166,8 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertFalse(warnings)
 
     def test_service_get_run_info_for_experiment(self):
+        # MGI Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_4_0.xlsx')
         # Just verify that no exception is thrown
         mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
         info, errors, warnings = get_run_info_for_experiment(mgi_experiment.id)

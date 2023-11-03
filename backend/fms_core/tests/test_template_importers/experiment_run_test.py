@@ -295,18 +295,17 @@ class ExperimentRunAxiomTestCase(TestCase):
         self.file = APP_DATA_ROOT / "Experiment_run_Axiom_v4_6_0.xlsx"
         ContentType.objects.clear_cache()
 
-        self.container_barcode = "CONTAINERWITHSAMPLETESTAXIOM"
-        self.sample_name = "ExperimentAxiomTestSample"
+        self.container_barcode = "CONTAINERTESTAXIOM"
+        self.sample_name = "AxiomTestSample"
         self.prefill_data()
 
     def prefill_data(self):
         sample_kind, _ = SampleKind.objects.get_or_create(name="DNA")
-        container, errors, warnings = create_container(barcode=self.container_barcode, kind='96 well-plate', name=self.container_barcode)
-
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='96-well plate', name=self.container_barcode)
         project, _, _ = create_project(name='AxiomTestProject')
 
-        create_full_sample(name=self.sample_name, volume=100, collection_site='site1', creation_date=datetime.datetime(2023, 1, 1, 0, 0),
-                           container=container, sample_kind=sample_kind, project=project)
+        sample, errors, warnings = create_full_sample(name=self.sample_name, volume=100, concentration=10, collection_site='site1', creation_date=datetime.datetime(2023, 1, 1, 0, 0),
+                                                      container=container, coordinates="A01", sample_kind=sample_kind, project=project)
         
     def test_import(self):
         # Basic test for all templates - checks that template is valid
@@ -323,28 +322,31 @@ class ExperimentRunAxiomTestCase(TestCase):
         self.assertEqual(experiment_run_obj.instrument.name, 'Protected')
 
         # Process Tests
-        self.assertEqual(process_obj.child_process.count(), 0)
+        self.assertEqual(process_obj.child_process.count(), 2)
         self.assertEqual(process_obj.protocol.name, 'Axiom Experiment Run')
 
         # Process properties Tests (check properties for process)
         protocol_id = process_obj.protocol.id
 
-        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Denaturation and Hybridization Comment', object_id=protocol_id))
-        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Axiom Module 4.1 Barcode', object_id=protocol_id))
-        p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Axiom Module 4.2 Barcode', object_id=protocol_id))
-        p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Liquid Handler Instrument Reagent Preparation', object_id=protocol_id))
-        p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Reagent Preparation Comment', object_id=protocol_id))
+        # Sub-process Tests (check properties for one process and sub-processes in depth)
+        cp1_1 = Process.objects.get(parent_process=process_obj, protocol__name='Axiom: Denaturation and Hybridization')
+        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Comment Denaturation and Hybridization')
+        cp1_2 = Process.objects.get(parent_process=process_obj, protocol__name='Axiom: GeneTitan Reagent Preparation')
+        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Axiom Module 4.1 Barcode')
+        p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Axiom Module 4.2 Barcode')
+        p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Liquid Handler Instrument Reagent Preparation')
+        p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Comment Reagent Preparation')
         
          # Check property values for Axiom experiment run process
         self.assertEqual(p1.value, 'test comment')
         self.assertEqual(p2.value, 'test4.1barcode')
         self.assertEqual(p3.value, 'test4.2barcode')
-        self.assertEqual(p4.value, 'liquid handler test instrument')
+        self.assertEqual(p4.value, 'Nimbus 2')
         self.assertEqual(p5.value, 'test comment')
         
 

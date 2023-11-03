@@ -64,16 +64,16 @@ def create_axiom_experiment_run_related_objects(apps, schema_editor):
         # Create PropertyType and Protocols
         PROPERTY_TYPES_BY_PROTOCOL = {
             "Axiom Experiment Run": [],
-            "Axiom: Denaturation and Hybridization": [("Denaturation and Hybridization Comment", "str")],
+            "Axiom: Denaturation and Hybridization": [("Comment Denaturation and Hybridization", "str")],
             "Axiom: GeneTitan Reagent Preparation": [("Axiom Module 4.1 Barcode", "str"),
                                                      ("Axiom Module 4.2 Barcode", "str"),
                                                      ("Liquid Handler Instrument Reagent Preparation", "str"),
-                                                     ("Reagent Preparation Comment", "str"),
+                                                     ("Comment Reagent Preparation", "str"),
                                                      ],
         }
         SUBPROTOCOLS_BY_PROTOCOL = {
             "Axiom Experiment Run": ["Axiom: Denaturation and Hybridization",
-                                         "Axiom: GeneTitan Reagent Preparation",]
+                                     "Axiom: GeneTitan Reagent Preparation",]
         }
         
         
