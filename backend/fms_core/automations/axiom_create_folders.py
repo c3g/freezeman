@@ -5,7 +5,7 @@ from typing import List
 from fms_core.models import Container
 from collections import defaultdict
 
-WORK_FOLDER = "axiom_arrays"
+WORK_FOLDER = "axiom-arrays"
 FILE_SUFFIX = ".PROJECT"
 REMOVED_CONTAINER_SUFFIX = "_AFHD"
 
