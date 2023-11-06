@@ -72,7 +72,7 @@ class AutomationsMixin:
         result = {"success": False, "data": None}
         step_id = request.POST.get("step_id")
         if step_id is not None:
-            automation_class_name = StepSpecification.objects.filter(step_id=step_id, name=automations._constants.AUTOMATION_CLASS).values_list("value", flat=True)[0]
+            automation_class_name = StepSpecification.objects.filter(step_id=step_id, name="AutomationClass").values_list("value", flat=True)[0]
             if automation_class_name is not None:
                 queryset = self.filter_queryset(self.get_queryset())
                 sample_ids = queryset.values_list("sample_id", flat=True)
