@@ -1,1 +1,0 @@
-AUTOMATION_CLASS = "AutomationClass"
