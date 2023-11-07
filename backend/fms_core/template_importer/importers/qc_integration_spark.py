@@ -31,8 +31,8 @@ class QCIntegrationSparkImporter(GenericImporter):
     
     def preprocess_file(self, path: os.PathLike) -> StringIO:
         new_content = StringIO()
-        original = path.open()
-        lines = [line.decode(encoding="utf-8", errors="ignore") for line in original.readlines()]
+        original = path.open(encoding='utf-8', errors='ignore')
+        lines = [line for line in original.readlines()]
         # Add Instrument to header
         new_content.write("Instrument," + lines[0].strip()[:-1] + "\n")
         has_reached_cutoff = False
