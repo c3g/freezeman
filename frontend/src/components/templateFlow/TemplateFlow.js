@@ -19,7 +19,7 @@ import { ConfirmationStep } from "./steps/ConfirmationStep";
 
 const STEPS = [
   {
-    title: "Upload Template",
+    title: "Upload File",
     description: uploadText => uploadText || "Upload the provided template.",
     content: UploadStep,
   },
@@ -93,11 +93,11 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
           // the template after it has been uploaded.
           const description = 
             <div>
-              <p>The template has changed since it was uploaded and cannot be submitted.</p>
-              <p>Please upload the template again, and ensure that it is not saved or otherwise modified until after it has been submitted.</p>
+              <p>The file has changed since it was uploaded and cannot be submitted.</p>
+              <p>Please upload the file again, and ensure that it is not saved or otherwise modified until after it has been submitted.</p>
             </div>
           notification.error({
-            message: 'Template Has Changed',
+            message: 'File Has Changed',
             description,
             duration: 0
           })
