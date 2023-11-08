@@ -35,10 +35,10 @@ class QCIntegrationSparkImporter(GenericImporter):
         new_content = StringIO()
         if isinstance(path, InMemoryUploadedFile):
             original = path.open()
-            lines = [line.decode(encoding='utf-8', errors='ignore') for line in original.readlines()]
+            lines = list(filter(None, [line.decode(encoding="utf-8", errors="ignore").strip() for line in original.readlines()]))
         else:
             original = path.open(encoding='utf-8', errors='ignore')
-            lines = [line for line in original.readlines()]
+            lines = list(filter(None, [line.strip() for line in original.readlines()]))
         # Add Instrument to header
         new_content.write("Instrument," + lines[0].strip()[:-1] + "\n")
         has_reached_cutoff = False
