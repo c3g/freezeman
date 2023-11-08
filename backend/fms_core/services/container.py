@@ -139,8 +139,8 @@ def get_or_create_container(barcode, kind=None, name=None, coordinates=None, con
                 errors.append(f"Container kind is required to create a container.")
             elif container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
                 errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
-            elif name is None and Container.objects.filter(name=barcode):
-                    errors.append(f"Missing container name, barcode will replace container name. Container with name {barcode} already exists")
+            elif name is None and Container.objects.filter(name=barcode).exists():
+                    errors.append(f"Container with name {barcode} already exists. Missing container name, barcode will replace container name.")
             else:
 
                 if not Container.objects.filter(barcode=barcode).exists() and name is None:
@@ -168,11 +168,11 @@ def create_container(barcode, kind, name=None, coordinates=None, container_paren
         if kind:
             if Container.objects.filter(barcode=barcode).exists():
                 errors.append(f"Container with barcode {barcode} already exists.")
-            elif name is None and Container.objects.filter(name=barcode):
-                errors.append(f"Missing container name, barcode will replace container name. Container with name {barcode} already exists")
+            elif name is None and Container.objects.filter(name=barcode).exists():
+                errors.append(f"Container with name {barcode} already exists. Missing container name, barcode will replace container name. ")
             else:
                 if not Container.objects.filter(barcode=barcode).exists() and name is None:
-                    warnings.append(f'Missing container name, container barcode will be used as container name')
+                    warnings.append(f'Missing container name, container barcode will be used as container name.')
                 try:
                     coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
                 except Coordinate.DoesNotExist as err:
