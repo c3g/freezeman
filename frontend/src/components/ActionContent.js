@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import {Menu, Dropdown, Button} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
 
+import { isNullish } from "../utils/functions"
 import {fetchSummariesData} from "../modules/shared/actions";
 import api, {withToken} from "../utils/api";
 import AppPageHeader from "./AppPageHeader";
@@ -73,9 +74,11 @@ const ActionContent = ({token, templateType, templateActions}) => {
               <DownloadOutlined /> Download Template...
             </Button>
           </Dropdown> :
-          <Button onClick={() => window.location = action.template[0].file}>
-            <DownloadOutlined /> Download Template
-          </Button>
+          isNullish(action.template[0].file) ?
+            <></> :
+            <Button onClick={() => window.location = action.template[0].file}>
+              <DownloadOutlined /> Download Template
+            </Button>
       }
     />
     <PageContent>
