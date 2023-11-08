@@ -1,6 +1,8 @@
 from io import StringIO
 import os
 from typing import TypedDict
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from fms_core.models import Process, Protocol, PropertyType, Step
 
 from ._generic import GenericImporter
@@ -31,8 +33,12 @@ class QCIntegrationSparkImporter(GenericImporter):
     
     def preprocess_file(self, path: os.PathLike) -> StringIO:
         new_content = StringIO()
-        original = path.open()
-        lines = [line.decode(encoding="utf-8", errors="ignore") for line in original.readlines()]
+        if isinstance(path, InMemoryUploadedFile):
+            original = path.open()
+            lines = list(filter(None, [line.decode(encoding="utf-8", errors="ignore").strip() for line in original.readlines()]))
+        else:
+            original = path.open(encoding='utf-8', errors='ignore')
+            lines = list(filter(None, [line.strip() for line in original.readlines()]))
         # Add Instrument to header
         new_content.write("Instrument," + lines[0].strip()[:-1] + "\n")
         has_reached_cutoff = False
