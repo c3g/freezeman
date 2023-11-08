@@ -144,7 +144,7 @@ coverage run ./manage.py test -v 2
 
 ## Database diagram
 
-[Database Schema Diagram](https://dbdiagram.io/d/FMS-DB-v4-5-62012be785022f4ee54f72f3)
+[Database Schema Diagram](https://dbdiagram.io/d/FMS-DB-v4-6-622116d754f9ad109a563cbc)
 
 
 ## pg_fzy
