@@ -135,9 +135,13 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" {...props("name")}
-            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
-            extra="Unique name given to a container. (Default to barcode if empty)" >
+          <Item
+            label="Barcode"
+            {...props("barcode")}
+            rules={barcodeRules.concat(requiredRules)}
+            tooltip="Space not allowed."
+            extra="Unique scannable identifier for the container."
+          >
             <Input />
           </Item>
           <Item label="Kind" {...props("kind")} rules={requiredRules}
@@ -148,13 +152,9 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
               )}
             </Select>
           </Item>
-          <Item
-            label="Barcode"
-            {...props("barcode")}
-            rules={barcodeRules.concat(requiredRules)}
-            tooltip="Space not allowed."
-            extra="Unique scannable identifier for the container."
-          >
+          <Item label="Name" {...props("name")}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
+            extra="Unique name given to a container. (Default to barcode if empty)" >
             <Input />
           </Item>
           <Item label="Location" style={{ margin: 0 }}>
@@ -169,7 +169,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
                 onFocus={onFocusLocation}
               />
             </Item>
-            <Item label="@" {...props("coordinate")} style={{ display: 'inline-block', width: '38%'}}
+            <Item label="@" {...props("coordinate")} style={{ display: 'inline-block', width: '38%' }}
               extra="Coordinates within parent, if applicable." >
               <Select
                 showSearch
@@ -227,7 +227,7 @@ function deserialize(values) {
 
   if (newValues.coordinate)
     newValues.coordinate = Number(newValues.coordinate)
-  
+
   return newValues
 }
 

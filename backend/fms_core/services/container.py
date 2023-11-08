@@ -140,11 +140,11 @@ def get_or_create_container(barcode, kind=None, name=None, coordinates=None, con
             elif container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
                 errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
             elif name is None and Container.objects.filter(name=barcode).exists():
-                    errors.append(f"Container with name {barcode} already exists. Missing container name, barcode will replace container name.")
+                    errors.append(f"Container with name {barcode} already exists, using barcode as name (container name missing).")
             else:
 
                 if not Container.objects.filter(barcode=barcode).exists() and name is None:
-                    warnings.append(f'Missing container name, container barcode will be used as container name')
+                    warnings.append(f'Missing container name, container barcode will be used as container name.')
                 try:
                     container = Container.objects.create(**container_data, comment=comment)
                     created_entity = True
@@ -169,7 +169,7 @@ def create_container(barcode, kind, name=None, coordinates=None, container_paren
             if Container.objects.filter(barcode=barcode).exists():
                 errors.append(f"Container with barcode {barcode} already exists.")
             elif name is None and Container.objects.filter(name=barcode).exists():
-                errors.append(f"Container with name {barcode} already exists. Missing container name, barcode will replace container name. ")
+                errors.append(f"Container with name {barcode} already exists, using barcode as name (container name missing).")
             else:
                 if not Container.objects.filter(barcode=barcode).exists() and name is None:
                     warnings.append(f'Missing container name, container barcode will be used as container name.')
