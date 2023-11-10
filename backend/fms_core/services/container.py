@@ -180,7 +180,7 @@ def create_container(barcode, kind, name=None, coordinates=None, container_paren
                 container_data = dict(
                     **(dict(location=container_parent) if container_parent else dict()),
                     **(dict(barcode=barcode) if barcode is not None else dict()),
-                    **(dict(name=name) if (name is not None and name) else dict(name=barcode)), # By default, a container name will be his barcode
+                    **(dict(name=name) if name is not None else dict(name=barcode)), # By default, a container name will be his barcode
                     **(dict(coordinate=coordinate) if coordinate is not None else dict()),
                     **(dict(kind=kind) if kind is not None else dict()),
                 )
