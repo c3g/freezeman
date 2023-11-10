@@ -575,7 +575,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
 
 SAMPLE_TRANSFER_TEMPLATE = {
   "identity": {"description": "Template to transfer samples",
-               "file": static("submission_templates/Sample_transfer_v4_4_0.xlsx"),
+               "file": static("submission_templates/Sample_transfer_v4_6_0.xlsx"),
                "protocol": "Transfer"},
   "sheets info": [
       {
