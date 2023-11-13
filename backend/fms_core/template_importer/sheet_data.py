@@ -68,3 +68,18 @@ class SheetData():
             "base_errors": self.base_errors,
             "rows": rows_results,
         }
+    
+    def check_empty_row(row_data):
+        empty_row_errors = []
+        empty_string = True
+        for index, x in panda_values_to_str_list(row_data):
+            for i in x:
+                if i:
+                    empty_string = False
+                    break
+            
+            if empty_string:
+                empty_row_errors.append(f"Empty row @ row "+str(index))
+            
+            empty_string = True
+
