@@ -10,7 +10,7 @@ from fms_core.services.sample_next_step import execute_workflow_action
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
-FLAG_PROPERTIES = ['Sample Quality QC Flag', 'Sample Quantity QC Flag']
+FLAG_PROPERTIES = ['Library Quality QC Flag', 'Library Quantity QC Flag']
 INSTRUMENT_FLAG_PAIRS = list(zip(INSTRUMENT_PROPERTIES, FLAG_PROPERTIES))
 QC_PLATFORM = "Quality Control"
 
@@ -114,7 +114,6 @@ class LibraryQCRowHandler(GenericRowHandler):
         process_measurement_properties['Library Quantity QC Flag']['value'] = measures['quantity_flag']
         process_measurement_properties['Quantity Instrument']['value'] = measures['quantity_instrument']
         
-
         # Validate instrument - flag pair
         for instrument, flag in INSTRUMENT_FLAG_PAIRS:
             if (process_measurement_properties[instrument]['value'] is None) != (process_measurement_properties[flag]['value'] is None):
