@@ -1,4 +1,7 @@
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Q, Prefetch
+from fms_core.utils import remove_empty_str_from_dict
+from fms_core.services.container import create_container
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -92,6 +95,22 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
         return self.queryset
 
+    def create(self, request):
+        container = request.data
+
+        try:
+            if container['name'] and Container.objects.filter(name=container['name']).exists():
+                raise ValidationError({"name": f"Container with name {container['name']} already exists."})
+            if not container['name'] and Container.objects.filter(name=container['barcode']).exists():
+                raise ValidationError({"barcode": f"Container with name {container['barcode']} already exists. Missing container name, barcode will replace container name."})
+
+            container = remove_empty_str_from_dict(container)
+            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=container['coordinate'], container_parent=container['location'], creation_comment=container['comment'])
+            serializer = ContainerSerializer(container_obj)
+        except Exception as errors:
+            raise ValidationError(errors)
+        
+        return Response(serializer.data)
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':

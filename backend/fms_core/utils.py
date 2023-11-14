@@ -104,6 +104,13 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     """
     return str_cast_and_normalize(d.get(key) or default)
 
+def remove_empty_str_from_dict(d) -> dict:
+    """
+    Gets a dictionary, and replaces all empty string values with a None object.
+    """
+    d = {k: None if not v else v for k, v in d.items() }
+    return d
+
 
 def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]: 
     if not isinstance(date, datetime.date):
