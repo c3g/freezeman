@@ -310,6 +310,44 @@ def create_axiom_workflow(apps, schema_editor):
 
                     reversion.add_to_revision(step_order)
 
+def make_flag_instrument_non_mandatory(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+    PropertyType = apps.get_model("fms_core", "PropertyType")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Make Library QC flag and instrument properties non mandatory.")
+        reversion.set_user(admin_user)
+
+        PROPERTY_TYPES_BY_PROTOCOL = {
+            "Library Quality Control": ["Library Quantity QC Flag",
+                                        "Quantity Instrument",
+                                        "Library Quality QC Flag",
+                                        "Quality Instrument",
+                                       ],
+            "Sample Quality Control": ["Sample Quantity QC Flag",
+                                       "Quantity Instrument",
+                                       "Sample Quality QC Flag",
+                                       "Quality Instrument",
+                                      ],
+        }
+
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+
+        # Set property types to optional
+        is_optional = True
+        for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
+            protocol = Protocol.objects.get(name=protocol_name)
+            for property_type_name in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+                property_type = PropertyType.objects.get(name=property_type_name,
+                                                         object_id=protocol.id,
+                                                         content_type=protocol_content_type)
+                property_type.is_optional = is_optional
+                property_type.save()
+                reversion.add_to_revision(property_type)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -396,6 +434,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             create_axiom_workflow,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            make_flag_instrument_non_mandatory,
             reverse_code=migrations.RunPython.noop,
         ),
     ]

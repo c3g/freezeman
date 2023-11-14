@@ -158,7 +158,8 @@ EMAIL_HOST          = os.environ.get('FMS_EMAIL_HOST',     'localhost')
 EMAIL_PORT          = int(os.environ.get('FMS_EMAIL_PORT', '587'))
 EMAIL_HOST_USER     = os.environ.get('FMS_EMAIL_USER',     'noreply@example.com')
 EMAIL_HOST_PASSWORD = os.environ.get('FMS_EMAIL_PASSWORD', 'secret')
-EMAIL_USE_TLS       = bool(os.environ.get('FMS_EMAIL_TLS', 'False'))
+EMAIL_USE_TLS       = not DEBUG and bool(os.environ.get('FMS_EMAIL_TLS', False))
+EMAIL_SSL_CERTFILE  = os.environ.get('FMS_SSL_CERTFILE', None)
 
 FMS_ENV             = os.environ.get('FMS_ENV', 'LOCAL')
 

@@ -10,6 +10,8 @@ from fms_core.services.sample_next_step import execute_workflow_action
 from fms_core.models import InstrumentType
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
+FLAG_PROPERTIES = ['Sample Quality QC Flag', 'Sample Quantity QC Flag']
+INSTRUMENT_FLAG_PAIRS = list(zip(INSTRUMENT_PROPERTIES, FLAG_PROPERTIES))
 QC_PLATFORM = "Quality Control"
 
 class SampleQCRowHandler(GenericRowHandler):
@@ -38,6 +40,31 @@ class SampleQCRowHandler(GenericRowHandler):
 
             if sample_information['concentration'] is None:
                 self.errors['concentration'] = 'Concentration value is required'
+
+            # Validate instrument - flag pair
+            for instrument, flag in INSTRUMENT_FLAG_PAIRS:
+                if (process_measurement_properties[instrument]['value'] is None) != (process_measurement_properties[flag]['value'] is None):
+                    self.errors['flag_instrument_pair'] = f'Instrument and flag of the same type must be set together.'
+                    
+            # Validate instruments according to platform
+            for instrument in INSTRUMENT_PROPERTIES:
+                type = process_measurement_properties[instrument]['value']
+                if type is not None:
+                    try:
+                        it = InstrumentType.objects.get(type=type)
+                        # Validate platform and type
+                        if it.platform.name != QC_PLATFORM:
+                            self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
+                    except Exception as e:
+                        self.errors['instrument'] = f'Invalid instrument {type}.'
+
+            # Validate required RIN for RNA
+            if sample_obj.derived_samples.first().sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
+                self.errors['RIN'] = 'RIN has to be specified for RNA.'
+
+             # Return if there are any validation errors
+            if any(self.errors.values()):
+                return
 
             _, self.errors['sample_update'], self.warnings['sample_update'] = \
                 update_sample(sample_to_update=sample_obj,
@@ -69,21 +96,3 @@ class SampleQCRowHandler(GenericRowHandler):
                                                                                              step=workflow["step"],
                                                                                              current_sample=sample_obj,
                                                                                              process_measurement=process_measurement_obj)
-
-            if process_measurement_obj and properties_obj:
-                # Validate instruments according to platform
-                for instrument in INSTRUMENT_PROPERTIES:
-                    try:
-                        type = process_measurement_properties[instrument]['value']
-                        it = InstrumentType.objects.get(type=type)
-                        # Validate platform and type
-                        if it.platform.name != QC_PLATFORM:
-                            self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
-                    except Exception as e:
-                        self.errors['instrument'] = f'Invalid instrument {type}.'
-
-                # Validate required RIN for RNA
-                if sample_obj.derived_samples.first().sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
-                    self.errors['RIN'] = 'RIN has to be specified for RNA.'
-
-
