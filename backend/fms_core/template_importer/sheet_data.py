@@ -53,6 +53,7 @@ class SheetData():
             }
             self.rows_results.append(result)
             
+            #checks if entire row has missing data (empty cells)
             empty_row = row if self.check_for_empty_row(row_data) else ''
             if empty_row:
                 self.empty_row = empty_row
@@ -82,6 +83,7 @@ class SheetData():
         return True
     
     def check_for_empty_row_errors(self):
+        #checks if empty row exists in sheet_data, appends error with the last filled line in the sheet_data
         if self.empty_row:
             erroneous_row = self.empty_row + 1
-            self.base_errors.append(f'Error @ row #{str(erroneous_row)}, missing data (empty cells) @ row #{str(self.empty_row)}.')
+            self.base_errors.append(f'Empty line detected. Fill in empty line at row #{str(self.empty_row)} or remove data at row #{str(erroneous_row)}.')

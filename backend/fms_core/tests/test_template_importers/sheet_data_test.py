@@ -19,6 +19,8 @@ class SheetDataTestCase(TestCase):
             sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
         
         sheet = sheets["ContainerCreation"]
+
         self.assertIsNotNone(sheet)
         self.assertTrue(sheet.base_errors)
         self.assertIsNotNone(sheet.empty_row)
+        self.assertEquals(sheet.empty_row, 42)
