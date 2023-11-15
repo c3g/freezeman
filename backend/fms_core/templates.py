@@ -5,7 +5,7 @@ various viewsets. Can be used to calculate URIs for the template files too.
 
 from django.templatetags.static import static
 
-from fms_core.template_importer._constants import VALID_NORM_CHOICES, LIBRARY_QC_QUALITY_INSTRUMENTS, LIBRARY_QC_QUANTITY_INSTRUMENTS
+from fms_core.template_importer._constants import VALID_ROBOT_CHOICES, LIBRARY_QC_QUALITY_INSTRUMENTS, LIBRARY_QC_QUANTITY_INSTRUMENTS
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
@@ -354,12 +354,12 @@ NORMALIZATION_TEMPLATE = {
 
 NORMALIZATION_PLANNING_TEMPLATE = {
   "identity": {"description": "Template to perform normalization planning",
-               "file": static("submission_templates/Normalization_planning_v4_5_0.xlsx"),
+               "file": static("submission_templates/Normalization_planning_v4_7_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
+        'headers': ['Type', 'Robot', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
                     'Source Parent Container Barcode', 'Source Parent Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
@@ -369,7 +369,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       },
   ],
   "user prefill info": {
-      "Robot Norm Choice": VALID_NORM_CHOICES,
+      "Robot": VALID_ROBOT_CHOICES,
       "Norm. NA Quantity (ng)": "number",
       "Norm. Conc. (ng/uL)": "number",
       "Norm. Conc. (nM)": "number",

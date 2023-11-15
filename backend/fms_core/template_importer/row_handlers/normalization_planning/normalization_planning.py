@@ -1,6 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-from fms_core.template_importer._constants import (VALID_NORM_CHOICES,
-                                                   LIBRARY_CHOICE)
+from fms_core.template_importer._constants import VALID_ROBOT_CHOICES, GENOTYPING_TYPE, LIBRARY_TYPE, SAMPLE_TYPE
 from fms_core.services.container import get_container, is_container_valid_destination
 from fms_core.services.sample import get_sample_from_container
 from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul, convert_library_concentration_from_ngbyul_to_nm
@@ -17,14 +16,16 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
              The errors and warnings of the row in question after validation.
     """
 
-    def process_row_inner(self, source_sample, destination_sample, measurements, robot):
+    def process_row_inner(self, type, source_sample, destination_sample, measurements, robot):
         concentration_nguL = None
         concentration_nm = None
         combined_concentration_nguL = None
 
         # Check if robot output choice is valid
-        if robot["norm_choice"] not in VALID_NORM_CHOICES:
-            self.errors['robot_norm_choice'] = f"Robot normalization choice must be chosen among the following choices : {VALID_NORM_CHOICES}."
+        if type == LIBRARY_TYPE and robot is not None:
+            self.warnings['robot'] = ("Library type normalization offers a single robot output format. Robot selection {0} ignored.", [robot])
+        if (type == GENOTYPING_TYPE or type == SAMPLE_TYPE) and robot not in VALID_ROBOT_CHOICES:
+            self.errors['robot'] = f"Normalization type {type} requires a robot selection among the following choices : {VALID_ROBOT_CHOICES}."
 
         # Check case when none of the options were provided
         if all([measurements['concentration_nm'] is None,
@@ -52,8 +53,8 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 
             # ensure that the sample source is a library if the norm choice is library
             # If it is a pool we have to check if it is a pool of libraries
-            if robot['norm_choice'] == LIBRARY_CHOICE and not source_sample_obj.is_library:
-                self.errors['sample'] = f'The robot normalization choice was library. However, the source sample is not a library or a pool of libraries.'
+            if type == LIBRARY_TYPE and not source_sample_obj.is_library:
+                self.errors['sample'] = f'The normalization type choice was library. However, the source sample is not a library or a pool of libraries.'
 
             # ensure that if the sample source is in a tube, the tube has a parent container in FMS.
             container_obj, self.errors['src_container'], self.warnings['src_container'] = get_container(barcode=source_sample['container']['barcode'])
@@ -140,7 +141,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
 
             if not self.has_errors():
                 self.row_object = {
-                    'Type': '',
+                    'Type': type,
                     'Source Sample': source_sample_obj,
                     'Sample Name': source_sample['name'],
                     'Source Container Barcode': source_sample['container']['barcode'],

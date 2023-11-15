@@ -2,11 +2,7 @@ from django.core.exceptions import ValidationError
 
 from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
-from fms_core.template_importer._constants import (GENOTYPING_BIOMEK_CHOICE,
-                                                   GENOTYPING_JANUS_CHOICE,
-                                                   SAMPLE_BIOMEK_CHOICE,
-                                                   SAMPLE_JANUS_CHOICE,
-                                                   LIBRARY_CHOICE)
+from fms_core.template_importer._constants import ROBOT_BIOMEK, ROBOT_JANUS, GENOTYPING_TYPE, LIBRARY_TYPE, SAMPLE_TYPE
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
 
 from fms_core.models import Container
@@ -52,10 +48,11 @@ class NormalizationPlanningImporter(GenericImporter):
         bypass_input_requirement = sheet_df.values[BYPASS_INDEX_ROW][BYPASS_INDEX_COLUMN]
 
         normalization_mapping_rows = []
-        norm_choice = []
+        robot_choice = []
         base_error_rows = []
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
+            type = str_cast_and_normalize(row_data['Type'])
             source_sample = {
                 'name': str_cast_and_normalize(row_data['Sample Name']),
                 'container': {'barcode': str_cast_and_normalize(row_data['Source Container Barcode'])},
@@ -81,11 +78,10 @@ class NormalizationPlanningImporter(GenericImporter):
                 'bypass_input_requirement': check_truth_like(str(bypass_input_requirement)) # Defaults to false
             }
 
-            robot = {
-                'norm_choice': str_cast_and_normalize(row_data['Robot Norm Choice']),
-            }
+            robot = str_cast_and_normalize(row_data['Robot'])
 
             normalization_kwargs = dict(
+                type=type,
                 source_sample=source_sample,
                 destination_sample=destination_sample,
                 measurements=measurements,
@@ -103,7 +99,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
             
             normalization_mapping_rows.append(normalization_row_mapping)
-            norm_choice.append(robot["norm_choice"])
+            robot_choice.append(robot)
 
         if len(base_error_rows) > 1:
             self.base_errors.append(f"Rows {base_error_rows} have errors.")
@@ -111,12 +107,12 @@ class NormalizationPlanningImporter(GenericImporter):
             self.base_errors.append(f"Row {base_error_rows[0]} has errors.")
 
         # Make sure all the normalization choices and formats for outputs are the same
-        if len(set(norm_choice)) != 1:
-            self.base_errors.append(f"All Robot norm choices need to be identical.")
+        if len(set(robot_choice)) != 1:
+            self.base_errors.append(f"All Robot choices need to be identical.")
 
         if not self.dry_run and not self.base_errors:
             # Create robot file using both the input from the normalization sheet and the pools sheet.
-            robot_files, updated_norm_mapping_rows = self.prepare_robot_file(normalization_mapping_rows, norm_choice[0])
+            robot_files, updated_norm_mapping_rows = self.prepare_robot_file(normalization_mapping_rows, type, robot_choice[0])
 
             # Prepare the Normalization template
             normalization_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, [updated_norm_mapping_rows])
@@ -135,7 +131,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 'content': zip_buffer.getvalue()
             }
             
-    def prepare_robot_file(self, norm_rows_data, norm_choice):
+    def prepare_robot_file(self, norm_rows_data, type, robot):
         """
         This function takes the content of the Normalization planning template as input to create
         a csv file that contains the required configuration for the robot execution of the
@@ -143,7 +139,8 @@ class NormalizationPlanningImporter(GenericImporter):
 
         Args:
             norm_rows_data: A list of row_data for the normalization extracted by the importer and already validated by the row_handler.
-            norm_choice: The choice between genotyping, sample and library robot output files.
+            type: The choice between genotyping, sample and library type of normalization.
+            robot: The robot output file requested.
             
         Returns:
             A tuple containing : a list of dict that contains robot csv files and an updated version of the row_data (sorted and completed).
@@ -152,22 +149,13 @@ class NormalizationPlanningImporter(GenericImporter):
         TUBE = "tube"
         DILUENT = "Water"   # This is an hardcoded value for Biomek config file
         DILUENT_WELL = "4"  # This is an hardcoded value for Biomek config file
-        SAMPLE_TYPE = "Sample"
-        LIBRARY_TYPE = "Library"
-        GENOTYPING_TYPE = "Genotyping"
 
-        if norm_choice == LIBRARY_CHOICE:
+        if type == LIBRARY_TYPE:
             ROBOT_SRC_PREFIX = "Source"
             ROBOT_DST_PREFIX = "Dil"
-            normalization_type = LIBRARY_TYPE
-        elif norm_choice == SAMPLE_JANUS_CHOICE or norm_choice == SAMPLE_BIOMEK_CHOICE:
+        elif type == SAMPLE_TYPE or type == GENOTYPING_TYPE:
             ROBOT_SRC_PREFIX = "Src"
             ROBOT_DST_PREFIX = "Dst"
-            normalization_type = SAMPLE_TYPE
-        elif norm_choice == GENOTYPING_JANUS_CHOICE or norm_choice == GENOTYPING_BIOMEK_CHOICE:
-            ROBOT_SRC_PREFIX = "Src"
-            ROBOT_DST_PREFIX = "Dst"
-            normalization_type = GENOTYPING_TYPE
 
         def build_source_container_dict(rows_data):
             container_dict = {}
@@ -269,9 +257,9 @@ class NormalizationPlanningImporter(GenericImporter):
             output_row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(get_source_container_spec(output_row_data, container_dict),
                                                                                      get_source_container_coord(output_row_data, container_dict))
             # Add type to the rows_data
-            output_row_data["Type"] = normalization_type
+            output_row_data["Type"] = type
 
-        if norm_choice == LIBRARY_CHOICE:
+        if type == LIBRARY_TYPE:
             # Creating the 2 robot files
             add_diluent_io = BytesIO()
             add_library_io = BytesIO()
@@ -302,13 +290,13 @@ class NormalizationPlanningImporter(GenericImporter):
             add_diluent_io.writelines(add_diluent_lines)
             add_library_io.writelines(add_library_lines)
             robot_files = [
-                {"name": f"Normalization_{normalization_type.lower()}_diluent_{timestamp.replace(' ', '_')}.csv",
+                {"name": f"Normalization_{type.lower()}_diluent_{timestamp.replace(' ', '_')}.csv",
                  "content": add_diluent_io.getvalue(),},
-                {"name": f"Normalization_{normalization_type.lower()}_main_dilution_{timestamp.replace(' ', '_')}.csv",
+                {"name": f"Normalization_{type.lower()}_main_dilution_{timestamp.replace(' ', '_')}.csv",
                  "content": add_library_io.getvalue(),},
             ]
 
-        elif norm_choice == SAMPLE_BIOMEK_CHOICE or norm_choice == GENOTYPING_BIOMEK_CHOICE:
+        elif robot == ROBOT_BIOMEK:
             # Create the single robot file
             normalization_io = BytesIO()
             normalization_lines = []
@@ -333,11 +321,11 @@ class NormalizationPlanningImporter(GenericImporter):
 
             normalization_io.writelines(normalization_lines)
             robot_files = [
-                {"name": f"Normalization_{normalization_type.lower()}_Biomek_{timestamp}.csv",
+                {"name": f"Normalization_{type.lower()}_Biomek_{timestamp}.csv",
                  "content": normalization_io.getvalue(),},
             ]
 
-        elif norm_choice == SAMPLE_JANUS_CHOICE or norm_choice == GENOTYPING_JANUS_CHOICE:
+        elif robot == ROBOT_JANUS:
             # Create the single robot file
             normalization_io = BytesIO()
             normalization_lines = []
@@ -360,8 +348,10 @@ class NormalizationPlanningImporter(GenericImporter):
 
             normalization_io.writelines(normalization_lines)
             robot_files = [
-                {"name": f"Normalization_{normalization_type.lower()}_Janus_{timestamp}.csv",
+                {"name": f"Normalization_{type.lower()}_Janus_{timestamp}.csv",
                  "content": normalization_io.getvalue(),},
             ]
+        else:
+            raise ValidationError(f"Invalid robot for normalization.")
 
         return robot_files, output_norm_rows_data
