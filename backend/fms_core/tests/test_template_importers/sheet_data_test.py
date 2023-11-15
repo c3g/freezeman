@@ -9,7 +9,7 @@ from pandas import pandas as pd
 
 class SheetDataTestCase(TestCase):
     def test_empty_rows(self):
-        # extract sheets from library prep for test
+        # extract sheets from container creation for test
         sheet_info = templates.CONTAINER_CREATION_TEMPLATE["sheets info"]
         file = APP_DATA_ROOT / "Container_creation_empty_row_v4_2_0.xlsx"
         sheets = {}
