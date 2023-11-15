@@ -17,7 +17,7 @@ class SheetData():
         self.base_errors = []
         self.is_valid = None
         self.header_row_nb = None
-
+        self.empty_row = None
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
@@ -40,18 +40,24 @@ class SheetData():
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):
             row_data = self.dataframe.iloc[row_id]
             self.rows.append(row_data)
-
-            row_repr = f"#{row_id + 1}"
+            row = row_id + 1
+            row_repr = f"#{row}"
+            row_data = panda_values_to_str_list(row_data)
 
             result = {
                 'row_repr': row_repr,
-                'diff': [row_repr] + panda_values_to_str_list(row_data),
+                'diff': [row_repr] + row_data,
                 'errors': [],
                 'validation_error': ValidationError([]),
                 'warnings': [],
             }
             self.rows_results.append(result)
-
+            
+            empty_row = row if self.check_for_empty_row(row_data) else ''
+            if empty_row:
+                self.empty_row = empty_row
+        
+        self.check_for_empty_row_errors()
 
     def generate_preview_info_from_rows_results(self, rows_results):
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)
@@ -69,17 +75,13 @@ class SheetData():
             "rows": rows_results,
         }
     
-    def check_empty_row(row_data):
-        empty_row_errors = []
-        empty_string = True
-        for index, x in panda_values_to_str_list(row_data):
-            for i in x:
-                if i:
-                    empty_string = False
-                    break
-            
-            if empty_string:
-                empty_row_errors.append(f"Empty row @ row "+str(index))
-            
-            empty_string = True
-
+    def check_for_empty_row(self,row_data):
+        for x in (row_data):
+            if x:
+                return False
+        return True
+    
+    def check_for_empty_row_errors(self):
+        if self.empty_row:
+            erroneous_row = self.empty_row + 1
+            self.base_errors.append(f'Error @ row #{str(erroneous_row)}, missing data (empty cells) @ row #{str(self.empty_row)}.')
