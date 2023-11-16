@@ -1,5 +1,6 @@
 import Containers from "../containers/actions"
 import ContainersTableActions from '../containersTable/actions'
+import ExperimentRunTableActions from '../experimentRunsTable/actions'
 import Coordinates from "../coordinates/actions"
 import DatasetFiles from "../datasetFiles/actions"
 import Datasets from "../datasets/actions"
@@ -49,6 +50,7 @@ export const fetchStaticData = () => async (dispatch) => {
     await Promise.allSettled([
         Coordinates.list,
         Containers.listKinds,
+        ExperimentRuns.listInstrumentTypes,
         ExperimentRuns.listInstruments,
         ExperimentRuns.listTypes,
         Samples.listKinds,
@@ -81,7 +83,7 @@ export const fetchListedData = () => async (dispatch) => {
     // Higher priority
     await Promise.all([
         ContainersTableActions.refreshPage,
-        ExperimentRuns.listTable,
+        ExperimentRunTableActions.refreshPage,
         IndicesTableActions.refreshPage,
         IndividualsTableActions.refreshPage,
         SamplesTableActions.refreshPage,

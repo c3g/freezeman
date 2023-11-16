@@ -5,11 +5,12 @@ various viewsets. Can be used to calculate URIs for the template files too.
 
 from django.templatetags.static import static
 
-from fms_core.template_importer._constants import VALID_NORM_CHOICES
+from fms_core.template_importer._constants import VALID_NORM_CHOICES, LIBRARY_QC_QUALITY_INSTRUMENTS, LIBRARY_QC_QUANTITY_INSTRUMENTS
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
 __all__ = [
+    "EXPERIMENT_AXIOM_TEMPLATE",
     "AXIOM_PREPARATION_TEMPLATE",
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
@@ -23,6 +24,7 @@ __all__ = [
     "LIBRARY_QC_TEMPLATE",
     "NORMALIZATION_TEMPLATE",
     "NORMALIZATION_PLANNING_TEMPLATE",
+    "QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE",
     "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
@@ -52,9 +54,6 @@ AXIOM_PREPARATION_TEMPLATE = {
           'batch': True,
       },
   ],
-  #"user prefill info": {
-  #      "Preparation Start Date (YYYY-MM-DD)": "date",
-  #},
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [],
 }
@@ -154,6 +153,26 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
       ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
       ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+  ],
+}
+
+EXPERIMENT_AXIOM_TEMPLATE = {
+    "identity" : {"description": "Template to add Axiom experiments",
+                  "file": static("submission_templates/Experiment_run_Axiom_v4_6_0.xlsx"),
+                  "protocol": "Axiom Experiment Run"},
+    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO + 
+    [{
+          'name': 'GeneTitanSetup',
+          'headers': ['Coord', 'Array Barcode', 'Unique Sample ID','Sample Name', 'ID'],
+    }],
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+    "prefill info": [
+        ("Samples", "Source Sample Name", "name", "name"),
+        ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
+        ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
+        ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+        ("GeneTitanSetup", "Sample Name", "name", "name"),
+        ("GeneTitanSetup", "ID", "id", "id"),
   ],
 }
 
@@ -289,8 +308,8 @@ LIBRARY_QC_TEMPLATE = {
   "user prefill info": {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
-      "Quality Instrument": "qc-instrument",
-      "Quantity Instrument": "qc-instrument"
+      "Quality Instrument": LIBRARY_QC_QUALITY_INSTRUMENTS,
+      "Quantity Instrument": LIBRARY_QC_QUANTITY_INSTRUMENTS,
   },
 
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -366,6 +385,18 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
+}
+
+QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE = {
+  "identity": {"description": "Template to perform quality control from a Spark instrument result file.",
+               "protocol": "Quality Control - Integration"},
+  "sheets info": [
+      {
+          'name': 'Default',
+          'headers': ['Instrument', 'Well positions', '260nm', '280nm', '320nm', 'Concentration ug/ul', 'Purity 260/280', 'Mass/rxn (ug)'],
+          'batch': False,
+      },
+  ]
 }
 
 SAMPLE_METADATA_TEMPLATE = {
@@ -544,7 +575,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
 
 SAMPLE_TRANSFER_TEMPLATE = {
   "identity": {"description": "Template to transfer samples",
-               "file": static("submission_templates/Sample_transfer_v4_4_0.xlsx"),
+               "file": static("submission_templates/Sample_transfer_v4_6_0.xlsx"),
                "protocol": "Transfer"},
   "sheets info": [
       {

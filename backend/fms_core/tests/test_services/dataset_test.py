@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.utils import timezone
 
 from fms_core.models import Dataset, DatasetFile, Readset, Metric
 from fms_core.services.dataset import (create_dataset,
@@ -60,7 +61,11 @@ class DatasetServicesTestCase(TestCase):
 
     def test_reset_dataset_content(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT", metric_report_url=self.METRIC_REPORT_URL)
-        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset, release_status=ReleaseStatus.BLOCKED)
+        readset = Readset.objects.create(name="My_Readset",
+                                         sample_name="My",
+                                         dataset=dataset,
+                                         release_status=ReleaseStatus.BLOCKED,
+                                         release_status_timestamp=timezone.now())
         dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=3)
         metric = Metric.objects.create(readset=readset, name="Reads", metric_group="RunQC", value_numeric=1000)
 
@@ -81,7 +86,11 @@ class DatasetServicesTestCase(TestCase):
 
     def test_create_dataset_file(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
-        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset, release_status=ReleaseStatus.BLOCKED)
+        readset = Readset.objects.create(name="My_Readset",
+                                         sample_name="My",
+                                         dataset=dataset,
+                                         release_status=ReleaseStatus.BLOCKED,
+                                         release_status_timestamp=timezone.now())
         dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=3)
 
         self.assertCountEqual(errors, [])
@@ -91,21 +100,25 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(DatasetFile.objects.count(), 1)
         self.assertEqual(dataset_file.readset, readset)
         self.assertEqual(dataset_file.file_path, "file_path")
-        self.assertEqual(dataset_file.validation_status, ValidationStatus.AVAILABLE)
-        self.assertIsNone(dataset_file.validation_status_timestamp)
+        self.assertEqual(dataset_file.readset.validation_status, ValidationStatus.AVAILABLE)
+        self.assertIsNone(dataset_file.readset.validation_status_timestamp)
 
     def test_create_dataset_file_with_validation_status_passed(self):
         dataset, errors, warnings = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
-        readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=dataset)
-        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=3, validation_status=ValidationStatus.PASSED)
+        readset = Readset.objects.create(name="My_Readset",
+                                         sample_name="My",
+                                         dataset=dataset,
+                                         validation_status=ValidationStatus.PASSED,
+                                         validation_status_timestamp=timezone.now())
+        dataset_file, errors, warnings = create_dataset_file(readset=readset, file_path="file_path", size=3)
 
         self.assertFalse(errors, "errors occured while creating a valid dataset file with create_dataset_file")
         self.assertFalse(warnings, "warnings is expected to be empty")
         self.assertIsNotNone(dataset_file)
-        self.assertEqual(dataset_file.release_status, ReleaseStatus.AVAILABLE)
-        self.assertIsNone(dataset_file.release_status_timestamp)
-        self.assertEqual(dataset_file.validation_status, ValidationStatus.PASSED)
-        self.assertIsNotNone(dataset_file.validation_status_timestamp)
+        self.assertEqual(dataset_file.readset.release_status, ReleaseStatus.AVAILABLE)
+        self.assertIsNone(dataset_file.readset.release_status_timestamp)
+        self.assertEqual(dataset_file.readset.validation_status, ValidationStatus.PASSED)
+        self.assertIsNotNone(dataset_file.readset.validation_status_timestamp)
 
     def test_set_experiment_run_lane_validation_status(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
@@ -119,8 +132,8 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(count, 1)
-        self.assertEqual(dataset_file.validation_status, ValidationStatus.FAILED)
-        self.assertIsNotNone(dataset_file.validation_status_timestamp)
+        self.assertEqual(dataset_file.readset.validation_status, ValidationStatus.FAILED)
+        self.assertIsNotNone(dataset_file.readset.validation_status_timestamp)
 
     def test_get_experiment_run_lane_validation_status(self):
         dataset, _, _ = create_dataset(external_project_id="project", run_name="run", lane=1, project_name="MY_NAME_IS_PROJECT")
@@ -134,8 +147,8 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(validation_status, ValidationStatus.AVAILABLE)
-        self.assertEqual(dataset_file.validation_status, ValidationStatus.AVAILABLE)
-        self.assertIsNone(dataset_file.validation_status_timestamp)
+        self.assertEqual(dataset_file.readset.validation_status, ValidationStatus.AVAILABLE)
+        self.assertIsNone(dataset_file.readset.validation_status_timestamp)
 
         count, errors, warnings = set_experiment_run_lane_validation_status(run_name=dataset.run_name, lane=dataset.lane, validation_status=ValidationStatus.FAILED)
 
@@ -146,5 +159,5 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(validation_status, ValidationStatus.FAILED)
-        self.assertEqual(dataset_file.validation_status, ValidationStatus.FAILED)
-        self.assertIsNotNone(dataset_file.validation_status_timestamp)
+        self.assertEqual(dataset_file.readset.validation_status, ValidationStatus.FAILED)
+        self.assertIsNotNone(dataset_file.readset.validation_status_timestamp)

@@ -133,6 +133,8 @@ _process_measurement_filterset_fields: FiltersetFields = {
 _instrument_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
+    "serial_id": CATEGORICAL_FILTERS_LOOSE,
+    "type__type": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _platform_filterset_fields: FiltersetFields = {
@@ -159,7 +161,7 @@ _experiment_run_filterset_fields: FiltersetFields = {
     "run_type": FK_FILTERS,
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,
-    "run_processing_launch_time": FK_FILTERS,
+    "run_processing_launch_time": DATE_FILTERS,
 
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("instrument__type__", _instrument_type_filterset_fields),

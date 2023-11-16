@@ -44,6 +44,7 @@ import TaxonsRoute from "../taxons/TaxonsRoute";
 import WorkflowDefinitionsRoute from "../workflows/WorkflowDefinitionsRoute";
 import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
+import InstrumentsRoute from "../instruments/InstrumentsRoute";
 
 
 const { Title } = Typography;
@@ -132,9 +133,9 @@ const MENU_ITEMS = [
         text: "Indices",
       },
       {
-        url: "/taxons",
+        url: "/instruments",
         icon: <BarcodeOutlined />,
-        text: "Taxons",
+        text: "Instruments",
       },
       {
         url: "/genomes",
@@ -142,10 +143,15 @@ const MENU_ITEMS = [
         text: "Reference Genomes",
       },
       {
+        url: "/taxons",
+        icon: <BarcodeOutlined />,
+        text: "Taxons",
+      },
+      {
         url: "/workflows",
         icon: <BarcodeOutlined />,
         text: "Workflows",
-      }
+      },
     ]
   },
   {
@@ -361,6 +367,11 @@ const App = ({userID, usersByID, logOut, get}) => {
             <Route path="/genomes/*" element={
               <PrivateNavigate>
                 <ReferenceGenomesRoute />
+              </PrivateNavigate>
+            } />
+            <Route path="/instruments/*" element={
+              <PrivateNavigate>
+                <InstrumentsRoute />
               </PrivateNavigate>
             } />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

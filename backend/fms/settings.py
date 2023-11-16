@@ -158,7 +158,8 @@ EMAIL_HOST          = os.environ.get('FMS_EMAIL_HOST',     'localhost')
 EMAIL_PORT          = int(os.environ.get('FMS_EMAIL_PORT', '587'))
 EMAIL_HOST_USER     = os.environ.get('FMS_EMAIL_USER',     'noreply@example.com')
 EMAIL_HOST_PASSWORD = os.environ.get('FMS_EMAIL_PASSWORD', 'secret')
-EMAIL_USE_TLS       = bool(os.environ.get('FMS_EMAIL_TLS', 'False'))
+EMAIL_USE_TLS       = not DEBUG and bool(os.environ.get('FMS_EMAIL_TLS', False))
+EMAIL_SSL_CERTFILE  = os.environ.get('FMS_SSL_CERTFILE', None)
 
 FMS_ENV             = os.environ.get('FMS_ENV', 'LOCAL')
 
@@ -201,6 +202,9 @@ TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
 
 # Directory where experiment run info files are output
 RUN_INFO_OUTPUT_PATH = os.environ.get("FMS_RUN_INFO_PATH", os.path.join(BASE_DIR, 'lims-run-info'))
+
+# Directory where folders are created for Axiom experiment run data
+FMS_AUTOMATIONS_WORK_PATH = os.environ.get("FMS_AUTOMATIONS_WORK_PATH", os.path.join(BASE_DIR, "automations_work"))
 
 MEDIA_URL = '/media/'
 

@@ -793,13 +793,13 @@ class PooledSampleExportSerializer(serializers.Serializer):
 class StepSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StepSpecification
-        fields = ("id", "display_name", "sheet_name", "column_name", "value")
+        fields = ("id", "name", "sheet_name", "column_name", "value")
 
 class StepSerializer(serializers.ModelSerializer):
     step_specifications = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Step
-        fields = ["id", "name", "protocol_id", "step_specifications"]
+        fields = ["id", "name", "type", "protocol_id", "step_specifications"]
 
     def get_step_specifications(self, instance):
         step_specifications = instance.step_specifications.all()
@@ -864,10 +864,9 @@ class SampleNextStepByStudySerializer(serializers.ModelSerializer):
         fields = ("id", "sample", "step_order", "study")
 
 class StepHistorySerializer(serializers.ModelSerializer):
-    sample = serializers.IntegerField(read_only=True, source='process_measurement.source_sample_id')
     class Meta:
         model = StepHistory
-        fields = ("id", "study", "step_order", "process_measurement", "sample", "workflow_action")
+        fields = ("id", "study", "step_order", "process_measurement", "sample", "workflow_action", "created_at", "created_by")
 
 class CoordinateSerializer(serializers.ModelSerializer):
     class Meta:

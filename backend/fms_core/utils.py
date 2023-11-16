@@ -104,6 +104,13 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     """
     return str_cast_and_normalize(d.get(key) or default)
 
+def remove_empty_str_from_dict(d) -> dict:
+    """
+    Gets a dictionary, and replaces all empty string values with a None object.
+    """
+    d = {k: None if not v else v for k, v in d.items() }
+    return d
+
 
 def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]: 
     if not isinstance(date, datetime.date):
@@ -199,3 +206,9 @@ def serialize_warnings(warnings):
                 v = (v, [])
             serialized.append({'key': k, 'format': v[0], 'args': v[1] })
     return serialized
+
+def has_errors(error_dict):
+    has_errors = False
+    for error in error_dict.values():
+        has_errors = has_errors or bool(error)
+    return has_errors

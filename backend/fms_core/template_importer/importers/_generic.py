@@ -1,3 +1,4 @@
+from io import StringIO
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from pandas import pandas as pd
@@ -101,16 +102,18 @@ class GenericImporter():
                          'output_file': self.output_file
                          }
         return import_result
-
+    
+    def preprocess_file(self, path: os.PathLike) -> os.PathLike | StringIO:
+        return path
 
     def create_sheet_data(self, name, headers):
         try:
             if self.format == ".xlsx":
-                pd_sheet = pd.read_excel(self.file, sheet_name=name, header=None)
-            elif self.format == ".csv" or format == ".txt":
-                pd_sheet = pd.read_csv(self.file, header=None)
+                pd_sheet = pd.read_excel(self.preprocess_file(self.file), sheet_name=name, header=None)
+            elif self.format == ".csv" or self.format == ".txt" or self.format == ".asc":
+                pd_sheet = pd.read_csv(self.preprocess_file(self.file), header=None)
             elif self.format == ".tsv":
-                pd_sheet = pd.read_csv(self.file, sep="\t", header=None)
+                pd_sheet = pd.read_csv(self.preprocess_file(self.file), sep="\t", header=None)
             else:
                 self.base_errors.append(f"Template file format " + self.format + " not supported.")
                 return None

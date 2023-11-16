@@ -15,7 +15,7 @@ from fms_core.template_importer.importers import AxiomPreparationImporter
 
 from fms_core.templates import SAMPLE_POOLING_TEMPLATE, SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_STUDY_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, AXIOM_PREPARATION_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, AXIOM_PREPARATION_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._fetch_data import FetchSampleData
@@ -106,7 +106,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {
             "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
-            "template": [EXPERIMENT_INFINIUM_TEMPLATE["identity"]],
+            "template": [EXPERIMENT_INFINIUM_TEMPLATE["identity"], EXPERIMENT_AXIOM_TEMPLATE["identity"]],
             "importer": ExperimentRunImporter,
         },
         {
@@ -149,12 +149,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_TRANSFER_TEMPLATE},
         {"template": LIBRARY_PREPARATION_TEMPLATE},
+        {"template": EXPERIMENT_AXIOM_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": SAMPLE_METADATA_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE},
         {"template": SAMPLE_POOLING_TEMPLATE},
-        {"template": AXIOM_PREPARATION_TEMPLATE},
     ]
     
     def get_queryset(self):

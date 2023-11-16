@@ -1,7 +1,7 @@
 import { Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
 import { useAppDispatch } from '../../../hooks'
-import { refreshLabwork, setHideEmptyProtocols } from '../../../modules/labwork/actions'
+import { refreshLabwork, setHideEmptySections } from '../../../modules/labwork/actions'
 import { LabworkSummary } from '../../../modules/labwork/models'
 import RefreshButton from '../../RefreshButton'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
@@ -10,23 +10,23 @@ const { Title } = Typography
 
 interface LabworkProtocolsProps {
 	summary: LabworkSummary,
-	hideEmptyProtocols: boolean,
+	hideEmptySections: boolean,
 	refreshing: boolean
 }
 
-const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols, refreshing }: LabworkProtocolsProps) => {
+const LabworkOverviewProtocols = ({ summary, hideEmptySections, refreshing }: LabworkProtocolsProps) => {
 	const dispatch = useAppDispatch()
 
-	// If hideEmptyProtocols is true then we filter the protocol list to include
+	// If hideEmptySections is true then we filter the protocol list to include
 	// only protocols with a count greater than zero.
 	let protocols = summary.protocols
 
-	if (hideEmptyProtocols) {
+	if (hideEmptySections) {
 		protocols = protocols.filter(protocol => protocol.count > 0)
 	}
 
-	function handleHideEmptyProtocols(hide: boolean) {
-		dispatch(setHideEmptyProtocols(hide))
+	function handleHideEmptySections(hide: boolean) {
+		dispatch(setHideEmptySections(hide))
 	}
 
 	function handleLabworkRefresh() {
@@ -41,8 +41,8 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols, refreshing }: L
 					<Switch 
 						checkedChildren={'Show all'} 
 						unCheckedChildren={'Hide Empty'} 
-						checked={hideEmptyProtocols} 
-						onChange={handleHideEmptyProtocols}
+						checked={hideEmptySections} 
+						onChange={handleHideEmptySections}
 					/>
 					<RefreshButton 
 						refreshing={refreshing} 
@@ -55,7 +55,7 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols, refreshing }: L
 				{protocols.map((protocol) => {
 					return (
 						<Collapse.Panel key={protocol.id} header={protocol.name} extra={<Title level={4}>{protocol.count}</Title>}>
-							<LabworkOverviewProtocolPanel protocol={protocol} hideEmptySteps={hideEmptyProtocols}/>
+							<LabworkOverviewProtocolPanel protocol={protocol} hideEmptySteps={hideEmptySections}/>
 						</Collapse.Panel>
 					)
 				})}

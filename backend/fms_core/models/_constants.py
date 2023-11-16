@@ -34,3 +34,8 @@ class SampleType(models.TextChoices):
     SAMPLE = "SAMPLE", "Sample"     # Not library implied
     LIBRARY = "LIBRARY", "Library"
     POOLED_LIBRARY = "POOL", "Pooled library"
+
+class StepType(models.TextChoices):
+    PROTOCOL = "PROTOCOL", "Protocol"
+    AUTOMATION = "AUTOMATION", "Automation"
+    INTEGRATION = "INTEGRATION", "Integration"

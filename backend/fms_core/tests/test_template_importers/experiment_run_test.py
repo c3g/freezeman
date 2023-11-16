@@ -289,6 +289,67 @@ class ExperimentRunMGITestCase(TestCase):
         self.assertEqual(p11.value, 'i1c')
         self.assertEqual(p12.value, 'i2c')
 
+class ExperimentRunAxiomTestCase(TestCase):
+    def setUp(self) -> None:
+        self.importer = ExperimentRunImporter()
+        self.file = APP_DATA_ROOT / "Experiment_run_Axiom_v4_6_0.xlsx"
+        ContentType.objects.clear_cache()
+
+        self.container_barcode = "CONTAINERTESTAXIOM"
+        self.sample_name = "AxiomTestSample"
+        self.prefill_data()
+
+    def prefill_data(self):
+        sample_kind, _ = SampleKind.objects.get_or_create(name="DNA")
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='96-well plate', name=self.container_barcode)
+        project, _, _ = create_project(name='AxiomTestProject')
+
+        sample, errors, warnings = create_full_sample(name=self.sample_name, volume=100, concentration=10, collection_site='site1', creation_date=datetime.datetime(2023, 1, 1, 0, 0),
+                                                      container=container, coordinates="A01", sample_kind=sample_kind, project=project)
+        
+    def test_import(self):
+        # Basic test for all templates - checks that template is valid
+        result = load_template(importer=self.importer, file=self.file)
+        self.assertEqual(result['valid'], True)
+
+        # Custom tests for each template
+        experiment_run_obj = ExperimentRun.objects.get(container__barcode="containerAxiom")
+        process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        content_type_process = ContentType.objects.get_for_model(Process)
+
+        # Experiment Run tests
+        self.assertEqual(experiment_run_obj.run_type.name, 'Axiom')
+        self.assertEqual(experiment_run_obj.instrument.name, 'Protected')
+
+        # Process Tests
+        self.assertEqual(process_obj.child_process.count(), 2)
+        self.assertEqual(process_obj.protocol.name, 'Axiom Experiment Run')
+
+        # Process properties Tests (check properties for process)
+        protocol_id = process_obj.protocol.id
+
+        # Sub-process Tests (check properties for one process and sub-processes in depth)
+        cp1_1 = Process.objects.get(parent_process=process_obj, protocol__name='Axiom: Denaturation and Hybridization')
+        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Comment Denaturation and Hybridization')
+        cp1_2 = Process.objects.get(parent_process=process_obj, protocol__name='Axiom: GeneTitan Reagent Preparation')
+        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Axiom Module 4.1 Barcode')
+        p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Axiom Module 4.2 Barcode')
+        p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Liquid Handler Instrument Reagent Preparation')
+        p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Comment Reagent Preparation')
+        
+         # Check property values for Axiom experiment run process
+        self.assertEqual(p1.value, 'test comment')
+        self.assertEqual(p2.value, 'test4.1barcode')
+        self.assertEqual(p3.value, 'test4.2barcode')
+        self.assertEqual(p4.value, 'Nimbus 2')
+        self.assertEqual(p5.value, 'test comment')
+        
+
 class ExperimentRunIlluminaTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()

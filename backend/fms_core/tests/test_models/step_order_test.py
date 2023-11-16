@@ -2,14 +2,15 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from fms_core.models import StepOrder, Workflow, Step, Protocol
+from fms_core.models._constants import StepType
 
 
 class StepOrderTest(TestCase):
     def setUp(self):
         protocol1 = Protocol.objects.get(name="Extraction")
         protocol2 = Protocol.objects.get(name="Sample Quality Control")
-        self.step1, _ = Step.objects.get_or_create(name="Extraction (test)", protocol=protocol1)
-        self.step2, _ = Step.objects.get_or_create(name="Sample QC (test)", protocol=protocol2)
+        self.step1, _ = Step.objects.get_or_create(name="Extraction (test)", protocol=protocol1, type=StepType.PROTOCOL)
+        self.step2, _ = Step.objects.get_or_create(name="Sample QC (test)", protocol=protocol2, type=StepType.PROTOCOL)
         self.order = 1
         self.workflow = Workflow.objects.create(name="Test Workflow",
                                                 structure="Test")

@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any, Dict, Tuple, Union, List
 from tablib import Dataset
 from django.db.models import CharField, Func, Value
+from django.db import transaction
 from wsgiref.util import FileWrapper
 from django.http import HttpResponseBadRequest, HttpResponse, StreamingHttpResponse
 from django.conf import settings
@@ -13,9 +14,13 @@ from reversion.models import Version
 import json
 import os
 
+from fms_core import automations
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
-from fms_core.models import Sample, Protocol, Step
+from fms_core.models import Sample, Protocol, Step, StepSpecification
+from fms_core.services.sample_next_step import execute_workflow_action
+from fms_core._constants import WorkflowAction
+from fms_core.utils import has_errors
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -41,7 +46,68 @@ class FZY(Func):
             **extras
         )
 
+class AutomationsMixin:
+    # Automation are defined in their workflow step specification.
+    # To launch an automation we only require the step id and the parameters from the request are forwarded to the automation.
 
+    @transaction.atomic
+    @action(detail=False, methods=["post"])
+    def execute_automation(self, request):
+        """
+        Execute the automation class listed in the step_specification named AutomationClass.
+        The request must include a step_id and a filter to identify the samples that are to be moved forward on the workflow.
+
+        Args:
+            `self`: Viewset with a queryset containing a sample_id.
+            `request`: API request for Automation execution. Include step_id and filters to identify samples.
+        Return:
+            A dictionary with:
+                `result`:  `success`: Success boolean of the automation execution.
+                           `data`: Additional data to be returned to the requester. Optional. None if not required.
+                `errors`: Error list.
+                `warnings`: Warning list.
+        """
+        errors = {}
+        warnings = {}
+        result = {"success": False, "data": None}
+        step_id = request.POST.get("step_id")
+        if step_id is not None:
+            automation_class_name = StepSpecification.objects.filter(step_id=step_id, name="AutomationClass").values_list("value", flat=True)[0]
+            if automation_class_name is not None:
+                queryset = self.filter_queryset(self.get_queryset())
+                sample_ids = queryset.values_list("sample_id", flat=True)
+                automation = getattr(automations, automation_class_name)()              # Instantiate
+                result, errors, warnings = automation.execute(sample_ids=sample_ids)    # Execute
+                # if no errors move to next worflow step
+                if len(errors) == 0:
+                    samples = Sample.objects.filter(id__in=sample_ids).all()
+                    try:
+                        step = Step.objects.get(id=step_id)
+                    except Step.DoesNotExist:
+                        errors.append(f"No step matches the requested automation step ID {step_id}.")
+                    for current_sample in samples:
+                        errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
+                                                                                     step=step,
+                                                                                     current_sample=current_sample)
+                        errors["workflow"].extend(errors_workflow)
+                        warnings["workflow"].extend(warnings_workflow)
+                    result["success"] = True
+            else:
+                errors["Automation Class"] = f"Automation class not found for step ID {step_id}."
+        else:
+            errors["Step ID"] = f"Missing step ID for automation."
+
+        if has_errors(errors):
+            result["success"] = False
+            transaction.set_rollback(True)
+
+        results = { 
+                "result": result,
+                "errors": errors,
+                "warnings": warnings,
+        }
+        return Response(results)
+    
 class TemplateActionsMixin:
     # When this mixin is used, this list will be overridden to provide a list
     # of template actions for the viewset implementation.
@@ -95,7 +161,8 @@ class TemplateActionsMixin:
                 if protocol and current_template_protocol_name and protocol.name != current_template_protocol_name:
                     pass
                 else:
-                    template["file"] = request.build_absolute_uri(template["file"]) # Return the file as an URI
+                    file = template.get("file", None)
+                    template["file"] = request.build_absolute_uri(template["file"]) if file is not None else file # Return the file as an URI
                     list_templates.append(template)
             if len(list_templates) > 0:
                 action_dict = {}
@@ -253,20 +320,23 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
         queryset = self.filter_queryset(self.get_queryset())
-        try:
-            rows_dicts = self._prepare_prefill_dicts(template, queryset, user_prefill_data)
-            prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
-        except Exception as err:
-            return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
-        
-        try:
-            response = HttpResponse(content=prefilled_template)
-            response["Content-Type"] = "application/ms-excel"
-            response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
-        except Exception as err:
-            return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
-        
-        return response
+        if not user_prefill_data and not template["prefill info"]:
+            return HttpResponseBadRequest(json.dumps({"detail": f"No prefilling available for current template."}), content_type="application/json")
+        else:
+            try:
+                rows_dicts = self._prepare_prefill_dicts(template, queryset, user_prefill_data)
+                prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
+            except Exception as err:
+                return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
+            
+            try:
+                response = HttpResponse(content=prefilled_template)
+                response["Content-Type"] = "application/ms-excel"
+                response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
+            except Exception as err:
+                return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
+            
+            return response
 
 class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod

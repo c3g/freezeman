@@ -1,0 +1,1 @@
+Default location for AXIOM scanner file output.
