@@ -54,7 +54,7 @@ class SheetData():
             self.rows_results.append(result)
             
             #checks if entire row has missing data (empty cells)
-            empty_row = row if self.check_for_empty_row(row_data) else ''
+            empty_row = row if self.check_for_empty_data_array(row_data) else ''
             if empty_row:
                 self.empty_row = empty_row
         
@@ -65,7 +65,7 @@ class SheetData():
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
         # Add dynamic columns that might not be part of the hard coded headers
-        extra_columns = [column for column in self.dataframe.columns if column not in self.headers]
+        extra_columns = [column for column in self.dataframe.columns if (column not in self.headers and column is not None)]
         headers_for_preview = [''] + self.headers + extra_columns
 
         return {
@@ -76,7 +76,7 @@ class SheetData():
             "rows": rows_results,
         }
     
-    def check_for_empty_row(self,row_data):
+    def check_for_empty_data_array(self,row_data):
         for x in (row_data):
             if x:
                 return False
