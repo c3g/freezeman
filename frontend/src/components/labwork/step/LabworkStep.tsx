@@ -43,6 +43,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
   const [waitResponse, setWaitResponse] = useState<boolean>(false)
+  const [waitSelectionOrdering, setWaitSelectionOrdering] = useState<boolean>(false)
 
   const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
@@ -102,7 +103,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
-	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0 && stepSamples.prefill.templates.length > 0
+	const canPrefill = selectedTemplate && 
+                     stepSamples.selectedSamples.length > 0 &&
+                     stepSamples.prefill.templates.length > 0 &&
+                     !waitSelectionOrdering
 
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
@@ -276,7 +280,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}
 	const handleSelectAll =
 		async () => {
-			await dispatch(selectAllSamplesAtStep(step.id))
+			await dispatch(selectAllSamplesAtStep(step.id, setWaitSelectionOrdering))
 		}
 
 
@@ -297,7 +301,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				return acc
 			}, [] as FMSId[])
 			const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
-			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
+			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection, setWaitSelectionOrdering))
 		}, [step, stepSamples, dispatch]),
 	}
 
@@ -307,11 +311,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleCoordinateSortOrientation = useCallback((value: string) => {
 		switch (value) {
 			case 'row': {
-				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'row' }))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'row' }, setWaitSelectionOrdering))
 				break
 			}
 			case 'column': {
-				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'column' }))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'column' }, setWaitSelectionOrdering))
 				break
 			}
 		}
@@ -319,7 +323,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const handleSelectionTableSortChange = useCallback((sortBy: SortBy) => {
 		if (sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
-			dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, order: sortBy.order }))
+			dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, order: sortBy.order }, setWaitSelectionOrdering))
 		}
 	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
 

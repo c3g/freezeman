@@ -86,7 +86,7 @@ export function initSamplesAtStep(stepID: FMSId) {
 		await dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
-export function selectAllSamplesAtStep(stepID: FMSId) {
+export function selectAllSamplesAtStep(stepID: FMSId, setWaitSelectionOrdering) {
 	return async (dispatch, getState) => {
 		const labworkState = selectLabworkStepsState(getState())
 		const stepSamples = labworkState.steps[stepID]
@@ -109,7 +109,7 @@ export function selectAllSamplesAtStep(stepID: FMSId) {
 			await fetchSamples(selectedSampleIDs)
 			await fetchLibrariesForSamples(selectedSampleIDs)
 			
-			dispatch(updateSelectedSamplesAtStep(stepID, selectedSampleIDs))
+			dispatch(updateSelectedSamplesAtStep(stepID, selectedSampleIDs, setWaitSelectionOrdering))
 		}	
 		else
 			return
@@ -183,15 +183,18 @@ export function refreshSamplesAtStep(stepID: FMSId) {
  * @param sampleIDs : List of selected sample ID's
  * @returns 
  */
-export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
+export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[], setWaitSelectionOrdering) {
+  setWaitSelectionOrdering(true)
 	return async (dispatch, getState) => {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step) {
+      dispatch(setSelectedSamples(stepID, sampleIDs))
 			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs, step.selectedSamplesSortDirection)
 			dispatch(setSelectedSamples(stepID, sortedSelection))
 		}
+    setWaitSelectionOrdering(false)
 	}
 }
 
@@ -203,15 +206,18 @@ export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
  * @param stepID Step ID
  * @returns 
  */
-function reloadSelectedSamplesAtStep(stepID: FMSId) {
+function reloadSelectedSamplesAtStep(stepID: FMSId, setWaitSelectionOrdering) {
+  setWaitSelectionOrdering(true)
 	return async (dispatch, getState) => {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (token && step && step.selectedSamples.length > 0) {
+      dispatch(setSelectedSamples(stepID, step.selectedSamples))
 			const sortedSelection = await refreshSelectedSamplesAtStep(token, step.stepID, step.selectedSamples, step.selectedSamplesSortDirection)
 			dispatch(setSelectedSamples(stepID, sortedSelection))
 		}
+    setWaitSelectionOrdering(false)
 	}
 }
 
@@ -282,14 +288,14 @@ export function setSortBy(stepID: FMSId, sortBy: SortBy) {
 	}
 }
 
-export function setSelectedSamplesSortDirection(stepID: FMSId, direction: CoordinateSortDirection) {
+export function setSelectedSamplesSortDirection(stepID: FMSId, direction: CoordinateSortDirection, setWaitSelectionOrdering) {
 	return ((dispatch) => {
 		dispatch({
 			type: SET_SELECTED_SAMPLES_SORT_DIRECTION,
 			stepID,
 			direction
 		})
-		dispatch(reloadSelectedSamplesAtStep(stepID))
+		dispatch(reloadSelectedSamplesAtStep(stepID, setWaitSelectionOrdering))
 	})
 }
 
