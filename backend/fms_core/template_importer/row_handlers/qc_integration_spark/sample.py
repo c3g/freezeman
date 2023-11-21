@@ -57,9 +57,9 @@ class QCIntegrationSparkRowHandler(GenericRowHandler):
 
                 # Process the workflow action
                 self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
-                                                                                            step=workflow["step"],
-                                                                                            current_sample=sample_obj,
-                                                                                            process_measurement=process_measurement_obj)
+                                                                                             step=workflow["step"],
+                                                                                             current_sample=sample_obj,
+                                                                                             process_measurement=process_measurement_obj)
 
             if process_measurement_obj and properties_obj:
                 # Validate instruments according to platform

@@ -52,7 +52,7 @@ class QcIntegrationSparkTestCase(TestCase):
             # Queue sample to qc integration step
             queue_sample_to_study_workflow(sample_obj=sample,
                                            study_obj=study,
-                                           order=5) # order 5 in Axiom Workflow is 
+                                           order=5) # order 5 in Axiom Workflow is Quality Control - Integration (Spark)
 
     def test_import(self):
         content_type_processmeasurement = ContentType.objects.get_for_model(ProcessMeasurement)
