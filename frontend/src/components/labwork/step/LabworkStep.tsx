@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
@@ -41,7 +41,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
-	const [selectedSamples, setSelectedSamples] = useState<SampleAndLibrary[]>([])
+	const [selectedTableSamples, setSelectedTableSamples] = useState<SampleAndLibrary[]>([])
   const [waitResponse, setWaitResponse] = useState<boolean>(false)
 
   const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
@@ -69,7 +69,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		// and so all of the selected samples and libraries needed to be loaded into redux
 		// for the table to work properly. It would be better if the samples and libraries
 		// were loaded on demand, by page like we usually do in tables.
-		setSelectedSamples(getSampleList(stepSamples.selectedSamples))
+		setSelectedTableSamples(getSampleList(stepSamples.selectedSamples))
 	}, [samplesByID, librariesByID, stepSamples])
 
 	// ** Refresh **
@@ -297,7 +297,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				return acc
 			}, [] as FMSId[])
 			const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
-			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
+			dispatch(setSelectedSamples(step.id, mergedSelection))
 		}, [step, stepSamples, dispatch]),
 	}
 
@@ -420,7 +420,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 
 					</Space>
-				} onChange={tabKey => setSelectedTab(tabKey)}>
+				} onChange={tabKey => {
+					setSelectedTab(tabKey)
+					let ids = selectedTableSamples.map(obj =>{
+						if(obj.library){
+							return obj.library.id
+						}else if(obj.sample){
+							return obj.sample.id
+						}
+						else{
+							return -1
+						}
+					}).filter(id => id != 1)
+					dispatch(updateSelectedSamplesAtStep(step.id, ids))
+				}
+				}>
 					<Tabs.TabPane tab='Samples' key={SAMPLES_TAB_KEY}>
 						<WorkflowSamplesTable
 							clearFilters={localClearFilters}
@@ -456,7 +470,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						*/}
 						<WorkflowSamplesTable
 							hasFilter={false}
-							samples={selectedSamples}
+							samples={selectedTableSamples}
 							columns={columnsForSelection}
 							selection={selectionProps}
 							setSortBy={handleSelectionTableSortChange}
