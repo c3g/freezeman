@@ -422,17 +422,19 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					</Space>
 				} onChange={tabKey => {
 					setSelectedTab(tabKey)
-					let ids = selectedTableSamples.map(obj =>{
-						if(obj.library){
-							return obj.library.id
-						}else if(obj.sample){
-							return obj.sample.id
-						}
-						else{
-							return -1
-						}
-					}).filter(id => id != 1)
-					dispatch(updateSelectedSamplesAtStep(step.id, ids))
+					if(tabKey == SELECTION_TAB_KEY) {
+						let ids = selectedTableSamples.map(obj =>{
+							if(obj.library){
+								return obj.library.id
+							}else if(obj.sample){
+								return obj.sample.id
+							}
+							else{
+								return -1
+							}
+						}).filter(id => id != 1)
+						dispatch(updateSelectedSamplesAtStep(step.id, ids))
+					}
 				}
 				}>
 					<Tabs.TabPane tab='Samples' key={SAMPLES_TAB_KEY}>
