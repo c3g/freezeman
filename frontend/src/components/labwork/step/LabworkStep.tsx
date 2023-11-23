@@ -287,27 +287,18 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
 	const onSelectChange = useCallback((selectedSamples) => {
-		const displayedSelection = selectedSamples.reduce((acc, selected) => {
-			if (selected.sample) {
-				acc.push(selected.sample.id)
-			}
-			return acc
-		}, [] as FMSId[])
+		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
 		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
 		dispatch(setSelectedSamples(step.id, mergedSelection))
 	}, [step, stepSamples, dispatch])
 
 	const getIdsFromSelectedSamples = useCallback((selectedSamples) => {
-		const ids = selectedSamples.map(obj => {
-			if (obj.library) {
-				return obj.library.id
-			} else if (obj.sample) {
-				return obj.sample.id
+		const ids = selectedSamples.reduce((acc, selected) => {
+			if (selected.sample) {
+				acc.push(selected.sample.id)
 			}
-			else {
-				return -1
-			}
-		}).filter(id => id != 1)
+			return acc
+		}, [] as FMSId[])
 		return ids;
 	}, [])
 
