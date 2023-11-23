@@ -133,38 +133,38 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 		, [step, selectedTemplate, navigate, dispatch])
 
-	const handleExecuteAutomation = useCallback(
-		async () => {
-			try {
+		const handleExecuteAutomation = useCallback(
+			async () => {
+			  try {
 				setWaitResponse(true)
 				const response = await dispatch(requestAutomationExecution(step.id))
 				if (response) {
-					setWaitResponse(false)
-					const success = response.data.result.success
-					if (success) {
-						dispatch(flushSamplesAtStep(step.id))
-						const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
-						notification.info({
-							message: `Automation completed with success. Moving samples to next step.`,
-							key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
-							duration: 5
-						})
-						navigate(`/lab-work/`)
-					}
-					else {
-						const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
-						const errors = response.data.errors
-						notification.error({
-							message: `Automation failed. Errors:${Object.values(errors).filter(value => (typeof value === "string" && value.length > 0)).map(value => "[" + value + "]")}`,
-							key: AUTOMATION_FAILED_NOTIFICATION_KEY,
-							duration: 20
-						})
-					}
+				  setWaitResponse(false)
+				  const success = response.data.result.success
+				  if (success) {
+					dispatch(flushSamplesAtStep(step.id))
+					const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
+					notification.info({
+					  message: `Automation completed with success. Moving samples to next step.`,
+					  key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
+					  duration: 5
+					})
+					navigate(`/lab-work/`)
+				  }
+				  else {
+					const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
+					const errors = response.data.errors
+					notification.error({
+					  message: `Automation failed. Errors:${Object.values(errors).filter(value => (typeof value === "string" && value.length > 0)).map(value => "[" + value + "]")}`,
+					  key: AUTOMATION_FAILED_NOTIFICATION_KEY,
+					  duration: 20
+					})
+				  }
 				}
-			} catch (err) {
+			  } catch (err) {
 				setWaitResponse(false)
 				console.error(err)
-			}
+			  }
 		}
 		, [step, dispatch])
 
@@ -383,21 +383,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				</>
 			}
 			{!isAutomationStep &&
-				<>
-					<PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
-					<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
-				</>
-			}
-			{isAutomationStep &&
-				<>
-					<Button type='default' icon={<SyncOutlined spin={waitResponse} />} disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
-				</>
-			}
-			<RefreshButton
-				refreshing={isRefreshing}
-				onRefresh={handleRefresh}
-				title='Refresh the list of samples'
-			/>
+        <>
+          <PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+          <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
+        </>
+      }
+      {isAutomationStep &&
+        <>
+          <Button type='default' icon={<SyncOutlined spin={waitResponse}/>} disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
+        </>
+      }
+      <RefreshButton
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        title='Refresh the list of samples'
+      />
 		</Space>
 	)
 
