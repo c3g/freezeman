@@ -42,11 +42,11 @@ class SheetData():
             self.rows.append(row_data)
             row = row_id + 1
             row_repr = f"#{row}"
-            row_data = panda_values_to_str_list(row_data)
+            row_str_data = panda_values_to_str_list(row_data)
 
             result = {
                 'row_repr': row_repr,
-                'diff': [row_repr] + row_data,
+                'diff': [row_repr] + row_str_data,
                 'errors': [],
                 'validation_error': ValidationError([]),
                 'warnings': [],
@@ -54,11 +54,12 @@ class SheetData():
             self.rows_results.append(result)
             
             #checks if entire row has missing data (empty cells)
-            empty_row = row if self.check_for_empty_data_array(row_data) else ''
-            if empty_row:
-                self.empty_row = empty_row
-        
-        self.check_for_empty_row_errors()
+            self.empty_row = row if not any(row_str_data) else self.empty_row
+
+        #checks if empty row exists in sheet_data, appends error with the last filled line in the sheet_data
+        if self.empty_row:
+            erroneous_row = self.empty_row + 1
+            self.base_errors.append(f'Empty line detected. Fill in empty line at row #{str(self.empty_row)} or remove data at row #{str(erroneous_row)}.')
 
     def generate_preview_info_from_rows_results(self, rows_results):
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)
@@ -75,15 +76,4 @@ class SheetData():
             "base_errors": self.base_errors,
             "rows": rows_results,
         }
-    
-    def check_for_empty_data_array(self,row_data):
-        for x in (row_data):
-            if x:
-                return False
-        return True
-    
-    def check_for_empty_row_errors(self):
-        #checks if empty row exists in sheet_data, appends error with the last filled line in the sheet_data
-        if self.empty_row:
-            erroneous_row = self.empty_row + 1
-            self.base_errors.append(f'Empty line detected. Fill in empty line at row #{str(self.empty_row)} or remove data at row #{str(erroneous_row)}.')
+        
