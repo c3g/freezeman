@@ -297,8 +297,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		dispatch(setSelectedSamples(step.id, mergedSelection))
 	}, [step, stepSamples, dispatch])
 
-	const setIdsFromSelectedSamples = useCallback((selectedSamples) => {
-		let ids = selectedSamples.map(obj => {
+	const getIdsFromSelectedSamples = useCallback((selectedSamples) => {
+		const ids = selectedSamples.map(obj => {
 			if (obj.library) {
 				return obj.library.id
 			} else if (obj.sample) {
@@ -308,7 +308,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				return -1
 			}
 		}).filter(id => id != 1)
-		dispatch(setSelectedSamples(step.id, ids))
+		return ids;
+	}, [])
+
+	const setSelectedSamplesFromRow = useCallback((selectedSamples) => {
+		dispatch(setSelectedSamples(step.id, getIdsFromSelectedSamples(selectedSamples)))
 	}, [step, dispatch])
 
 	// Selection handler for sample selection checkboxes
@@ -348,7 +352,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const onTabChange = (tabKey) => {
 		if (tabKey == SELECTION_TAB_KEY) {
-			setIdsFromSelectedSamples(selectedTableSamples)
+			dispatch(updateSelectedSamplesAtStep(step.id, getIdsFromSelectedSamples(selectedTableSamples)))
 		}
 		setSelectedTab(tabKey)
 	}
@@ -481,7 +485,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							hasFilter={false}
 							samples={selectedTableSamples}
 							columns={columnsForSelection}
-							selection={selectionProps(setIdsFromSelectedSamples)}
+							selection={selectionProps(setSelectedSamplesFromRow)}
 							setSortBy={handleSelectionTableSortChange}
 						/>
 						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
