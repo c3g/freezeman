@@ -17,7 +17,7 @@ class SheetData():
         self.base_errors = []
         self.is_valid = None
         self.header_row_nb = None
-        self.empty_row = None
+        self.last_empty_row = None
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
@@ -54,12 +54,12 @@ class SheetData():
             self.rows_results.append(result)
             
             #checks if entire row has missing data (empty cells)
-            self.empty_row = row if not any(row_str_data) else self.empty_row
+            self.last_empty_row = row if not any(row_str_data) else self.last_empty_row
 
         #checks if empty row exists in sheet_data, appends error with the last filled line in the sheet_data
-        if self.empty_row:
-            erroneous_row = self.empty_row + 1
-            self.base_errors.append(f'Empty line detected. Fill in empty line at row #{str(self.empty_row)} or remove data at row #{str(erroneous_row)}.')
+        if self.last_empty_row:
+            erroneous_row = self.last_empty_row + 1
+            self.base_errors.append(f'One or more empty lines detected. Fill in empty line(s) up to row #{str(self.last_empty_row)} or remove data at row #{str(erroneous_row)}.')
 
     def generate_preview_info_from_rows_results(self, rows_results):
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)
