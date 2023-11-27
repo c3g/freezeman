@@ -43,6 +43,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [selectedTableSamples, setSelectedTableSamples] = useState<SampleAndLibrary[]>([])
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
+	const [isSorted, setIsSorted] = useState<boolean>(false)
 
 	const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
@@ -290,6 +291,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
 		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
 		dispatch(setSelectedSamples(step.id, mergedSelection))
+		setIsSorted(false)
 	}, [step, stepSamples, dispatch])
 
 	const getIdsFromSelectedSamples = useCallback((selectedSamples) => {
@@ -304,6 +306,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const setSelectedSamplesFromRow = useCallback((selectedSamples) => {
 		dispatch(setSelectedSamples(step.id, getIdsFromSelectedSamples(selectedSamples)))
+		setIsSorted(false)
 	}, [step, dispatch])
 
 	// Selection handler for sample selection checkboxes
@@ -328,6 +331,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				break
 			}
 		}
+		setIsSorted(true)
 	}, [dispatch, step, stepSamples.selectedSamplesSortDirection])
 
 	const handleSelectionTableSortChange = useCallback((sortBy: SortBy) => {
@@ -341,12 +345,24 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			dispatch(clearFilters(step.id))
 	}, [step, step.id])
 
+	const updateSortSelectedSamples = useCallback(()=>{
+		dispatch(updateSelectedSamplesAtStep(step.id, getIdsFromSelectedSamples(selectedTableSamples)))
+	},[step.id, selectedTableSamples])
+
 	const onTabChange = useCallback((tabKey) => {
-		if (tabKey == SELECTION_TAB_KEY) {
-			dispatch(updateSelectedSamplesAtStep(step.id, getIdsFromSelectedSamples(selectedTableSamples)))
+		if (tabKey != SAMPLES_TAB_KEY) {
+			dispatch(updateSortSelectedSamples)
+			setIsSorted(true)
 		}
 		setSelectedTab(tabKey)
 	}, [step.id, selectedTableSamples])
+
+
+	const onPrefillOpen = useCallback(()=>{
+		if(!isSorted){
+			dispatch(updateSortSelectedSamples)
+		}
+	},[step.id, selectedTableSamples, isSorted])
 
 	/** UX **/
 
@@ -379,7 +395,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			{!isAutomationStep &&
         <>
-          <PrefillButton canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+          <PrefillButton sortSamples={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
           <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
         </>
       }
