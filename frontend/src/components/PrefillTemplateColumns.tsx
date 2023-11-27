@@ -148,7 +148,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
     } as ColumnTypeHandlers), [checkedFields])
 
     const onButtonClick = useCallback(async ()=>{
-        await dispatch(onPrefillOpen)
+        dispatch(onPrefillOpen)
         if(Object.keys(data).length === 0){
             handlePrefillTemplate({})
         }else{

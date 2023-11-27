@@ -278,6 +278,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleSelectAll = useCallback(
 		async () => {
 			await dispatch(selectAllSamplesAtStep(step.id))
+			setIsSorted(true)
 		}, [step, dispatch])
 
 
@@ -345,7 +346,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			dispatch(clearFilters(step.id))
 	}, [step, step.id])
 
-	const updateSortSelectedSamples = useCallback(()=>{
+	const updateSortSelectedSamples = useCallback(async ()=>{
 		dispatch(updateSelectedSamplesAtStep(step.id, getIdsFromSelectedSamples(selectedTableSamples)))
 	},[step.id, selectedTableSamples])
 
@@ -361,6 +362,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const onPrefillOpen = useCallback(()=>{
 		if(!isSorted){
 			dispatch(updateSortSelectedSamples)
+			setIsSorted(false)
 		}
 	},[step.id, selectedTableSamples, isSorted])
 
@@ -395,7 +397,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			{!isAutomationStep &&
         <>
-          <PrefillButton sortSamples={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+          <PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
           <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
         </>
       }
