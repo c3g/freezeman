@@ -159,7 +159,7 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
 EXPERIMENT_AXIOM_TEMPLATE = {
     "identity" : {"description": "Template to add Axiom experiments",
                   "file": static("submission_templates/Experiment_run_Axiom_v4_6_0.xlsx"),
-                  "protocol": "Axiom Experiment Run"},
+                  "protocol": "Axiom Experiment Preparation"},
     "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO + 
     [{
           'name': 'GeneTitanSetup',

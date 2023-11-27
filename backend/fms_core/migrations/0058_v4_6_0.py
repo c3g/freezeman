@@ -62,7 +62,7 @@ def create_axiom_experiment_run_related_objects(apps, schema_editor):
 
         # Create PropertyType and Protocols
         PROPERTY_TYPES_BY_PROTOCOL = {
-            "Axiom Experiment Run": [],
+            "Axiom Experiment Preparation": [],
             "Axiom: Denaturation and Hybridization": [("Comment Denaturation and Hybridization", "str")],
             "Axiom: GeneTitan Reagent Preparation": [("Axiom Module 4.1 Barcode", "str"),
                                                      ("Axiom Module 4.2 Barcode", "str"),
@@ -71,8 +71,8 @@ def create_axiom_experiment_run_related_objects(apps, schema_editor):
                                                      ],
         }
         SUBPROTOCOLS_BY_PROTOCOL = {
-            "Axiom Experiment Run": ["Axiom: Denaturation and Hybridization",
-                                     "Axiom: GeneTitan Reagent Preparation",]
+            "Axiom Experiment Preparation": ["Axiom: Denaturation and Hybridization",
+                                             "Axiom: GeneTitan Reagent Preparation",]
         }
         
         
@@ -105,7 +105,7 @@ def create_axiom_experiment_run_related_objects(apps, schema_editor):
         # Create Step
         STEP = [
             # {name, protocol_name}
-            {"name": "Axiom Experiment Run", "protocol_name": "Axiom Experiment Run", "expected_sample_type": SampleType.EXTRACTED_SAMPLE},
+            {"name": "Experiment Run Axiom", "protocol_name": "Axiom Experiment Preparation", "expected_sample_type": SampleType.EXTRACTED_SAMPLE},
         ]
         
         for step_info in STEP:
@@ -288,27 +288,27 @@ def create_axiom_workflow(apps, schema_editor):
 
         WORKFLOWS = [
             # (name, step_names)
-            ("Axiom Genotyping", "Axiom Genotyping", ["Extraction (DNA)", "Sample QC", "Normalization (Genotyping)", "Axiom Sample Preparation", "Quality Control - Integration (Spark)", "Axiom Create Folders", "Axiom Experiment Run"]),
+            ("Axiom Genotyping", "Axiom Genotyping", ["Extraction (DNA)", "Sample QC", "Normalization (Genotyping)", "Axiom Sample Preparation", "Quality Control - Integration (Spark)", "Axiom Create Folders", "Experiment Run Axiom"]),
         ]
 
         for name, structure, step_names in WORKFLOWS:
-                workflow = Workflow.objects.create(name=name,
-                                                  structure=structure,
-                                                  created_by_id=admin_user_id,
-                                                  updated_by_id=admin_user_id)
-                next_step_order = None
-                for i, step_name in enumerate(reversed(step_names)):
-                    step = Step.objects.get(name=step_name)
-                    order = len(step_names) - i
-                    step_order = StepOrder.objects.create(workflow=workflow,
-                                                          step=step,
-                                                          next_step_order=next_step_order,
-                                                          order=order,
-                                                          created_by_id=admin_user_id,
-                                                          updated_by_id=admin_user_id)
-                    next_step_order = step_order
+            workflow = Workflow.objects.create(name=name,
+                                               structure=structure,
+                                               created_by_id=admin_user_id,
+                                               updated_by_id=admin_user_id)
+            next_step_order = None
+            for i, step_name in enumerate(reversed(step_names)):
+                step = Step.objects.get(name=step_name)
+                order = len(step_names) - i
+                step_order = StepOrder.objects.create(workflow=workflow,
+                                                      step=step,
+                                                      next_step_order=next_step_order,
+                                                      order=order,
+                                                      created_by_id=admin_user_id,
+                                                      updated_by_id=admin_user_id)
+                next_step_order = step_order
 
-                    reversion.add_to_revision(step_order)
+                reversion.add_to_revision(step_order)
 
 def make_flag_instrument_non_mandatory(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "Protocol")
@@ -347,6 +347,42 @@ def make_flag_instrument_non_mandatory(apps, schema_editor):
                 property_type.is_optional = is_optional
                 property_type.save()
                 reversion.add_to_revision(property_type)
+
+def create_infinium_workflow(apps, schema_editor):
+    Workflow = apps.get_model("fms_core", "Workflow")
+    Step = apps.get_model("fms_core", "Step")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Create Infinium workflow.")
+        reversion.set_user(admin_user)
+
+        WORKFLOWS = [
+            # (name, step_names)
+            ("Infinium Genotyping", "Infinium Genotyping", ["Extraction (DNA)", "Sample QC", "Normalization (Genotyping)", "Experiment Run Infinium"]),
+        ]
+
+        for name, structure, step_names in WORKFLOWS:
+            workflow = Workflow.objects.create(name=name,
+                                               structure=structure,
+                                               created_by_id=admin_user_id,
+                                               updated_by_id=admin_user_id)
+            next_step_order = None
+            for i, step_name in enumerate(reversed(step_names)):
+                step = Step.objects.get(name=step_name)
+                order = len(step_names) - i
+                step_order = StepOrder.objects.create(workflow=workflow,
+                                                      step=step,
+                                                      next_step_order=next_step_order,
+                                                      order=order,
+                                                      created_by_id=admin_user_id,
+                                                      updated_by_id=admin_user_id)
+                next_step_order = step_order
+
+                reversion.add_to_revision(step_order)
 
 class Migration(migrations.Migration):
 
@@ -438,6 +474,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             make_flag_instrument_non_mandatory,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            create_infinium_workflow,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
