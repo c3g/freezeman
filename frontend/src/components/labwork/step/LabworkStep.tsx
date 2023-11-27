@@ -341,12 +341,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			dispatch(clearFilters(step.id))
 	}, [step, step.id])
 
-	const onTabChange = (tabKey) => {
+	const onTabChange = useCallback((tabKey) => {
 		if (tabKey == SELECTION_TAB_KEY) {
 			dispatch(updateSelectedSamplesAtStep(step.id, getIdsFromSelectedSamples(selectedTableSamples)))
 		}
 		setSelectedTab(tabKey)
-	}
+	}, [step.id, selectedTableSamples])
 
 	/** UX **/
 
