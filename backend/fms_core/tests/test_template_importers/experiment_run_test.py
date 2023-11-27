@@ -323,7 +323,7 @@ class ExperimentRunAxiomTestCase(TestCase):
 
         # Process Tests
         self.assertEqual(process_obj.child_process.count(), 2)
-        self.assertEqual(process_obj.protocol.name, 'Axiom Experiment Run')
+        self.assertEqual(process_obj.protocol.name, 'Axiom Experiment Preparation')
 
         # Process properties Tests (check properties for process)
         protocol_id = process_obj.protocol.id
