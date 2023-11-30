@@ -1,4 +1,5 @@
 from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Subquery, OuterRef
+from django.http import HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -319,15 +320,22 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         """
         step_id = request.GET.get('step__id__in')
         grouping_column = request.GET.get('group_by')
+
+        if step_id is None or grouping_column is None:
+            return HttpResponseBadRequest(f"Step ID and a grouping column must be provided.")
         # The objects that is going to be returned
         grouped_step_summary = {"step_id": step_id, "samples": {"grouping_column": grouping_column, "groups": []}}
         
         grouped_step_samples = self.filter_queryset(self.get_queryset())
+        grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count(grouping_column)).order_by()
+
         # Iterate through protocols
-        for group in grouped_step_samples:
-            sample_ids = list(SampleNextStep.objects.filter(step__id__in=step_id).filter(grouping_column=group[grouping_column]).values_list("id", flat=True))
-            # Get the sample count waiting for this protocol
-            current_group = {"name": group[grouping_column], "count": group["count"], "sample_ids": sample_ids}
+        for group in grouped_step_samples.all():
             print(group)
+            #print(getattr(SampleNextStep, grouping_column))
+            #sample_ids = list(SampleNextStep.objects.filter(step__id__in=step_id).values_list("id", flat=True))
+            # Get the sample count waiting for this protocol
+            #current_group = {"name": getattr(SampleNextStep, grouping_column), "count": group["count"], "sample_ids": sample_ids}
+            #print(group)
            
         return Response({"results": grouped_step_summary})
