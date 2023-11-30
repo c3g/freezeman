@@ -192,8 +192,6 @@ def initialize_step_history_sample(apps, schema_editor):
             step_history.save()
             reversion.add_to_revision(step_history)
 
-    assert not StepHistory.objects.filter(sample_id=0).exists()
-
 def create_qc_integration_spark_entities(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
     InstumentType = apps.get_model("fms_core", "InstrumentType")
@@ -408,7 +406,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='step',
             name='type',
-            field=models.CharField(choices=[('PROTOCOL', 'Protocol'), ('AUTOMATION', 'Automation')], default='PROTOCOL', help_text='Type of step.', max_length=200),
+            field=models.CharField(choices=[('PROTOCOL', 'Protocol'), ('AUTOMATION', 'Automation'), ('INTEGRATION', 'Integration')], default='PROTOCOL', help_text='Type of step.', max_length=200),
             preserve_default=False,
         ),
         migrations.AlterField(
@@ -452,12 +450,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='stephistory',
             name='sample',
-            field=models.ForeignKey(default=0, help_text='Source sample that completed the step.', on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.sample'),
-            preserve_default=False,
+            field=models.ForeignKey(blank=True, null=True, help_text='Source sample that completed the step.', on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.sample'),
         ),
         migrations.RunPython(
             initialize_step_history_sample,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='stephistory',
+            name='sample',
+            field=models.ForeignKey(help_text='Source sample that completed the step.', on_delete=django.db.models.deletion.PROTECT, related_name='StepHistory', to='fms_core.sample'),
         ),
         migrations.AlterField(
             model_name='stephistory',
