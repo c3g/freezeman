@@ -1,4 +1,4 @@
-from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField
+from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Subquery, OuterRef
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -24,8 +24,8 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     queryset = queryset.annotate(
         qc_flag=Case(
-            When(Q(sample__quality_flag=True) & Q(sample__quantity_flag=True), then=True),
             When(Q(sample__quality_flag=False) | Q(sample__quantity_flag=False), then=False),
+            When(Q(sample__quality_flag=True) | Q(sample__quantity_flag=True), then=True),
             default=None,
             output_field=BooleanField()
         )
@@ -280,3 +280,54 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         sample_next_step_summary["automations"]["count"] = automation_sample_count
 
         return Response({"results": sample_next_step_summary})
+
+    @action(detail=False, methods=["get"])
+    def labwork_step_info(self, request, *args, **kwargs):
+        """
+        API call to retrieve the lab work information for a step about the number samples waiting for a grouping column provided.
+
+        Args:
+            `request`: The request object received then whe API call was made.
+            `*args`: Arguments to set on the view.
+            `**kwargs`: Additional properties to set on the view.
+                    
+        Returns:
+          An object of the form:
+          {
+            results:
+            {
+              step_id: id
+              samples: 
+              {
+                grouping_column : column_name
+                groups : [
+                  {
+                    name = grouping_value_1
+                    count
+                    sample_ids: []
+                  },
+                  {
+                    name = grouping_value_2
+                    count
+                    sample_ids: []
+                  },
+                  ...
+                ],                
+              }
+            }
+          }
+        """
+        step_id = request.GET.get('step__id__in')
+        grouping_column = request.GET.get('group_by')
+        # The objects that is going to be returned
+        grouped_step_summary = {"step_id": step_id, "samples": {"grouping_column": grouping_column, "groups": []}}
+        
+        grouped_step_samples = self.filter_queryset(self.get_queryset())
+        # Iterate through protocols
+        for group in grouped_step_samples:
+            sample_ids = list(SampleNextStep.objects.filter(step__id__in=step_id).filter(grouping_column=group[grouping_column]).values_list("id", flat=True))
+            # Get the sample count waiting for this protocol
+            current_group = {"name": group[grouping_column], "count": group["count"], "sample_ids": sample_ids}
+            print(group)
+           
+        return Response({"results": grouped_step_summary})

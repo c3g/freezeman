@@ -20,6 +20,7 @@ import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
+import LabworkStepOverview from './LabworkStepOverview'
 
 const { Text } = Typography
 
@@ -35,6 +36,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const navigate = useNavigate()
 
 	// Keep track of the currently selected tab so that we can tweak the UX
+  const GROUPED_SAMPLES_TAB_KEY = 'groups'
 	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
 	const [selectedTab, setSelectedTab] = useState<string>(SAMPLES_TAB_KEY)
@@ -457,6 +459,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 					</Space>
 				} onChange={onTabChange}>
+          <Tabs.TabPane tab='Groups' key={GROUPED_SAMPLES_TAB_KEY}>
+						<LabworkStepOverview
+              step={step}
+            />
+					</Tabs.TabPane>
 					<Tabs.TabPane tab='Samples' key={SAMPLES_TAB_KEY}>
 						<WorkflowSamplesTable
 							clearFilters={localClearFilters}
