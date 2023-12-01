@@ -39,7 +39,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
   const GROUPED_SAMPLES_TAB_KEY = 'groups'
 	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
-	const [selectedTab, setSelectedTab] = useState<string>(SAMPLES_TAB_KEY)
+	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
@@ -420,7 +420,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		<>
 			<AppPageHeader title={step.name} extra={buttonBar} />
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<Tabs defaultActiveKey={SAMPLES_TAB_KEY} activeKey={selectedTab} tabBarExtraContent={
+				<Tabs defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} tabBarExtraContent={
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY &&
 							<>

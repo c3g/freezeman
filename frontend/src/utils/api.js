@@ -235,6 +235,7 @@ const api = {
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
     executeAutomation: (stepId, options) => filteredpost(`/sample-next-step/execute_automation/`, {...options}, form({step_id: stepId, ...options}),),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
+    labworkStepSummary: (stepId, groupBy, options) => get('/sample-next-step/labwork_step_info/', {...options, step__id__in: stepId, group_by: groupBy}),
     listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),

@@ -1,4 +1,4 @@
-from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Subquery, OuterRef
+from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Value
 from django.http import HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -38,7 +38,8 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     queryset = queryset.annotate(
         ordering_container_name=Case(
-            When(Q(sample__coordinate__isnull=True), then=F('sample__container__location__name')),
+            When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__name')),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container")),
             default=F('sample__container__name'),
             output_field=CharField()
         )
@@ -289,6 +290,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         Args:
             `request`: The request object received then whe API call was made.
+                       The request must include the query arguments 'step__id__in' and 'group_by'.
+                       Valid 'group_by' include : - sample__derived_samples__project__name
+                                                  - ordering_container_name
+                                                  - sample__creation_date
+                                                  - sample__created_by__username
+                                                  - qc_flag
             `*args`: Arguments to set on the view.
             `**kwargs`: Additional properties to set on the view.
                     
@@ -327,15 +334,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         grouped_step_summary = {"step_id": step_id, "samples": {"grouping_column": grouping_column, "groups": []}}
         
         grouped_step_samples = self.filter_queryset(self.get_queryset())
-        grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count(grouping_column)).order_by()
+        grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count("id")).order_by("-count", grouping_column)
 
-        # Iterate through protocols
         for group in grouped_step_samples.all():
-            print(group)
-            #print(getattr(SampleNextStep, grouping_column))
-            #sample_ids = list(SampleNextStep.objects.filter(step__id__in=step_id).values_list("id", flat=True))
-            # Get the sample count waiting for this protocol
-            #current_group = {"name": getattr(SampleNextStep, grouping_column), "count": group["count"], "sample_ids": sample_ids}
-            #print(group)
+            filter_column = grouping_column + "__exact"
+            sample_ids = list(self.filter_queryset(self.get_queryset()).filter(step__id__in=step_id).filter(**{filter_column: group[grouping_column]}).values_list("sample_id", flat=True).distinct())
+            grouped_step_summary["samples"]["groups"].append({"name": group[grouping_column], "count": group["count"], "sample_ids": sample_ids})
            
         return Response({"results": grouped_step_summary})

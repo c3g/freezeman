@@ -6,6 +6,10 @@ export interface LabworkStepsState {
 	steps: {[key: FMSId] : LabworkStepSamples}			// key is a Step ID
 }
 
+export interface LabworkStepsSummaryState {
+  groups: LabworkStepSamplesGroup[]
+}
+
 export interface LabworkPrefilledTemplateDescriptor {
 	id: number
 	description: string
@@ -31,5 +35,11 @@ export interface LabworkStepSamples {
     templates: LabworkPrefilledTemplateDescriptor[],	// The resulting list, or an empty array
   }
 	showSelectionChangedWarning: boolean					// If true, a warning is displayed that the selected samples were changed during refresh
+}
+
+export interface LabworkStepSamplesGroup {
+	name: string                      // Name identifying that group
+  count: number                     // Number of samples included in group
+  sample_ids: FMSId[]               // Samples included in group
 }
 
