@@ -1,7 +1,7 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
-import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepsSummaryState } from "../../selectors"
+import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState } from "../../selectors"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
@@ -356,8 +356,8 @@ export function showSelectionChangedMessage(stepID: FMSId, show: boolean) {
 	}
 }
 
-export const getLabworkStepSummary = (stepID: FMSId, groupBy: string) => async (dispatch, getState) => {
-	const summary = selectLabworkStepsSummaryState(getState())
+export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options) => async (dispatch, getState) => {
+	const summary = selectLabworkStepSummaryState(getState())
 	if (summary && summary.isFetching) {
 		return
 	}
@@ -365,7 +365,7 @@ export const getLabworkStepSummary = (stepID: FMSId, groupBy: string) => async (
 	dispatch({ type: GET_LABWORK_STEP_SUMMARY.REQUEST })
 
 	try {
-		const response = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, groupBy))
+		const response = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, groupBy, options))
 		const summary = response.data.results.samples.groups
 		dispatch({
 			type: GET_LABWORK_STEP_SUMMARY.RECEIVE,

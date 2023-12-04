@@ -27,7 +27,7 @@ import {
 } from './models/frontend_models'
 import { PagedItems } from './models/paged_items'
 import { IndividualDetailsById } from './modules/individualDetails/models'
-import { LabworkStepsSummaryState } from './modules/labworkSteps/models'
+import { LabworkStepSummaryState } from './modules/labworkSteps/models'
 import { LabworkSummaryState } from './modules/labwork/reducers'
 import { LabworkStepsState } from './modules/labworkSteps/models'
 import { ProjectSamplesTable } from './modules/projectSamplesTable/reducers'
@@ -87,7 +87,7 @@ export const selectExperimentRunLaunches = (state: RootState) => state.experimen
 export const selectInstrumentsByID = (state: RootState) => state.instruments.itemsByID as ItemsByID<Instrument>
 export const selectInstrumentTypesByID = (state: RootState) => state.instrumentTypes.itemsByID as ItemsByID<InstrumentType>
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
-export const selectLabworkStepsSummaryState = (state: RootState) => state.LabworkStepsSummaryState as LabworkStepsSummaryState
+export const selectLabworkStepSummaryState = (state: RootState) => state.labworkStepSummary as LabworkStepSummaryState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
 export const selectLibrariesTable = (state: RootState) => state.librariesTable

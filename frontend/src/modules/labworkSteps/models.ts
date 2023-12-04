@@ -6,8 +6,10 @@ export interface LabworkStepsState {
 	steps: {[key: FMSId] : LabworkStepSamples}			// key is a Step ID
 }
 
-export interface LabworkStepsSummaryState {
-  groups: LabworkStepSamplesGroup[]
+export interface LabworkStepSummaryState {
+	isFetching: boolean
+  groups?: LabworkStepSamplesGroup[]
+	error?: any
 }
 
 export interface LabworkPrefilledTemplateDescriptor {

@@ -1,12 +1,11 @@
 import { Collapse, Typography} from 'antd'
 import React, { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
-import { refreshLabwork, setHideEmptySections } from '../../../modules/labwork/actions'
-import { LabworkSummary } from '../../../modules/labwork/models'
-import Flexbar from '../../shared/Flexbar'
+import { getLabworkStepSummary } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
 import LabworkStepOverviewPanel from './LabworkStepOverviewPanel'
-import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
+import { selectLibrariesByID, selectSamplesByID, selectLabworkStepSummaryState } from '../../../selectors'
+import { Step } from '../../../models/frontend_models'
 
 const { Title } = Typography
 
@@ -26,11 +25,14 @@ const LabworkStepOverview = (step) => {
 	const dispatch = useAppDispatch()
   const [refreshing, setRefreshing] = useState<boolean>(false)
   const [activeGrouping, setActiveGrouping] = useState<string>(GROUPING_KEY_PROJECT)
+  const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
-
-  const groups: LabworkStepGroup[] = []
   
+  useEffect(() => {
+    dispatch(getLabworkStepSummary(step.id, activeGrouping, {}))
+	}, [activeGrouping, step])
+
   const handleChangeActiveGrouping = (grouping) => {
     setActiveGrouping(grouping)
     console.log(grouping)
@@ -45,7 +47,7 @@ const LabworkStepOverview = (step) => {
         <GroupingButton grouping={GROUPING_KEY_CREATED_BY} label="Created By" selected={activeGrouping===GROUPING_KEY_CREATED_BY} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
       </div>
 			<Collapse>
-				{groups.map((group) => {
+				{labworkStepSummary && labworkStepSummary.groups?.map((group) => {
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={<Title level={4}>{group.count}</Title>}>
 							<LabworkStepOverviewPanel/>

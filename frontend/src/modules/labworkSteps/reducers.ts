@@ -4,7 +4,7 @@ import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from '../../models/paged_items_reducers'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
-import { LabworkStepSamples, LabworkStepsState } from './models'
+import { LabworkStepSamples, LabworkStepsState, LabworkStepSummaryState } from './models'
 import { createPagedItems, createPagedItemsByID } from '../../models/paged_items'
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
@@ -260,6 +260,34 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 				})
 			}
 			break
+		}
+	}
+	return state
+}
+
+export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching: false}, action: AnyAction) : LabworkStepSummaryState => {
+	switch(action.type) {
+		case GET_LABWORK_STEP_SUMMARY.REQUEST: {
+			return {
+				...state,
+				isFetching: true
+			}
+		}
+
+		case GET_LABWORK_STEP_SUMMARY.RECEIVE: {
+			return {
+				...state,
+				isFetching: false,
+				groups: action.data
+			}
+		}
+
+		case GET_LABWORK_STEP_SUMMARY.ERROR: {
+			return {
+				...state,
+				isFetching: false,
+				error: action.error
+			}
 		}
 	}
 	return state

@@ -335,7 +335,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         
         grouped_step_samples = self.filter_queryset(self.get_queryset())
         grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count("id")).order_by("-count", grouping_column)
-
         for group in grouped_step_samples.all():
             filter_column = grouping_column + "__exact"
             sample_ids = list(self.filter_queryset(self.get_queryset()).filter(step__id__in=step_id).filter(**{filter_column: group[grouping_column]}).values_list("sample_id", flat=True).distinct())

@@ -39,7 +39,7 @@ import {
 import { individualDetails } from "./modules/individualDetails/reducers";
 import { individuals } from "./modules/individuals/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
-import { labworkSteps, labworkStepsSummary, sampleNextStepTemplateActions } from "./modules/labworkSteps/reducers";
+import { labworkSteps, labworkStepSummary, sampleNextStepTemplateActions } from "./modules/labworkSteps/reducers";
 import {
   libraries,
   librariesSummary,
@@ -184,7 +184,7 @@ const allReducers = combineReducers({
   individualDetails,
   coordinates,
   labworkSteps,
-  labworkStepsSummary,
+  labworkStepSummary,
   sampleNextStepTemplateActions,
   steps,
   notifications,
