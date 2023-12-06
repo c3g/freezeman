@@ -2,14 +2,12 @@ import React, { useEffect } from 'react'
 import { FMSId } from '../../../models/fms_api_models'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
-import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
-import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
-import { useAppDispatch } from '../../../hooks'
-import WorkflowSamplesTable from '../../WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
+import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 
 interface LabworkStepPanelProps {
   grouping: FilterDescription
-  groupingValue: string
+  groupingValue: FilterValue
   samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
@@ -30,16 +28,13 @@ interface LabworkStepPanelProps {
 
 const LabworkStepOverviewPanel = ({grouping, groupingValue, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
 
-	const dispatch = useAppDispatch()
-
   useEffect(() => {
-    setFilter && dispatch(setFilter(grouping.key, groupingValue, grouping))
+    setFilter && setFilter(grouping.key, groupingValue, grouping)
 	}, [grouping, groupingValue])
 
 	return (
 		<>
       <WorkflowSamplesTable
-				clearFilters={clearFilters}
 				hasFilter={hasFilter}
 				samples={samples}
 				columns={columns}

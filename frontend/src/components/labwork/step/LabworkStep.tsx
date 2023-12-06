@@ -471,7 +471,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							filters={stepSamples.pagedItems.filters}
 							setFilter={handleSetFilter}
 							setFilterOptions={handleSetFilterOptions}
-							selection={selectionProps}
+							selection={selectionProps(onSelectChange)}
 							setSortBy={handleSetSortBy}
 							pagination={pagination}
             />
