@@ -17,7 +17,7 @@ export interface PaginationParameters {
 	onChangePageSize: (newPageSize: number) => void
 }
 
-interface WorkflowSamplesTableProps {
+export interface WorkflowSamplesTableProps {
 	samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,

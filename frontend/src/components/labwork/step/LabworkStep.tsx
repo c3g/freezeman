@@ -460,7 +460,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					</Space>
 				} onChange={onTabChange}>
           <Tabs.TabPane tab='Groups' key={GROUPED_SAMPLES_TAB_KEY}>
-						<LabworkStepOverview step={step}/>
+						<LabworkStepOverview
+              step={step}
+              clearFilters={localClearFilters}
+							hasFilter={true}
+							samples={samples}
+							columns={columnsForSamples}
+							filterDefinitions={filterDefinitions}
+							filterKeys={filterKeys}
+							filters={stepSamples.pagedItems.filters}
+							setFilter={handleSetFilter}
+							setFilterOptions={handleSetFilterOptions}
+							selection={selectionProps}
+							setSortBy={handleSetSortBy}
+							pagination={pagination}
+            />
 					</Tabs.TabPane>
 					<Tabs.TabPane tab='Samples' key={SAMPLES_TAB_KEY}>
 						<WorkflowSamplesTable

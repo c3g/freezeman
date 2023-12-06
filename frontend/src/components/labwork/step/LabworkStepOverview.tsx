@@ -1,56 +1,88 @@
 import { Collapse, Typography} from 'antd'
 import React, { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
 import LabworkStepOverviewPanel from './LabworkStepOverviewPanel'
-import { selectLibrariesByID, selectSamplesByID, selectLabworkStepSummaryState } from '../../../selectors'
-import { Step } from '../../../models/frontend_models'
+import { selectLabworkStepSummaryState } from '../../../selectors'
+import { Step, Sample } from '../../../models/frontend_models'
+import { FMSId } from '../../../models/fms_api_models'
+import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
+import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
+import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
+import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
+import { LabworkStepSamplesGroup } from '../../../modules/labworkSteps/models'
 
 const { Title } = Typography
 
-interface LabworkStepGroup {
-	name: string,
-	count: number,
-  sample_ids: number[]
+interface LabworkStepCollapseProps {
+  step: Step,
+  samples: SampleAndLibrary[]
+	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
+	hasFilter: boolean,
+	clearFilters?: () => void,
+	filterDefinitions?: FilterDescriptionSet,
+	filterKeys?: FilterKeySet,
+	filters?: FilterSet,
+	setFilter?: SetFilterFunc,
+	setFilterOptions?: SetFilterOptionFunc,
+	sortBy?: SortBy,
+	setSortBy?: SetSortByFunc,
+	pagination?: PaginationParameters,
+	selection?: {
+		selectedSampleIDs: FMSId[],
+		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
+	}
 }
 
-const GROUPING_KEY_PROJECT = "sample__derived_samples__project__name"
-const GROUPING_KEY_CONTAINER = "ordering_container_name"
-const GROUPING_KEY_CREATION_DATE = "sample__creation_date"
-const GROUPING_KEY_CREATED_BY = "sample__created_by__username"
+const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key: "sample__derived_samples__project__name"}
+const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", key: "ordering_container_name"}
+const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
+const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-
-const LabworkStepOverview = (step) => {
+const LabworkStepOverview = ({step, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
 	const dispatch = useAppDispatch()
   const [refreshing, setRefreshing] = useState<boolean>(false)
-  const [activeGrouping, setActiveGrouping] = useState<string>(GROUPING_KEY_PROJECT)
+  const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
-	const samplesByID = useAppSelector(selectSamplesByID)
-	const librariesByID = useAppSelector(selectLibrariesByID)
   
   useEffect(() => {
-    dispatch(getLabworkStepSummary(step.id, activeGrouping, {}))
+    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {}))
 	}, [activeGrouping, step])
 
   const handleChangeActiveGrouping = (grouping) => {
     setActiveGrouping(grouping)
-    console.log(grouping)
   }
 
 	return (
 		<>
       <div>
-        <GroupingButton grouping={GROUPING_KEY_PROJECT} label="Project" selected={activeGrouping===GROUPING_KEY_PROJECT} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
-				<GroupingButton grouping={GROUPING_KEY_CONTAINER} label="Container" selected={activeGrouping===GROUPING_KEY_CONTAINER} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
-        <GroupingButton grouping={GROUPING_KEY_CREATION_DATE} label="Creation Date" selected={activeGrouping===GROUPING_KEY_CREATION_DATE} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
-        <GroupingButton grouping={GROUPING_KEY_CREATED_BY} label="Created By" selected={activeGrouping===GROUPING_KEY_CREATED_BY} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
+        <GroupingButton grouping={GROUPING_PROJECT} selected={activeGrouping===GROUPING_PROJECT} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
+				<GroupingButton grouping={GROUPING_CONTAINER} selected={activeGrouping===GROUPING_CONTAINER} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
+        <GroupingButton grouping={GROUPING_CREATION_DATE}selected={activeGrouping===GROUPING_CREATION_DATE} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
+        <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={refreshing} onClick={handleChangeActiveGrouping}/>
       </div>
-			<Collapse>
-				{labworkStepSummary && labworkStepSummary.groups?.map((group) => {
+			<Collapse accordion>
+				{labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={<Title level={4}>{group.count}</Title>}>
-							<LabworkStepOverviewPanel/>
+							<LabworkStepOverviewPanel
+                grouping={activeGrouping}
+                groupingValue={group.name}
+                clearFilters={clearFilters}
+							  hasFilter={true}
+                samples={samples}
+                columns={columns}
+                filterDefinitions={filterDefinitions}
+                filterKeys={filterKeys}
+                filters={filters}
+                setFilter={setFilter}
+                setFilterOptions={setFilterOptions}
+                selection={selection}
+                setSortBy={setSortBy}
+                pagination={pagination}
+              />
 						</Collapse.Panel>
 					)
 				})}
