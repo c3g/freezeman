@@ -6,17 +6,42 @@ interface ContainerProps {
     columns: number,
     rows: number,
     samples: any,
-    selected?: number,
-    updateSamples: (sampleList, containerType) => void
+    selectedSamples?: number,
+    direction?: string,
+    updateSampleList: (sample, containerType) => void
+    updateSamples?: (sampleList) => void
 }
 
-const TransferContainer = ({ containerType, columns, rows, samples, updateSamples, selected }: ContainerProps) => {
+const TransferContainer = ({ containerType, columns, rows, samples, updateSampleList, selectedSamples, direction, updateSamples }: ContainerProps) => {
 
     const [isSelecting, setIsSelecting] = useState<boolean>(false)
+    const [previewCells, setPreviewCells] = useState<any>({})
 
     const nextChar = useCallback((c: string) => {
         return String.fromCharCode(c.charCodeAt(0) + 1);
     }, [])
+
+    const previewGroupPlacement = useCallback((coordinate) => {
+        if (selectedSamples && direction) {
+            const coords = (coordinate.toString()).split('_')
+            let row = String(coords[0])
+            let col = Number(coords[1])
+            let tempPreviewCells = {}
+            let rowBool = true;
+            if (direction != 'row') {
+                rowBool = false
+            }
+            for (let i = 0; i < selectedSamples; i++) {
+                tempPreviewCells[row + "_" + col] = 'none'
+                if (rowBool) {
+                    col += 1;
+                } else {
+                    row = nextChar(row)
+                }
+            }
+            setPreviewCells(tempPreviewCells)
+        }
+    }, [previewCells, direction, selectedSamples])
 
     const checkSamples = useCallback((coordinate) => {
         let temp = { ...samples }
@@ -28,16 +53,22 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
     }, [samples])
 
     const onClick = useCallback((sample) => {
-        let tempIsSelecting = isSelecting
-        updateSamples(sample, containerType)
-        setIsSelecting(!tempIsSelecting)
-    }, [samples, isSelecting])
+        if (direction && updateSamples && selectedSamples && selectedSamples > 0) {
+            updateSamples(previewCells)
+        } else {
+            updateSampleList([sample], containerType)
+            setIsSelecting(!isSelecting)
+        }
+    }, [samples, isSelecting, direction, updateSamples, previewCells])
 
     const onMouseHover = useCallback((sample) => {
-        if (isSelecting) {
-            updateSamples(sample, containerType)
+        if ((isSelecting && sample.sampleID) || (isSelecting && containerType == "destination")) {
+            updateSampleList([sample], containerType)
         }
-    }, [isSelecting, samples])
+        if (containerType == "destination" && !isSelecting) {
+            previewGroupPlacement(sample.coordinate)
+        }
+    }, [isSelecting, samples, previewCells, direction, selectedSamples])
 
     const renderCells = useCallback(() => {
         let cells: any[] = [];
@@ -54,7 +85,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                 </div>
             )
         }
-
+        //adds number heards to total number of cells
         cells.push(<div key={'headers'} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
             {
                 headerCells
@@ -76,11 +107,13 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                 rowOfCells.push(
                     <div key={coordinate} style={{ display: 'flex', height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center' }}>
                         <Cell key={coordinate}
+                            onCellMouseLeave={() => setPreviewCells({})}
                             isSelecting={isSelecting}
-                            onMouseOver={onMouseHover}
+                            onCellMouseOver={onMouseHover}
                             sample={checkSamples(coordinate)}
                             coordinate={coordinate}
-                            onClick={isSelecting ? () => setIsSelecting(false) : onClick} />
+                            outline={previewCells[coordinate] ? true : false}
+                            onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
                     </div>
                 )
             }
@@ -96,7 +129,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             char = nextChar(char)
         }
         return cells
-    }, [samples, isSelecting])
+    }, [samples, isSelecting, previewCells, direction])
     return (
         <>
             <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', justifyContent: 'space-around', gap: '1vh', border: 'solid grey 1px', padding: '1%' }}>
