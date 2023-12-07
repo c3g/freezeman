@@ -2,25 +2,42 @@ import React, { useState } from "react"
 import { useCallback } from "react"
 import './Cell.scss'
 interface CellProps {
-    onClick: (e: any) => void,
-    onMouseOver: (e: any) => void,
+    onCellClick: (e: any) => void,
+    onCellMouseOver: (e: any) => void,
+    onCellMouseLeave: () => void,
     coordinate: string,
     isSelecting: boolean,
     sample: {
         sampleID: number,
         //3 types { selected, placed, used}
         type: string
-    } | null
+    } | null,
+    outline: boolean,
 }
 
-const Cell = ({ coordinate, onClick, sample, onMouseOver, isSelecting }: CellProps) => {
+const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline }: CellProps) => {
     const [hover, setHover] = useState<boolean>(isSelecting)
-    const onCellClick = useCallback(() => {
+    
+    const onClick = useCallback(() => {
         if (sample?.type != "placed") {
-            onClick({ sampleID: sample?.sampleID, type: sample?.type, coordinate })
+            onCellClick({ sampleID: sample?.sampleID, type: sample?.type, coordinate })
         }
-    }, [sample, isSelecting])
-
+        setHover(!hover)
+    }, [sample, onCellClick, isSelecting, hover])
+    
+    const onMouseEnter = useCallback(() => {
+        if (isSelecting) {
+            setHover(true)
+        }
+    }, [isSelecting])
+    
+    const onMouseLeave = useCallback(() => {
+        setHover(false)
+        onCellMouseLeave()
+    }, [])
+    
+    const onMouseOver = useCallback(() => onCellMouseOver({ ...sample, coordinate }), [sample, onCellMouseOver, onCellClick])
+    
     const getColor = useCallback((sample) => {
         if (sample) {
             switch (sample.type) {
@@ -35,24 +52,18 @@ const Cell = ({ coordinate, onClick, sample, onMouseOver, isSelecting }: CellPro
         }
         return ''
     }, [sample, sample?.type])
+
     return (
         <>
             {
                 <button
                     className={'cell'}
                     key={coordinate}
-                    onClick={() => {
-                        onCellClick()
-                        setHover(!hover)
-                    }}
-                    onMouseOver={() => onMouseOver({ ...sample, coordinate })}
-                    onMouseEnter={() => {
-                        if (isSelecting) {
-                            setHover(true)
-                        }
-                    }}
-                    onMouseLeave={() => setHover(false)}
-                    style={{ borderRadius: 100, height: 20, width: 20, backgroundColor: getColor(sample), border: hover ? '2px solid darkblue' : '1px solid gray' }}
+                    onClick={onClick}
+                    onMouseOver={onMouseOver}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
+                    style={{ borderRadius: 100, height: 20, width: 20, backgroundColor: getColor(sample), border: outline ? '2px solid blue' : hover ? '2px solid red' : '' }}
                 />
 
             }

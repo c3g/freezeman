@@ -4,11 +4,11 @@ import React from "react"
 const ContainerNameScroller = () => {
     return (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-            <Button style={{ border: 'solid grey 1px' }}>
+            <Button>
                 Previous
             </Button>
             <Input style={{ width: '50%' }} />
-            <Button style={{ border: 'solid grey 1px' }}>
+            <Button>
                 Next
             </Button >
         </div>
