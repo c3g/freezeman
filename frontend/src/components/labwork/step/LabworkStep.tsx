@@ -20,7 +20,7 @@ import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
-import LabworkStepOverview from './LabworkStepOverview'
+import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATION_DATE, GROUPING_CREATED_BY } from './LabworkStepOverview'
 
 const { Text } = Typography
 
@@ -180,11 +180,19 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step, protocol])
 
 	const filterDefinitions = useMemo(() => {
-		return { ...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS }
+		return { ...SAMPLE_COLUMN_FILTERS,
+             ...LIBRARY_COLUMN_FILTERS,
+             GROUPING_CONTAINER,
+             GROUPING_CREATED_BY
+             }
 	}, [])
 
 	const filterKeys = useMemo(() => {
-		return { ...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS }
+		return { ...SAMPLE_NEXT_STEP_FILTER_KEYS,
+             ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS,
+             [GROUPING_CONTAINER.label]: GROUPING_CONTAINER.key,
+             [GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
+             }
 	}, [])
 
 	// Columns for selected samples table

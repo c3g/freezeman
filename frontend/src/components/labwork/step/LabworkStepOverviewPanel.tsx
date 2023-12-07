@@ -4,10 +4,11 @@ import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColum
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
+import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
 
 interface LabworkStepPanelProps {
   grouping: FilterDescription
-  groupingValue: FilterValue
+  groupingValue: string
   samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
@@ -29,8 +30,9 @@ interface LabworkStepPanelProps {
 const LabworkStepOverviewPanel = ({grouping, groupingValue, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
 
   useEffect(() => {
-    setFilter && setFilter(grouping.key, groupingValue, grouping)
-	}, [grouping, groupingValue])
+    const value = grouping===GROUPING_CREATION_DATE ? {min: groupingValue, max: groupingValue} : groupingValue
+    setFilter && setFilter(grouping.key, value, grouping)
+	}, [groupingValue])
 
 	return (
 		<>

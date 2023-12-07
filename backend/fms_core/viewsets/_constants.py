@@ -314,6 +314,7 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     "sample__concentration": SCALAR_FILTERS,
     "sample__fragment_size": SCALAR_FILTERS,
     "sample__creation_date": DATE_FILTERS,
+    "sample__created_by__username": CATEGORICAL_FILTERS_LOOSE,
     "sample__depleted": ["exact"],
     "sample__derived_samples__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__derived_samples__library__library_selection__target": CATEGORICAL_FILTERS_LOOSE,
