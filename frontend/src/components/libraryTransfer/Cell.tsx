@@ -1,9 +1,11 @@
-import React from "react"
+import React, { useState } from "react"
 import { useCallback } from "react"
-
+import './Cell.scss'
 interface CellProps {
     onClick: (e: any) => void,
+    onMouseOver: (e: any) => void,
     coordinate: string,
+    isSelecting: boolean,
     sample: {
         sampleID: number,
         //3 types { selected, placed, used}
@@ -11,13 +13,8 @@ interface CellProps {
     } | null
 }
 
-const Cell = ({ coordinate, onClick, sample }: CellProps) => {
-
-    const onCellClick = () => {
-        if (sample?.type != "placed"){
-            onClick({ sampleID: sample?.sampleID ?? '', coordinate })
-        }
-    }
+const Cell = ({ coordinate, onClick, sample, onMouseOver, isSelecting }: CellProps) => {
+    const [hover, setHover] = useState<boolean>(isSelecting)
 
     const getColor = useCallback((sample) => {
         if (sample) {
@@ -27,7 +24,7 @@ const Cell = ({ coordinate, onClick, sample }: CellProps) => {
                 } case 'selected': {
                     return "#86ebc1"
                 } default: {
-                    return "blue"
+                    return "#1890ff"
                 }
             }
         }
@@ -37,9 +34,23 @@ const Cell = ({ coordinate, onClick, sample }: CellProps) => {
         <>
             {
                 <button
+                    className={'cell'}
                     key={coordinate}
-                    onClick={onCellClick}
-                    style={{ borderRadius: 100, border: 'solid grey 1px', height: 20, width: 20, backgroundColor: getColor(sample) }} />
+                    onClick={() => {
+                        if (sample?.type != "placed") {
+                            onClick({ sampleID: sample?.sampleID, type: sample?.type, coordinate })
+                        }
+                        setHover(!hover)
+                    }}
+                    onMouseOver={() => onMouseOver({ ...sample, coordinate })}
+                    onMouseEnter={() => {
+                        if (isSelecting) {
+                            setHover(true)
+                        }
+                    }}
+                    onMouseLeave={() => setHover(false)}
+                    style={{ borderRadius: 100, height: 20, width: 20, backgroundColor: getColor(sample), border: hover ? '2px solid darkblue' : '1px solid gray' }}
+                />
 
             }
         </>
