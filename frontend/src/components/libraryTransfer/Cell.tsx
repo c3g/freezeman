@@ -15,6 +15,11 @@ interface CellProps {
 
 const Cell = ({ coordinate, onClick, sample, onMouseOver, isSelecting }: CellProps) => {
     const [hover, setHover] = useState<boolean>(isSelecting)
+    const onCellClick = useCallback(() => {
+        if (sample?.type != "placed") {
+            onClick({ sampleID: sample?.sampleID, type: sample?.type, coordinate })
+        }
+    }, [sample, isSelecting])
 
     const getColor = useCallback((sample) => {
         if (sample) {
@@ -37,9 +42,7 @@ const Cell = ({ coordinate, onClick, sample, onMouseOver, isSelecting }: CellPro
                     className={'cell'}
                     key={coordinate}
                     onClick={() => {
-                        if (sample?.type != "placed") {
-                            onClick({ sampleID: sample?.sampleID, type: sample?.type, coordinate })
-                        }
+                        onCellClick()
                         setHover(!hover)
                     }}
                     onMouseOver={() => onMouseOver({ ...sample, coordinate })}
