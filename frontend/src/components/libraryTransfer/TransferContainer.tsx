@@ -6,10 +6,13 @@ interface ContainerProps {
     columns: number,
     rows: number,
     samples: any,
+    selected?: number,
     updateSamples: (sampleList, containerType) => void
 }
 
-const TransferContainer = ({ containerType, columns, rows, samples, updateSamples }: ContainerProps) => {
+const TransferContainer = ({ containerType, columns, rows, samples, updateSamples, selected }: ContainerProps) => {
+
+    const [isSelecting, setIsSelecting] = useState<boolean>(false)
 
     const nextChar = useCallback((c: string) => {
         return String.fromCharCode(c.charCodeAt(0) + 1);
@@ -24,14 +27,17 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
         }
     }, [samples])
 
-    const onSourceClick = useCallback((sampleList) => {
-        //source logic
-        updateSamples(sampleList, containerType)
-    }, [samples])
-    const onDestinationClick =useCallback((sampleList) => {
-        //destination cells logic
-        updateSamples(sampleList, containerType)
-    }, [samples])
+    const onClick = useCallback((sample) => {
+        let tempIsSelecting = isSelecting
+        updateSamples(sample, containerType)
+        setIsSelecting(!tempIsSelecting)
+    }, [samples, isSelecting])
+
+    const onMouseHover = useCallback((sample) => {
+        if (isSelecting) {
+            updateSamples(sample, containerType)
+        }
+    }, [isSelecting, samples])
 
     const renderCells = useCallback(() => {
         let cells: any[] = [];
@@ -69,7 +75,12 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                 coordinate = char + "_" + (x);
                 rowOfCells.push(
                     <div key={coordinate} style={{ display: 'flex', height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center' }}>
-                        <Cell key={coordinate} sample={checkSamples(coordinate)} coordinate={coordinate} onClick={containerType == 'source' ? onSourceClick : onDestinationClick} />
+                        <Cell key={coordinate}
+                            isSelecting={isSelecting}
+                            onMouseOver={onMouseHover}
+                            sample={checkSamples(coordinate)}
+                            coordinate={coordinate}
+                            onClick={isSelecting ? () => setIsSelecting(false) : onClick} />
                     </div>
                 )
             }
@@ -85,14 +96,15 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             char = nextChar(char)
         }
         return cells
-    }, [samples])
-
+    }, [samples, isSelecting])
     return (
-        <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', justifyContent: 'space-around', gap: '1vh', border: 'solid grey 1px', padding: '1%' }}>
-            {
-                renderCells()
-            }
-        </div>
+        <>
+            <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', justifyContent: 'space-around', gap: '1vh', border: 'solid grey 1px', padding: '1%' }}>
+                {
+                    renderCells()
+                }
+            </div>
+        </>
     )
 }
 export default TransferContainer
