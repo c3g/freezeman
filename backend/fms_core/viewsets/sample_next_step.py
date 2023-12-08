@@ -334,10 +334,9 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         grouped_step_summary = {"step_id": step_id, "samples": {"grouping_column": grouping_column, "groups": []}}
         
         grouped_step_samples = self.filter_queryset(self.get_queryset())
-        grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count("id")).order_by("-count", grouping_column)
+        grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count("sample_id", distinct=True)).order_by("-count", grouping_column)
         for group in grouped_step_samples.all():
             filter_column = grouping_column + "__exact"
-            sample_ids = list(self.filter_queryset(self.get_queryset()).filter(step__id__in=step_id).filter(**{filter_column: group[grouping_column]}).values_list("sample_id", flat=True).distinct())
+            sample_ids = list(set(self.filter_queryset(self.get_queryset()).filter(step__id__exact=step_id).filter(**{filter_column: group[grouping_column]}).values_list("sample_id", flat=True).distinct()))
             grouped_step_summary["samples"]["groups"].append({"name": group[grouping_column], "count": group["count"], "sample_ids": sample_ids})
-           
         return Response({"results": grouped_step_summary})
