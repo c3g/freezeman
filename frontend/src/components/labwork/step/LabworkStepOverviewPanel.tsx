@@ -7,6 +7,7 @@ import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, Filte
 import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
 
 interface LabworkStepPanelProps {
+  refreshing: boolean
   grouping: FilterDescription
   groupingValue: string
   samples: SampleAndLibrary[]
@@ -27,16 +28,16 @@ interface LabworkStepPanelProps {
 	}
 }
 
-const LabworkStepOverviewPanel = ({grouping, groupingValue, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
+const LabworkStepOverviewPanel = ({refreshing, grouping, groupingValue, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
 
   useEffect(() => {
-    const value = grouping===GROUPING_CREATION_DATE ? {min: groupingValue, max: groupingValue} : groupingValue
+    const value: FilterValue = grouping===GROUPING_CREATION_DATE ? {min: groupingValue, max: groupingValue} : groupingValue
     setFilter && setFilter(grouping.key, value, grouping)
-	}, [groupingValue])
+	}, [groupingValue, setFilter])
 
 	return (
 		<>
-      <WorkflowSamplesTable
+      {!refreshing && <WorkflowSamplesTable
 				hasFilter={hasFilter}
 				samples={samples}
 				columns={columns}
@@ -48,7 +49,7 @@ const LabworkStepOverviewPanel = ({grouping, groupingValue, samples, columns, fi
         selection={selection}
         setSortBy={setSortBy}
         pagination={pagination}
-      />
+      />}
 		</>
 	)
 }

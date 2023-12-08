@@ -285,12 +285,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 		return mergedSelection
 	}
-	const handleSelectAll = useCallback(
-		async () => {
-			await dispatch(selectAllSamplesAtStep(step.id))
-			setIsSorted(true)
-		}, [step, dispatch])
-
 
 	const handleClearSelection = useCallback(
 		() => {
@@ -443,16 +437,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							</>
 						}
 						<Popconfirm
-							disabled={!canSelectAllSamples}
-							title={'Select all samples?'}
-							okText={'Yes'}
-							cancelText={'No'}
-							placement={'rightTop'}
-							onConfirm={() => handleSelectAll()}
-						>
-							<Button disabled={!canSelectAllSamples} title='Select all samples'>Select All</Button>
-						</Popconfirm>
-						<Popconfirm
 							disabled={stepSamples.selectedSamples.length == 0}
 							title={'Clear the entire selection?'}
 							okText={'Yes'}
@@ -462,14 +446,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						>
 							<Button disabled={stepSamples.selectedSamples.length == 0} title='Deselect all samples'>Clear Selection</Button>
 						</Popconfirm>
-
-
-
 					</Space>
 				} onChange={onTabChange}>
-          <Tabs.TabPane tab='Groups' key={GROUPED_SAMPLES_TAB_KEY}>
+          <Tabs.TabPane tab='Samples' key={GROUPED_SAMPLES_TAB_KEY}>
 						<LabworkStepOverview
               step={step}
+              stepSamples={stepSamples}
               clearFilters={localClearFilters}
 							hasFilter={true}
 							samples={samples}
@@ -483,22 +465,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							setSortBy={handleSetSortBy}
 							pagination={pagination}
             />
-					</Tabs.TabPane>
-					<Tabs.TabPane tab='Samples' key={SAMPLES_TAB_KEY}>
-						<WorkflowSamplesTable
-							clearFilters={localClearFilters}
-							hasFilter={true}
-							samples={samples}
-							columns={columnsForSamples}
-							filterDefinitions={filterDefinitions}
-							filterKeys={filterKeys}
-							filters={stepSamples.pagedItems.filters}
-							setFilter={handleSetFilter}
-							setFilterOptions={handleSetFilterOptions}
-							selection={selectionProps(onSelectChange)}
-							setSortBy={handleSetSortBy}
-							pagination={pagination}
-						/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
 						{stepSamples.showSelectionChangedWarning &&

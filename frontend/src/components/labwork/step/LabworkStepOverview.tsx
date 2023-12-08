@@ -1,8 +1,8 @@
-import { Collapse, Typography, Button } from 'antd'
+import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
-import { getLabworkStepSummary } from '../../../modules/labworkSteps/actions'
+import { getLabworkStepSummary, setSelectedSamples, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
 import LabworkStepOverviewPanel from './LabworkStepOverviewPanel'
 import { selectLabworkStepSummaryState } from '../../../selectors'
@@ -12,12 +12,15 @@ import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColum
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
-import { LabworkStepSamplesGroup } from '../../../modules/labworkSteps/models'
+import { LabworkStepSamples, LabworkStepSamplesGroup } from '../../../modules/labworkSteps/models'
+import { mergeArraysIntoSet } from '../../../utils/mergeArraysIntoSet'
+import { fetchLibrariesForSamples, fetchSamples } from "../../../modules/cache/cache"
 
 const { Title } = Typography
 
 interface LabworkStepCollapseProps {
   step: Step,
+  stepSamples: LabworkStepSamples
   samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
@@ -36,22 +39,18 @@ interface LabworkStepCollapseProps {
 	}
 }
 
+const MAX_STEP_SAMPLE_SELECTION = 1000
+
 export const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key: "sample__derived_samples__project__name"}
 export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", key: "ordering_container_name"}
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-export const INITIAL_FILTER = {
-  [GROUPING_PROJECT.key]: undefined,
-  [GROUPING_CONTAINER.key]: undefined,
-  [GROUPING_CREATION_DATE.key]: undefined,
-  [GROUPING_CREATED_BY.key]: undefined
-}
-
-const LabworkStepOverview = ({step, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
+const LabworkStepOverview = ({step, stepSamples, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
 	const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
+  const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
   
   useEffect(() => {
     dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {}))
@@ -68,6 +67,34 @@ const LabworkStepOverview = ({step, samples, columns, filterDefinitions, filterK
     setFilter && setFilter(activeGrouping.key, value, activeGrouping)
   }
 
+  const handleSelectGroup = async (groupSampleIds: FMSId[]) => {
+    const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples, groupSampleIds)
+    if (mergedSelection.length > MAX_STEP_SAMPLE_SELECTION) {
+      const TOO_MANY_SELECTED_NOTIFICATION_KEY = `LabworkStep.too-many-sample-selected-${step.id}`
+        notification.error({
+          message: `Too many samples selected. Keep selection under ` + MAX_STEP_SAMPLE_SELECTION + `.`,
+          key: TOO_MANY_SELECTED_NOTIFICATION_KEY,
+          duration: 5
+        })
+    }
+    else {
+      setFetchingSamples(true)
+      await fetchSamples(mergedSelection)
+      await fetchLibrariesForSamples(mergedSelection)	
+      dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
+      setFetchingSamples(false)
+    }
+  }
+
+  const handleClearGroup = (groupSampleIds: FMSId[]) => {
+    const mergerObject = {}
+    stepSamples.selectedSamples.forEach((key) => mergerObject[key] = undefined)
+    groupSampleIds.forEach((key) => delete mergerObject[key])
+    
+    const mergedSelection = Object.keys(mergerObject).map((key) => parseInt(key))
+    dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
+  }
+
 	return (
 		<>
       <div>
@@ -77,18 +104,20 @@ const LabworkStepOverview = ({step, samples, columns, filterDefinitions, filterK
         <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
       </div>
       <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-			<Collapse accordion onChange={handleChangePanel} destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : undefined}>
+			<Collapse accordion onChange={handleChangePanel} destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'}>
 				{labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
-          //const ButtonsSelectAndClear = (
-          //  <>
-          //    <Button disabled={!group.count} title='Select group samples' onClick={handleSelectGroup(group.sample_ids)}>Select All</Button>
-          //    <Button disabled={!group.count} title='Deselect group samples' onClick={handleClearGroup(group.sample_ids)}>Clear Selection</Button>
-          //  </>
-          //)
+          const ButtonsSelectAndClear = (
+            <Space direction="horizontal" style={{width: '100%', justifyContent: 'center'}}>
+              <Tag><Title style={{ margin: 0 }} level={4}>{group.count}</Title></Tag>
+              <Button disabled={!group.count} title='Select group samples' onClick={() => handleSelectGroup(group.sample_ids)}>Select All</Button>
+              <Button disabled={stepSamples.selectedSamples.length === 0} title='Deselect group samples' onClick={() => handleClearGroup(group.sample_ids)}>Clear Selection</Button>
+            </Space>
+          )
 
 					return (
-						<Collapse.Panel key={group.name} header={group.name} extra={<Title level={4}>{group.count}</Title>}>
+						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
+                refreshing={FetchingSamples || labworkStepSummary.isFetching}
                 grouping={activeGrouping}
                 groupingValue={group.name}
                 clearFilters={clearFilters}
