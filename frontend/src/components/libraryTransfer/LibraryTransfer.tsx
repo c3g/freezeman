@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import TransferContainer from "./TransferContainer"
 import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
@@ -11,18 +11,16 @@ interface LibraryTransferProps {
     sourceContainerSamples: any,
     destinationContainerSamples: any,
     updateContainerSamples: () => void,
-    sourceContainerName: string
+    cycleContainer: (number, containerName, type) => void
 }
 
 
-const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, sourceContainerName, updateContainerSamples }: LibraryTransferProps) => {
+const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, cycleContainer, updateContainerSamples }: LibraryTransferProps) => {
 
-    const [destinationContainer, setDestinationContainer] = useState<any>({})
     // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
     const [sourceSamples, setSourceSamples] = useState<any>(sourceContainerSamples)
     // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
     const [destinationSamples, setDestinationSamples] = useState<any>(destinationContainerSamples)
-
 
     //keyed object by sampleID, containing the coordinate
     const [selectedSamples, setSelectedSamples] = useState<any[]>([])
@@ -30,6 +28,11 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
     const [placementType, setPlacementType] = useState<string>('single')
     const [placementOrder, setPlacementOrder] = useState<boolean>(false)
     const [placementDirection, setPlacementDirection] = useState<string>('row')
+
+    useEffect(() => {
+        setSourceSamples(sourceContainerSamples)
+        setDestinationSamples(destinationContainerSamples)
+    }, [sourceContainerSamples, destinationContainerSamples])
 
 
     const updatePlacementType = useCallback((value) => {
@@ -45,7 +48,7 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
     }, [placementOrder])
 
     const placeGroupSamples = useCallback((sampleObj) => {
-        const tempDestinationSamples = { ...destinationSamples }
+        const tempDestinationSamples = { ...destinationSamples.samples }
         let coordinates = Object.keys(sampleObj)
         let sampleList: any[] = []
         let error = false;
@@ -69,44 +72,47 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
 
     }, [sourceSamples, placementOrder])
 
-    const changeContainer = useCallback(() => { }, [])
+    const changeContainer = useCallback((number: number, name: string, type) => {
+        cycleContainer(number, name, type)
+    }, [cycleContainer])
 
     const transferAllSamples = useCallback(() => {
         let tempDestinationSamples = {}
         let tempSourceSamples = {}
 
-        Object.keys(sourceSamples).forEach(coordinate => {
-            tempSourceSamples[coordinate] = { ...sourceSamples[coordinate], type: 'placed' }
+        Object.keys(sourceSamples.samples).forEach(coordinate => {
+            tempSourceSamples[coordinate] = { ...sourceSamples.samples[coordinate], type: 'placed' }
         })
-        Object.keys(sourceSamples).forEach(coordinate => {
-            tempDestinationSamples[coordinate] = { ...sourceSamples[coordinate], type: 'none' }
+        Object.keys(sourceSamples.samples).forEach(coordinate => {
+            tempDestinationSamples[coordinate] = { ...sourceSamples.samples[coordinate], type: 'none' }
         })
 
-        setSourceSamples({ ...tempSourceSamples })
-        setDestinationSamples({ ...tempDestinationSamples })
+        setSourceSamples({ ...sourceSamples, samples: { ...tempSourceSamples } })
+        setDestinationSamples({ ...destinationSamples, samples: { ...tempDestinationSamples } })
     }, [sourceSamples])
 
     const clearSelection = useCallback(() => {
         const tempSourceSamples = {}
         const tempDestinationSamples = {}
-        Object.keys(sourceSamples).forEach(coordinate => {
-            tempSourceSamples[coordinate] = { ...sourceSamples[coordinate], type: sourceSamples[coordinate].type == 'selected' ? 'none' : sourceSamples[coordinate].type }
+        Object.keys(sourceSamples.samples).forEach(coordinate => {
+            tempSourceSamples[coordinate] = { ...sourceSamples.samples[coordinate], type: sourceSamples.samples[coordinate].type == 'selected' ? 'none' : sourceSamples.samples[coordinate].type }
         })
-        Object.keys(destinationSamples).forEach(coordinate => {
-            tempDestinationSamples[coordinate] = { ...destinationSamples[coordinate], type: 'none' }
+        Object.keys(destinationSamples.samples).forEach(coordinate => {
+            tempDestinationSamples[coordinate] = { ...destinationSamples.samples[coordinate], type: 'none' }
         })
-
-        setSourceSamples(tempSourceSamples)
-        setDestinationSamples(tempDestinationSamples)
+        console.log('clear')
+        console.log(tempSourceSamples)
+        setSourceSamples({ ...sourceSamples, samples: { ...tempSourceSamples } })
+        setDestinationSamples({ ...destinationSamples, samples: { ...tempDestinationSamples } })
         setSelectedSamples([])
-    }, [sourceSamples, destinationSamples])
+    }, [sourceSamples.samples, destinationSamples.samples])
 
 
 
     const updateSampleList = useCallback((sampleList, containerType) => {
         let tempSelectedSamples: any[] = [...selectedSamples]
-        const tempSourceSamples = { ...sourceSamples }
-        const tempDestinationSamples = { ...destinationSamples }
+        const tempSourceSamples = { ...sourceSamples.samples }
+        const tempDestinationSamples = { ...destinationSamples.samples }
 
         sampleList.forEach(sample => {
             const sampleID = sample.sampleID
@@ -162,11 +168,12 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
             }
         })
         //update source Samples to selected, placed
-        setSourceSamples(tempSourceSamples)
-        setSelectedSamples(tempSelectedSamples)
-        setDestinationSamples(tempDestinationSamples)
-    }, [sourceSamples, destinationSamples])
+        setSourceSamples({ ...sourceSamples, samples: { ...tempSourceSamples } })
+        setSelectedSamples([...tempSelectedSamples])
+        setDestinationSamples({ ...destinationSamples, samples: { ...tempDestinationSamples } })
 
+    }, [sourceSamples, destinationSamples])
+    console.log(sourceSamples)
 
     return (
         <>
@@ -201,29 +208,30 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'row', gap: '10%', }}>
                             <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', gap: '2vh' }}>
-                                <ContainerNameScroller name={sourceContainerName} changeContainer={changeContainer} />
+                                <ContainerNameScroller type={"source"} name={sourceSamples.containerName} changeContainer={changeContainer} />
                                 <TransferContainer
                                     containerType={"source"}
                                     columns={12} rows={8}
-                                    samples={sourceSamples}
+                                    samples={sourceSamples.samples}
                                     updateSample={updateSampleList} />
                             </div>
                             <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', gap: '2vh' }}>
-                                <ContainerNameScroller changeContainer={changeContainer} changeContainerName={() => { }} />
+                                <ContainerNameScroller type="destination" name={destinationSamples.containerName} changeContainer={changeContainer} changeContainerName={() => { }} />
                                 <TransferContainer
                                     containerType={"destination"}
                                     selectedSamples={Object.keys(selectedSamples).length}
-                                    columns={12} rows={8} samples={destinationSamples}
+                                    columns={12} rows={8} samples={destinationSamples.samples}
                                     updateSample={updateSampleList}
                                     updateSampleList={placeGroupSamples}
-                                    direction={placementType == 'group' ? placementDirection : undefined}/>
+                                    direction={placementType == 'group' ? placementDirection : undefined} />
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'end', gap: '1vw' }}>
+                            <Button onClick={() => { }} style={{ backgroundColor: '#1890ff', borderColor: '#1890ff', color: 'white' }}>Save</Button>
                             <Button onClick={transferAllSamples}>Transfer All</Button>
-                            <Button onClick={() => { }}> Add Destination</Button>
-                            <Button onClick={clearSelection}> Clear Selection</Button>
+                            <Button onClick={() => { }}>Add Destination</Button>
+                            <Button onClick={clearSelection}>Clear Selection</Button>
                         </div>
                     </div>
                 </PageContent>
