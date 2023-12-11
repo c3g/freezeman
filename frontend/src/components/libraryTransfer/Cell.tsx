@@ -17,27 +17,27 @@ interface CellProps {
 
 const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline }: CellProps) => {
     const [hover, setHover] = useState<boolean>(isSelecting)
-    
+
     const onClick = useCallback(() => {
         if (sample?.type != "placed") {
             onCellClick({ sampleID: sample?.sampleID, type: sample?.type, coordinate })
         }
         setHover(!hover)
     }, [sample, onCellClick, isSelecting, hover])
-    
+
     const onMouseEnter = useCallback(() => {
         if (isSelecting) {
             setHover(true)
         }
     }, [isSelecting])
-    
+
     const onMouseLeave = useCallback(() => {
         setHover(false)
         onCellMouseLeave()
     }, [])
-    
+
     const onMouseOver = useCallback(() => onCellMouseOver({ ...sample, coordinate }), [sample, onCellMouseOver, onCellClick])
-    
+
     const getColor = useCallback((sample) => {
         if (sample) {
             switch (sample.type) {
@@ -64,7 +64,9 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                     style={{ borderRadius: 100, height: 20, width: 20, backgroundColor: getColor(sample), border: outline ? '2px solid blue' : hover ? '2px solid red' : '' }}
-                />
+                >
+                    {sample?.sampleID}
+                </button>
 
             }
         </>

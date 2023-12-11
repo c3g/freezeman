@@ -6,14 +6,15 @@ interface ContainerProps {
     columns: number,
     rows: number,
     samples: any,
+    updateSample: (sample, containerType) => void
+    sourceContainerName?: string,
     selectedSamples?: number,
     direction?: string,
-    updateSampleList: (sample, containerType) => void
-    updateSamples?: (sampleList) => void
+    updateSampleList?: (sampleList) => void
 }
 
-const TransferContainer = ({ containerType, columns, rows, samples, updateSampleList, selectedSamples, direction, updateSamples }: ContainerProps) => {
-
+const TransferContainer = ({ containerType, columns, rows, samples, updateSample, selectedSamples, direction, updateSampleList, sourceContainerName }: ContainerProps) => {
+    const [containerName, setContainerName] = useState<String>(sourceContainerName ? sourceContainerName : '')
     const [isSelecting, setIsSelecting] = useState<boolean>(false)
     const [previewCells, setPreviewCells] = useState<any>({})
 
@@ -27,19 +28,19 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             let row = String(coords[0])
             let col = Number(coords[1])
             let tempPreviewCells = {}
-            let rowBool = true;
-            if (direction != 'row') {
-                rowBool = false
-            }
             for (let i = 0; i < selectedSamples; i++) {
-                tempPreviewCells[row + "_" + col] = 'none'
-                if (rowBool) {
-                    col += 1;
-                } else {
-                    row = nextChar(row)
+                if ((row.charCodeAt(0) < "i".charCodeAt(0)) && (col <= 12)) {
+
+                    tempPreviewCells[row + "_" + col] = 'none'
+                    if (direction == 'row') {
+                        col += 1;
+                    } else {
+                        row = nextChar(row)
+                    }
                 }
             }
-            setPreviewCells(tempPreviewCells)
+            if (selectedSamples == Object.keys(tempPreviewCells).length)
+                setPreviewCells(tempPreviewCells)
         }
     }, [previewCells, direction, selectedSamples])
 
@@ -53,18 +54,23 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
     }, [samples])
 
     const onClick = useCallback((sample) => {
-        if (direction && updateSamples && selectedSamples && selectedSamples > 0) {
-            updateSamples(previewCells)
+        //check to see if group placement is toggled so user can see where samples will be placed
+        if (direction && updateSampleList && selectedSamples && selectedSamples > 0) {
+            updateSampleList(previewCells)
         } else {
-            updateSampleList([sample], containerType)
-            setIsSelecting(!isSelecting)
+            //single sample selection/placement
+            updateSample([sample], containerType)
+            if (sample.sampleID)
+                setIsSelecting(!isSelecting)
         }
-    }, [samples, isSelecting, direction, updateSamples, previewCells])
+    }, [samples, isSelecting, direction, updateSampleList, previewCells])
 
     const onMouseHover = useCallback((sample) => {
-        if ((isSelecting && sample.sampleID) || (isSelecting && containerType == "destination")) {
-            updateSampleList([sample], containerType)
+        // if ((isSelecting && sample.sampleID) || (isSelecting && containerType == "destination")) {
+        if (isSelecting && sample.sampleID) {
+            updateSample([sample], containerType)
         }
+        //update preview for group placement every time mouse hovers over different cell
         if (containerType == "destination" && !isSelecting) {
             previewGroupPlacement(sample.coordinate)
         }
