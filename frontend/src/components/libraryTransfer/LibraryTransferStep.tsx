@@ -33,8 +33,8 @@ const LibraryTransferStep = () => {
     //calls backend endpoint to fetch source containers with samples
     return (
         <LibraryTransfer
-            sourceContainerSamples={sourceContainerSamples[index]}
-            destinationContainerSamples={destinationContainerSamples[destinationIndex]}
+            sourceContainerSamples={{...sourceContainerSamples[index]}}
+            destinationContainerSamples={{...destinationContainerSamples[destinationIndex]}}
             updateContainerSamples={() => { }}
             cycleContainer={changeContainer} />
     )
