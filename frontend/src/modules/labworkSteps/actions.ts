@@ -260,14 +260,16 @@ export function setFilterOptions(stepID: FMSId, description: FilterDescription, 
 	}
 }
 
-export function clearFilters(stepID: FMSId) {
+export function clearFilters(stepID: FMSId, refresh: boolean=true) {
 	return (dispatch) => {
 		dispatch({
 			type: CLEAR_FILTERS,
 			stepID
 		})
 		// Reset the sample list
-		dispatch(loadSamplesAtStep(stepID, 1))
+    if (refresh) {
+		  dispatch(loadSamplesAtStep(stepID, 1))
+    }
 	}
 }
 

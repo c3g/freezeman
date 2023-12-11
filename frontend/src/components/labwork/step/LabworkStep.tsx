@@ -20,7 +20,7 @@ import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
-import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATION_DATE, GROUPING_CREATED_BY } from './LabworkStepOverview'
+import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 
 const { Text } = Typography
 
@@ -345,9 +345,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
 
-	const localClearFilters = useCallback(() => {
+	const localClearFilters = useCallback((refresh: boolean=true) => {
 		if (clearFilters)
-			dispatch(clearFilters(step.id))
+			dispatch(clearFilters(step.id, refresh))
 	}, [step, step.id])
 
 	const updateSortSelectedSamples = useCallback(async ()=>{
@@ -451,6 +451,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
           <Tabs.TabPane tab='Samples' key={GROUPED_SAMPLES_TAB_KEY}>
 						<LabworkStepOverview
               step={step}
+              refreshing={isRefreshing}
+              setIsSorted={setIsSorted}
               stepSamples={stepSamples}
               clearFilters={localClearFilters}
 							hasFilter={true}
