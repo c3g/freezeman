@@ -7,14 +7,12 @@ interface ContainerProps {
     rows: number,
     samples: any,
     updateSample: (sample, containerType) => void
-    sourceContainerName?: string,
     selectedSamples?: number,
     direction?: string,
     updateSampleList?: (sampleList) => void
 }
 
-const TransferContainer = ({ containerType, columns, rows, samples, updateSample, selectedSamples, direction, updateSampleList, sourceContainerName }: ContainerProps) => {
-    const [containerName, setContainerName] = useState<String>(sourceContainerName ? sourceContainerName : '')
+const TransferContainer = ({ containerType, columns, rows, samples, updateSample, selectedSamples, direction, updateSampleList }: ContainerProps) => {
     const [isSelecting, setIsSelecting] = useState<boolean>(false)
     const [previewCells, setPreviewCells] = useState<any>({})
 
@@ -24,6 +22,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
 
     const previewGroupPlacement = useCallback((coordinate) => {
         if (selectedSamples && direction) {
+            //coordinate row and column is separated with '_'
             const coords = (coordinate.toString()).split('_')
             let row = String(coords[0])
             let col = Number(coords[1])
