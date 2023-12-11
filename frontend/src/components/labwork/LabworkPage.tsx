@@ -7,8 +7,7 @@ import ActionContent from '../ActionContent'
 import PageContainer from '../PageContainer'
 import LabworkOverviewRoute from './overview/LabworkOverviewRoute'
 import LabworkStepRoute from './step/LabworkStepRoute'
-import TransferContainer from '../libraryTransfer/TransferContainer'
-import LibraryTransfer from '../libraryTransfer/LibraryTransfer'
+import LibraryTransferStep from '../libraryTransfer/LibraryTransferStep'
 
 const LabworkPage = () => {
 	// Load the labwork summary whenever the user hits a page in the Lab Work section.
@@ -46,7 +45,7 @@ const LabworkPage = () => {
 				<Route path="*" element={<LabworkOverviewRoute />} />
 				<Route path="step/:stepID/*" element={<LabworkStepRoute />} />
 				<Route path="step/:stepID/actions/:action/*" element={<ActionContent templateType="sampleNextStep" />}/>
-				<Route path="transfer" element={<LibraryTransfer/>} />
+				<Route path="transfer" element={<LibraryTransferStep/>} />
 			</Routes>
 		</PageContainer>
 	)

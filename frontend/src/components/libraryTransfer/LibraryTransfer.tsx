@@ -5,27 +5,32 @@ import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
 import { Radio, Button, Typography, Switch } from 'antd'
-import {
-    sortableContainer,
-    sortableElement,
-    sortableHandle
-} from "react-sortable-hoc";
-
 const { Text } = Typography;
 
-const LibraryTransfer = () => {
+interface LibraryTransferProps {
+    sourceContainerSamples: any,
+    destinationContainerSamples: any,
+    updateContainerSamples: () => void,
+    sourceContainerName: string
+}
+
+
+const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, sourceContainerName, updateContainerSamples }: LibraryTransferProps) => {
+
+    const [destinationContainer, setDestinationContainer] = useState<any>({})
     // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
-    const [sourceSamples, setSourceSamples] = useState<any>({ 'a_1': { sampleID: 99, type: 'none' }, 'a_2': { sampleID: 2, type: 'none' }, 'a_3': { sampleID: 48, type: 'none' }, 'a_5': { sampleID: 44, type: 'none' }, 'b_1': { sampleID: 8, type: 'none' }, 'b_2': { sampleID: 81, type: 'none' }, 'b_3': { sampleID: 82, type: 'none' }, 'b_4': { sampleID: 83, type: 'none' }, })
+    const [sourceSamples, setSourceSamples] = useState<any>(sourceContainerSamples)
+    // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
+    const [destinationSamples, setDestinationSamples] = useState<any>(destinationContainerSamples)
+
 
     //keyed object by sampleID, containing the coordinate
-    const [selectedSamples, setSelectedSamples] = useState<[]>([])
+    const [selectedSamples, setSelectedSamples] = useState<any[]>([])
 
-    // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
-    const [destinationSamples, setDestinationSamples] = useState<any>({})
-
-    const [placementType, setPlacementType] = useState<String>('single')
+    const [placementType, setPlacementType] = useState<string>('single')
     const [placementOrder, setPlacementOrder] = useState<boolean>(false)
-    const [placementDirection, setPlacementDirection] = useState<String>('row')
+    const [placementDirection, setPlacementDirection] = useState<string>('row')
+
 
     const updatePlacementType = useCallback((value) => {
         setPlacementType(value)
@@ -42,7 +47,7 @@ const LibraryTransfer = () => {
     const placeGroupSamples = useCallback((sampleObj) => {
         const tempDestinationSamples = { ...destinationSamples }
         let coordinates = Object.keys(sampleObj)
-        let sampleList = []
+        let sampleList: any[] = []
         let error = false;
 
         if (placementOrder) {
@@ -63,6 +68,8 @@ const LibraryTransfer = () => {
         }
 
     }, [sourceSamples, placementOrder])
+
+    const changeContainer = useCallback(() => { }, [])
 
     const transferAllSamples = useCallback(() => {
         let tempDestinationSamples = {}
@@ -97,7 +104,7 @@ const LibraryTransfer = () => {
 
 
     const updateSampleList = useCallback((sampleList, containerType) => {
-        let tempSelectedSamples = [...selectedSamples]
+        let tempSelectedSamples: any[] = [...selectedSamples]
         const tempSourceSamples = { ...sourceSamples }
         const tempDestinationSamples = { ...destinationSamples }
 
@@ -129,7 +136,7 @@ const LibraryTransfer = () => {
                 }
                 else {
                     //placing selected samples into destination and setting sourceSamples to 'PLACED'
-                    const selected = tempSelectedSamples[0]
+                    const selected: any = tempSelectedSamples[0]
                     if (selected) {
                         tempDestinationSamples[coord] = { sampleID: selected.sampleID, type: 'none' }
                         //if id exists in selectedSamples is selected from destination then move from destination
@@ -194,29 +201,28 @@ const LibraryTransfer = () => {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'row', gap: '10%', }}>
                             <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', gap: '2vh' }}>
-                                <ContainerNameScroller />
+                                <ContainerNameScroller name={sourceContainerName} changeContainer={changeContainer} />
                                 <TransferContainer
                                     containerType={"source"}
                                     columns={12} rows={8}
                                     samples={sourceSamples}
-                                    updateSample={updateSampleList}></TransferContainer>
+                                    updateSample={updateSampleList} />
                             </div>
                             <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', gap: '2vh' }}>
-                                <ContainerNameScroller />
+                                <ContainerNameScroller changeContainer={changeContainer} changeContainerName={() => { }} />
                                 <TransferContainer
                                     containerType={"destination"}
                                     selectedSamples={Object.keys(selectedSamples).length}
                                     columns={12} rows={8} samples={destinationSamples}
                                     updateSample={updateSampleList}
                                     updateSampleList={placeGroupSamples}
-                                    groupPlace={placementType == 'group'}
-                                    direction={placementType == 'group' ? placementDirection : ''}></TransferContainer>
+                                    direction={placementType == 'group' ? placementDirection : undefined}/>
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'end', gap: '1vw' }}>
-                            <Text>Samples are placed in order of selection</Text>
                             <Button onClick={transferAllSamples}>Transfer All</Button>
+                            <Button onClick={() => { }}> Add Destination</Button>
                             <Button onClick={clearSelection}> Clear Selection</Button>
                         </div>
                     </div>
