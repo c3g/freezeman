@@ -16,6 +16,7 @@ import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import PrefillButton from '../../PrefillTemplateColumns'
 import RefreshButton from '../../RefreshButton'
+import ExecuteAutomationButton from './AdditionalAutomationData'
 import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
@@ -135,10 +136,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		, [step, selectedTemplate, navigate, dispatch])
 
 		const handleExecuteAutomation = useCallback(
-			async () => {
+			async (additionalData) => {
 			  try {
 				setWaitResponse(true)
-				const response = await dispatch(requestAutomationExecution(step.id))
+				const response = await dispatch(requestAutomationExecution(step.id, additionalData))
 				if (response) {
 				  setWaitResponse(false)
 				  const success = response.data.result.success
@@ -403,6 +404,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
       }
       {isAutomationStep &&
         <>
+          {console.log(step.name)}
+          <ExecuteAutomationButton waitResponse={waitResponse} canExecute={haveSelectedSamples} handleExecuteAutomation={handleExecuteAutomation} step={step} data={stepSamples.selectedSamples}/>
           <Button type='default' icon={<SyncOutlined spin={waitResponse}/>} disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
         </>
       }
