@@ -145,7 +145,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
     def test_axiom_experiment_run(self):
         #Axiom Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_6_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_7_0.xlsx')
         # This test just verifies that an axiom experiment run can be processed.
         axiom_experiment = ExperimentRun.objects.get(name='ER-AXIOM-EXPERIMENT')
         self.assertIsNotNone(axiom_experiment)

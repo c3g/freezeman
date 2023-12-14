@@ -158,21 +158,15 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
 
 EXPERIMENT_AXIOM_TEMPLATE = {
     "identity" : {"description": "Template to add Axiom experiments",
-                  "file": static("submission_templates/Experiment_run_Axiom_v4_6_0.xlsx"),
+                  "file": static("submission_templates/Experiment_run_Axiom_v4_7_0.xlsx"),
                   "protocol": "Axiom Experiment Preparation"},
-    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO + 
-    [{
-          'name': 'GeneTitanSetup',
-          'headers': ['Coord', 'Array Barcode', 'Unique Sample ID','Sample Name', 'ID'],
-    }],
+    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
     # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
     "prefill info": [
         ("Samples", "Source Sample Name", "name", "name"),
         ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
         ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
         ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
-        ("GeneTitanSetup", "Sample Name", "name", "name"),
-        ("GeneTitanSetup", "ID", "id", "id"),
   ],
 }
 
