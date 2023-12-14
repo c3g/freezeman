@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { useCallback } from "react"
-import './Cell.scss'
+import './Transfer.scss'
+
 interface CellProps {
     onCellClick: (e: any) => void,
     onCellMouseOver: (e: any) => void,
@@ -8,7 +9,7 @@ interface CellProps {
     coordinate: string,
     isSelecting: boolean,
     sample: {
-        sampleID: number,
+        sampleID: string,
         //3 types { selected, placed, used}
         type: string
     } | null,
@@ -54,22 +55,17 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
     }, [sample, sample?.type])
 
     return (
-        <>
-            {
-                <button
-                    className={'cell'}
-                    key={coordinate}
-                    onClick={onClick}
-                    onMouseOver={onMouseOver}
-                    onMouseEnter={onMouseEnter}
-                    onMouseLeave={onMouseLeave}
-                    style={{ borderRadius: 100, height: 20, width: 20, backgroundColor: getColor(sample), border: outline ? '2px solid blue' : hover ? '2px solid red' : '' }}
-                >
-                    {sample?.sampleID}
-                </button>
-
-            }
-        </>
+        <div
+            className={'cell'}
+            key={coordinate}
+            onClick={onClick}
+            onMouseOver={onMouseOver}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+            style={{ backgroundColor: getColor(sample), border: outline ? '1px solid blue' : hover ? '1px solid red' : '' }}
+        >
+            {sample?.sampleID}
+        </div>
     )
 }
 
