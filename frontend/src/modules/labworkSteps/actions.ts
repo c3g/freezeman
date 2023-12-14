@@ -337,7 +337,7 @@ export const requestAutomationExecution = (stepID: FMSId, additionalData: object
 				sample__id__in: step.selectedSamples.join(','),
 				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}
-			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, additionalData, options))
+			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, JSON.stringify(additionalData), options))
 			return response
 		}
 	}

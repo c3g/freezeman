@@ -404,9 +404,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
       }
       {isAutomationStep &&
         <>
-          {console.log(step.name)}
           <ExecuteAutomationButton waitResponse={waitResponse} canExecute={haveSelectedSamples} handleExecuteAutomation={handleExecuteAutomation} step={step} data={stepSamples.selectedSamples}/>
-          <Button type='default' icon={<SyncOutlined spin={waitResponse}/>} disabled={!haveSelectedSamples} onClick={handleExecuteAutomation} title='Execute the step automation with currently selected samples.'>Execute Automation</Button>
         </>
       }
       <RefreshButton

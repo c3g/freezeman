@@ -4,8 +4,6 @@ import { SyncOutlined } from '@ant-design/icons'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId, FMSStep } from '../../../models/fms_api_models'
 import { selectSamplesByID, selectContainersByID } from '../../../selectors'
-import { fetchContainers, fetchSamples } from "../../../modules/cache/cache"
-
 
 const STEP_AXIOM_CREATE_FOLDERS = "Axiom Create Folders"
 
@@ -27,18 +25,12 @@ const ExecuteAutomationButton = ({canExecute, waitResponse, handleExecuteAutomat
   const FormatData = (ids: FMSId[]) => {
     let formatedData = {}
     switch(step.name){
-      case "Axiom Create Folders":
-        //await fetchSamples(ids)
-        console.log("MOUP")
-        console.log(ids)
+      case STEP_AXIOM_CREATE_FOLDERS:
         ids.forEach((id) => {
           const sample = samplesByID[id]
           if (sample){
-            console.log("ZOUP" + sample.id)
-            //await fetchContainers([sample.container])
             const container = containersByID[sample.container]
             if (container){
-              console.log("GLOUP" + container.name)
               formatedData[container.name] = ""
             }
           }
@@ -47,14 +39,10 @@ const ExecuteAutomationButton = ({canExecute, waitResponse, handleExecuteAutomat
       default:
         break;
     }
-    console.log("PIOU  " + Object.keys(formatedData))
     return formatedData
   }
 
   const formatedData = useMemo(() => FormatData(data), [data])
-  
-  
-
   const maxLabelWidth = useMemo(() => Math.max(...Object.keys(formatedData).map((name) => name.length), 10), [formatedData])
 
   const [form] = Form.useForm()
@@ -96,8 +84,7 @@ const ExecuteAutomationButton = ({canExecute, waitResponse, handleExecuteAutomat
   const onFinish: NonNullable<FormProps['onFinish']> = useCallback(() => {
       const additionalData = returnFormData()
       if (additionalData) {
-        console.log(additionalData)
-        //handleExecuteAutomation(additionalData)
+        handleExecuteAutomation(additionalData)
         setOpenAdditionalDataForm(false)
       }
   }, [handleExecuteAutomation, returnFormData])
@@ -114,7 +101,7 @@ const ExecuteAutomationButton = ({canExecute, waitResponse, handleExecuteAutomat
   }, [formErrors])
 
   const ExtraDataForm = {
-    "Axiom Create Folders":
+    [STEP_AXIOM_CREATE_FOLDERS]:
       <Modal title={"Additional Data"} open={openAdditionalDataForm} okText={"Execute"} onOk={form.submit} onCancel={() => setOpenAdditionalDataForm(false)} width={'30vw'}>
         <Typography.Paragraph>
             Provide for each source container the array barcode that will be used.
@@ -126,8 +113,7 @@ const ExecuteAutomationButton = ({canExecute, waitResponse, handleExecuteAutomat
             layout="horizontal"
         >
           {
-            Object.keys(formatedData).map((field) => {
-              console.log("CHOOOOO " + field)
+            Object.keys(formatedData).sort().map((field) => {
               return (
                 <Form.Item
                     key={field}
@@ -145,15 +131,11 @@ const ExecuteAutomationButton = ({canExecute, waitResponse, handleExecuteAutomat
   }
 
   const onButtonClick = useCallback(async ()=>{
-    console.log(step.name)
     if(!!!ExtraDataForm[step.name]){
-      console.log(ExtraDataForm)
-      console.log("Mooo    " + ExtraDataForm[step.name])
-      //handleExecuteAutomation({})
+      handleExecuteAutomation({})
     }
     else
     {
-      console.log("YOOOOO" + ExtraDataForm[step.name])
       setOpenAdditionalDataForm(true)
     }
   }, [step, formatedData])

@@ -71,13 +71,14 @@ class AutomationsMixin:
         warnings = {}
         result = {"success": False, "data": None}
         step_id = request.POST.get("step_id")
+        additional_data = json.loads(request.POST.get("additional_data"))
         if step_id is not None:
             automation_class_name = StepSpecification.objects.filter(step_id=step_id, name="AutomationClass").values_list("value", flat=True)[0]
             if automation_class_name is not None:
                 queryset = self.filter_queryset(self.get_queryset())
                 sample_ids = queryset.values_list("sample_id", flat=True)
                 automation = getattr(automations, automation_class_name)()              # Instantiate
-                result, errors, warnings = automation.execute(sample_ids=sample_ids)    # Execute
+                result, errors, warnings = automation.execute(sample_ids=sample_ids, additional_data=additional_data)    # Execute
                 # if no errors move to next worflow step
                 if len(errors) == 0:
                     samples = Sample.objects.filter(id__in=sample_ids).all()
