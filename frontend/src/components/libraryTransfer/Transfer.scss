@@ -1,5 +1,6 @@
 .cell {
     border: 1px solid gray;
+    color: white;
     border-radius: 100%;
     height: 3vh;
     width: 2vw;
@@ -40,6 +41,7 @@
 .flex-row {
     display: flex;
     flex-direction: row;
+    justify-content: space-around;
 }
 
 .transfer {

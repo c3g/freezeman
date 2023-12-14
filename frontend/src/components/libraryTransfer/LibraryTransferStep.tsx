@@ -5,7 +5,7 @@ export interface sampleInfo {
     type: string,
 }
 export interface cellSample {
-    [id: number]: sampleInfo
+    [id: string]: sampleInfo
 }
 export interface containerSample {
     containerName: string,
@@ -20,28 +20,28 @@ const LibraryTransferStep = () => {
         rows: 8,
         columns: 12,
         samples: {
-            1: {
+            '1': {
                 coordinate: 'a_1', type: 'none'
             },
-            15: {
+            '15': {
                 coordinate: 'a_2', type: 'none'
             },
-            2: {
+            '2': {
                 coordinate: 'a_3', type: 'none'
             },
-            3: {
+            '3': {
                 coordinate: 'a_4', type: 'none'
             },
-            11: {
+            '11': {
                 coordinate: 'b_1', type: 'none'
             },
-            115: {
+            '115': {
                 coordinate: 'b_2', type: 'none'
             },
-            21: {
+            '21': {
                 coordinate: 'b_3', type: 'none'
             },
-            31: {
+            '9': {
                 coordinate: 'b_4', type: 'none'
             }
         },
@@ -50,7 +50,30 @@ const LibraryTransferStep = () => {
         rows: 8,
         columns: 12,
         samples: {
-
+            '31': {
+                coordinate: 'f_1', type: 'none'
+            },
+            '310': {
+                coordinate: 'f_2', type: 'none'
+            },
+            '32': {
+                coordinate: 'f_3', type: 'none'
+            },
+            '33': {
+                coordinate: 'f_4', type: 'none'
+            },
+            '311': {
+                coordinate: 'g_1', type: 'none'
+            },
+            '3115': {
+                coordinate: 'g_2', type: 'none'
+            },
+            '321': {
+                coordinate: 'g_3', type: 'none'
+            },
+            '331': {
+                coordinate: 'g_4', type: 'none'
+            }
 
         },
     },
