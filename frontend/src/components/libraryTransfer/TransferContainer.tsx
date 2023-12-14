@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import Cell from "./Cell"
+import { cellSample, containerSample } from "./LibraryTransferStep";
 
 interface ContainerProps {
     containerType: string,
@@ -22,6 +23,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
 
     const previewGroupPlacement = useCallback((coordinate) => {
         if (selectedSamples && direction) {
+            
             //coordinate row and column is separated with '_'
             const coords = (coordinate.toString()).split('_')
             let row = String(coords[0])
@@ -38,19 +40,17 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                     }
                 }
             }
+            console.log(tempPreviewCells)
             if (selectedSamples == Object.keys(tempPreviewCells).length)
                 setPreviewCells(tempPreviewCells)
         }
     }, [previewCells, direction, selectedSamples])
 
     const checkSamples = useCallback((coordinate) => {
-        let temp = { ...samples }
-        if (temp[coordinate]) {
-            return { ...temp[coordinate] }
-        } else {
-            return null
-        }
-    }, [samples])
+        let tempSamples: containerSample = { ...samples }
+        const id = Object.keys(tempSamples).find((id) => tempSamples[id].coordinate == coordinate) ?? null;
+        return id ? { sampleID: id, type: id ? tempSamples[id].type : '' } : null
+    }, [samples, selectedSamples])
 
     const onClick = useCallback((sample) => {
         //check to see if group placement is toggled so user can see where samples will be placed
@@ -83,7 +83,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
         let headerCells: React.ReactElement[] = []
         for (let i = 0; i < columns + 1; i++) {
             headerCells.push(
-                <div key={'header_' + i} style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div key={'header_' + i} className={"header"}>
                     {
                         i != 0 ? i : ''
                     }
@@ -91,7 +91,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             )
         }
         //adds number heards to total number of cells
-        cells.push(<div key={'headers'} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+        cells.push(<div key={'headers'} className={"header-row"}>
             {
                 headerCells
             }
@@ -100,7 +100,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
         for (let i = 0; i < rows; i++) {
             let rowOfCells: React.ReactElement[] = []
             rowOfCells.push(
-                <div key={char} style={{ height: '100%', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#001529', color: 'white', borderRadius: '10px' }}>
+                <div key={char} className={"cell"} style={{ backgroundColor: '#001529', color: 'white' }}>
                     {
                         char.toUpperCase()
                     }
@@ -110,21 +110,19 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             for (let x = 1; x < columns + 1; x++) {
                 coordinate = char + "_" + (x);
                 rowOfCells.push(
-                    <div key={coordinate} style={{ display: 'flex', height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center' }}>
-                        <Cell key={coordinate}
-                            onCellMouseLeave={() => setPreviewCells({})}
-                            isSelecting={isSelecting}
-                            onCellMouseOver={onMouseHover}
-                            sample={checkSamples(coordinate)}
-                            coordinate={coordinate}
-                            outline={previewCells[coordinate] ? true : false}
-                            onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
-                    </div>
+                    <Cell key={coordinate}
+                        onCellMouseLeave={() => setPreviewCells({})}
+                        isSelecting={isSelecting}
+                        onCellMouseOver={onMouseHover}
+                        sample={checkSamples(coordinate)}
+                        coordinate={coordinate}
+                        outline={previewCells[coordinate] ? true : false}
+                        onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
                 )
             }
             //pushes rowOfCells to cell array
             cells.push(
-                <div key={'row_' + char} style={{ display: 'flex', gap: '1%', flexDirection: 'row', justifyContent: 'space-around' }}>
+                <div key={'row_' + char} className={"row"}>
                     {
                         rowOfCells
                     }
@@ -137,7 +135,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
     }, [samples, isSelecting, previewCells, direction])
     return (
         <>
-            <div style={{ display: 'flex', height: '100%', width: '100%', flexDirection: 'column', justifyContent: 'space-around', gap: '1vh', border: 'solid grey 1px', padding: '1%' }}>
+            <div className={"transfer"}>
                 {
                     renderCells()
                 }
