@@ -13,3 +13,5 @@ LOAD_ALL = "ALL"
 # QC Instruments
 LIBRARY_QC_QUALITY_INSTRUMENTS = ["Caliper LabChip", "TapeStation"]
 LIBRARY_QC_QUANTITY_INSTRUMENTS = ["qPCR", "Qubit"]
+# Marker for destination container barcode
+DESTINATION_CONTAINER_BARCODE_MARKER = "DESTINATION_CONTAINER_BARCODE => "

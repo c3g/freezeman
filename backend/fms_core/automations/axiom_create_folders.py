@@ -5,6 +5,8 @@ from typing import List
 from fms_core.models import Container, Sample
 from collections import defaultdict
 from pandas import DataFrame
+from fms_core.template_importer._constants import DESTINATION_CONTAINER_BARCODE_MARKER
+
 
 WORK_FOLDER = "axiom-arrays"
 FILE_SUFFIX = ".PROJECT"
@@ -50,4 +52,7 @@ class AxiomCreateFolders(GenericAutomation):
                 fp.write(project)
             # Write csv file with sample info into directory
             df.to_csv(path.join(filepath, project + ".csv"), header=False, index=False)
+            # Add a comment to the container to provide a reference for validation during experiment run.
+            container.comment = DESTINATION_CONTAINER_BARCODE_MARKER + additional_data[container.name] + " ." + container.comment
+            container.save()
         return ({"success": True, "data": None}, errors, warnings)
