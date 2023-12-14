@@ -9,7 +9,7 @@ interface CellProps {
     coordinate: string,
     isSelecting: boolean,
     sample: {
-        sampleID: string,
+        id: string,
         //3 types { selected, placed, used}
         type: string
     } | null,
@@ -21,7 +21,7 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
 
     const onClick = useCallback(() => {
         if (sample?.type != "placed") {
-            onCellClick({ sampleID: sample?.sampleID, type: sample?.type, coordinate })
+            onCellClick({ id: sample?.id, type: sample?.type, coordinate })
         }
         setHover(!hover)
     }, [sample, onCellClick, isSelecting, hover])
@@ -62,9 +62,9 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
             onMouseOver={onMouseOver}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{ backgroundColor: getColor(sample), border: outline ? '1px solid blue' : hover ? '1px solid red' : '' }}
+            style={{ backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample)}}
         >
-            {sample?.sampleID}
+            {sample?.id}
         </div>
     )
 }
