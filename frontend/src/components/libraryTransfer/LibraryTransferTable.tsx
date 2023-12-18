@@ -3,18 +3,13 @@ import WorkflowSamplesTable from "../WorkflowSamplesTable/WorkflowSamplesTable"
 import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from '../samples/SampleTableColumns'
 interface LibraryTransferTableProps {
     samples: any,
-    onSampleSelect: (sample) => void
+    onSampleSelect: (sample) => void,
+    selectedSamples: any
 }
-const LibraryTransferTable = ({ samples, onSampleSelect }: LibraryTransferTableProps) => {
-    const [selectedIds, setSelectedIds] = useState<any>([])
+const LibraryTransferTable = ({ samples, onSampleSelect, selectedSamples }: LibraryTransferTableProps) => {
     const [sortedSamples, setSortedSamples] = useState<any>([])
     useEffect(() => {
-        const ids: any = []
-        samples.forEach((sample) => {
-            if (sample.sample.type == 'selected') {
-                ids.push(sample.sample.id)
-            }
-        })
+        console.log(selectedSamples)
         samples.sort((a, b) => {
             if (a.sample.type > b.sample.type) {
                 return -1;
@@ -24,14 +19,13 @@ const LibraryTransferTable = ({ samples, onSampleSelect }: LibraryTransferTableP
             }
             return 0;
         }).filter
-        if (ids) {
-            setSelectedIds(ids)
-        }
+
+
         setSortedSamples(samples)
     }, [samples])
 
     const selectionProps = {
-        selectedSampleIDs: selectedIds,
+        selectedSampleIDs: selectedSamples,
         clearAllSamples: () => { },
         onSelectionChanged: onSampleSelect,
     }

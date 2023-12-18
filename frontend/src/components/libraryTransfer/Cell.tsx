@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { useCallback } from "react"
 import './Transfer.scss'
+import { PLACED_STRING, SELECTED_STRING } from "./LibraryTransferStep"
 
 interface CellProps {
     onCellClick: (e: any) => void,
@@ -10,7 +11,7 @@ interface CellProps {
     isSelecting: boolean,
     sample: {
         id: string,
-        //3 types { selected, placed, used}
+        //3 types { selected, placed, none}
         type: string
     } | null,
     outline: boolean,
@@ -42,9 +43,9 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
     const getColor = useCallback((sample) => {
         if (sample) {
             switch (sample.type) {
-                case 'placed': {
+                case PLACED_STRING: {
                     return "grey"
-                } case 'selected': {
+                } case SELECTED_STRING: {
                     return "#86ebc1"
                 } default: {
                     return "#1890ff"
@@ -62,7 +63,7 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
             onMouseOver={onMouseOver}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{ backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample)}}
+            style={{ backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample) }}
         >
             {sample?.id}
         </div>

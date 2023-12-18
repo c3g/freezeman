@@ -13,6 +13,18 @@ export interface containerSample {
     columns: number,
     samples: cellSample
 }
+export const NONE_STRING = 'none'
+export const PLACED_STRING = 'placed'
+export const SELECTED_STRING = 'selected'
+export const SOURCE_STRING = 'source'
+export const DESTINATION_STRING = 'destination'
+export const clear = (oldSamples: cellSample) => {
+    const newSamples = {}
+    Object.keys(oldSamples).forEach(id => {
+        newSamples[id] = { ...oldSamples[id], type: oldSamples[id].type == SELECTED_STRING ? NONE_STRING : oldSamples[id].type }
+    })
+    return newSamples
+}
 const LibraryTransferStep = () => {
 
     const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>([{
@@ -21,40 +33,40 @@ const LibraryTransferStep = () => {
         columns: 12,
         samples: {
             '1': {
-                coordinate: 'a_1', type: 'none'
+                coordinate: 'a_1', type: NONE_STRING
             },
             '15': {
-                coordinate: 'a_2', type: 'none'
+                coordinate: 'a_2', type: NONE_STRING
             },
             '2': {
-                coordinate: 'a_3', type: 'none'
+                coordinate: 'a_3', type: NONE_STRING
             },
             '3': {
-                coordinate: 'a_4', type: 'none'
+                coordinate: 'a_4', type: NONE_STRING
             },
             '11': {
-                coordinate: 'b_1', type: 'none'
+                coordinate: 'b_1', type: NONE_STRING
             },
             '115': {
-                coordinate: 'b_2', type: 'none'
+                coordinate: 'b_2', type: NONE_STRING
             },
             '21': {
-                coordinate: 'b_3', type: 'none'
+                coordinate: 'b_3', type: NONE_STRING
             },
             '9': {
-                coordinate: 'b_4', type: 'none'
+                coordinate: 'b_4', type: NONE_STRING
             },
             '12': {
-                coordinate: 'c_1', type: 'none'
+                coordinate: 'c_1', type: NONE_STRING
             },
             '116': {
-                coordinate: 'c_2', type: 'none'
+                coordinate: 'c_2', type: NONE_STRING
             },
             '22': {
-                coordinate: 'c_3', type: 'none'
+                coordinate: 'c_3', type: NONE_STRING
             },
             '10': {
-                coordinate: 'c_4', type: 'none'
+                coordinate: 'c_4', type: NONE_STRING
             }
         },
     }, {
@@ -63,28 +75,28 @@ const LibraryTransferStep = () => {
         columns: 12,
         samples: {
             '31': {
-                coordinate: 'f_1', type: 'none'
+                coordinate: 'f_1', type: NONE_STRING
             },
             '310': {
-                coordinate: 'f_2', type: 'none'
+                coordinate: 'f_2', type: NONE_STRING
             },
             '32': {
-                coordinate: 'f_3', type: 'none'
+                coordinate: 'f_3', type: NONE_STRING
             },
             '33': {
-                coordinate: 'f_4', type: 'none'
+                coordinate: 'f_4', type: NONE_STRING
             },
             '311': {
-                coordinate: 'g_1', type: 'none'
+                coordinate: 'g_1', type: NONE_STRING
             },
             '3115': {
-                coordinate: 'g_2', type: 'none'
+                coordinate: 'g_2', type: NONE_STRING
             },
             '321': {
-                coordinate: 'g_3', type: 'none'
+                coordinate: 'g_3', type: NONE_STRING
             },
             '331': {
-                coordinate: 'g_4', type: 'none'
+                coordinate: 'g_4', type: NONE_STRING
             }
 
         },
@@ -107,14 +119,13 @@ const LibraryTransferStep = () => {
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
-    const clearSelection = useCallback((containerList) => {
-        containerList.samples.forEach(sample => sample)
-    }, [])
-
     const changeContainer = useCallback((number: string, name: string, type: string) => {
 
-        const tempContainerList = type == "source" ? [...sourceContainerSamples] : [...destinationContainerSamples]
+        const tempContainerList = type == SOURCE_STRING ? [...sourceContainerSamples] : [...destinationContainerSamples]
         let tempIndex = tempContainerList.findIndex(container => container.containerName == name)
+
+        console.log(tempContainerList)
+
         let length = tempIndex + parseFloat(number)
 
         if (length == -1)
@@ -123,12 +134,14 @@ const LibraryTransferStep = () => {
         if (length > tempContainerList.length - 1)
             length = 0
 
-        if (type == 'source')
-            setIndex(length)
-        else {
-            tempContainerList[length]
-            setDestinationIndex(length)
-            setDestinationContainerSamples(tempContainerList)
+
+        if (length != tempIndex) {
+            if (type == SOURCE_STRING) {
+                setIndex(length)
+            }
+            else {
+                setDestinationIndex(length)
+            }
         }
 
     }, [destinationContainerSamples, sourceContainerSamples])
@@ -181,6 +194,7 @@ const LibraryTransferStep = () => {
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
     }, [sourceContainerSamples, destinationContainerSamples])
 
+    console.log('render')
     //calls backend endpoint to fetch source containers with samples
     return (
         <LibraryTransfer
