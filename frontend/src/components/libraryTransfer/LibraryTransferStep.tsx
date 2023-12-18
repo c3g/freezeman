@@ -43,6 +43,18 @@ const LibraryTransferStep = () => {
             },
             '9': {
                 coordinate: 'b_4', type: 'none'
+            },
+            '12': {
+                coordinate: 'c_1', type: 'none'
+            },
+            '116': {
+                coordinate: 'c_2', type: 'none'
+            },
+            '22': {
+                coordinate: 'c_3', type: 'none'
+            },
+            '10': {
+                coordinate: 'c_4', type: 'none'
             }
         },
     }, {
@@ -95,23 +107,31 @@ const LibraryTransferStep = () => {
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
-    const changeContainer = useCallback((number: string, name: string, type: string) => {
-        const tempIndex = type == 'source' ? index : destinationIndex;
-        const tempContainerList = type == "source" ? sourceContainerSamples : destinationContainerSamples
+    const clearSelection = useCallback((containerList) => {
+        containerList.samples.forEach(sample => sample)
+    }, [])
 
+    const changeContainer = useCallback((number: string, name: string, type: string) => {
+
+        const tempContainerList = type == "source" ? [...sourceContainerSamples] : [...destinationContainerSamples]
+        let tempIndex = tempContainerList.findIndex(container => container.containerName == name)
         let length = tempIndex + parseFloat(number)
+
         if (length == -1)
             length = tempContainerList.length - 1
 
-        if (!tempContainerList[length])
+        if (length > tempContainerList.length - 1)
             length = 0
 
         if (type == 'source')
             setIndex(length)
-        else
+        else {
+            tempContainerList[length]
             setDestinationIndex(length)
+            setDestinationContainerSamples(tempContainerList)
+        }
 
-    }, [index, destinationIndex, destinationContainerSamples, sourceContainerSamples])
+    }, [destinationContainerSamples, sourceContainerSamples])
 
     const addContainer = useCallback(() => {
         const tempDestinationContainerSamples = [...destinationContainerSamples]
@@ -138,6 +158,7 @@ const LibraryTransferStep = () => {
             rows: 8,
             columns: 12,
         })
+
         setDestinationContainerSamples(tempDestinationContainerSamples)
         setDestinationIndex(destinationIndex + 1)
     }, [destinationContainerSamples, destinationIndex])
@@ -156,7 +177,6 @@ const LibraryTransferStep = () => {
             })
             return oldContainer
         }
-
         setSourceContainerSample(setContainerSamples(sourceContainerSamples, source))
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
     }, [sourceContainerSamples, destinationContainerSamples])

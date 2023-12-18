@@ -10,10 +10,10 @@ interface ContainerProps {
     updateSample: (sample, containerType) => void
     selectedSamples?: number,
     direction?: string,
-    updateSampleList?: (sampleList) => void
+    updateSampleGroup?: (sampleList) => void
 }
 
-const TransferContainer = ({ containerType, columns, rows, samples, updateSample, selectedSamples, direction, updateSampleList }: ContainerProps) => {
+const TransferContainer = ({ containerType, columns, rows, samples, updateSample, selectedSamples, direction, updateSampleGroup }: ContainerProps) => {
     const [isSelecting, setIsSelecting] = useState<boolean>(false)
     const [previewCells, setPreviewCells] = useState<any>({})
 
@@ -40,7 +40,6 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                     }
                 }
             }
-            console.log(tempPreviewCells)
             if (selectedSamples == Object.keys(tempPreviewCells).length)
                 setPreviewCells(tempPreviewCells)
         }
@@ -54,15 +53,15 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
 
     const onClick = useCallback((sample) => {
         //check to see if group placement is toggled so user can see where samples will be placed
-        if (direction && updateSampleList && selectedSamples && selectedSamples > 0) {
-            updateSampleList(previewCells)
+        if (direction && updateSampleGroup && selectedSamples && selectedSamples > 0) {
+            updateSampleGroup(previewCells)
         } else {
             //single sample selection/placement
             updateSample([sample], containerType)
             if (sample.id)
                 setIsSelecting(!isSelecting)
         }
-    }, [samples, isSelecting, direction, updateSampleList, previewCells])
+    }, [samples, isSelecting, direction, updateSampleGroup, previewCells])
 
     const onMouseHover = useCallback((sample) => {
         // if ((isSelecting && sample.sampleID) || (isSelecting && containerType == "destination")) {

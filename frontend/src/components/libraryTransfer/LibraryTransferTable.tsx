@@ -7,14 +7,27 @@ interface LibraryTransferTableProps {
 }
 const LibraryTransferTable = ({ samples, onSampleSelect }: LibraryTransferTableProps) => {
     const [selectedIds, setSelectedIds] = useState<any>([])
+    const [sortedSamples, setSortedSamples] = useState<any>([])
     useEffect(() => {
-        const ids = samples.map(sample => {
+        const ids: any = []
+        samples.forEach((sample) => {
             if (sample.sample.type == 'selected') {
-                return sample.sample.id
+                ids.push(sample.sample.id)
             }
         })
-        if (ids)
+        samples.sort((a, b) => {
+            if (a.sample.type > b.sample.type) {
+                return -1;
+            }
+            if (a.sample.type < b.sample.type) {
+                return 1;
+            }
+            return 0;
+        }).filter
+        if (ids) {
             setSelectedIds(ids)
+        }
+        setSortedSamples(samples)
     }, [samples])
 
     const selectionProps = {
@@ -25,7 +38,7 @@ const LibraryTransferTable = ({ samples, onSampleSelect }: LibraryTransferTableP
 
     return (<WorkflowSamplesTable
         hasFilter={false}
-        samples={samples}
+        samples={sortedSamples}
         columns={[SAMPLE_COLUMNS.ID, SAMPLE_COLUMNS.CONTAINER_BARCODE]}
         selection={selectionProps}
     />)

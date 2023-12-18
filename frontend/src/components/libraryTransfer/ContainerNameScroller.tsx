@@ -3,7 +3,7 @@ import React from "react"
 const { Text } = Typography;
 
 interface ContainerNameScrollerProps {
-    changeContainer: (number: string, name: string, type) => void,
+    changeContainer: (number: string, name: string, type: string) => void,
     name: string,
     changeContainerName?: (containerName) => void,
     type: string,
