@@ -195,6 +195,7 @@ class SampleNextStepFilter(GenericFilter):
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
     quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
+    ordering_container_name__icontains = django_filters.CharFilter(method="ordering_container_name_icontains_filter")
 
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
@@ -212,6 +213,10 @@ class SampleNextStepFilter(GenericFilter):
     
     def quantity_ng_gte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__gte=value)
+        return queryset.filter(condition)
+
+    def ordering_container_name_icontains_filter(self, queryset, name, value):
+        condition = Q(ordering_container_name__icontains=value)
         return queryset.filter(condition)
 
     class Meta:

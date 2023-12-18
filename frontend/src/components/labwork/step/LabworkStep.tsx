@@ -20,6 +20,7 @@ import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
+import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 
 const { Text } = Typography
 
@@ -35,9 +36,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const navigate = useNavigate()
 
 	// Keep track of the currently selected tab so that we can tweak the UX
+  const GROUPED_SAMPLES_TAB_KEY = 'groups'
 	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
-	const [selectedTab, setSelectedTab] = useState<string>(SAMPLES_TAB_KEY)
+	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
@@ -178,11 +180,19 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step, protocol])
 
 	const filterDefinitions = useMemo(() => {
-		return { ...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS }
+		return { ...SAMPLE_COLUMN_FILTERS,
+             ...LIBRARY_COLUMN_FILTERS,
+             GROUPING_CONTAINER,
+             GROUPING_CREATED_BY
+             }
 	}, [])
 
 	const filterKeys = useMemo(() => {
-		return { ...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS }
+		return { ...SAMPLE_NEXT_STEP_FILTER_KEYS,
+             ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS,
+             [GROUPING_CONTAINER.label]: GROUPING_CONTAINER.key,
+             [GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
+             }
 	}, [])
 
 	// Columns for selected samples table
@@ -275,12 +285,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 		return mergedSelection
 	}
-	const handleSelectAll = useCallback(
-		async () => {
-			await dispatch(selectAllSamplesAtStep(step.id))
-			setIsSorted(true)
-		}, [step, dispatch])
-
 
 	const handleClearSelection = useCallback(
 		() => {
@@ -341,9 +345,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
 
-	const localClearFilters = useCallback(() => {
+	const localClearFilters = useCallback((refresh: boolean=true) => {
 		if (clearFilters)
-			dispatch(clearFilters(step.id))
+			dispatch(clearFilters(step.id, refresh))
 	}, [step, step.id])
 
 	const updateSortSelectedSamples = useCallback(async ()=>{
@@ -418,7 +422,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		<>
 			<AppPageHeader title={step.name} extra={buttonBar} />
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<Tabs defaultActiveKey={SAMPLES_TAB_KEY} activeKey={selectedTab} tabBarExtraContent={
+				<Tabs defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} tabBarExtraContent={
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY &&
 							<>
@@ -433,16 +437,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							</>
 						}
 						<Popconfirm
-							disabled={!canSelectAllSamples}
-							title={'Select all samples?'}
-							okText={'Yes'}
-							cancelText={'No'}
-							placement={'rightTop'}
-							onConfirm={() => handleSelectAll()}
-						>
-							<Button disabled={!canSelectAllSamples} title='Select all samples'>Select All</Button>
-						</Popconfirm>
-						<Popconfirm
 							disabled={stepSamples.selectedSamples.length == 0}
 							title={'Clear the entire selection?'}
 							okText={'Yes'}
@@ -452,14 +446,15 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						>
 							<Button disabled={stepSamples.selectedSamples.length == 0} title='Deselect all samples'>Clear Selection</Button>
 						</Popconfirm>
-
-
-
 					</Space>
 				} onChange={onTabChange}>
-					<Tabs.TabPane tab='Samples' key={SAMPLES_TAB_KEY}>
-						<WorkflowSamplesTable
-							clearFilters={localClearFilters}
+          <Tabs.TabPane tab='Samples' key={GROUPED_SAMPLES_TAB_KEY}>
+						<LabworkStepOverview
+              step={step}
+              refreshing={isRefreshing}
+              setIsSorted={setIsSorted}
+              stepSamples={stepSamples}
+              clearFilters={localClearFilters}
 							hasFilter={true}
 							samples={samples}
 							columns={columnsForSamples}
@@ -471,7 +466,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							selection={selectionProps(onSelectChange)}
 							setSortBy={handleSetSortBy}
 							pagination={pagination}
-						/>
+            />
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
 						{stepSamples.showSelectionChangedWarning &&
