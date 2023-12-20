@@ -200,6 +200,8 @@ const LibraryTransferStep = () => {
         <LibraryTransfer
             sourceContainerSamples={{ ...sourceContainerSamples[index] }}
             destinationContainerSamples={{ ...destinationContainerSamples[destinationIndex] }}
+            disableChangeSource={sourceContainerSamples.length == 1}
+            disableChangeDestination={destinationContainerSamples.length == 1}
             cycleContainer={changeContainer}
             saveChanges={saveChanges}
             addDestination={addContainer} />

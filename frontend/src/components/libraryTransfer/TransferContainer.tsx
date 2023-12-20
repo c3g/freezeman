@@ -142,7 +142,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             char = nextChar(char)
         }
         return cells
-    }, [samples, isSelecting, previewCells, direction])
+    }, [samples, isSelecting, previewCells, direction, selectedSampleList])
 
     return (
         <>

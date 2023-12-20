@@ -14,10 +14,12 @@ interface LibraryTransferProps {
     destinationContainerSamples: containerSample,
     saveChanges: (sourceContainerSamples, destinationContainerSamples) => void,
     cycleContainer: (number, name, type) => void,
-    addDestination: () => void
+    addDestination: () => void,
+    disableChangeSource: boolean,
+    disableChangeDestination: boolean
 }
 
-const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, cycleContainer, saveChanges, addDestination }: LibraryTransferProps) => {
+const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination }: LibraryTransferProps) => {
 
     // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
     const [sourceSamples, setSourceSamples] = useState<any>(sourceContainerSamples)
@@ -38,7 +40,6 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
 
     useEffect(() => {
         setDestinationSamples({ ...destinationContainerSamples, samples: destinationContainerSamples.samples })
-
     }, [destinationContainerSamples.samples])
 
     const copyKeyObject = useCallback((obj) => {
@@ -92,7 +93,7 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
         const value = (Object.values(source).some(
             (sourceSample: any) =>
                 Object.values(destination).find(
-                    (destinationSample: any) => destinationSample.coordinate == sourceSample.coordinate
+                    (destinationSample: any) => destinationSample.coordinate == sourceSample.coordinate && sourceSample.type != 'placed'
                 )
         ))
 
@@ -135,13 +136,16 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
     const changeContainer = useCallback((number: string, name: string, type) => {
         //clears selection depending on cycle type
         cycleContainer(number, name, type)
+        setSelectedSamples({})
     }, [cycleContainer])
 
     const updateSampleList = useCallback((sampleList, containerType) => {
         let tempSelectedSamples = { ...selectedSamples }
         const tempSourceSamples = copyKeyObject(sourceSamples.samples)
         const tempDestinationSamples = copyKeyObject(destinationSamples.samples)
-
+        const checkType = (type) => {
+            return type == NONE_STRING ? SELECTED_STRING : NONE_STRING
+        }
 
         sampleList.forEach(sample => {
             const id = sample.id
@@ -149,11 +153,8 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
 
             //if container is destination
             if (containerType == DESTINATION_STRING) {
-                //if exists in destination set to none or selected based on current type
-                if (tempDestinationSamples[id]) {
-                    tempDestinationSamples[id].type = (tempDestinationSamples[id].type) == NONE_STRING ? SELECTED_STRING : NONE_STRING
-                }
-                else {
+                // tempDestinationSamples[id].type = checkType(tempDestinationSamples[id].type)
+                if (!tempDestinationSamples[id]) {
                     //placing selected samples into destination and setting sourceSamples to 'PLACED'
                     const selectedId: any = Object.keys(tempSelectedSamples)[0]
                     if (selectedId) {
@@ -195,9 +196,12 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
 
     const onSampleSelect = useCallback((samples, type) => {
         let selectedSampleList = samples.map(sample => { return { ...sample.sample } })
-        selectedSampleList.filter(sample => selectedSamples[sample.id])
-        let ids: any = [];
 
+        // console.log('selectedsamples', selectedSampleList)
+        // selectedSampleList.filter(sample => selectedSamples[sample.id])
+
+        console.log('selected', selectedSampleList)
+        let ids: any = [];
         if (selectedSampleList.length == 0) {
             //removes selected if array is empty
             Object.keys(selectedSamples).forEach(id => {
@@ -208,16 +212,17 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
             //finds removed id from the selection from antd table
             const id = Object.keys(selectedSamples).filter(x => !selectedSampleList.map((sample) => sample.id).includes(x))[0];
             ids.push({ id })
-        } else {
+        }
+        else {
             //gets the newly added sample from the selection from the antd table
             selectedSampleList.forEach(sample => {
-                if (sample.type != SELECTED_STRING && sample.type != PLACED_STRING) {
+                if (sample.type != SELECTED_STRING && sample.type != PLACED_STRING && !selectedSamples[sample.id]) {
                     ids.push({ id: sample.id })
                 }
             })
         }
         updateSampleList(ids, type)
-    }, [sourceSamples.samples, selectedSamples])
+    }, [sourceSamples, destinationSamples, selectedSamples])
 
     const filterPlacedSamples = useCallback((samples) => {
         const filtered: any = []
@@ -228,7 +233,6 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
         return filtered
     }, [])
 
-    // console.log("selected", selectedSamples)
     return (
         <>
             <PageContainer>
@@ -249,7 +253,7 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                                 <Radio.Button value={'row'}> row </Radio.Button>
                                 <Radio.Button value={'column'}> column </Radio.Button>
                             </Radio.Group>
-                            <div className={"flex-row"}>
+                            {/* <div className={"flex-row"}>
                                 <Text>
                                     Reverse Order
                                 </Text>
@@ -259,11 +263,12 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                                     onChange={updatePlacementOrder}
                                     title='Reverse Placement order'
                                 />
-                            </div>
+                            </div> */}
                         </div>
                         <div className={"flex-row"}>
                             <div className={"flex-column"}>
                                 <ContainerNameScroller
+                                    disabled={disableChangeSource}
                                     type={SOURCE_STRING}
                                     name={sourceSamples.containerName}
                                     changeContainer={changeContainer} />
@@ -276,7 +281,9 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                                     updateSample={updateSampleList} />
                             </div>
                             <div className={"flex-column"}>
-                                <ContainerNameScroller type={DESTINATION_STRING}
+                                <ContainerNameScroller
+                                    disabled={disableChangeDestination}
+                                    type={DESTINATION_STRING}
                                     name={destinationSamples.containerName}
                                     changeContainer={changeContainer}
                                     changeContainerName={() => { }} />

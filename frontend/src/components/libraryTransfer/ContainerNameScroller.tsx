@@ -7,12 +7,13 @@ interface ContainerNameScrollerProps {
     name: string,
     changeContainerName?: (containerName) => void,
     type: string,
+    disabled: boolean
 }
 
-const ContainerNameScroller = ({ name, changeContainer, changeContainerName, type }: ContainerNameScrollerProps) => {
+const ContainerNameScroller = ({ name, changeContainer, changeContainerName, type, disabled}: ContainerNameScrollerProps) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-            <Button onClick={() => changeContainer('-1', name, type)}>
+            <Button disabled={disabled} onClick={() => changeContainer('-1', name, type)}>
                 Previous
             </Button>
             {
@@ -22,7 +23,7 @@ const ContainerNameScroller = ({ name, changeContainer, changeContainerName, typ
                     :
                     <Text> {name}</Text>
             }
-            <Button onClick={() => changeContainer('1', name, type)}>
+            <Button disabled={disabled} onClick={() => changeContainer('1', name, type)}>
                 Next
             </Button >
         </div>
