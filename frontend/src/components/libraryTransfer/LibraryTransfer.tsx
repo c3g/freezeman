@@ -36,11 +36,11 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
 
     useEffect(() => {
         setSourceSamples({ ...sourceContainerSamples, samples: sourceContainerSamples.samples })
-    }, [sourceContainerSamples.samples])
+    }, [sourceContainerSamples.samples, sourceContainerSamples.containerName])
 
     useEffect(() => {
         setDestinationSamples({ ...destinationContainerSamples, samples: destinationContainerSamples.samples })
-    }, [destinationContainerSamples.samples])
+    }, [destinationContainerSamples.samples, destinationContainerSamples.containerName])
 
     const copyKeyObject = useCallback((obj) => {
         const copy = {}
@@ -110,28 +110,19 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
             return destination
         }
 
+        const newSourceSamples = setType(PLACED_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(sourceSamples.samples))
+        const newDestinationSamples = setType(NONE_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(destinationSamples.samples))
 
-        const newSourceSamples = setType(PLACED_STRING, sourceSamples.samples, copyKeyObject(sourceSamples.samples))
-        const newDestinationSamples = setType(NONE_STRING, sourceSamples.samples, copyKeyObject(destinationSamples.samples))
-
-        // console.log(sourceSamples.samples, destinationSamples.samples)
         if (!sampleInCoords(sourceSamples.samples, destinationSamples.samples)) {
-            setSourceSamples({ ...sourceSamples, samples: newSourceSamples })
-            setDestinationSamples({ ...destinationSamples, samples: newDestinationSamples })
             saveContainerSamples(newSourceSamples, newDestinationSamples)
+            setSelectedSamples({})
         }
     }, [sourceSamples.samples, destinationSamples.samples])
 
 
     const clearSelection = useCallback(() => {
-        const clearedSource = clear(sourceSamples.samples)
-        const clearedDestination = clear(destinationSamples.samples)
-
-        setSourceSamples({ ...sourceSamples, samples: clearedSource })
-        setDestinationSamples({ ...destinationSamples, samples: clearedDestination })
         setSelectedSamples({})
-        saveContainerSamples(clearedSource, clearedDestination)
-    }, [sourceSamples, destinationSamples])
+    }, [])
 
     const changeContainer = useCallback((number: string, name: string, type) => {
         //clears selection depending on cycle type
@@ -140,12 +131,9 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
     }, [cycleContainer])
 
     const updateSampleList = useCallback((sampleList, containerType) => {
-        let tempSelectedSamples = { ...selectedSamples }
+        const tempSelectedSamples = copyKeyObject(selectedSamples)
         const tempSourceSamples = copyKeyObject(sourceSamples.samples)
         const tempDestinationSamples = copyKeyObject(destinationSamples.samples)
-        const checkType = (type) => {
-            return type == NONE_STRING ? SELECTED_STRING : NONE_STRING
-        }
 
         sampleList.forEach(sample => {
             const id = sample.id
@@ -153,7 +141,6 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
 
             //if container is destination
             if (containerType == DESTINATION_STRING) {
-                // tempDestinationSamples[id].type = checkType(tempDestinationSamples[id].type)
                 if (!tempDestinationSamples[id]) {
                     //placing selected samples into destination and setting sourceSamples to 'PLACED'
                     const selectedId: any = Object.keys(tempSelectedSamples)[0]
@@ -168,8 +155,10 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                             //if id exists in source, set sample to placed
                             tempSourceSamples[selectedId].type = PLACED_STRING
                         }
+
                         //removes from selected samples
                         delete tempSelectedSamples[selectedId]
+
                     }
                 }
             }
@@ -178,45 +167,41 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                 if (tempSelectedSamples[id]) {
                     delete tempSelectedSamples[id]
                 } else {
-
                     tempSelectedSamples[id] = { coordinate: coord, type: containerType }
                 }
             }
         })
 
-        //updates state
-        setSourceSamples({ ...sourceSamples, samples: tempSourceSamples })
         setSelectedSamples({ ...tempSelectedSamples })
-        setDestinationSamples({ ...destinationSamples, samples: tempDestinationSamples })
         //updates samples to parent container
         saveContainerSamples(tempSourceSamples, tempDestinationSamples)
-
-    }, [sourceSamples.samples, destinationSamples.samples])
+    }, [sourceSamples.samples, destinationSamples.samples, selectedSamples])
 
 
     const onSampleSelect = useCallback((samples, type) => {
         let selectedSampleList = samples.map(sample => { return { ...sample.sample } })
-
-        // console.log('selectedsamples', selectedSampleList)
-        // selectedSampleList.filter(sample => selectedSamples[sample.id])
-
-        console.log('selected', selectedSampleList)
+        //get selected samples for respective table
+        const filteredSelected = Object.keys(selectedSamples).filter(id => selectedSamples[id].type == type)
         let ids: any = [];
         if (selectedSampleList.length == 0) {
             //removes selected if array is empty
-            Object.keys(selectedSamples).forEach(id => {
+            filteredSelected.forEach(id => {
                 ids.push({ id })
             })
         }
-        else if (selectedSampleList.length < Object.keys(selectedSamples).length) {
+        else if (selectedSampleList.length < filteredSelected.length) {
             //finds removed id from the selection from antd table
-            const id = Object.keys(selectedSamples).filter(x => !selectedSampleList.map((sample) => sample.id).includes(x))[0];
+            const id = filteredSelected.filter(x =>
+                !selectedSampleList.map((sample) =>
+                    sample.id).includes(x)
+            )[0];
+
             ids.push({ id })
         }
         else {
             //gets the newly added sample from the selection from the antd table
             selectedSampleList.forEach(sample => {
-                if (sample.type != SELECTED_STRING && sample.type != PLACED_STRING && !selectedSamples[sample.id]) {
+                if (sample.type != SELECTED_STRING && sample.type != PLACED_STRING && !filteredSelected.includes(sample.id)) {
                     ids.push({ id: sample.id })
                 }
             })

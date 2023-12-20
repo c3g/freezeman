@@ -53,7 +53,6 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
         const id = Object.keys(tempSamples).find((id) => tempSamples[id].coordinate == coordinate) ?? null;
         let type = NONE_STRING
         if (id) {
-            // console.log(selectedIds[id])
             if (selectedSampleList && selectedSampleList[id] && selectedSampleList[id].type == containerType)
                 type = 'selected'
             else
@@ -73,7 +72,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             if (sample.id)
                 setIsSelecting(!isSelecting)
         }
-    }, [samples, isSelecting, direction, updateSampleGroup, previewCells])
+    }, [samples, isSelecting, direction, updateSampleGroup, previewCells, selectedSampleList])
 
     const onMouseHover = useCallback((sample: any) => {
         if (isSelecting && sample.id) {

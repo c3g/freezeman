@@ -124,7 +124,6 @@ const LibraryTransferStep = () => {
         const tempContainerList = type == SOURCE_STRING ? [...sourceContainerSamples] : [...destinationContainerSamples]
         let tempIndex = tempContainerList.findIndex(container => container.containerName == name)
 
-        console.log(tempContainerList)
 
         let length = tempIndex + parseFloat(number)
 
@@ -194,12 +193,11 @@ const LibraryTransferStep = () => {
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
     }, [sourceContainerSamples, destinationContainerSamples])
 
-    console.log('render')
     //calls backend endpoint to fetch source containers with samples
     return (
         <LibraryTransfer
-            sourceContainerSamples={{ ...sourceContainerSamples[index] }}
-            destinationContainerSamples={{ ...destinationContainerSamples[destinationIndex] }}
+            sourceContainerSamples={sourceContainerSamples[index]}
+            destinationContainerSamples={destinationContainerSamples[destinationIndex]}
             disableChangeSource={sourceContainerSamples.length == 1}
             disableChangeDestination={destinationContainerSamples.length == 1}
             cycleContainer={changeContainer}
