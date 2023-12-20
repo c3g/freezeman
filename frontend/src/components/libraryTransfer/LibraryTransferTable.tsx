@@ -9,17 +9,10 @@ interface LibraryTransferTableProps {
 const LibraryTransferTable = ({ samples, onSampleSelect, selectedSamples }: LibraryTransferTableProps) => {
     const [sortedSamples, setSortedSamples] = useState<any>([])
     useEffect(() => {
-
+        const reverse = selectedSamples.reverse()
         samples.sort((a, b) => {
-            if (a.sample.type > b.sample.type) {
-                return -1;
-            }
-            if (a.sample.type < b.sample.type) {
-                return 1;
-            }
-            return 0;
-        }).filter
-
+            return reverse.indexOf(b.sample.id) - reverse.indexOf(a.sample.id);
+        })
         setSortedSamples(samples)
     }, [samples])
 
