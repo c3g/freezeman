@@ -25,7 +25,7 @@ const LibraryTransferTable = ({ samples, onSampleSelect, selectedSamples }: Libr
     return (<WorkflowSamplesTable
         hasFilter={false}
         samples={sortedSamples}
-        columns={[SAMPLE_COLUMNS.ID, SAMPLE_COLUMNS.CONTAINER_BARCODE]}
+        columns={[SAMPLE_COLUMNS.ID, SAMPLE_COLUMNS.NAME]}
         selection={selectionProps}
     />)
 }

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import Cell from "./Cell"
-import { NONE_STRING, containerSample } from "./LibraryTransferStep";
+import { NONE_STRING, SELECTED_STRING, containerSample } from "./LibraryTransferStep";
 
 interface ContainerProps {
     containerType: string,
@@ -23,7 +23,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
 
     const previewGroupPlacement = useCallback((coordinate) => {
         let tempPreviewCells = {}
-        const count = Object.keys(selectedSampleList).length 
+        const count = Object.keys(selectedSampleList).length
         if (count > 0 && direction) {
             //coordinate row and column is separated with '_'
             const coords = (coordinate.toString()).split('_')
@@ -54,11 +54,10 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
         let type = NONE_STRING
         if (id) {
             if (selectedSampleList && selectedSampleList[id] && selectedSampleList[id].type == containerType)
-                type = 'selected'
+                type = SELECTED_STRING
             else
                 type = tempSamples[id].type
         }
-
         return id ? { id: id, type: type } : null
     }, [samples, selectedSampleList])
 
