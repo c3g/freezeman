@@ -106,6 +106,7 @@ export interface FMSExperimentRun extends FMSTrackedModel {
     instrument: FMSId                   // Sequencer instrument ID
     instrument_type: string             // Name of instrument type
     name: string                        // Experiment run name
+    external_name?: string              // Experiment run name given by the instrument
     platform: string                    // Platform (ILLUMINA, DBNSEQ, etc.)
     process: FMSId                      // Process ID
     run_type: FMSId                     // RunType ID

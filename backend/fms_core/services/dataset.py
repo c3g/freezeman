@@ -3,6 +3,7 @@ from django.utils import timezone
 
 from typing import List, Tuple, Union, TypedDict, NotRequired
 
+from fms_core.models.experiment_run import ExperimentRun
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
@@ -245,6 +246,18 @@ def ingest_run_validation_report(report_json):
     run_name = report_json["run"]
     lane = int(report_json["lane"])
     experiment_run_id = report_json.get("run_obj_id", None)
+    if experiment_run_id is not None:
+        try:
+            run_obj = ExperimentRun.objects.get(id=experiment_run_id)
+        except ExperimentRun.DoesNotExist as err:
+            errors.append("Submitted run id does not exist.")
+        if run_obj is not None:
+            run_obj.external_name = run_name
+            run_name = run_obj.name
+            try:
+                run_obj.save()
+            except Exception as err:
+                errors.append("Failed to save the run external name.")
     metric_report_url = report_json["metrics_report_url"]
     for readset_name, readset in report_json["readsets"].items():
         project_name = readset["project_name"]
@@ -272,18 +285,16 @@ def ingest_run_validation_report(report_json):
         for key in readset:
             if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
                 file: DatasetFileReport = readset[key]
-                if file.get('final_path') is None:
-                    errors.append(("final_path not provided for file type {0} of readset {1}", key, readset_name))
-                    continue
-                dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
-                                                                           file_path=file['final_path'], size=file['size'])
-                errors.extend(newerrors)
-                warnings.extend(newwarnings)
+                if file.get('final_path') is not None and file.get('size') is not None:    
+                    dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
+                                                                               file_path=file['final_path'], size=file['size'])
+                    errors.extend(newerrors)
+                    warnings.extend(newwarnings)
 
-                if errors:
-                    return (datasets, dataset_files, errors, warnings)
-                else:
-                    dataset_files.append(dataset_file)
+                    if errors:
+                        return (datasets, dataset_files, errors, warnings)
+                    else:
+                        dataset_files.append(dataset_file)
 
     for run_validation in report_json["run_validation"]:
         readset_obj = readset_by_name[run_validation["sample"]]

@@ -23,7 +23,6 @@ METRICS = {
               ("3rd_hit", VALUE_TYPE_STRING)],
     "alignment": [("chimeras", VALUE_TYPE_NUMERIC),
                   ("average_aligned_insert_size", VALUE_TYPE_NUMERIC),
-                  ("reported_sex", VALUE_TYPE_STRING),
                   ("inferred_sex", VALUE_TYPE_STRING),
                   ("sex_concordance", VALUE_TYPE_NUMERIC),
                   ("pf_read_alignment_rate", VALUE_TYPE_NUMERIC),
