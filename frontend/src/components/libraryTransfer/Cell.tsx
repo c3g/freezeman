@@ -12,7 +12,8 @@ interface CellProps {
     sample: {
         id: string,
         //3 types { selected, placed, none}
-        type: string
+        type: string,
+        name?: string
     } | null,
     outline: boolean,
 }
@@ -21,7 +22,7 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
     const [hover, setHover] = useState<boolean>(isSelecting)
 
     const onClick = useCallback(() => {
-        if (sample?.type != "placed") {
+        if (sample?.type != PLACED_STRING) {
             onCellClick({ id: sample?.id, type: sample?.type, coordinate })
         }
         setHover(!hover)

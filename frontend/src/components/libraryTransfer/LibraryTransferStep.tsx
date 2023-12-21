@@ -3,6 +3,8 @@ import LibraryTransfer from "./LibraryTransfer"
 export interface sampleInfo {
     coordinate: string,
     type: string,
+    name?: string,
+    sourceContainer?: string
 }
 export interface cellSample {
     [id: string]: sampleInfo
@@ -18,13 +20,6 @@ export const PLACED_STRING = 'placed'
 export const SELECTED_STRING = 'selected'
 export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
-export const clear = (oldSamples: cellSample) => {
-    const newSamples = {}
-    Object.keys(oldSamples).forEach(id => {
-        newSamples[id] = { ...oldSamples[id], type: oldSamples[id].type == SELECTED_STRING ? NONE_STRING : oldSamples[id].type }
-    })
-    return newSamples
-}
 const LibraryTransferStep = () => {
 
     const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>([{
@@ -33,40 +28,40 @@ const LibraryTransferStep = () => {
         columns: 12,
         samples: {
             '1': {
-                coordinate: 'a_1', type: NONE_STRING
+                coordinate: 'a_1', type: NONE_STRING, name: 'sample_1'
             },
             '15': {
-                coordinate: 'a_2', type: NONE_STRING
+                coordinate: 'a_2', type: NONE_STRING, name: 'sample_15'
             },
             '2': {
-                coordinate: 'a_3', type: NONE_STRING
+                coordinate: 'a_3', type: NONE_STRING, name: 'sample_2'
             },
             '3': {
-                coordinate: 'a_4', type: NONE_STRING
+                coordinate: 'a_4', type: NONE_STRING, name: 'sample_3'
             },
             '11': {
-                coordinate: 'b_1', type: NONE_STRING
+                coordinate: 'b_1', type: NONE_STRING, name: 'sample_11'
             },
             '115': {
-                coordinate: 'b_2', type: NONE_STRING
+                coordinate: 'b_2', type: NONE_STRING, name: 'sample_115'
             },
             '21': {
-                coordinate: 'b_3', type: NONE_STRING
+                coordinate: 'b_3', type: NONE_STRING, name: 'sample_21'
             },
             '9': {
-                coordinate: 'b_4', type: NONE_STRING
+                coordinate: 'b_4', type: NONE_STRING, name: 'sample_9'
             },
             '12': {
-                coordinate: 'c_1', type: NONE_STRING
+                coordinate: 'c_1', type: NONE_STRING, name: 'sample_12'
             },
             '116': {
-                coordinate: 'c_2', type: NONE_STRING
+                coordinate: 'c_2', type: NONE_STRING, name: 'sample_116'
             },
             '22': {
-                coordinate: 'c_3', type: NONE_STRING
+                coordinate: 'c_3', type: NONE_STRING, name: 'sample_22'
             },
             '10': {
-                coordinate: 'c_4', type: NONE_STRING
+                coordinate: 'c_4', type: NONE_STRING, name: 'sample_10'
             }
         },
     }, {
@@ -75,30 +70,29 @@ const LibraryTransferStep = () => {
         columns: 12,
         samples: {
             '31': {
-                coordinate: 'f_1', type: NONE_STRING
+                coordinate: 'f_1', type: NONE_STRING, name: 'sample_31'
             },
             '310': {
-                coordinate: 'f_2', type: NONE_STRING
+                coordinate: 'f_2', type: NONE_STRING, name: 'sample_310'
             },
             '32': {
-                coordinate: 'f_3', type: NONE_STRING
+                coordinate: 'f_3', type: NONE_STRING, name: 'sample_32'
             },
             '33': {
-                coordinate: 'f_4', type: NONE_STRING
+                coordinate: 'f_4', type: NONE_STRING, name: 'sample_33'
             },
             '311': {
-                coordinate: 'g_1', type: NONE_STRING
+                coordinate: 'g_1', type: NONE_STRING, name: 'sample_311'
             },
             '3115': {
-                coordinate: 'g_2', type: NONE_STRING
+                coordinate: 'g_2', type: NONE_STRING, name: 'sample_3115'
             },
             '321': {
-                coordinate: 'g_3', type: NONE_STRING
+                coordinate: 'g_3', type: NONE_STRING, name: 'sample_321'
             },
             '331': {
-                coordinate: 'g_4', type: NONE_STRING
+                coordinate: 'g_4', type: NONE_STRING, name: 'sample_331'
             }
-
         },
     },
     {
@@ -106,7 +100,30 @@ const LibraryTransferStep = () => {
         rows: 8,
         columns: 12,
         samples: {
-
+            '600': {
+                coordinate: 'a_8', type: NONE_STRING, name: 'sample_31'
+            },
+            '601': {
+                coordinate: 'a_9', type: NONE_STRING, name: 'sample_310'
+            },
+            '602': {
+                coordinate: 'a_10', type: NONE_STRING, name: 'sample_32'
+            },
+            '603': {
+                coordinate: 'b_8', type: NONE_STRING, name: 'sample_33'
+            },
+            '604': {
+                coordinate: 'b_9', type: NONE_STRING, name: 'sample_311'
+            },
+            '605': {
+                coordinate: 'b_10', type: NONE_STRING, name: 'sample_3115'
+            },
+            '606': {
+                coordinate: 'c_8', type: NONE_STRING, name: 'sample_321'
+            },
+            '607': {
+                coordinate: 'c_9', type: NONE_STRING, name: 'sample_331'
+            }
         }
     }])
     const [destinationContainerSamples, setDestinationContainerSamples] = useState<any>([{
