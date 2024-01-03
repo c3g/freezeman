@@ -285,7 +285,7 @@ def ingest_run_validation_report(report_json):
         for key in readset:
             if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
                 file: DatasetFileReport = readset[key]
-                if file.get('final_path') is not None and file.get('size') is not None:    
+                if file.get('final_path') is not None and file.get('size') is not None:
                     dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
                                                                                file_path=file['final_path'], size=file['size'])
                     errors.extend(newerrors)
