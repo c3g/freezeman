@@ -151,7 +151,7 @@ class ContainerSpec:
 # Run Containers
 
 CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA = ContainerSpec(
-    container_kind_id="axiom 96-format array PMRA",
+    container_kind_id="axiom 96-format array pmra",
     coordinate_spec=(alphas(8), ints(12, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding
@@ -159,7 +159,7 @@ CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA = ContainerSpec(
 )
 
 CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB = ContainerSpec(
-    container_kind_id="axiom 96-format array UKBB",
+    container_kind_id="axiom 96-format array ukbb",
     coordinate_spec=(alphas(8), ints(12, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding

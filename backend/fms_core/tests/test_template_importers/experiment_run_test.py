@@ -301,7 +301,7 @@ class ExperimentRunAxiomTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind, _ = SampleKind.objects.get_or_create(name="DNA")
-        container, errors, warnings = create_container(barcode=self.container_barcode, kind='96-well plate', name=self.container_barcode)
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='96-well plate', name=self.container_barcode, creation_comment="DESTINATION_CONTAINER_BARCODE => containerAxiom .")
         project, _, _ = create_project(name='AxiomTestProject')
 
         sample, errors, warnings = create_full_sample(name=self.sample_name, volume=100, concentration=10, collection_site='site1', creation_date=datetime.datetime(2023, 1, 1, 0, 0),
@@ -324,9 +324,6 @@ class ExperimentRunAxiomTestCase(TestCase):
         # Process Tests
         self.assertEqual(process_obj.child_process.count(), 2)
         self.assertEqual(process_obj.protocol.name, 'Axiom Experiment Preparation')
-
-        # Process properties Tests (check properties for process)
-        protocol_id = process_obj.protocol.id
 
         # Sub-process Tests (check properties for one process and sub-processes in depth)
         cp1_1 = Process.objects.get(parent_process=process_obj, protocol__name='Axiom: Denaturation and Hybridization')

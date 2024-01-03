@@ -16,7 +16,7 @@ from fms_core.services.experiment_run_info import generate_run_info
 from fms_core.tests.test_template_importers._utils import load_template
 from fms_core.services.project import create_project
 
-from fms_core.models import Biosample, ExperimentRun, IndexSet, Index
+from fms_core.models import Biosample, ExperimentRun, IndexSet, Index, Container
 
 from fms_core.tests.constants import create_container
 from fms_core.services import experiment_run, sample
