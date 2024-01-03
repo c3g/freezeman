@@ -10,6 +10,7 @@ from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
 from .sample_next_step import execute_workflow_action, queue_sample_to_study_workflow
 from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
+from fms_core.containers import CONTAINER_SPEC_TUBE
 
 def create_full_sample(name, volume, creation_date, container, sample_kind,
                        collection_site=None, library=None, project=None, individual=None,
@@ -92,7 +93,7 @@ def get_sample_from_container(barcode, coordinates=None):
     warnings = []
 
     if barcode is None:
-        errors.append("Barcode must be specified")
+        errors.append("Container barcode must be specified.")
     else:
         try:
             container = Container.objects.get(barcode=barcode)
@@ -103,17 +104,20 @@ def get_sample_from_container(barcode, coordinates=None):
             sample_info = dict(
                 container=container
             )
-            if coordinates:
-                sample_info['coordinate__name'] = coordinates
-            try:
-                sample = Sample.objects.get(**sample_info)
-            except Sample.DoesNotExist as e:
-                errors.append(f"Sample from container with barcode {barcode}{f' at coordinates {coordinates}' if coordinates is not None else ''} not found.")
-            except Sample.MultipleObjectsReturned  as e:
+            if container.kind == CONTAINER_SPEC_TUBE.container_kind_id and coordinates is not None:
+                errors.append(f"Tube containers do not use coordinates. Verify sample container barcode and coordinates.")
+            else:
                 if coordinates:
-                    errors.append(f"More than one sample in container with barcode {barcode} found at coordinates {coordinates}.")
-                else:
-                    errors.append(f"Multiple samples found in container with barcode {barcode}. You may want to specify coordinates.")
+                    sample_info['coordinate__name'] = coordinates
+                try:
+                    sample = Sample.objects.get(**sample_info)
+                except Sample.DoesNotExist as e:
+                    errors.append(f"Sample from container with barcode {barcode}{f' at coordinates {coordinates}' if coordinates is not None else ''} not found.")
+                except Sample.MultipleObjectsReturned  as e:
+                    if coordinates:
+                        errors.append(f"More than one sample in container with barcode {barcode} found at coordinates {coordinates}.")
+                    else:
+                        errors.append(f"Multiple samples found in container with barcode {barcode}. You may want to specify coordinates.")
 
     return (sample, errors, warnings)
 
