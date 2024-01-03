@@ -23,6 +23,8 @@ __all__ = ["ExperimentRun"]
 class ExperimentRun(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="Name of the run.")
+    external_name = models.CharField(blank=True, null=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
+                                     help_text="Name given to the run by the instrument.")
     run_type = models.ForeignKey(RunType,
                                  on_delete=models.PROTECT,
                                  related_name="experiment_runs",

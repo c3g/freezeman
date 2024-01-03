@@ -34,6 +34,9 @@ function ExperimentRunOverview({ experimentRun, container, process }: Experiment
 				<Descriptions.Item label="Name" span={3}>
 					{experimentRun.name}
 				</Descriptions.Item>
+        <Descriptions.Item label="External Name" span={3}>
+					{experimentRun?.external_name}
+				</Descriptions.Item>
 				<Descriptions.Item label="Run Type" span={3}>
 					<Tag>{runTypesByID[experimentRun.run_type]?.name}</Tag>
 				</Descriptions.Item>
