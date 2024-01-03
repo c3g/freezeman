@@ -3,17 +3,17 @@ import React from "react"
 const { Text } = Typography;
 
 interface ContainerNameScrollerProps {
-    changeContainer: (number: string, name: string, type: string) => void,
+    changeContainer: (number: string, name: string, containerType: string) => void,
     name: string,
     changeContainerName?: (containerName) => void,
-    type: string,
+    containerType: string,
     disabled: boolean
 }
 
-const ContainerNameScroller = ({ name, changeContainer, changeContainerName, type, disabled}: ContainerNameScrollerProps) => {
+const ContainerNameScroller = ({ name, changeContainer, changeContainerName, containerType, disabled}: ContainerNameScrollerProps) => {
     return (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
-            <Button disabled={disabled} onClick={() => changeContainer('-1', name, type)}>
+            <Button disabled={disabled} onClick={() => changeContainer('-1', name, containerType)}>
                 Previous
             </Button>
             {
@@ -23,7 +23,7 @@ const ContainerNameScroller = ({ name, changeContainer, changeContainerName, typ
                     :
                     <Text> {name}</Text>
             }
-            <Button disabled={disabled} onClick={() => changeContainer('1', name, type)}>
+            <Button disabled={disabled} onClick={() => changeContainer('1', name, containerType)}>
                 Next
             </Button >
         </div>
