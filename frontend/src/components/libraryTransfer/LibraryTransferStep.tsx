@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useState } from "react"
 import LibraryTransfer from "./LibraryTransfer"
 export interface sampleInfo {
     coordinate: string,
@@ -20,6 +20,7 @@ export const PLACED_STRING = 'placed'
 export const SELECTED_STRING = 'selected'
 export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
+export const PATTERN_STRING = 'pattern'
 const LibraryTransferStep = () => {
 
     const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>([{
@@ -136,9 +137,9 @@ const LibraryTransferStep = () => {
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
-    const changeContainer = useCallback((number: string, name: string, type: string) => {
+    const changeContainer = useCallback((number: string, name: string, containerType: string) => {
 
-        const tempContainerList = type == SOURCE_STRING ? [...sourceContainerSamples] : [...destinationContainerSamples]
+        const tempContainerList = containerType == SOURCE_STRING ? [...sourceContainerSamples] : [...destinationContainerSamples]
         let tempIndex = tempContainerList.findIndex(container => container.containerName == name)
 
 
@@ -152,7 +153,7 @@ const LibraryTransferStep = () => {
 
 
         if (length != tempIndex) {
-            if (type == SOURCE_STRING) {
+            if (containerType == SOURCE_STRING) {
                 setIndex(length)
             }
             else {
@@ -213,8 +214,8 @@ const LibraryTransferStep = () => {
     //calls backend endpoint to fetch source containers with samples
     return (
         <LibraryTransfer
-            sourceContainerSamples={sourceContainerSamples[index]}
-            destinationContainerSamples={destinationContainerSamples[destinationIndex]}
+            sourceSamples={sourceContainerSamples[index]}
+            destinationSamples={destinationContainerSamples[destinationIndex]}
             disableChangeSource={sourceContainerSamples.length == 1}
             disableChangeDestination={destinationContainerSamples.length == 1}
             cycleContainer={changeContainer}

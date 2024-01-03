@@ -1,45 +1,32 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import TransferContainer from "./TransferContainer"
 import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button, Typography } from 'antd'
-import { DESTINATION_STRING, NONE_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./LibraryTransferStep"
+import { Radio, Button } from 'antd'
+import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./LibraryTransferStep"
 import LibraryTransferTable from "./LibraryTransferTable"
-const { Text } = Typography;
+import { coordinates } from "../../modules/coordinates/reducers"
+
 
 interface LibraryTransferProps {
-    sourceContainerSamples: containerSample,
-    destinationContainerSamples: containerSample,
+    sourceSamples: containerSample,
+    destinationSamples: containerSample,
     saveChanges: (sourceContainerSamples, destinationContainerSamples) => void,
-    cycleContainer: (number, name, type) => void,
+    cycleContainer: (number, name, containerType) => void,
     addDestination: () => void,
     disableChangeSource: boolean,
     disableChangeDestination: boolean
 }
 
-const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination }: LibraryTransferProps) => {
-
-    // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
-    const [sourceSamples, setSourceSamples] = useState<containerSample>(sourceContainerSamples)
-    // keyed object by coordinate, containing sample id and type, to indicate to user if sample is placed in destination or in selection
-    const [destinationSamples, setDestinationSamples] = useState<containerSample>(destinationContainerSamples)
+const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination }: LibraryTransferProps) => {
 
     //keyed object by sampleID, containing the coordinate
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
-
     const [placementType, setPlacementType] = useState<string>('single')
     const [placementDirection, setPlacementDirection] = useState<string>('row')
 
-
-    useEffect(() => {
-        setSourceSamples({ ...sourceContainerSamples, samples: sourceContainerSamples.samples })
-    }, [sourceContainerSamples.samples, sourceContainerSamples.containerName])
-
-    useEffect(() => {
-        setDestinationSamples({ ...destinationContainerSamples, samples: destinationContainerSamples.samples })
-    }, [destinationContainerSamples.samples, destinationContainerSamples.containerName])
 
     const copyKeyObject = useCallback((obj): any => {
         const copy = {}
@@ -59,28 +46,28 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
             }
         )
 
-    }, [sourceSamples, destinationSamples])
+    }, [sourceSamples.containerName, destinationSamples.containerName])
 
     const updatePlacementType = useCallback((value) => {
         setPlacementType(value)
-    }, [placementType])
+    }, [])
 
     const updatePlacementDirection = useCallback((value) => {
         setPlacementDirection(value)
     }, [placementDirection])
 
 
-    const placeGroupSamples = useCallback((sampleObj: cellSample) => {
+    const placeGroupSamples = useCallback((sampleObj) => {
 
         let coordinates = Object.keys(sampleObj).map((key) => key)
 
         const error = (coordinates.some((coord) => Object.values(destinationSamples.samples).find(sample => sample.coordinate == coord)))
 
         if (!error)
-            updateSampleList(coordinates.map(coord => { return { id: undefined, type: undefined, coordinate: coord } }), DESTINATION_STRING)
+            updateSampleList(Object.keys(sampleObj).map(coord => { return { id: sampleObj[coord].id, type: sampleObj[coord].type, coordinate: coord } }), DESTINATION_STRING)
 
 
-    }, [sourceSamples])
+    }, [destinationSamples.samples, placementType])
 
     const sampleInCoords = useCallback((source, destination) => {
         const value = (Object.values(source).some(
@@ -117,34 +104,41 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
         setSelectedSamples({})
     }, [])
 
-    const changeContainer = useCallback((number: string, name: string, type) => {
+    const changeContainer = useCallback((number: string, name: string, containerType: string) => {
         //clears selection depending on cycle type
-        cycleContainer(number, name, type)
+        cycleContainer(number, name, containerType)
         setSelectedSamples({})
     }, [cycleContainer])
 
-    const updateSampleList = useCallback((sampleList, containerType) => {
+    const updateSampleList = (sampleList, containerType) => {
         const tempSelectedSamples: cellSample = copyKeyObject(selectedSamples)
         const tempSourceSamples: containerSample = copyKeyObject(sourceSamples.samples)
         const tempDestinationSamples: containerSample = copyKeyObject(destinationSamples.samples)
 
+        // console.log(sampleList, tempDestinationSamples, containerType)
         sampleList.forEach(sample => {
             const id = sample.id
             const coord = sample.coordinate
-
             //if container is destination, also to prevent users from placing into empty cells in source container
             if (containerType == DESTINATION_STRING) {
-                if (!tempDestinationSamples[id]) {
-                    //placing selected samples into destination and setting sourceSamples to 'PLACED'
-                    const selectedId: number = parseInt(Object.keys(tempSelectedSamples)[0])
+
+                if (!tempDestinationSamples[id] || sample.type == PATTERN_STRING) {
+                    let selectedId: number = 0
+                    if (placementType != PATTERN_STRING) {
+                        //placing selected samples into destination and setting sourceSamples to 'PLACED'
+                        selectedId = parseInt(Object.keys(tempSelectedSamples)[0])
+                    } else {
+                        selectedId = parseInt(Object.keys(tempSelectedSamples).filter(key => key == id)[0])
+                    }
                     if (selectedId) {
                         //if id exists in selectedSamples is selected from destination then move from destination
                         if (tempSelectedSamples[selectedId].type == DESTINATION_STRING) {
                             delete tempDestinationSamples[selectedId]
-                        }
-                        tempDestinationSamples[selectedId] = { coordinate: sample.coordinate, type: NONE_STRING, sourceContainer: tempSourceSamples.containerName }
 
-                        if (tempSourceSamples[selectedId]) {
+                        }
+                        tempDestinationSamples[selectedId] = { coordinate: coord, type: NONE_STRING, sourceContainer: tempSourceSamples.containerName }
+
+                        if (tempSourceSamples[selectedId] && tempSourceSamples[selectedId].type != PLACED_STRING) {
                             //if id exists in source, set sample to placed
                             tempSourceSamples[selectedId].type = PLACED_STRING
                         }
@@ -153,10 +147,12 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                         delete tempSelectedSamples[selectedId]
 
                     }
+
                 }
+
             }
             //if sample id exists, it delete in selectedSamples, else adds it to selected samples object
-            if (id && sample.type != PLACED_STRING) {
+            if (id && sample.type != PLACED_STRING && sample.type != PATTERN_STRING) {
                 if (tempSelectedSamples[id]) {
                     delete tempSelectedSamples[id]
                 } else {
@@ -166,9 +162,10 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
         })
 
         setSelectedSamples({ ...tempSelectedSamples })
+
         //updates samples to parent container
         saveContainerSamples(tempSourceSamples, tempDestinationSamples)
-    }, [sourceSamples.samples, destinationSamples.samples, selectedSamples])
+    }
 
 
     const onSampleSelect = useCallback((samples, type) => {
@@ -200,7 +197,7 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
             })
         }
         updateSampleList(ids, type)
-    }, [sourceSamples, destinationSamples, selectedSamples])
+    }, [selectedSamples])
 
     const filterPlacedSamples = useCallback((samples) => {
         const filtered: any = []
@@ -220,10 +217,11 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                         <div className={"flex-row"} style={{ justifyContent: 'center', gap: '1vw' }}>
                             <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
                                 <Radio.Button value={'single'}> Single </Radio.Button>
+                                <Radio.Button value={'pattern'}> Pattern </Radio.Button>
                                 <Radio.Button value={'group'}> Group </Radio.Button>
                             </Radio.Group>
                             <Radio.Group
-                                disabled={placementType == 'single'}
+                                disabled={placementType != 'group'}
                                 value={placementDirection}
                                 onChange={evt => updatePlacementDirection(evt.target.value)}>
                                 <Radio.Button value={'row'}> row </Radio.Button>
@@ -234,7 +232,7 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                             <div className={"flex-column"}>
                                 <ContainerNameScroller
                                     disabled={disableChangeSource}
-                                    type={SOURCE_STRING}
+                                    containerType={SOURCE_STRING}
                                     name={sourceSamples.containerName}
                                     changeContainer={changeContainer} />
                                 <TransferContainer
@@ -248,7 +246,7 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                             <div className={"flex-column"}>
                                 <ContainerNameScroller
                                     disabled={disableChangeDestination}
-                                    type={DESTINATION_STRING}
+                                    containerType={DESTINATION_STRING}
                                     name={destinationSamples.containerName}
                                     changeContainer={changeContainer}
                                     changeContainerName={() => { }} />
@@ -260,7 +258,8 @@ const LibraryTransfer = ({ sourceContainerSamples, destinationContainerSamples, 
                                     samples={destinationSamples.samples}
                                     updateSample={updateSampleList}
                                     updateSampleGroup={placeGroupSamples}
-                                    direction={placementType == 'group' ? placementDirection : undefined} />
+                                    direction={placementType == 'group' ? placementDirection : undefined}
+                                    pattern={placementType == PATTERN_STRING} />
                             </div>
                         </div>
 
