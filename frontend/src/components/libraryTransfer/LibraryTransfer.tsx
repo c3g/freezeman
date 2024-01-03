@@ -176,7 +176,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         if (selectedSampleList.length == 0) {
             //removes selected if array is empty
             filteredSelected.forEach(id => {
-                ids.push({ id })
+                ids.push({ id, coordinate: selectedSamples[id].coordinate })
             })
         }
         else if (selectedSampleList.length < filteredSelected.length) {
@@ -186,13 +186,14 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                     sample.id).includes(x)
             )[0];
 
-            ids.push({ id })
+            ids.push({ id, coordinate: selectedSamples[id].coordinate })
         }
         else {
+            const samplePool  = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
             //gets the newly added sample from the selection from the antd table
             selectedSampleList.forEach(sample => {
                 if (sample.type != PLACED_STRING && !filteredSelected.includes(sample.id)) {
-                    ids.push({ id: sample.id })
+                    ids.push({ id: sample.id, coordinate: samplePool[sample.id].coordinate })
                 }
             })
         }

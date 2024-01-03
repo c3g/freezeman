@@ -31,7 +31,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
         const sorted: any = []
         let tempPreviewCells = {}
         if (Object.keys(selectedSampleList).length > 0) {
-
+            console.log(selectedSampleList)
             Object.keys(selectedSampleList).forEach(id => {
                 sorted.push({ id: id, type: selectedSampleList[id].type, coordinate: selectedSampleList[id].coordinate })
             })
