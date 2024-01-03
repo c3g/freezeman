@@ -326,9 +326,10 @@ export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_
 /**
  * Request the execution of a step automation, containing a list selected samples.
  * @param stepID Step ID
+ * @param additionalData object containing additional information for automation
  * @returns 
  */
-export const requestAutomationExecution = (stepID: FMSId) => {
+export const requestAutomationExecution = (stepID: FMSId, additionalData: object) => {
 	return async (dispatch, getState) => {
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
@@ -338,7 +339,7 @@ export const requestAutomationExecution = (stepID: FMSId) => {
 				sample__id__in: step.selectedSamples.join(','),
 				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}
-			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, options))
+			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, JSON.stringify(additionalData), options))
 			return response
 		}
 	}

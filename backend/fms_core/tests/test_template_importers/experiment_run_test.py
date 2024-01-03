@@ -292,7 +292,7 @@ class ExperimentRunMGITestCase(TestCase):
 class ExperimentRunAxiomTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_Axiom_v4_6_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_Axiom_v4_7_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "CONTAINERTESTAXIOM"

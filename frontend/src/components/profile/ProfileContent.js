@@ -65,7 +65,6 @@ const ProfileContent = ({ isFetching, groupsByID, user, error, updateSelf }) => 
         setState({ message: 'Profile updated', success: true })
       })
       .catch(err => {
-        console.log(err)
         setFormErrors(err.data || {})
       })
   }
