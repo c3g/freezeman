@@ -144,7 +144,7 @@ EXPERIMENT_MGI_TEMPLATE = {
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {
   "identity": {"description": "Template to add Illumina experiments",
-               "file": static("submission_templates/Experiment_run_illumina_v4_4_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_illumina_v4_7_0.xlsx"),
                "protocol": "Illumina Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
