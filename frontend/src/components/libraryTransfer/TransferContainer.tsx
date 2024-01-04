@@ -1,20 +1,21 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Cell from "./Cell"
-import { NONE_STRING, PATTERN_STRING, SELECTED_STRING, containerSample } from "./LibraryTransferStep";
+import { NONE_STRING, PATTERN_STRING, SELECTED_STRING, cellSample, containerSample } from "./LibraryTransferStep";
 
 interface ContainerProps {
     containerType: string,
     columns: number,
     rows: number,
     samples: any,
-    updateSample: (sample, containerType) => void
-    direction?: string,
-    updateSampleGroup?: (sampleList) => void
+    updateSample: (sample, containerType) => void,
     selectedSampleList: any,
-    pattern?: boolean
+    direction?: string,
+    updateSampleGroup?: (sampleList) => void,
+    pattern?: boolean,
+    removeCell?: (sample) => void
 }
 
-const TransferContainer = ({ containerType, columns, rows, samples, updateSample, direction, updateSampleGroup, selectedSampleList, pattern }: ContainerProps) => {
+const TransferContainer = ({ containerType, columns, rows, samples, direction, selectedSampleList, pattern, updateSample, updateSampleGroup, removeCell }: ContainerProps) => {
     const [isSelecting, setIsSelecting] = useState<boolean>(false)
     const [previewCells, setPreviewCells] = useState<any>({})
 
@@ -43,7 +44,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                 let column = Number(selectedSampleList[id].coordinate.split('_')[1])
                 mostLeftColumn = column <= mostLeftColumn ? column : mostLeftColumn
             })
-            
+
             //sorting the sampleList by coordinate
             cellsByCoordinate.sort((a, b) => {
                 if (a.coordinate < b.coordinate) {
@@ -53,7 +54,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                 }
                 return 0;
             })
-            
+
             let transformedColumn
             const placedCoordinate = coordinate.split('_')
             let transformedRow = placedCoordinate[0]
@@ -73,7 +74,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                 const difference = getDiff(Number(coord[1]), mostLeftColumn)
 
                 //taking the current placedColumn and adding the differnece
-                transformedColumn = placedColumn + 1 * difference
+                transformedColumn = placedColumn + difference
 
 
                 tempPreviewCells[transformedRow + '_' + transformedColumn] = { id: value.id, type: PATTERN_STRING }
@@ -117,16 +118,20 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
 
 
     const onClick = useCallback((sample) => {
-        //check to see if group placement is toggled so user can see where samples will be placed
-        if (direction && updateSampleGroup && selectedSampleList && Object.keys(selectedSampleList).length > 0) {
-            updateSampleGroup(previewCells)
-        } else if (pattern && updateSampleGroup && selectedSampleList && Object.keys(selectedSampleList).length > 0) {
-            updateSampleGroup(previewCells)
+        if (removeCell) {
+            removeCell(sample)
         } else {
-            //single sample selection/placement
-            updateSample([sample], containerType)
-            if (sample.id)
-                setIsSelecting(!isSelecting)
+            //check to see if group placement is toggled so user can see where samples will be placed
+            if (direction && updateSampleGroup && selectedSampleList && Object.keys(selectedSampleList).length > 0) {
+                updateSampleGroup(previewCells)
+            } else if (pattern && updateSampleGroup && selectedSampleList && Object.keys(selectedSampleList).length > 0) {
+                updateSampleGroup(previewCells)
+            } else {
+                //single sample selection/placement
+                updateSample([sample], containerType)
+                if (sample.id)
+                    setIsSelecting(!isSelecting)
+            }
         }
     }, [samples, isSelecting, direction, updateSampleGroup, previewCells, selectedSampleList])
 
@@ -146,7 +151,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
 
     //checks to see if sample exists at coordinate and returns sample
     const checkSamples = useCallback((coordinate) => {
-        let tempSamples: containerSample = { ...samples }
+        let tempSamples: cellSample = { ...samples }
         const id = Object.keys(tempSamples).find((id) => tempSamples[id].coordinate == coordinate) ?? null;
         let type = NONE_STRING
         if (id) {
@@ -156,7 +161,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
             else
                 type = tempSamples[id].type
         }
-        return id ? { id: id, type: type } : null
+        return id ? { id: id, type: type, name: tempSamples[id].name, sourceContainer: tempSamples[id].sourceContainer } : null
     }, [samples, selectedSampleList])
 
     const renderCells = useCallback(() => {
