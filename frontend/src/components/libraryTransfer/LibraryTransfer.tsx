@@ -7,7 +7,6 @@ import { useCallback } from "react"
 import { Radio, Button } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./LibraryTransferStep"
 import LibraryTransferTable from "./LibraryTransferTable"
-import { coordinates } from "../../modules/coordinates/reducers"
 
 
 interface LibraryTransferProps {
@@ -18,21 +17,76 @@ interface LibraryTransferProps {
     addDestination: () => void,
     disableChangeSource: boolean,
     disableChangeDestination: boolean
+    removeCell: (sample) => void
 }
 
-const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination }: LibraryTransferProps) => {
+const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCell }: LibraryTransferProps) => {
 
     //keyed object by sampleID, containing the coordinate
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
     const [placementType, setPlacementType] = useState<string>('pattern')
     const [placementDirection, setPlacementDirection] = useState<string>('row')
+    const [isRemoving, setIsRemoving] = useState<boolean>(false)
 
+    const updatePlacementType = useCallback((value) => {
+        setPlacementType(value)
+    }, [])
+
+    const updatePlacementDirection = useCallback((value) => {
+        setPlacementDirection(value)
+    }, [placementDirection])
+
+    const updateRemoving = useCallback(() => {
+        setIsRemoving(!isRemoving)
+    }, [isRemoving])
+
+    const clearSelection = useCallback(() => {
+        setSelectedSamples({})
+    }, [])
 
     const copyKeyObject = useCallback((obj): any => {
         const copy = {}
         Object.keys(obj).forEach(key => copy[key] = { ...obj[key] })
         return copy
     }, [])
+
+    const sampleInCoords = useCallback((source, destination) => {
+        const value = (Object.values(source).some(
+            (sourceSample: any) =>
+                Object.values(destination).find(
+                    (destinationSample: any) => destinationSample.coordinate == sourceSample.coordinate && sourceSample.type != 'placed'
+                )
+        ))
+
+        return value
+    }, [])
+
+    const filterPlacedSamples = useCallback((samples) => {
+        const filtered: any = []
+        Object.keys(samples).map(id => {
+            if (samples[id].type != PLACED_STRING)
+                filtered.push({ sample: { id: id, type: samples[id].type, name: samples[id].name } })
+        })
+        return filtered
+    }, [])
+
+    const changeContainer = useCallback((number: string, name: string, containerType: string) => {
+        //clears selection depending on cycle type
+        cycleContainer(number, name, containerType)
+        setSelectedSamples({})
+    }, [cycleContainer])
+
+    const placeGroupSamples = useCallback((sampleObj) => {
+
+        let coordinates = Object.keys(sampleObj).map((key) => key)
+
+        const error = (coordinates.some((coord) => Object.values(destinationSamples.samples).find(sample => sample.coordinate == coord)))
+
+        if (!error)
+            updateSampleList(Object.keys(sampleObj).map(coord => { return { id: sampleObj[coord].id, type: sampleObj[coord].type, coordinate: coord, name: sampleObj[coord].name } }), DESTINATION_STRING)
+
+
+    }, [destinationSamples.samples, placementType])
 
     const saveContainerSamples = useCallback((source, destination) => {
         saveChanges(
@@ -47,38 +101,6 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         )
 
     }, [sourceSamples.containerName, destinationSamples.containerName])
-
-    const updatePlacementType = useCallback((value) => {
-        setPlacementType(value)
-    }, [])
-
-    const updatePlacementDirection = useCallback((value) => {
-        setPlacementDirection(value)
-    }, [placementDirection])
-
-
-    const placeGroupSamples = useCallback((sampleObj) => {
-
-        let coordinates = Object.keys(sampleObj).map((key) => key)
-
-        const error = (coordinates.some((coord) => Object.values(destinationSamples.samples).find(sample => sample.coordinate == coord)))
-
-        if (!error)
-            updateSampleList(Object.keys(sampleObj).map(coord => { return { id: sampleObj[coord].id, type: sampleObj[coord].type, coordinate: coord } }), DESTINATION_STRING)
-
-
-    }, [destinationSamples.samples, placementType])
-
-    const sampleInCoords = useCallback((source, destination) => {
-        const value = (Object.values(source).some(
-            (sourceSample: any) =>
-                Object.values(destination).find(
-                    (destinationSample: any) => destinationSample.coordinate == sourceSample.coordinate && sourceSample.type != 'placed'
-                )
-        ))
-
-        return value
-    }, [])
 
     const transferAllSamples = useCallback(() => {
         //sets all samples to certain type
@@ -99,16 +121,6 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         }
     }, [sourceSamples.samples, destinationSamples.samples])
 
-
-    const clearSelection = useCallback(() => {
-        setSelectedSamples({})
-    }, [])
-
-    const changeContainer = useCallback((number: string, name: string, containerType: string) => {
-        //clears selection depending on cycle type
-        cycleContainer(number, name, containerType)
-        setSelectedSamples({})
-    }, [cycleContainer])
 
     const updateSampleList = (sampleList, containerType) => {
         const tempSelectedSamples: cellSample = copyKeyObject(selectedSamples)
@@ -136,7 +148,8 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                             delete tempDestinationSamples[selectedId]
 
                         }
-                        tempDestinationSamples[selectedId] = { coordinate: coord, type: NONE_STRING, sourceContainer: tempSourceSamples.containerName }
+                        console.log(sourceSamples.containerName)
+                        tempDestinationSamples[selectedId] = { coordinate: coord, type: NONE_STRING, name: tempSelectedSamples[selectedId].name, sourceContainer: sourceSamples.containerName }
 
                         if (tempSourceSamples[selectedId] && tempSourceSamples[selectedId].type != PLACED_STRING) {
                             //if id exists in source, set sample to placed
@@ -156,7 +169,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                 if (tempSelectedSamples[id]) {
                     delete tempSelectedSamples[id]
                 } else {
-                    tempSelectedSamples[id] = { coordinate: coord, type: containerType }
+                    tempSelectedSamples[id] = { coordinate: coord, type: containerType, name: sample.name }
                 }
             }
         })
@@ -167,12 +180,13 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         saveContainerSamples(tempSourceSamples, tempDestinationSamples)
     }
 
-
+    //function handler for the selection table
     const onSampleSelect = useCallback((samples, type) => {
-        let selectedSampleList = samples.map(sample => { return { ...sample.sample } })
         //get selected samples for respective table
+        const selectedSampleList = samples.map(sample => { return { ...sample.sample } })
         const filteredSelected = Object.keys(selectedSamples).filter(id => selectedSamples[id].type == type)
-        let ids: any = [];
+
+        const ids: any = [];
         if (selectedSampleList.length == 0) {
             //removes selected if array is empty
             filteredSelected.forEach(id => {
@@ -189,7 +203,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             ids.push({ id, coordinate: selectedSamples[id].coordinate })
         }
         else {
-            const samplePool  = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
+            const samplePool = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
             //gets the newly added sample from the selection from the antd table
             selectedSampleList.forEach(sample => {
                 if (sample.type != PLACED_STRING && !filteredSelected.includes(sample.id)) {
@@ -199,15 +213,6 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         }
         updateSampleList(ids, type)
     }, [selectedSamples])
-
-    const filterPlacedSamples = useCallback((samples) => {
-        const filtered: any = []
-        Object.keys(samples).map(id => {
-            if (samples[id].type != PLACED_STRING)
-                filtered.push({ sample: { id: id, type: samples[id].type } })
-        })
-        return filtered
-    }, [])
 
 
     return (
@@ -260,7 +265,8 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                                     updateSample={updateSampleList}
                                     updateSampleGroup={placeGroupSamples}
                                     direction={placementType == 'group' ? placementDirection : undefined}
-                                    pattern={placementType == PATTERN_STRING} />
+                                    pattern={placementType == PATTERN_STRING}
+                                    removeCell={isRemoving ? removeCell : undefined} />
                             </div>
                         </div>
 
@@ -268,6 +274,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                             <Button onClick={transferAllSamples}>Transfer All</Button>
                             <Button onClick={clearSelection}>Clear Selection</Button>
                             <Button onClick={addDestination}>Add Container</Button>
+                            <Button onClick={updateRemoving} style={{ color: isRemoving ? 'white' : '', backgroundColor: isRemoving ? '#1890ff' : '' }}>Remove Cell</Button>
                         </div>
                         <div className={"flex-row"}>
                             <LibraryTransferTable onSampleSelect={(samples) => onSampleSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples.samples)} selectedSamples={Object.keys(selectedSamples).filter((id: any) => selectedSamples[id].type == SOURCE_STRING)} />

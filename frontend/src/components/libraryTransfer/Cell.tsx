@@ -13,7 +13,8 @@ interface CellProps {
         id: string,
         //3 types { selected, placed, none}
         type: string,
-        name?: string
+        name: string,
+        sourceContainer?: string
     } | null,
     outline: boolean,
 }
@@ -23,7 +24,7 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
 
     const onClick = useCallback(() => {
         if (sample?.type != PLACED_STRING) {
-            onCellClick({ id: sample?.id, type: sample?.type, coordinate })
+            onCellClick({ id: sample?.id, type: sample?.type, coordinate, name: sample?.name, sourceContainer: sample?.sourceContainer })
         }
         setHover(!hover)
     }, [sample, onCellClick, isSelecting, hover])

@@ -3,7 +3,7 @@ import LibraryTransfer from "./LibraryTransfer"
 export interface sampleInfo {
     coordinate: string,
     type: string,
-    name?: string,
+    name: string,
     sourceContainer?: string
 }
 export interface cellSample {
@@ -137,6 +137,35 @@ const LibraryTransferStep = () => {
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
+    const copyKeyObject = useCallback((obj) => {
+        const copy = {}
+        Object.keys(obj).forEach(key => copy[key] = { ...obj[key] })
+        return copy
+    }, [])
+
+    const setContainerSamples = useCallback((oldContainer, newContainer) => {
+        oldContainer.forEach((obj: any) => {
+            if (obj.containerName == newContainer.containerName) {
+                obj.samples = copyKeyObject(newContainer.samples)
+            }
+        })
+        return oldContainer
+    }, [])
+
+
+    const removeCell = useCallback((sample) => {
+        const index = sourceContainerSamples.findIndex(container => container.containerName == sample.sourceContainer)
+
+        const copySamples = copyKeyObject(sourceContainerSamples[index].samples)
+        copySamples[sample.id].type = NONE_STRING
+
+        saveChanges({
+            containerName: sample.sourceContainer,
+            samples: copyKeyObject(copySamples)
+        }, {})
+
+    }, [sourceContainerSamples])
+
     const changeContainer = useCallback((number: string, name: string, containerType: string) => {
 
         const tempContainerList = containerType == SOURCE_STRING ? [...sourceContainerSamples] : [...destinationContainerSamples]
@@ -193,20 +222,8 @@ const LibraryTransferStep = () => {
         setDestinationIndex(destinationIndex + 1)
     }, [destinationContainerSamples, destinationIndex])
 
+
     const saveChanges = useCallback((source, destination) => {
-        const copyKeyObject = (obj) => {
-            const copy = {}
-            Object.keys(obj).forEach(key => copy[key] = { ...obj[key] })
-            return copy
-        }
-        const setContainerSamples = (oldContainer, newContainer) => {
-            oldContainer.forEach((obj: any) => {
-                if (obj.containerName == newContainer.containerName) {
-                    obj.samples = copyKeyObject(newContainer.samples)
-                }
-            })
-            return oldContainer
-        }
         setSourceContainerSample(setContainerSamples(sourceContainerSamples, source))
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
     }, [sourceContainerSamples, destinationContainerSamples])
@@ -220,7 +237,8 @@ const LibraryTransferStep = () => {
             disableChangeDestination={destinationContainerSamples.length == 1}
             cycleContainer={changeContainer}
             saveChanges={saveChanges}
-            addDestination={addContainer} />
+            addDestination={addContainer}
+            removeCell={removeCell} />
     )
 }
 export default LibraryTransferStep
