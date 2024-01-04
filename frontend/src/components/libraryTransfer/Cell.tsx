@@ -41,7 +41,6 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
     }, [])
 
     const onMouseOver = useCallback(() => onCellMouseOver({ ...sample, coordinate }), [sample, onCellMouseOver, onCellClick])
-
     const getColor = useCallback((sample) => {
         if (sample) {
             switch (sample.type) {

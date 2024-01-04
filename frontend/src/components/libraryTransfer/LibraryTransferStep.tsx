@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useReducer, useState } from "react"
 import LibraryTransfer from "./LibraryTransfer"
 export interface sampleInfo {
     coordinate: string,
@@ -143,28 +143,54 @@ const LibraryTransferStep = () => {
         return copy
     }, [])
 
-    const setContainerSamples = useCallback((oldContainer, newContainer) => {
+    const copyContainerArray = useCallback((containerArray) => {
+        return containerArray.map(obj => {
+            return {
+                columns: obj.columns,
+                rows: obj.rows,
+                containerName: obj.containerName,
+                samples: copyKeyObject(obj.samples)
+            }
+        })
+    }, [])
+
+    const setContainerSamples = (oldContainer, newContainer) => {
         oldContainer.forEach((obj: any) => {
             if (obj.containerName == newContainer.containerName) {
                 obj.samples = copyKeyObject(newContainer.samples)
             }
         })
         return oldContainer
-    }, [])
+    }
 
 
-    const removeCell = useCallback((sample) => {
-        const index = sourceContainerSamples.findIndex(container => container.containerName == sample.sourceContainer)
+    const removeCells = useCallback(
+        (samples) => {
+            const containerObj = {}
+            Object.keys(samples).forEach(key => {
+                if (!containerObj[samples[key].sourceContainer]) {
+                    containerObj[samples[key].sourceContainer] = []
+                }
+                containerObj[samples[key].sourceContainer].push(key)
+            })
 
-        const copySamples = copyKeyObject(sourceContainerSamples[index].samples)
-        copySamples[sample.id].type = NONE_STRING
 
-        saveChanges({
-            containerName: sample.sourceContainer,
-            samples: copyKeyObject(copySamples)
-        }, {})
+            const copySourceContainerSamples = copyContainerArray(sourceContainerSamples)
+            const copyDestinationSamples = copyContainerArray(destinationContainerSamples)
 
-    }, [sourceContainerSamples])
+            Object.keys(containerObj).forEach(container =>
+                containerObj[container].forEach(id => {
+                    delete copyDestinationSamples[destinationIndex].samples[id]
+                    const sourceIndex = sourceContainerSamples.findIndex(source => source.containerName == container)
+                    copySourceContainerSamples[sourceIndex].samples[id].type = NONE_STRING
+                }
+                )
+            )
+            setDestinationContainerSamples(copyDestinationSamples)
+            setSourceContainerSample(copySourceContainerSamples)
+
+        }
+        , [sourceContainerSamples, destinationContainerSamples, destinationIndex])
 
     const changeContainer = useCallback((number: string, name: string, containerType: string) => {
 
@@ -238,7 +264,7 @@ const LibraryTransferStep = () => {
             cycleContainer={changeContainer}
             saveChanges={saveChanges}
             addDestination={addContainer}
-            removeCell={removeCell} />
+            removeCells={removeCells} />
     )
 }
 export default LibraryTransferStep
