@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Cell from "./Cell"
 import { NONE_STRING, PATTERN_STRING, SELECTED_STRING, containerSample } from "./LibraryTransferStep";
 
@@ -22,21 +22,30 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
         return String.fromCharCode(c.charCodeAt(0) + 1);
     }, [])
 
+    const getDiff = useCallback((a, b) => {
+        return (Number(a) - Number(b))
+    }, [])
+
+
     const previewPlacePattern = useCallback((coordinate) => {
-        console.log(coordinate)
+
         // so to repeat the pattern but displace the cells, I take the most left cell and and the clicked cell, as how to transform the coords to the existing accordingly.
         // Iterate over all selected cells and take the difference of the most left column and the current cell
         // and add it to the clicked cell.
-        // selected cells have coords ['a_1', 'a_3'], clicked cell to place is 'b_4'. Destination samples will become ['b_4, 'b_6']
-        const sorted: any = []
+        // selected cells have coords ['a_1', 'a_3'], hovered cell to place is 'b_4'. Destination samples will become ['b_4, 'b_6']
+        const cellsByCoordinate: any = []
         let tempPreviewCells = {}
+
         if (Object.keys(selectedSampleList).length > 0) {
-            console.log(selectedSampleList)
+            let mostLeftColumn = 12;
             Object.keys(selectedSampleList).forEach(id => {
-                sorted.push({ id: id, type: selectedSampleList[id].type, coordinate: selectedSampleList[id].coordinate })
+                cellsByCoordinate.push({ id: id, type: selectedSampleList[id].type, coordinate: selectedSampleList[id].coordinate })
+                let column = Number(selectedSampleList[id].coordinate.split('_')[1])
+                mostLeftColumn = column <= mostLeftColumn ? column : mostLeftColumn
             })
+            
             //sorting the sampleList by coordinate
-            sorted.sort((a, b) => {
+            cellsByCoordinate.sort((a, b) => {
                 if (a.coordinate < b.coordinate) {
                     return -1;
                 } else if (a.coordinate > b.coordinate) {
@@ -44,43 +53,33 @@ const TransferContainer = ({ containerType, columns, rows, samples, updateSample
                 }
                 return 0;
             })
-            const getDiff = (a, b) => {
-                return Math.abs(Number(a) - Number(b))
-            }
-
-            //cell that is click to translate the coords to
-            const placed_coordinate = coordinate.split('_')
-            //most left cell that is selected
-            const left = sorted[0].coordinate.split('_')
-
-
-            let difference = getDiff(placed_coordinate[1], left[1])
-            const transformedColumn = Number(left[1]) + 1 * ((Number(placed_coordinate[1]) > Number(left[1])) ? difference : -difference)
-
-            difference = getDiff(left[0].charCodeAt(0), placed_coordinate[0].charCodeAt(0))
-            let transformedRow = String.fromCharCode(left[0].charCodeAt(0) + 1 * (placed_coordinate[0].charCodeAt(0) > left[0].charCodeAt(0) ? difference : -difference))
-
-
-
-            let currentColumn = transformedColumn
-            let currentRow = left[0]
-            console.log(currentColumn, currentRow)
+            
+            let transformedColumn
+            const placedCoordinate = coordinate.split('_')
+            let transformedRow = placedCoordinate[0]
+            let placedColumn = Number(placedCoordinate[1])
+            let currentRow = cellsByCoordinate[0].coordinate.split('_')[0]
             //iterate through each selected sample and transforming the column and row to correspond to the one that was clicked
-            sorted.forEach(value => {
-                const coord = value.coordinate.split('_');
+            cellsByCoordinate.forEach(value => {
+                const coord = value.coordinate.split('_')
 
-                //if row changes, increment row and reset column
+                //if row changes, increment row
                 if (coord[0] != currentRow) {
+                    currentRow = coord[0]
                     transformedRow = String.fromCharCode(transformedRow.charCodeAt(0) + 1)
-                    // currentColumn = transformedColumn
                 }
 
-                currentColumn = transformedColumn + getDiff(left[1], coord[1])
-                tempPreviewCells[transformedRow + '_' + currentColumn] = { id: value.id, type: PATTERN_STRING }
-                currentRow = value.coordinate.split('_')[0]
+                //calculating the difference between this current coordinate and the most left column in this selection
+                const difference = getDiff(Number(coord[1]), mostLeftColumn)
+
+                //taking the current placedColumn and adding the differnece
+                transformedColumn = placedColumn + 1 * difference
+
+
+                tempPreviewCells[transformedRow + '_' + transformedColumn] = { id: value.id, type: PATTERN_STRING }
             })
 
-            console.log(tempPreviewCells)
+
             if (Object.keys(tempPreviewCells).length > 0)
                 setPreviewCells(tempPreviewCells)
 

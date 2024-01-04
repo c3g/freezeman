@@ -24,7 +24,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
 
     //keyed object by sampleID, containing the coordinate
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
-    const [placementType, setPlacementType] = useState<string>('single')
+    const [placementType, setPlacementType] = useState<string>('pattern')
     const [placementDirection, setPlacementDirection] = useState<string>('row')
 
 
@@ -217,8 +217,8 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                     <div className={"flex-column"}>
                         <div className={"flex-row"} style={{ justifyContent: 'center', gap: '1vw' }}>
                             <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
-                                <Radio.Button value={'single'}> Single </Radio.Button>
                                 <Radio.Button value={'pattern'}> Pattern </Radio.Button>
+                                <Radio.Button value={'single'}> Single </Radio.Button>
                                 <Radio.Button value={'group'}> Group </Radio.Button>
                             </Radio.Group>
                             <Radio.Group
