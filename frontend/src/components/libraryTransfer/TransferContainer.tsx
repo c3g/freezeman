@@ -91,6 +91,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
 
     //allows to preview the cells that the group will go into, row or column
     const previewGroupPlacement = useCallback((coordinate) => {
+        console.log("yyya")
         let preview = {}
         const count = Object.keys(selectedSampleList).length
         if (count > 0 && direction) {
@@ -135,14 +136,14 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         //add sample to selection
         if (isSelecting && sample.id) {
             updateSample([sample], containerType)
-        }
-        //update preview for group placement
-        if (!isSelecting && !sample.id && !pattern) {
-            previewGroupPlacement(sample.coordinate)
-        }
-        //update preview for pattern placement
-        if (!isSelecting && !sample.id && pattern) {
-            previewPlacePattern(sample.coordinate)
+        } else {
+            if (!pattern) {
+                //update preview for group placement
+                previewGroupPlacement(sample.coordinate)
+            } else {
+                //update preview for pattern placement
+                previewPlacePattern(sample.coordinate)
+            }
         }
     }, [isSelecting, direction, selectedSampleList, previewCells, pattern])
 

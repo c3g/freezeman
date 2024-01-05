@@ -109,7 +109,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         const setType = (type, source, destination) => {
             Object.keys(source).forEach((id) => {
                 if (source[id].type == NONE_STRING)
-                    destination[id] = { coordinate: source[id].coordinate, type: type }
+                    destination[id] = { coordinate: source[id].coordinate, type: type, name: source[id].name, sourceContainer: sourceSamples.containerName }
             })
             return destination
         }
@@ -137,7 +137,6 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             const coord = sample.coordinate
             // to prevent users from placing into empty cells in source container
             if (containerType == DESTINATION_STRING) {
-                console.log(id, tempDestinationSamples[id])
                 if (!tempDestinationSamples[id] || sample.type == PATTERN_STRING) {
                     let selectedId: number = 0
                     if (placementType != PATTERN_STRING) {
