@@ -178,10 +178,12 @@ const LibraryTransferStep = () => {
             const copySourceContainerSamples = copyContainerArray(sourceContainerSamples)
             const copyDestinationSamples = copyContainerArray(destinationContainerSamples)
 
+            console.log(containerObj, destinationContainerSamples)
             Object.keys(containerObj).forEach(container =>
                 containerObj[container].forEach(id => {
                     delete copyDestinationSamples[destinationIndex].samples[id]
                     const sourceIndex = sourceContainerSamples.findIndex(source => source.containerName == container)
+                    console.log(sourceIndex, sourceContainerSamples, container)
                     copySourceContainerSamples[sourceIndex].samples[id].type = NONE_STRING
                 }
                 )
