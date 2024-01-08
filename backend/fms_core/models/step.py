@@ -19,6 +19,7 @@ class Step(TrackedModel):
     protocol = models.ForeignKey(Protocol, null=True, blank=True, on_delete=models.PROTECT, related_name="steps", help_text="Protocol for the step.")
     expected_sample_type = models.CharField(choices=SampleType.choices, default=SampleType.ANY, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="The acceptable sample type for the step.")
     type = models.CharField(choices=StepType.choices, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Type of step.")
+    needs_placement = models.BooleanField(default=True, help_text="Samples on this step need a destination container and coordinates assigned.")
 
     def __str__(self):
         return self.name
