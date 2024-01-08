@@ -116,21 +116,11 @@ RUN_PROCESSING_SCHEMA = {
                     "type": "object",
                     "properties": {
                         "external_project_id": {"type": "string"},
+                        "project_name": {"type": "string"},
                         "sample_name": {"type": "string"},
                         "derived_sample_id": {"type": ["null", "number"]},
-                        "barcodes": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "PROJECT": {"type": "string"},
-                                },
-                                "required": ["PROJECT"]
-                            },
-                            "minItems": 1,
-                        },
                     },
-                    "required": ["sample_name", "barcodes"]
+                    "required": ["sample_name", "external_project_id", "project_name"]
                 },
             },
         },
@@ -156,10 +146,9 @@ RUN_PROCESSING_SCHEMA = {
                     "qc": {
                         "type": "object",
                         "properties": {
-                            "avg_qual": {"type": "string"},
-                            "duplicate_rate": {"type": "string"},
-                            "nb_reads": {"type": "string"},
-                            "nb_bases": {"type": "string"},
+                            "avg_qual": {"type": ["number", "null"]},
+                            "duplicate_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "nb_reads": {"type": "number"},
                         },
                     },
                     "blast": {

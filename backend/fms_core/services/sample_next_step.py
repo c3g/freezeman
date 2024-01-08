@@ -499,6 +499,4 @@ def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sa
                                                 workflow_action=WorkflowAction.NEXT_STEP,
                                                 next_sample=next_sample,
                                                 keep_current=False)
-        warnings.append(("Without explicit action, the current process of sample {0} will be recorded as part of its workflow.", [current_sample.name]))
-    
     return errors, warnings

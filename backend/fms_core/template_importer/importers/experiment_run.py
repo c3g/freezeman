@@ -1,8 +1,9 @@
-from fms_core.models import RunType, PropertyType
+from fms_core.models import RunType, PropertyType, Container
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.experiment_run import ExperimentRunRowHandler, SampleRowHandler
 from fms_core.template_importer._constants import LOAD_ALL
 from fms_core.templates import EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
+from fms_core.template_importer._constants import DESTINATION_CONTAINER_BARCODE_MARKER
 from collections import defaultdict
 from datetime import datetime
 from fms_core.services.step import get_step_from_template
@@ -45,10 +46,34 @@ class ExperimentRunImporter(GenericImporter):
         except Exception as e:
             self.base_errors.append(f"Property Type could not be found. {e}")
 
+    def validation_by_run_type(self, run_type, sample_input, experiment_input):
+        match run_type.name:
+            case "Axiom":
+                experiment_destination_barcode = defaultdict(set)
+                for sample_row in sample_input:
+                    experiment_destination_barcode[sample_row["sample"]["experiment_name"]].add(sample_row["barcode"])
+                for experiment_row in experiment_input:
+                    if (len(experiment_destination_barcode[experiment_row["experiment_run_name"]]) > 1):
+                        self.base_errors.append(f"Experiment {experiment_row['experiment_run_name']} receives samples from more than one container {experiment_destination_barcode[experiment_row['experiment_run_name']]}.")
+                    elif len(experiment_destination_barcode[experiment_row["experiment_run_name"]]) == 1:
+                        source_container_barcode = list(experiment_destination_barcode[experiment_row["experiment_run_name"]])[0]
+                        container = Container.objects.filter(barcode=source_container_barcode).first()
+                        comment = container.comment
+                        start = comment.find(DESTINATION_CONTAINER_BARCODE_MARKER)
+                        if start > -1:
+                            start = start + len(DESTINATION_CONTAINER_BARCODE_MARKER)
+                            end = comment.find(" ", start)
+                            destination_barcode = comment[start:end]
+                            if destination_barcode != experiment_row["container"]["barcode"]:
+                                self.base_errors.append(f"Experiment Name {experiment_row['experiment_run_name']} : Source container {container.name} was set to be transfered to Experiment Container Barcode {destination_barcode}.")
+                    
+
     def import_template_inner(self):
         samples_sheet = self.sheets['Samples']
         experiments_sheet = self.sheets['Experiments']
         experiments_df = experiments_sheet.dataframe
+        sample_input = []
+        experiment_input = []
 
         # PRELOADING - Set values for global data
         runtype_name = experiments_df.values[RUN_TYPE_INDEX][1]
@@ -91,6 +116,8 @@ class ExperimentRunImporter(GenericImporter):
             # Set the actual volumed_used in case the load all option was used
             sample["volume_used"] = sample['sample_obj'].volume if sample["volume_used"] == LOAD_ALL else sample["volume_used"]
             sample_rows_data[sample['experiment_name']].append(sample)
+            sample_kwargs["sample"] = sample
+            sample_input.append(sample_kwargs)
 
         """
             EXPERIMENTS SHEET
@@ -128,3 +155,7 @@ class ExperimentRunImporter(GenericImporter):
                 row_i=row_id,
                 **experiment_run_kwargs,
             )
+
+            experiment_input.append(experiment_run_kwargs)
+      
+        self.validation_by_run_type(self.preloaded_data['run_type'], sample_input, experiment_input)
