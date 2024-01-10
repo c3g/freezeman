@@ -133,8 +133,8 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
       ("Samples", "Experiment Container Coordinates", "coordinates"),
-      ("Experiments", "Experiment Container Barcode", "containerBarcode"),
-      ("Experiments", "Experiment Container Kind", "containerKind"),
+      ("Experiments", "Experiment Container Barcode", "container_barcode"),
+      ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
 }
 
@@ -153,8 +153,8 @@ EXPERIMENT_MGI_TEMPLATE = {
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
     ("Samples", "Experiment Container Coordinates", "coordinates"),
-    ("Experiments", "Experiment Container Barcode", "containerBarcode"),
-    ("Experiments", "Experiment Container Kind", "containerKind"),
+    ("Experiments", "Experiment Container Barcode", "container_barcode"),
+    ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
 }
 
@@ -173,8 +173,8 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
       ("Samples", "Experiment Container Coordinates", "coordinates"),
-      ("Experiments", "Experiment Container Barcode", "containerBarcode"),
-      ("Experiments", "Experiment Container Kind", "containerKind"),
+      ("Experiments", "Experiment Container Barcode", "container_barcode"),
+      ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
 }
 
@@ -193,8 +193,8 @@ EXPERIMENT_AXIOM_TEMPLATE = {
     # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
     "placement info": [
         ("Samples", "Experiment Container Coordinates", "coordinates"),
-        ("Experiments", "Experiment Container Barcode", "containerBarcode"),
-        ("Experiments", "Experiment Container Kind", "containerKind"),
+        ("Experiments", "Experiment Container Barcode", "container_barcode"),
+        ("Experiments", "Experiment Container Kind", "container_kind"),
     ],
 }
 
@@ -243,10 +243,10 @@ LIBRARY_CAPTURE_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Library", "Destination Container Barcode", "containerBarcode"),
+      ("Library", "Destination Container Barcode", "container_barcode"),
       ("Library", "Destination Container Coordinates", "coordinates"),
-      ("Library", "Destination Container Name", "containerName"),
-      ("Library", "Destination Container Kind", "containerKind"),
+      ("Library", "Destination Container Name", "container_name"),
+      ("Library", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -285,10 +285,10 @@ LIBRARY_CONVERSION_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Library", "Destination Container Barcode", "containerBarcode"),
+      ("Library", "Destination Container Barcode", "container_barcode"),
       ("Library", "Destination Container Coordinates", "coordinates"),
-      ("Library", "Destination Container Name", "containerName"),
-      ("Library", "Destination Container Kind", "containerKind"),
+      ("Library", "Destination Container Name", "container_name"),
+      ("Library", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -328,10 +328,10 @@ LIBRARY_PREPARATION_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Library", "Library Container Barcode", "containerBarcode"),
+      ("Library", "Library Container Barcode", "container_barcode"),
       ("Library", "Library Container Coordinates", "coordinates"),
-      ("Library", "Library Container Name", "containerName"),
-      ("Library", "Library Container Kind", "containerKind"),
+      ("Library", "Library Container Name", "container_name"),
+      ("Library", "Library Container Kind", "container_kind"),
   ],
 }
 
@@ -397,10 +397,10 @@ NORMALIZATION_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Normalization", "Destination Container Barcode", "containerBarcode"),
+      ("Normalization", "Destination Container Barcode", "container_barcode"),
       ("Normalization", "Destination Container Coord", "coordinates"),
-      ("Normalization", "Destination Container Name", "containerName"),
-      ("Normalization", "Destination Container Kind", "containerKind"),
+      ("Normalization", "Destination Container Name", "container_name"),
+      ("Normalization", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -439,10 +439,10 @@ NORMALIZATION_PLANNING_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Normalization", "Destination Container Barcode", "containerBarcode"),
+      ("Normalization", "Destination Container Barcode", "container_barcode"),
       ("Normalization", "Destination Container Coord", "coordinates"),
-      ("Normalization", "Destination Container Name", "containerName"),
-      ("Normalization", "Destination Container Kind", "containerKind"),
+      ("Normalization", "Destination Container Name", "container_name"),
+      ("Normalization", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -522,10 +522,10 @@ SAMPLE_POOLING_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Pools", "Destination Container Barcode", "containerBarcode"),
+      ("Pools", "Destination Container Barcode", "container_barcode"),
       ("Pools", "Destination Container Coord", "coordinates"),
-      ("Pools", "Destination Container Name", "containerName"),
-      ("Pools", "Destination Container Kind", "containerKind"),
+      ("Pools", "Destination Container Name", "container_name"),
+      ("Pools", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -644,10 +644,10 @@ SAMPLE_EXTRACTION_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("ExtractionTemplate", "Destination Container Barcode", "containerBarcode"),
+      ("ExtractionTemplate", "Destination Container Barcode", "container_barcode"),
       ("ExtractionTemplate", "Destination Container Coord", "coordinates"),
-      ("ExtractionTemplate", "Destination Container Name", "containerName"),
-      ("ExtractionTemplate", "Destination Container Kind", "containerKind"),
+      ("ExtractionTemplate", "Destination Container Name", "container_name"),
+      ("ExtractionTemplate", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -682,10 +682,10 @@ SAMPLE_TRANSFER_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("SampleTransfer", "Destination Container Barcode", "containerBarcode"),
+      ("SampleTransfer", "Destination Container Barcode", "container_barcode"),
       ("SampleTransfer", "Destination Container Coord", "coordinates"),
-      ("SampleTransfer", "Destination Container Name", "containerName"),
-      ("SampleTransfer", "Destination Container Kind", "containerKind"),
+      ("SampleTransfer", "Destination Container Name", "container_name"),
+      ("SampleTransfer", "Destination Container Kind", "container_kind"),
   ],
 }
 
