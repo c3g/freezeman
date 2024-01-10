@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
@@ -41,7 +41,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const GROUPED_SAMPLES_TAB_KEY = 'groups'
 	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
-	const TRANSFER_TAB_KEY = 'transfer'
+	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
@@ -49,7 +49,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [selectedTableSamples, setSelectedTableSamples] = useState<SampleAndLibrary[]>([])
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
 	const [isSorted, setIsSorted] = useState<boolean>(false)
-	const [transferData, setTransferData] = useState<any>({})
+	const [placementData, setPlacementData] = useState<any>({})
 
 	const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
@@ -376,15 +376,24 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [step.id, selectedTableSamples, isSorted])
 
-	const onTransferChange = useCallback((changes) => {
-		setTransferData(changes)
+	const placementSave = useCallback((placementData) => {
+		const tempPlaceData = {}
+		console.log(placementData)
+		placementData.forEach(container => {
+			Object.keys(container.samples).forEach(id => {
+
+				if (container.container_name) {
+					// tempPlaceData[id] = {container_barcode: }
+				}
+			})
+		})
+		setPlacementData(tempPlaceData)
 	}, [])
 
 	/** UX **/
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
-	const canSelectAllSamples = stepSamples.displayedSamples.length > 0;
 	const buttonBar = (
 		<Space>
 			{stepSamples.prefill.templates.length > 1 &&
@@ -411,7 +420,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			{!isAutomationStep &&
 				<>
-					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []} transferData={transferData}></PrefillButton>
+					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []} placementData={placementData}></PrefillButton>
 					<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
 				</>
 			}
@@ -504,11 +513,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						/>
 						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 					</Tabs.TabPane>
-					<Tabs.TabPane tab="Transfer" key={TRANSFER_TAB_KEY}>
-						<LibraryTransferStep 
+					<Tabs.TabPane tab="Placement" key={PLACEMENT_TAB_KEY}>
+						<LibraryTransferStep
 							stepID={step.id}
-							onTransfer={onTransferChange}
-							selectedSamples={selectedTableSamples}/>
+							save={placementSave}
+							selectedSamples={selectedTableSamples} />
 					</Tabs.TabPane>
 				</Tabs>
 			</PageContent>

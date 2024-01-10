@@ -5,7 +5,7 @@ const { Text } = Typography;
 interface ContainerNameScrollerProps {
     changeContainer: (number: string, name: string, containerType: string) => void,
     name: string,
-    changeContainerName?: (containerName) => void,
+    changeContainerName?: (container_name) => void,
     containerType: string,
     disabled: boolean
 }

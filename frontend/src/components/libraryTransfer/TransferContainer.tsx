@@ -29,15 +29,15 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
     }, [])
 
     const sortByCoordinate = useCallback((a, b) => {
-        if (a.coordinate < b.coordinate) {
+        if (a.coordinates < b.coordinates) {
             return -1;
-        } else if (a.coordinate > b.coordinate) {
+        } else if (a.coordinates > b.coordinates) {
             return 1;
         }
         return 0;
     }, [])
 
-    const previewPlacePattern = useCallback((coordinate) => {
+    const previewPlacePattern = useCallback((coordinates) => {
 
         // so to repeat the pattern but displace the cells, I take the most left cell and and the clicked cell, as how to transform the coords to the existing accordingly.
         // Iterate over all selected cells and take the difference of the most left column and the current cell
@@ -49,25 +49,25 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         if (Object.keys(selectedSampleList).length > 0) {
             let mostLeftColumn = 12;
             Object.keys(selectedSampleList).forEach(id => {
-                cellsByCoordinate.push({ id: id, type: selectedSampleList[id].type, coordinate: selectedSampleList[id].coordinate })
-                const column = Number(selectedSampleList[id].coordinate.split('_')[1])
+                cellsByCoordinate.push({ id: id, type: selectedSampleList[id].type, coordinates: selectedSampleList[id].coordinates })
+                const column = Number(selectedSampleList[id].coordinates.split('_')[1])
                 mostLeftColumn = column <= mostLeftColumn ? column : mostLeftColumn
             })
 
-            //sorting the sampleList by coordinate
+            //sorting the sampleList by coordinates
             cellsByCoordinate.sort((sortByCoordinate))
 
-            //coordinate of the cell clicked
-            const placedCoordinate = coordinate.split('_')
+            //coordinates of the cell clicked
+            const placedCoordinate = coordinates.split('_')
             const placedColumn = Number(placedCoordinate[1])
             let transformedRow = placedCoordinate[0]
             let transformedColumn
 
             //row used to keep track whether to increase the transformed row
-            let currentRow = cellsByCoordinate[0].coordinate.split('_')[0]
+            let currentRow = cellsByCoordinate[0].coordinates.split('_')[0]
             //iterate through each selected sample and transforming the column and row to correspond to the one that was clicked
             cellsByCoordinate.forEach(value => {
-                const coord = value.coordinate.split('_')
+                const coord = value.coordinates.split('_')
 
                 //if row changes, increment row
                 if (coord[0] != currentRow) {
@@ -75,7 +75,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
                     transformedRow = String.fromCharCode(transformedRow.charCodeAt(0) + 1)
                 }
 
-                //calculating the difference between this current coordinate and the most left column in this selection
+                //calculating the difference between this current coordinates and the most left column in this selection
                 const difference = getDiff(Number(coord[1]), mostLeftColumn)
                 //taking the current placedColumn and adding the differnece
                 transformedColumn = placedColumn + difference
@@ -90,16 +90,16 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
     }, [previewCells, selectedSampleList, pattern])
 
     //allows to preview the cells that the group will go into, row or column
-    const previewGroupPlacement = useCallback((coordinate) => {
+    const previewGroupPlacement = useCallback((coordinates) => {
         let preview = {}
         // const count = Object.keys(selectedSampleList).length
         const cells: any = Object.keys(selectedSampleList).map(id => {
-            return ({ id: id, type: selectedSampleList[id].type, coordinate: selectedSampleList[id].coordinate })
+            return ({ id: id, type: selectedSampleList[id].type, coordinates: selectedSampleList[id].coordinates })
         }).sort(sortByCoordinate)
 
         if (cells.length > 0 && direction) {
-            //coordinate row and column is separated with '_'
-            const coords = (coordinate.toString()).split('_')
+            //coordinates row and column is separated with '_'
+            const coords = (coordinates.toString()).split('_')
             let row = String(coords[0])
             let col = Number(coords[1])
             for (let i = 0; i < cells.length; i++) {
@@ -114,7 +114,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
                 }
             }
         } else {
-            preview[coordinate] = { id: undefined, type: undefined }
+            preview[coordinates] = { id: undefined, type: undefined }
         }
 
         if (Object.keys(preview).length > 0)
@@ -142,21 +142,21 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         } else {
             if (!pattern) {
                 //update preview for group placement
-                previewGroupPlacement(sample.coordinate)
+                previewGroupPlacement(sample.coordinates)
             } else {
                 //update preview for pattern placement
-                previewPlacePattern(sample.coordinate)
+                previewPlacePattern(sample.coordinates)
             }
         }
     }, [isSelecting, direction, selectedSampleList, previewCells, pattern])
 
 
-    //checks to see if sample exists at coordinate and returns sample
-    const checkSamples = useCallback((coordinate) => {
+    //checks to see if sample exists at coordinates and returns sample
+    const checkSamples = useCallback((coordinates) => {
         let tempSamples: cellSample = { ...samples }
-        const id = Object.keys(tempSamples).find((id) => tempSamples[id].coordinate == coordinate) ?? null;
+        const id = Object.keys(tempSamples).find((id) => tempSamples[id].coordinates == coordinates) ?? null;
         let type = NONE_STRING
-        // console.log(coordinate, tempSamples, id)
+        // console.log(coordinates, tempSamples, id)
         if (id) {
             //if exists in selected list then the type is set to SELECTED_STRING
             if (selectedSampleList && selectedSampleList[id] && selectedSampleList[id].type == containerType)
@@ -171,7 +171,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         () => {
         let cells: any[] = [];
         let char = 'a';
-        let coordinate = '';
+        let coordinates = '';
         //renders header based on the number of columns provided to the component
         let headerCells: React.ReactElement[] = []
         for (let i = 0; i < columns + 1; i++) {
@@ -189,7 +189,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
                 headerCells
             }
         </div>)
-        //renders each row with the corresponding row letter coordinate
+        //renders each row with the corresponding row letter coordinates
         for (let i = 0; i < rows; i++) {
             let rowOfCells: React.ReactElement[] = []
             rowOfCells.push(
@@ -201,15 +201,15 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
             )
             //renders container cells
             for (let x = 1; x < columns + 1; x++) {
-                coordinate = char + "_" + (x);
+                coordinates = char + "_" + (x);
                 rowOfCells.push(
-                    <Cell key={coordinate}
+                    <Cell key={coordinates}
                         onCellMouseLeave={() => setPreviewCells({})}
                         isSelecting={isSelecting}
                         onCellMouseOver={onMouseHover}
-                        sample={checkSamples(coordinate)}
-                        coordinate={coordinate}
-                        outline={previewCells[coordinate] ? true : false}
+                        sample={checkSamples(coordinates)}
+                        coordinates={coordinates}
+                        outline={previewCells[coordinates] ? true : false}
                         onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
                 )
             }

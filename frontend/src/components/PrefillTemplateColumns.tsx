@@ -37,7 +37,7 @@ interface PrefillButtonProps {
     handlePrefillTemplate: (data: { [column: string]: any }) => void,
     data: { [column: string]: ColumnType },
     onPrefillOpen: () => void,
-    transferData?: any
+    placementData?: any
 }
 
 
@@ -59,7 +59,7 @@ function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
 }
 
 
-const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen }: PrefillButtonProps) => {
+const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen, placementData }: PrefillButtonProps) => {
     const dispatch = useAppDispatch()
     const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(false);
     const [checkedFields, setCheckedFields] = useState<{ [column: string]: boolean }>({});

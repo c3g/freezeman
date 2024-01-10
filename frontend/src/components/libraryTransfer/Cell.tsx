@@ -7,7 +7,7 @@ interface CellProps {
     onCellClick: (e: any) => void,
     onCellMouseOver: (e: any) => void,
     onCellMouseLeave: () => void,
-    coordinate: string,
+    coordinates: string,
     isSelecting: boolean,
     sample: {
         id: string,
@@ -19,12 +19,12 @@ interface CellProps {
     outline: boolean,
 }
 
-const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline }: CellProps) => {
+const Cell = ({ coordinates, onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline }: CellProps) => {
     const [hover, setHover] = useState<boolean>(isSelecting)
 
     const onClick = useCallback(() => {
         if (sample?.type != PLACED_STRING) {
-            onCellClick({ id: sample?.id, type: sample?.type, coordinate, name: sample?.name, sourceContainer: sample?.sourceContainer })
+            onCellClick({ id: sample?.id, type: sample?.type, coordinates, name: sample?.name, sourceContainer: sample?.sourceContainer })
         }
         setHover(!hover)
     }, [sample, onCellClick, isSelecting, hover])
@@ -40,7 +40,7 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
         onCellMouseLeave()
     }, [])
 
-    const onMouseOver = useCallback(() => onCellMouseOver({ ...sample, coordinate }), [sample, onCellMouseOver, onCellClick])
+    const onMouseOver = useCallback(() => onCellMouseOver({ ...sample, coordinates }), [sample, onCellMouseOver, onCellClick])
     const getColor = useCallback((sample) => {
         if (sample) {
             switch (sample.type) {
@@ -59,7 +59,7 @@ const Cell = ({ coordinate, onCellClick, sample, onCellMouseOver, onCellMouseLea
     return (
         <div
             className={'cell'}
-            key={coordinate}
+            key={coordinates}
             onClick={onClick}
             onMouseOver={onMouseOver}
             onMouseEnter={onMouseEnter}
