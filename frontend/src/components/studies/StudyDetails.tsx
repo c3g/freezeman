@@ -29,6 +29,8 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
     const [workflow, setWorkflow] = useState<Workflow>()
     const [studySamples, setStudySamples] = useState<StudySampleList>()
 
+    /* Changes from here */ 
+
     useEffect(() => {
         if (!studyId) {
             return

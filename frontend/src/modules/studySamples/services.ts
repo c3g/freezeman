@@ -12,6 +12,8 @@ import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models
 
 export async function loadStudySamples(studyID: FMSId) {
 	
+  let ticktock = Date.now()
+
 	const study = (await fetchStudies([studyID])).find(obj => obj.id === studyID)
 	if(! study) {
 		throw new Error(`Study "${studyID}" not found.`)
@@ -45,7 +47,7 @@ export async function loadStudySamples(studyID: FMSId) {
 	} catch(err) {
 		throw new Error('Failed to fetch study samples')
 	}
-	
+	console.log("Before fetch completed" + (Date.now() - ticktock).toString())
 	// Get samples that have completed the process at a step
 	let completedSamplesByStudy : FMSStepHistory[] | undefined
 	const sampleHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID, {limit: 100000}))
@@ -54,7 +56,7 @@ export async function loadStudySamples(studyID: FMSId) {
 	} else {
 		throw new Error('Failed to fetch completed samples for study')
 	}
-
+  console.log("After fetch completed" + (Date.now() - ticktock).toString())
 	// Get the total sample counts for queued samples and completed samples, for display in the UX.
 	let sampleCounts : FMSStudySamplesCounts | undefined = undefined
 	const sampleCountResponse = await store.dispatch(api.sampleNextStepByStudy.countStudySamples(studyID))
@@ -68,9 +70,9 @@ export async function loadStudySamples(studyID: FMSId) {
 	if (completedSampleCountResponse.data.length > 0) {
 		completedSampleCounts = completedSampleCountResponse.data[0]
 	}
-
+  console.log("Before build" + (Date.now() - ticktock).toString())
 	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, groupedSampleNextSteps, completedSamplesByStudy, sampleCounts, completedSampleCounts)
-
+  console.log("After build" + (Date.now() - ticktock).toString())
 	// Fetch the study samples
 	const sampleList = listSamplesInStudy(studySamples)
 	if (sampleList.length > 0) {
@@ -80,6 +82,7 @@ export async function loadStudySamples(studyID: FMSId) {
 			await fetchLibrariesForSamples(sampleIDs)
 		}
 	}
+  console.log("Before return" + (Date.now() - ticktock).toString())
 	return {
 		steps: studySamples.steps
 	}
@@ -115,6 +118,7 @@ export async function buildStudySamplesFromWorkflow(
 
 	const stepMap = new Map<FMSId, StudySampleStep>()
 
+  let ticktock = Date.now()
 	// Create the list of study steps from the workflow, starting and ending at the steps defined in the study.
 	workflow.steps_order.forEach(stepOrder => {
 		if (stepOrder.order >= study.start && stepOrder.order <= study.end) {
@@ -150,10 +154,11 @@ export async function buildStudySamplesFromWorkflow(
 			stepMap.set(step.stepOrderID, step)
 		}
 	}) 
-
+  console.log("After Workflow:" + (Date.now() - ticktock).toString())
 	// Get the process measurements for the completed samples
 	const processMeasurementIDs = completedSamplesByStudy.filter((completed) => !isNullish(completed.process_measurement)).map(completed => completed.process_measurement)
 	const processMeasurements = await fetchProcessMeasurements(processMeasurementIDs)
+  console.log("First Process Measurement:" + (Date.now() - ticktock).toString())
 	const processMeasurementsByID = createItemsByID(processMeasurements)
 
 	// Get the processes for the completed samples
@@ -172,6 +177,7 @@ export async function buildStudySamplesFromWorkflow(
 	completedSamplesByStudy.forEach(stepHistory => {
 		const step = stepMap.get(stepHistory.step_order)
 		if (step) {
+      console.log("Second Process Measurement:" + (Date.now() - ticktock).toString())
 			const processMeasurement = processMeasurementsByID[stepHistory.process_measurement]
 			const process = processMeasurement ? processesByID[processMeasurement.process] : undefined
 			const user = process && process.created_by ? usersByID[process.created_by] : stepHistory.created_by ? usersByID[stepHistory.created_by] : undefined
@@ -193,7 +199,7 @@ export async function buildStudySamplesFromWorkflow(
 
 	// Return the steps in the step order
 	const steps = Array.from(stepMap.values()).sort((a, b) => a.stepOrder - b.stepOrder)
-
+  console.log("Before return:" + (Date.now() - ticktock).toString())
 	return {
 		steps
 	}
