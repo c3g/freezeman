@@ -14,7 +14,7 @@ const LibraryTransferTable = ({ samples, onSampleSelect, selectedSamples }: Libr
             return reverse.indexOf(b.sample.id) - reverse.indexOf(a.sample.id);
         })
         setSortedSamples(samples)
-    }, [samples])
+    }, [samples, selectedSamples])
 
     const selectionProps = {
         selectedSampleIDs: selectedSamples,

@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react"
 import LibraryTransfer from "./LibraryTransfer"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { list as listSamples } from "../../modules/samples/actions"
-import { selectContainersByID, selectSamplesByID } from "../../selectors"
 import api from "../../utils/api"
 export interface sampleInfo {
-    coordinate: string,
+    coordinates: string,
     type: string,
     name: string,
     sourceContainer?: string
@@ -14,10 +12,12 @@ export interface cellSample {
     [id: string]: sampleInfo
 }
 export interface containerSample {
-    containerName: string,
+    samples: cellSample
+    container_name: string,
+    container_barcode: string,
     rows: number,
     columns: number,
-    samples: cellSample
+    container_kind?: string,
 }
 export const NONE_STRING = 'none'
 export const PLACED_STRING = 'placed'
@@ -25,41 +25,48 @@ export const SELECTED_STRING = 'selected'
 export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
 export const PATTERN_STRING = 'pattern'
+const EMPTY_CONTAINER = [
+    {
+        container_name: '',
+        container_barcode: 'NewDestinationContainer_1',
+        rows: 8,
+        columns: 12,
+        samples: {
+        },
+    },
+]
 interface IProps {
-    onTransfer: (changes) => void,
+    save: (changes) => void,
     selectedSamples: any,
     stepID: any,
 }
-const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) => {
+const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
     const dispatch = useAppDispatch()
-    const samplesByID = useAppSelector(selectSamplesByID)
-    const containersByID = useAppSelector(selectContainersByID)
-    const split_at_index = (value) => {
-        return value.substring(0, 1).toLowerCase() + "_" + (parseFloat(value.substring(1)));
-    }
-    const parseSamples = useCallback((list) => {
-        const object = {}
-        list.forEach(obj => {
-            object[obj.id] = { coordinate: obj.coordinate ? split_at_index(obj.coordinate) : '', type: NONE_STRING, name: obj.name }
-        })
-        return object
-    }, [])
+
     const fetchListContainers = useCallback(async () => {
+
+        const split_at_index = (value) => {
+            return value.substring(0, 1).toLowerCase() + "_" + (parseFloat(value.substring(1)));
+        }
+        const parseSamples = (list) => {
+            const object = {}
+            list.forEach(obj => {
+                object[obj.id] = { coordinates: obj.coordinates ? split_at_index(obj.coordinates) : '', type: NONE_STRING, name: obj.name }
+            })
+            return object
+        }
+
         const sampleIDs = selectedSamples.map(sample => sample.sample.id)
-        let containerSamples: containerSample[] = [{
-            containerName: '',
-            rows: 8,
-            columns: 12,
-            samples: {
-            },
-        },]
+        let containerSamples: containerSample[] = EMPTY_CONTAINER
         if (sampleIDs.length > 0) {
             const values = await dispatch(api.containers.listContainerGroups(sampleIDs.join(',')))
             const containers = (values.data)
             containerSamples = []
             Object.keys(containers).forEach(container => {
+                const containerString = container.split('-')
                 containerSamples.push({
-                    containerName: container == '0' ? 'tubes_without parent' : container,
+                    container_barcode: containerString[0] == '0' ? 'tubes_without parent' : containerString[0],
+                    container_name: containerString[1],
                     samples: parseSamples(containers[container]),
                     columns: 12,
                     rows: 8
@@ -73,42 +80,9 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
         fetchListContainers()
     }, [selectedSamples])
 
-    // useEffect(() => {
-    // const containers: any = {}
-    // const sampleIDs = selectedSamples.map(sample => sample.sample.id)
-    // console.log(Object.keys(samplesByID).length)
-    // sampleIDs.forEach(id => {
-    // if (containersByID[samplesByID[id].container]) {
-    // console.log(id, containersByID[samplesByID[id].container])
-    // }
-    // })
-    // const containerSamples: containerSample[] = []
-    // Object.keys(containers).forEach(key => {
-    //     containerSamples.push({
-    //         containerName: key,
-    //         samples: parseSamples(containers[key]),
-    //         columns: 12,
-    //         rows: 8
-    //     })
-    // })
-    // setSourceContainerSample(containerSamples)
-    // }, [samplesByID, containersByID])
 
-    const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>([
-        {
-            containerName: '',
-            rows: 8,
-            columns: 12,
-            samples: {
-            },
-        },
-    ])
-    const [destinationContainerSamples, setDestinationContainerSamples] = useState<any>([{
-        containerName: 'NewContainer',
-        rows: 8,
-        columns: 12,
-        samples: {}
-    }])
+    const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>(EMPTY_CONTAINER)
+    const [destinationContainerSamples, setDestinationContainerSamples] = useState<any>(EMPTY_CONTAINER)
 
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
@@ -124,7 +98,7 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
             return {
                 columns: obj.columns,
                 rows: obj.rows,
-                containerName: obj.containerName,
+                container_name: obj.container_name,
                 samples: copyKeyObject(obj.samples)
             }
         })
@@ -132,7 +106,7 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
 
     const setContainerSamples = (oldContainer, newContainer) => {
         oldContainer.forEach((obj: any) => {
-            if (obj.containerName == newContainer.containerName) {
+            if (obj.container_name == newContainer.container_name) {
                 obj.samples = copyKeyObject(newContainer.samples)
             }
         })
@@ -157,7 +131,7 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
             Object.keys(containerObj).forEach(container =>
                 containerObj[container].forEach(id => {
                     delete copyDestinationSamples[destinationIndex].samples[id]
-                    const sourceIndex = sourceContainerSamples.findIndex(source => source.containerName == container)
+                    const sourceIndex = sourceContainerSamples.findIndex(source => source.container_name == container)
                     copySourceContainerSamples[sourceIndex].samples[id].type = NONE_STRING
                 }
                 )
@@ -171,7 +145,7 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
     const changeContainer = useCallback((number: string, name: string, containerType: string) => {
 
         const tempContainerList = containerType == SOURCE_STRING ? [...sourceContainerSamples] : [...destinationContainerSamples]
-        let tempIndex = tempContainerList.findIndex(container => container.containerName == name)
+        let tempIndex = tempContainerList.findIndex(container => container.container_name == name)
 
 
         let length = tempIndex + parseFloat(number)
@@ -196,25 +170,10 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
 
     const addContainer = useCallback(() => {
         const tempDestinationContainerSamples = [...destinationContainerSamples]
-        const checkDestination = (name) => {
-            let boolean: boolean = false;
-            tempDestinationContainerSamples.forEach(container => {
-                if (container.containerName == name) {
-                    boolean = true
-                }
-            });
-            return boolean
-        }
-
-        let newContainerName = 'NewDestinationContainer_1'
-        while (checkDestination(newContainerName)) {
-            let [name, number] = newContainerName.split('_')
-            let num = Number(number) + 1
-            newContainerName = name + '_' + num
-        }
 
         tempDestinationContainerSamples.push({
-            containerName: newContainerName,
+            container_name: '',
+            container_barcode: '',
             samples: {},
             rows: 8,
             columns: 12,
@@ -230,13 +189,16 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
     }, [sourceContainerSamples, destinationContainerSamples])
 
-    const saveToPrefill = useCallback(() => {
-        const transferData = {}
-        destinationContainerSamples.forEach((container) => {
+    const changeDestinationName = useCallback((name) => {
+        // const tempDestination = { ...destinationContainerSamples }
+        // tempDestination[destinationIndex].container_name = name
+        // tempDestination[destinationIndex].container_barcode = name
+        // setDestinationContainerSamples(tempDestination)
+    }, [destinationContainerSamples, destinationIndex])
 
-        })
-        onTransfer(transferData)
-    }, [])
+    const saveDestination = useCallback(() => {
+        save(destinationContainerSamples)
+    }, [destinationContainerSamples])
 
     //calls backend endpoint to fetch source containers with samples
     return (
@@ -248,9 +210,10 @@ const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) =>
                 disableChangeDestination={destinationContainerSamples.length == 1}
                 cycleContainer={changeContainer}
                 saveChanges={saveChanges}
+                changeDestinationName={changeDestinationName}
                 addDestination={addContainer}
                 removeCells={removeCells}
-                saveToPrefill={saveToPrefill} />
+                saveDestination={saveDestination} />
         </>
     )
 }
