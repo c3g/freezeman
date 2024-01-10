@@ -17,10 +17,11 @@ interface LibraryTransferProps {
     addDestination: () => void,
     disableChangeSource: boolean,
     disableChangeDestination: boolean,
-    removeCells: (samples) => void
+    removeCells: (samples) => void,
+    saveToPrefill: () => void
 }
 
-const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells }: LibraryTransferProps) => {
+const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveToPrefill }: LibraryTransferProps) => {
 
     //keyed object by sampleID, containing the coordinate
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
@@ -210,6 +211,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         }
         else {
             const samplePool = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
+            console.log(samplePool, sourceSamples.samples, destinationSamples. samples)
             //gets the newly added sample from the selection from the antd table
             selectedSampleList.forEach(sample => {
                 if (sample.type != PLACED_STRING && !filteredSelected.includes(sample.id)) {
@@ -218,13 +220,16 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             })
         }
         updateSampleList(ids, type)
-    }, [selectedSamples])
+    }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
 
     return (
         <>
             <PageContainer>
                 <PageContent>
                     <div className={"flex-column"}>
+                        <div style={{ display: 'flex', justifyContent: 'right' }}>
+                            <Button onClick={saveToPrefill}> Save to Prefill </Button>
+                        </div>
                         <div className={"flex-row"} style={{ justifyContent: 'center', gap: '1vw' }}>
                             <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
                                 <Radio.Button value={'pattern'}> Pattern </Radio.Button>

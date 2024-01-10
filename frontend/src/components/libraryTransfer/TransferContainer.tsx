@@ -28,6 +28,14 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         return (Number(a) - Number(b))
     }, [])
 
+    const sortByCoordinate = useCallback((a, b) => {
+        if (a.coordinate < b.coordinate) {
+            return -1;
+        } else if (a.coordinate > b.coordinate) {
+            return 1;
+        }
+        return 0;
+    }, [])
 
     const previewPlacePattern = useCallback((coordinate) => {
 
@@ -42,20 +50,12 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
             let mostLeftColumn = 12;
             Object.keys(selectedSampleList).forEach(id => {
                 cellsByCoordinate.push({ id: id, type: selectedSampleList[id].type, coordinate: selectedSampleList[id].coordinate })
-                let column = Number(selectedSampleList[id].coordinate.split('_')[1])
+                const column = Number(selectedSampleList[id].coordinate.split('_')[1])
                 mostLeftColumn = column <= mostLeftColumn ? column : mostLeftColumn
             })
 
             //sorting the sampleList by coordinate
-            cellsByCoordinate.sort((a, b) => {
-                if (a.coordinate < b.coordinate) {
-                    return -1;
-                } else if (a.coordinate > b.coordinate) {
-                    return 1;
-                }
-                return 0;
-            })
-
+            cellsByCoordinate.sort((sortByCoordinate))
 
             //coordinate of the cell clicked
             const placedCoordinate = coordinate.split('_')
@@ -91,18 +91,21 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
 
     //allows to preview the cells that the group will go into, row or column
     const previewGroupPlacement = useCallback((coordinate) => {
-        console.log("yyya")
         let preview = {}
-        const count = Object.keys(selectedSampleList).length
-        if (count > 0 && direction) {
+        // const count = Object.keys(selectedSampleList).length
+        const cells: any = Object.keys(selectedSampleList).map(id => {
+            return ({ id: id, type: selectedSampleList[id].type, coordinate: selectedSampleList[id].coordinate })
+        }).sort(sortByCoordinate)
+
+        if (cells.length > 0 && direction) {
             //coordinate row and column is separated with '_'
             const coords = (coordinate.toString()).split('_')
             let row = String(coords[0])
             let col = Number(coords[1])
-            for (let i = 0; i < count; i++) {
+            for (let i = 0; i < cells.length; i++) {
                 //creates row or column of cells that 
                 if ((row.charCodeAt(0) < "i".charCodeAt(0)) && (col <= 12)) {
-                    preview[row + "_" + col] = { id: undefined, type: undefined }
+                    preview[row + "_" + col] = { id: cells[i].id, type: PATTERN_STRING }
                     if (direction == 'row') {
                         col += 1;
                     } else {
@@ -153,6 +156,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         let tempSamples: cellSample = { ...samples }
         const id = Object.keys(tempSamples).find((id) => tempSamples[id].coordinate == coordinate) ?? null;
         let type = NONE_STRING
+        // console.log(coordinate, tempSamples, id)
         if (id) {
             //if exists in selected list then the type is set to SELECTED_STRING
             if (selectedSampleList && selectedSampleList[id] && selectedSampleList[id].type == containerType)
@@ -163,7 +167,8 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         return id ? { id: id, type: type, name: tempSamples[id].name, sourceContainer: tempSamples[id].sourceContainer } : null
     }, [samples, selectedSampleList])
 
-    const renderCells = useCallback(() => {
+    const renderCells = useCallback(
+        () => {
         let cells: any[] = [];
         let char = 'a';
         let coordinate = '';
@@ -222,6 +227,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         return cells
     }, [samples, isSelecting, previewCells, direction, selectedSampleList, pattern])
 
+    // console.log('samples', Object.keys(samples).length, containerType)
     return (
         <>
             <div className={"transfer"}>

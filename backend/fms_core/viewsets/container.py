@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q, Prefetch
 from fms_core.utils import remove_empty_str_from_dict
@@ -8,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from fms_core.containers import PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
-from fms_core.models import Container, Sample
+from fms_core.models import Container, Sample, Coordinate
 from fms_core.filters import ContainerFilter
 from ._constants import _container_filterset_fields
 
@@ -221,3 +222,14 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         Lists all django_reversion Version objects associated with a container.
         """
         return versions_detail(self.get_object())
+    
+    @action(detail=False, methods=["get"])
+    def list_container_groups(self, request):
+        sample_ids = request.GET.get("sample_ids").split(',')
+        containers = defaultdict(list)
+        for result, id in zip(Container.objects.filter(samples__id__in=sample_ids).values('location','location__name', 'pk', 'coordinate').order_by('location', 'pk', 'coordinate'), sample_ids):
+            coordinate = Coordinate.objects.get(id=result["coordinate"]).name if result["coordinate"] else ''
+            name = Sample.objects.get(id=id).name
+            containers[result['location__name'] if result['location'] else 'None'].append({"id": result['pk'], "coordinate": str(coordinate), "name": name})
+        return Response(containers)
+    
