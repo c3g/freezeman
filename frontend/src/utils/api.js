@@ -19,6 +19,7 @@ const api = {
     update: container => patch(`/containers/${container.id}/`, container),
     list: (options, abort) => get("/containers/", options, { abort }),
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
+    listContainerGroups: (sample_ids) => get("/containers/list_container_groups/", {sample_ids: sample_ids}),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listChildrenRecursively: id => get(`/containers/${id}/list_children_recursively/`),

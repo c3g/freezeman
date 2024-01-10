@@ -45,7 +45,6 @@ const LabworkPage = () => {
 				<Route path="*" element={<LabworkOverviewRoute />} />
 				<Route path="step/:stepID/*" element={<LabworkStepRoute />} />
 				<Route path="step/:stepID/actions/:action/*" element={<ActionContent templateType="sampleNextStep" />}/>
-				<Route path="transfer" element={<LibraryTransferStep/>} />
 			</Routes>
 		</PageContainer>
 	)

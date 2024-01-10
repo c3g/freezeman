@@ -43,5 +43,6 @@ export interface LabworkStepSamplesGroup {
 	name: string                      // Name identifying that group
   count: number                     // Number of samples included in group
   sample_ids: FMSId[]               // Samples included in group
+  containers: any
 }
 

@@ -1,5 +1,9 @@
-import React, { useCallback, useReducer, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import LibraryTransfer from "./LibraryTransfer"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { list as listSamples } from "../../modules/samples/actions"
+import { selectContainersByID, selectSamplesByID } from "../../selectors"
+import api from "../../utils/api"
 export interface sampleInfo {
     coordinate: string,
     type: string,
@@ -21,112 +25,84 @@ export const SELECTED_STRING = 'selected'
 export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
 export const PATTERN_STRING = 'pattern'
-const LibraryTransferStep = () => {
-
-    const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>([{
-        containerName: 'TestSourceContainer',
-        rows: 8,
-        columns: 12,
-        samples: {
-            '1': {
-                coordinate: 'a_1', type: NONE_STRING, name: 'sample_1'
+interface IProps {
+    onTransfer: (changes) => void,
+    selectedSamples: any,
+    stepID: any,
+}
+const LibraryTransferStep = ({ onTransfer, selectedSamples, stepID }: IProps) => {
+    const dispatch = useAppDispatch()
+    const samplesByID = useAppSelector(selectSamplesByID)
+    const containersByID = useAppSelector(selectContainersByID)
+    const split_at_index = (value) => {
+        return value.substring(0, 1).toLowerCase() + "_" + (parseFloat(value.substring(1)));
+    }
+    const parseSamples = useCallback((list) => {
+        const object = {}
+        list.forEach(obj => {
+            object[obj.id] = { coordinate: obj.coordinate ? split_at_index(obj.coordinate) : '', type: NONE_STRING, name: obj.name }
+        })
+        return object
+    }, [])
+    const fetchListContainers = useCallback(async () => {
+        const sampleIDs = selectedSamples.map(sample => sample.sample.id)
+        let containerSamples: containerSample[] = [{
+            containerName: '',
+            rows: 8,
+            columns: 12,
+            samples: {
             },
-            '15': {
-                coordinate: 'a_2', type: NONE_STRING, name: 'sample_15'
-            },
-            '2': {
-                coordinate: 'a_3', type: NONE_STRING, name: 'sample_2'
-            },
-            '3': {
-                coordinate: 'a_4', type: NONE_STRING, name: 'sample_3'
-            },
-            '11': {
-                coordinate: 'b_1', type: NONE_STRING, name: 'sample_11'
-            },
-            '115': {
-                coordinate: 'b_2', type: NONE_STRING, name: 'sample_115'
-            },
-            '21': {
-                coordinate: 'b_3', type: NONE_STRING, name: 'sample_21'
-            },
-            '9': {
-                coordinate: 'b_4', type: NONE_STRING, name: 'sample_9'
-            },
-            '12': {
-                coordinate: 'c_1', type: NONE_STRING, name: 'sample_12'
-            },
-            '116': {
-                coordinate: 'c_2', type: NONE_STRING, name: 'sample_116'
-            },
-            '22': {
-                coordinate: 'c_3', type: NONE_STRING, name: 'sample_22'
-            },
-            '10': {
-                coordinate: 'c_4', type: NONE_STRING, name: 'sample_10'
-            }
-        },
-    }, {
-        containerName: 'TestSourceContainer2',
-        rows: 8,
-        columns: 12,
-        samples: {
-            '31': {
-                coordinate: 'f_1', type: NONE_STRING, name: 'sample_31'
-            },
-            '310': {
-                coordinate: 'f_2', type: NONE_STRING, name: 'sample_310'
-            },
-            '32': {
-                coordinate: 'f_3', type: NONE_STRING, name: 'sample_32'
-            },
-            '33': {
-                coordinate: 'f_4', type: NONE_STRING, name: 'sample_33'
-            },
-            '311': {
-                coordinate: 'g_1', type: NONE_STRING, name: 'sample_311'
-            },
-            '3115': {
-                coordinate: 'g_2', type: NONE_STRING, name: 'sample_3115'
-            },
-            '321': {
-                coordinate: 'g_3', type: NONE_STRING, name: 'sample_321'
-            },
-            '331': {
-                coordinate: 'g_4', type: NONE_STRING, name: 'sample_331'
-            }
-        },
-    },
-    {
-        containerName: 'TestSourceContainer3',
-        rows: 8,
-        columns: 12,
-        samples: {
-            '600': {
-                coordinate: 'a_8', type: NONE_STRING, name: 'sample_31'
-            },
-            '601': {
-                coordinate: 'a_9', type: NONE_STRING, name: 'sample_310'
-            },
-            '602': {
-                coordinate: 'a_10', type: NONE_STRING, name: 'sample_32'
-            },
-            '603': {
-                coordinate: 'b_8', type: NONE_STRING, name: 'sample_33'
-            },
-            '604': {
-                coordinate: 'b_9', type: NONE_STRING, name: 'sample_311'
-            },
-            '605': {
-                coordinate: 'b_10', type: NONE_STRING, name: 'sample_3115'
-            },
-            '606': {
-                coordinate: 'c_8', type: NONE_STRING, name: 'sample_321'
-            },
-            '607': {
-                coordinate: 'c_9', type: NONE_STRING, name: 'sample_331'
-            }
+        },]
+        if (sampleIDs.length > 0) {
+            const values = await dispatch(api.containers.listContainerGroups(sampleIDs.join(',')))
+            const containers = (values.data)
+            containerSamples = []
+            Object.keys(containers).forEach(container => {
+                containerSamples.push({
+                    containerName: container == '0' ? 'tubes_without parent' : container,
+                    samples: parseSamples(containers[container]),
+                    columns: 12,
+                    rows: 8
+                })
+            })
         }
-    }])
+        setSourceContainerSample(containerSamples)
+    }, [selectedSamples])
+
+    useEffect(() => {
+        fetchListContainers()
+    }, [selectedSamples])
+
+    // useEffect(() => {
+    // const containers: any = {}
+    // const sampleIDs = selectedSamples.map(sample => sample.sample.id)
+    // console.log(Object.keys(samplesByID).length)
+    // sampleIDs.forEach(id => {
+    // if (containersByID[samplesByID[id].container]) {
+    // console.log(id, containersByID[samplesByID[id].container])
+    // }
+    // })
+    // const containerSamples: containerSample[] = []
+    // Object.keys(containers).forEach(key => {
+    //     containerSamples.push({
+    //         containerName: key,
+    //         samples: parseSamples(containers[key]),
+    //         columns: 12,
+    //         rows: 8
+    //     })
+    // })
+    // setSourceContainerSample(containerSamples)
+    // }, [samplesByID, containersByID])
+
+    const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>([
+        {
+            containerName: '',
+            rows: 8,
+            columns: 12,
+            samples: {
+            },
+        },
+    ])
     const [destinationContainerSamples, setDestinationContainerSamples] = useState<any>([{
         containerName: 'NewContainer',
         rows: 8,
@@ -178,12 +154,10 @@ const LibraryTransferStep = () => {
             const copySourceContainerSamples = copyContainerArray(sourceContainerSamples)
             const copyDestinationSamples = copyContainerArray(destinationContainerSamples)
 
-            console.log(containerObj, destinationContainerSamples)
             Object.keys(containerObj).forEach(container =>
                 containerObj[container].forEach(id => {
                     delete copyDestinationSamples[destinationIndex].samples[id]
                     const sourceIndex = sourceContainerSamples.findIndex(source => source.containerName == container)
-                    console.log(sourceIndex, sourceContainerSamples, container)
                     copySourceContainerSamples[sourceIndex].samples[id].type = NONE_STRING
                 }
                 )
@@ -256,17 +230,28 @@ const LibraryTransferStep = () => {
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
     }, [sourceContainerSamples, destinationContainerSamples])
 
+    const saveToPrefill = useCallback(() => {
+        const transferData = {}
+        destinationContainerSamples.forEach((container) => {
+
+        })
+        onTransfer(transferData)
+    }, [])
+
     //calls backend endpoint to fetch source containers with samples
     return (
-        <LibraryTransfer
-            sourceSamples={sourceContainerSamples[index]}
-            destinationSamples={destinationContainerSamples[destinationIndex]}
-            disableChangeSource={sourceContainerSamples.length == 1}
-            disableChangeDestination={destinationContainerSamples.length == 1}
-            cycleContainer={changeContainer}
-            saveChanges={saveChanges}
-            addDestination={addContainer}
-            removeCells={removeCells} />
+        <>
+            <LibraryTransfer
+                sourceSamples={sourceContainerSamples[index]}
+                destinationSamples={destinationContainerSamples[destinationIndex]}
+                disableChangeSource={sourceContainerSamples.length == 1}
+                disableChangeDestination={destinationContainerSamples.length == 1}
+                cycleContainer={changeContainer}
+                saveChanges={saveChanges}
+                addDestination={addContainer}
+                removeCells={removeCells}
+                saveToPrefill={saveToPrefill} />
+        </>
     )
 }
 export default LibraryTransferStep
