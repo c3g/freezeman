@@ -357,7 +357,6 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
             return sample_row_dict
 
         TEMP_BATCH_PREFIX = "CHANGE ME "
-
         # Create the dictionnary used for prefilling using template definition and step specs. Tolerate templates with 2 sheets max.
         dict_sheets_rows_dicts = {sheet["name"]: [] for sheet in template["sheets info"]} # Initialize each sheet list
 
@@ -366,7 +365,6 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
         extra_sheet_list = [sheet["name"] for sheet in template["sheets info"] if sheet.get("batch", None) is None]
         # Dictionary to map a sheet to its stitch column
         dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
-
         step_dict = {}
         batch_container_dict = {}
         for sample_id, step_id in queryset.values_list("sample", "step").distinct():
@@ -401,34 +399,35 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
 
             # Insert placement information for prefill template to wllo multiple destination during prefilling
             else:
+                sample_id = str(sample_id)
                 for placement in placement_data[sample_id]:
                     # for each placement collect basic prefilling
                     sample_row_dict = default_prefilling(sample_id, template, user_prefill_data)
                     batch_row_dict = {}
-                    # store 
+
                     for sheet_name, column_name, identifier in template["placement info"]:
                         if sheet_name == dict_batch_sheet.get(False, sheet_name): # Sheet defaults to sample sheet
                             sample_row_dict[column_name] = placement[identifier]
                         else:
                             if dict_stitch.get(sheet_name, None):
-                                sample_row_dict[dict_stitch[sheet_name]] = placement[TEMP_BATCH_PREFIX + placement["container_barcode"]]
+                                sample_row_dict[dict_stitch[sheet_name]] = TEMP_BATCH_PREFIX + placement["container_barcode"]
                             if not batch_container_dict.get(placement["container_barcode"], None):
                                 if dict_stitch.get(sheet_name, None):
-                                    batch_row_dict[dict_stitch[sheet_name]] = placement[TEMP_BATCH_PREFIX + placement["container_barcode"]]
+                                    batch_row_dict[dict_stitch[sheet_name]] = TEMP_BATCH_PREFIX + placement["container_barcode"]
                                 batch_row_dict[column_name] = placement[identifier]
                                 new_batch_container = True
-                        if new_batch_container:
-                            batch_container_dict[placement["container_barcode"]] = placement["container_barcode"]
+                    if new_batch_container:
+                        batch_container_dict[placement["container_barcode"]] = placement["container_barcode"]
                     # Use step to extract specifications and attach it to the correct sheet and column
                     step = Step.objects.get(id=step_id)
                     for spec in step.step_specifications.all():
                         if spec.sheet_name == dict_batch_sheet.get(False, spec.sheet_name): # Sheet defaults to sample sheet
                             sample_row_dict[spec.column_name] = spec.value
                         else:
-                            if dict_stitch.get(spec.sheet_name, None) and sample_row_dict[dict_stitch[spec.sheet_name]] is None:
+                            if dict_stitch.get(spec.sheet_name, None) and sample_row_dict.get(dict_stitch[spec.sheet_name]) is None:
                                 sample_row_dict[dict_stitch[spec.sheet_name]] = step.name # User will need to split batches further if needed
                             if not step_dict.get(step.id, None):
-                                if dict_stitch.get(spec.sheet_name, None) and sample_row_dict[dict_stitch[spec.sheet_name]] == step.name:
+                                if dict_stitch.get(spec.sheet_name, None) and sample_row_dict.get(dict_stitch[spec.sheet_name]) == step.name:
                                     batch_row_dict[dict_stitch[spec.sheet_name]] = step.name # User will need to split batches further if needed
                                 batch_row_dict[spec.column_name] = spec.value
                                 new_step = True
@@ -440,6 +439,6 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                     for sheet_name in extra_sheet_list:
                         dict_sheets_rows_dicts[sheet_name].append(sample_row_dict) # make sure there is no duplicate in column name or this would cause issues
                     if batch_row_dict:
-                        dict_sheets_rows_dicts[dict_batch_sheet[True]].append(batch_row_dict)      
-            
+                        dict_sheets_rows_dicts[dict_batch_sheet[True]].append(batch_row_dict)
+
         return [dict_sheets_rows_dicts[sheet["name"]] for sheet in template["sheets info"]]
