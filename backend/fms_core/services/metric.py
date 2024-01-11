@@ -1,6 +1,6 @@
 from typing import Dict, List, Tuple
-
-from fms_core.models.metric import Metric
+from decimal import Decimal, localcontext, getcontext
+from fms_core.models.metric import Metric, METRIC_PRECISION, METRIC_DECIMAL_PLACES
 from fms_core.models.readset import Readset
 
 VALUE_TYPE_NUMERIC = "NUMERIC"
@@ -47,34 +47,41 @@ def create_metrics_from_run_validation_data(readset: Readset, run_validation_dat
     errors = []
     warnings = []
 
+    QUANTIZER = Decimal(10) ** -METRIC_DECIMAL_PLACES
     if not isinstance(readset, Readset):
         errors.append(f"Missing valid readset. Cannot create metrics.")
 
     if not errors:
-        for metric_group, metrics in METRICS.items():
-            for metric, value_type in metrics:
-                try:
-                    value = run_validation_data[metric_group][metric]
-                except Exception as err:
-                    errors.append(f"Could not find metrics {metric} from metric group {metric_group} for sample {readset.sample_name}.")
-                if not errors:
-                    if value == "null" or value == "N/A":  # Replace string empty values
-                        value = None
-                    if value_type is VALUE_TYPE_NUMERIC and value is not None:
-                        value = str(value).strip(' "')
-                    metric_data = dict(
-                        readset=readset,
-                        name=metric,
-                        metric_group=metric_group,
-                        **(dict(value_numeric=value) if value_type is VALUE_TYPE_NUMERIC else dict()),
-                        **(dict(value_string=value) if value_type is VALUE_TYPE_STRING else dict()),
-                    )
-                    metric_obj = None
+        with localcontext(prec=METRIC_PRECISION) as ctx:
+            for metric_group, metrics in METRICS.items():
+                for metric, value_type in metrics:
                     try:
-                        metric_obj = Metric.objects.create(**metric_data)
-                        metrics_obj.append(metric_obj)
+                        value = run_validation_data[metric_group][metric]
                     except Exception as err:
-                        errors.append(err)
+                        errors.append(f"Could not find metrics {metric} from metric group {metric_group} for sample {readset.sample_name}.")
+                    if not errors:
+                        if value == "null" or value == "N/A":  # Replace string empty values
+                            value = None
+                        if value_type is VALUE_TYPE_NUMERIC and value is not None:
+                            value = str(value).strip(' "')
+                            try:
+                                value = Decimal(str(float(value))).quantize(QUANTIZER) # Casting to float first to remove any scientific notation
+                            except Exception as err:
+                                errors.append(err)
+
+                        metric_data = dict(
+                            readset=readset,
+                            name=metric,
+                            metric_group=metric_group,
+                            **(dict(value_numeric=value) if value_type is VALUE_TYPE_NUMERIC else dict()),
+                            **(dict(value_string=value) if value_type is VALUE_TYPE_STRING else dict()),
+                        )
+                        metric_obj = None
+                        try:
+                            metric_obj = Metric.objects.create(**metric_data)
+                            metrics_obj.append(metric_obj)
+                        except Exception as err:
+                            errors.append(err)
 
     if errors:
         metrics_obj = None
