@@ -42,14 +42,14 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
     const dispatch = useAppDispatch()
 
     const fetchListContainers = useCallback(async () => {
-
-        const split_at_index = (value) => {
-            return value.substring(0, 1).toLowerCase() + "_" + (parseFloat(value.substring(1)));
+        //parse coordinate to removing leading 0
+        const parseCoordinate = (value) => {
+            return value.substring(0, 1) + "_" + (value.substring(1));
         }
         const parseSamples = (list) => {
             const object = {}
             list.forEach(obj => {
-                object[obj.id] = { coordinates: obj.coordinates ? split_at_index(obj.coordinates) : '', type: NONE_STRING, name: obj.name }
+                object[obj.id] = { coordinates: obj.coordinates ? parseCoordinate(obj.coordinates) : '', type: NONE_STRING, name: obj.name }
             })
             return object
         }

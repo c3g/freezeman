@@ -104,7 +104,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
             let col = Number(coords[1])
             for (let i = 0; i < cells.length; i++) {
                 //creates row or column of cells that 
-                if ((row.charCodeAt(0) < "i".charCodeAt(0)) && (col <= 12)) {
+                if ((row.charCodeAt(0) < "I".charCodeAt(0)) && (col <= 12)) {
                     preview[row + "_" + col] = { id: cells[i].id, type: PATTERN_STRING }
                     if (direction == 'row') {
                         col += 1;
@@ -113,7 +113,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
                     }
                 }
             }
-        } 
+        }
 
         if (Object.keys(preview).length > 0)
             setPreviewCells(preview)
@@ -150,11 +150,11 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
 
 
     //checks to see if sample exists at coordinates and returns sample
-    const checkSamples = useCallback((coordinates) => {
+    const checkSamples = useCallback((coordinate) => {
+        const removeLeadingZero = (value) => {return (value.split('_')[0]+'_'+parseFloat(value.split('_')[1]))}
         let tempSamples: cellSample = { ...samples }
-        const id = Object.keys(tempSamples).find((id) => tempSamples[id].coordinates == coordinates) ?? null;
+        const id = Object.keys(tempSamples).find((id) => removeLeadingZero(tempSamples[id].coordinates) == coordinate) ?? null;
         let type = NONE_STRING
-        // console.log(coordinates, tempSamples, id)
         if (id) {
             //if exists in selected list then the type is set to SELECTED_STRING
             if (selectedSampleList && selectedSampleList[id] && selectedSampleList[id].type == containerType)
@@ -167,63 +167,63 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
 
     const renderCells = useCallback(
         () => {
-        let cells: any[] = [];
-        let char = 'a';
-        let coordinates = '';
-        //renders header based on the number of columns provided to the component
-        let headerCells: React.ReactElement[] = []
-        for (let i = 0; i < columns + 1; i++) {
-            headerCells.push(
-                <div key={'header_' + i} className={"header"}>
-                    {
-                        i != 0 ? i : ''
-                    }
-                </div>
-            )
-        }
-        //adds number heards to total number of cells
-        cells.push(<div key={'headers'} className={"header-row"}>
-            {
-                headerCells
-            }
-        </div>)
-        //renders each row with the corresponding row letter coordinates
-        for (let i = 0; i < rows; i++) {
-            let rowOfCells: React.ReactElement[] = []
-            rowOfCells.push(
-                <div key={char} className={"cell"} style={{ backgroundColor: '#001529', color: 'white' }}>
-                    {
-                        char.toUpperCase()
-                    }
-                </div>
-            )
-            //renders container cells
-            for (let x = 1; x < columns + 1; x++) {
-                coordinates = char + "_" + (x);
-                rowOfCells.push(
-                    <Cell key={coordinates}
-                        onCellMouseLeave={() => setPreviewCells({})}
-                        isSelecting={isSelecting}
-                        onCellMouseOver={onMouseHover}
-                        sample={checkSamples(coordinates)}
-                        coordinates={coordinates}
-                        outline={previewCells[coordinates] ? true : false}
-                        onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
+            let cells: any[] = [];
+            let char = 'A';
+            let coordinates = '';
+            //renders header based on the number of columns provided to the component
+            let headerCells: React.ReactElement[] = []
+            for (let i = 0; i < columns + 1; i++) {
+                headerCells.push(
+                    <div key={'header_' + i} className={"header"}>
+                        {
+                            i != 0 ? i : ''
+                        }
+                    </div>
                 )
             }
-            //pushes rowOfCells to cell array
-            cells.push(
-                <div key={'row_' + char} className={"row"}>
-                    {
-                        rowOfCells
-                    }
-                </div>
-            )
-            //changes next character in the alphabet for next row
-            char = nextChar(char)
-        }
-        return cells
-    }, [samples, isSelecting, previewCells, direction, selectedSampleList, pattern])
+            //adds number heards to total number of cells
+            cells.push(<div key={'headers'} className={"header-row"}>
+                {
+                    headerCells
+                }
+            </div>)
+            //renders each row with the corresponding row letter coordinates
+            for (let i = 0; i < rows; i++) {
+                let rowOfCells: React.ReactElement[] = []
+                rowOfCells.push(
+                    <div key={char} className={"cell"} style={{ backgroundColor: '#001529', color: 'white' }}>
+                        {
+                            char
+                        }
+                    </div>
+                )
+                //renders container cells
+                for (let x = 1; x < columns + 1; x++) {
+                    coordinates = char + "_" + (x);
+                    rowOfCells.push(
+                        <Cell key={coordinates}
+                            onCellMouseLeave={() => setPreviewCells({})}
+                            isSelecting={isSelecting}
+                            onCellMouseOver={onMouseHover}
+                            sample={checkSamples(coordinates)}
+                            coordinates={coordinates}
+                            outline={previewCells[coordinates] ? true : false}
+                            onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
+                    )
+                }
+                //pushes rowOfCells to cell array
+                cells.push(
+                    <div key={'row_' + char} className={"row"}>
+                        {
+                            rowOfCells
+                        }
+                    </div>
+                )
+                //changes next character in the alphabet for next row
+                char = nextChar(char)
+            }
+            return cells
+        }, [samples, isSelecting, previewCells, direction, selectedSampleList, pattern])
 
     return (
         <>
