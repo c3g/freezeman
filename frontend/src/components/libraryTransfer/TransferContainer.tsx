@@ -97,7 +97,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
             return ({ id: id, type: selectedSampleList[id].type, coordinates: selectedSampleList[id].coordinates })
         }).sort(sortByCoordinate)
 
-        if (cells.length > 0 && direction) {
+        if (cells.length > 0) {
             //coordinates row and column is separated with '_'
             const coords = (coordinates.toString()).split('_')
             let row = String(coords[0])
@@ -113,9 +113,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
                     }
                 }
             }
-        } else {
-            preview[coordinates] = { id: undefined, type: undefined }
-        }
+        } 
 
         if (Object.keys(preview).length > 0)
             setPreviewCells(preview)
@@ -227,7 +225,6 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         return cells
     }, [samples, isSelecting, previewCells, direction, selectedSampleList, pattern])
 
-    // console.log('samples', Object.keys(samples).length, containerType)
     return (
         <>
             <div className={"transfer"}>

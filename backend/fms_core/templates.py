@@ -56,6 +56,7 @@ AXIOM_PREPARATION_TEMPLATE = {
   ],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [],
+  "placement info": [],
 }
 
 CONTAINER_CREATION_TEMPLATE = {
@@ -69,6 +70,7 @@ CONTAINER_CREATION_TEMPLATE = {
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [],
+  "placement info": [],
 }
 
 CONTAINER_MOVE_TEMPLATE = {
@@ -82,6 +84,7 @@ CONTAINER_MOVE_TEMPLATE = {
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("ContainerMove", "Container Barcode to move", "barcode", None),],
+  "placement info": [],
 }
 
 CONTAINER_RENAME_TEMPLATE = {
@@ -95,6 +98,7 @@ CONTAINER_RENAME_TEMPLATE = {
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
       ("ContainerRename", "Old Container Barcode", "barcode", None),],
+  "placement info": [],
 }
 
 # Extracted sheet info for experiment run because it is shared between all templates of this category
@@ -126,6 +130,12 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
       ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
       ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
   ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Samples", "Experiment Container Coordinates", "coordinates"),
+      ("Experiments", "Experiment Container Barcode", "container_barcode"),
+      ("Experiments", "Experiment Container Kind", "container_kind"),
+  ],
 }
 
 EXPERIMENT_MGI_TEMPLATE = {
@@ -139,6 +149,12 @@ EXPERIMENT_MGI_TEMPLATE = {
       ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
       ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+    ("Samples", "Experiment Container Coordinates", "coordinates"),
+    ("Experiments", "Experiment Container Barcode", "container_barcode"),
+    ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
 }
 
@@ -154,6 +170,12 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
       ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
       ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
   ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Samples", "Experiment Container Coordinates", "coordinates"),
+      ("Experiments", "Experiment Container Barcode", "container_barcode"),
+      ("Experiments", "Experiment Container Kind", "container_kind"),
+  ],
 }
 
 EXPERIMENT_AXIOM_TEMPLATE = {
@@ -167,7 +189,13 @@ EXPERIMENT_AXIOM_TEMPLATE = {
         ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
         ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
         ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
-  ],
+    ],
+    # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+    "placement info": [
+        ("Samples", "Experiment Container Coordinates", "coordinates"),
+        ("Experiments", "Experiment Container Barcode", "container_barcode"),
+        ("Experiments", "Experiment Container Kind", "container_kind"),
+    ],
 }
 
 INDEX_CREATION_TEMPLATE = {
@@ -180,6 +208,7 @@ INDEX_CREATION_TEMPLATE = {
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [],
+  "placement info": [],
 }
 
 LIBRARY_CAPTURE_TEMPLATE = {
@@ -211,6 +240,13 @@ LIBRARY_CAPTURE_TEMPLATE = {
       ("Library", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("Library", "Source Container Coordinates", "coordinate__name", "coordinates"),
       ("Library", "Current Volume (uL)", "volume", "volume"),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Library", "Destination Container Barcode", "container_barcode"),
+      ("Library", "Destination Container Coordinates", "coordinates"),
+      ("Library", "Destination Container Name", "container_name"),
+      ("Library", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -247,6 +283,13 @@ LIBRARY_CONVERSION_TEMPLATE = {
       ("Library", "Library Size (bp)", "fragment_size", "library_size"),
       ("Library", "Current Volume (uL)", "volume", "volume"),
   ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Library", "Destination Container Barcode", "container_barcode"),
+      ("Library", "Destination Container Coordinates", "coordinates"),
+      ("Library", "Destination Container Name", "container_name"),
+      ("Library", "Destination Container Kind", "container_kind"),
+  ],
 }
 
 LIBRARY_PREPARATION_TEMPLATE = {
@@ -274,7 +317,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
       },
   ],
   "user prefill info": {
-        "Strandedness": STRANDEDNESS_CHOICES
+      "Strandedness": STRANDEDNESS_CHOICES
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
@@ -282,6 +325,13 @@ LIBRARY_PREPARATION_TEMPLATE = {
       ("Library", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("Library", "Sample Container Coordinates", "coordinate__name", "coordinates"),
       ("Library", "Sample Current Volume (uL)", "volume", "volume"),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Library", "Library Container Barcode", "container_barcode"),
+      ("Library", "Library Container Coordinates", "coordinates"),
+      ("Library", "Library Container Name", "container_name"),
+      ("Library", "Library Container Kind", "container_kind"),
   ],
 }
 
@@ -314,6 +364,7 @@ LIBRARY_QC_TEMPLATE = {
     ("LibraryQC", "Current Volume (uL)", "volume", "volume"),
     ("LibraryQC", "Strandedness", "sample_strandedness", "strandedness"),
     ],
+  "placement info": [],
 }
 
 NORMALIZATION_TEMPLATE = {
@@ -343,6 +394,13 @@ NORMALIZATION_TEMPLATE = {
       ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
       ("Normalization", "Initial Conc. (ng/uL)", "concentration", "concentration"),
       ("Normalization", "Current Volume (uL)", "volume", "volume"),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Normalization", "Destination Container Barcode", "container_barcode"),
+      ("Normalization", "Destination Container Coord", "coordinates"),
+      ("Normalization", "Destination Container Name", "container_name"),
+      ("Normalization", "Destination Container Kind", "container_kind"),
   ],
 }
 
@@ -379,6 +437,13 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
       ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
   ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Normalization", "Destination Container Barcode", "container_barcode"),
+      ("Normalization", "Destination Container Coord", "coordinates"),
+      ("Normalization", "Destination Container Name", "container_name"),
+      ("Normalization", "Destination Container Kind", "container_kind"),
+  ],
 }
 
 QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE = {
@@ -408,6 +473,7 @@ SAMPLE_METADATA_TEMPLATE = {
       ("Metadata", "Sample Container Barcode", "container__barcode", "container_barcode"),
       ("Metadata", "Sample Container Coordinates", "coordinate__name", "coordinates"),
   ],
+  "placement info": [],
 }
 
 SAMPLE_POOLING_TEMPLATE = {
@@ -452,8 +518,15 @@ SAMPLE_POOLING_TEMPLATE = {
       ("LabInput", "Plate Barcode (Library)", "container__barcode", "container_barcode"),
       ("LabInput", "Well Coord", "coordinate__name", "coordinates"),
       ("LabInput", "Concentration (qPCR in nM)", None, "concentration_as_nm"),
-      ("LabInput", "Library Size (bp)", "fragment_size", "library_size"),],
-
+      ("LabInput", "Library Size (bp)", "fragment_size", "library_size"),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("Pools", "Destination Container Barcode", "container_barcode"),
+      ("Pools", "Destination Container Coord", "coordinates"),
+      ("Pools", "Destination Container Name", "container_name"),
+      ("Pools", "Destination Container Kind", "container_kind"),
+  ],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
@@ -481,6 +554,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
   ],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [],
+  "placement info": [],
 }
 
 SAMPLE_UPDATE_TEMPLATE = {
@@ -497,7 +571,9 @@ SAMPLE_UPDATE_TEMPLATE = {
   "prefill info": [
       ("SampleUpdate", "Sample Name", "name", "name"),
       ("SampleUpdate", "Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleUpdate", "Coord (if plate)", "coordinate__name", "coordinates"),],
+      ("SampleUpdate", "Coord (if plate)", "coordinate__name", "coordinates"),
+  ],
+  "placement info": [],
 }
 
 SAMPLE_QC_TEMPLATE = {
@@ -529,6 +605,7 @@ SAMPLE_QC_TEMPLATE = {
       ("SampleQC", "Sample Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
       ("SampleQC", "Current Volume (uL)", "volume", "volume"),
   ],
+  "placement info": [],
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
@@ -565,6 +642,13 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       ("ExtractionTemplate", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
       ("ExtractionTemplate", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
   ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("ExtractionTemplate", "Destination Container Barcode", "container_barcode"),
+      ("ExtractionTemplate", "Destination Container Coord", "coordinates"),
+      ("ExtractionTemplate", "Destination Container Name", "container_name"),
+      ("ExtractionTemplate", "Destination Container Kind", "container_kind"),
+  ],
 }
 
 SAMPLE_TRANSFER_TEMPLATE = {
@@ -596,6 +680,13 @@ SAMPLE_TRANSFER_TEMPLATE = {
       ("SampleTransfer", "Source Container Coord", "coordinate__name", "coordinates"),
       ("SampleTransfer", "Current Volume (uL)", "volume", "volume"),
   ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("SampleTransfer", "Destination Container Barcode", "container_barcode"),
+      ("SampleTransfer", "Destination Container Coord", "coordinates"),
+      ("SampleTransfer", "Destination Container Name", "container_name"),
+      ("SampleTransfer", "Destination Container Kind", "container_kind"),
+  ],
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
@@ -615,7 +706,9 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
   "prefill info": [
       ("Samples", "Sample Name", "name", "name"),
       ("Samples", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Sample Container Coord", "coordinate__name", "coordinates"),],
+      ("Samples", "Sample Container Coord", "coordinate__name", "coordinates"),
+  ],
+  "placement info": [],
 }
 
 PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
@@ -631,5 +724,7 @@ PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
   "prefill info": [
       ("ProjectLinkSamples", "Sample Name", "name", "name"),
       ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("ProjectLinkSamples", "Sample Container Coord", "coordinate__name", "coordinates"),],
+      ("ProjectLinkSamples", "Sample Container Coord", "coordinate__name", "coordinates"),
+  ],
+  "placement info": [],
 }

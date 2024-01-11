@@ -383,7 +383,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			if(Object.keys(samples).length > 0){
 				Object.keys(samples).forEach(id => {
 					if (container.container_name) {
-						tempPlaceData[id] = {coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate'}
+						tempPlaceData[id] = []
+						tempPlaceData[id].push({coordinates: samples[id].coordinates, container_barcode: container.container_name, container_kind: '96-well plate'})
 					}
 				})
 			}
