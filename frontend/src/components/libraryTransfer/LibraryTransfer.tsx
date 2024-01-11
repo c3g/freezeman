@@ -85,8 +85,8 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
 
     const placeGroupSamples = useCallback((sampleObj) => {
         let coordinates = Object.keys(sampleObj).map((key) => key)
-        //checks if group can be placed, if cells are already filled
-        if (!coordinates.some((coord) => Object.values(destinationSamples.samples).find(sample => sample.coordinates == coord)))
+        //checks if group can be placed, if cells are already filled, or if they go beyond the boundaries of the cells
+        if ((!coordinates.some((coord) => Object.values(destinationSamples.samples).find(sample => sample.coordinates == coord))) && (!coordinates.some(coord => coord.includes('I') || Number(coord.split('_')[1]) > 12)))
             updateSampleList(Object.keys(sampleObj).map(coord => { return { id: sampleObj[coord].id, type: sampleObj[coord].type, coordinates: coord, name: sampleObj[coord].name } }), DESTINATION_STRING)
     }, [destinationSamples.samples, placementType])
 
@@ -238,7 +238,6 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                         <div className={"flex-row"} style={{ justifyContent: 'center', gap: '1vw' }}>
                             <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
                                 <Radio.Button value={'pattern'}> Pattern </Radio.Button>
-                                <Radio.Button value={'single'}> Single </Radio.Button>
                                 <Radio.Button value={'group'}> Group </Radio.Button>
                             </Radio.Group>
                             <Radio.Group
