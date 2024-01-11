@@ -227,9 +227,9 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
     def list_container_groups(self, request):
         sample_ids = request.GET.get("sample_ids").split(',')
         containers = defaultdict(list)
-        for result, id in zip(Container.objects.filter(samples__id__in=sample_ids).values('location','location__barcode','location__name', 'pk', 'coordinate').order_by('location', 'pk', 'coordinate'), sample_ids):
+        for result, id in zip(Container.objects.filter(samples__id__in=sample_ids).values('location', 'location__name', 'pk', 'coordinate').order_by('location', 'pk', 'coordinate'), sample_ids):
             coordinate = Coordinate.objects.get(id=result["coordinate"]).name if result["coordinate"] else ''
             name = Sample.objects.get(id=id).name
-            containers[(result['location__barcode']+'-'+result['location__name']) if result['location'] else 'None'].append({"id": result['pk'], "coordinates": str(coordinate), "name": name})
+            containers[(result['location__name']) if result['location'] else 'None'].append({"id": result['pk'], "coordinates": str(coordinate), "name": name})
         return Response(containers)
     

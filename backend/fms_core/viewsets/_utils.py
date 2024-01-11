@@ -313,7 +313,8 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
         """
         template_id = request.GET.get("template")
         user_prefill_data = json.loads(request.GET.get("user_prefill_data"))
-
+        placement_data = json.loads(request.GET.get("placement_data"))
+        print(placement_data)
         try:
             template = self.template_prefill_list[int(template_id)]["template"]
         except (KeyError, ValueError):

@@ -112,10 +112,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0 && stepSamples.prefill.templates.length > 0
 
 	const handlePrefillTemplate = useCallback(
-		async (prefillData: { [column: string]: any }) => {
+		async (prefillData: { [column: string]: any }, placementData: { [id:string] : any}) => {
 			if (selectedTemplate) {
 				try {
-					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData))
+					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData, placementData))
 					if (result) {
 						downloadFromFile(result.filename, result.data)
 					}
@@ -378,14 +378,15 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const placementSave = useCallback((placementData) => {
 		const tempPlaceData = {}
-		console.log(placementData)
 		placementData.forEach(container => {
-			Object.keys(container.samples).forEach(id => {
-
-				if (container.container_name) {
-					// tempPlaceData[id] = {container_barcode: }
-				}
-			})
+			const samples = container.samples
+			if(Object.keys(samples).length > 0){
+				Object.keys(samples).forEach(id => {
+					if (container.container_name) {
+						tempPlaceData[id] = {coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate'}
+					}
+				})
+			}
 		})
 		setPlacementData(tempPlaceData)
 	}, [])
@@ -420,7 +421,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			{!isAutomationStep &&
 				<>
-					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []} placementData={placementData}></PrefillButton>
+					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any, placementData: any) => handlePrefillTemplate(prefillData, placementData)} data={selectedTemplate?.prefillFields ?? []} placementData={placementData}></PrefillButton>
 					<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
 				</>
 			}

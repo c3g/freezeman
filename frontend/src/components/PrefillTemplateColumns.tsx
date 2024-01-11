@@ -34,7 +34,7 @@ const { Item } = Form
 
 interface PrefillButtonProps {
     canPrefill: boolean,
-    handlePrefillTemplate: (data: { [column: string]: any }) => void,
+    handlePrefillTemplate: (data: { [column: string]: any }, placementData: {[id:string]: any}) => void,
     data: { [column: string]: ColumnType },
     onPrefillOpen: () => void,
     placementData?: any
@@ -128,7 +128,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen,
     const onFinish: NonNullable<FormProps['onFinish']> = useCallback(() => {
         const prefillData = returnPrefillData()
         if (prefillData) {
-            handlePrefillTemplate(prefillData)
+            handlePrefillTemplate(prefillData, placementData)
             setIsPrefillColumnsShown(false)
         }
     }, [handlePrefillTemplate, returnPrefillData])
@@ -151,7 +151,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen,
     const onButtonClick = useCallback(async ()=>{
         dispatch(onPrefillOpen)
         if(Object.keys(data).length === 0){
-            handlePrefillTemplate({})
+            handlePrefillTemplate({}, placementData)
         }else{
             showPrefillColumns()
         }
