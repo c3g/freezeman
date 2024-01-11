@@ -14,7 +14,6 @@ export interface cellSample {
 export interface containerSample {
     samples: cellSample
     container_name: string,
-    container_barcode: string,
     rows: number,
     columns: number,
     container_kind?: string,
@@ -28,7 +27,6 @@ export const PATTERN_STRING = 'pattern'
 const EMPTY_CONTAINER = [
     {
         container_name: '',
-        container_barcode: 'NewDestinationContainer_1',
         rows: 8,
         columns: 12,
         samples: {
@@ -63,10 +61,8 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             const containers = (values.data)
             containerSamples = []
             Object.keys(containers).forEach(container => {
-                const containerString = container.split('-')
                 containerSamples.push({
-                    container_barcode: containerString[0] == '0' ? 'tubes_without parent' : containerString[0],
-                    container_name: containerString[1],
+                    container_name: container,
                     samples: parseSamples(containers[container]),
                     columns: 12,
                     rows: 8
@@ -82,7 +78,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
 
     const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>(EMPTY_CONTAINER)
-    const [destinationContainerSamples, setDestinationContainerSamples] = useState<any>(EMPTY_CONTAINER)
+    const [destinationContainerSamples, setDestinationContainerSamples] = useState<containerSample[]>(EMPTY_CONTAINER)
 
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
@@ -170,10 +166,8 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
     const addContainer = useCallback(() => {
         const tempDestinationContainerSamples = [...destinationContainerSamples]
-
         tempDestinationContainerSamples.push({
             container_name: '',
-            container_barcode: '',
             samples: {},
             rows: 8,
             columns: 12,
@@ -189,11 +183,11 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
     }, [sourceContainerSamples, destinationContainerSamples])
 
-    const changeDestinationName = useCallback((name) => {
-        // const tempDestination = { ...destinationContainerSamples }
-        // tempDestination[destinationIndex].container_name = name
-        // tempDestination[destinationIndex].container_barcode = name
-        // setDestinationContainerSamples(tempDestination)
+    const changeDestinationName = useCallback((e) => {
+        const tempDestination = [ ...destinationContainerSamples ]
+        const name = e.target.value
+        tempDestination[destinationIndex].container_name = name
+        setDestinationContainerSamples(tempDestination)
     }, [destinationContainerSamples, destinationIndex])
 
     const saveDestination = useCallback(() => {
