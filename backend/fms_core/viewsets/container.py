@@ -1,6 +1,6 @@
 from collections import defaultdict
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q, Prefetch
+from django.db.models import Count, Q, Prefetch, F, When, Case, Value, CharField
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
 
@@ -225,11 +225,15 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
     
     @action(detail=False, methods=["get"])
     def list_container_groups(self, request):
-        sample_ids = request.GET.get("sample_ids").split(',')
+        sample_ids = request.GET.get("sample_ids")
         containers = defaultdict(list)
-        for result, id in zip(Container.objects.filter(samples__id__in=sample_ids).values('location', 'location__name', 'pk', 'coordinate').order_by('location', 'pk', 'coordinate'), sample_ids):
-            coordinate = Coordinate.objects.get(id=result["coordinate"]).name if result["coordinate"] else ''
-            name = Sample.objects.get(id=id).name
-            containers[(result['location__name']) if result['location'] else 'None'].append({"id": result['pk'], "coordinates": str(coordinate), "name": name})
+        for result in (Container.objects.filter(samples__id__in=sample_ids.split(',')).values('location', 'samples__id','samples__name', 'coordinate__name').annotate(
+        container_name=Case(
+            When(Q(coordinate__isnull=True) and Q(location__isnull=False), then=F('location__name')),
+            When(Q(coordinate__isnull=True), then=Value("tubes_without_parent_container")),
+            default=F('name'),
+            output_field=CharField()
+        ))):
+            containers[(result['container_name'])].append({"id": result['samples__id'], "coordinates": result['coordinate__name'], "name": result['samples__name']})
         return Response(containers)
     

@@ -55,11 +55,13 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         }
 
         const sampleIDs = selectedSamples.map(sample => sample.sample.id)
+
         let containerSamples: containerSample[] = EMPTY_CONTAINER
         if (sampleIDs.length > 0) {
             const values = await dispatch(api.containers.listContainerGroups(sampleIDs.join(',')))
             const containers = (values.data)
             containerSamples = []
+
             Object.keys(containers).forEach(container => {
                 containerSamples.push({
                     container_name: container,

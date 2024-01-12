@@ -382,12 +382,15 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			const samples = container.samples
 			if(Object.keys(samples).length > 0){
 				Object.keys(samples).forEach(id => {
+					console.log(id)
 					if (container.container_name) {
-						tempPlaceData[id] = {coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate'}
+						tempPlaceData[id] = []
+						tempPlaceData[id].push({coordinates: samples[id].coordinates.replace('_',''), container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate'})
 					}
 				})
 			}
 		})
+		console.log(Object.keys(tempPlaceData))
 		setPlacementData(tempPlaceData)
 	}, [])
 

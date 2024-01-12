@@ -114,7 +114,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         //sets all samples to certain type, 'none', 'placed'
         const setType = (type, source, destination) => {
             Object.keys(source).forEach((id) => {
-                if (source[id].type == NONE_STRING)
+                if (source[id].type == NONE_STRING && source[id].coordinates)
                     destination[id] = { coordinates: source[id].coordinates, type: type, name: source[id].name, sourceContainer: sourceSamples.container_name }
             })
             return destination
@@ -122,6 +122,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
 
         const newSourceSamples = setType(PLACED_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(sourceSamples.samples))
         const newDestinationSamples = setType(NONE_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(destinationSamples.samples))
+
 
         if (!sampleInCoords(sourceSamples.samples, destinationSamples.samples)) {
             saveContainerSamples(newSourceSamples, newDestinationSamples)
