@@ -268,12 +268,12 @@ class TemplatePrefillsMixin:
                 templates_list.append(template_dict)
         return Response(templates_list)
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["post"])
     def prefill_template(self, request):
         """
         Endpoint off of the parent viewset for filling up the requested template and returning it.
         """
-        template_id = request.GET.get("template")
+        template_id = request.POST.get("template")
 
         try:
             template = self.template_prefill_list[int(template_id)]["template"]
@@ -306,14 +306,14 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
         # Virtual method for dicts building. Surdefine in child class to specify.
         return []
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["post"])
     def prefill_template(self, request):
         """
         Endpoint off of the parent viewset for filling up the requested template using a field dict and returning it.
         """
-        template_id = request.GET.get("template")
-        user_prefill_data = json.loads(request.GET.get("user_prefill_data"))
-        placement_data = json.loads(request.GET.get("placement_data")) if request.GET.get("placement_data") is not None else None
+        template_id = request.POST.get("template")
+        user_prefill_data = json.loads(request.POST.get("user_prefill_data"))
+        placement_data = json.loads(request.POST.get("placement_data")) if request.POST.get("placement_data") is not None else None
 
         try:
             template = self.template_prefill_list[int(template_id)]["template"]
@@ -401,6 +401,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
             # Insert placement information for prefill template to wllo multiple destination during prefilling
             else:
                 sample_id = str(sample_id)
+                print(sample_id, placement_data)
                 for placement in placement_data[sample_id]:
                     # for each placement collect basic prefilling
                     sample_row_dict = default_prefilling(sample_id, template, user_prefill_data)

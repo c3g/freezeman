@@ -66,7 +66,6 @@ const Cell = ({ coordinates, onCellClick, sample, onCellMouseOver, onCellMouseLe
             onMouseLeave={onMouseLeave}
             style={{ backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample) }}
         >
-            {sample?.id}
         </div>
     )
 }

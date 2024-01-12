@@ -151,7 +151,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
 
     //checks to see if sample exists at coordinates and returns sample
     const checkSamples = useCallback((coordinate) => {
-        const removeLeadingZero = (value) => {return (value.split('_')[0]+'_'+parseFloat(value.split('_')[1]))}
+        const removeLeadingZero = (value) => { return (value.split('_')[0] + '_' + parseFloat(value.split('_')[1])) }
         let tempSamples: cellSample = { ...samples }
         const id = Object.keys(tempSamples).find((id) => removeLeadingZero(tempSamples[id].coordinates) == coordinate) ?? null;
         let type = NONE_STRING
