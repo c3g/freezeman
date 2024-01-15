@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Cell from "./Cell"
-import { NONE_STRING, PATTERN_STRING, SELECTED_STRING, cellSample } from "./LibraryTransferStep";
+import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, SELECTED_STRING, cellSample } from "./LibraryTransferStep";
 
 interface ContainerProps {
     containerType: string,
@@ -138,15 +138,17 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         if (isSelecting && sample.id) {
             updateSample([sample], containerType)
         } else {
-            if (!pattern) {
-                //update preview for group placement
-                previewGroupPlacement(sample.coordinates)
-            } else {
-                //update preview for pattern placement
-                previewPlacePattern(sample.coordinates)
+            if(containerType == DESTINATION_STRING){
+                if (!pattern) {
+                    //update preview for group placement
+                    previewGroupPlacement(sample.coordinates)
+                } else {
+                    //update preview for pattern placement
+                    previewPlacePattern(sample.coordinates)
+                }
             }
         }
-    }, [isSelecting, direction, selectedSampleList, previewCells, pattern])
+    }, [isSelecting, selectedSampleList, pattern, containerType])
 
 
     //checks to see if sample exists at coordinates and returns sample

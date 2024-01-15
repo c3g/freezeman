@@ -34,10 +34,9 @@ const { Item } = Form
 
 interface PrefillButtonProps {
     canPrefill: boolean,
-    handlePrefillTemplate: (data: { [column: string]: any }, placementData: {[id:string]: any}) => void,
+    handlePrefillTemplate: (data: { [column: string]: any }) => void,
     data: { [column: string]: ColumnType },
     onPrefillOpen: () => void,
-    placementData?: any
 }
 
 
@@ -59,7 +58,7 @@ function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
 }
 
 
-const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen, placementData }: PrefillButtonProps) => {
+const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen }: PrefillButtonProps) => {
     const dispatch = useAppDispatch()
     const [isPrefillColumnsShown, setIsPrefillColumnsShown] = useState(false);
     const [checkedFields, setCheckedFields] = useState<{ [column: string]: boolean }>({});
@@ -128,7 +127,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen,
     const onFinish: NonNullable<FormProps['onFinish']> = useCallback(() => {
         const prefillData = returnPrefillData()
         if (prefillData) {
-            handlePrefillTemplate(prefillData, placementData)
+            handlePrefillTemplate(prefillData)
             setIsPrefillColumnsShown(false)
         }
     }, [handlePrefillTemplate, returnPrefillData])
@@ -151,7 +150,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen,
     const onButtonClick = useCallback(async ()=>{
         dispatch(onPrefillOpen)
         if(Object.keys(data).length === 0){
-            handlePrefillTemplate({}, placementData)
+            handlePrefillTemplate({})
         }else{
             showPrefillColumns()
         }
