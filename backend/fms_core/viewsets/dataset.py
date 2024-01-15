@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.http import HttpResponseBadRequest
+from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -42,11 +43,13 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
     filterset_class = DatasetFilter
 
+    @transaction.atomic
     @action(detail=False, methods=["post"])
     def add_run_processing(self, request, *args, **kwargs):
         data = request.data
         datasets, dataset_files, errors, _ = service.ingest_run_validation_report(data)
         if errors:
+            transaction.set_rollback(True)
             return HttpResponseBadRequest("\n".join(errors))
         else:
             return Response(self.get_serializer(datasets.values(), many=True).data)
