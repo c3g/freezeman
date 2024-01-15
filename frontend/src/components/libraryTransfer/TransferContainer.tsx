@@ -148,7 +148,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
                 }
             }
         }
-    }, [isSelecting, selectedSampleList, pattern, containerType])
+    }, [isSelecting, direction, selectedSampleList, pattern, containerType])
 
 
     //checks to see if sample exists at coordinates and returns sample
@@ -201,7 +201,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
                 )
                 //renders container cells
                 for (let x = 1; x < columns + 1; x++) {
-                    coordinates = char + "_" + (x);
+                    coordinates = char + "_" + x
                     rowOfCells.push(
                         <Cell key={coordinates}
                             onCellMouseLeave={() => setPreviewCells({})}

@@ -113,7 +113,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
 
 
-    const copyContainerArray = useCallback((containerArray) => {
+    const copyContainerArray = useCallback((containerArray): containerSample[] => {
         return containerArray.map(obj => {
             return {
                 columns: obj.columns,
@@ -153,10 +153,10 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         }
         , [sourceContainerSamples, destinationContainerSamples, destinationIndex])
 
-    const changeContainer = useCallback((number: string, name: string, containerType: string) => {
+    const changeContainer = useCallback((number: string, containerType: string) => {
 
         const tempContainerList = containerType == SOURCE_STRING ? [...sourceContainerSamples] : [...destinationContainerSamples]
-        let tempIndex = tempContainerList.findIndex(container => container.container_name == name)
+        let tempIndex = containerType == SOURCE_STRING ? index : destinationIndex
 
 
         let length = tempIndex + parseFloat(number)
@@ -167,7 +167,6 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         if (length > tempContainerList.length - 1)
             length = 0
 
-
         if (length != tempIndex) {
             if (containerType == SOURCE_STRING) {
                 setIndex(length)
@@ -177,19 +176,22 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             }
         }
 
-    }, [destinationContainerSamples, sourceContainerSamples])
+    }, [destinationContainerSamples, sourceContainerSamples, index, destinationIndex])
 
     const addContainer = useCallback(() => {
-        const tempDestinationContainerSamples = [...destinationContainerSamples]
-        tempDestinationContainerSamples.push({
-            container_name: '',
-            samples: {},
-            rows: 8,
-            columns: 12,
-        })
-
-        setDestinationContainerSamples(tempDestinationContainerSamples)
-        setDestinationIndex(destinationIndex + 1)
+        const tempDestinationContainerSamples = copyContainerArray(destinationContainerSamples)
+        let indx = tempDestinationContainerSamples.findIndex(container => container.container_name == '')
+        if (indx == -1) {
+            tempDestinationContainerSamples.push({
+                container_name: '',
+                samples: {},
+                rows: 8,
+                columns: 12,
+            })
+            setDestinationContainerSamples(tempDestinationContainerSamples)
+            indx = tempDestinationContainerSamples.length - 1
+        }
+        setDestinationIndex(indx)
     }, [destinationContainerSamples, destinationIndex])
 
 
@@ -199,14 +201,28 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
     }, [sourceContainerSamples, destinationContainerSamples])
 
     const changeDestinationName = useCallback((e) => {
-        const tempDestination = [...destinationContainerSamples]
-        const name = e.target.value
-        tempDestination[destinationIndex].container_name = name
+        const tempDestination = copyContainerArray(destinationContainerSamples)
+        tempDestination[destinationIndex].container_name = e.target.value
         setDestinationContainerSamples(tempDestination)
     }, [destinationContainerSamples, destinationIndex])
 
     const saveDestination = useCallback(() => {
-        save(destinationContainerSamples)
+        if (destinationContainerSamples.some(container => container.container_name != '')) {
+            const placementData = {}
+            destinationContainerSamples.forEach(container => {
+                const samples = container.samples
+                if (Object.keys(samples).length > 0) {
+                    Object.keys(samples).forEach(id => {
+                        if (container.container_name) {
+                            placementData[id] = []
+                            const coordinates = samples[id].coordinates.split('_')
+                            placementData[id].push({ coordinates: coordinates[0] + (Number(coordinates[1]) < 10 ? coordinates[1].padStart(2, '0') : coordinates[1]), container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
+                        }
+                    })
+                }
+            })
+            save(placementData)
+        }
     }, [destinationContainerSamples])
 
     //calls backend endpoint to fetch source containers with samples
