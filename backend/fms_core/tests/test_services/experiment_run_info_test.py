@@ -18,11 +18,6 @@ from fms_core.services.project import create_project
 
 from fms_core.models import Biosample, ExperimentRun, IndexSet, Index
 
-from fms_core.tests.constants import create_container
-from fms_core.services import experiment_run, sample
-from datetime import datetime
-
-
 TEMPLATES_DIR = Path(__file__).parent.parent / "service-templates"
 
 PROJECT_NAME = 'TEST_PROJECT'
