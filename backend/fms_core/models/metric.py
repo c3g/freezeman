@@ -10,15 +10,17 @@ from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_STRING_FIELD_LENGTH
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
 
-__all__ = ["Metric"]
+__all__ = ["Metric", "METRIC_PRECISION", "METRIC_DECIMAL_PLACES"]
 
+METRIC_PRECISION = 40
+METRIC_DECIMAL_PLACES = 20
 
 @reversion.register()
 class Metric(TrackedModel):
     name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name for a metric.")
     readset = models.ForeignKey(Readset, on_delete=models.PROTECT, related_name="metrics", help_text="Readset for the metric.")
     metric_group = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Grouping of metrics by categories.")
-    value_numeric = models.DecimalField(null=True, blank=True, max_digits=40, decimal_places=20, help_text="Metric numerical value.")
+    value_numeric = models.DecimalField(null=True, blank=True, max_digits=METRIC_PRECISION, decimal_places=METRIC_DECIMAL_PLACES, help_text="Metric numerical value.")
     value_string = models.CharField(null=True, blank=True, max_length=STANDARD_STRING_FIELD_LENGTH, help_text="Metric string value.")
 
     def __str__(self):
