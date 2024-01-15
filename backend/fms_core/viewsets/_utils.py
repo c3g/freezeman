@@ -372,7 +372,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
             new_step = False
             new_batch_container = False
             # without placement there is only 1 destination for each sample
-            if placement_data is None:
+            if placement_data is None or placement_data.get(str(sample_id)) is None:
                 sample_row_dict = default_prefilling(sample_id, template, user_prefill_data)
                 batch_row_dict = {}
                 # Use step to extract specifications and attach it to the correct sheet and column
@@ -401,7 +401,6 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
             # Insert placement information for prefill template to wllo multiple destination during prefilling
             else:
                 sample_id = str(sample_id)
-                print(sample_id, placement_data)
                 for placement in placement_data[sample_id]:
                     # for each placement collect basic prefilling
                     sample_row_dict = default_prefilling(sample_id, template, user_prefill_data)
