@@ -380,11 +380,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		const tempPlaceData = {}
 		placementData.forEach(container => {
 			const samples = container.samples
-			if(Object.keys(samples).length > 0){
+			if (Object.keys(samples).length > 0) {
 				Object.keys(samples).forEach(id => {
 					if (container.container_name) {
 						tempPlaceData[id] = []
-						tempPlaceData[id].push({coordinates: samples[id].coordinates.replace('_',''), container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate'})
+						tempPlaceData[id].push({ coordinates: samples[id].coordinates.replace('_', ''), container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
 					}
 				})
 			}
@@ -515,12 +515,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						/>
 						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 					</Tabs.TabPane>
-					<Tabs.TabPane tab="Placement" key={PLACEMENT_TAB_KEY}>
-						<LibraryTransferStep
-							stepID={step.id}
-							save={placementSave}
-							selectedSamples={selectedTableSamples} />
-					</Tabs.TabPane>
+					{step.needs_placement ?
+						<Tabs.TabPane tab="Placement" key={PLACEMENT_TAB_KEY}>
+							<LibraryTransferStep
+								stepID={step.id}
+								save={placementSave}
+								selectedSamples={selectedTableSamples} />
+						</Tabs.TabPane>
+						: ''}
 				</Tabs>
 			</PageContent>
 		</>

@@ -24,15 +24,7 @@ export const SELECTED_STRING = 'selected'
 export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
 export const PATTERN_STRING = 'pattern'
-const EMPTY_CONTAINER = [
-    {
-        container_name: '',
-        rows: 8,
-        columns: 12,
-        samples: {
-        },
-    },
-]
+
 interface IProps {
     save: (changes) => void,
     selectedSamples: any,
@@ -40,6 +32,18 @@ interface IProps {
 }
 const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
     const dispatch = useAppDispatch()
+
+    const createEmptyContainerArray = useCallback(() => {
+        return [
+            {
+                container_name: '',
+                rows: 8,
+                columns: 12,
+                samples: {
+                },
+            },
+        ]
+    }, [])
 
     const fetchListContainers = useCallback(async () => {
         //parse coordinate to removing leading 0
@@ -56,7 +60,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
         const sampleIDs = selectedSamples.map(sample => sample.sample.id)
 
-        let containerSamples: containerSample[] = EMPTY_CONTAINER
+        let containerSamples: containerSample[] = createEmptyContainerArray()
         if (sampleIDs.length > 0) {
             const values = await dispatch(api.containers.listContainerGroups(sampleIDs.join(',')))
             const containers = (values.data)
@@ -74,22 +78,40 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         setSourceContainerSample(containerSamples)
     }, [selectedSamples])
 
+
+
     useEffect(() => {
         fetchListContainers()
     }, [selectedSamples])
 
 
-    const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>(EMPTY_CONTAINER)
-    const [destinationContainerSamples, setDestinationContainerSamples] = useState<containerSample[]>(EMPTY_CONTAINER)
+    useEffect(() => {
+        setSourceContainerSample(createEmptyContainerArray())
+        setDestinationContainerSamples(createEmptyContainerArray())
+    }, [stepID])
+
+    const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>(createEmptyContainerArray())
+    const [destinationContainerSamples, setDestinationContainerSamples] = useState<containerSample[]>(createEmptyContainerArray())
 
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
+
+    const setContainerSamples = (oldContainer, newContainer) => {
+        oldContainer.forEach((obj: any) => {
+            if (obj.container_name == newContainer.container_name) {
+                obj.samples = copyKeyObject(newContainer.samples)
+            }
+        })
+        return oldContainer
+    }
 
     const copyKeyObject = useCallback((obj) => {
         const copy = {}
         Object.keys(obj).forEach(key => copy[key] = { ...obj[key] })
         return copy
     }, [])
+
+
 
     const copyContainerArray = useCallback((containerArray) => {
         return containerArray.map(obj => {
@@ -101,15 +123,6 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             }
         })
     }, [])
-
-    const setContainerSamples = (oldContainer, newContainer) => {
-        oldContainer.forEach((obj: any) => {
-            if (obj.container_name == newContainer.container_name) {
-                obj.samples = copyKeyObject(newContainer.samples)
-            }
-        })
-        return oldContainer
-    }
 
 
     const removeCells = useCallback(
@@ -186,7 +199,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
     }, [sourceContainerSamples, destinationContainerSamples])
 
     const changeDestinationName = useCallback((e) => {
-        const tempDestination = [ ...destinationContainerSamples ]
+        const tempDestination = [...destinationContainerSamples]
         const name = e.target.value
         tempDestination[destinationIndex].container_name = name
         setDestinationContainerSamples(tempDestination)

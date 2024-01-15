@@ -26,7 +26,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
 
     //keyed object by sampleID, containing the coordinates
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
-    const [placementType, setPlacementType] = useState<string>(PATTERN_STRING)
+    const [placementType, setPlacementType] = useState<string>('group')
     const [placementDirection, setPlacementDirection] = useState<string>('row')
 
     const updatePlacementType = useCallback((value) => {
@@ -136,67 +136,66 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
     //used to update to source and destination Samples
     const updateSampleList = useCallback(
         (sampleList, containerType) => {
-        //to avoid passing reference each object is copied
-        const tempSelectedSamples: cellSample = copyKeyObject(selectedSamples)
-        const tempSourceSamples: cellSample = copyKeyObject(sourceSamples.samples)
-        const tempDestinationSamples: cellSample = copyKeyObject(destinationSamples.samples)
+            //to avoid passing reference each object is copied
+            const tempSelectedSamples: cellSample = copyKeyObject(selectedSamples)
+            const tempSourceSamples: cellSample = copyKeyObject(sourceSamples.samples)
+            const tempDestinationSamples: cellSample = copyKeyObject(destinationSamples.samples)
 
-        //iterates over sampleList to decide whether to place them in the selected section or the destination container
-        sampleList.forEach(sample => {
-            const id = sample.id
-            const coord = sample.coordinates
-            // to prevent users from placing into empty cells in source container
-            if (containerType == DESTINATION_STRING) {
-                if (!tempDestinationSamples[id] || sample.type == PATTERN_STRING) {
-                    let selectedId
+            //iterates over sampleList to decide whether to place them in the selected section or the destination container
+            sampleList.forEach(sample => {
+                const id = sample.id
+                const coord = sample.coordinates
+                // to prevent users from placing into empty cells in source container
+                if (containerType == DESTINATION_STRING) {
+                    if (!tempDestinationSamples[id] || sample.type == PATTERN_STRING) {
+                        let selectedId
 
-                    if (placementType != PATTERN_STRING) {
-                        selectedId = (Object.keys(tempSelectedSamples)[0])
-                    } else {
                         selectedId = (Object.keys(tempSelectedSamples).filter(key => key == id)[0])
-                    }
-
-                    if (selectedId) {
-                        //if id exists in selectedSamples is selected from destination then move from destination
-                        if (tempSelectedSamples[selectedId].type == DESTINATION_STRING) {
-                            delete tempDestinationSamples[selectedId]
-                        }
-                        tempDestinationSamples[selectedId] = { coordinates: coord, type: NONE_STRING, name: tempSelectedSamples[selectedId].name, sourceContainer: tempSelectedSamples[selectedId].sourceContainer }
-
-                        if (tempSourceSamples[selectedId] && tempSourceSamples[selectedId].type != PLACED_STRING) {
-                            //if id exists in source, set sample to placed
-                            tempSourceSamples[selectedId].type = PLACED_STRING
+                        if (!selectedId) {
+                            selectedId = (Object.keys(tempSelectedSamples)[0])
                         }
 
-                        //removes from selected samples
-                        delete tempSelectedSamples[selectedId]
+                        if (selectedId) {
+                            //if id exists in selectedSamples is selected from destination then move from destination
+                            if (tempSelectedSamples[selectedId].type == DESTINATION_STRING) {
+                                delete tempDestinationSamples[selectedId]
+                            }
+                            tempDestinationSamples[selectedId] = { coordinates: coord, type: NONE_STRING, name: tempSelectedSamples[selectedId].name, sourceContainer: tempSelectedSamples[selectedId].sourceContainer }
+
+                            if (tempSourceSamples[selectedId] && tempSourceSamples[selectedId].type != PLACED_STRING) {
+                                //if id exists in source, set sample to placed
+                                tempSourceSamples[selectedId].type = PLACED_STRING
+                            }
+
+                            //removes from selected samples
+                            delete tempSelectedSamples[selectedId]
+
+                        }
 
                     }
 
                 }
 
-            }
-
-            //if sample id exists, it deletes in selectedSamples, else adds it to selected samples object
-            if (id && sample.type != PLACED_STRING && sample.type != PATTERN_STRING) {
-                if (tempSelectedSamples[id]) {
-                    delete tempSelectedSamples[id]
-                } else {
-                    tempSelectedSamples[id] = {
-                        coordinates: coord, type: containerType, name: sample.name,
-                        //store source container in case user wants to remove cells, either one that is currently displayed, or use the one stored in the sampleInfo
-                        sourceContainer:
-                            tempDestinationSamples[id] ? tempDestinationSamples[id].sourceContainer : sourceSamples.container_name
+                //if sample id exists, it deletes in selectedSamples, else adds it to selected samples object
+                if (id && sample.type != PLACED_STRING && sample.type != PATTERN_STRING) {
+                    if (tempSelectedSamples[id]) {
+                        delete tempSelectedSamples[id]
+                    } else {
+                        tempSelectedSamples[id] = {
+                            coordinates: coord, type: containerType, name: sample.name,
+                            //store source container in case user wants to remove cells, either one that is currently displayed, or use the one stored in the sampleInfo
+                            sourceContainer:
+                                tempDestinationSamples[id] ? tempDestinationSamples[id].sourceContainer : sourceSamples.container_name
+                        }
                     }
                 }
-            }
-        })
+            })
 
-        setSelectedSamples({ ...tempSelectedSamples })
+            setSelectedSamples({ ...tempSelectedSamples })
 
-        //updates samples to parent container
-        saveContainerSamples(tempSourceSamples, tempDestinationSamples)
-    }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
+            //updates samples to parent container
+            saveContainerSamples(tempSourceSamples, tempDestinationSamples)
+        }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
 
     //function handler for the selection table
     const onSampleSelect = useCallback((samples, type) => {
@@ -243,8 +242,8 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                         </div>
                         <div className={"flex-row"} style={{ justifyContent: 'center', gap: '1vw' }}>
                             <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
-                                <Radio.Button value={'pattern'}> Pattern </Radio.Button>
                                 <Radio.Button value={'group'}> Group </Radio.Button>
+                                <Radio.Button value={'pattern'}> Pattern </Radio.Button>
                             </Radio.Group>
                             <Radio.Group
                                 disabled={placementType != 'group'}
