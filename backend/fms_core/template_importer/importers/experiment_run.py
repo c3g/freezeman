@@ -114,7 +114,7 @@ class ExperimentRunImporter(GenericImporter):
                 **sample_kwargs,
             )
             # Set the actual volumed_used in case the load all option was used
-            sample["volume_used"] = sample['sample_obj'].volume if sample["volume_used"] == LOAD_ALL else sample["volume_used"]
+            sample["volume_used"] = (sample['sample_obj'].volume if sample['sample_obj'] is not None else 0) if sample["volume_used"] == LOAD_ALL else sample["volume_used"]
             sample_rows_data[sample['experiment_name']].append(sample)
             sample_kwargs["sample"] = sample
             sample_input.append(sample_kwargs)
