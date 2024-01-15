@@ -62,6 +62,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),
+        "qc_flag"
     )
 
     ordering = ["-id"]
