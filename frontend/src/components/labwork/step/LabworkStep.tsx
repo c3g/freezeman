@@ -376,20 +376,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [step.id, selectedTableSamples, isSorted])
 
-	const placementSave = useCallback((placementData) => {
-		const tempPlaceData = {}
-		placementData.forEach(container => {
-			const samples = container.samples
-			if (Object.keys(samples).length > 0) {
-				Object.keys(samples).forEach(id => {
-					if (container.container_name) {
-						tempPlaceData[id] = []
-						tempPlaceData[id].push({ coordinates: samples[id].coordinates.replace('_', ''), container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
-					}
-				})
-			}
-		})
-		setPlacementData(tempPlaceData)
+	const placementSave = useCallback((placementData) => {		
+		setPlacementData(placementData)
 	}, [])
 
 	/** UX **/

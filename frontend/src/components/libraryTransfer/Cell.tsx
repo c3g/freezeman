@@ -19,12 +19,12 @@ interface CellProps {
     outline: boolean,
 }
 
-const Cell = ({ coordinates, onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline }: CellProps) => {
+const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, coordinates }: CellProps) => {
     const [hover, setHover] = useState<boolean>(isSelecting)
 
     const onClick = useCallback(() => {
         if (sample?.type != PLACED_STRING) {
-            onCellClick({ id: sample?.id, type: sample?.type, coordinates, name: sample?.name, sourceContainer: sample?.sourceContainer })
+            onCellClick({ id: sample?.id, type: sample?.type, coordinates: coordinates, name: sample?.name, sourceContainer: sample?.sourceContainer })
         }
         setHover(!hover)
     }, [sample, onCellClick, isSelecting, hover])

@@ -13,7 +13,7 @@ interface LibraryTransferProps {
     sourceSamples: containerSample,
     destinationSamples: containerSample,
     saveChanges: (sourceContainerSamples, destinationContainerSamples) => void,
-    cycleContainer: (number, name, containerType) => void,
+    cycleContainer: (number, containerType) => void,
     addDestination: () => void,
     disableChangeSource: boolean,
     disableChangeDestination: boolean,
@@ -76,8 +76,8 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         }
     }, [selectedSamples])
 
-    const changeContainer = useCallback((number: string, name: string, containerType: string) => {
-        cycleContainer(number, name, containerType)
+    const changeContainer = useCallback((number: string, containerType: string) => {
+        cycleContainer(number, containerType)
         //clears selection depending on cycle type
         clearSelection()
     }, [cycleContainer])
@@ -207,7 +207,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         if (selectedSampleList.length == 0) {
             //removes selected if array is empty
             filteredSelected.forEach(id => {
-                ids.push({ id, coordinates: selectedSamples[id].coordinates })
+                ids.push({ id, coordinates: selectedSamples[id].coordinates, name: selectedSamples[id].name})
             })
         }
         else if (selectedSampleList.length < filteredSelected.length) {
@@ -217,7 +217,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                     sample.id).includes(x)
             )[0];
 
-            ids.push({ id, coordinates: selectedSamples[id].coordinates })
+            ids.push({ id, coordinates: selectedSamples[id].coordinates, name: selectedSamples[id].name})
         }
         else {
             const samplePool = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
@@ -225,7 +225,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             //gets the newly added sample from the selection from the antd table
             selectedSampleList.forEach(sample => {
                 if (sample.type != PLACED_STRING && !filteredSelected.includes(sample.id)) {
-                    ids.push({ id: sample.id, coordinates: samplePool[sample.id].coordinates })
+                    ids.push({ id: sample.id, coordinates: samplePool[sample.id].coordinates, name: samplePool[sample.id].name })
                 }
             })
         }
@@ -237,9 +237,6 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             <PageContainer>
                 <PageContent>
                     <div className={"flex-column"}>
-                        <div style={{ display: 'flex', justifyContent: 'right' }}>
-                            <Button onClick={saveDestination}> Save to Prefill </Button>
-                        </div>
                         <div className={"flex-row"} style={{ justifyContent: 'center', gap: '1vw' }}>
                             <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
                                 <Radio.Button value={'group'}> Group </Radio.Button>
@@ -252,6 +249,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                                 <Radio.Button value={'row'}> row </Radio.Button>
                                 <Radio.Button value={'column'}> column </Radio.Button>
                             </Radio.Group>
+                            <Button onClick={saveDestination}> Save to Prefill </Button>
                         </div>
                         <div className={"flex-row"}>
                             <div className={"flex-column"}>
@@ -291,8 +289,8 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                         <div style={{ display: 'flex', justifyContent: 'end', gap: '1vw' }}>
                             <Button onClick={transferAllSamples}>Transfer All</Button>
                             <Button onClick={clearSelection}>Clear Selection</Button>
-                            <Button onClick={addDestination}>Add Container</Button>
-                            <Button onClick={removeSelectedCells}> Remove Cell(s)</Button>
+                            <Button disabled={destinationSamples.container_name == ''} onClick={addDestination}>Add Container</Button>
+                            <Button onClick={removeSelectedCells}> Undo Placement</Button>
                         </div>
                         <div className={"flex-row"}>
                             <LibraryTransferTable onSampleSelect={(samples) => onSampleSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples.samples)} selectedSamples={Object.keys(selectedSamples).filter((id: any) => selectedSamples[id].type == SOURCE_STRING)} />
