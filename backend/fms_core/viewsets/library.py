@@ -77,7 +77,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
     ordering_fields = (
         *_list_keys(_library_filterset_fields),
-        "quantity_ng"
+        "quantity_ng",
+        "qc_flag"
     )
 
     filterset_fields = {
