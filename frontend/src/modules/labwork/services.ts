@@ -68,7 +68,7 @@ export function processFMSLabworkSummary(
 			// Create a group for each unique platform found in step specs
 			for(const step of protocolSteps) {
 				let group
-				const platform = getSpecifiedValue(step, 'Library Platform')
+				const platform = getSpecifiedValue(step, 'LibraryPlatform')
 				if (platform) {
 					if (!groupsMap.has(platform)) {
 						groupsMap.set(platform, {
