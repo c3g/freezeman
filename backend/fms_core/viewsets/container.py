@@ -223,17 +223,4 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         """
         return versions_detail(self.get_object())
     
-    @action(detail=False, methods=["get"])
-    def list_container_groups(self, request):
-        sample_ids = request.GET.get("sample_ids")
-        containers = defaultdict(list)
-        for result in (Container.objects.filter(samples__id__in=sample_ids.split(',')).values('location', 'samples__id','samples__name', 'coordinate__name').annotate(
-        container_name=Case(
-            When(Q(coordinate__isnull=True) and Q(location__isnull=False), then=F('location__name')),
-            When(Q(coordinate__isnull=True), then=Value("tubes_without_parent_container")),
-            default=F('name'),
-            output_field=CharField()
-        ))):
-            containers[(result['container_name'])].append({"id": result['samples__id'], "coordinates": result['coordinate__name'], "name": result['samples__name']})
-        return Response(containers)
     
