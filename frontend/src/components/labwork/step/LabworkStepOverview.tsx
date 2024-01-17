@@ -98,11 +98,12 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
       <div style={{ display: 'flex', marginBottom: '1em' }}></div>
 			<Collapse accordion destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'}>
 				{labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
+          const sample_ids = group.sample_locators.map(sample_locator => sample_locator.sample_id)
           const ButtonsSelectAndClear = (
             <Space direction="horizontal" style={{width: '100%', justifyContent: 'center'}}>
               <Tag><Title style={{ margin: 0 }} level={4}>{group.count}</Title></Tag>
-              <Button disabled={!group.count} title='Select group samples' onClick={() => handleSelectGroup(group.sample_ids)}>Select All</Button>
-              <Button disabled={stepSamples.selectedSamples.length === 0} title='Deselect group samples' onClick={() => handleClearGroup(group.sample_ids)}>Clear Selection</Button>
+              <Button disabled={!group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
+              <Button disabled={stepSamples.selectedSamples.length === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
             </Space>
           )
 

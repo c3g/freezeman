@@ -46,6 +46,15 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     )
 
     queryset = queryset.annotate(
+        ordering_container_barcode=Case(
+            When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__barcode')),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container_barcode")),
+            default=F('sample__container__barcode'),
+            output_field=CharField()
+        )
+    )
+
+    queryset = queryset.annotate(
         ordering_container_coordinate_column=Case(
             When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__column')),
             default=F('sample__coordinate__column'),
@@ -58,6 +67,14 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__row')),
             default=F('sample__coordinate__row'),
             output_field=IntegerField()
+        )
+    )
+
+    queryset = queryset.annotate(
+        ordering_container_coordinates=Case(
+            When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__name')),
+            default=F('sample__coordinate__name'),
+            output_field=CharField()
         )
     )
 
@@ -337,6 +354,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count("sample_id", distinct=True)).order_by("-count", grouping_column)
         for group in grouped_step_samples.all():
             filter_column = grouping_column + "__exact"
-            sample_ids = list(set(self.filter_queryset(self.get_queryset()).filter(step__id__exact=step_id).filter(**{filter_column: group[grouping_column]}).values_list("sample_id", flat=True).distinct()))
-            grouped_step_summary["samples"]["groups"].append({"name": group[grouping_column], "count": group["count"], "sample_ids": sample_ids})
+            sample_locators = self.filter_queryset(self.get_queryset()).filter(step__id__exact=step_id).filter(**{filter_column: group[grouping_column]}).values("sample_id").annotate(contextual_container_barcode=F("ordering_container_barcode")).annotate(contextual_coordinates=F("ordering_container_coordinates")).distinct()
+            grouped_step_summary["samples"]["groups"].append({"name": group[grouping_column], "count": group["count"], "sample_locators": sample_locators})
         return Response({"results": grouped_step_summary})
