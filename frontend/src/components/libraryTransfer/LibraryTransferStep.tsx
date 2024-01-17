@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react"
 import LibraryTransfer from "./LibraryTransfer"
-import { useAppDispatch, useAppSelector } from "../../hooks"
+import { useAppDispatch } from "../../hooks"
 import api from "../../utils/api"
 export interface sampleInfo {
     coordinates: string,
@@ -50,10 +50,11 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         const parseCoordinate = (value) => {
             return value.substring(0, 1) + "_" + (value.substring(1));
         }
-        const parseSamples = (list) => {
+        const parseSamples = (list, selectedSamples) => {
             const object = {}
-            list.forEach(obj => {
-                object[obj.id] = { coordinates: obj.coordinates ? parseCoordinate(obj.coordinates) : '', type: NONE_STRING, name: obj.name }
+            list.forEach(id => {
+                const sample = selectedSamples.find(sample => sample.sample.id == id).sample
+                object[id] = {id: sample.id, name: sample.name, coordinate: '' }
             })
             return object
         }
@@ -62,19 +63,21 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
         let containerSamples: containerSample[] = createEmptyContainerArray()
         if (sampleIDs.length > 0) {
-            const values = await dispatch(api.containers.listContainerGroups(sampleIDs.join(',')))
-            const containers = (values.data)
+            const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
+            const containers = (values.data.results.samples.groups)
+
             containerSamples = []
 
-            Object.keys(containers).forEach(container => {
+            containers.forEach(container => {
                 containerSamples.push({
-                    container_name: container,
-                    samples: parseSamples(containers[container]),
+                    container_name: container.name,
+                    samples: parseSamples(container.sample_ids, selectedSamples),
                     columns: 12,
                     rows: 8
                 })
             })
         }
+        console.log(containerSamples)
         setSourceContainerSample(containerSamples)
     }, [selectedSamples])
 

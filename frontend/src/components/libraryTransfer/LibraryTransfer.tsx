@@ -147,6 +147,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                         let selectedId
 
                         selectedId = (Object.keys(tempSelectedSamples).filter(key => key == id)[0])
+                        
                         if (!selectedId) {
                             selectedId = (Object.keys(tempSelectedSamples)[0])
                         }
