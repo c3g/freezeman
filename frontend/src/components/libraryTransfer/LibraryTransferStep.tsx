@@ -2,11 +2,13 @@ import React, { useCallback, useEffect, useState } from "react"
 import LibraryTransfer from "./LibraryTransfer"
 import { useAppDispatch } from "../../hooks"
 import api from "../../utils/api"
+import { Alert } from "antd"
 export interface sampleInfo {
     coordinates: string,
     type: string,
-    name: string,
     sourceContainer?: string
+    name?: string,
+    id?: number,
 }
 export interface cellSample {
     [id: string]: sampleInfo
@@ -47,7 +49,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
     const fetchListContainers = useCallback(async () => {
         //parse coordinate to removing leading 0
-        const parseSamples = (list, selectedSamples) => {
+        const parseSamples = (list, selectedSamples, container_name) => {
             const object = {}
             const parseCoordinate = (value) => {
                 return value.substring(0, 1) + "_" + (parseFloat(value.substring(1)));
@@ -55,7 +57,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             list.forEach(located_sample => {
                 const id = located_sample.sample_id
                 const sample = selectedSamples.find(sample => sample.sample.id == id).sample
-                object[id] = { id: id, name: sample.name, coordinates: parseCoordinate(located_sample.contextual_coordinates), type: NONE_STRING }
+                object[id] = { id: id, name: sample.name, coordinates: parseCoordinate(located_sample.contextual_coordinates), type: NONE_STRING, sourceContainer: container_name }
             })
             return object
         }
@@ -71,13 +73,13 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             containers.forEach(container => {
                 containerSamples.push({
                     container_name: container.name,
-                    samples: parseSamples(container.sample_locators, selectedSamples),
+                    samples: parseSamples(container.sample_locators, selectedSamples, container.name),
                     columns: 12,
                     rows: 8
                 })
             })
         }
-        setSourceContainerSample(containerSamples)
+        setSourceContainerSamples(containerSamples)
     }, [selectedSamples])
 
 
@@ -88,23 +90,21 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
 
     useEffect(() => {
-        setSourceContainerSample(createEmptyContainerArray())
+        setSourceContainerSamples(createEmptyContainerArray())
         setDestinationContainerSamples(createEmptyContainerArray())
     }, [stepID])
 
-    const [sourceContainerSamples, setSourceContainerSample] = useState<containerSample[]>(createEmptyContainerArray())
+    const [sourceContainerSamples, setSourceContainerSamples] = useState<containerSample[]>(createEmptyContainerArray())
     const [destinationContainerSamples, setDestinationContainerSamples] = useState<containerSample[]>(createEmptyContainerArray())
 
     const [index, setIndex] = useState<number>(0)
+    const [error, setError] = useState<string | undefined>(undefined)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
-    const setContainerSamples = (oldContainer, newContainer) => {
-        oldContainer.forEach((obj: any) => {
-            if (obj.container_name == newContainer.container_name) {
-                obj.samples = copyKeyObject(newContainer.samples)
-            }
-        })
-        return oldContainer
+    const setContainerSamples = (containerList, newSamples, index) => {
+        containerList[index].samples = newSamples
+        console.log(containerList)
+        return containerList
     }
 
     const copyKeyObject = useCallback((obj) => {
@@ -131,15 +131,27 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         (samples) => {
             const copySourceContainerSamples = copyContainerArray(sourceContainerSamples)
             const copyDestinationSamples = copyContainerArray(destinationContainerSamples)
-            
+
+            // if (Object.keys(samples).length > 0) {
             Object.keys(samples).forEach(key => {
-                    delete copyDestinationSamples[destinationIndex].samples[key]
-                    const sourceIndex = sourceContainerSamples.findIndex(source => source.container_name == samples[key].sourceContainer)
-                    copySourceContainerSamples[sourceIndex].samples[key].type = NONE_STRING
+                let sourceIndex = sourceContainerSamples.findIndex(source => source.container_name == samples[key].sourceContainer)
+                if (!sourceIndex)
+                    sourceIndex = copySourceContainerSamples.findIndex(source => source.container_name == copyDestinationSamples[destinationIndex].samples[key].sourceContainer)
+                copySourceContainerSamples[sourceIndex].samples[key].type = NONE_STRING
+                delete copyDestinationSamples[destinationIndex].samples[key]
             })
+            // } Z
+            // else {
+            //     Object.keys(copyDestinationSamples[destinationIndex].samples).forEach(key => {
+            //         const
+            //             copySourceContainerSamples[sourceIndex].samples[key].type = NONE_STRING
+            //     })
+            //     copyDestinationSamples[destinationIndex].samples = {}
+            // }
+
 
             setDestinationContainerSamples(copyDestinationSamples)
-            setSourceContainerSample(copySourceContainerSamples)
+            setSourceContainerSamples(copySourceContainerSamples)
 
         }
         , [sourceContainerSamples, destinationContainerSamples, destinationIndex])
@@ -169,26 +181,36 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
     }, [destinationContainerSamples, sourceContainerSamples, index, destinationIndex])
 
-    const addContainer = useCallback(() => {
+    const addContainer = useCallback((newContainer) => {
+        console.log(newContainer)
         const tempDestinationContainerSamples = copyContainerArray(destinationContainerSamples)
-        let indx = tempDestinationContainerSamples.findIndex(container => container.container_name == '')
-        if (indx == -1) {
-            tempDestinationContainerSamples.push({
-                container_name: '',
-                samples: {},
-                rows: 8,
-                columns: 12,
-            })
-            setDestinationContainerSamples(tempDestinationContainerSamples)
-            indx = tempDestinationContainerSamples.length - 1
+        const emptyContainer = {
+            container_name: '',
+            samples: {},
+            rows: 8,
+            columns: 12,
         }
+        let indx = 0
+        if (newContainer) {
+            tempDestinationContainerSamples.push({ ...emptyContainer, ...newContainer })
+            console.log(tempDestinationContainerSamples)
+        } else {
+            indx = tempDestinationContainerSamples.findIndex(container => container.container_name == '')
+            if (indx == -1) {
+                tempDestinationContainerSamples.push()
+            }
+        }
+        indx = tempDestinationContainerSamples.length - 1
+        console.log(indx, tempDestinationContainerSamples[indx])
+        setDestinationContainerSamples(tempDestinationContainerSamples)
         setDestinationIndex(indx)
     }, [destinationContainerSamples, destinationIndex])
 
 
     const saveChanges = useCallback((source, destination) => {
-        setSourceContainerSample(setContainerSamples(sourceContainerSamples, source))
-        setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination))
+        console.log(destination)
+        setSourceContainerSamples(setContainerSamples(sourceContainerSamples, source, index))
+        setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination, destinationIndex))
     }, [sourceContainerSamples, destinationContainerSamples])
 
     const changeDestinationName = useCallback((e) => {
@@ -204,7 +226,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                 const samples = container.samples
                 if (Object.keys(samples).length > 0) {
                     Object.keys(samples).forEach(id => {
-                        if (container.container_name) {
+                        if (container.container_name != '') {
                             placementData[id] = []
                             const coordinates = samples[id].coordinates.split('_')
                             placementData[id].push({ coordinates: coordinates[0] + (Number(coordinates[1]) < 10 ? coordinates[1].padStart(2, '0') : coordinates[1]), container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
@@ -212,13 +234,30 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                     })
                 }
             })
-            save(placementData)
+            if (Object.keys(placementData).length > 0) {
+                save(placementData)
+            } else {
+                setError('Missing placement data')
+            }
+        } else {
+            setError('Missing destination barcode in destination list')
         }
     }, [destinationContainerSamples])
 
     //calls backend endpoint to fetch source containers with samples
+    console.log(destinationContainerSamples, sourceContainerSamples)
     return (
         <>
+            {error ?
+                <Alert
+                    type='error'
+                    message='Destination Error'
+                    description={error}
+                    closable={true}
+                    showIcon={true}
+                    onClose={() => { setError(undefined) }}
+                />
+                : ''}
             <LibraryTransfer
                 sourceSamples={sourceContainerSamples[index]}
                 destinationSamples={destinationContainerSamples[destinationIndex]}
@@ -230,6 +269,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                 addDestination={addContainer}
                 removeCells={removeCells}
                 saveDestination={saveDestination} />
+
         </>
     )
 }

@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { useCallback } from "react"
 import './Transfer.scss'
-import { PLACED_STRING, SELECTED_STRING } from "./LibraryTransferStep"
+import { PLACED_STRING, SELECTED_STRING, sampleInfo } from "./LibraryTransferStep"
 
 interface CellProps {
     onCellClick: (e: any) => void,
@@ -9,34 +9,29 @@ interface CellProps {
     onCellMouseLeave: () => void,
     coordinates: string,
     isSelecting: boolean,
-    sample: {
-        id: string,
-        //3 types { selected, placed, none}
-        type: string,
-        name: string,
-        sourceContainer?: string
-    } | null,
+    sample?: sampleInfo,
     outline: boolean,
 }
 
 const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, coordinates }: CellProps) => {
-    const [hover, setHover] = useState<boolean>(isSelecting)
+    // const [hover, setHover] = useState<boolean>(isSelecting)
 
     const onClick = useCallback(() => {
         if (sample?.type != PLACED_STRING) {
-            onCellClick({ id: sample?.id, type: sample?.type, coordinates: coordinates, name: sample?.name, sourceContainer: sample?.sourceContainer })
+            console.log(sample)
+            onCellClick(sample ? { ...sample } : { coordinates: coordinates })
         }
-        setHover(!hover)
-    }, [sample, onCellClick, isSelecting, hover])
+        // setHover(!hover)
+    }, [sample, onCellClick, isSelecting])
 
     const onMouseEnter = useCallback(() => {
         if (isSelecting) {
-            setHover(true)
+            // setHover(true)
         }
     }, [isSelecting])
 
     const onMouseLeave = useCallback(() => {
-        setHover(false)
+        // setHover(false)
         onCellMouseLeave()
     }, [])
 

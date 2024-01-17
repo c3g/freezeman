@@ -4,10 +4,13 @@ import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button, Popconfirm } from 'antd'
+import { Radio, Button, Popconfirm, Modal } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./LibraryTransferStep"
 import SearchContainer from "../../components/SearchContainer"
 import LibraryTransferTable from "./LibraryTransferTable"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import api from "../../utils/api"
+import { selectCoordinatesByID } from "../../selectors"
 
 
 interface LibraryTransferProps {
@@ -15,7 +18,7 @@ interface LibraryTransferProps {
     destinationSamples: containerSample,
     saveChanges: (sourceContainerSamples, destinationContainerSamples) => void,
     cycleContainer: (number, containerType) => void,
-    addDestination: () => void,
+    addDestination: (any?) => void,
     disableChangeSource: boolean,
     disableChangeDestination: boolean,
     removeCells: (samples) => void,
@@ -29,6 +32,10 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
     const [placementType, setPlacementType] = useState<string>('group')
     const [placementDirection, setPlacementDirection] = useState<string>('row')
+    const [loadPopUp, setLoadPopUp] = useState<boolean>(false)
+    const [loadedContainer, setLoadedContainer] = useState<any>({})
+    const coordinates = useAppSelector(selectCoordinatesByID)
+    const dispatch = useAppDispatch()
 
     const updatePlacementType = useCallback((value) => {
         setPlacementType(value)
@@ -71,7 +78,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
 
     //removes selected samples, unless they're in the source container
     const removeSelectedCells = useCallback(() => {
-        if (!Object.values(selectedSamples).find(sample => sample.type == 'source')) {
+        if (!Object.values(selectedSamples).find(sample => sample.type == 'source') || Object.keys(selectedSamples).length == 0) {
             removeCells(selectedSamples)
             clearSelection()
         }
@@ -83,27 +90,48 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         clearSelection()
     }, [cycleContainer])
 
+    const handleContainerLoad = useCallback(async () => {
+        let container = await dispatch(api.containers.get(loadedContainer))
+        const ids = container.data.samples
+        container = container.data.name
+        const newDestination = {}
+        let loadedSamples = await dispatch(api.samples.list({ id__in: ids.join(',') }))
+        const parseCoordinate = (value) => {
+            return value.substring(0, 1) + "_" + (parseFloat(value.substring(1)));
+        }
+        loadedSamples = loadedSamples.data.results
+        loadedSamples.forEach(sample => {
+            newDestination[sample.id] = { coordinates: parseCoordinate(coordinates[sample.coordinate].name), type: NONE_STRING, name: sample.name, sourceContainer: container }
+        })
 
-    const placeGroupSamples = useCallback((sampleObj) => {
-        let coordinates = Object.keys(sampleObj).map((key) => key)
+        addDestination({ container_name: container, samples: copyKeyObject(newDestination) })
+        setLoadPopUp(false)
+    }, [loadedContainer, coordinates])
+
+
+    const updateSamples = useCallback((array, containerType) => {
+
+        const coordinates = array.map((sample) => sample.coordinates)
+
+        let canUpdate = true
+
         //checks if group can be placed, if cells are already filled, or if they go beyond the boundaries of the cells
-        if ((!coordinates.some((coord) => Object.values(destinationSamples.samples).find(sample => sample.coordinates == coord))) && (!coordinates.some(coord => coord.includes('I') || Number(coord.split('_')[1]) > 12)))
-            updateSampleList(Object.keys(sampleObj).map(coord => { return { id: sampleObj[coord].id, type: sampleObj[coord].type, coordinates: coord, name: sampleObj[coord].name } }), DESTINATION_STRING)
-    }, [destinationSamples.samples])
+        if (containerType == DESTINATION_STRING) {
+            if (((coordinates.some(coord => coord.includes('I') || Number(coord.split('_')[1]) > 12)))) {
+                canUpdate = false
+            }
+        }
+
+        if (canUpdate)
+            updateSampleList(array, containerType)
+    }, [destinationSamples.samples, selectedSamples])
 
     const saveContainerSamples = useCallback((source, destination) => {
+        // console.log('source', source)
         //sends it up to the parent component to be stored, will save the state of containers for when you cycle containers
         if (sourceSamples.container_name) {
-            saveChanges(
-                {
-                    container_name: sourceSamples.container_name,
-                    samples: copyKeyObject(source)
-                },
-                {
-                    container_name: destinationSamples.container_name,
-                    samples: copyKeyObject(destination)
-                }
-            )
+            console.log(destination)
+            saveChanges(source, destination)
         }
 
     }, [sourceSamples.container_name, destinationSamples.container_name])
@@ -115,12 +143,12 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
     //function to handle the transfer of samples from source to destination
     const transferAllSamples = useCallback(() => {
         //sets all samples to certain type, 'none', 'placed'
-        const setType = (type, source, destination) => {
+        const setType = (type, source, sampleObj) => {
             Object.keys(source).forEach((id) => {
                 if (source[id].type == NONE_STRING && source[id].coordinates)
-                    destination[id] = { coordinates: source[id].coordinates, type: type, name: source[id].name, sourceContainer: sourceSamples.container_name }
+                    sampleObj[id] = { coordinates: source[id].coordinates, type: type, name: source[id].name, sourceContainer: sourceSamples.container_name }
             })
-            return destination
+            return sampleObj
         }
 
         const newSourceSamples = setType(PLACED_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(sourceSamples.samples))
@@ -131,7 +159,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             saveContainerSamples(newSourceSamples, newDestinationSamples)
             clearSelection()
         }
-    }, [sourceSamples.samples, destinationSamples.samples])
+    }, [sourceSamples.samples, destinationSamples.samples, sourceSamples.container_name, destinationSamples.container_name])
 
 
     //used to update to source and destination Samples
@@ -242,8 +270,13 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                 <PageContent>
                     <div className={"flex-column"}>
                         <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
-                            <Button disabled={destinationSamples.container_name == ''} onClick={addDestination}>Add Destination</Button>
-                            <Button> Load Destination </Button>
+                            <Button disabled={destinationSamples.container_name == ''} onClick={() => addDestination()}>Add Destination</Button>
+                            <>
+                                <Button onClick={() => setLoadPopUp(true)}> Load Destination </Button>
+                                <Modal title="Basic Modal" visible={loadPopUp} onOk={handleContainerLoad} onCancel={() => setLoadPopUp(false)}>
+                                    <SearchContainer handleOnChange={(value) => setLoadedContainer(value)} />
+                                </Modal>
+                            </>
                             <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
                         </div>
                         <div className={"flex-row"}>
@@ -259,7 +292,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                                     columns={sourceSamples.columns}
                                     rows={sourceSamples.rows}
                                     samples={sourceSamples.samples}
-                                    updateSample={updateSampleList} />
+                                    updateSamples={updateSamples} />
                             </div>
                             <div className={"flex-column"}>
                                 <ContainerNameScroller
@@ -274,8 +307,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                                     columns={destinationSamples.columns}
                                     rows={destinationSamples.rows}
                                     samples={destinationSamples.samples}
-                                    updateSample={updateSampleList}
-                                    updateSampleGroup={placeGroupSamples}
+                                    updateSamples={updateSamples}
                                     direction={placementType == 'group' ? placementDirection : undefined}
                                     pattern={placementType == PATTERN_STRING} />
                             </div>
@@ -299,7 +331,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                             <Button onClick={transferAllSamples}>Place All Source</Button>
                             <Button onClick={clearSelection}>Clear Selection</Button>
                             <Popconfirm
-                                title={`Are you sure you want to undo selected samples? The whole plate will be cleared if nothing is selected`}
+                                title={`Are you sure you want to undo selected samples?`}
                                 onConfirm={removeSelectedCells}
                                 placement={'bottomRight'}
                             >
