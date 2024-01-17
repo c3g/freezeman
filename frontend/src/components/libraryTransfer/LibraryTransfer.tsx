@@ -6,6 +6,7 @@ import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
 import { Radio, Button } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./LibraryTransferStep"
+import SearchContainer from "../../components/SearchContainer"
 import LibraryTransferTable from "./LibraryTransferTable"
 
 
@@ -147,7 +148,7 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                         let selectedId
 
                         selectedId = (Object.keys(tempSelectedSamples).filter(key => key == id)[0])
-                        
+
                         if (!selectedId) {
                             selectedId = (Object.keys(tempSelectedSamples)[0])
                         }
@@ -204,17 +205,19 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
         if (selectedSampleList.length == 0) {
             //removes selected if array is empty
             filteredSelected.forEach(id => {
-                ids.push({ id, coordinates: selectedSamples[id].coordinates, name: selectedSamples[id].name})
+                ids.push({ id, coordinates: selectedSamples[id].coordinates, name: selectedSamples[id].name })
             })
         }
         else if (selectedSampleList.length < filteredSelected.length) {
             //finds removed id from the selection from antd table
-            const id = filteredSelected.filter(x =>
+            const filteredIds = filteredSelected.filter(x =>
                 !selectedSampleList.map((sample) =>
                     sample.id).includes(x)
-            )[0];
+            );
 
-            ids.push({ id, coordinates: selectedSamples[id].coordinates, name: selectedSamples[id].name})
+            filteredIds.forEach(id => {
+                ids.push({ id, coordinates: selectedSamples[id].coordinates, name: selectedSamples[id].name })
+            })
         }
         else {
             const samplePool = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
@@ -233,20 +236,13 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             <PageContainer>
                 <PageContent>
                     <div className={"flex-column"}>
-                        <div className={"flex-row"} style={{ justifyContent: 'center', gap: '1vw' }}>
-                            <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
-                                <Radio.Button value={'group'}> Group </Radio.Button>
-                                <Radio.Button value={'pattern'}> Pattern </Radio.Button>
-                            </Radio.Group>
-                            <Radio.Group
-                                disabled={placementType != 'group'}
-                                value={placementDirection}
-                                onChange={evt => updatePlacementDirection(evt.target.value)}>
-                                <Radio.Button value={'row'}> row </Radio.Button>
-                                <Radio.Button value={'column'}> column </Radio.Button>
-                            </Radio.Group>
+                        {/* <div className={"flex-row"}> */}
+                        <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
+                            <Button disabled={destinationSamples.container_name == ''} onClick={addDestination}>Add Container</Button>
+                            <Button> Load Destination </Button>
                             <Button onClick={saveDestination}> Save to Prefill </Button>
                         </div>
+                        {/* </div> */}
                         <div className={"flex-row"}>
                             <div className={"flex-column"}>
                                 <ContainerNameScroller
@@ -281,11 +277,24 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
                                     pattern={placementType == PATTERN_STRING} />
                             </div>
                         </div>
-
+                        <div></div>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1vw' }}>
+                            <Radio.Group value={placementType} onChange={evt => updatePlacementType(evt.target.value)}>
+                                <Radio.Button value={'group'}> Group </Radio.Button>
+                                <Radio.Button value={'pattern'}> Pattern </Radio.Button>
+                            </Radio.Group>
+                            <Radio.Group
+                                disabled={placementType != 'group'}
+                                value={placementDirection}
+                                onChange={evt => updatePlacementDirection(evt.target.value)}>
+                                <Radio.Button value={'row'}> row </Radio.Button>
+                                <Radio.Button value={'column'}> column </Radio.Button>
+                            </Radio.Group>
+                        </div>
                         <div style={{ display: 'flex', justifyContent: 'end', gap: '1vw' }}>
-                            <Button onClick={transferAllSamples}>Transfer All</Button>
+
+                            <Button onClick={transferAllSamples}>Place All Source</Button>
                             <Button onClick={clearSelection}>Clear Selection</Button>
-                            <Button disabled={destinationSamples.container_name == ''} onClick={addDestination}>Add Container</Button>
                             <Button onClick={removeSelectedCells}> Undo Placement</Button>
                         </div>
                         <div className={"flex-row"}>

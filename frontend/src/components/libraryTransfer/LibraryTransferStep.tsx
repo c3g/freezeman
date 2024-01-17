@@ -47,37 +47,36 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
     const fetchListContainers = useCallback(async () => {
         //parse coordinate to removing leading 0
-        const parseCoordinate = (value) => {
-            return value.substring(0, 1) + "_" + (value.substring(1));
-        }
         const parseSamples = (list, selectedSamples) => {
             const object = {}
-            list.forEach(id => {
+            const parseCoordinate = (value) => {
+                return value.substring(0, 1) + "_" + (value.substring(1));
+            }
+            list.forEach(located_sample => {
+                const id = located_sample.sample_id
                 const sample = selectedSamples.find(sample => sample.sample.id == id).sample
-                object[id] = {id: sample.id, name: sample.name, coordinate: '' }
+                object[id] = {id: id, name: sample.name, coordinates: parseCoordinate(located_sample.contextual_coordinates) }
             })
             return object
         }
-
+        
         const sampleIDs = selectedSamples.map(sample => sample.sample.id)
-
+        
         let containerSamples: containerSample[] = createEmptyContainerArray()
         if (sampleIDs.length > 0) {
             const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
             const containers = (values.data.results.samples.groups)
-
             containerSamples = []
-
+            
             containers.forEach(container => {
                 containerSamples.push({
                     container_name: container.name,
-                    samples: parseSamples(container.sample_ids, selectedSamples),
+                    samples: parseSamples(container.sample_locators, selectedSamples),
                     columns: 12,
                     rows: 8
                 })
             })
         }
-        console.log(containerSamples)
         setSourceContainerSample(containerSamples)
     }, [selectedSamples])
 
