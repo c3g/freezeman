@@ -6,7 +6,11 @@ import api, { withToken } from "../utils/api";
 import { selectAuthTokenAccess } from "../selectors";
 import { useAppSelector } from "../hooks";
 
-const SearchContainer = () => {
+interface SearchContainerProps {
+    handleOnChange: (value) => void
+}
+
+const SearchContainer = ({handleOnChange}: SearchContainerProps) => {
     const token = useAppSelector(selectAuthTokenAccess)
     const searchContainers = (token, input, options) =>
         withToken(token, api.containers.search)(input, { sample_holding: true, ...options }).then(res => res.data.results)
@@ -18,9 +22,11 @@ const SearchContainer = () => {
             setContainerOptions(containers.map(Options.renderContainer));
         })
     }, [token])
+
     return (
         <div style={{ width: "100%" }}>
             <Select
+                onChange={handleOnChange}
                 style={{width: "100%"}}
                 showSearch
                 allowClear
