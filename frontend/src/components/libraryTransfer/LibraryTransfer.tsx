@@ -4,7 +4,7 @@ import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button } from 'antd'
+import { Radio, Button, Popconfirm } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./LibraryTransferStep"
 import SearchContainer from "../../components/SearchContainer"
 import LibraryTransferTable from "./LibraryTransferTable"
@@ -236,13 +236,11 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
             <PageContainer>
                 <PageContent>
                     <div className={"flex-column"}>
-                        {/* <div className={"flex-row"}> */}
                         <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
-                            <Button disabled={destinationSamples.container_name == ''} onClick={addDestination}>Add Container</Button>
+                            <Button disabled={destinationSamples.container_name == ''} onClick={addDestination}>Add Destination</Button>
                             <Button> Load Destination </Button>
-                            <Button onClick={saveDestination}> Save to Prefill </Button>
+                            <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
                         </div>
-                        {/* </div> */}
                         <div className={"flex-row"}>
                             <div className={"flex-column"}>
                                 <ContainerNameScroller
@@ -295,7 +293,13 @@ const LibraryTransfer = ({ sourceSamples, destinationSamples, cycleContainer, sa
 
                             <Button onClick={transferAllSamples}>Place All Source</Button>
                             <Button onClick={clearSelection}>Clear Selection</Button>
-                            <Button onClick={removeSelectedCells}> Undo Placement</Button>
+                            <Popconfirm
+                                title={`Are you sure you want to undo selected samples? The whole plate will be cleared if nothing is selected`}
+                                onConfirm={removeSelectedCells}
+                                placement={'bottomRight'}
+                            >
+                                <Button> Undo Placement</Button>
+                            </Popconfirm>
                         </div>
                         <div className={"flex-row"}>
                             <LibraryTransferTable onSampleSelect={(samples) => onSampleTableSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples.samples)} selectedSamples={Object.keys(selectedSamples).filter((id: any) => selectedSamples[id].type == SOURCE_STRING)} />
