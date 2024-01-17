@@ -138,7 +138,7 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         if (isSelecting && sample.id) {
             updateSample([sample], containerType)
         } else {
-            if(containerType == DESTINATION_STRING){
+            if (containerType == DESTINATION_STRING) {
                 if (!pattern) {
                     //update preview for group placement
                     previewGroupPlacement(sample.coordinates)
@@ -153,9 +153,9 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
 
     //checks to see if sample exists at coordinates and returns sample
     const checkSamples = useCallback((coordinate) => {
-        const removeLeadingZero = (value) => { return (value ? value.split('_')[0] + '_' + parseFloat(value.split('_')[1]) : '') }
+
         let tempSamples: cellSample = { ...samples }
-        const id = Object.keys(tempSamples).find((id) => removeLeadingZero(tempSamples[id].coordinates) == coordinate) ?? null;
+        const id = Object.keys(tempSamples).find((id) => (tempSamples[id].coordinates) == coordinate) ?? null;
         let type = NONE_STRING
         if (id) {
             //if exists in selected list then the type is set to SELECTED_STRING

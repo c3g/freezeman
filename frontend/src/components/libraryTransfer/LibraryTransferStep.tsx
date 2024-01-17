@@ -50,24 +50,24 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         const parseSamples = (list, selectedSamples) => {
             const object = {}
             const parseCoordinate = (value) => {
-                return value.substring(0, 1) + "_" + (value.substring(1));
+                return value.substring(0, 1) + "_" + (parseFloat(value.substring(1)));
             }
             list.forEach(located_sample => {
                 const id = located_sample.sample_id
                 const sample = selectedSamples.find(sample => sample.sample.id == id).sample
-                object[id] = {id: id, name: sample.name, coordinates: parseCoordinate(located_sample.contextual_coordinates) }
+                object[id] = { id: id, name: sample.name, coordinates: parseCoordinate(located_sample.contextual_coordinates), type: NONE_STRING }
             })
             return object
         }
-        
+
         const sampleIDs = selectedSamples.map(sample => sample.sample.id)
-        
+
         let containerSamples: containerSample[] = createEmptyContainerArray()
         if (sampleIDs.length > 0) {
             const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
             const containers = (values.data.results.samples.groups)
             containerSamples = []
-            
+
             containers.forEach(container => {
                 containerSamples.push({
                     container_name: container.name,
@@ -129,26 +129,15 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
     const removeCells = useCallback(
         (samples) => {
-            const containerObj = {}
-            Object.keys(samples).forEach(key => {
-                if (!containerObj[samples[key].sourceContainer]) {
-                    containerObj[samples[key].sourceContainer] = []
-                }
-                containerObj[samples[key].sourceContainer].push(key)
-            })
-
-
             const copySourceContainerSamples = copyContainerArray(sourceContainerSamples)
             const copyDestinationSamples = copyContainerArray(destinationContainerSamples)
+            
+            Object.keys(samples).forEach(key => {
+                    delete copyDestinationSamples[destinationIndex].samples[key]
+                    const sourceIndex = sourceContainerSamples.findIndex(source => source.container_name == samples[key].sourceContainer)
+                    copySourceContainerSamples[sourceIndex].samples[key].type = NONE_STRING
+            })
 
-            Object.keys(containerObj).forEach(container =>
-                containerObj[container].forEach(id => {
-                    delete copyDestinationSamples[destinationIndex].samples[id]
-                    const sourceIndex = sourceContainerSamples.findIndex(source => source.container_name == container)
-                    copySourceContainerSamples[sourceIndex].samples[id].type = NONE_STRING
-                }
-                )
-            )
             setDestinationContainerSamples(copyDestinationSamples)
             setSourceContainerSample(copySourceContainerSamples)
 
