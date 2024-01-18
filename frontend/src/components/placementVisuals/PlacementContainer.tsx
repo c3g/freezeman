@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Cell from "./Cell"
-import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, SELECTED_STRING, cellSample, sampleInfo } from "./LibraryTransferStep";
+import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, SELECTED_STRING, cellSample, sampleInfo } from "./PlacementTab";
 
 interface ContainerProps {
     containerType: string,
