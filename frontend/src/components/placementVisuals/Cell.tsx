@@ -1,7 +1,7 @@
-import React, { useState } from "react"
+import React from "react"
 import { useCallback } from "react"
-import './Transfer.scss'
-import { PLACED_STRING, SELECTED_STRING, sampleInfo } from "./LibraryTransferStep"
+import './Placement.scss'
+import { PLACED_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
 
 interface CellProps {
     onCellClick: (e: any) => void,
@@ -18,7 +18,6 @@ const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelect
 
     const onClick = useCallback(() => {
         if (sample?.type != PLACED_STRING) {
-            console.log(sample)
             onCellClick(sample ? { ...sample } : { coordinates: coordinates })
         }
         // setHover(!hover)

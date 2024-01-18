@@ -22,7 +22,7 @@ import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSample
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
-import LibraryTransferStep from '../../libraryTransfer/LibraryTransferStep'
+import PlacementTab from '../../placementVisuals/PlacementTab'
 
 const { Text } = Typography
 
@@ -505,7 +505,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					</Tabs.TabPane>
 					{step.needs_placement ?
 						<Tabs.TabPane tab="Placement" key={PLACEMENT_TAB_KEY}>
-							<LibraryTransferStep
+							<PlacementTab
 								stepID={step.id}
 								save={placementSave}
 								selectedSamples={selectedTableSamples} />

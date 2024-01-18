@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
-import LibraryTransfer from "./LibraryTransfer"
+import LibraryTransfer, { copyKeyObject } from "./Placement"
 import { useAppDispatch } from "../../hooks"
 import api from "../../utils/api"
 import { Alert } from "antd"
@@ -18,7 +18,7 @@ export interface containerSample {
     container_name: string,
     rows: number,
     columns: number,
-    container_kind?: string,
+    container_kind: string,
 }
 export const NONE_STRING = 'none'
 export const PLACED_STRING = 'placed'
@@ -41,6 +41,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                 container_name: '',
                 rows: 8,
                 columns: 12,
+                container_kind: '96-well plate',
                 samples: {
                 },
             },
@@ -75,7 +76,8 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                     container_name: container.name,
                     samples: parseSamples(container.sample_locators, selectedSamples, container.name),
                     columns: 12,
-                    rows: 8
+                    rows: 8,
+                    container_kind: 'container_kind'
                 })
             })
         }
@@ -103,15 +105,8 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
 
     const setContainerSamples = (containerList, newSamples, index) => {
         containerList[index].samples = newSamples
-        console.log(containerList)
         return containerList
     }
-
-    const copyKeyObject = useCallback((obj) => {
-        const copy = {}
-        Object.keys(obj).forEach(key => copy[key] = { ...obj[key] })
-        return copy
-    }, [])
 
 
 
@@ -132,22 +127,21 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             const copySourceContainerSamples = copyContainerArray(sourceContainerSamples)
             const copyDestinationSamples = copyContainerArray(destinationContainerSamples)
 
-            // if (Object.keys(samples).length > 0) {
-            Object.keys(samples).forEach(key => {
-                let sourceIndex = sourceContainerSamples.findIndex(source => source.container_name == samples[key].sourceContainer)
+            if (Object.keys(samples).length == 0) {
+                samples = copyDestinationSamples[destinationIndex].samples
+            }
+
+            Object.keys(samples).forEach(id => {
+                let sourceIndex = sourceContainerSamples.findIndex(source => source.container_name == samples[id].sourceContainer)
                 if (!sourceIndex)
-                    sourceIndex = copySourceContainerSamples.findIndex(source => source.container_name == copyDestinationSamples[destinationIndex].samples[key].sourceContainer)
-                copySourceContainerSamples[sourceIndex].samples[key].type = NONE_STRING
-                delete copyDestinationSamples[destinationIndex].samples[key]
+                    sourceIndex = copySourceContainerSamples.findIndex(source => source.container_name == copyDestinationSamples[destinationIndex].samples[id].sourceContainer)
+
+
+                if (sourceIndex != -1) {
+                    copySourceContainerSamples[sourceIndex].samples[id].type = NONE_STRING
+                    delete copyDestinationSamples[destinationIndex].samples[id]
+                }
             })
-            // } Z
-            // else {
-            //     Object.keys(copyDestinationSamples[destinationIndex].samples).forEach(key => {
-            //         const
-            //             copySourceContainerSamples[sourceIndex].samples[key].type = NONE_STRING
-            //     })
-            //     copyDestinationSamples[destinationIndex].samples = {}
-            // }
 
 
             setDestinationContainerSamples(copyDestinationSamples)
@@ -182,33 +176,30 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
     }, [destinationContainerSamples, sourceContainerSamples, index, destinationIndex])
 
     const addContainer = useCallback((newContainer) => {
-        console.log(newContainer)
         const tempDestinationContainerSamples = copyContainerArray(destinationContainerSamples)
         const emptyContainer = {
             container_name: '',
             samples: {},
             rows: 8,
             columns: 12,
+            container_kind: '96-well plate'
         }
         let indx = 0
         if (newContainer) {
             tempDestinationContainerSamples.push({ ...emptyContainer, ...newContainer })
-            console.log(tempDestinationContainerSamples)
         } else {
             indx = tempDestinationContainerSamples.findIndex(container => container.container_name == '')
             if (indx == -1) {
-                tempDestinationContainerSamples.push()
+                tempDestinationContainerSamples.push(emptyContainer)
             }
         }
         indx = tempDestinationContainerSamples.length - 1
-        console.log(indx, tempDestinationContainerSamples[indx])
         setDestinationContainerSamples(tempDestinationContainerSamples)
         setDestinationIndex(indx)
     }, [destinationContainerSamples, destinationIndex])
 
 
     const saveChanges = useCallback((source, destination) => {
-        console.log(destination)
         setSourceContainerSamples(setContainerSamples(sourceContainerSamples, source, index))
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination, destinationIndex))
     }, [sourceContainerSamples, destinationContainerSamples])
@@ -245,7 +236,6 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
     }, [destinationContainerSamples])
 
     //calls backend endpoint to fetch source containers with samples
-    console.log(destinationContainerSamples, sourceContainerSamples)
     return (
         <>
             {error ?
