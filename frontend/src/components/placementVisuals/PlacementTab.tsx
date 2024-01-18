@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
-import LibraryTransfer, { copyKeyObject } from "./Placement"
+import Placement, { copyKeyObject } from "./Placement"
 import { useAppDispatch } from "../../hooks"
 import api from "../../utils/api"
 import { Alert } from "antd"
@@ -11,7 +11,7 @@ export interface sampleInfo {
     id?: number,
 }
 export interface cellSample {
-    [id: string]: sampleInfo
+    [id: number]: sampleInfo
 }
 export interface containerSample {
     samples: cellSample
@@ -27,15 +27,15 @@ export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
 export const PATTERN_STRING = 'pattern'
 
-interface IProps {
+interface PlacementTabProps {
     save: (changes) => void,
     selectedSamples: any,
     stepID: any,
 }
-const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
+const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const dispatch = useAppDispatch()
 
-    const createEmptyContainerArray = useCallback(() => {
+    const createEmptyContainerArray = useCallback((): containerSample[] => {
         return [
             {
                 container_name: '',
@@ -77,7 +77,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                     samples: parseSamples(container.sample_locators, selectedSamples, container.name),
                     columns: 12,
                     rows: 8,
-                    container_kind: 'container_kind'
+                    container_kind: '96-well plate'
                 })
             })
         }
@@ -116,7 +116,8 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                 columns: obj.columns,
                 rows: obj.rows,
                 container_name: obj.container_name,
-                samples: copyKeyObject(obj.samples)
+                samples: copyKeyObject(obj.samples),
+                container_kind: obj.container_kind,
             }
         })
     }, [])
@@ -148,7 +149,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             setSourceContainerSamples(copySourceContainerSamples)
 
         }
-        , [sourceContainerSamples, destinationContainerSamples, destinationIndex])
+    , [sourceContainerSamples, destinationContainerSamples.length, destinationIndex])
 
     const changeContainer = useCallback((number: string, containerType: string) => {
 
@@ -184,19 +185,13 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
             columns: 12,
             container_kind: '96-well plate'
         }
-        let indx = 0
-        if (newContainer) {
-            tempDestinationContainerSamples.push({ ...emptyContainer, ...newContainer })
-        } else {
-            indx = tempDestinationContainerSamples.findIndex(container => container.container_name == '')
-            if (indx == -1) {
-                tempDestinationContainerSamples.push(emptyContainer)
-            }
-        }
-        indx = tempDestinationContainerSamples.length - 1
-        setDestinationContainerSamples(tempDestinationContainerSamples)
+
+        tempDestinationContainerSamples.push({ ...emptyContainer, ...newContainer })
+        const indx = tempDestinationContainerSamples.length - 1
+
+        setDestinationContainerSamples(copyContainerArray(tempDestinationContainerSamples))
         setDestinationIndex(indx)
-    }, [destinationContainerSamples, destinationIndex])
+    }, [destinationContainerSamples])
 
 
     const saveChanges = useCallback((source, destination) => {
@@ -235,6 +230,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         }
     }, [destinationContainerSamples])
 
+    console.log('render', destinationContainerSamples)
     //calls backend endpoint to fetch source containers with samples
     return (
         <>
@@ -248,7 +244,7 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
                     onClose={() => { setError(undefined) }}
                 />
                 : ''}
-            <LibraryTransfer
+            <Placement
                 sourceSamples={sourceContainerSamples[index]}
                 destinationSamples={destinationContainerSamples[destinationIndex]}
                 disableChangeSource={sourceContainerSamples.length == 1}
@@ -263,4 +259,4 @@ const LibraryTransferStep = ({ save, selectedSamples, stepID }: IProps) => {
         </>
     )
 }
-export default LibraryTransferStep
+export default PlacementTab

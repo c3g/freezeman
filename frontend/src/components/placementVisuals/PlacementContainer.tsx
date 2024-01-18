@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Cell from "./Cell"
 import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, SELECTED_STRING, cellSample, sampleInfo } from "./PlacementTab";
 
-interface ContainerProps {
+interface PlacementContainerProps {
     containerType: string,
     columns: number,
     rows: number,
@@ -13,7 +13,7 @@ interface ContainerProps {
     pattern?: boolean,
 }
 
-const TransferContainer = ({ containerType, columns, rows, samples, direction, selectedSampleList, pattern, updateSamples }: ContainerProps) => {
+const PlacementContainer = ({ containerType, columns, rows, samples, direction, selectedSampleList, pattern, updateSamples }: PlacementContainerProps) => {
     //boolean determining to see if the user is selecting
     const [isSelecting, setIsSelecting] = useState<boolean>(false)
     //preview cells so the user can see where the cells will be placed
@@ -230,4 +230,4 @@ const TransferContainer = ({ containerType, columns, rows, samples, direction, s
         </>
     )
 }
-export default TransferContainer
+export default PlacementContainer

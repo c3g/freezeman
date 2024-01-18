@@ -12,36 +12,62 @@ const { Text } = Typography;
 interface AddPlacementContainerProps {
     addDestination: (destinationContainer) => void
 }
+const EMPTY_CONTAINER = {
+    barcode: '', samples: '', container_kind: ''
+}
 const AddPlacementContainer = ({ addDestination }: AddPlacementContainerProps) => {
     const [loadPopUp, setLoadPopUp] = useState<boolean>(false)
+    const [newContainer, setNewContainer] = useState<any>({
+        barcode: '', samples: '', container_kind: ''
+    })
     const [loadedContainer, setLoadedContainer] = useState<any>({})
+    const [formData, setFormData] = useState(EMPTY_CONTAINER)
     const [isLoad, setIsLoad] = useState<boolean>(false)
     const coordinates = useAppSelector(selectCoordinatesByID)
 
     const dispatch = useAppDispatch()
-    const handleContainerLoad = useCallback(async () => {
-        let container = await dispatch(api.containers.get(loadedContainer))
-        container = container.data.name
-        const newDestination = {}
+    const handleContainerLoad = useCallback(async (loadedContainer) => {
+        const container = await dispatch(api.containers.get(loadedContainer))
         const loadedSamples = await dispatch(api.samples.list({ id__in: container.data.samples.join(',') }))
+        const containerName = container.data.name
         const parseCoordinate = (value) => {
             return value.substring(0, 1) + "_" + (parseFloat(value.substring(1)));
         }
+        const newDestination = {}
         loadedSamples.data.results.forEach(sample => {
-            newDestination[sample.id] = { coordinates: parseCoordinate(coordinates[sample.coordinate].name), type: NONE_STRING, name: sample.name, sourceContainer: container }
+            newDestination[sample.id] = { id: sample.id, coordinates: parseCoordinate(coordinates[sample.coordinate].name), type: NONE_STRING, name: sample.name, sourceContainer: containerName }
         })
+        setLoadedContainer({ container_name: containerName, samples: copyKeyObject(newDestination) })
+    }, [coordinates])
 
-        addDestination({ container_name: container, samples: copyKeyObject(newDestination) })
+    const handleConfirm = useCallback(() => {
+        const container = isLoad ? loadedContainer : newContainer
+        addDestination(container)
         setLoadPopUp(false)
-    }, [loadedContainer, coordinates])
+    }, [newContainer, loadedContainer])
+
+    const handleInputChange = useCallback((e, inputName) => {
+        const tempContainer = newContainer
+        const value = e.target ? e.target.value : e
+        switch (inputName) {
+            case 'barcode':
+                tempContainer.container_name = value
+                break
+            case 'container_kind':
+                tempContainer.container_kind = value
+                break
+            default:
+                break;
+        }
+        setNewContainer({...tempContainer})
+    }, [newContainer])
     return (
         <>
             <Button onClick={() => setLoadPopUp(true)}>Add Destination</Button>
 
-            <Modal title="Add Destination" visible={loadPopUp} onOk={handleContainerLoad} onCancel={() => setLoadPopUp(false)}>
+            <Modal title="Add Destination" visible={loadPopUp} onOk={handleConfirm} onCancel={() => setLoadPopUp(false)}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <div>
-                        <Text>  </Text>
                         <Switch checkedChildren="Toggle New" unCheckedChildren="Toggle Load" checked={isLoad} onChange={() => setIsLoad(!isLoad)}></Switch>
                     </div>
                     {
@@ -49,13 +75,13 @@ const AddPlacementContainer = ({ addDestination }: AddPlacementContainerProps) =
                             ?
                             <>
                                 <Text> New Container </Text>
-                                <Input placeholder="Destination Barcode"></Input>
-                                <Select placeholder="Container kind" style={{ width: "100%" }} onChange={() => { }} options={[{ value: '96-well plate', label: '96-well plate' },]}></Select>
+                                <Input onChange={(e) => handleInputChange(e, 'barcode')} placeholder="Barcode"></Input>
+                                <Select onChange={(e) => handleInputChange(e, 'container_kind')} placeholder="Container kind" style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' },]}></Select>
                             </>
                             :
                             <>
                                 <Text> Load Container </Text>
-                                <SearchContainer handleOnChange={(value) => setLoadedContainer(value)} />
+                                <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />
                             </>
                     }
                 </div>
