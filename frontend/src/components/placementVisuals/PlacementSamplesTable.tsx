@@ -1,32 +1,52 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import WorkflowSamplesTable from "../WorkflowSamplesTable/WorkflowSamplesTable"
 import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from '../samples/SampleTableColumns'
-interface LibraryTransferTableProps {
+import { Table } from "antd";
+import { TableRowSelection } from "antd/lib/table/interface";
+interface PlacementSamplesTableProps {
     samples: any,
-    onSampleSelect: (sample) => void,
+    onSampleSelect: (sampleRowKeys, type) => void,
     selectedSamples: any
 }
-const LibraryTransferTable = ({ samples, onSampleSelect, selectedSamples }: LibraryTransferTableProps) => {
+const columns = [
+    {
+        title: 'Name',
+        dataIndex: 'name',
+        key: 'name',
+    },
+    {
+        title: 'ID',
+        dataIndex: 'id',
+        key: 'id',
+    },
+    {
+        title: 'coordinates',
+        dataIndex: 'coordinates',
+        key: 'coordinates',
+    },
+];
+const PlacementSamplesTable = ({ samples, onSampleSelect, selectedSamples }: PlacementSamplesTableProps) => {
     const [sortedSamples, setSortedSamples] = useState<any>([])
     useEffect(() => {
         const reverse = selectedSamples.reverse()
         samples.sort((a, b) => {
-            return reverse.indexOf(b.sample.id) - reverse.indexOf(a.sample.id);
+            return reverse.indexOf(b.id) - reverse.indexOf(a.id);
         })
         setSortedSamples(samples)
     }, [samples, selectedSamples])
 
-    const selectionProps = {
-        selectedSampleIDs: selectedSamples,
-        clearAllSamples: () => { },
-        onSelectionChanged: onSampleSelect,
+    const selectionProps: TableRowSelection<any> = {
+        selectedRowKeys: selectedSamples,
+        onChange: onSampleSelect,
     }
 
-    return (<WorkflowSamplesTable
-        hasFilter={false}
-        samples={sortedSamples}
-        columns={[SAMPLE_COLUMNS.ID, SAMPLE_COLUMNS.NAME]}
-        selection={selectionProps}
-    />)
+    return (
+        <Table
+            dataSource={sortedSamples}
+            columns={columns}
+            rowKey={obj => obj.id}
+            rowSelection={selectionProps}
+        />
+    )
 }
-export default LibraryTransferTable
+export default PlacementSamplesTable
