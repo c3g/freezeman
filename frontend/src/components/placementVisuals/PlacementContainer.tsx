@@ -23,6 +23,18 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         return String.fromCharCode(c.charCodeAt(0) + 1);
     }, [])
 
+    const padColumn = useCallback((col) => {
+        return (col < 10 ? col.toString().padStart(2, '0') : col)
+    }, [])
+
+    const getRowFromCoordinates = useCallback((coordinates) => {
+        return coordinates.substring(0, 1)
+    }, [])
+
+    const getColumnFromCoordinates = useCallback((coordinates) => {
+        return Number(coordinates.substring(1))
+    }, [])
+
     const getDiff = useCallback((a, b) => {
         return (Number(a) - Number(b))
     }, [])
@@ -49,38 +61,39 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             let mostLeftColumn = 12;
             Object.keys(selectedSampleList).forEach(id => {
                 cellsByCoordinate.push({ id: id, type: selectedSampleList[id].type, coordinates: selectedSampleList[id].coordinates })
-                const column = Number(selectedSampleList[id].coordinates.split('_')[1])
+                const coords = selectedSampleList[id].coordinates
+                const column = (getColumnFromCoordinates(coords))
                 mostLeftColumn = column <= mostLeftColumn ? column : mostLeftColumn
             })
+
 
             //sorting the sampleList by coordinates
             cellsByCoordinate.sort((sortByCoordinate))
 
             //coordinates of the cell clicked
-            const placedCoordinate = coordinates.split('_')
-            const placedColumn = Number(placedCoordinate[1])
-            let transformedRow = placedCoordinate[0]
+
+            const placedColumn = getColumnFromCoordinates(coordinates)
+            let transformedRow = getRowFromCoordinates(coordinates)
             let transformedColumn
+            
 
             //row used to keep track whether to increase the transformed row
-            let currentRow = cellsByCoordinate[0].coordinates.split('_')[0]
+            let currentRow = getRowFromCoordinates(cellsByCoordinate[0].coordinates)
             //iterate through each selected sample and transforming the column and row to correspond to the one that was clicked
             cellsByCoordinate.forEach(value => {
-                const coord = value.coordinates.split('_')
-
+                const coord = value.coordinates
+                const row = getRowFromCoordinates(coord)
                 //if row changes, increment row
-                if (coord[0] != currentRow) {
-                    currentRow = coord[0]
+                if (row != currentRow) {
+                    currentRow = row
                     transformedRow = String.fromCharCode(transformedRow.charCodeAt(0) + 1)
                 }
-
                 //calculating the difference between this current coordinates and the most left column in this selection
-                const difference = getDiff(Number(coord[1]), mostLeftColumn)
+                const difference = getDiff(getColumnFromCoordinates(coord), mostLeftColumn)
                 //taking the current placedColumn and adding the differnece
                 transformedColumn = placedColumn + difference
-                preview.push({ id: value.id, type: PATTERN_STRING, coordinates: transformedRow + '_' + transformedColumn })
+                preview.push({ id: value.id, type: PATTERN_STRING, coordinates: transformedRow + padColumn(transformedColumn) })
             })
-
 
             if (preview.length > 0)
                 setPreviewCells(preview)
@@ -99,12 +112,12 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
         if (cells.length > 0) {
             //coordinates row and column is separated with '_'
-            const coords = (coordinates.toString()).split('_')
-            let row = String(coords[0])
-            let col = Number(coords[1])
+
+            let row = getRowFromCoordinates(coordinates)
+            let col = getColumnFromCoordinates(coordinates)
             for (let i = 0; i < cells.length; i++) {
                 //creates row or column of cells that 
-                preview.push({ id: cells[i].id, type: PATTERN_STRING, coordinates: row + "_" + col })
+                preview.push({ id: cells[i].id, type: PATTERN_STRING, coordinates: row + padColumn(col) })
                 if (direction == 'row') {
                     col += 1;
                 } else {
@@ -192,8 +205,8 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                     </div>
                 )
                 //renders container cells
-                for (let x = 1; x < columns + 1; x++) {
-                    coordinates = char + "_" + x
+                for (let colNumber = 1; colNumber < columns + 1; colNumber++) {
+                    coordinates = char + "" + (padColumn(colNumber))
                     rowOfCells.push(
                         <Cell key={coordinates}
                             onCellMouseLeave={() => setPreviewCells([])}

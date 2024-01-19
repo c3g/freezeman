@@ -52,13 +52,13 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         //parse coordinate to removing leading 0
         const parseSamples = (list, selectedSamples, container_name) => {
             const object = {}
-            const parseCoordinate = (value) => {
-                return value.substring(0, 1) + "_" + (parseFloat(value.substring(1)));
-            }
+            // const parseCoordinate = (value) => {
+            //     return value.substring(0, 1) + "_" + (parseFloat(value.substring(1)));
+            // }
             list.forEach(located_sample => {
                 const id = located_sample.sample_id
                 const sample = selectedSamples.find(sample => sample.sample.id == id).sample
-                object[id] = { id: id, name: sample.name, coordinates: parseCoordinate(located_sample.contextual_coordinates), type: NONE_STRING, sourceContainer: container_name }
+                object[id] = { id: id, name: sample.name, coordinates: located_sample.contextual_coordinates, type: NONE_STRING, sourceContainer: container_name }
             })
             return object
         }
@@ -103,12 +103,6 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const [error, setError] = useState<string | undefined>(undefined)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
-    const setContainerSamples = (containerList, newSamples, index) => {
-        containerList[index].samples = newSamples
-        return containerList
-    }
-
-
 
     const copyContainerArray = useCallback((containerArray): containerSample[] => {
         return containerArray.map(obj => {
@@ -122,11 +116,31 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         })
     }, [])
 
+    const addContainer = useCallback(
+        (newContainer) => {
+            const tempDestinationContainerSamples = copyContainerArray(destinationContainerSamples)
+            const emptyContainer = {
+                container_name: '',
+                samples: {},
+                rows: 8,
+                columns: 12,
+                container_kind: '96-well plate'
+            }
+
+            tempDestinationContainerSamples.push({ ...emptyContainer, ...newContainer })
+
+            setDestinationContainerSamples(copyContainerArray(tempDestinationContainerSamples))
+            setDestinationIndex(tempDestinationContainerSamples.length -1)
+        }, [destinationContainerSamples])
+
 
     const removeCells = useCallback(
         (samples) => {
+
             const copySourceContainerSamples = copyContainerArray(sourceContainerSamples)
             const copyDestinationSamples = copyContainerArray(destinationContainerSamples)
+
+
 
             if (Object.keys(samples).length == 0) {
                 samples = copyDestinationSamples[destinationIndex].samples
@@ -149,7 +163,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             setSourceContainerSamples(copySourceContainerSamples)
 
         }
-    , [sourceContainerSamples, destinationContainerSamples.length, destinationIndex])
+        , [sourceContainerSamples, destinationContainerSamples, destinationIndex])
 
     const changeContainer = useCallback((number: string, containerType: string) => {
 
@@ -174,30 +188,22 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             }
         }
 
-    }, [destinationContainerSamples, sourceContainerSamples, index, destinationIndex])
+    }, [JSON.stringify(destinationContainerSamples), sourceContainerSamples, index, destinationIndex])
 
-    const addContainer = useCallback((newContainer) => {
-        const tempDestinationContainerSamples = copyContainerArray(destinationContainerSamples)
-        const emptyContainer = {
-            container_name: '',
-            samples: {},
-            rows: 8,
-            columns: 12,
-            container_kind: '96-well plate'
+
+
+
+    const saveChanges = useCallback(
+        (source, destination) => {
+
+        const setContainerSamples = (containerList, newSamples, index) => {
+            const newList = copyContainerArray(containerList)
+            newList[index].samples = newSamples
+            return copyContainerArray(newList)
         }
-
-        tempDestinationContainerSamples.push({ ...emptyContainer, ...newContainer })
-        const indx = tempDestinationContainerSamples.length - 1
-
-        setDestinationContainerSamples(copyContainerArray(tempDestinationContainerSamples))
-        setDestinationIndex(indx)
-    }, [destinationContainerSamples])
-
-
-    const saveChanges = useCallback((source, destination) => {
         setSourceContainerSamples(setContainerSamples(sourceContainerSamples, source, index))
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination, destinationIndex))
-    }, [sourceContainerSamples, destinationContainerSamples])
+    }, [sourceContainerSamples, JSON.stringify(destinationContainerSamples)])
 
     const changeDestinationName = useCallback((e) => {
         const tempDestination = copyContainerArray(destinationContainerSamples)
@@ -214,8 +220,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                     Object.keys(samples).forEach(id => {
                         if (container.container_name != '') {
                             placementData[id] = []
-                            const coordinates = samples[id].coordinates.split('_')
-                            placementData[id].push({ coordinates: coordinates[0] + (Number(coordinates[1]) < 10 ? coordinates[1].padStart(2, '0') : coordinates[1]), container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
+                            placementData[id].push({ coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
                         }
                     })
                 }
@@ -230,7 +235,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         }
     }, [destinationContainerSamples])
 
-    console.log('render', destinationContainerSamples)
+
     //calls backend endpoint to fetch source containers with samples
     return (
         <>
@@ -246,7 +251,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                 : ''}
             <Placement
                 sourceSamples={sourceContainerSamples[index]}
-                destinationSamples={destinationContainerSamples[destinationIndex]}
+                destinationSamples={destinationContainerSamples[destinationIndex] ? destinationContainerSamples[destinationIndex] : destinationContainerSamples[0]}
                 disableChangeSource={sourceContainerSamples.length == 1}
                 disableChangeDestination={destinationContainerSamples.length == 1}
                 cycleContainer={changeContainer}

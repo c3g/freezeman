@@ -30,12 +30,10 @@ const AddPlacementContainer = ({ addDestination }: AddPlacementContainerProps) =
         const container = await dispatch(api.containers.get(loadedContainer))
         const loadedSamples = await dispatch(api.samples.list({ id__in: container.data.samples.join(',') }))
         const containerName = container.data.name
-        const parseCoordinate = (value) => {
-            return value.substring(0, 1) + "_" + (parseFloat(value.substring(1)));
-        }
+
         const newDestination = {}
         loadedSamples.data.results.forEach(sample => {
-            newDestination[sample.id] = { id: sample.id, coordinates: parseCoordinate(coordinates[sample.coordinate].name), type: NONE_STRING, name: sample.name, sourceContainer: containerName }
+            newDestination[sample.id] = { id: sample.id, coordinates: (coordinates[sample.coordinate].name), type: NONE_STRING, name: sample.name, sourceContainer: containerName }
         })
         setLoadedContainer({ container_name: containerName, samples: copyKeyObject(newDestination) })
     }, [coordinates])
