@@ -1,4 +1,4 @@
-import { Button, Select, Switch, Typography } from "antd"
+import { Button, Select, Switch, Tabs, Typography } from "antd"
 import Modal from "antd/lib/modal/Modal"
 import React, { useCallback, useState } from "react"
 import SearchContainer from "../SearchContainer"
@@ -12,17 +12,15 @@ const { Text } = Typography;
 interface AddPlacementContainerProps {
     addDestination: (destinationContainer) => void
 }
-const EMPTY_CONTAINER = {
-    barcode: '', samples: '', container_kind: ''
-}
+
 const AddPlacementContainer = ({ addDestination }: AddPlacementContainerProps) => {
     const [loadPopUp, setLoadPopUp] = useState<boolean>(false)
     const [newContainer, setNewContainer] = useState<any>({
         barcode: '', samples: '', container_kind: ''
     })
     const [loadedContainer, setLoadedContainer] = useState<any>({})
-    const [formData, setFormData] = useState(EMPTY_CONTAINER)
-    const [isLoad, setIsLoad] = useState<boolean>(false)
+    const [selectedTab, setSelectedTab] = useState<string>('new')
+
     const coordinates = useAppSelector(selectCoordinatesByID)
 
     const dispatch = useAppDispatch()
@@ -39,7 +37,7 @@ const AddPlacementContainer = ({ addDestination }: AddPlacementContainerProps) =
     }, [coordinates])
 
     const handleConfirm = useCallback(() => {
-        const container = isLoad ? loadedContainer : newContainer
+        const container = selectedTab == 'load' ? loadedContainer : newContainer
         addDestination(container)
         setLoadPopUp(false)
     }, [newContainer, loadedContainer])
@@ -57,7 +55,7 @@ const AddPlacementContainer = ({ addDestination }: AddPlacementContainerProps) =
             default:
                 break;
         }
-        setNewContainer({...tempContainer})
+        setNewContainer({ ...tempContainer })
     }, [newContainer])
     return (
         <>
@@ -65,23 +63,16 @@ const AddPlacementContainer = ({ addDestination }: AddPlacementContainerProps) =
 
             <Modal title="Add Destination" visible={loadPopUp} onOk={handleConfirm} onCancel={() => setLoadPopUp(false)}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                        <Switch checkedChildren="Toggle New" unCheckedChildren="Toggle Load" checked={isLoad} onChange={() => setIsLoad(!isLoad)}></Switch>
-                    </div>
-                    {
-                        !isLoad
-                            ?
-                            <>
-                                <Text> New Container </Text>
-                                <Input onChange={(e) => handleInputChange(e, 'barcode')} placeholder="Barcode"></Input>
-                                <Select onChange={(e) => handleInputChange(e, 'container_kind')} placeholder="Container kind" style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' },]}></Select>
-                            </>
-                            :
-                            <>
-                                <Text> Load Container </Text>
-                                <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />
-                            </>
-                    }
+                    <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
+                        <Tabs.TabPane tab='New Container' key={'new'}>
+                            <Input onChange={(e) => handleInputChange(e, 'barcode')} placeholder="Barcode"></Input>
+                            <Select onChange={(e) => handleInputChange(e, 'container_kind')} placeholder="Container kind" style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' },]}></Select>
+                        </Tabs.TabPane>
+                        <Tabs.TabPane tab='Load Container' key={'load'}>
+                            <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />
+                        </Tabs.TabPane>
+                    </Tabs>
+
                 </div>
             </Modal>
         </>

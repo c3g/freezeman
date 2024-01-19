@@ -203,7 +203,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         }
         setSourceContainerSamples(setContainerSamples(sourceContainerSamples, source, index))
         setDestinationContainerSamples(setContainerSamples(destinationContainerSamples, destination, destinationIndex))
-    }, [sourceContainerSamples, JSON.stringify(destinationContainerSamples)])
+    }, [sourceContainerSamples, JSON.stringify(destinationContainerSamples), destinationIndex])
 
     const changeDestinationName = useCallback((e) => {
         const tempDestination = copyContainerArray(destinationContainerSamples)
