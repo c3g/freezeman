@@ -10,14 +10,14 @@ interface PlacementSamplesTableProps {
 }
 const columns = [
     {
-        title: 'Name',
-        dataIndex: 'name',
-        key: 'name',
-    },
-    {
         title: 'ID',
         dataIndex: 'id',
         key: 'id',
+    },
+    {
+        title: 'Name',
+        dataIndex: 'name',
+        key: 'name',
     },
     {
         title: 'coordinates',

@@ -102,7 +102,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
         //checks if group can be placed, if cells are already filled, or if they go beyond the boundaries of the cells
         if (containerType == DESTINATION_STRING) {
-            if (((coordinates.some(coord => coord.includes('I') || Number(coord.split('_')[1]) > 12)))) {
+            if (((coordinates.some(coord => coord.includes('I') || Number(coord.substring(1)) > 12)))) {
                 canUpdate = false
             }
         }
@@ -125,7 +125,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         const setType = (type, source, sampleObj) => {
             Object.keys(source).forEach((id) => {
                 if (source[id].type == NONE_STRING && source[id].coordinates)
-                    sampleObj[id] = { coordinates: source[id].coordinates, type: type, name: source[id].name, sourceContainer: sourceSamples.container_name }
+                    sampleObj[id] = { ...source[id], type: type, sourceContainer: sourceSamples.container_name }
             })
             return sampleObj
         }
