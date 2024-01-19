@@ -6,7 +6,12 @@ ADMIN_USERNAME = 'biobankadmin'
 def set_steps_without_placement(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
 
-    STEPS_WITHOUT_PLACEMENT = ["Sample QC",
+    STEPS_WITHOUT_PLACEMENT = ["Experiment Run Illumina",   # TEMPORARY UNTIL UI READY
+                               "Experiment Run DNBSEQ",     # TEMPORARY UNTIL UI READY
+                               "Experiment Run Infinium",   # TEMPORARY UNTIL UI READY
+                               "Experiment Run Axiom",      # TEMPORARY UNTIL UI READY
+                               "Normalization and Pooling", # TEMPORARY UNTIL UI READY
+                               "Sample QC",
                                "Library QC",
                                "Axiom Sample Preparation",
                                "Axiom Create Folders",
