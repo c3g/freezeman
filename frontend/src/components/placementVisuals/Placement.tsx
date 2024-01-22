@@ -5,7 +5,7 @@ import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
 import { Radio, Button, Popconfirm, Switch } from 'antd'
-import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
+import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import AddPlacementContainer from "./AddPlacementContainer"
@@ -29,42 +29,37 @@ export const copyKeyObject = (obj): any => {
     Object.keys(obj).forEach(key => copy[key] = { ...obj[key] })
     return copy
 }
-
+//component used to handle the transfer of samples from source to destination, or destination to destination
 const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveDestination, changeDestinationName }: PlacementProps) => {
 
-    //keyed object by sampleID, containing the coordinates
+    //keyed object by sampleID, containing the coordinates, type, sourceContainer, id
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
-    const [groupPlacement, setGroupPlacement] = useState<boolean>(true)
+
+    //used to determine whether the cells are to be placed in a column or row grouping (ordered by id), or by pattern (keeping same order as they were in the source)
+    const [placementType, setPlacementType] = useState<boolean>(true)
+    //if placement type is group used to keep track if it's by row or column
     const [placementDirection, setPlacementDirection] = useState<string>('row')
+    //used to keep track of undo (sample removal in destination) NOTE: needs a better way to keep track of if changes were made to allow a user to undo the placement
     const [disableUndo, setDisableUndo] = useState<boolean>(true)
 
 
     const updateGroupPlacement = useCallback(() => {
-        setGroupPlacement(!groupPlacement)
-    }, [groupPlacement])
+        setPlacementType(!placementType)
+    }, [placementType])
 
+    const updatePlacementDirection = useCallback((value) => {
+        setPlacementDirection(value)
+    }, [])
 
     const clearSelection = useCallback(() => {
         setSelectedSamples({})
-    }, [])
-
-
-
-    const sampleInCoords = useCallback((source, destination) => {
-        const value = (Object.values(source).some(
-            (sourceSample: any) =>
-                Object.values(destination).find(
-                    (destinationSample: any) => destinationSample.coordinates == sourceSample.coordinates && sourceSample.type != PLACED_STRING
-                )
-        ))
-
-        return value
     }, [])
 
     const filterSelectedSamples = (type) => {
         return Object.keys(selectedSamples).map(id => parseInt(id))
     }
 
+    //returns samples only if not placed
     const filterPlacedSamples = useCallback((samples) => {
         const filtered: any = []
         Object.keys(samples).map(id => {
@@ -74,17 +69,11 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         return filtered
     }, [])
 
-    const updatePlacementDirection = useCallback((value) => {
-        setPlacementDirection(value)
-    }, [])
-
     //removes selected samples, unless they're in the source container
     const removeSelectedCells = useCallback(() => {
-        // if (!Object.values(selectedSamples).filter(sample => sample.type == 'source') || Object.keys(selectedSamples).length == 0) {
         removeCells(selectedSamples)
         setDisableUndo(true)
         clearSelection()
-        // }
     }, [selectedSamples])
 
     const changeContainer = useCallback((number: string, containerType: string) => {
@@ -94,13 +83,13 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     }, [cycleContainer])
 
 
+    //function used by PlacementContainer.tsx used for error prevention, checks if samples cannot be placed (out of bounds)
     const updateSamples = useCallback((array, containerType) => {
-
         const coordinates = array.map((sample) => sample.coordinates)
-
         let canUpdate = true
 
         //checks if group can be placed, if cells are already filled, or if they go beyond the boundaries of the cells
+        //NOTE: needs to be changed to number of rows and columns, to support different types of containers
         if (containerType == DESTINATION_STRING) {
             if (((coordinates.some(coord => coord.includes('I') || Number(coord.substring(1)) > 12)))) {
                 canUpdate = false
@@ -111,15 +100,15 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             updateSampleList(array, containerType)
     }, [destinationSamples.samples, selectedSamples])
 
+    //function used to send containers and their samples up to the parent component to be stored, will save the state of containers for when you cycle containers
     const saveContainerSamples = useCallback((source, destination) => {
-        //sends it up to the parent component to be stored, will save the state of containers for when you cycle containers
         if (sourceSamples.container_name) {
             saveChanges(source, destination)
         }
 
     }, [sourceSamples.container_name, destinationSamples.container_name])
 
-    //function to handle the transfer of samples from source to destination
+    //function used to handle the transfer of all available samples from source to destination
     const transferAllSamples = useCallback(() => {
         //sets all samples to certain type, 'none', 'placed'
         const setType = (type, source, sampleObj) => {
@@ -129,7 +118,17 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             })
             return sampleObj
         }
-
+        //used to check if the destination has samples in cells already
+        const sampleInCoords = (source, destination) => {
+            const value = (Object.values(source).some(
+                (sourceSample: any) =>
+                    Object.values(destination).find(
+                        (destinationSample: any) => destinationSample.coordinates == sourceSample.coordinates && sourceSample.type != PLACED_STRING
+                    )
+            ))
+    
+            return value
+        }
         const newSourceSamples = setType(PLACED_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(sourceSamples.samples))
         const newDestinationSamples = setType(NONE_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(destinationSamples.samples))
 
@@ -141,7 +140,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     }, [sourceSamples.samples, destinationSamples.samples, sourceSamples.container_name, destinationSamples.container_name])
 
 
-    //used to update to source and destination Samples
+    //function used to update source and destination samples
     const updateSampleList = useCallback(
         (sampleList, containerType) => {
             //to avoid passing reference each object is copied
@@ -149,29 +148,30 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             const tempSourceSamples: cellSample = copyKeyObject(sourceSamples.samples)
             const tempDestinationSamples: cellSample = copyKeyObject(destinationSamples.samples)
 
-            //iterates over sampleList to decide whether to place them in the selected section or the destination container
+            //iterates over list of samples to decide whether to place them in the 'selectedSamples' or the destination container
             sampleList.forEach(sample => {
                 const id = parseInt(sample.id)
+                
                 // to prevent users from placing into empty cells in source container
                 if (containerType == DESTINATION_STRING) {
-                    if (!tempDestinationSamples[id] || sample.type == PATTERN_STRING) {
+                    if (!tempDestinationSamples[id] || sample.type == PREVIEW_STRING) {
                         let selectedId
 
+                        //chhecks to see if id exists in selectedSamples
                         selectedId = (Object.keys(tempSelectedSamples).filter(key => key == id.toString())[0])
-
                         if (!selectedId) {
                             selectedId = (Object.keys(tempSelectedSamples)[0])
                         }
 
                         if (selectedId) {
-                            //if id exists in selectedSamples is selected from destination then move from destination
+                            // it is removed from destination in case it's being moved from destination to destination
                             if (tempSelectedSamples[selectedId].type == DESTINATION_STRING) {
                                 delete tempDestinationSamples[selectedId]
                             }
                             tempDestinationSamples[selectedId] = { ...tempSelectedSamples[selectedId], id, coordinates: sample.coordinates, type: NONE_STRING }
 
+                            //if id exists in source, set sample to placed
                             if (tempSourceSamples[selectedId] && tempSourceSamples[selectedId].type != PLACED_STRING) {
-                                //if id exists in source, set sample to placed
                                 tempSourceSamples[selectedId].type = PLACED_STRING
                             }
 
@@ -186,11 +186,10 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
 
                 //if sample id exists, it deletes in selectedSamples, else adds it to selected samples object
-                if (id && sample.type != PLACED_STRING && sample.type != PATTERN_STRING) {
+                if (id && sample.type != PLACED_STRING && sample.type != PREVIEW_STRING) {
                     if (tempSelectedSamples[id]) {
                         delete tempSelectedSamples[id]
                     } else {
-
                         tempSelectedSamples[id] = {
                             ...sample,
                             id,
@@ -202,14 +201,13 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                     }
                 }
             })
-
+            
             setSelectedSamples({ ...tempSelectedSamples })
-
             //updates samples to parent container
             saveContainerSamples(tempSourceSamples, tempDestinationSamples)
         }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
 
-    //function handler for the selection table
+    //function handler for the sample selection table
     const onSampleTableSelect = useCallback((sampleRowKeys, type) => {
         //get selected samples for respective table
         const filteredSelected = Object.keys(selectedSamples).filter(id => selectedSamples[id].type == type)
@@ -234,8 +232,8 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             })
         }
         else {
-            const samplePool = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
             //gets the newly added sample from the selection from the antd table
+            const samplePool = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
             keys.forEach(key => {
                 if (samplePool[key].type != PLACED_STRING && !filteredSelected.includes(key)) {
                     samplesToUpdate.push({ id: key, coordinates: samplePool[key].coordinates, name: samplePool[key].name })
@@ -284,17 +282,17 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                     rows={destinationSamples.rows}
                                     samples={destinationSamples.samples}
                                     updateSamples={updateSamples}
-                                    direction={groupPlacement ? placementDirection : undefined}
-                                    pattern={!groupPlacement} />
+                                    direction={placementType ? placementDirection : undefined}
+                                    pattern={!placementType} />
                             </div>
                         </div>
                         <div></div>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '1vw' }}>
                             <div>
-                                <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={groupPlacement} onChange={updateGroupPlacement}></Switch>
+                                <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType} onChange={updateGroupPlacement}></Switch>
                             </div>
                             <Radio.Group
-                                disabled={!groupPlacement}
+                                disabled={!placementType}
                                 value={placementDirection}
                                 onChange={evt => updatePlacementDirection(evt.target.value)}>
                                 <Radio.Button value={'row'}> row </Radio.Button>
@@ -309,6 +307,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
                                 onConfirm={removeSelectedCells}
                                 placement={'bottomRight'}
+                                disabled={disableUndo}
                             >
                                 <Button disabled={disableUndo}> Undo Placement</Button>
                             </Popconfirm>
