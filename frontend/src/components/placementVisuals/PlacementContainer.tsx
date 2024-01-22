@@ -1,21 +1,24 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
+import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab";
 import Cell from "./Cell"
-import { DESTINATION_STRING, NONE_STRING, PATTERN_STRING, SELECTED_STRING, cellSample, sampleInfo } from "./PlacementTab";
 
 interface PlacementContainerProps {
+    updateSamples: (sampleList, containerType) => void,
     containerType: string,
     columns: number,
     rows: number,
     samples: any,
     selectedSampleList: any,
     direction?: string,
-    updateSamples: (sampleList, containerType) => void,
     pattern?: boolean,
 }
 
+//component is used to visually represent the container, and its rows and columns of cells
 const PlacementContainer = ({ containerType, columns, rows, samples, direction, selectedSampleList, pattern, updateSamples }: PlacementContainerProps) => {
+
     //boolean determining to see if the user is selecting
     const [isSelecting, setIsSelecting] = useState<boolean>(false)
+
     //preview cells so the user can see where the cells will be placed
     const [previewCells, setPreviewCells] = useState<any[]>([])
 
@@ -48,17 +51,19 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         return 0;
     }, [])
 
+    //allows to preview the cells that the pattern of selected samples will go into
     const previewPlacePattern = useCallback((coordinates) => {
 
-        // so to repeat the pattern but displace the cells, I take the most left cell and and the clicked cell, as how to transform the coords to the existing accordingly.
+        // so to repeat the pattern but displace the cells, I use the most left cell in the selected grouping and where it is to be placed (clicked cell) to calculate and transform the coords to the existing accordingly.
         // Iterate over all selected cells and take the difference of the most left column and the current cell
-        // and add it to the clicked cell.
+        // and add the difference to the where it should be placed
         // selected cells have coords ['a_1', 'a_3'], hovered cell to place is 'b_4'. Destination samples will become ['b_4, 'b_6']
         const cellsByCoordinate: any = []
         let preview: sampleInfo[] = []
 
+        let mostLeftColumn = columns;
+        //iterates over the selected samples to find the most left column of them
         if (Object.keys(selectedSampleList).length > 0) {
-            let mostLeftColumn = 12;
             Object.keys(selectedSampleList).forEach(id => {
                 cellsByCoordinate.push({ id: id, type: selectedSampleList[id].type, coordinates: selectedSampleList[id].coordinates })
                 const coords = selectedSampleList[id].coordinates
@@ -70,12 +75,11 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             //sorting the sampleList by coordinates
             cellsByCoordinate.sort((sortByCoordinate))
 
-            //coordinates of the cell clicked
-
+            //getting coordinates of the clicked cell
             const placedColumn = getColumnFromCoordinates(coordinates)
             let transformedRow = getRowFromCoordinates(coordinates)
             let transformedColumn
-            
+
 
             //row used to keep track whether to increase the transformed row
             let currentRow = getRowFromCoordinates(cellsByCoordinate[0].coordinates)
@@ -83,16 +87,17 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             cellsByCoordinate.forEach(value => {
                 const coord = value.coordinates
                 const row = getRowFromCoordinates(coord)
-                //if row changes, increment row
+                //if sample is in a different row than from the previous, increment row
                 if (row != currentRow) {
                     currentRow = row
                     transformedRow = String.fromCharCode(transformedRow.charCodeAt(0) + 1)
                 }
-                //calculating the difference between this current coordinates and the most left column in this selection
+                //calculating the difference between the current cell's coordinate and the most left column in this selected samples group
                 const difference = getDiff(getColumnFromCoordinates(coord), mostLeftColumn)
+
                 //taking the current placedColumn and adding the differnece
                 transformedColumn = placedColumn + difference
-                preview.push({ id: value.id, type: PATTERN_STRING, coordinates: transformedRow + padColumn(transformedColumn) })
+                preview.push({ id: value.id, type: PREVIEW_STRING, coordinates: transformedRow + padColumn(transformedColumn) })
             })
 
             if (preview.length > 0)
@@ -101,23 +106,22 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         }
     }, [previewCells, selectedSampleList, pattern])
 
-    //allows to preview the cells that the group will go into, row or column
+    //allows to preview the cells that the group of selected samples will go into
     const previewGroupPlacement = useCallback((coordinates) => {
         let preview: sampleInfo[] = []
 
+        //sorts list of cells by coordinate
         const cells: any = Object.keys(selectedSampleList).map(id => {
             return ({ id: id, type: selectedSampleList[id].type, coordinates: selectedSampleList[id].coordinates })
         }).sort(sortByCoordinate)
 
 
         if (cells.length > 0) {
-            //coordinates row and column is separated with '_'
-
             let row = getRowFromCoordinates(coordinates)
             let col = getColumnFromCoordinates(coordinates)
             for (let i = 0; i < cells.length; i++) {
-                //creates row or column of cells that 
-                preview.push({ id: cells[i].id, type: PATTERN_STRING, coordinates: row + padColumn(col) })
+                preview.push({ id: cells[i].id, type: PREVIEW_STRING, coordinates: row + padColumn(col) })
+                //increments row or column based on if the user wants to place new group in a column or row
                 if (direction == 'row') {
                     col += 1;
                 } else {
@@ -157,7 +161,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
     }, [isSelecting, previewCells, direction, selectedSampleList, pattern, containerType])
 
 
-    //checks to see if sample exists at coordinates and returns sample
+    //used in render to check to see if samples exist at that coordinate and returns sample
     const checkSamples = useCallback((coordinate) => {
 
         const id = Object.keys(samples).find((id) => (samples[id].coordinates) == coordinate) ?? null;
@@ -188,13 +192,13 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                     </div>
                 )
             }
-            //adds number heards to total number of cells
+            //adds number headers to total number of columns
             cells.push(<div key={'headers'} className={"header-row"}>
                 {
                     headerCells
                 }
             </div>)
-            //renders each row with the corresponding row letter coordinates
+            //renders each row with the corresponding row letter 'A','B', etc.
             for (let i = 0; i < rows; i++) {
                 let rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
@@ -204,7 +208,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                         }
                     </div>
                 )
-                //renders container cells
+                //renders cells
                 for (let colNumber = 1; colNumber < columns + 1; colNumber++) {
                     coordinates = char + "" + (padColumn(colNumber))
                     rowOfCells.push(

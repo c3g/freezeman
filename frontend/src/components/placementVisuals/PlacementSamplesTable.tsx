@@ -1,6 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
-import WorkflowSamplesTable from "../WorkflowSamplesTable/WorkflowSamplesTable"
-import { SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from '../samples/SampleTableColumns'
+import React, { useEffect, useState } from "react"
 import { Table } from "antd";
 import { TableRowSelection } from "antd/lib/table/interface";
 interface PlacementSamplesTableProps {
@@ -25,6 +23,7 @@ const columns = [
         key: 'coordinates',
     },
 ];
+//component used to display and select samples in a table format for plate visualization placement
 const PlacementSamplesTable = ({ samples, onSampleSelect, selectedSamples }: PlacementSamplesTableProps) => {
     const [sortedSamples, setSortedSamples] = useState<any>([])
     useEffect(() => {
