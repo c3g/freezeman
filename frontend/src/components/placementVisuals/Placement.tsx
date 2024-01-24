@@ -24,11 +24,7 @@ interface PlacementProps {
     saveDestination: () => void,
     changeDestinationName: (name) => void
 }
-export const copyKeyObject = (obj): any => {
-    const copy = {}
-    Object.keys(obj).forEach(key => copy[key] = { ...obj[key] })
-    return copy
-}
+
 //component used to handle the transfer of samples from source to destination, or destination to destination
 const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveDestination, changeDestinationName }: PlacementProps) => {
 
@@ -126,11 +122,11 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                         (destinationSample: any) => destinationSample.coordinates == sourceSample.coordinates && sourceSample.type != PLACED_STRING
                     )
             ))
-    
+
             return value
         }
-        const newSourceSamples = setType(PLACED_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(sourceSamples.samples))
-        const newDestinationSamples = setType(NONE_STRING, copyKeyObject(sourceSamples.samples), copyKeyObject(destinationSamples.samples))
+        const newSourceSamples = setType(PLACED_STRING, { ...sourceSamples.samples }, { ...sourceSamples.samples })
+        const newDestinationSamples = setType(NONE_STRING, { ...sourceSamples.samples }, { ...destinationSamples.samples })
 
 
         if (!sampleInCoords(sourceSamples.samples, destinationSamples.samples)) {
@@ -144,14 +140,14 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     const updateSampleList = useCallback(
         (sampleList, containerType) => {
             //to avoid passing reference each object is copied
-            const tempSelectedSamples: cellSample = copyKeyObject(selectedSamples)
-            const tempSourceSamples: cellSample = copyKeyObject(sourceSamples.samples)
-            const tempDestinationSamples: cellSample = copyKeyObject(destinationSamples.samples)
+            const tempSelectedSamples: cellSample = { ...selectedSamples }
+            const tempSourceSamples: cellSample = { ...sourceSamples.samples }
+            const tempDestinationSamples: cellSample = { ...destinationSamples.samples }
 
             //iterates over list of samples to decide whether to place them in the 'selectedSamples' or the destination container
             sampleList.forEach(sample => {
                 const id = parseInt(sample.id)
-                
+
                 // to prevent users from placing into empty cells in source container
                 if (containerType == DESTINATION_STRING) {
                     if (!tempDestinationSamples[id] || sample.type == PREVIEW_STRING) {
@@ -201,7 +197,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                     }
                 }
             })
-            
+
             setSelectedSamples({ ...tempSelectedSamples })
             //updates samples to parent container
             saveContainerSamples(tempSourceSamples, tempDestinationSamples)
@@ -250,7 +246,8 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                 <PageContent>
                     <div className={"flex-column"}>
                         <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
-                            <AddPlacementContainer addDestination={addDestination} />
+                            <Button onClick={() => addDestination({})}> Add Container</Button>
+                            <AddPlacementContainer onConfirm={(container) => addDestination(container)} />
                             <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
                         </div>
                         <div className={"flex-row"}>

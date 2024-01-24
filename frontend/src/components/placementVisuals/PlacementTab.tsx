@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
-import Placement, { copyKeyObject } from "./Placement"
+import Placement from "./Placement"
 import { Alert } from "antd"
 import { useAppDispatch } from "../../hooks"
 import api from "../../utils/api"
@@ -80,11 +80,11 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
         const sampleIDs = selectedSamples.map(sample => sample.sample.id)
 
+        let containerSamples: containerSample[] = createEmptyContainerArray()
         if (sampleIDs.length > 0) {
-            const containerSamples: containerSample[] = []
             const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
             const containers = (values.data.results.samples.groups)
-
+            containerSamples = []
             containers.forEach(container => {
                 containerSamples.push({
                     container_name: container.name,
@@ -94,42 +94,39 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                     container_kind: '96-well plate'
                 })
             })
-            setSourceContainerList(containerSamples)
         }
+        setSourceContainerList(containerSamples)
     }, [selectedSamples])
 
 
     const copyContainerArray = useCallback((containerArray): containerSample[] => {
-        return containerArray.map(obj => {
-            return {
+        const map: any = []
+        containerArray.forEach(obj => {
+            map.push({
                 columns: obj.columns,
                 rows: obj.rows,
                 container_name: obj.container_name,
-                samples: copyKeyObject(obj.samples),
+                samples: { ...obj.samples },
                 container_kind: obj.container_kind,
-            }
+            })
         })
+
+        return [...map]
     }, [])
 
     //function used to handle add Container, adds it to destination container list
     const addContainer = useCallback(
         (newContainer) => {
-            const tempDestinationContainerSamples = copyContainerArray(destinationContainerList)
-
             const mutatedContainer = {
-                container_name: '',
+                container_name: 'newDestination_' + (destinationContainerList.length + 1),
                 samples: {},
                 rows: 8,
                 columns: 12,
                 container_kind: '96-well plate',
                 ...newContainer
             }
-
-            tempDestinationContainerSamples.push(mutatedContainer)
-
-            setDestinationContainerList(copyContainerArray(tempDestinationContainerSamples))
-            setDestinationIndex(tempDestinationContainerSamples.length - 1)
-        }, [destinationContainerList])
+            setDestinationContainerList([...destinationContainerList, mutatedContainer])
+        }, [(destinationContainerList), destinationIndex])
 
 
     //function used to handle the removal of cells
@@ -197,20 +194,21 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         (source, destination) => {
 
             const setContainerSamples = (containerList, newSamples, index) => {
-                const newList = copyContainerArray(containerList)
+                const newList = [...containerList]
                 newList[index].samples = newSamples
-                return copyContainerArray(newList)
+                return newList
             }
             setSourceContainerList(setContainerSamples(sourceContainerList, source, index))
             setDestinationContainerList(setContainerSamples(destinationContainerList, destination, destinationIndex))
         }, [sourceContainerList, JSON.stringify(destinationContainerList), destinationIndex, index])
 
     //function used to handle the change of displayed destination name
-    const changeDestinationName = useCallback((e) => {
-        const tempDestination = copyContainerArray(destinationContainerList)
-        tempDestination[destinationIndex].container_name = e.target.value
-        setDestinationContainerList(copyContainerArray(tempDestination))
-    }, [destinationContainerList, destinationIndex])
+    const changeDestinationName = useCallback(
+        (e) => {
+            const tempDestination = copyContainerArray(destinationContainerList)
+            tempDestination[destinationIndex].container_name = e.target.value
+            setDestinationContainerList(tempDestination)
+        }, [destinationContainerList, destinationIndex])
 
     //function used to pass all of the destination containers to the prefill so that the coordinates can be prefilled for selected samples at step
     const saveDestination = useCallback(() => {
