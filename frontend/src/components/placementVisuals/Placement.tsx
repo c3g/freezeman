@@ -35,8 +35,6 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     const [placementType, setPlacementType] = useState<boolean>(true)
     //if placement type is group used to keep track if it's by row or column
     const [placementDirection, setPlacementDirection] = useState<string>('row')
-    //used to keep track of undo (sample removal in destination) NOTE: needs a better way to keep track of if changes were made to allow a user to undo the placement
-    const [disableUndo, setDisableUndo] = useState<boolean>(true)
 
 
     const updateGroupPlacement = useCallback(() => {
@@ -67,8 +65,8 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
     //removes selected samples, unless they're in the source container
     const removeSelectedCells = useCallback(() => {
-        removeCells(selectedSamples)
-        setDisableUndo(true)
+        const removed = (Object.keys(selectedSamples).length > 0 ? selectedSamples : destinationSamples.samples)
+        removeCells(removed)
         clearSelection()
     }, [selectedSamples])
 
@@ -177,7 +175,6 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                         }
 
                     }
-                    setDisableUndo(false)
                 }
 
 
@@ -246,7 +243,6 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                 <PageContent>
                     <div className={"flex-column"}>
                         <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
-                            <Button onClick={() => addDestination({})}> Add Container</Button>
                             <AddPlacementContainer onConfirm={(container) => addDestination(container)} />
                             <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
                         </div>
@@ -304,9 +300,8 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
                                 onConfirm={removeSelectedCells}
                                 placement={'bottomRight'}
-                                disabled={disableUndo}
                             >
-                                <Button disabled={disableUndo}> Undo Placement</Button>
+                                <Button > Undo Placement</Button>
                             </Popconfirm>
                         </div>
                         <div className={"flex-row"}>

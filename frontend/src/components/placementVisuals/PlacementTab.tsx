@@ -98,27 +98,11 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         setSourceContainerList(containerSamples)
     }, [selectedSamples])
 
-
-    const copyContainerArray = useCallback((containerArray): containerSample[] => {
-        const map: any = []
-        containerArray.forEach(obj => {
-            map.push({
-                columns: obj.columns,
-                rows: obj.rows,
-                container_name: obj.container_name,
-                samples: { ...obj.samples },
-                container_kind: obj.container_kind,
-            })
-        })
-
-        return [...map]
-    }, [])
-
     //function used to handle add Container, adds it to destination container list
     const addContainer = useCallback(
         (newContainer) => {
             const mutatedContainer = {
-                container_name: 'newDestination_' + (destinationContainerList.length + 1),
+                container_name: 'destination' + (destinationContainerList.length + 1),
                 samples: {},
                 rows: 8,
                 columns: 12,
@@ -126,26 +110,21 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                 ...newContainer
             }
             setDestinationContainerList([...destinationContainerList, mutatedContainer])
-        }, [(destinationContainerList), destinationIndex])
+        }, [sourceContainerList, JSON.stringify(destinationContainerList), destinationIndex])
 
 
     //function used to handle the removal of cells
     const removeCells = useCallback(
         (samples) => {
 
-            const copySourceContainerSamples = copyContainerArray(sourceContainerList)
-            const copyDestinationSamples = copyContainerArray(destinationContainerList)
-
-            if (Object.keys(samples).length == 0) {
-                samples = copyDestinationSamples[destinationIndex].samples
-            }
+            const copySourceContainerSamples = [...sourceContainerList]
+            const copyDestinationSamples = [...destinationContainerList]
 
             //removes it from destination and sets the samples in source containers to be none, from where the samples came from
             Object.keys(samples).forEach(id => {
                 let sourceIndex = sourceContainerList.findIndex(source => source.container_name == samples[id].sourceContainer)
                 if (!sourceIndex)
                     sourceIndex = copySourceContainerSamples.findIndex(source => source.container_name == copyDestinationSamples[destinationIndex].samples[id].sourceContainer)
-
 
                 if (sourceIndex != -1) {
                     copySourceContainerSamples[sourceIndex].samples[id].type = NONE_STRING
@@ -158,7 +137,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             setSourceContainerList(copySourceContainerSamples)
 
         }
-        , [sourceContainerList, destinationContainerList, destinationIndex])
+        , [sourceContainerList, JSON.stringify(destinationContainerList), destinationIndex])
 
     //function used to handle the cycle of container list
     const changeContainer = useCallback((number: string, containerType: string) => {
@@ -205,7 +184,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     //function used to handle the change of displayed destination name
     const changeDestinationName = useCallback(
         (e) => {
-            const tempDestination = copyContainerArray(destinationContainerList)
+            const tempDestination = [...destinationContainerList]
             tempDestination[destinationIndex].container_name = e.target.value
             setDestinationContainerList(tempDestination)
         }, [destinationContainerList, destinationIndex])
@@ -236,6 +215,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         }
     }, [destinationContainerList])
 
+
     return (
         <>
             {error ?
@@ -249,7 +229,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                 />
                 : ''}
             <Placement
-                sourceSamples={sourceContainerList[index]}
+                sourceSamples={sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0]}
                 destinationSamples={destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0]}
                 disableChangeSource={sourceContainerList.length == 1}
                 disableChangeDestination={destinationContainerList.length == 1}
