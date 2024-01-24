@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Alert, Button, Select, Tabs } from "antd"
+import { Alert, Button, Form, Select, Tabs } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectCoordinatesByID } from "../../selectors"
 import { PLACED_STRING } from "./PlacementTab"
@@ -44,6 +44,7 @@ const AddPlacementContainer = ({ onConfirm }: AddPlacementContainerProps) => {
         if (container.container_name && container.container_kind && container.container_kind != 'tube') {
             onConfirm(container)
             setIsPopup(false)
+            setNewContainer({})
         } else {
             setError("Invalid container kind")
         }
@@ -73,8 +74,8 @@ const AddPlacementContainer = ({ onConfirm }: AddPlacementContainerProps) => {
                         : ''}
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
-                            <Input placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
-                            <Select placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' }]}></Select>
+                                    <Input value={newContainer.container_name} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
+                                    <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' }]}></Select>
                         </Tabs.TabPane>
                         <Tabs.TabPane tab='Load Container' key={'load'}>
                             <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />
