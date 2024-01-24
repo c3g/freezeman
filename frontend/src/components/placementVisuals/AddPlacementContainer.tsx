@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Alert, Button, Form, Select, Tabs } from "antd"
+import { Alert, Button, Select, Tabs } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectCoordinatesByID } from "../../selectors"
 import { PLACED_STRING } from "./PlacementTab"
@@ -18,8 +18,9 @@ const AddPlacementContainer = ({ onConfirm }: AddPlacementContainerProps) => {
 
     //used to hold loaded container data
     const [loadedContainer, setLoadedContainer] = useState<any>({})
-    const [selectedTab, setSelectedTab] = useState<string>('load')
+    const [selectedTab, setSelectedTab] = useState<string>('new')
     const [error, setError] = useState<string | undefined>(undefined)
+    const [newContainer, setNewContainer] = useState<any>({})
 
     const coordinates = useAppSelector(selectCoordinatesByID)
 
@@ -34,24 +35,30 @@ const AddPlacementContainer = ({ onConfirm }: AddPlacementContainerProps) => {
         loadedSamples.data.results.forEach(sample => {
             newDestination[sample.id] = { id: sample.id, coordinates: (coordinates[sample.coordinate].name), type: PLACED_STRING, name: sample.name, sourceContainer: containerName }
         })
-        setLoadedContainer({ container_name: containerName, container_kind: container.data.kind, samples: { ...newDestination } })
+        setLoadedContainer({ container_name: containerName, container_kind: container.data.kind, samples: { ...newDestination }, })
     }, [coordinates])
 
     //calls addDestination prop with 'New Destination' container
     const handleConfirm = useCallback(() => {
-        const container = loadedContainer
+        const container = selectedTab == 'load' ? loadedContainer : newContainer
         if (container.container_name && container.container_kind && container.container_kind != 'tube') {
             onConfirm(container)
             setIsPopup(false)
         } else {
             setError("Invalid container kind")
         }
-    }, [loadedContainer, selectedTab])
+    }, [loadedContainer, selectedTab, newContainer])
+
+    const handleOnChange = useCallback((e, name) => {
+        const container = { ...newContainer }
+        container[name] = e.target ? e.target.value : e
+        setNewContainer(container)
+    }, [newContainer])
 
 
     return (
         <>
-            <Button onClick={() => setIsPopup(true)}>Load Destination</Button>
+            <Button onClick={() => setIsPopup(true)}>Add Destination</Button>
             <Modal title="Add Destination" visible={isPopup} onOk={handleConfirm} onCancel={() => setIsPopup(false)}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {error ?
@@ -65,6 +72,10 @@ const AddPlacementContainer = ({ onConfirm }: AddPlacementContainerProps) => {
                         />
                         : ''}
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
+                        <Tabs.TabPane tab='New Container' key={'new'}>
+                            <Input placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
+                            <Select placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' }]}></Select>
+                        </Tabs.TabPane>
                         <Tabs.TabPane tab='Load Container' key={'load'}>
                             <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />
                         </Tabs.TabPane>
