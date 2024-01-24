@@ -115,15 +115,17 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const addContainer = useCallback(
         (newContainer) => {
             const tempDestinationContainerSamples = copyContainerArray(destinationContainerList)
-            const emptyContainer = {
+
+            const mutatedContainer = {
                 container_name: '',
                 samples: {},
                 rows: 8,
                 columns: 12,
-                container_kind: '96-well plate'
+                container_kind: '96-well plate',
+                ...newContainer
             }
 
-            tempDestinationContainerSamples.push({ ...emptyContainer, ...newContainer })
+            tempDestinationContainerSamples.push(mutatedContainer)
 
             setDestinationContainerList(copyContainerArray(tempDestinationContainerSamples))
             setDestinationIndex(tempDestinationContainerSamples.length - 1)
@@ -207,7 +209,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const changeDestinationName = useCallback((e) => {
         const tempDestination = copyContainerArray(destinationContainerList)
         tempDestination[destinationIndex].container_name = e.target.value
-        setDestinationContainerList(tempDestination)
+        setDestinationContainerList(copyContainerArray(tempDestination))
     }, [destinationContainerList, destinationIndex])
 
     //function used to pass all of the destination containers to the prefill so that the coordinates can be prefilled for selected samples at step
@@ -236,7 +238,6 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         }
     }, [destinationContainerList])
 
-    // console.log('render', destinationContainerList)
     return (
         <>
             {error ?
