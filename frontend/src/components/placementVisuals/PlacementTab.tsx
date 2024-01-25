@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react"
 import Placement from "./Placement"
-import { Alert } from "antd"
+import { Alert, notification } from "antd"
 import { useAppDispatch } from "../../hooks"
 import api from "../../utils/api"
 
@@ -53,11 +53,12 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const [destinationContainerList, setDestinationContainerList] = useState<containerSample[]>(createEmptyContainerArray())
 
     const [index, setIndex] = useState<number>(0)
-    const [error, setError] = useState<string | undefined>(undefined)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
     useEffect(() => {
         fetchListContainers()
+        setSourceContainerList(createEmptyContainerArray())
+        setDestinationContainerList(createEmptyContainerArray())
     }, [selectedSamples])
 
     useEffect(() => {
@@ -208,39 +209,38 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             if (Object.keys(placementData).length > 0) {
                 save(placementData)
             } else {
-                setError('Missing placement data')
+              const MISSING_PLACEMENT_DATA_NOTIFICATION_KEY = `LabworkStep.placement-missing-data`
+              notification.error({
+                message: `Missing placement data.`,
+                key: MISSING_PLACEMENT_DATA_NOTIFICATION_KEY,
+                duration: 20
+              })
             }
         } else {
-            setError('Missing destination barcode in destination list')
+          const MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-barcode`
+          notification.error({
+            message: `Missing destination container barcode in destination list.`,
+            key: MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY,
+            duration: 20
+          })
         }
     }, [destinationContainerList])
 
 
     return (
-        <>
-            {error ?
-                <Alert
-                    type='error'
-                    message='Destination Error'
-                    description={error}
-                    closable={true}
-                    showIcon={true}
-                    onClose={() => { setError(undefined) }}
-                />
-                : ''}
-            <Placement
-                sourceSamples={sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0]}
-                destinationSamples={destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0]}
-                disableChangeSource={sourceContainerList.length == 1}
-                disableChangeDestination={destinationContainerList.length == 1}
-                cycleContainer={changeContainer}
-                saveChanges={saveChanges}
-                changeDestinationName={changeDestinationName}
-                addDestination={addContainer}
-                removeCells={removeCells}
-                saveDestination={saveDestination} />
-
-        </>
+      <Placement
+        sourceSamples={sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0]}
+        destinationSamples={destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0]}
+        disableChangeSource={sourceContainerList.length == 1}
+        disableChangeDestination={destinationContainerList.length == 1}
+        cycleContainer={changeContainer}
+        saveChanges={saveChanges}
+        changeDestinationName={changeDestinationName}
+        addDestination={addContainer}
+        removeCells={removeCells}
+        saveDestination={saveDestination}
+        setDestinationIndex={setDestinationIndex}
+        destinationContainerList={destinationContainerList} />
     )
 }
 export default PlacementTab
