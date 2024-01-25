@@ -102,6 +102,18 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
     }, [sourceSamples.container_name, destinationSamples.container_name])
 
+    //used to check if the destination has samples in cells already
+    const sampleInCoords = (source, destination) => {
+        const value = (Object.values(source).some(
+            (sourceSample: any) =>
+                Object.values(destination).find(
+                    (destinationSample: any) => destinationSample.coordinates == sourceSample.coordinates && sourceSample.type != PLACED_STRING
+                )
+        ))
+
+        return value
+    }
+
     //function used to handle the transfer of all available samples from source to destination
     const transferAllSamples = useCallback(() => {
         //sets all samples to certain type, 'none', 'placed'
@@ -112,17 +124,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             })
             return sampleObj
         }
-        //used to check if the destination has samples in cells already
-        const sampleInCoords = (source, destination) => {
-            const value = (Object.values(source).some(
-                (sourceSample: any) =>
-                    Object.values(destination).find(
-                        (destinationSample: any) => destinationSample.coordinates == sourceSample.coordinates && sourceSample.type != PLACED_STRING
-                    )
-            ))
-
-            return value
-        }
+        
         const newSourceSamples = setType(PLACED_STRING, { ...sourceSamples.samples }, { ...sourceSamples.samples })
         const newDestinationSamples = setType(NONE_STRING, { ...sourceSamples.samples }, { ...destinationSamples.samples })
 
@@ -141,6 +143,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             const tempSelectedSamples: cellSample = { ...selectedSamples }
             const tempSourceSamples: cellSample = { ...sourceSamples.samples }
             const tempDestinationSamples: cellSample = { ...destinationSamples.samples }
+            const canPlace = sampleInCoords(sampleList, tempDestinationSamples)
 
             //iterates over list of samples to decide whether to place them in the 'selectedSamples' or the destination container
             sampleList.forEach(sample => {
@@ -148,7 +151,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
                 // to prevent users from placing into empty cells in source container
                 if (containerType == DESTINATION_STRING) {
-                    if (!tempDestinationSamples[id] || sample.type == PREVIEW_STRING) {
+                    if ((!tempDestinationSamples[id] || sample.type == PREVIEW_STRING) && !canPlace) {
                         let selectedId
 
                         //chhecks to see if id exists in selectedSamples
@@ -243,6 +246,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                 <PageContent>
                     <div className={"flex-column"}>
                         <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
+
                             <AddPlacementContainer onConfirm={(container) => addDestination(container)} />
                             <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
                         </div>

@@ -65,6 +65,23 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         setDestinationContainerList(createEmptyContainerArray())
     }, [stepID])
 
+    const handleSelectedSamples =
+        (sampleIDS) => {
+            const tempDestination: any[] = []
+            const copy = [...destinationContainerList]
+            copy.forEach(container => {
+                const copySamples = {}
+                Object.keys(container.samples).forEach(id => {
+                    if (sampleIDS.some((x) => x == id)) {
+                        copySamples[id] = { ...container.samples[id] }
+                    }
+                })
+
+                tempDestination.push({ ...container, samples: copySamples })
+            })
+            setDestinationContainerList(tempDestination)
+        }
+
     //fetches containers based on selected samples from Step.
     const fetchListContainers = useCallback(async () => {
         //parses samples appropriately so the PlacementContainer component can render it
@@ -94,6 +111,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                     container_kind: '96-well plate'
                 })
             })
+            handleSelectedSamples(sampleIDs)
         }
         setSourceContainerList(containerSamples)
     }, [selectedSamples])

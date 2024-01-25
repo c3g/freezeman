@@ -28,13 +28,15 @@ const AddPlacementContainer = ({ onConfirm }: AddPlacementContainerProps) => {
     //retrieves container on search
     const handleContainerLoad = useCallback(async (loadedContainer) => {
         const container = await dispatch(api.containers.get(loadedContainer))
-        const loadedSamples = await dispatch(api.samples.list({ id__in: container.data.samples.join(',') }))
         const containerName = container.data.name
-
         const newDestination = {}
-        loadedSamples.data.results.forEach(sample => {
-            newDestination[sample.id] = { id: sample.id, coordinates: (coordinates[sample.coordinate].name), type: PLACED_STRING, name: sample.name, sourceContainer: containerName }
-        })
+        if (container.data.samples.length > 0) {
+            const loadedSamples = await dispatch(api.samples.list({ id__in: container.data.samples.join(',') }))
+
+            loadedSamples.data.results.forEach(sample => {
+                newDestination[sample.id] = { id: sample.id, coordinates: (coordinates[sample.coordinate].name), type: PLACED_STRING, name: sample.name, sourceContainer: containerName }
+            })
+        }
         setLoadedContainer({ container_name: containerName, container_kind: container.data.kind, samples: { ...newDestination }, })
     }, [coordinates])
 
@@ -74,8 +76,8 @@ const AddPlacementContainer = ({ onConfirm }: AddPlacementContainerProps) => {
                         : ''}
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
-                                    <Input value={newContainer.container_name} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
-                                    <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' }]}></Select>
+                            <Input value={newContainer.container_name} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
+                            <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' }]}></Select>
                         </Tabs.TabPane>
                         <Tabs.TabPane tab='Load Container' key={'load'}>
                             <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />
