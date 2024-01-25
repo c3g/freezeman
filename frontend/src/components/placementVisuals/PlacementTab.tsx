@@ -68,35 +68,36 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const handleSelectedSamples =
         (sampleIDS) => {
             const tempDestination: any[] = []
-            const copy = [...destinationContainerList]
-            copy.forEach(container => {
-                const copySamples = {}
+            const copyDestination = [...destinationContainerList]
+            copyDestination.forEach(container => {
+                const copyDestinationSamples = {}
                 Object.keys(container.samples).forEach(id => {
                     if (sampleIDS.some((x) => x == id)) {
-                        copySamples[id] = { ...container.samples[id] }
+                        copyDestinationSamples[id] = { ...container.samples[id] }
                     }
                 })
 
-                tempDestination.push({ ...container, samples: copySamples })
+                tempDestination.push({ ...container, samples: copyDestinationSamples })
             })
             setDestinationContainerList(tempDestination)
+            return tempDestination
         }
 
     //fetches containers based on selected samples from Step.
     const fetchListContainers = useCallback(async () => {
         //parses samples appropriately so the PlacementContainer component can render it
-        const parseSamples = (list, selectedSamples, container_name) => {
+        const parseSamples = (list, selectedSamples, container_name, destination) => {
             const object = {}
             list.forEach(located_sample => {
                 const id = located_sample.sample_id
                 const sample = selectedSamples.find(sample => sample.sample.id == id).sample
-                object[id] = { id: id, name: sample.name, coordinates: located_sample.contextual_coordinates, type: NONE_STRING, sourceContainer: container_name }
+                object[id] = { id: id, name: sample.name, coordinates: located_sample.contextual_coordinates, type: destination.includes(id.toString()) ? PLACED_STRING : NONE_STRING, sourceContainer: container_name }
             })
             return object
         }
 
         const sampleIDs = selectedSamples.map(sample => sample.sample.id)
-
+        const destination: any = handleSelectedSamples(sampleIDs)
         let containerSamples: containerSample[] = createEmptyContainerArray()
         if (sampleIDs.length > 0) {
             const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
@@ -105,13 +106,12 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             containers.forEach(container => {
                 containerSamples.push({
                     container_name: container.name,
-                    samples: parseSamples(container.sample_locators, selectedSamples, container.name),
+                    samples: parseSamples(container.sample_locators, selectedSamples, container.name, [].concat(destination.map(container => Object.keys(container.samples)).flat(1))),
                     columns: 12,
                     rows: 8,
                     container_kind: '96-well plate'
                 })
             })
-            handleSelectedSamples(sampleIDs)
         }
         setSourceContainerList(containerSamples)
     }, [selectedSamples])
