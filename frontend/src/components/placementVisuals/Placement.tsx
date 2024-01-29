@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import PlacementContainer from "./PlacementContainer"
 import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
@@ -67,7 +67,13 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
     //removes selected samples, unless they're in the source container
     const removeSelectedCells = useCallback(() => {
-        const removed = (Object.keys(selectedSamples).length > 0 ? selectedSamples : destinationSamples.samples)
+        const selected = {}
+        Object.keys(selectedSamples).forEach(id => {
+            if (selectedSamples[id].type != "source") {
+                selected[id] = selectedSamples[id]
+            }
+        })
+        const removed = (Object.keys(selected).length > 0 ? selected : destinationSamples.samples)
         removeCells(removed)
         clearSelection()
     }, [selectedSamples])
@@ -242,6 +248,8 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         updateSampleList(samplesToUpdate, type)
     }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
 
+    const disableUndo = useMemo(() => Object.values(selectedSamples).some(sample => sample.type == 'source'), [selectedSamples])
+
     return (
         <>
             <PageContainer>
@@ -306,8 +314,9 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
                                 onConfirm={removeSelectedCells}
                                 placement={'bottomRight'}
+                                disabled={disableUndo}
                             >
-                                <Button > Undo Placement</Button>
+                                <Button disabled={disableUndo} > Undo Placement</Button>
                             </Popconfirm>
                         </div>
                         <div className={"flex-row"}>
