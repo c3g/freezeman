@@ -236,7 +236,6 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             return cells
         }, [samples, isSelecting, previewCells, direction, selectedSampleList, pattern])
 
-    // console.log('samples', Object.keys(samples).length, containerType)
     return (
         <>
             <div className={"transfer"} style={
