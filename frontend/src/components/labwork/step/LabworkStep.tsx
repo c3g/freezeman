@@ -377,7 +377,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step.id, selectedTableSamples, isSorted])
 
 	const placementSave = useCallback((placementData) => {	
-		console.log(placementData)	
 		setPlacementData(placementData)
 	}, [])
 
