@@ -30,7 +30,7 @@ const api = {
     },
     prefill: {
       templates: () => get(`/containers/list_prefills/`),
-      request: (options, template) => get(`/containers/prefill_template/`, {template: template, ...options}),
+      request: (options, template) => filteredpost(`/containers/prefill_template/`, {...options}, form({ template: template })),
     },
     search: (q, { parent, sample_holding, exact_match }) =>
       get("/containers/search/", { q, parent, sample_holding, exact_match }),
@@ -127,7 +127,7 @@ const api = {
     },
     prefill: {
       templates: () => get(`/libraries/list_prefills/`),
-      request: (options, template) => get(`/libraries/prefill_template/`, {template: template, ...options}),
+      request: (options, template) => filteredpost(`/libraries/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/libraries/search/", { q }),
   },
@@ -217,7 +217,7 @@ const api = {
     },
     prefill: {
       templates: () => get(`/samples/list_prefills/`),
-      request: (options, template) => get(`/samples/prefill_template/`, {template: template, ...options}),
+      request: (options, template) => filteredpost(`/samples/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/samples/search/", { q }),
   },
@@ -239,7 +239,7 @@ const api = {
     listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
-      request: (templateID, user_prefill_data, placement_data,  options) => filteredpost('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data:placement_data, template: templateID}))
+      request: (templateID, user_prefill_data, placement_data,  options) => filteredpost('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID}))
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),
