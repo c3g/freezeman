@@ -239,7 +239,11 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
     // console.log('samples', Object.keys(samples).length, containerType)
     return (
         <>
-            <div className={"transfer"}>
+            <div className={"transfer"} style={
+                { 
+                    cursor: isSelecting ? 'crosshair' : 'auto',
+                }
+            }>
                 {
                     renderCells()
                 }
