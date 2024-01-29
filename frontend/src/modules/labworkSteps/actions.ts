@@ -306,7 +306,7 @@ export const listTemplateActions = () => (dispatch, getState) => {
  * @param stepID Step ID
  * @returns 
  */
-export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_prefill_data: any) => {
+export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_prefill_data: any, placement_data: any) => {
 	return async (dispatch, getState) => {
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
@@ -317,7 +317,7 @@ export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_
 				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
 			}
 			// {"Volume Used (uL)" : "30"}
-			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data), options))
+			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data), JSON.stringify(placement_data), options))
 			return fileData
 		}
 	}

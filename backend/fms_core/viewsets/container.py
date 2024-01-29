@@ -1,5 +1,6 @@
+from collections import defaultdict
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q, Prefetch
+from django.db.models import Count, Q, Prefetch, F, When, Case, Value, CharField
 from fms_core.utils import remove_empty_str_from_dict
 from fms_core.services.container import create_container
 
@@ -8,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from fms_core.containers import PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
-from fms_core.models import Container, Sample
+from fms_core.models import Container, Sample, Coordinate
 from fms_core.filters import ContainerFilter
 from ._constants import _container_filterset_fields
 
@@ -221,3 +222,5 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         Lists all django_reversion Version objects associated with a container.
         """
         return versions_detail(self.get_object())
+    
+    

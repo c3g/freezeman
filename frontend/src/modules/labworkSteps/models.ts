@@ -42,6 +42,12 @@ export interface LabworkStepSamples {
 export interface LabworkStepSamplesGroup {
 	name: string                      // Name identifying that group
   count: number                     // Number of samples included in group
-  sample_ids: FMSId[]               // Samples included in group
+  sample_locators: SampleLocator[]               // Samples included in group
+  containers: any
 }
 
+export interface SampleLocator {
+  sample_id: FMSId
+  contextual_container_barcode: string
+  contextual_coordinates: string
+}

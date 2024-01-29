@@ -36,7 +36,7 @@ interface PrefillButtonProps {
     canPrefill: boolean,
     handlePrefillTemplate: (data: { [column: string]: any }) => void,
     data: { [column: string]: ColumnType },
-    onPrefillOpen: () => void
+    onPrefillOpen: () => void,
 }
 
 

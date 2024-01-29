@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, selectAllSamplesAtStep, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
@@ -22,6 +22,7 @@ import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSample
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
+import PlacementTab from '../../placementVisuals/PlacementTab'
 
 const { Text } = Typography
 
@@ -37,9 +38,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const navigate = useNavigate()
 
 	// Keep track of the currently selected tab so that we can tweak the UX
-  const GROUPED_SAMPLES_TAB_KEY = 'groups'
+	const GROUPED_SAMPLES_TAB_KEY = 'groups'
 	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
+	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
@@ -47,6 +49,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [selectedTableSamples, setSelectedTableSamples] = useState<SampleAndLibrary[]>([])
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
 	const [isSorted, setIsSorted] = useState<boolean>(false)
+	const [placementData, setPlacementData] = useState<any>({})
 
 	const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
@@ -112,7 +115,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		async (prefillData: { [column: string]: any }) => {
 			if (selectedTemplate) {
 				try {
-					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData))
+					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData, placementData))
 					if (result) {
 						downloadFromFile(result.filename, result.data)
 					}
@@ -121,7 +124,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				}
 			}
 		}
-		, [step, selectedTemplate, dispatch])
+		, [step, selectedTemplate, dispatch, placementData])
 
 	// Submit Automation handler
 	const haveSelectedSamples = stepSamples.selectedSamples.length > 0
@@ -137,38 +140,38 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 		, [step, selectedTemplate, navigate, dispatch])
 
-		const handleExecuteAutomation = useCallback(
-			async (additionalData) => {
-			  try {
+	const handleExecuteAutomation = useCallback(
+		async (additionalData) => {
+			try {
 				setWaitResponse(true)
 				const response = await dispatch(requestAutomationExecution(step.id, additionalData))
 				if (response) {
-				  setWaitResponse(false)
-				  const success = response.data.result.success
-				  if (success) {
-					dispatch(flushSamplesAtStep(step.id))
-					const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
-					notification.info({
-					  message: `Automation completed with success. Moving samples to next step.`,
-					  key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
-					  duration: 5
-					})
-					navigate(`/lab-work/`)
-				  }
-				  else {
-					const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
-					const errors = response.data.errors
-					notification.error({
-					  message: `Automation failed. Errors:${Object.values(errors).filter(value => (typeof value === "string" && value.length > 0)).map(value => "[" + value + "]")}`,
-					  key: AUTOMATION_FAILED_NOTIFICATION_KEY,
-					  duration: 20
-					})
-				  }
+					setWaitResponse(false)
+					const success = response.data.result.success
+					if (success) {
+						dispatch(flushSamplesAtStep(step.id))
+						const AUTOMATION_SUCCESS_NOTIFICATION_KEY = `LabworkStep.automation-success-${step.id}`
+						notification.info({
+							message: `Automation completed with success. Moving samples to next step.`,
+							key: AUTOMATION_SUCCESS_NOTIFICATION_KEY,
+							duration: 5
+						})
+						navigate(`/lab-work/`)
+					}
+					else {
+						const AUTOMATION_FAILED_NOTIFICATION_KEY = `LabworkStep.automation-failure-${step.id}`
+						const errors = response.data.errors
+						notification.error({
+							message: `Automation failed. Errors:${Object.values(errors).filter(value => (typeof value === "string" && value.length > 0)).map(value => "[" + value + "]")}`,
+							key: AUTOMATION_FAILED_NOTIFICATION_KEY,
+							duration: 20
+						})
+					}
 				}
-			  } catch (err) {
+			} catch (err) {
 				setWaitResponse(false)
 				console.error(err)
-			  }
+			}
 		}
 		, [step, dispatch])
 
@@ -181,19 +184,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step, protocol])
 
 	const filterDefinitions = useMemo(() => {
-		return { ...SAMPLE_COLUMN_FILTERS,
-             ...LIBRARY_COLUMN_FILTERS,
-             GROUPING_CONTAINER,
-             GROUPING_CREATED_BY
-             }
+		return {
+			...SAMPLE_COLUMN_FILTERS,
+			...LIBRARY_COLUMN_FILTERS,
+			GROUPING_CONTAINER,
+			GROUPING_CREATED_BY
+		}
 	}, [])
 
 	const filterKeys = useMemo(() => {
-		return { ...SAMPLE_NEXT_STEP_FILTER_KEYS,
-             ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS,
-             [GROUPING_CONTAINER.label]: GROUPING_CONTAINER.key,
-             [GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
-             }
+		return {
+			...SAMPLE_NEXT_STEP_FILTER_KEYS,
+			...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS,
+			[GROUPING_CONTAINER.label]: GROUPING_CONTAINER.key,
+			[GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
+		}
 	}, [])
 
 	// Columns for selected samples table
@@ -346,14 +351,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
 
-	const localClearFilters = useCallback((refresh: boolean=true) => {
+	const localClearFilters = useCallback((refresh: boolean = true) => {
 		if (clearFilters)
 			dispatch(clearFilters(step.id, refresh))
 	}, [step, step.id])
 
-	const updateSortSelectedSamples = useCallback(async ()=>{
+	const updateSortSelectedSamples = useCallback(async () => {
 		dispatch(updateSelectedSamplesAtStep(step.id, getIdsFromSelectedSamples(selectedTableSamples)))
-	},[step.id, selectedTableSamples])
+	}, [step.id, selectedTableSamples])
 
 	const onTabChange = useCallback((tabKey) => {
 		if (tabKey != SAMPLES_TAB_KEY && !isSorted) {
@@ -364,18 +369,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step.id, selectedTableSamples])
 
 
-	const onPrefillOpen = useCallback(()=>{
-		if(!isSorted){
+	const onPrefillOpen = useCallback(() => {
+		if (!isSorted) {
 			dispatch(updateSortSelectedSamples)
 			setIsSorted(false)
 		}
-	},[step.id, selectedTableSamples, isSorted])
+	}, [step.id, selectedTableSamples, isSorted])
+
+	const placementSave = useCallback((placementData) => {	
+		setPlacementData(placementData)
+	}, [])
 
 	/** UX **/
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
-	const canSelectAllSamples = stepSamples.displayedSamples.length > 0;
 	const buttonBar = (
 		<Space>
 			{stepSamples.prefill.templates.length > 1 &&
@@ -401,21 +409,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				</>
 			}
 			{!isAutomationStep &&
-        <>
-          <PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
-          <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
-        </>
-      }
-      {isAutomationStep &&
-        <>
-          <ExecuteAutomationButton waitResponse={waitResponse} canExecute={haveSelectedSamples} handleExecuteAutomation={handleExecuteAutomation} step={step} data={stepSamples.selectedSamples}/>
-        </>
-      }
-      <RefreshButton
-        refreshing={isRefreshing}
-        onRefresh={handleRefresh}
-        title='Refresh the list of samples'
-      />
+				<>
+					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+					<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
+				</>
+			}
+			{isAutomationStep &&
+				<>
+					<ExecuteAutomationButton waitResponse={waitResponse} canExecute={haveSelectedSamples} handleExecuteAutomation={handleExecuteAutomation} step={step} data={stepSamples.selectedSamples} />
+				</>
+			}
+			<RefreshButton
+				refreshing={isRefreshing}
+				onRefresh={handleRefresh}
+				title='Refresh the list of samples'
+			/>
 		</Space>
 	)
 
@@ -449,13 +457,13 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						</Popconfirm>
 					</Space>
 				} onChange={onTabChange}>
-          <Tabs.TabPane tab='Samples' key={GROUPED_SAMPLES_TAB_KEY}>
+					<Tabs.TabPane tab='Samples' key={GROUPED_SAMPLES_TAB_KEY}>
 						<LabworkStepOverview
-              step={step}
-              refreshing={isRefreshing}
-              setIsSorted={setIsSorted}
-              stepSamples={stepSamples}
-              clearFilters={localClearFilters}
+							step={step}
+							refreshing={isRefreshing}
+							setIsSorted={setIsSorted}
+							stepSamples={stepSamples}
+							clearFilters={localClearFilters}
 							hasFilter={true}
 							samples={samples}
 							columns={columnsForSamples}
@@ -467,7 +475,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							selection={selectionProps(onSelectChange)}
 							setSortBy={handleSetSortBy}
 							pagination={pagination}
-            />
+						/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
 						{stepSamples.showSelectionChangedWarning &&
@@ -495,6 +503,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						/>
 						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 					</Tabs.TabPane>
+					{step.needs_placement ?
+						<Tabs.TabPane tab="Placement" key={PLACEMENT_TAB_KEY}>
+							<PlacementTab
+								stepID={step.id}
+								save={placementSave}
+								selectedSamples={selectedTableSamples} />
+						</Tabs.TabPane>
+						: ''}
 				</Tabs>
 			</PageContent>
 		</>
