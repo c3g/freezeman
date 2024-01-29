@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react"
 import Placement from "./Placement"
-import { Alert } from "antd"
+import { notification } from "antd"
 import { useAppDispatch } from "../../hooks"
 import api from "../../utils/api"
 
@@ -53,7 +53,6 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const [destinationContainerList, setDestinationContainerList] = useState<containerSample[]>(createEmptyContainerArray())
 
     const [index, setIndex] = useState<number>(0)
-    const [error, setError] = useState<string | undefined>(undefined)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
     useEffect(() => {
@@ -197,7 +196,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             }
             setSourceContainerList(setContainerSamples(sourceContainerList, source, index))
             setDestinationContainerList(setContainerSamples(destinationContainerList, destination, destinationIndex))
-        }, [sourceContainerList, JSON.stringify(destinationContainerList), destinationIndex, index])
+        }, [sourceContainerList, (destinationContainerList), destinationIndex, index])
 
     //function used to handle the change of displayed destination name
     const changeDestinationName = useCallback(
@@ -209,8 +208,9 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     //function used to pass all of the destination containers to the prefill so that the coordinates can be prefilled for selected samples at step
     const saveDestination = useCallback(() => {
-        if (destinationContainerList.some(container => container.container_name != '')) {
+        if (!destinationContainerList.some(container => container.container_name == '')) {
             const placementData = {}
+            let error = false
             destinationContainerList.forEach(container => {
                 const samples = container.samples
                 if (Object.keys(samples).length > 0) {
@@ -223,29 +223,30 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                     })
                 }
             })
-            if (Object.keys(placementData).length > 0) {
+            if (!error && Object.keys(placementData).length != 0) {
                 save(placementData)
             } else {
-                setError('Missing placement data')
+                error = true
+                const MISSING_PLACEMENT_DATA_NOTIFICATION_KEY = `LabworkStep.placement-missing-data`
+                notification.error({
+                    message: `Missing placement data.`,
+                    key: MISSING_PLACEMENT_DATA_NOTIFICATION_KEY,
+                    duration: 20
+                })
             }
         } else {
-            setError('Missing destination barcode in destination list')
+            const MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-barcode`
+            notification.error({
+                message: `Missing destination container barcode in destination list.`,
+                key: MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY,
+                duration: 20
+            })
         }
     }, [destinationContainerList])
 
 
     return (
         <>
-            {error ?
-                <Alert
-                    type='error'
-                    message='Destination Error'
-                    description={error}
-                    closable={true}
-                    showIcon={true}
-                    onClose={() => { setError(undefined) }}
-                />
-                : ''}
             <Placement
                 sourceSamples={sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0]}
                 destinationSamples={destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0]}
@@ -256,7 +257,9 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                 changeDestinationName={changeDestinationName}
                 addDestination={addContainer}
                 removeCells={removeCells}
-                saveDestination={saveDestination} />
+                saveDestination={saveDestination}
+                setDestinationIndex={setDestinationIndex}
+                destinationContainerList={destinationContainerList} />
 
         </>
     )
