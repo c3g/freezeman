@@ -187,16 +187,16 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     //function used to save the changes, to the current displayed source and destination
     const saveChanges = useCallback(
-        (source, destination) => {
-
-            const setContainerSamples = (containerList, newSamples, index) => {
+        (source, destination, name) => {
+            const setContainerSamples = (containerList, newSamples, index, name?) => {
                 const newList = [...containerList]
                 newList[index].samples = newSamples
+                newList[index].container_name = name ? name : newList[index].container_name
                 return newList
             }
-            setSourceContainerList(setContainerSamples(sourceContainerList, source, index))
-            setDestinationContainerList(setContainerSamples(destinationContainerList, destination, destinationIndex))
-        }, [sourceContainerList, (destinationContainerList), destinationIndex, index])
+            setSourceContainerList(setContainerSamples([...sourceContainerList], source, index)) 
+            setDestinationContainerList(setContainerSamples([...destinationContainerList], destination, destinationIndex, name))
+        }, [sourceContainerList, JSON.stringify(destinationContainerList), destinationIndex, index])
 
     //function used to handle the change of displayed destination name
     const changeDestinationName = useCallback(

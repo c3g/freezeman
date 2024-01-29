@@ -15,7 +15,7 @@ import AddPlacementContainer from "./AddPlacementContainer"
 interface PlacementProps {
     sourceSamples: containerSample,
     destinationSamples: containerSample,
-    saveChanges: (sourceContainerSamples, destinationContainerSamples) => void,
+    saveChanges: (sourceContainerSamples, destinationContainerSamples, destinationName) => void,
     cycleContainer: (number, containerType) => void,
     addDestination: (any) => void,
     disableChangeSource: boolean,
@@ -97,12 +97,12 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     }, [destinationSamples.samples, selectedSamples])
 
     //function used to send containers and their samples up to the parent component to be stored, will save the state of containers for when you cycle containers
-    const saveContainerSamples = useCallback((source, destination) => {
+    const saveContainerSamples = (source, destination) => {
         if (sourceSamples.container_name) {
-            saveChanges(source, destination)
+            saveChanges(source, destination, destinationSamples.container_name)
         }
 
-    }, [sourceSamples.container_name, destinationSamples.container_name])
+    }
 
     //used to check if the destination has samples in cells already
     const sampleInCoords = (source, destination) => {
@@ -126,7 +126,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             })
             return sampleObj
         }
-        
+
         const newSourceSamples = setType(PLACED_STRING, { ...sourceSamples.samples }, { ...sourceSamples.samples })
         const newDestinationSamples = setType(NONE_STRING, { ...sourceSamples.samples }, { ...destinationSamples.samples })
 
@@ -249,7 +249,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                     <div className={"flex-column"}>
                         <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
 
-                            <AddPlacementContainer onConfirm={(container) => addDestination(container)} setDestinationIndex={setDestinationIndex} destinationContainerList={destinationContainerList}/>
+                            <AddPlacementContainer onConfirm={(container) => addDestination(container)} setDestinationIndex={setDestinationIndex} destinationContainerList={destinationContainerList} />
                             <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
                         </div>
                         <div className={"flex-row"}>
