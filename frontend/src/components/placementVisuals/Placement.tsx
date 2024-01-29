@@ -69,7 +69,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     const removeSelectedCells = useCallback(() => {
         const selected = {}
         Object.keys(selectedSamples).forEach(id => {
-            if (selectedSamples[id].type != "source") {
+            if (selectedSamples[id].type != SOURCE_STRING) {
                 selected[id] = selectedSamples[id]
             }
         })
@@ -248,7 +248,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         updateSampleList(samplesToUpdate, type)
     }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
 
-    const disableUndo = useMemo(() => Object.values(selectedSamples).some(sample => sample.type == 'source'), [selectedSamples])
+    const disableUndo = useMemo(() => Object.values(selectedSamples).some(sample => sample.type == SOURCE_STRING), [selectedSamples])
 
     return (
         <>
