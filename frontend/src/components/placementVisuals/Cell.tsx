@@ -56,7 +56,12 @@ const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelect
             onMouseOver={onMouseOver}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{ backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample) }}
+            style={
+                { 
+                    backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample), 
+                    cursor: isSelecting ? 'crosshair' : 'auto',
+                }
+            }
         >
         </div>
     )
