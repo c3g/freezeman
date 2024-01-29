@@ -604,15 +604,24 @@ class DatasetSerializer(serializers.ModelSerializer):
         return Readset.objects.filter(dataset=obj.id).count()
 
 class ReadsetSerializer(serializers.ModelSerializer):
+    sample_source = serializers.SerializerMethodField()
     total_size = serializers.SerializerMethodField()
     library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
+    
+    def get_sample_source(self, obj: Readset):
+        experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
+        if experiment_container is None:
+            return None
+        else:
+            # ICI
+            Sample.objects.get(container=experiment_container)
 
 class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     total_size = serializers.SerializerMethodField()
