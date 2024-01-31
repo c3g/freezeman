@@ -1,4 +1,5 @@
-from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField
+from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Value
+from django.http import HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -24,8 +25,8 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     queryset = queryset.annotate(
         qc_flag=Case(
-            When(Q(sample__quality_flag=True) & Q(sample__quantity_flag=True), then=True),
             When(Q(sample__quality_flag=False) | Q(sample__quantity_flag=False), then=False),
+            When(Q(sample__quality_flag=True) | Q(sample__quantity_flag=True), then=True),
             default=None,
             output_field=BooleanField()
         )
@@ -37,8 +38,18 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     queryset = queryset.annotate(
         ordering_container_name=Case(
-            When(Q(sample__coordinate__isnull=True), then=F('sample__container__location__name')),
+            When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__name')),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container")),
             default=F('sample__container__name'),
+            output_field=CharField()
+        )
+    )
+
+    queryset = queryset.annotate(
+        ordering_container_barcode=Case(
+            When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__barcode')),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container_barcode")),
+            default=F('sample__container__barcode'),
             output_field=CharField()
         )
     )
@@ -56,6 +67,14 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__row')),
             default=F('sample__coordinate__row'),
             output_field=IntegerField()
+        )
+    )
+
+    queryset = queryset.annotate(
+        ordering_container_coordinates=Case(
+            When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__name')),
+            default=F('sample__coordinate__name'),
+            output_field=CharField()
         )
     )
 
@@ -280,3 +299,61 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         sample_next_step_summary["automations"]["count"] = automation_sample_count
 
         return Response({"results": sample_next_step_summary})
+
+    @action(detail=False, methods=["get"])
+    def labwork_step_info(self, request, *args, **kwargs):
+        """
+        API call to retrieve the lab work information for a step about the number samples waiting for a grouping column provided.
+
+        Args:
+            `request`: The request object received then whe API call was made.
+                       The request must include the query arguments 'step__id__in' and 'group_by'.
+                       Valid 'group_by' include : - sample__derived_samples__project__name
+                                                  - ordering_container_name
+                                                  - sample__creation_date
+                                                  - sample__created_by__username
+                                                  - qc_flag
+            `*args`: Arguments to set on the view.
+            `**kwargs`: Additional properties to set on the view.
+                    
+        Returns:
+          An object of the form:
+          {
+            results:
+            {
+              step_id: id
+              samples: 
+              {
+                grouping_column : column_name
+                groups : [
+                  {
+                    name = grouping_value_1
+                    count
+                    sample_ids: []
+                  },
+                  {
+                    name = grouping_value_2
+                    count
+                    sample_ids: []
+                  },
+                  ...
+                ],                
+              }
+            }
+          }
+        """
+        step_id = request.GET.get('step__id__in')
+        grouping_column = request.GET.get('group_by')
+
+        if step_id is None or grouping_column is None:
+            return HttpResponseBadRequest(f"Step ID and a grouping column must be provided.")
+        # The objects that is going to be returned
+        grouped_step_summary = {"step_id": step_id, "samples": {"grouping_column": grouping_column, "groups": []}}
+        
+        grouped_step_samples = self.filter_queryset(self.get_queryset())
+        grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count("sample_id", distinct=True)).order_by("-count", grouping_column)
+        for group in grouped_step_samples.all():
+            filter_column = grouping_column + "__exact"
+            sample_locators = self.filter_queryset(self.get_queryset()).filter(step__id__exact=step_id).filter(**{filter_column: group[grouping_column]}).values("sample_id").annotate(contextual_container_barcode=F("ordering_container_barcode")).annotate(contextual_coordinates=F("ordering_container_coordinates")).distinct()
+            grouped_step_summary["samples"]["groups"].append({"name": group[grouping_column], "count": group["count"], "sample_locators": sample_locators})
+        return Response({"results": grouped_step_summary})

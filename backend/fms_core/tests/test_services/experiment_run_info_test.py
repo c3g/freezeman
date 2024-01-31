@@ -18,11 +18,6 @@ from fms_core.services.project import create_project
 
 from fms_core.models import Biosample, ExperimentRun, IndexSet, Index
 
-from fms_core.tests.constants import create_container
-from fms_core.services import experiment_run, sample
-from datetime import datetime
-
-
 TEMPLATES_DIR = Path(__file__).parent.parent / "service-templates"
 
 PROJECT_NAME = 'TEST_PROJECT'
@@ -145,7 +140,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
     def test_axiom_experiment_run(self):
         #Axiom Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_6_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_7_0.xlsx')
         # This test just verifies that an axiom experiment run can be processed.
         axiom_experiment = ExperimentRun.objects.get(name='ER-AXIOM-EXPERIMENT')
         self.assertIsNotNone(axiom_experiment)

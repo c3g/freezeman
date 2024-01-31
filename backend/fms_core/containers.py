@@ -8,6 +8,9 @@ __all__ = [
     "CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP",
     "CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL",
     "CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_25B_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_NOVASEQ_S1_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_NOVASEQ_S2_FLOWCELL",
@@ -17,7 +20,8 @@ __all__ = [
     "CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL",
     "CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL",
-    "CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY",
+    "CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA",
+    "CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB",
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
@@ -146,8 +150,16 @@ class ContainerSpec:
 
 # Run Containers
 
-CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY = ContainerSpec(
-    container_kind_id="axiom 96-format array",
+CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA = ContainerSpec(
+    container_kind_id="axiom 96-format array pmra",
+    coordinate_spec=(alphas(8), ints(12, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(), # Leaf node; sample-holding
+    is_run_container=True,
+)
+
+CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB = ContainerSpec(
+    container_kind_id="axiom 96-format array ukbb",
     coordinate_spec=(alphas(8), ints(12, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding
@@ -176,6 +188,30 @@ CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL = ContainerSpec(
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-x-1.5b flowcell",
+     coordinate_spec=(alphas(1), ints(2, pad_to=2)), #2 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-x-10b flowcell",
+     coordinate_spec=(alphas(1), ints(8, pad_to=2)), #8 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_25B_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-x-25b flowcell",
+     coordinate_spec=(alphas(1), ints(8, pad_to=2)), #8 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
 )
 
 CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL = ContainerSpec(
@@ -251,10 +287,14 @@ CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL = ContainerSpec(
 )
 
 RUN_CONTAINER_SPECS = (
-    CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY,
+    CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA,
+    CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB,
     CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
     CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL,
     CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_1_5B_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_10B_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_X_25B_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_NOVASEQ_S1_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_NOVASEQ_S2_FLOWCELL,

@@ -32,8 +32,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
     queryset = queryset.annotate(
         qc_flag=Case(
-            When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
             When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
+            When(Q(quality_flag=True) | Q(quantity_flag=True), then=True),
             default=None,
             output_field=BooleanField()
         )
@@ -77,7 +77,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
     ordering_fields = (
         *_list_keys(_library_filterset_fields),
-        "quantity_ng"
+        "quantity_ng",
+        "qc_flag"
     )
 
     filterset_fields = {

@@ -7,6 +7,7 @@ import ActionContent from '../ActionContent'
 import PageContainer from '../PageContainer'
 import LabworkOverviewRoute from './overview/LabworkOverviewRoute'
 import LabworkStepRoute from './step/LabworkStepRoute'
+import LibraryTransferStep from '../libraryTransfer/LibraryTransferStep'
 
 const LabworkPage = () => {
 	// Load the labwork summary whenever the user hits a page in the Lab Work section.

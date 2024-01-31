@@ -3,7 +3,7 @@ import os
 from typing import TypedDict
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
-from fms_core.models import Process, Protocol, PropertyType, Step
+from fms_core.models import Process, Protocol, PropertyType, Step, SampleNextStep
 
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.qc_integration_spark import QCIntegrationSparkRowHandler
@@ -117,6 +117,15 @@ class QCIntegrationSparkImporter(GenericImporter):
                 'step_action': WorkflowAction.NEXT_STEP.label,
                 'step': self.preloaded_data['step']
             }
+
+            # Validate the sample is queued to the workflow step
+            queued_to_workflow_step = SampleNextStep.objects.filter(sample__coordinate__name=sample["coordinates"],
+                                                                    sample__container__barcode=sample["container"]["barcode"],
+                                                                    step_id=workflow["step"].id).exists()
+
+            if not queued_to_workflow_step:
+                self.base_errors.append(f"File has likely already been submitted. Samples included are not queued to workflow step {workflow['step'].name}.")
+                break # Terminate processing
 
             sample_spark_qc_kwargs = dict(
                 sample=sample,
