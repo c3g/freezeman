@@ -6,6 +6,7 @@ from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db.models import Max, F, Sum
 from fms_core.services.study import can_remove_study
+from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
 
 from .models import (
     Container,
@@ -30,6 +31,7 @@ from .models import (
     Project,
     Sample,
     SampleKind,
+    SampleLineage,
     SampleMetadata,
     Sequence,
     Taxon,
@@ -620,8 +622,18 @@ class ReadsetSerializer(serializers.ModelSerializer):
         if experiment_container is None:
             return None
         else:
-            # ICI
-            Sample.objects.get(container=experiment_container)
+            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, CONTAINER_KIND_SPECS.get(experiment_container.kind, ()))
+            experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates, derived_samples__in=obj.derived_sample)
+            SampleLineage.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
+                                                                   SELECT id, location_id
+                                                                   FROM fms_core_container
+                                                                   WHERE id IN %s
+                                                                   UNION ALL
+                                                                   SELECT child.id, child.location_id
+                                                                   FROM fms_core_container AS child, parent
+                                                                   WHERE child.location_id = parent.id
+                                                               )
+                                                               SELECT * FROM parent''', params=[container_ids])
 
 class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     total_size = serializers.SerializerMethodField()

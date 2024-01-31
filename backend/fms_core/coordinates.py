@@ -122,6 +122,24 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec) -> in
 
     return alpha_offset + digit_offset
 
+def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec) -> str:
+    """
+    Convert a lane number (ordinal) to the alpha/digit style (eg. A01).
+    The coordinate spec must support this style of coordinate.
+    The lane is expected to be valid (> 0).
+    """
+    if not lane > 0:
+        raise CoordinateError(f"Invalid lane number {lane} cannot be converted to coordinates.")
+    try:
+        spec_letters = spec[0]
+        spec_digits = spec[1]
+        letter_index, digit_index = divmod(lane - 1, len(spec_digits))
+        letters = spec_letters[letter_index]
+        digits = spec_digits[digit_index]
+    except Exception as err:
+        raise CoordinateError(f"Failed to convert lane {lane} to alpha numerical coordinates for given container spec {spec}.")
+    return letters + digits
+
 def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str:
     """
     Given a set of coordinates and a coordinate spec, validates if those
