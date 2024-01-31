@@ -208,12 +208,12 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     //function used to pass all of the destination containers to the prefill so that the coordinates can be prefilled for selected samples at step
     const saveDestination = useCallback(() => {
-        if (!destinationContainerList.some(container => container.container_name == '')) {
-            const placementData = {}
-            let error = false
-            destinationContainerList.forEach(container => {
-                const samples = container.samples
-                if (Object.keys(samples).length > 0) {
+        const placementData = {}
+        let error = false
+        destinationContainerList.forEach(container => {
+            const samples = container.samples
+            if (!error && Object.keys(samples).length > 0) {
+                if (container.container_name != '') {
                     Object.keys(samples).forEach(id => {
                         if (container.container_name != '') {
                             //NOTE: for future, a sample should be able to have multiple destination coordinates as, hence the placement data at key is an array
@@ -221,26 +221,28 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                             placementData[id].push({ coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
                         }
                     })
+                } else {
+                      error = true
+                      const MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-barcode`
+                      notification.error({
+                          message: `Missing destination container barcode in destination list.`,
+                          key: MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY,
+                          duration: 20
+                      })
                 }
-            })
-            if (!error && Object.keys(placementData).length != 0) {
-                save(placementData)
-            } else {
-                error = true
-                const MISSING_PLACEMENT_DATA_NOTIFICATION_KEY = `LabworkStep.placement-missing-data`
-                notification.error({
-                    message: `Missing placement data.`,
-                    key: MISSING_PLACEMENT_DATA_NOTIFICATION_KEY,
-                    duration: 20
-                })
             }
-        } else {
-            const MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-barcode`
+        })
+        if (!error && Object.keys(placementData).length == 0) {
+            error = true
+            const MISSING_PLACEMENT_DATA_NOTIFICATION_KEY = `LabworkStep.placement-missing-data`
             notification.error({
-                message: `Missing destination container barcode in destination list.`,
-                key: MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY,
+                message: `Missing placement data.`,
+                key: MISSING_PLACEMENT_DATA_NOTIFICATION_KEY,
                 duration: 20
             })
+        } 
+        if (!error) {
+            save(placementData)
         }
     }, [destinationContainerList])
 
