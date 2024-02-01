@@ -3,7 +3,8 @@ from pathlib import Path
 
 from fms_core.models import Container, SampleKind, ProcessMeasurement, Protocol, Process
 
-from fms_core.services.sample_lineage import create_sample_lineage, get_library_size_for_derived_sample
+from fms_core.services.sample_lineage import create_sample_lineage
+from fms_core.services.derived_sample import get_library_size_for_derived_sample
 from fms_core.services.sample import create_full_sample, get_sample_from_container
 from fms_core.services.project import create_project
 from fms_core.tests.test_template_importers._utils import load_template

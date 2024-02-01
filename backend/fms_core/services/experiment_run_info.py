@@ -21,7 +21,7 @@ from fms_core.models import (
     SampleLineage,
 )
 
-from fms_core.services.sample_lineage import get_library_size_for_derived_sample
+from fms_core.services.derived_sample import get_library_size_for_derived_sample
 
 # Obj_Id = Optional[int]
 Obj_Id = Optional[int]

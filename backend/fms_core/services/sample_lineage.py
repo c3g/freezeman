@@ -72,18 +72,34 @@ def create_sample_lineage_graph(sampleId: int) -> Tuple[List[Dict[str, Any]], Li
     
     return (nodes, edges, errors)
 
-def get_library_size_for_derived_sample(derived_sample_id: int) -> Optional[int]:
+def get_upward_lineage_samples(child_sample_id: int, child_derived_sample_id: int=None) -> List[int]:
     """
-    Provides the latest measured fragment_size related to a derived_sample
+    Lists the parents samples ids from a sample lineage. The derived sample id is required for pools.
 
     Args:
-        `derived_sample_id`: Derived_sample for which we want the latest measured fragment_size
+        `child_sample_id`: ID of the child sample of the lineage
+        `child_derived_sample_id`: ID of the child derived sample to disambiguate pools. Default to None for non pools.
 
     Returns:
-        An integer that represents the fragment_size (library_size), None if not found or never measured.
+        List of all samples ids in the upward lineage of the sample.
     """
-    samples_with_library_size = DerivedBySample.objects.filter(derived_sample_id=derived_sample_id, sample__fragment_size__isnull=False)
-     # Most recent sample in the lineage chain will have a larger id
-    ordered_samples_with_library_size = samples_with_library_size.order_by("-sample__parent_sample__id")
-    library_size = ordered_samples_with_library_size.values_list("sample__fragment_size", flat=True).first()
-    return library_size
+
+    SampleLineage.objects.raw("""WITH RECURSIVE parent(child_id, parent_id, derived_sample_id) AS (
+                                 select DISTINCT fcsl1.child_id, fcsl1.parent_id, fcd1.derived_sample_id
+                                 FROM fms_core_samplelineage fcsl1
+                                 join fms_core_sample fcs1 on fcsl1.parent_id = fcs1.id
+                                 join fms_core_derivedbysample fcd1 on fcs1.id = fcd1.sample_id
+                                 WHERE fcsl1.child_id IN %s
+                                 and fcd1.derived_sample_id IN %s
+                                 UNION ALL
+                                 SELECT child.child_id, child.parent_id, child.derived_sample_id
+                                 FROM (
+                                 select fcsl2.child_id, fcsl2.parent_id, fcd2.derived_sample_id
+                                 from fms_core_samplelineage fcsl2
+                                 join fms_core_sample fcs2 on fcsl2.child_id = fcs2.id
+                                 join fms_core_derivedbysample fcd2 on fcs2.id = fcd2.sample_id
+                                 ) child, parent
+                                 WHERE child.child_id = parent.parent_id
+                                 and child.derived_sample_id = parent.derived_sample_id
+                                 )
+                                 SELECT distinct * FROM parent;""", params=[child_sample_id, child_derived_sample_id])
