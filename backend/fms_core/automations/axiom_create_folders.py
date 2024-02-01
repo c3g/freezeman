@@ -39,9 +39,10 @@ class AxiomCreateFolders(GenericAutomation):
         for container in Container.objects.filter(samples__id__in=sample_ids).all().distinct():
             project = container.name.replace(REMOVED_CONTAINER_SUFFIX, "") + "_" + str(container.id)
             filepath = path.join(self.work_folder, project)
-            df = DataFrame(columns=["Coordinates", "Array Barcode", "Unique Sample ID"])
+            df = DataFrame(columns=["Coordinates", "Array Barcode", "Unique Sample ID", "Unique Sample ID Duplicate"])
             for i, sample in enumerate(Sample.objects.filter(id__in=sample_ids).filter(container_id__exact=container.id).order_by("coordinate__row", "coordinate__column").all()):
-                df.loc[i] = [sample.coordinates, additional_data[container.name], sample.name + "_" + str(sample.id)]
+                unique_sample_id = sample.name + "_" + str(sample.id)
+                df.loc[i] = [sample.coordinates, additional_data[container.name], unique_sample_id, unique_sample_id]
             # Create directory if it doesn't already exist
             try:
                 makedirs(filepath)
