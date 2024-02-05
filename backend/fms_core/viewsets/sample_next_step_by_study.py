@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
 from django.db.models import Count, F, Case, When, Q, BooleanField
 from fms_core.models.step_order import StepOrder
-
+from fms_core.filters import SampleNextStepByStudyFilter
 from fms_core.models.workflow import Workflow
 
 from ._constants import _sample_next_step_by_study_filterset_fields
@@ -18,6 +18,16 @@ from ._utils import _list_keys
 
 class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     queryset = SampleNextStepByStudy.objects.select_related("sample_next_step").select_related("step_order").all().distinct()
+
+    queryset = queryset.annotate(
+        qc_flag=Case(
+            When(Q(sample_next_step__sample__quality_flag=False) | Q(sample_next_step__sample__quantity_flag=False), then=False),
+            When(Q(sample_next_step__sample__quality_flag=True) | Q(sample_next_step__sample__quantity_flag=True), then=True),
+            default=None,
+            output_field=BooleanField()
+        )
+    )
+
     serializer_class = SampleNextStepByStudySerializer
     permission_classes = [IsAuthenticated]
 
@@ -26,9 +36,12 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     }
     ordering_fields = {
         *_list_keys( _sample_next_step_by_study_filterset_fields),
+        'qc_flag'
     }
 
     ordering = ["id"]
+
+    filterset_class = SampleNextStepByStudyFilter
 
     def destroy(self, request, pk=None):
         removed = False

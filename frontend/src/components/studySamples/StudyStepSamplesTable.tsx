@@ -109,7 +109,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 
 	const localClearFilters = () => {
 		if (clearFilters)
-			dispatch(clearFilters(studyID, step.stepID))
+			dispatch(clearFilters(studyID, step.stepOrderID))
 	}
 
 	return (

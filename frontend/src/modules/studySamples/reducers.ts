@@ -185,8 +185,8 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			break
 		}
 		case CLEAR_FILTERS: {
-			const { studyID, stepID } = action
-			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			const { studyID, stepOrderID } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
 			if (step && step.filters) {
 				step.filters = clearFilters(step.filters)
 			}

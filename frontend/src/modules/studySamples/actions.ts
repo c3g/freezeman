@@ -78,15 +78,15 @@ export function initStudySamplesSettings(studyID: FMSId, stepOrderIDs: FMSId[]) 
 	}
 }
 
-export function clearFilters(studyID: FMSId, stepID: FMSId) {
+export function clearFilters(studyID: FMSId, stepOrderID: FMSId) {
 	return async (dispatch: AppDispatch) => {
 		dispatch({
 			type: CLEAR_FILTERS,
 			studyID,
-			stepID
+			stepOrderID
 		})
 		// Reset the sample list
-		dispatch(refreshSamplesAtStepOrder(studyID, stepID))
+		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
