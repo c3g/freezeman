@@ -130,7 +130,11 @@ def convert_ordinal_to_alpha_digit_coord(lane: int, spec: CoordinateSpec) -> str
     """
     if not lane > 0:
         raise CoordinateError(f"Invalid lane number {lane} cannot be converted to coordinates.")
+    if spec is None:
+        raise CoordinateError(f"Coordinate Spec is required to convert lane into coordinates.")
     try:
+        if not is_alpha_digit_spec(spec):
+            raise CoordinateError(f'Cannot convert lane {lane} to requested coordinate style.')
         spec_letters = spec[0]
         spec_digits = spec[1]
         letter_index, digit_index = divmod(lane - 1, len(spec_digits))

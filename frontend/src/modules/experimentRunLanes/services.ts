@@ -70,6 +70,7 @@ export async function fetchReadsPerSample(runName : string, lane: number): Promi
        const sampleReads : NumberOfReads[] = metrics.map(metric => {
             return {
                 derivedSampleID: metric.derived_sample_id ?? undefined,
+                readsetID: metric.readset_id,
                 sampleName: metric.sample_name,
                 nbReads: metric.value_numeric ? Number(metric.value_numeric) : 0  // The numeric value should always be defined for this type of metric
             }
