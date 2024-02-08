@@ -96,7 +96,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 			return (
 				<div style={style}>
 					<div>{`Name: ${sampleData.sampleName}`}</div>
-					<div>{`Count: ${Number(sampleData.nbReads).toFixed(0)}`}</div>
+					<div>{`Count: ${Number(sampleData.nbReads).toLocaleString('fr')}`}</div>
 				</div>
 			)
 		}
@@ -116,7 +116,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 				margin={{ top: 20, right: 20, bottom: 0, left: 20 }}
 			>
 				<XAxis tick={false} />
-				<YAxis type="number" />
+				<YAxis type="number" width={100} tickFormatter={(value: any, index: number) => value.toLocaleString('fr')}/>
 				<Tooltip content={<SampleTooltip/>} />
 				<Bar dataKey="nbReads" fill="#8884d8" isAnimationActive={false} onClick={handleBarClick} />
 			</BarChart>

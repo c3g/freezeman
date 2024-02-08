@@ -1,4 +1,5 @@
-import { Button, Collapse, List, Popconfirm, Space, Typography } from 'antd'
+import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
+const { Sider, Content } = Layout;
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -7,6 +8,7 @@ import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/ex
 import { selectExperimentRunLanesState } from '../../selectors'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
+import ArchivedCommentsBox from '../shared/ArchivedCommentsBox'
 
 const { Title, Text } = Typography
 
@@ -161,6 +163,18 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 		title = `Reads Per Sample (${lane.readsPerSample.sampleReads.length})`
 	}
 
+  const layoutStyle = {
+    borderRadius: 8,
+    overflow: 'hidden',
+    width: 'calc(100% - 8px)',
+    maxWidth: 'calc(100% - 8px)',
+    backgroundColor: '#fff',
+  }
+
+  const siderStyle = {
+    backgroundColor: '#fff',
+  }
+
 	return (
 		<>
 			<FlexBar style={{padding: '1em'}}>
@@ -226,12 +240,15 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 					}
 				</Space>
 			</FlexBar>
-
-			<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<ReadsPerSampleGraph lane={lane} />
-				<Title level={5}>{title}</Title>
-			</div>
-			
+      <Layout style={layoutStyle}>
+        <Content style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+          <ReadsPerSampleGraph lane={lane} />
+          <Title level={5}>{title}</Title>
+        </Content>
+        <Sider width="25%" style={siderStyle}>
+          <ArchivedCommentsBox />
+        </Sider>
+			</Layout>
 		</>
 	)
 }
