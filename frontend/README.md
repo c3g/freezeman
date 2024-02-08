@@ -32,4 +32,3 @@ frontend dev server must be running on http://localhost:9000.
 
  - `npx cypress run`: Run the tests headlessly
  - `npx cypress open`: Open the testing interface, for development of tests
-
