@@ -106,7 +106,12 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 raise ValidationError({"barcode": f"Container with name {container['barcode']} already exists. Missing container name, barcode will replace container name."})
 
             container = remove_empty_str_from_dict(container)
-            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=container['coordinate'], container_parent=container['location'], creation_comment=container['comment'])
+            if container['location']:
+                try:
+                    container_parent = Container.objects.get(id=container['location'])
+                except Exception as err:
+                    raise ValidationError({"location": f"Failed to find parent container with ID {container['location']}."})
+            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=container['coordinate'], container_parent=container_parent, creation_comment=container['comment'])
             serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
