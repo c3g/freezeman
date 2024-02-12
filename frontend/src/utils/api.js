@@ -45,7 +45,8 @@ const api = {
   datasets: {
     get: id => get(`/datasets/${id}/`),
     list: (options, abort) => get("/datasets/", options, { abort }),
-    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters })
+    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters }),
+    addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
   },
 
   readsets: {
