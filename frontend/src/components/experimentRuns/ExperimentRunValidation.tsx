@@ -5,10 +5,12 @@ import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
-import { selectExperimentRunLanesState } from '../../selectors'
+import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
+import { addArchivedComment } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
-import ArchivedCommentsBox from '../shared/ArchivedCommentsBox'
+import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
+import { Dataset } from '../../models/frontend_models';
 
 const { Title, Text } = Typography
 
@@ -148,6 +150,18 @@ interface LanePanelProps {
 }
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
+	const dispatch = useAppDispatch()
+  const datasetsById = useAppSelector(selectDatasetsByID)
+	const [datasets, setDatasets] = useState<Dataset[]>([])
+
+  useEffect(() => {
+    setDatasets(lane.datasets.map((dataset) => datasetsById[dataset.datasetID]))
+	}, [])
+
+  const handleAddComment = useCallback(
+    (id, comment) => {
+        return dispatch(addArchivedComment(id, comment))
+    }, [dispatch])
 
 	// Create a list of unique metrics url's from the lane's datasets. Normally all of the
 	// datasets should have the same url.
@@ -246,7 +260,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
           <Title level={5}>{title}</Title>
         </Content>
         <Sider width="25%" style={siderStyle}>
-          <ArchivedCommentsBox />
+          <DatasetArchivedCommentsBox datasets={datasets} handleAddComment={handleAddComment}/>
         </Sider>
 			</Layout>
 		</>
