@@ -10,7 +10,8 @@ import { addArchivedComment } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
-import { Dataset } from '../../models/frontend_models';
+import { Dataset } from '../../models/frontend_models'
+import api from '../../utils/api'
 
 const { Title, Text } = Typography
 
@@ -155,7 +156,12 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 	const [datasets, setDatasets] = useState<Dataset[]>([])
 
   useEffect(() => {
-    setDatasets(lane.datasets.map((dataset) => datasetsById[dataset.datasetID]))
+    Promise.all(lane.datasets.map(async (dataset) => {
+      const response = await dispatch(api.datasets.get(dataset.datasetID))
+      return response.data
+    }))
+    .then((values) => {
+      setDatasets([...values])})
 	}, [])
 
   const handleAddComment = useCallback(
@@ -259,7 +265,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
           <ReadsPerSampleGraph lane={lane} />
           <Title level={5}>{title}</Title>
         </Content>
-        <Sider width="25%" style={siderStyle}>
+        <Sider width="30%" style={siderStyle}>
           <DatasetArchivedCommentsBox datasets={datasets} handleAddComment={handleAddComment}/>
         </Sider>
 			</Layout>

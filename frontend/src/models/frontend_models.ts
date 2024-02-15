@@ -8,6 +8,7 @@
  */
 
 import {
+  FMSArchivedComment,
 	FMSContainer,
 	FMSCoordinate,
 	FMSDataset,

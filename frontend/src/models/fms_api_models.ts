@@ -68,16 +68,21 @@ export interface FMSCoordinate extends FMSTrackedModel {
 }
 
 export interface FMSDataset extends FMSTrackedModel {
-    external_project_id : FMSId         // External (Hercules) project ID
-    files: FMSId[]                      // List of dataset file ID's
-    lane: number                        // Flowcell lane number of dataset
-    latest_release_update?: string      // ?
-    released_status_count: number       // Number of files released
-    blocked_status_count: number        // Number of files blocked
-    run_name: string                    // The name of the experiment run that generated this dataset
-    project_name: string                // Human readable name for the project
-    metric_report_url?: string          // An external url to a report containing metrics for the dataset run
+    external_project_id : FMSId             // External (Hercules) project ID
+    files: FMSId[]                          // List of dataset file ID's
+    lane: number                            // Flowcell lane number of dataset
+    latest_release_update?: string          // ?
+    released_status_count: number           // Number of files released
+    blocked_status_count: number            // Number of files blocked
+    run_name: string                        // The name of the experiment run that generated this dataset
+    project_name: string                    // Human readable name for the project
+    metric_report_url?: string              // An external url to a report containing metrics for the dataset run
     readset_count: number
+    archived_comments: FMSArchivedComment[] // Array containing the archived comments
+}
+
+export interface FMSArchivedComment extends FMSTrackedModel {
+    comment: string 
 }
 
 export interface FMSReadset extends FMSTrackedModel {
