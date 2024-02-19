@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react"
 
-import { Button, Tag, Row, Col } from 'antd'
+import { Button, Tag, Row, Col, Typography } from 'antd'
 import { Dataset } from "../../models/frontend_models"
 import ArchivedCommentsBox from "../shared/ArchivedCommentsBox"
 import { LeftCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
+
+const { Text, Title } = Typography
 
 interface DatasetCommentsProps {
   datasets: Dataset[]
@@ -37,15 +39,11 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
 	return (
     <>
       <Row justify="space-between">
-        <Col style={{alignItems: "left"}} span={2}>
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
           <Button icon={<LeftCircleOutlined/>} onClick={handlePreviousDataset} disabled={datasetIndex==0}/>
-        </Col>
-        <Col style={{alignItems: "center"}} span={20}>
-          <Tag style={styleTag}>{currentDataset && currentDataset.project_name}</Tag>
-        </Col>
-        <Col style={{alignItems: "right"}} span={2}>
-          <Button icon={<RightCircleOutlined/>} onClick={handlePreviousDataset} disabled={datasetIndex==(datasets.length - 1)}/>
-        </Col>
+          <Tag style={styleTag}><Title level={5}><Text strong>{currentDataset && currentDataset.project_name}</Text></Title></Tag>
+          <Button icon={<RightCircleOutlined/>} onClick={handleNextDataset} disabled={datasetIndex==(datasets.length - 1)}/>
+        </div>
       </Row>
       <Row style={{height: 8}}></Row>
       <Row style={{height: "100%"}}>
