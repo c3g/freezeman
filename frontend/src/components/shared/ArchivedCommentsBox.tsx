@@ -71,7 +71,7 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
     }
   }, [handleAddComment, returnFormData])
 
-  const handleAddForm = () => {
+  const handleAddCommentForm = () => {
     setOpenAddCommentForm(true)
   }
 
@@ -98,25 +98,24 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
     comments && comments.length > 0 && setCurrentComment(comments[comments.length - commentIndex - 1])
   }, [comments, commentIndex])
 
-
 	return (
-      <Card
-        style={{ width: "100%", height: "100%", minHeight: "100%", boxSizing: "border-box" }}
-        bodyStyle={{height: "85%", padding: '5px'}}
-        
-        actions={[
-          <LeftCircleOutlined key="previous" disabled={!comments || commentIndex<=0} onClick={handlePreviousComment}/>,
-          <><PlusCircleOutlined key="add" onClick={handleAddForm} />{addCommentForm}</>,
-          <RightCircleOutlined key="next" disabled={!comments || commentIndex>=(comments?.length - 1)} onClick={handleNextDataset}/>,
-        ]}
-      >
-        <Card.Meta
-          title={
-            <div>
-              {currentComment && <Text strong>Added on : </Text>}{currentComment && dateToString(new Date(currentComment.updated_at), "compact")}
-            </div>}
-          description={currentComment && currentComment.comment}
-        />
-      </Card>
+    <Card
+      style={{ width: "100%", height: "100%", minHeight: "100%", boxSizing: "border-box" }}
+      bodyStyle={{height: "85%", padding: '5px'}}
+      
+      actions={[
+        <LeftCircleOutlined key="previous" disabled={!comments || commentIndex<=0} onClick={handlePreviousComment}/>,
+        <><PlusCircleOutlined key="add" onClick={handleAddCommentForm} />{addCommentForm}</>,
+        <RightCircleOutlined key="next" disabled={!comments || commentIndex>=(comments?.length - 1)} onClick={handleNextDataset}/>,
+      ]}
+    >
+      <Card.Meta
+        title={
+          <div>
+            {currentComment && <Text strong>Added at : </Text>}{currentComment && dateToString(new Date(currentComment.updated_at), "compact")}
+          </div>}
+        description={currentComment && currentComment.comment}
+      />
+    </Card>
 	)
 }

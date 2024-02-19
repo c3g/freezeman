@@ -25,7 +25,7 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
   const [currentDataset, setCurrentDataset] = useState<Dataset>()
 
   useEffect(() => {
-    datasets && !currentDataset && setCurrentDataset(datasets[datasetIndex])
+    datasets && setCurrentDataset(datasets[datasetIndex])
   }, [datasets])
 
   const handlePreviousDataset = () => {

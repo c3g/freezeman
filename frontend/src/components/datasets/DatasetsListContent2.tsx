@@ -1,4 +1,6 @@
 import React from "react"
+import { Tooltip } from "antd";
+import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import { useAppSelector } from "../../hooks"
@@ -45,6 +47,59 @@ function DatasetsListContent() {
 				<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
 				<PagedItemsTable<ObjectWithDataset> 
 					columns={columns}
+          /*expandable={{
+            columnTitle: () => <div>View Comments</div>,
+            expandIcon: ({ expanded, onExpand, record }) =>
+                expanded ? (
+                    <Tooltip title="Hide Metrics">
+                        <MinusCircleTwoTone onClick={e => onExpand(record, e)} />
+                    </Tooltip>
+                ) : (
+                    <Tooltip title="View Metrics">
+                        <PlusCircleTwoTone onClick={e => onExpand(record, e)} />
+                    </Tooltip>
+
+                )
+            ,
+            expandedRowRender: (record) => {
+                const readset: Readset = record.readset
+                return (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(8,1fr)',
+                        gap: '1em'
+                    }} key={readset.id}>
+                        {
+                            readset.metrics ?
+                                Object.keys(readset.metrics).map(
+                                    (name) => {
+                                        return (
+                                            readset.metrics && (readset.metrics[name].value_numeric || readset.metrics[name].value_string) &&
+
+
+                                            <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                            }} key={name}>
+                                                {<b >
+                                                    {name.replace(/_/g, " ")}
+                                                </b>
+                                                }
+                                                {readset.metrics[name].value_numeric
+                                                    ?
+                                                    checkIfDecimal(readset.metrics[name].value_numeric)
+                                                    :
+                                                    readset.metrics[name].value_string}
+                                            </div>)
+                                    })
+                                :
+                                <div>No metrics</div>
+                        }
+                    </div>
+                )
+            }
+            ,
+        }}*/
 					getDataObjectsByID={getDataObjectsByID}
 					pagedItems={pagedItems}
 					usingFilters={false}

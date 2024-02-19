@@ -162,7 +162,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
     }))
     .then((values) => {
       setDatasets([...values])})
-	}, [])
+	}, [datasetsById])
 
   const handleAddComment = useCallback(
     (id, comment) => {
