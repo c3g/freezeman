@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react"
-import { Card, Typography, Form, Modal } from 'antd'
+import React, { useState, useEffect, useCallback } from "react"
+import { Card, Typography, Form, Modal, FormItemProps,  FormProps, Input } from 'antd'
 import { LeftCircleOutlined, PlusCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
 import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
@@ -11,14 +11,14 @@ interface CommentBoxProps {
   handleAddComment: Function
 }
 
-// const [form] = Form.useForm()
-
 export default function ArchivedCommentsBox({ comments, handleAddComment }: CommentBoxProps) {
   const [commentIndex, setCommentIndex] = useState<number>(0)
   const [currentComment, setCurrentComment] = useState<FMSArchivedComment>()
-  const [orderedComments, setorderedComments] = useState<FMSArchivedComment[]>([])
   const [openAddCommentForm, setOpenAddCommentForm] = useState<boolean>(false)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   
+  const [form] = Form.useForm()
+
   const handleNextDataset = () => {
     if (commentIndex > 0) {
       setCommentIndex(commentIndex - 1)
@@ -31,50 +31,72 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
     }
   }
   
-  /*const onFinish: NonNullable<FormProps['onFinish']> = useCallback(() => {
+  const returnFormData = useCallback(() => {
+    const fieldValues = form.getFieldsValue();
+    const formData: Record<string, string> = {}
+    const errorData = {}
+    let error = false
+    Object.keys(fieldValues).forEach((field) => {
+      if (fieldValues[field] == undefined) {
+          errorData[field] = 'Missing Field'
+          error = true
+      }
+      else {
+        formData[field] = fieldValues[field]    
+      }
+    })
+    if (error) {
+        setFormErrors(errorData)
+        return null
+    }
+    return formData
+  }, [form])
+
+  const itemValidation = useCallback((key: string): FormItemProps => {
+    if (formErrors && formErrors[key]) {
+        return {
+            help: formErrors[key],
+            validateStatus: 'error',
+            name: key
+        }
+    }
+    return { name: key }
+  }, [formErrors])
+
+  const onFinish: NonNullable<FormProps['onFinish']> = useCallback(() => {
     const additionalData = returnFormData()
     if (additionalData) {
-      handleExecuteAutomation(additionalData)
-      setOpenAdditionalDataForm(false)
+      handleAddComment(additionalData["comment"])
+      setOpenAddCommentForm(false)
     }
-  }, [handleExecuteAutomation, returnFormData])
-*/
+  }, [handleAddComment, returnFormData])
 
-  const addCommentForm = () => {
-   /* <Modal title={"Add Comment"} open={openAddCommentForm} okText={"Add"} onOk={form.submit} onCancel={() => setOpenAddCommentForm(false)} width={'30vw'}>
-        <Typography.Paragraph>
-            Enter your comment :
-        </Typography.Paragraph>
-        <Form
-            form={form}
-            onFinish={onFinish}
-            layout="horizontal"
-        >
-          {
-            Object.keys(formatedData).sort().map((field) => {
-              return (
-                <Form.Item
-                    key="comment"
-                    label={<Typography.Text style={{ marginLeft: '1rem', width: `${maxLabelWidth*0.6}em`, textAlign: 'left' }}>Comment: </Typography.Text>}
-                    colon={false}
-                    {...itemValidation(field)}
-                >
-                  <Input type="text"/>
-                </Form.Item>
-              )
-            })
-          }
-        </Form>
-      </Modal>*/
+  const handleAddForm = () => {
+    setOpenAddCommentForm(true)
   }
 
-  useEffect(() => {
-    comments && comments.length > 0 && setorderedComments([...comments.sort((a, b) => b.id - a.id)])
-  }, [comments])
+  const addCommentForm = (
+    <Modal title={"Add Comment"} open={openAddCommentForm} okText={"Add"} onOk={form.submit} onCancel={() => setOpenAddCommentForm(false)} width={'60vw'}>
+      <Form
+          form={form}
+          onFinish={onFinish}
+          layout="horizontal"
+      >
+        <Form.Item
+          key="comment"
+          label={<Typography.Text style={{ marginLeft: '1rem', width: `5em`, textAlign: 'left' }}>Comment: </Typography.Text>}
+          colon={false}
+          {...itemValidation("comment")}
+        >
+          <Input.TextArea autoSize={{ minRows: 3, maxRows: 20 }}/>
+        </Form.Item>
+      </Form>
+    </Modal>
+  )
 
   useEffect(() => {
-    orderedComments && orderedComments.length > 0 && setCurrentComment(orderedComments[commentIndex])
-  }, [orderedComments, commentIndex])
+    comments && comments.length > 0 && setCurrentComment(comments[comments.length - commentIndex - 1])
+  }, [comments, commentIndex])
 
 
 	return (
@@ -84,7 +106,7 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
         
         actions={[
           <LeftCircleOutlined key="previous" disabled={!comments || commentIndex<=0} onClick={handlePreviousComment}/>,
-          <PlusCircleOutlined key="add" onClick={addCommentForm} />,
+          <><PlusCircleOutlined key="add" onClick={handleAddForm} />{addCommentForm}</>,
           <RightCircleOutlined key="next" disabled={!comments || commentIndex>=(comments?.length - 1)} onClick={handleNextDataset}/>,
         ]}
       >
@@ -96,6 +118,5 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
           description={currentComment && currentComment.comment}
         />
       </Card>
-      
 	)
 }

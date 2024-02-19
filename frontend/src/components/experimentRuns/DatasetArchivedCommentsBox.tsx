@@ -36,6 +36,10 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
     setDatasetIndex(datasetIndex + 1)
   }
 
+  const handleDatasetAddComment = (comment) => {
+    currentDataset && handleAddComment(currentDataset.id, comment)
+  }
+
 	return (
     <>
       <Row justify="space-between">
@@ -48,7 +52,7 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
       <Row style={{height: 8}}></Row>
       <Row style={{height: "100%"}}>
         <Col span={24}>
-          <ArchivedCommentsBox comments={currentDataset?.archived_comments} handleAddComment={handleAddComment} />
+          <ArchivedCommentsBox comments={currentDataset?.archived_comments} handleAddComment={handleDatasetAddComment} />
         </Col>
       </Row>
     </>

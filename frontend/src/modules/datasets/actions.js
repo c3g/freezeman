@@ -109,7 +109,7 @@ export const addArchivedComment = (id, comment) => async (dispatch, getState) =>
   if (dataset && dataset.isFetching)
       return;
 
-  return await dispatch(networkAction(POST, api.datasets.addArchivedComment(id, comment), { meta: { id } }));
+  return await dispatch(networkAction(ADD_ARCHIVED_COMMENT, api.datasets.addArchivedComment(id, comment), { meta: { id, comment } }));
 };
 
 export default {
