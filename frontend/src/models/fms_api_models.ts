@@ -378,14 +378,14 @@ export interface FMSSampleNextStepByStudy extends FMSTrackedModel {
 // Data type returned by summary_by_study for samples and step histories.
 // api/sample-next-step-by-study/summary_by_study/?study__id__in
 // api/step-histories/summary_by_study/?study__id__in
-export interface FMSStudySamplesCounts {
+export interface FMSStudySamplesCount {
     study_id: FMSId
-    steps: [{
+    step: {
         step_order_id: FMSId
         order: number
         step_name: string
         count: number
-    }]
+    }
 }
 
 export interface FMSSampleNextStep extends FMSTrackedModel {

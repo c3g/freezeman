@@ -1,12 +1,10 @@
-import { Button, Descriptions, Popconfirm, Space, Spin, Typography } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Button, Descriptions, Popconfirm, Space, Typography } from 'antd'
+import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Study, Workflow } from '../../models/frontend_models'
 import { get as getStudy } from '../../modules/studies/actions'
-import { flushStudySamples, getStudySamples, refreshStudySamples } from '../../modules/studySamples/actions'
-import { StudySampleList } from '../../modules/studySamples/models'
 import { get as getWorkflow } from '../../modules/workflows/actions'
-import { selectProjectsByID, selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
+import { selectProjectsByID, selectStudiesByID, selectWorkflowsByID } from '../../selectors'
 import StudySamples from '../studySamples/StudySamples'
 import FlexBar from '../shared/Flexbar'
 import { FMSId } from '../../models/fms_api_models'
@@ -23,11 +21,9 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
     const projectsById = useAppSelector(selectProjectsByID)
     const studiesById = useAppSelector(selectStudiesByID)
     const workflowsById = useAppSelector(selectWorkflowsByID)
-    const studySamplesState = useAppSelector(selectStudySamplesByID)
 
     const [study, setStudy] = useState<Study>()
     const [workflow, setWorkflow] = useState<Workflow>()
-    const [studySamples, setStudySamples] = useState<StudySampleList>()
 
     useEffect(() => {
         if (!studyId) {
@@ -48,34 +44,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
             dispatch(getStudy(studyId))
             return
         }
-
-        const studyState = studySamplesState[studyId]
-        if (!studyState && study && workflow) {
-            dispatch(getStudySamples(studyId))
-        } 
-    }, [studyId, studiesById, workflowsById, projectsById, studySamplesState, study, workflow, dispatch])
-
-    useEffect(() => {
-        // The effect ensure that whenever the study samples state changes we display
-        // the most recent state. The state will change if changes in labwork are detected
-        // and the study samples are refreshed.
-        const studyState = studySamplesState[studyId]
-        if (studyState) {
-            if (!studyState.isFetching) {
-                setStudySamples(studyState.data)
-            }
-        } 
-    }, [studyId, studiesById, workflowsById, projectsById, studySamplesState, studySamples, dispatch])
-
-    useEffect(() => {
-        return () => {
-            dispatch(flushStudySamples(studyId))
-        }
-    }, [studyId, dispatch])
-
-    const refreshSamples = useCallback(() => {
-        dispatch(refreshStudySamples(studyId))
-    }, [studyId, dispatch])
+    }, [studyId, studiesById, workflowsById, projectsById, study, workflow, dispatch])
 
     function getStepWithOrder(order?: number) {
         if (order && study && workflow) {
@@ -113,16 +82,7 @@ const StudyDetails = ({studyId, handleRemoveStudy} : StudyDetailsProps) => {
                     </div>
                 }</Descriptions.Item>
             </Descriptions>
-            { study && studySamples ? 
-                <StudySamples studyID={study.id} studySamples={studySamples} refreshSamples={refreshSamples}/>
-                :
-                // Display the "Samples" title with a spinner until data is ready.
-                // Afterward, StudySamples displays the title (along with the Hide Empty Steps button)
-                <Space align='baseline'>
-                    <Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
-                    { !studySamples && <Spin spinning={true}/> }
-                </Space>
-            }
+            { study && <StudySamples studyID={study.id} /> }
         </>
     )
 }

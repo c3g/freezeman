@@ -1,6 +1,6 @@
-import { FMSId } from '../../models/fms_api_models'
+import { FMSId, WorkflowStepOrder } from '../../models/fms_api_models'
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from '../../models/paged_items'
-import { selectStudySamplesByID } from '../../selectors'
+import { selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { fetchSamples } from '../cache/cache'
 import { StudyStepSamplesTabSelection } from './models'
@@ -8,11 +8,11 @@ import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPL
 import { fetchSamplesAtStepOrder, loadStudySamples } from './services'
 
 
-export function getStudySamples(studyID: FMSId) {
+export function getStudySamples(studyID: FMSId, stepOrder: WorkflowStepOrder) {
 	return async (dispatch: AppDispatch) => {
 		dispatch({ type: GET_STUDY_SAMPLES.REQUEST, meta: { studyID } })
 		try {
-			const studySamples = await loadStudySamples(studyID)
+			const studySamples = await loadStudySamples(studyID, stepOrder)
 			if (studySamples) {
 				dispatch({ type: GET_STUDY_SAMPLES.RECEIVE, meta: { studyID, studySamples } })
 			}
@@ -22,15 +22,19 @@ export function getStudySamples(studyID: FMSId) {
 	}
 }
 
-export function refreshStudySamples(studyID: FMSId) {
-	return getStudySamples(studyID)
+export function refreshStudySamples(studyID: FMSId, stepOrder: WorkflowStepOrder) {
+	return getStudySamples(studyID, stepOrder)
 }
 
 export function refreshAllStudySamples() {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
-		const studySamplesByID = selectStudySamplesByID(getState())
-		for (const studyID in studySamplesByID) {
-			dispatch(refreshStudySamples(Number.parseInt(studyID)))
+		const studiesByID = selectStudiesByID(getState())
+		const workflowsByID = selectWorkflowsByID(getState())
+		for (const studyID in studiesByID) {
+			const workflow = workflowsByID[studiesByID[studyID].workflow_id]
+			workflow.steps_order.forEach((stepOrder) => {
+				dispatch(refreshStudySamples(Number.parseInt(studyID), stepOrder))
+			})
 		}
 	}
 }
@@ -40,7 +44,7 @@ function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
 
 		// Get the updated list of SampleNextStep objects for the step
 		const result = await fetchSamplesAtStepOrder(studyID, stepOrderID)
-		const sampleIDs = result.sampleNextSteps.map(nextStep => nextStep.sample)
+		const sampleIDs = result.map(nextStep => nextStep.sample)
 
 		// Fetch any samples that need to be loaded
 		await fetchSamples(sampleIDs)

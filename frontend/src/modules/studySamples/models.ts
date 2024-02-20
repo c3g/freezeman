@@ -1,3 +1,4 @@
+import { PaginationParameters } from "../../components/WorkflowSamplesTable/WorkflowSamplesTable"
 import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
@@ -49,15 +50,16 @@ export interface StudyUXStepSettings {
 	readonly selectedSamplesTab?: StudyStepSamplesTabSelection
 	readonly filters?: FilterSet
 	readonly sortBy?: SortBy
+	readonly pagination?: Pick<PaginationParameters, 'pageSize' | 'pageNumber'>
 }
 
 // Settings for one study
 export interface StudyUXSettings {
 	readonly studyID: FMSId
-	readonly stepSettings: {[key : number] : StudyUXStepSettings}	// key: step order
+	readonly stepSettings: {[key : number] : StudyUXStepSettings | undefined}	// key: step order
 }
 
-export type StudySettingsByID = {[key: number] : StudyUXSettings}
+export type StudySettingsByID = {[key: number] : StudyUXSettings | undefined}
 
 // Complete study samples state
 export interface StudySamplesState {

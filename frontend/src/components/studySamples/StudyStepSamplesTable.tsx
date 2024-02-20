@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { FMSId } from '../../models/fms_api_models'
+import { FMSId, WorkflowStepOrder } from '../../models/fms_api_models'
 import { Protocol } from '../../models/frontend_models'
 import { clearFilters, refreshStudySamples, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepSortOrder } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudyUXStepSettings } from '../../modules/studySamples/models'
-import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID } from '../../selectors'
+import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID, selectStudiesByID, selectWorkflowsByID } from '../../selectors'
 import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../samples/SampleTableColumns'
-import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable, { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'
 import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
@@ -17,10 +17,11 @@ import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 interface StudyStepSamplesTableProps {
 	studyID: FMSId
 	step: StudySampleStep
+	stepOrder: WorkflowStepOrder
 	settings?: StudyUXStepSettings
 }
 
-function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTableProps) {
+function StudyStepSamplesTable({ studyID, step, stepOrder, settings }: StudyStepSamplesTableProps) {
 
 	const dispatch = useAppDispatch()
 	const protocolsByID = useAppSelector(selectProtocolsByID)
@@ -83,7 +84,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 						key: REMOVE_NOTIFICATION_KEY
 					})
 					await dispatch(api.sampleNextStepByStudy.remove(step.sampleNextStepByStudyBySampleID[sample.id].id))
-					await dispatch(refreshStudySamples(studyID))
+					await dispatch(refreshStudySamples(studyID, stepOrder))
 					notification.close(REMOVE_NOTIFICATION_KEY)
 				}}
 				disabled={!sample}
@@ -92,7 +93,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 				<Typography.Link underline type={'danger'} href={''}>Remove</Typography.Link>
 			</Popconfirm>
 		}
-	}), [dispatch, step.sampleNextStepByStudyBySampleID, step.stepID, step.stepName, studyID])
+	}), [dispatch, step.sampleNextStepByStudyBySampleID, step.stepID, step.stepName, studyID, stepOrder])
 
 	const columns: IdentifiedTableColumnType<SampleAndLibrary>[] = useMemo(() => {
 		if (stepDefinition) { // missing protocol leads to default columns
@@ -112,6 +113,17 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			dispatch(clearFilters(studyID, step.stepOrderID))
 	}
 
+	const pagination: PaginationParameters | undefined = settings?.pagination && {
+		...(settings?.pagination ?? { pageNumber: 1, pageSize: 10 }),
+		totalCount: step.sampleCount,
+		onChangePageNumber: (pageNumber: number) => {
+			
+		},
+		onChangePageSize: (newPageSize: number) => {
+			
+		}
+	}
+
 	return (
 		<WorkflowSamplesTable
 			clearFilters={localClearFilters}
@@ -124,6 +136,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			setFilter={setFilter}
 			setFilterOptions={setFilterOptions}
 			setSortBy={setSortBy}
+			pagination={pagination}
 		/>
 	)
 }
