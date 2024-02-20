@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react"
-
-import { Button, Tag, Row, Col, Typography } from 'antd'
-import { Dataset } from "../../models/frontend_models"
-import ArchivedCommentsBox from "../shared/ArchivedCommentsBox"
 import { LeftCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
+import { Button, Tag, Row, Col, Typography } from 'antd'
+
+import { Dataset } from "../../models/frontend_models"
+import { FMSId } from "../../models/fms_api_models"
+import ArchivedCommentsBox from "../shared/ArchivedCommentsBox"
 
 const { Text, Title } = Typography
 
 interface DatasetCommentsProps {
   datasets: Dataset[]
-  handleAddComment: Function
+  handleAddComment: (id: FMSId, comment: string) => void
 }
 
 const styleTag = {

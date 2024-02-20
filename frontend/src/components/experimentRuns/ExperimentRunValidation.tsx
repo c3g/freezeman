@@ -1,5 +1,4 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
-const { Sider, Content } = Layout;
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -13,6 +12,7 @@ import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
 import { Dataset } from '../../models/frontend_models'
 import api from '../../utils/api'
 
+const { Sider, Content } = Layout;
 const { Title, Text } = Typography
 
 

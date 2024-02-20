@@ -12,7 +12,7 @@ import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
 import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
-
+import ArchivedCommentsTimeline from "../shared/ArchivedCommentsTimeline"
 
 const tableColumns = [
 	DATASET_COLUMN_DEFINITIONS.ID,
@@ -47,59 +47,27 @@ function DatasetsListContent() {
 				<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
 				<PagedItemsTable<ObjectWithDataset> 
 					columns={columns}
-          /*expandable={{
-            columnTitle: () => <div>View Comments</div>,
+          expandable={{
+            columnTitle: () => <div>Comments</div>,
             expandIcon: ({ expanded, onExpand, record }) =>
                 expanded ? (
-                    <Tooltip title="Hide Metrics">
+                    <Tooltip title="Hide Comments">
                         <MinusCircleTwoTone onClick={e => onExpand(record, e)} />
                     </Tooltip>
                 ) : (
-                    <Tooltip title="View Metrics">
+                    <Tooltip title="View Comments">
                         <PlusCircleTwoTone onClick={e => onExpand(record, e)} />
                     </Tooltip>
 
                 )
             ,
             expandedRowRender: (record) => {
-                const readset: Readset = record.readset
-                return (
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(8,1fr)',
-                        gap: '1em'
-                    }} key={readset.id}>
-                        {
-                            readset.metrics ?
-                                Object.keys(readset.metrics).map(
-                                    (name) => {
-                                        return (
-                                            readset.metrics && (readset.metrics[name].value_numeric || readset.metrics[name].value_string) &&
-
-
-                                            <div style={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                            }} key={name}>
-                                                {<b >
-                                                    {name.replace(/_/g, " ")}
-                                                </b>
-                                                }
-                                                {readset.metrics[name].value_numeric
-                                                    ?
-                                                    checkIfDecimal(readset.metrics[name].value_numeric)
-                                                    :
-                                                    readset.metrics[name].value_string}
-                                            </div>)
-                                    })
-                                :
-                                <div>No metrics</div>
-                        }
-                    </div>
-                )
+              return (
+                <ArchivedCommentsTimeline record={record}/>
+              )
             }
             ,
-        }}*/
+        }}
 					getDataObjectsByID={getDataObjectsByID}
 					pagedItems={pagedItems}
 					usingFilters={false}

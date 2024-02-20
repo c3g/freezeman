@@ -8,7 +8,7 @@ const { Text } = Typography
 
 interface CommentBoxProps {
   comments?: FMSArchivedComment[]
-  handleAddComment: Function
+  handleAddComment: (comment: string) => void
 }
 
 export default function ArchivedCommentsBox({ comments, handleAddComment }: CommentBoxProps) {
