@@ -98,25 +98,32 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
     def create(self, request):
         container = request.data
+        container_parent = None
+        coordinates = None
 
         try:
             if container['name'] and Container.objects.filter(name=container['name']).exists():
                 raise ValidationError({"name": f"Container with name {container['name']} already exists."})
             if not container['name'] and Container.objects.filter(name=container['barcode']).exists():
                 raise ValidationError({"barcode": f"Container with name {container['barcode']} already exists. Missing container name, barcode will replace container name."})
-
             container = remove_empty_str_from_dict(container)
             if container['location']:
                 try:
                     container_parent = Container.objects.get(id=container['location'])
                 except Exception as err:
                     raise ValidationError({"location": f"Failed to find parent container with ID {container['location']}."})
-            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=container['coordinate'], container_parent=container_parent, creation_comment=container['comment'])
+            if container['coordinate']:
+                try:
+                    coordinates = Coordinate.objects.get(id=container['coordinate']).name
+                except Exception as err:
+                    raise ValidationError({"coordinate": f"Failed to find coordinate with ID {container['coordinate']}."})
+            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=coordinates, container_parent=container_parent, creation_comment=container['comment'])
             serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
         
         return Response(serializer.data)
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
