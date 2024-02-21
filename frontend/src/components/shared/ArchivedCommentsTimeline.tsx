@@ -1,6 +1,5 @@
 import React from "react"
 import { Row, Col, Timeline, Empty } from "antd"
-import { Dataset } from "../../models/frontend_models"
 import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
 import useTimeline from "../../utils/useTimeline";
