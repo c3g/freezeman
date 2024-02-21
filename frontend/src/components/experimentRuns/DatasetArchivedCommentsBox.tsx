@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { LeftCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
-import { Button, Tag, Row, Col, Typography } from 'antd'
+import { Button, Tag, Row, Col, Typography, Tooltip } from 'antd'
 
 import { Dataset } from "../../models/frontend_models"
 import { FMSId } from "../../models/fms_api_models"
@@ -45,9 +45,9 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
     <>
       <Row justify="space-between">
         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
-          <Button icon={<LeftCircleOutlined/>} onClick={handlePreviousDataset} disabled={datasetIndex==0}/>
+          <Tooltip title="Previous Project"><Button icon={<LeftCircleOutlined/>} onClick={handlePreviousDataset} disabled={datasetIndex==0}/></Tooltip>
           <Tag style={styleTag}><Title level={5}><Text strong>{currentDataset && currentDataset.project_name}</Text></Title></Tag>
-          <Button icon={<RightCircleOutlined/>} onClick={handleNextDataset} disabled={datasetIndex==(datasets.length - 1)}/>
+          <Tooltip title="Next Project"><Button icon={<RightCircleOutlined/>} onClick={handleNextDataset} disabled={datasetIndex==(datasets.length - 1)}/></Tooltip>
         </div>
       </Row>
       <Row style={{height: 8}}></Row>

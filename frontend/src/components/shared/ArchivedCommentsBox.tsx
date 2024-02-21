@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react"
-import { Card, Typography, Form, Modal, FormItemProps,  FormProps, Input } from 'antd'
+import { Card, Typography, Form, Modal, FormItemProps, FormProps, Input, Tooltip } from 'antd'
 import { LeftCircleOutlined, PlusCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
 import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
@@ -101,12 +101,12 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
 	return (
     <Card
       style={{ width: "100%", height: "100%", minHeight: "100%", boxSizing: "border-box" }}
-      bodyStyle={{height: "85%", padding: '5px'}}
+      bodyStyle={{height: "480px", padding: "5px", overflow: "auto"}}
       
       actions={[
-        <LeftCircleOutlined key="previous" disabled={!comments || commentIndex<=0} onClick={handlePreviousComment}/>,
-        <><PlusCircleOutlined key="add" onClick={handleAddCommentForm} />{addCommentForm}</>,
-        <RightCircleOutlined key="next" disabled={!comments || commentIndex>=(comments?.length - 1)} onClick={handleNextDataset}/>,
+        <Tooltip title="Previous Comment"><LeftCircleOutlined key="previous" onClick={handlePreviousComment}/></Tooltip>,
+        <Tooltip title="Add Comment"><PlusCircleOutlined key="add" onClick={handleAddCommentForm} />{addCommentForm}</Tooltip>,
+        <Tooltip title="Next Comment"><RightCircleOutlined key="next" onClick={handleNextDataset}/></Tooltip>,
       ]}
     >
       <Card.Meta

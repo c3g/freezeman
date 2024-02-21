@@ -27,7 +27,6 @@ class ArchivedComment(TrackedModel):
         # Normalize any string values to make searching / data manipulation easier
         self.comment = str_cast_and_normalize(self.comment)
 
-
     def clean(self):
         super().clean()
         errors = {}
