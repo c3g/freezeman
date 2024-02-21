@@ -6,13 +6,10 @@ import dateToString from "../../utils/dateToString"
 import useTimeline from "../../utils/useTimeline";
 
 interface commentsTimelineProps {
-  record: {
-    dataset: Dataset
-  }
+  comments: FMSArchivedComment[]
 }
 
-export default function ArchivedCommentsTimeline({ record } : commentsTimelineProps) {
-  const comments: FMSArchivedComment[] = record && record.dataset.archived_comments
+export default function ArchivedCommentsTimeline({ comments } : commentsTimelineProps) {
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
 	return (

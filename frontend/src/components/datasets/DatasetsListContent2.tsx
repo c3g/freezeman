@@ -62,8 +62,9 @@ function DatasetsListContent() {
                 )
             ,
             expandedRowRender: (record) => {
+              const comments = record && record.dataset.archived_comments
               return (
-                <ArchivedCommentsTimeline record={record}/>
+                <ArchivedCommentsTimeline comments={comments}/>
               )
             }
             ,
