@@ -71,7 +71,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
     return (
         <>
             <Button onClick={() => setIsPopup(true)}>Add Destination</Button>
-            <Modal title="Add Destination" visible={isPopup} onOk={handleConfirm} onCancel={() => setIsPopup(false)}>
+            <Modal title="Add Destination" open={isPopup} onOk={handleConfirm} onCancel={() => setIsPopup(false)}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
