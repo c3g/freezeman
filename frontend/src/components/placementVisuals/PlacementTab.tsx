@@ -33,18 +33,8 @@ interface PlacementTabProps {
     selectedSamples: any,
     stepID: any,
 }
-const createEmptyContainerArray = (): containerSample[] => {
-    return [
-        {
-            container_name: '',
-            rows: 8,
-            columns: 12,
-            container_kind: '96-well plate',
-            samples: {
-            },
-        },
-    ]
-}
+const createEmptyContainerArray = (): containerSample[] => []
+
 //component used to display the tab for sample placement (plate visualization)
 const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
@@ -250,8 +240,8 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     return (
         <>
             <Placement
-                sourceSamples={sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0]}
-                destinationSamples={destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0]}
+                sourceSamples={sourceContainerList.length > 0 ? sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0] : undefined}
+                destinationSamples={destinationContainerList.length > 0 ? destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0] : undefined}
                 disableChangeSource={sourceContainerList.length == 1}
                 disableChangeDestination={destinationContainerList.length == 1}
                 cycleContainer={changeContainer}
