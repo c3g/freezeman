@@ -1,16 +1,47 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
-import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory, FMSStudySamplesCounts } from "../../models/fms_api_models"
-import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
-import { selectStudySettingsByID } from "../../selectors"
+import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory, WorkflowStepOrder } from "../../models/fms_api_models"
+import { createItemsByID } from "../../models/frontend_models"
+import { selectStudiesByID, selectStudySettingsByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
 import { isNullish } from "../../utils/functions"
 import { timestampStringAsDate } from "../../utils/humanReadableTime"
 import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
-import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models"
+import { CompletedStudySample, StudySampleStep, StudySamplesCount } from "./models"
 
+function getLimitAndOffset(studyID: FMSId, stepOrderID: number) {
+	const studySettingsByID = selectStudySettingsByID(store.getState())
+
+	const studySettings = studySettingsByID[studyID]
+	if (!studySettings) return;
+
+	const stepSettings = studySettings?.stepSettings
+	if (!stepSettings) return;
+
+	const settings = stepSettings[stepOrderID]
+	if (!settings) return;
+
+	const limit = settings.pagination.pageSize
+	const offset = limit * (settings.pagination.pageNumber - 1)
+	return { limit, offset }
+}
 
 export async function loadStudySamples(studyID: FMSId) {
+	const studiesById = selectStudiesByID(store.getState())
+	const workflowsById = selectWorkflowsByID(store.getState())
+	const study = studiesById[studyID]
+	if (study) {
+		const workflow = workflowsById[study.workflow_id]
+		if (workflow) {
+			return await Promise.all(workflow.steps_order.map((stepOrder) => loadStudySamplesByStep(studyID, stepOrder)))
+		}
+	}
+
+	return []
+}
+
+export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: WorkflowStepOrder) {
+	const { offset, limit } = getLimitAndOffset(studyID, stepOrder.id) ?? {}
 	
 	const study = (await fetchStudies([studyID])).find(obj => obj.id === studyID)
 	if(! study) {
@@ -28,51 +59,45 @@ export async function loadStudySamples(studyID: FMSId) {
 		throw new Error(`Cannot load study samples - workflow is still fetching`)
 	}
 
-	// Each step has its own samples table, with its own filters and sort order, so
-	// we have to request samples for each step separately. Create one request per step.
-	
-	const requests = workflow.steps_order.map(workflowStepOrder => {
-		return fetchSamplesAtStepOrder(studyID, workflowStepOrder.id)
-	})
-
-	// Create a map object with step ID as key and list of SampleNextSteps as values.
-	const groupedSampleNextSteps = {}
-	try {
-		const steps = await Promise.all(requests)
-		for (const step of steps) {
-			groupedSampleNextSteps[step.stepOrderID] = step.sampleNextSteps
+	// Each step has its own samples table, with its own filters and sort order, so  we have to request samples for each step separately.
+	const fetchSamplesAtStepOrderResponse = await fetchSamplesAtStepOrder(studyID, stepOrder.id)
+	const { sampleNextSteps } = fetchSamplesAtStepOrderResponse
+	const sampleNextStepsCount: StudySamplesCount = {
+		study_id: studyID,
+		step: {
+			step_order_id: stepOrder.id,
+			order: stepOrder.order,
+			step_name: stepOrder.step_name,
+			count: fetchSamplesAtStepOrderResponse.count
 		}
-	} catch(err) {
-		throw new Error('Failed to fetch study samples')
 	}
 	
 	// Get samples that have completed the process at a step
-	let completedSamplesByStudy : FMSStepHistory[] | undefined
-	const sampleHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID, {limit: 100000}))
-	if (sampleHistoryResponse.data.results) {
-		completedSamplesByStudy = sampleHistoryResponse.data.results as FMSStepHistory[]
-	} else {
-		throw new Error('Failed to fetch completed samples for study')
+	const stepHistoryResponse = await store.dispatch(api.stepHistory.list({study__id__in: studyID, step_order__id__in: stepOrder.id, limit, offset}))
+	if (!stepHistoryResponse.data) {
+		throw new Error(`Failed to fetch completed samples for study #${studyID} and step_order #${stepOrder.id}`)
 	}
+	const completedSamples: FMSStepHistory[] = stepHistoryResponse.data.results
+	const completedSamplesCount : StudySamplesCount = {
+		study_id: studyID,
+		step: {
+			step_order_id: stepOrder.id,
+			order: stepOrder.order,
+			step_name: stepOrder.step_name,
+			count: stepHistoryResponse.data.count
+		}
+	};
 
-	// Get the total sample counts for queued samples and completed samples, for display in the UX.
-	let sampleCounts : FMSStudySamplesCounts | undefined = undefined
-	const sampleCountResponse = await store.dispatch(api.sampleNextStepByStudy.countStudySamples(studyID))
-	if (sampleCountResponse.data.length > 0) {
-		sampleCounts = sampleCountResponse.data[0] as FMSStudySamplesCounts
-	}
-	
-
-	let completedSampleCounts : FMSStudySamplesCounts | undefined = undefined
-	const completedSampleCountResponse = await store.dispatch(api.stepHistory.countStudySamples(studyID))
-	if (completedSampleCountResponse.data.length > 0) {
-		completedSampleCounts = completedSampleCountResponse.data[0]
-	}
-
-	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, groupedSampleNextSteps, completedSamplesByStudy, sampleCounts, completedSampleCounts)
+	const studySamples = await buildStudySamplesFromWorkflowStepOrder(
+		stepOrder,
+		sampleNextSteps,
+		completedSamples,
+		sampleNextStepsCount,
+		completedSamplesCount
+	)
 
 	// Fetch the study samples
-	const sampleList = listSamplesInStudy(studySamples)
+	const sampleList = listSamplesInStep(studySamples)
 	if (sampleList.length > 0) {
 		const samples = await fetchSamples(sampleList)
 		if (samples.length > 0) {
@@ -80,20 +105,8 @@ export async function loadStudySamples(studyID: FMSId) {
 			await fetchLibrariesForSamples(sampleIDs)
 		}
 	}
-	return {
-		steps: studySamples.steps
-	}
-}
 
-function listSamplesInStudy(study: StudySampleList) {
-	const samples = new Set<FMSId>()
-	for (const step of study.steps) {
-		const samplesInStep = listSamplesInStep(step)
-		for (const sample of samplesInStep) {
-			samples.add(sample)
-		}
-	}
-	return [...samples]
+	return studySamples
 }
 
 function listSamplesInStep(step: StudySampleStep) {
@@ -104,55 +117,38 @@ function listSamplesInStep(step: StudySampleStep) {
 	return [...samples.values()]
 }
 
-export async function buildStudySamplesFromWorkflow(
-	study: Study, 
-	workflow: Workflow, 
-	sampleNextStepsByStepOrderID: {[key: FMSId] : FMSSampleNextStepByStudy[]},	// key: Step Order ID
-	completedSamplesByStudy: FMSStepHistory[],
-	sampleCounts: FMSStudySamplesCounts | undefined,
-	completedSampleCounts: FMSStudySamplesCounts | undefined,
-	) : Promise<StudySampleList> {
+export async function buildStudySamplesFromWorkflowStepOrder(
+	stepOrder: WorkflowStepOrder, 
+	sampleNextSteps: FMSSampleNextStepByStudy[],
+	completedSamples: FMSStepHistory[],
+	samplesCount: StudySamplesCount | undefined,
+	completedSamplesCount: StudySamplesCount | undefined,
+) : Promise<StudySampleStep> {
+	const samples = sampleNextSteps.map(nextStep => nextStep.sample)
 
-	const stepMap = new Map<FMSId, StudySampleStep>()
+	const sampleNextStepByStudyBySampleID: StudySampleStep['sampleNextStepByStudyBySampleID'] =
+		Object.fromEntries(sampleNextSteps.map((nextStep) => [nextStep.sample, nextStep]))
 
-	// Create the list of study steps from the workflow, starting and ending at the steps defined in the study.
-	workflow.steps_order.forEach(stepOrder => {
-		if (stepOrder.order >= study.start && stepOrder.order <= study.end) {
+	// Find the sample count for this step, if it is there. The backend returns nothing
+	// if there are zero samples for a step.
+	const sampleCountStep = samplesCount?.step
+	const completedStep = completedSamplesCount?.step
 
-			// Get the list of sample-next-steps retrieved for this step, and set
-			// the list of samples for the step.
-			const sampleNextSteps = sampleNextStepsByStepOrderID[stepOrder.id]
-			if (!sampleNextSteps) {
-				throw new Error(`Study samples for step order ${stepOrder.id} not retrieved.`)
-			}
-			const samples = sampleNextSteps.map(nextStep => nextStep.sample)
-
-			const sampleNextStepByStudyBySampleID: StudySampleStep['sampleNextStepByStudyBySampleID'] =
-				Object.fromEntries(sampleNextSteps.map((nextStep) => [nextStep.sample, nextStep]))
-
-			// Find the sample count for this step, if it is there. The backend returns nothing
-			// if there are zero samples for a step.
-			const sampleCountStep = sampleCounts?.steps.find(s => s.step_order_id === stepOrder.id)
-			const completedStep = completedSampleCounts?.steps.find(s => s.step_order_id === stepOrder.id)
-
-			const step : StudySampleStep = {
-				stepID: stepOrder.step_id,
-				stepName: stepOrder.step_name,
-        		stepOrderID: stepOrder.id,
-				stepOrder: stepOrder.order,
-				protocolID: stepOrder.protocol_id,
-				sampleCount: sampleCountStep ? sampleCountStep.count : 0,
-				samples,
-				completedCount: completedStep ? completedStep.count : 0, 
-				completed: [],
-				sampleNextStepByStudyBySampleID
-			}
-			stepMap.set(step.stepOrderID, step)
-		}
-	}) 
+	const step : StudySampleStep = {
+		stepID: stepOrder.step_id,
+		stepName: stepOrder.step_name,
+		stepOrderID: stepOrder.id,
+		stepOrder: stepOrder.order,
+		protocolID: stepOrder.protocol_id,
+		sampleCount: sampleCountStep ? sampleCountStep.count : 0,
+		samples,
+		completedCount: completedStep ? completedStep.count : 0, 
+		completed: [],
+		sampleNextStepByStudyBySampleID
+	}
 
 	// Get the process measurements for the completed samples
-	const processMeasurementIDs = completedSamplesByStudy.filter((completed) => !isNullish(completed.process_measurement)).map(completed => completed.process_measurement)
+	const processMeasurementIDs = completedSamples.filter((completed) => !isNullish(completed.process_measurement)).map(completed => completed.process_measurement)
 	const processMeasurements = await fetchProcessMeasurements(processMeasurementIDs)
 	const processMeasurementsByID = createItemsByID(processMeasurements)
 
@@ -163,43 +159,36 @@ export async function buildStudySamplesFromWorkflow(
 
 	// Get the user ID's for the processes
 	const processesUserIDs = processes.map(process => process.created_by)
-  // Get the user ID's for the step history without processes
-  const stepHistoryUserIDs = completedSamplesByStudy.filter((completed) => isNullish(completed.process_measurement)).map(completed => completed.created_by)
-  const userIDs = processesUserIDs.concat(stepHistoryUserIDs)
+	// Get the user ID's for the step history without processes
+	const stepHistoryUserIDs = completedSamples.filter((completed) => isNullish(completed.process_measurement)).map(completed => completed.created_by)
+	const userIDs = processesUserIDs.concat(stepHistoryUserIDs)
 	const users = await fetchUsers(userIDs)
 	const usersByID = createItemsByID(users)
 
-	completedSamplesByStudy.forEach(stepHistory => {
-		const step = stepMap.get(stepHistory.step_order)
-		if (step) {
-			const processMeasurement = processMeasurementsByID[stepHistory.process_measurement]
-			const process = processMeasurement ? processesByID[processMeasurement.process] : undefined
-			const user = process && process.created_by ? usersByID[process.created_by] : stepHistory.created_by ? usersByID[stepHistory.created_by] : undefined
-			
-			const completedSample : CompletedStudySample = {
-				id: stepHistory.id,
-				sampleID: stepHistory.sample,
-				generatedSampleID: processMeasurement?.child_sample,
-				processID: processMeasurement?.process,
-				processMeasurementID: stepHistory.process_measurement,
-				executionDate: processMeasurement ? processMeasurement?.execution_date : timestampStringAsDate(stepHistory.created_at),
-				executedBy: user?.username,
-				comment: processMeasurement?.comment,
-				removedFromWorkflow: stepHistory.workflow_action === 'DEQUEUE_SAMPLE'
-			}
-			step.completed.push(completedSample)
+	completedSamples.forEach(stepHistory => {
+		const processMeasurement = processMeasurementsByID[stepHistory.process_measurement]
+		const process = processMeasurement ? processesByID[processMeasurement.process] : undefined
+		const user = process && process.created_by ? usersByID[process.created_by] : stepHistory.created_by ? usersByID[stepHistory.created_by] : undefined
+		
+		const completedSample : CompletedStudySample = {
+			id: stepHistory.id,
+			sampleID: stepHistory.sample,
+			generatedSampleID: processMeasurement?.child_sample,
+			processID: processMeasurement?.process,
+			processMeasurementID: stepHistory.process_measurement,
+			executionDate: processMeasurement ? processMeasurement?.execution_date : timestampStringAsDate(stepHistory.created_at),
+			executedBy: user?.username,
+			comment: processMeasurement?.comment,
+			removedFromWorkflow: stepHistory.workflow_action === 'DEQUEUE_SAMPLE'
 		}
+		step.completed.push(completedSample)
 	})
 
-	// Return the steps in the step order
-	const steps = Array.from(stepMap.values()).sort((a, b) => a.stepOrder - b.stepOrder)
-
-	return {
-		steps
-	}
+	return step
 }
 
-export async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
+export async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number) {
+	const { offset, limit } = getLimitAndOffset(studyID, stepOrderID) ?? {}
 
 	const studySettingsByID = selectStudySettingsByID(store.getState())
 
@@ -212,12 +201,12 @@ export async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId
 		options = {ordering, ...serializedFilters}
 	}
 
-	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, {...options, limit: 100000}))
+	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, {...options, limit, offset}))
 		.then(response => {
 			if (response.data?.results) {
 				return {
-					stepOrderID,
-					sampleNextSteps: response.data.results as FMSSampleNextStepByStudy[]
+					sampleNextSteps: response.data.results as FMSSampleNextStepByStudy[],
+					count: response.data.count as number,
 				}
 			} else {
 				throw new Error('Failed to fetch study samples - no data in response.')

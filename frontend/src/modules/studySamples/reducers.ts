@@ -131,6 +131,11 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 				for (const stepOrderID of stepOrderIDs) {
 					studyUXSettings.stepSettings[stepOrderID] = {
 						stepOrderID,
+						pagination: {
+							pageNumber: 1,
+							pageSize: 10,
+							totalCount: 0,
+						}
 					}
 				}
 				state.studySettingsByID[studyID] = studyUXSettings

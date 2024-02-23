@@ -1,3 +1,4 @@
+import { PaginationParameters } from "../../components/WorkflowSamplesTable/WorkflowSamplesTable"
 import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
@@ -49,6 +50,7 @@ export interface StudyUXStepSettings {
 	readonly selectedSamplesTab?: StudyStepSamplesTabSelection
 	readonly filters?: FilterSet
 	readonly sortBy?: SortBy
+	readonly pagination: Pick<PaginationParameters, 'pageNumber' | 'pageSize' | 'totalCount'>
 }
 
 // Settings for one study
@@ -64,4 +66,14 @@ export interface StudySamplesState {
 	readonly studySamplesByID:  StudySamplesByID			// Object where keys are study IDs and values are StudySampleList objects
 	readonly hideEmptySteps: boolean						// Global flag to show or hide empty steps in study detail pages
 	readonly studySettingsByID: StudySettingsByID
+}
+
+export interface StudySamplesCount {
+    study_id: FMSId
+    step: {
+        step_order_id: FMSId
+        order: number
+        step_name: string
+        count: number
+    }
 }

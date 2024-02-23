@@ -263,7 +263,8 @@ const api = {
 
   stepHistory: {
     getCompletedSamplesForStudy: (studyId, options) => get('/step-histories/', {...options, study__id__in: studyId}),
-    countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, {study__id__in: studyId})
+    countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, {study__id__in: studyId}),
+    list: (options, abort) => get("/step-histories/", options, { abort }),
   },
 
   steps: {
