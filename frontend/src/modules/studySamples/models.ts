@@ -50,7 +50,6 @@ export interface StudyUXStepSettings {
 	readonly selectedSamplesTab?: StudyStepSamplesTabSelection
 	readonly filters?: FilterSet
 	readonly sortBy?: SortBy
-	readonly pagination: Pick<PaginationParameters, 'pageNumber' | 'pageSize' | 'totalCount'>
 }
 
 // Settings for one study

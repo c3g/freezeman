@@ -10,19 +10,8 @@ import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fet
 import { CompletedStudySample, StudySampleStep, StudySamplesCount } from "./models"
 
 function getLimitAndOffset(studyID: FMSId, stepOrderID: number) {
-	const studySettingsByID = selectStudySettingsByID(store.getState())
-
-	const studySettings = studySettingsByID[studyID]
-	if (!studySettings) return;
-
-	const stepSettings = studySettings?.stepSettings
-	if (!stepSettings) return;
-
-	const settings = stepSettings[stepOrderID]
-	if (!settings) return;
-
-	const limit = settings.pagination.pageSize
-	const offset = limit * (settings.pagination.pageNumber - 1)
+	const limit = 10
+	const offset = 0
 	return { limit, offset }
 }
 
