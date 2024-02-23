@@ -26,18 +26,20 @@ function getLimitAndOffset(studyID: FMSId, stepOrderID: number) {
 	return { limit, offset }
 }
 
-export async function loadStudySamples(studyID: FMSId) {
+export async function loadStudySamples(studyID: FMSId): Promise<{ steps: StudySampleStep[] }> {
 	const studiesById = selectStudiesByID(store.getState())
 	const workflowsById = selectWorkflowsByID(store.getState())
 	const study = studiesById[studyID]
 	if (study) {
 		const workflow = workflowsById[study.workflow_id]
 		if (workflow) {
-			return await Promise.all(workflow.steps_order.map((stepOrder) => loadStudySamplesByStep(studyID, stepOrder)))
+			return {
+				steps: await Promise.all(workflow.steps_order.map((stepOrder) => loadStudySamplesByStep(studyID, stepOrder)))
+			}
 		}
 	}
 
-	return []
+	return { steps: [] }
 }
 
 export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: WorkflowStepOrder) {
