@@ -4,12 +4,13 @@ import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
 import { initStudySamplesSettings, setHideEmptySteps, setStudyExpandedSteps, setStudyStepSamplesTab } from '../../modules/studySamples/actions'
-import { StudySampleList, StudySampleStep, StudyUXSettings, StudyUXStepSettings } from '../../modules/studySamples/models'
+import { StudySampleList, StudySampleStep, StudyStepSamplesTabSelection, StudyUXSettings, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectHideEmptySteps, selectStudySettingsByID } from '../../selectors'
 import RefreshButton from '../RefreshButton'
 import CompletedSamplesTable from './CompletedSamplesTable'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 import { WarningOutlined } from '@ant-design/icons'
+import { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 
 const { Text, Title } = Typography
 
@@ -134,6 +135,31 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 		dispatch(setStudyStepSamplesTab(studyID, step.stepOrderID, activeKey as any))
 	}
 
+	const totalCount: { [key in StudyStepSamplesTabSelection]: number } = {
+		'ready': step.sampleCount,
+		'completed': step.completedCount,
+		'removed': step.completedCount // ERROR
+	}
+
+	const [paginationData, setPaginationParameters] = useState<Pick<PaginationParameters, 'pageNumber' | 'pageSize' | 'totalCount'>>({
+		pageNumber: 1,
+		pageSize: 10,
+		totalCount: totalCount[uxSettings?.selectedSamplesTab ?? 'ready']
+	})
+	const onChangePageNumber: PaginationParameters['onChangePageNumber'] = useCallback((pageNumber) => {
+		setPaginationParameters({
+			...paginationData,
+			pageNumber
+		})
+	}, [paginationData])
+	const onChangePageSize: PaginationParameters['onChangePageSize'] = useCallback((pageSize) => {
+		setPaginationParameters({
+			...paginationData,
+			pageSize
+		})
+	}, [paginationData])
+	const pagination: PaginationParameters = { ...paginationData, onChangePageNumber, onChangePageSize }
+
 	return (
 		<Collapse.Panel
 			key={step.stepOrderID}
@@ -158,14 +184,14 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 		>
 			<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
 				<Tabs.TabPane tab={readyTab} key='ready'>
-					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings}/>
+					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings} pagination={pagination}/>
 				</Tabs.TabPane>
 				<Tabs.TabPane tab={completedTab} key='completed'>
-					<CompletedSamplesTable completedSamples={completedSamples}/>
+					<CompletedSamplesTable completedSamples={completedSamples} pagination={pagination}/>
 				</Tabs.TabPane>
 				{hasRemovedSamples && 
 				<Tabs.TabPane tab={removedTab} key='removed'>
-					<CompletedSamplesTable completedSamples={removedSamples}/>
+					<CompletedSamplesTable completedSamples={removedSamples} pagination={pagination}/>
 				</Tabs.TabPane>
 				}
 			</Tabs>

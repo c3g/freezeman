@@ -41,7 +41,7 @@ export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampl
 // tab selection, and the filtering and sorting values.
 
 // Tab key values
-export type StudyStepSamplesTabSelection = 'ready' | 'completed'
+export type StudyStepSamplesTabSelection = 'ready' | 'completed' | 'removed'
 
 // Settings for one step
 export interface StudyUXStepSettings {

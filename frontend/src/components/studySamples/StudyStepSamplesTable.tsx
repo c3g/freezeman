@@ -8,7 +8,7 @@ import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStep
 import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../samples/SampleTableColumns'
-import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable, { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'
 import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
@@ -18,9 +18,10 @@ interface StudyStepSamplesTableProps {
 	studyID: FMSId
 	step: StudySampleStep
 	settings?: StudyUXStepSettings
+	pagination: PaginationParameters
 }
 
-function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTableProps) {
+function StudyStepSamplesTable({ studyID, step, settings, pagination }: StudyStepSamplesTableProps) {
 
 	const dispatch = useAppDispatch()
 	const protocolsByID = useAppSelector(selectProtocolsByID)
@@ -124,6 +125,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			setFilter={setFilter}
 			setFilterOptions={setFilterOptions}
 			setSortBy={setSortBy}
+			pagination={pagination}
 		/>
 	)
 }
