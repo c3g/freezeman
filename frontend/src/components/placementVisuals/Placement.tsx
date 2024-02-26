@@ -258,53 +258,58 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             <PageContainer>
                 <PageContent>
                   { sourceSamples ?
-                    <div className={"flex-column"}>
-                        <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
-
-                            <AddPlacementContainer onConfirm={(container) => addDestination(container)} setDestinationIndex={setDestinationIndex} destinationContainerList={destinationContainerList} />
-                            <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
-                        </div>
-                        <div className={"flex-row"}>
-                            <div className={"flex-column"}>
-                                <ContainerNameScroller
-                                    disabled={disableChangeSource}
-                                    containerType={SOURCE_STRING}
-                                    name={sourceSamples.container_name}
-                                    changeContainer={changeContainer} />
-                                <PlacementContainer
-                                    selectedSampleList={selectedSamples}
-                                    containerType={SOURCE_STRING}
-                                    columns={sourceSamples.columns}
-                                    rows={sourceSamples.rows}
-                                    samples={sourceSamples.samples}
-                                    updateSamples={updateSamples} />
-                            </div>
-                          { sourceSamples && destinationSamples ?
-                            <div className={"flex-column"}>
-                              <ContainerNameScroller
-                                  disabled={disableChangeDestination}
-                                  containerType={DESTINATION_STRING}
-                                  name={destinationSamples.container_name}
-                                  changeContainer={changeContainer}
-                                  changeContainerName={changeDestinationName} />
-                              <PlacementContainer
-                                  selectedSampleList={selectedSamples}
-                                  containerType={DESTINATION_STRING}
-                                  columns={destinationSamples.columns}
-                                  rows={destinationSamples.rows}
-                                  samples={destinationSamples.samples}
-                                  updateSamples={updateSamples}
-                                  direction={placementType ? placementDirection : undefined}
-                                  pattern={!placementType} />
-                            </div>
-                            : <div className={"flex-column"}/>
-                          }
-                        </div>
-                        <div></div>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1vw' }}>
-                            <div>
-                                <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType} onChange={updateGroupPlacement}></Switch>
-                            </div>
+                    <>
+                      <Row justify="end" style={{padding: "10px"}}>
+                        <Col span={3}>
+                          <AddPlacementContainer onConfirm={(container) => addDestination(container)} setDestinationIndex={setDestinationIndex} destinationContainerList={destinationContainerList} />
+                        </Col>
+                        <Col span={3}>
+                          <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
+                        </Col>
+                      </Row>  
+                      <Row justify="start" style={{paddingTop: "20px", paddingBottom: "40px" }}>
+                        <Col span={12}>
+                          <div>
+                          <ContainerNameScroller
+                            disabled={disableChangeSource}
+                            containerType={SOURCE_STRING}
+                            name={sourceSamples.container_name}
+                            changeContainer={changeContainer} />
+                          <PlacementContainer
+                            selectedSampleList={selectedSamples}
+                            containerType={SOURCE_STRING}
+                            columns={sourceSamples.columns}
+                            rows={sourceSamples.rows}
+                            samples={sourceSamples.samples}
+                            updateSamples={updateSamples} />
+                          </div>
+                        </Col>
+                        { sourceSamples && destinationSamples ?
+                          <Col span={12}>
+                            <ContainerNameScroller
+                              disabled={disableChangeDestination}
+                              containerType={DESTINATION_STRING}
+                              name={destinationSamples.container_name}
+                              changeContainer={changeContainer}
+                              changeContainerName={changeDestinationName} />
+                            <PlacementContainer
+                              selectedSampleList={selectedSamples}
+                              containerType={DESTINATION_STRING}
+                              columns={destinationSamples.columns}
+                              rows={destinationSamples.rows}
+                              samples={destinationSamples.samples}
+                              updateSamples={updateSamples}
+                              direction={placementType ? placementDirection : undefined}
+                              pattern={!placementType} />
+                          </Col>
+                          : <Col span={12}/>
+                        }
+                      </Row>
+                      <Row justify="end" style={{padding: "10px"}}>
+                          <Col span={3}>
+                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType} onChange={updateGroupPlacement}></Switch>
+                          </Col>
+                          <Col span={3}>
                             <Radio.Group
                                 disabled={!placementType}
                                 value={placementDirection}
@@ -312,29 +317,29 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                 <Radio.Button value={'row'}> row </Radio.Button>
                                 <Radio.Button value={'column'}> column </Radio.Button>
                             </Radio.Group>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'end', gap: '1vw' }}>
-
-                            <Button onClick={transferAllSamples}>Place All Source</Button>
-                            <Button onClick={clearSelection}>Deselect All</Button>
-                            <Popconfirm
-                                title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
-                                onConfirm={removeSelectedCells}
-                                placement={'bottomRight'}
-                                disabled={disableUndo}
-                            >
-                                <Button disabled={disableUndo} > Undo Placement</Button>
-                            </Popconfirm>
-                        </div>
-                        <Row justify="space-evenly">
-                          <Col span={10}>
-                            <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples ? sourceSamples.samples : {})} selectedSamples={filterSelectedSamples(SOURCE_STRING)} />
                           </Col>
-                          <Col span={10}>
-                            <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, DESTINATION_STRING)} samples={filterPlacedSamples(destinationSamples ? destinationSamples.samples : {})} selectedSamples={filterSelectedSamples(DESTINATION_STRING)} />
-                          </Col>
-                        </Row>
-                    </div>
+                        <Col span={8}>
+                              <Button onClick={transferAllSamples}>Place All Source</Button>
+                              <Button onClick={clearSelection}>Deselect All</Button>
+                              <Popconfirm
+                                  title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
+                                  onConfirm={removeSelectedCells}
+                                  placement={'bottomRight'}
+                                  disabled={disableUndo}
+                              >
+                                  <Button disabled={disableUndo} > Undo Placement</Button>
+                              </Popconfirm>
+                        </Col>
+                      </Row>
+                      <Row justify="space-evenly"  style={{padding: "10px"}}>
+                        <Col span={10}>
+                          <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples ? sourceSamples.samples : {})} selectedSamples={filterSelectedSamples(SOURCE_STRING)} />
+                        </Col>
+                        <Col span={10}>
+                          <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, DESTINATION_STRING)} samples={filterPlacedSamples(destinationSamples ? destinationSamples.samples : {})} selectedSamples={filterSelectedSamples(DESTINATION_STRING)} />
+                        </Col>
+                      </Row>
+                    </>
                     : ""
                   }
                 </PageContent>

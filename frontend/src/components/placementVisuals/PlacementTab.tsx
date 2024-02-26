@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react"
 import Placement from "./Placement"
 import { notification } from "antd"
-import { useAppDispatch } from "../../hooks"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { selectContainerKindsByID } from "../../selectors";
 import api from "../../utils/api"
+import { FMSContainer } from "../../models/fms_api_models"
 
 export interface sampleInfo {
     coordinates: string,
@@ -27,6 +29,7 @@ export const SELECTED_STRING = 'selected'
 export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
 export const PREVIEW_STRING = 'preview'
+export const TUBES_WITHOUT_PARENT = "tubes_without_parent_container"
 
 interface PlacementTabProps {
     save: (changes) => void,
@@ -41,6 +44,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const dispatch = useAppDispatch()
     const [sourceContainerList, setSourceContainerList] = useState<containerSample[]>(createEmptyContainerArray())
     const [destinationContainerList, setDestinationContainerList] = useState<containerSample[]>(createEmptyContainerArray())
+    const containerKinds = useAppSelector(selectContainerKindsByID)
 
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
@@ -92,14 +96,22 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
             const containers = (values.data.results.samples.groups)
             containerSamples = []
-            containers.forEach(container => {
+            containers.forEach(async container => {
+              console.log(container)
+              if (container && container.name != TUBES_WITHOUT_PARENT) {
+                console.log("YO")
+                const container_detail: FMSContainer = await dispatch(api.containers.list({ name: container.name })).then(container => container.data.results[0])
+                console.log(container_detail)
+                console.log(containerKinds[container_detail.kind])
+                console.log(containerKinds[container_detail.kind].coordinate_spec[0])
                 containerSamples.push({
                     container_name: container.name,
                     samples: parseSamples(container.sample_locators, selectedSamples, container.name, [].concat(destination.map(container => Object.keys(container.samples)).flat(1))),
-                    columns: 12,
-                    rows: 8,
-                    container_kind: '96-well plate'
+                    columns: containerKinds[container_detail.kind].coordinate_spec[1].length,
+                    rows: containerKinds[container_detail.kind].coordinate_spec[0].length,
+                    container_kind: container_detail.kind
                 })
+              }
             })
         }
         setSourceContainerList(containerSamples)
