@@ -1,4 +1,3 @@
-import { PaginationParameters } from "../../components/WorkflowSamplesTable/WorkflowSamplesTable"
 import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"

@@ -3,7 +3,6 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { CompletedStudySample } from "../../modules/studySamples/models"
 import { WithSampleRenderComponent } from '../shared/WithItemRenderComponent'
-import { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 
 type CompletedSampleColumn = TableColumnType<CompletedStudySample>
 
@@ -69,10 +68,9 @@ const COMMENT: CompletedSampleColumn = {
  
 interface CompletedSamplesTableProps {
 	completedSamples: CompletedStudySample[]
-	pagination: PaginationParameters
 }
 
-function CompletedSamplesTable({completedSamples, pagination} : CompletedSamplesTableProps) {
+function CompletedSamplesTable({completedSamples} : CompletedSamplesTableProps) {
 	return (
 	<>
 		<Table 
