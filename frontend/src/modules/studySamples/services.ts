@@ -6,14 +6,8 @@ import store from "../../store"
 import api from "../../utils/api"
 import { isNullish } from "../../utils/functions"
 import { timestampStringAsDate } from "../../utils/humanReadableTime"
-import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
+import { fetchLibrariesForSamples, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleStep, StudySamplesCount } from "./models"
-
-function getLimitAndOffset(studyID: FMSId, stepOrderID: number) {
-	const limit = 10
-	const offset = 0
-	return { limit, offset }
-}
 
 export async function loadStudySamples(studyID: FMSId): Promise<{ steps: StudySampleStep[] }> {
 	const studiesById = selectStudiesByID(store.getState())
@@ -32,8 +26,9 @@ export async function loadStudySamples(studyID: FMSId): Promise<{ steps: StudySa
 }
 
 export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: WorkflowStepOrder) {
-	const { offset, limit } = getLimitAndOffset(studyID, stepOrder.id) ?? {}
-	
+	const offset = 0
+	const limit = 10000
+
 	const study = (await fetchStudies([studyID])).find(obj => obj.id === studyID)
 	if(! study) {
 		throw new Error(`Study "${studyID}" not found.`)
@@ -138,38 +133,21 @@ export async function buildStudySamplesFromWorkflowStepOrder(
 		sampleNextStepByStudyBySampleID
 	}
 
-	// Get the process measurements for the completed samples
-	const processMeasurementIDs = completedSamples.filter((completed) => !isNullish(completed.process_measurement)).map(completed => completed.process_measurement)
-	const processMeasurements = await fetchProcessMeasurements(processMeasurementIDs)
-	const processMeasurementsByID = createItemsByID(processMeasurements)
-
-	// Get the processes for the completed samples
-	const processIDs = processMeasurements.map(pm => pm.process)
-	const processes = await fetchProcesses(processIDs)
-	const processesByID = createItemsByID(processes)
-
-	// Get the user ID's for the processes
-	const processesUserIDs = processes.map(process => process.created_by)
-	// Get the user ID's for the step history without processes
 	const stepHistoryUserIDs = completedSamples.filter((completed) => isNullish(completed.process_measurement)).map(completed => completed.created_by)
-	const userIDs = processesUserIDs.concat(stepHistoryUserIDs)
+	const userIDs = stepHistoryUserIDs // processesUserIDs are fetched lazily in CompletedSamplesTable
 	const users = await fetchUsers(userIDs)
 	const usersByID = createItemsByID(users)
 
-	completedSamples.forEach(stepHistory => {
-		const processMeasurement = processMeasurementsByID[stepHistory.process_measurement]
-		const process = processMeasurement ? processesByID[processMeasurement.process] : undefined
-		const user = process && process.created_by ? usersByID[process.created_by] : stepHistory.created_by ? usersByID[stepHistory.created_by] : undefined
-		
+	completedSamples.forEach(stepHistory => {		
+		// process.created_by is fetched lazily in CompletedSamplesTable
+		const user = stepHistory.created_by ? usersByID[stepHistory.created_by] : undefined
+
 		const completedSample : CompletedStudySample = {
 			id: stepHistory.id,
 			sampleID: stepHistory.sample,
-			generatedSampleID: processMeasurement?.child_sample,
-			processID: processMeasurement?.process,
 			processMeasurementID: stepHistory.process_measurement,
-			executionDate: processMeasurement ? processMeasurement?.execution_date : timestampStringAsDate(stepHistory.created_at),
+			executionDate: timestampStringAsDate(stepHistory.created_at), // processMeasurement?.execution_date is fetched lazily in CompletedSamplesTable
 			executedBy: user?.username,
-			comment: processMeasurement?.comment,
 			removedFromWorkflow: stepHistory.workflow_action === 'DEQUEUE_SAMPLE'
 		}
 		step.completed.push(completedSample)
@@ -179,7 +157,8 @@ export async function buildStudySamplesFromWorkflowStepOrder(
 }
 
 export async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number) {
-	const { offset, limit } = getLimitAndOffset(studyID, stepOrderID) ?? {}
+	const offset = 0
+	const limit = 10000
 
 	const studySettingsByID = selectStudySettingsByID(store.getState())
 

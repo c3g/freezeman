@@ -6,13 +6,15 @@ import { FetchedState } from "../common"
 export interface CompletedStudySample {
 	readonly id: FMSId							// StepHistory ID 
 	readonly sampleID: FMSId
+	readonly processMeasurementID: FMSId
+	readonly removedFromWorkflow: boolean
+	// requires process, user, and process measurement
+	// so let's load them lazily
 	readonly generatedSampleID?: FMSId
 	readonly processID?: FMSId
-	readonly processMeasurementID?: FMSId
 	readonly executionDate?: string
 	readonly executedBy?: string
 	readonly comment?: string
-	readonly removedFromWorkflow: boolean
 }
 
 export interface StudySampleStep {
