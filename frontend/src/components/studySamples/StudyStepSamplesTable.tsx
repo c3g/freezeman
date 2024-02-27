@@ -1,18 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { FMSId } from '../../models/fms_api_models'
-import { Protocol } from '../../models/frontend_models'
-import { clearFilters, refreshStudySamples, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepSortOrder } from '../../modules/studySamples/actions'
+import { FMSId, FMSSampleNextStepByStudy } from '../../models/fms_api_models'
+import { Protocol, Sample } from '../../models/frontend_models'
+import { clearFilters, refreshStudySamples, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepPageSize, setStudyStepSortOrder } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID } from '../../selectors'
 import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../samples/SampleTableColumns'
-import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable, { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'
 import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
+import { fetchSampleAndLibraryNextSteps } from '../../modules/studySamples/services'
 
 interface StudyStepSamplesTableProps {
 	studyID: FMSId
@@ -25,27 +26,24 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 	const dispatch = useAppDispatch()
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)
-	const samplesByID = useAppSelector(selectSamplesByID)
-	const librariesByID = useAppSelector(selectLibrariesByID)
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
+	const [sampleNextStepByStudyBySampleID, setSampleNextStepByStudyBySampleID] = useState({})
+
+	const [pageNumber, setPageNumber] = useState(1)
+	const pageSize = settings?.pageSize ?? 10
+
+	const onChangePageNumber = useCallback((pageNumber: number) => { setPageNumber(pageNumber) }, [pageNumber])
+	const onChangePageSize = useCallback((pageSize: number) => { dispatch(setStudyStepPageSize(studyID, step.stepOrderID, pageSize)) }, [studyID, step.stepOrderID])
 
 	useEffect(() => {
-		const sampleIDs = step.samples ?? []
-		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
-			const sample = samplesByID[sampleID]
-			if (sample) {
-				if (sample.is_library) {
-					const library = librariesByID[sampleID]
-					acc.push({ sample, library })
-				} else {
-					acc.push({ sample })
-				}
-			}
-			return acc
-		}, [] as SampleAndLibrary[])
-
-		setSamples(availableSamples)
-	}, [samplesByID, librariesByID, step])
+			fetchSampleAndLibraryNextSteps(studyID, step.stepOrderID, pageSize, pageSize * (pageNumber - 1)).then(({ availableSamples, sampleNextSteps }) => {
+				setSamples(availableSamples)
+				setSampleNextStepByStudyBySampleID(sampleNextSteps.reduce((sampleNextStepByStudyBySampleID, current) => {
+					sampleNextStepByStudyBySampleID[current.sample] = current
+					return sampleNextStepByStudyBySampleID
+				}, {} as { [key: Sample['id']]: FMSSampleNextStepByStudy }))
+			})
+	}, [studyID, step.stepOrderID, pageSize, pageNumber])
 
 	const setFilter = useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
@@ -82,7 +80,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 						message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
 						key: REMOVE_NOTIFICATION_KEY
 					})
-					await dispatch(api.sampleNextStepByStudy.remove(step.sampleNextStepByStudyBySampleID[sample.id].id))
+					await dispatch(api.sampleNextStepByStudy.remove(sampleNextStepByStudyBySampleID[sample.id].id))
 					await dispatch(refreshStudySamples(studyID))
 					notification.close(REMOVE_NOTIFICATION_KEY)
 				}}
@@ -92,7 +90,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 				<Typography.Link underline type={'danger'} href={''}>Remove</Typography.Link>
 			</Popconfirm>
 		}
-	}), [dispatch, step.sampleNextStepByStudyBySampleID, step.stepID, step.stepName, studyID])
+	}), [dispatch, sampleNextStepByStudyBySampleID, step.stepID, step.stepName, studyID])
 
 	const columns: IdentifiedTableColumnType<SampleAndLibrary>[] = useMemo(() => {
 		if (stepDefinition) { // missing protocol leads to default columns
@@ -124,6 +122,7 @@ function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTabl
 			setFilter={setFilter}
 			setFilterOptions={setFilterOptions}
 			setSortBy={setSortBy}
+			pagination={{ pageNumber, pageSize, totalCount: step.sampleCount, onChangePageNumber, onChangePageSize }}
 		/>
 	)
 }

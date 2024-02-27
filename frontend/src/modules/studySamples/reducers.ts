@@ -24,6 +24,8 @@ export const SET_STUDY_STEP_FILTER_OPTIONS = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTE
 export const REMOVE_STUDY_STEP_FILTER = 'STUDY_SAMPLES.REMOVE_STUDY_STEP_FILTER'
 export const SET_STUDY_STEP_SORT_ORDER = 'STUDY_SAMPLES.SET_STUDY_STEP_SORT_ORDER'
 export const CLEAR_FILTERS = "STUDY_SAMPLES.CLEAR_FILTERS"
+export const SET_STUDY_STEP_PAGE_SIZE = 'STUDY_SAMPLES.SET_STUDY_STEP_PAGE_SIZE'
+
 /* 
 	The studySamples state is used by the study details page to list the
 	workflow steps in a study and the samples that are at each step.
@@ -131,6 +133,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 				for (const stepOrderID of stepOrderIDs) {
 					studyUXSettings.stepSettings[stepOrderID] = {
 						stepOrderID,
+						pageSize: 10
 					}
 				}
 				state.studySettingsByID[studyID] = studyUXSettings
@@ -210,6 +213,15 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 					key: sortBy.key,
 					order: sortBy.order,
 				}
+			}
+			break
+		}
+
+		case SET_STUDY_STEP_PAGE_SIZE: {
+			const { studyID, stepOrderID, pageSize } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepOrderID]
+			if (step) {
+				step.pageSize = pageSize
 			}
 			break
 		}

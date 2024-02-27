@@ -3,13 +3,14 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
-import { initStudySamplesSettings, setHideEmptySteps, setStudyExpandedSteps, setStudyStepSamplesTab } from '../../modules/studySamples/actions'
-import { StudySampleList, StudySampleStep, StudyUXSettings, StudyUXStepSettings } from '../../modules/studySamples/models'
+import { setHideEmptySteps, setStudyExpandedSteps, setStudyStepSamplesTab } from '../../modules/studySamples/actions'
+import { StudySampleStep, StudySampleList, StudyUXSettings, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectHideEmptySteps, selectStudySettingsByID } from '../../selectors'
 import RefreshButton from '../RefreshButton'
 import CompletedSamplesTable from './CompletedSamplesTable'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 import { WarningOutlined } from '@ant-design/icons'
+import { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 
 const { Text, Title } = Typography
 
@@ -30,10 +31,8 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	useEffect(() => {
 		const settings = studySettingsByID[studyID]
 		if(settings) {
+			// settings for all steps should be initialized as soon as the study is loaded
 			setUXSettings(settings)
-		} else {
-			const stepOrderIDs = studySamples.steps.map(step => step.stepOrderID)
-			dispatch(initStudySamplesSettings(studyID, stepOrderIDs))
 		}
 	}, [studyID, studySamples, studySettingsByID, dispatch])
 	
@@ -70,9 +69,14 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	}
 
 	// If Hide Empty Steps then don't render steps with no ready or completed samples.
-	let renderedSteps = [...studySamples.steps]
-	if (hideEmptySteps) {
-		renderedSteps = renderedSteps.filter((step) => step.samples.length > 0 || step.completed.length > 0)
+	let renderedSteps: StudySampleStep[] = []
+
+	try {
+		renderedSteps = [...studySamples.steps]
+		if (hideEmptySteps) {
+			renderedSteps = renderedSteps.filter((step) => step.sampleCount > 0 || step.completedCount > 0)
+		}
+	} catch (e) {
 	}
 
 	return (
@@ -110,21 +114,19 @@ interface StepPanelProps {
 }
 function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 	const dispatch = useAppDispatch()
-
-	const countString = `${step.completedCount} / ${step.sampleCount + step.completedCount}`
-	const countTitle = `${step.completedCount} of ${step.sampleCount + step.completedCount} samples are completed`
 	
-	const completedSamples = step.completed.filter(completed => completed.removedFromWorkflow === false)
-	const removedSamples = step.completed.filter(completed => completed.removedFromWorkflow === true)
-	const hasRemovedSamples = removedSamples.length > 0
+	const countString = `${step.completedCount} / ${step.sampleCount + step.completedCount + step.dequeuedCount}`
+	const countTitle = `${step.completedCount} of ${step.sampleCount + step.completedCount + step.dequeuedCount} samples are completed`
+	
+	const hasRemovedSamples = step.dequeuedCount > 0
 
-	const removedTitle = removedSamples.length === 1 ? `1 sample was removed from study at this step` : `${removedSamples.length} samples were removed from study at this step`
+	const removedTitle = step.dequeuedCount === 1 ? `1 sample was removed from study at this step` : `${step.dequeuedCount} samples were removed from study at this step`
 
 	const readyTab = `Ready for Processing (${step.sampleCount})`
-	const completedTab = <Text>{`Completed (${completedSamples.length})`}</Text>
+	const completedTab = <Text>{`Completed (${step.completedCount})`}</Text>
 	const removedTab = 
 		<Space size={'small'}>
-			<Text>{`Removed (${removedSamples.length})`}</Text>
+			<Text>{`Removed (${step.dequeuedCount})`}</Text>
 			<WarningOutlined style={{color: 'red'}} title={removedTitle}/>
 		</Space>
 		
@@ -161,11 +163,11 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings}/>
 				</Tabs.TabPane>
 				<Tabs.TabPane tab={completedTab} key='completed'>
-					<CompletedSamplesTable completedSamples={completedSamples}/>
+					<CompletedSamplesTable studyID={studyID} step={step} settings={uxSettings} workflowAction={'NEXT_STEP'}/>
 				</Tabs.TabPane>
 				{hasRemovedSamples && 
 				<Tabs.TabPane tab={removedTab} key='removed'>
-					<CompletedSamplesTable completedSamples={removedSamples}/>
+					<CompletedSamplesTable studyID={studyID} step={step} settings={uxSettings} workflowAction={'DEQUEUE_SAMPLE'}/>
 				</Tabs.TabPane>
 				}
 			</Tabs>
