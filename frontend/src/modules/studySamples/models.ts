@@ -1,4 +1,4 @@
-import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
+import { FMSId, FMSSampleNextStepByStudy, FMSStepHistory, WorkflowStepOrder } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
 import { FetchedState } from "../common"
@@ -17,6 +17,14 @@ export interface CompletedStudySample {
 	readonly comment?: string
 }
 
+export interface PreStudySampleStep {
+	stepOrder: WorkflowStepOrder;
+    sampleNextSteps: FMSSampleNextStepByStudy[];
+    completedSamples: FMSStepHistory[];
+    sampleNextStepsCount: StudySamplesCount;
+    completedSamplesCount: StudySamplesCount;
+}
+
 export interface StudySampleStep {
 	readonly stepID:	FMSId					// step ID
 	readonly stepName: string					// step name
@@ -32,7 +40,7 @@ export interface StudySampleStep {
 
 // List of steps
 export interface StudySampleList {
-	readonly steps: StudySampleStep[]
+	readonly steps: PreStudySampleStep[]
 }
 
 export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}	// key: Study ID

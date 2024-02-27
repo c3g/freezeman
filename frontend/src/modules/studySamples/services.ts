@@ -7,9 +7,9 @@ import api from "../../utils/api"
 import { isNullish } from "../../utils/functions"
 import { timestampStringAsDate } from "../../utils/humanReadableTime"
 import { fetchLibrariesForSamples, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
-import { CompletedStudySample, StudySampleStep, StudySamplesCount } from "./models"
+import { CompletedStudySample, PreStudySampleStep, StudySampleStep, StudySamplesCount } from "./models"
 
-export async function loadStudySamples(studyID: FMSId): Promise<{ steps: StudySampleStep[] }> {
+export async function loadStudySamples(studyID: FMSId): Promise<{ steps: PreStudySampleStep[] }> {
 	const studiesById = selectStudiesByID(store.getState())
 	const workflowsById = selectWorkflowsByID(store.getState())
 	const study = studiesById[studyID]
@@ -74,16 +74,22 @@ export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: Workflow
 		}
 	};
 
-	const studySamples = await buildStudySamplesFromWorkflowStepOrder(
+	return {
 		stepOrder,
 		sampleNextSteps,
 		completedSamples,
 		sampleNextStepsCount,
 		completedSamplesCount
-	)
+	}
+}
 
-	// Fetch the study samples
-	const sampleList = listSamplesInStep(studySamples)
+export async function fetchSamplesAndLibrariesForStep(step: StudySampleStep) {
+	const samples = new Set<FMSId>(step.samples)
+	for(const completed of step.completed) {
+		samples.add(completed.sampleID)
+	}
+	const sampleList = [...samples.values()]
+
 	if (sampleList.length > 0) {
 		const samples = await fetchSamples(sampleList)
 		if (samples.length > 0) {
@@ -91,25 +97,15 @@ export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: Workflow
 			await fetchLibrariesForSamples(sampleIDs)
 		}
 	}
-
-	return studySamples
 }
 
-function listSamplesInStep(step: StudySampleStep) {
-	const samples = new Set<FMSId>(step.samples)
-	for(const completed of step.completed) {
-		samples.add(completed.sampleID)
-	}
-	return [...samples.values()]
-}
-
-export async function buildStudySamplesFromWorkflowStepOrder(
-	stepOrder: WorkflowStepOrder, 
-	sampleNextSteps: FMSSampleNextStepByStudy[],
-	completedSamples: FMSStepHistory[],
-	samplesCount: StudySamplesCount | undefined,
-	completedSamplesCount: StudySamplesCount | undefined,
-) : Promise<StudySampleStep> {
+export async function buildStudySamplesFromWorkflowStepOrder({
+	stepOrder, 
+	sampleNextSteps,
+	completedSamples,
+	sampleNextStepsCount,
+	completedSamplesCount,
+}: PreStudySampleStep) : Promise<StudySampleStep> {
 	const samples = sampleNextSteps.map(nextStep => nextStep.sample)
 
 	const sampleNextStepByStudyBySampleID: StudySampleStep['sampleNextStepByStudyBySampleID'] =
@@ -117,7 +113,7 @@ export async function buildStudySamplesFromWorkflowStepOrder(
 
 	// Find the sample count for this step, if it is there. The backend returns nothing
 	// if there are zero samples for a step.
-	const sampleCountStep = samplesCount?.step
+	const sampleCountStep = sampleNextStepsCount?.step
 	const completedStep = completedSamplesCount?.step
 
 	const step : StudySampleStep = {

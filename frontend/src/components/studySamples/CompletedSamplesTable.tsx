@@ -73,17 +73,17 @@ interface CompletedSamplesTableProps {
 }
 
 function CompletedSamplesTable({completedSamples} : CompletedSamplesTableProps) {
-	const [samples, setSamples] = useState<CompletedStudySample[]>(completedSamples)
+	const [samples, setSamples] = useState<CompletedStudySample[]>([])
 	const [loading, setLoading] = useState(true)
 	const pageSize = 10
 
 	const addOptionalFields = useCallback(async (offset: number, limit: number) => {
-		function withinRange(index: number) {
+		function withinRange(_: any, index: number) {
 			return index >= offset && index < (offset + limit)
 		}
 
 		// Get the process measurements for the completed samples
-		const processMeasurementIDs = samples.filter((_, index) => withinRange(index)).map(completed => completed.processMeasurementID)
+		const processMeasurementIDs = completedSamples.filter(withinRange).map(completed => completed.processMeasurementID)
 		const processMeasurements = await fetchProcessMeasurements(processMeasurementIDs)
 		const processMeasurementsByID = createItemsByID(processMeasurements)
 
@@ -99,11 +99,7 @@ function CompletedSamplesTable({completedSamples} : CompletedSamplesTableProps) 
 		const users = await fetchUsers(userIDs)
 		const usersByID = createItemsByID(users)
 
-		setSamples((samples) => samples.map((sample, index) => {
-			if (!withinRange(index)) {
-				return sample
-			}
-
+		setSamples(completedSamples.filter(withinRange).map((sample) => {
 			const processMeasurement = processMeasurementsByID[sample.processMeasurementID]
 			const process = processMeasurement ? processesByID[processMeasurement.process] : undefined
 			const userName = process && process.created_by ? usersByID[process.created_by]?.username : sample.executedBy
@@ -117,16 +113,16 @@ function CompletedSamplesTable({completedSamples} : CompletedSamplesTableProps) 
 				comment: processMeasurement?.comment,
 			}
 		}))
-	}, [])
+	}, [completedSamples])
 	
 	const onChangePageNumber = useCallback((pageNumber: number) => {
 		setLoading(true)
 		addOptionalFields(pageSize * (pageNumber - 1), pageSize).then(() => setLoading(false))
-	}, [])
+	}, [addOptionalFields])
 
 	useEffect(() => {
 		addOptionalFields(0, pageSize).then(() => setLoading(false))
-	}, [])
+	}, [addOptionalFields])
 
 	return (
 	<>
@@ -144,7 +140,8 @@ function CompletedSamplesTable({completedSamples} : CompletedSamplesTableProps) 
 			rowKey={completedSample => completedSample.id}
 			loading={loading}
 			pagination={{
-				onChange(page, pageSize) { onChangePageNumber(page) }
+				onChange(page) { onChangePageNumber(page) },
+				total: completedSamples.length
 			}}
 		/>
 	</>)

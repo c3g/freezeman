@@ -1,15 +1,16 @@
-import { Collapse, Space, Switch, Tabs, Typography } from 'antd'
+import { Collapse, Space, Spin, Switch, Tabs, Typography } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
 import { initStudySamplesSettings, setHideEmptySteps, setStudyExpandedSteps, setStudyStepSamplesTab } from '../../modules/studySamples/actions'
-import { StudySampleList, StudySampleStep, StudyUXSettings, StudyUXStepSettings } from '../../modules/studySamples/models'
+import { PreStudySampleStep, StudySampleList, StudySampleStep, StudyUXSettings, StudyUXStepSettings } from '../../modules/studySamples/models'
 import { selectHideEmptySteps, selectStudySettingsByID } from '../../selectors'
 import RefreshButton from '../RefreshButton'
 import CompletedSamplesTable from './CompletedSamplesTable'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 import { WarningOutlined } from '@ant-design/icons'
+import { buildStudySamplesFromWorkflowStepOrder, fetchSamplesAndLibrariesForStep } from '../../modules/studySamples/services'
 
 const { Text, Title } = Typography
 
@@ -32,7 +33,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 		if(settings) {
 			setUXSettings(settings)
 		} else {
-			const stepOrderIDs = studySamples.steps.map(step => step.stepOrderID)
+			const stepOrderIDs = studySamples.steps.map(step => step.stepOrder.id)
 			dispatch(initStudySamplesSettings(studyID, stepOrderIDs))
 		}
 	}, [studyID, studySamples, studySettingsByID, dispatch])
@@ -72,7 +73,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	// If Hide Empty Steps then don't render steps with no ready or completed samples.
 	let renderedSteps = [...studySamples.steps]
 	if (hideEmptySteps) {
-		renderedSteps = renderedSteps.filter((step) => step.samples.length > 0 || step.completed.length > 0)
+		renderedSteps = renderedSteps.filter((step) => step.sampleNextStepsCount.step.count > 0 || step.completedSamplesCount.step.count > 0)
 	}
 
 	return (
@@ -94,9 +95,9 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 				</Space>
 			</div>
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
-				{renderedSteps.map((step) => {
+				{renderedSteps.map((preStep) => {
 					// Call StepPanel as a function because the child of Collapse must be a CollapsePanel, not a StepPanel
-					return StepPanel({step, studyID, uxSettings:uxSettings?.stepSettings[step.stepOrderID]})
+					return StepPanel({preStep, studyID, uxSettings:uxSettings?.stepSettings[preStep.stepOrder.id]})
 				})}
 			</Collapse>
 		</>
@@ -104,13 +105,41 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 }
 
 interface StepPanelProps {
-	step: StudySampleStep
+	preStep: PreStudySampleStep
 	studyID: FMSId
 	uxSettings?: StudyUXStepSettings
 }
-function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
+function StepPanel({preStep, studyID, uxSettings} : StepPanelProps) {
+	const [step, setStep] = useState<StudySampleStep>()
 	const dispatch = useAppDispatch()
+	
+	const [hasExpended, setHasExpanded] = useState(uxSettings?.expanded)
+	const [loadingSamples, setLoadingSamples] = useState(true)
 
+	useEffect(() => {
+		buildStudySamplesFromWorkflowStepOrder(preStep).then((step) => setStep(step))
+	}, [preStep])
+	useEffect(() => {
+		if (uxSettings?.expanded) {
+			setHasExpanded(true)
+		}
+	}, [uxSettings?.expanded])
+	useEffect(() => {
+		if (step && hasExpended) {
+			fetchSamplesAndLibrariesForStep(step).then(() => setLoadingSamples(false))
+		}
+	}, [step, hasExpended])
+
+	const handleTabSelection = useCallback((activeKey: string) => {
+		if (step) {
+			dispatch(setStudyStepSamplesTab(studyID, step.stepOrderID, activeKey as any))
+		}
+	}, [dispatch, step, studyID])
+
+	if (!step) {
+		return <></>
+	}
+	
 	const countString = `${step.completedCount} / ${step.sampleCount + step.completedCount}`
 	const countTitle = `${step.completedCount} of ${step.sampleCount + step.completedCount} samples are completed`
 	
@@ -129,10 +158,6 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 		</Space>
 		
 	const goToLab = <Link style={{marginRight: '1rem'}} to={`/lab-work/step/${step.stepID}`}>{'Go to Processing'}</Link>
-
-	function handleTabSelection(activeKey: string) {
-		dispatch(setStudyStepSamplesTab(studyID, step.stepOrderID, activeKey as any))
-	}
 
 	return (
 		<Collapse.Panel
@@ -156,19 +181,21 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 			}
 			style={{backgroundColor: 'white'}}
 		>
-			<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
-				<Tabs.TabPane tab={readyTab} key='ready'>
+			{loadingSamples ? <Spin /> :
+				<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
+					<Tabs.TabPane tab={readyTab} key='ready'>
 					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings}/>
-				</Tabs.TabPane>
-				<Tabs.TabPane tab={completedTab} key='completed'>
-					<CompletedSamplesTable completedSamples={completedSamples}/>
-				</Tabs.TabPane>
-				{hasRemovedSamples && 
-				<Tabs.TabPane tab={removedTab} key='removed'>
-					<CompletedSamplesTable completedSamples={removedSamples}/>
-				</Tabs.TabPane>
-				}
-			</Tabs>
+					</Tabs.TabPane>
+					<Tabs.TabPane tab={completedTab} key='completed'>
+						<CompletedSamplesTable completedSamples={completedSamples}/>
+					</Tabs.TabPane>
+					{hasRemovedSamples && 
+					<Tabs.TabPane tab={removedTab} key='removed'>
+						<CompletedSamplesTable completedSamples={removedSamples}/>
+					</Tabs.TabPane>
+					}
+				</Tabs>
+			}
 		</Collapse.Panel>
 	)
 }

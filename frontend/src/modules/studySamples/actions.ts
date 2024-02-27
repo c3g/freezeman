@@ -39,8 +39,8 @@ function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
 	return async (dispatch: AppDispatch) => {
 
 		// Get the updated list of SampleNextStep objects for the step
-		const result = await fetchSamplesAtStepOrder(studyID, stepOrderID)
-		const sampleIDs = result.sampleNextSteps.map(nextStep => nextStep.sample)
+		const { sampleNextSteps } = await fetchSamplesAtStepOrder(studyID, stepOrderID)
+		const sampleIDs = sampleNextSteps.map(nextStep => nextStep.sample)
 
 		// Fetch any samples that need to be loaded
 		await fetchSamples(sampleIDs)
@@ -50,7 +50,7 @@ function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
 			type: SET_REFRESHED_STEP_SAMPLES,
 			studyID,
 			stepOrderID,
-			sampleIDs,
+			sampleNextSteps,
 		})
 
 	}

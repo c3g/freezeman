@@ -18,6 +18,7 @@ interface StudyStepSamplesTableProps {
 	studyID: FMSId
 	step: StudySampleStep
 	settings?: StudyUXStepSettings
+	loading?: boolean
 }
 
 function StudyStepSamplesTable({ studyID, step, settings }: StudyStepSamplesTableProps) {
