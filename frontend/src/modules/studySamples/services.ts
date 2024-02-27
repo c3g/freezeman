@@ -83,13 +83,7 @@ export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: Workflow
 	}
 }
 
-export async function fetchSamplesAndLibrariesForStep(step: StudySampleStep) {
-	const samples = new Set<FMSId>(step.samples)
-	for(const completed of step.completed) {
-		samples.add(completed.sampleID)
-	}
-	const sampleList = [...samples.values()]
-
+export async function fetchSamplesAndLibrariesForStep(sampleList: number[]) {
 	if (sampleList.length > 0) {
 		const samples = await fetchSamples(sampleList)
 		if (samples.length > 0) {

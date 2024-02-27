@@ -5,6 +5,7 @@ import { CompletedStudySample } from "../../modules/studySamples/models"
 import { WithSampleRenderComponent } from '../shared/WithItemRenderComponent'
 import { fetchProcessMeasurements, fetchProcesses, fetchUsers } from '../../modules/cache/cache'
 import { createItemsByID } from '../../models/frontend_models'
+import { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 
 type CompletedSampleColumn = TableColumnType<CompletedStudySample>
 
@@ -70,9 +71,10 @@ const COMMENT: CompletedSampleColumn = {
  
 interface CompletedSamplesTableProps {
 	completedSamples: CompletedStudySample[]
+	pagination?: PaginationParameters
 }
 
-function CompletedSamplesTable({completedSamples} : CompletedSamplesTableProps) {
+function CompletedSamplesTable({completedSamples, pagination} : CompletedSamplesTableProps) {
 	const [samples, setSamples] = useState<CompletedStudySample[]>([])
 	const [loading, setLoading] = useState(true)
 	const pageSize = 10
@@ -117,8 +119,11 @@ function CompletedSamplesTable({completedSamples} : CompletedSamplesTableProps) 
 	
 	const onChangePageNumber = useCallback((pageNumber: number) => {
 		setLoading(true)
-		addOptionalFields(pageSize * (pageNumber - 1), pageSize).then(() => setLoading(false))
-	}, [addOptionalFields])
+		addOptionalFields(pageSize * (pageNumber - 1), pageSize).then(() => {
+			setLoading(false)
+		})
+		pagination?.onChangePageNumber(pageNumber)
+	}, [addOptionalFields, pagination])
 
 	useEffect(() => {
 		addOptionalFields(0, pageSize).then(() => setLoading(false))

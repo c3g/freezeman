@@ -1,5 +1,5 @@
 import { Collapse, Space, Spin, Switch, Tabs, Typography } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
@@ -110,11 +110,20 @@ interface StepPanelProps {
 	uxSettings?: StudyUXStepSettings
 }
 function StepPanel({preStep, studyID, uxSettings} : StepPanelProps) {
-	const [step, setStep] = useState<StudySampleStep>()
+	const pageSize = 10
+
 	const dispatch = useAppDispatch()
-	
+	const [step, setStep] = useState<StudySampleStep>()
 	const [hasExpended, setHasExpanded] = useState(uxSettings?.expanded)
-	const [loadingSamples, setLoadingSamples] = useState(true)
+	const [loadingSamples, setLoadingSamples] = useState(false)
+
+	const [pageNumberReady, setPageNumberReady] = useState(1)
+	const [pageNumberCompleted, setPageNumberCompleted] = useState(1)
+	const [pageNumberRemoved, setPageNumberRemoved] = useState(1)
+
+	const completedSamples = useMemo(() => step?.completed.filter(completed => completed.removedFromWorkflow === false) ?? [], [step?.completed])
+	const removedSamples = useMemo(() => step?.completed.filter(completed => completed.removedFromWorkflow === true) ?? [], [step?.completed])
+	const hasRemovedSamples = removedSamples.length > 0
 
 	useEffect(() => {
 		buildStudySamplesFromWorkflowStepOrder(preStep).then((step) => setStep(step))
@@ -125,10 +134,24 @@ function StepPanel({preStep, studyID, uxSettings} : StepPanelProps) {
 		}
 	}, [uxSettings?.expanded])
 	useEffect(() => {
-		if (step && hasExpended) {
-			fetchSamplesAndLibrariesForStep(step).then(() => setLoadingSamples(false))
+		if (uxSettings?.selectedSamplesTab && step && hasExpended && !loadingSamples) {
+			(async () => {
+				setLoadingSamples(true)
+				switch (uxSettings?.selectedSamplesTab) {
+					case "ready":
+						await fetchSamplesAndLibrariesForStep(step.samples.slice(pageSize * (pageNumberReady - 1), pageSize * pageNumberReady))
+						break
+					case "completed":
+						await fetchSamplesAndLibrariesForStep(completedSamples.slice(pageSize * (pageNumberCompleted - 1), pageSize * pageNumberCompleted).map((s) => s.sampleID))
+						break
+					case "removed":
+						await fetchSamplesAndLibrariesForStep(removedSamples.slice(pageSize * (pageNumberRemoved - 1), pageSize * pageNumberRemoved).map((s) => s.sampleID))
+						break
+				}
+				setLoadingSamples(false)
+			})()
 		}
-	}, [step, hasExpended])
+	}, [step, hasExpended, pageNumberReady, pageNumberCompleted, pageNumberRemoved, uxSettings?.selectedSamplesTab, completedSamples, removedSamples, loadingSamples, uxSettings])
 
 	const handleTabSelection = useCallback((activeKey: string) => {
 		if (step) {
@@ -142,10 +165,6 @@ function StepPanel({preStep, studyID, uxSettings} : StepPanelProps) {
 	
 	const countString = `${step.completedCount} / ${step.sampleCount + step.completedCount}`
 	const countTitle = `${step.completedCount} of ${step.sampleCount + step.completedCount} samples are completed`
-	
-	const completedSamples = step.completed.filter(completed => completed.removedFromWorkflow === false)
-	const removedSamples = step.completed.filter(completed => completed.removedFromWorkflow === true)
-	const hasRemovedSamples = removedSamples.length > 0
 
 	const removedTitle = removedSamples.length === 1 ? `1 sample was removed from study at this step` : `${removedSamples.length} samples were removed from study at this step`
 
@@ -184,15 +203,36 @@ function StepPanel({preStep, studyID, uxSettings} : StepPanelProps) {
 			{loadingSamples ? <Spin /> :
 				<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
 					<Tabs.TabPane tab={readyTab} key='ready'>
-					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings}/>
+					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings} pagination={{
+						totalCount: step.samples.length,
+						pageNumber: pageNumberReady,
+						pageSize,
+						onChangePageNumber(pageNumber) { setPageNumberReady(pageNumber) },
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						onChangePageSize() {},
+					}}/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={completedTab} key='completed'>
-						<CompletedSamplesTable completedSamples={completedSamples}/>
+						<CompletedSamplesTable completedSamples={completedSamples} pagination={{
+						totalCount: completedSamples.length,
+						pageNumber: pageNumberCompleted,
+						pageSize,
+						onChangePageNumber(pageNumber) { setPageNumberCompleted(pageNumber) },
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						onChangePageSize() {},
+					}}/>
 					</Tabs.TabPane>
 					{hasRemovedSamples && 
-					<Tabs.TabPane tab={removedTab} key='removed'>
-						<CompletedSamplesTable completedSamples={removedSamples}/>
-					</Tabs.TabPane>
+						<Tabs.TabPane tab={removedTab} key='removed'>
+							<CompletedSamplesTable completedSamples={removedSamples} pagination={{
+							totalCount: removedSamples.length,
+							pageNumber: pageNumberRemoved,
+							pageSize,
+							onChangePageNumber(pageNumber) { setPageNumberRemoved(pageNumber) },
+							// eslint-disable-next-line @typescript-eslint/no-empty-function
+							onChangePageSize() {},
+						}}/>
+						</Tabs.TabPane>
 					}
 				</Tabs>
 			}
