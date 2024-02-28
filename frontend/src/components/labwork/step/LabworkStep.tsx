@@ -39,7 +39,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// Keep track of the currently selected tab so that we can tweak the UX
 	const GROUPED_SAMPLES_TAB_KEY = 'groups'
-	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
 	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
@@ -295,6 +294,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleClearSelection = useCallback(
 		() => {
 			dispatch(clearSelectedSamples(step.id))
+      onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
 		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
@@ -361,7 +361,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step.id, selectedTableSamples])
 
 	const onTabChange = useCallback((tabKey) => {
-		if (tabKey != SAMPLES_TAB_KEY && !isSorted) {
+		if (tabKey == SELECTION_TAB_KEY && !isSorted) {
 			dispatch(updateSortSelectedSamples)
 			setIsSorted(true)
 		}

@@ -4,11 +4,12 @@ import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button, Popconfirm, Switch, Typography, Row, Col } from 'antd'
+import { Radio, Button, Popconfirm, Switch, Typography, Row, Col, Skeleton } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import AddPlacementContainer from "./AddPlacementContainer"
+import { TableOutlined } from "@ant-design/icons"
 
 const { Title } = Typography
 
@@ -257,8 +258,6 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         <>
             <PageContainer>
                 <PageContent>
-                  { sourceSamples ?
-                    <>
                       <Row justify="end" style={{padding: "10px"}}>
                         <Col span={3}>
                           <AddPlacementContainer onConfirm={(container) => addDestination(container)} setDestinationIndex={setDestinationIndex} destinationContainerList={destinationContainerList} />
@@ -269,40 +268,60 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                       </Row>  
                       <Row justify="start" style={{paddingTop: "20px", paddingBottom: "40px" }}>
                         <Col span={12}>
-                          <div>
-                          <ContainerNameScroller
-                            disabled={disableChangeSource}
-                            containerType={SOURCE_STRING}
-                            name={sourceSamples.container_name}
-                            changeContainer={changeContainer} />
-                          <PlacementContainer
-                            selectedSampleList={selectedSamples}
-                            containerType={SOURCE_STRING}
-                            columns={sourceSamples.columns}
-                            rows={sourceSamples.rows}
-                            samples={sourceSamples.samples}
-                            updateSamples={updateSamples} />
+                          <div className={"flex-row"}>
+                            <div className={"flex-column"}>
+                            { sourceSamples ?
+                            <>
+                              <ContainerNameScroller
+                                disabled={disableChangeSource}
+                                containerType={SOURCE_STRING}
+                                name={sourceSamples.container_name}
+                                changeContainer={changeContainer} />
+                              <PlacementContainer
+                                selectedSampleList={selectedSamples}
+                                containerType={SOURCE_STRING}
+                                columns={sourceSamples.columns}
+                                rows={sourceSamples.rows}
+                                samples={sourceSamples.samples}
+                                updateSamples={updateSamples} />
+                            </>
+                              : 
+                              <div style={{alignContent: "center"}}>
+                                <Skeleton.Node active={true}>
+                                  <TableOutlined style={{ fontSize: 80, color: '#bfbfbf' }}/>
+                                </Skeleton.Node>
+                              </div>
+                            }
+                            </div>
                           </div>
                         </Col>
                         { sourceSamples && destinationSamples ?
                           <Col span={12}>
-                            <ContainerNameScroller
-                              disabled={disableChangeDestination}
-                              containerType={DESTINATION_STRING}
-                              name={destinationSamples.container_name}
-                              changeContainer={changeContainer}
-                              changeContainerName={changeDestinationName} />
-                            <PlacementContainer
-                              selectedSampleList={selectedSamples}
-                              containerType={DESTINATION_STRING}
-                              columns={destinationSamples.columns}
-                              rows={destinationSamples.rows}
-                              samples={destinationSamples.samples}
-                              updateSamples={updateSamples}
-                              direction={placementType ? placementDirection : undefined}
-                              pattern={!placementType} />
+                            <div className={"flex-row"}>
+                              <div className={"flex-column"}>
+                                <ContainerNameScroller
+                                  disabled={disableChangeDestination}
+                                  containerType={DESTINATION_STRING}
+                                  name={destinationSamples.container_name}
+                                  changeContainer={changeContainer}
+                                  changeContainerName={changeDestinationName} />
+                                <PlacementContainer
+                                  selectedSampleList={selectedSamples}
+                                  containerType={DESTINATION_STRING}
+                                  columns={destinationSamples.columns}
+                                  rows={destinationSamples.rows}
+                                  samples={destinationSamples.samples}
+                                  updateSamples={updateSamples}
+                                  direction={placementType ? placementDirection : undefined}
+                                  pattern={!placementType} />
+                              </div>
+                            </div>
                           </Col>
-                          : <Col span={12}/>
+                          : <Col span={12}>
+                              <div className={"flex-row"}>
+                                <div className={"flex-column"}/>
+                              </div>
+                            </Col>
                         }
                       </Row>
                       <Row justify="end" style={{padding: "10px"}}>
@@ -339,11 +358,9 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                           <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, DESTINATION_STRING)} samples={filterPlacedSamples(destinationSamples ? destinationSamples.samples : {})} selectedSamples={filterSelectedSamples(DESTINATION_STRING)} />
                         </Col>
                       </Row>
-                    </>
-                    : ""
-                  }
                 </PageContent>
             </PageContainer>
-        </>)
+        </>
+  )
 }
 export default Placement

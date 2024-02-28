@@ -1,6 +1,6 @@
-import { Input, Button, Typography } from "antd"
+import { Input, Button, Tag, Typography } from "antd"
 import React from "react"
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 interface ContainerNameScrollerProps {
     changeContainer: (number: string, containerType: string) => void,
@@ -21,7 +21,7 @@ const ContainerNameScroller = ({ name, changeContainer, changeContainerName, con
 
                     <Input placeholder={"Destination Barcode"} value={name} style={{ width: '50%', textAlign: 'center' }} onChange={changeContainerName} />
                     :
-                    <Text> {name}</Text>
+                    <Tag style={{ height: "32px", paddingTop: "3px", textAlign: 'center' }}><Text strong><Title level={5}>{name}</Title></Text></Tag>
             }
             <Button disabled={disabled} onClick={() => changeContainer('1', containerType)}>
                 Next
