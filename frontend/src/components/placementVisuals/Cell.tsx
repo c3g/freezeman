@@ -11,10 +11,11 @@ interface CellProps {
     coordinates: string,
     isSelecting: boolean,
     outline: boolean,
+    cellSize: string
 }
 
 // component is used to represent individual cells in visualization of the placement transfer tab
-const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, coordinates }: CellProps) => {
+const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, cellSize, coordinates }: CellProps) => {
 
     const onClick = useCallback(() => {
         if (sample?.type != PLACED_STRING) {
@@ -50,7 +51,7 @@ const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelect
 
     return (
         <div
-            className={'cell'}
+            className={cellSize}
             key={coordinates}
             onClick={onClick}
             onMouseOver={onMouseOver}

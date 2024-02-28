@@ -4,7 +4,7 @@ import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button, Popconfirm, Switch, Typography, Row, Col, Skeleton } from 'antd'
+import { Radio, Button, Popconfirm, Switch, Typography, Row, Col, Skeleton, notification } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
@@ -125,23 +125,32 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     //function used to handle the transfer of all available samples from source to destination
     const transferAllSamples = useCallback(() => {
       if (sourceSamples && destinationSamples) {
-        //sets all samples to certain type, 'none', 'placed'
-        const setType = (type, source, sampleObj) => {
-          Object.keys(source).forEach((id) => {
-            if (source[id].type == NONE_STRING && source[id].coordinates) {
-              sampleObj[id] = { ...source[id], type: type, sourceContainer: sourceSamples.container_name }
-            }
+        if (sourceSamples.rows != destinationSamples.rows || sourceSamples.columns != destinationSamples.columns) {
+          const INCOMPATIBLE_CONTAINER_KIND_NOTIFICATION_KEY = `LabworkStep.placement-incompatible-container-kind`
+          notification.error({
+            message: `Source and destination containers must have compatible dimensions.`,
+            key: INCOMPATIBLE_CONTAINER_KIND_NOTIFICATION_KEY,
+            duration: 20
           })
-          return sampleObj
         }
+        else {
+          //sets all samples to certain type, 'none', 'placed'
+          const setType = (type, source, sampleObj) => {
+            Object.keys(source).forEach((id) => {
+              if (source[id].type == NONE_STRING && source[id].coordinates) {
+                sampleObj[id] = { ...source[id], type: type, sourceContainer: sourceSamples.container_name }
+              }
+            })
+            return sampleObj
+          }
 
-        const newSourceSamples = setType(PLACED_STRING, { ...sourceSamples.samples }, { ...sourceSamples.samples })
-        const newDestinationSamples = setType(NONE_STRING, { ...sourceSamples.samples }, { ...destinationSamples.samples })
+          const newSourceSamples = setType(PLACED_STRING, { ...sourceSamples.samples }, { ...sourceSamples.samples })
+          const newDestinationSamples = setType(NONE_STRING, { ...sourceSamples.samples }, { ...destinationSamples.samples })
 
-
-        if (!sampleInCoords(sourceSamples.samples, destinationSamples.samples)) {
-            saveContainerSamples(newSourceSamples, newDestinationSamples)
-            clearSelection()
+          if (!sampleInCoords(sourceSamples.samples, destinationSamples.samples)) {
+              saveContainerSamples(newSourceSamples, newDestinationSamples)
+              clearSelection()
+          }
         }
       }
     }, [sourceSamples, destinationSamples])

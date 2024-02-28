@@ -63,26 +63,23 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
       const sampleIDs = selectedSamples.map(sample => sample.sample.id)
       const destination: any = handleSelectedSamples(sampleIDs)
-      let containerSamples: containerSample[] = []
       if (sampleIDs.length > 0) {
         const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
         const containers = (values.data.results.samples.groups)
-        containerSamples = []
-        containers.forEach(async container => {
+        Promise.all(containers.map(async container => {
           console.log(container)
-          if (container && container.name != TUBES_WITHOUT_PARENT) {
+          if (container.name != TUBES_WITHOUT_PARENT) {
             const container_detail: FMSContainer = await dispatch(api.containers.list({ name: container.name })).then(container => container.data.results[0])
-            containerSamples.push({
+            return {
               container_name: container.name,
               samples: parseSamples(container.sample_locators, selectedSamples, container.name, [].concat(destination.map(container => Object.keys(container.samples)).flat(1))),
               columns: containerKinds[container_detail.kind].coordinate_spec[1].length,
               rows: containerKinds[container_detail.kind].coordinate_spec[0].length,
               container_kind: container_detail.kind
-            })
+            }
           }
-        })
+        })).then(containerSamples => setSourceContainerList(containerSamples))
       }
-      setSourceContainerList(containerSamples)
       console.log(sourceContainerList)
   }, [selectedSamples])
 
@@ -119,11 +116,9 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     const addContainer = useCallback(
         (newContainer) => {
             const mutatedContainer = {
-                container_name: 'destination' + (destinationContainerList.length + 1),
                 samples: {},
-                rows: 8,
-                columns: 12,
-                container_kind: '96-well plate',
+                rows: containerKinds[newContainer.container_kind].coordinate_spec[0].length,
+                columns: containerKinds[newContainer.container_kind].coordinate_spec[1].length,
                 ...newContainer
             }
             setDestinationContainerList([...destinationContainerList, mutatedContainer])

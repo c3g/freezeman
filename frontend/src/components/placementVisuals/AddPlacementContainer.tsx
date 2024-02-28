@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react"
-import { Alert, Button, Form, Select, Tabs, notification } from "antd"
+import { Alert, Button, Form, Select, Tabs, notification, Row } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { selectCoordinatesByID } from "../../selectors"
+import { selectCoordinatesByID, selectContainerKindsByID } from "../../selectors"
 import { PLACED_STRING, containerSample } from "./PlacementTab"
 import Modal from "antd/lib/modal/Modal"
 import SearchContainer from "../SearchContainer"
@@ -25,6 +25,20 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
     const [newContainer, setNewContainer] = useState<any>({})
 
     const coordinates = useAppSelector(selectCoordinatesByID)
+    const containerKinds = useAppSelector(selectContainerKindsByID)
+
+    const getContainerKindOptions = useCallback(() => {
+      if (containerKinds) {
+        const options = Object.keys(containerKinds).filter(id => containerKinds[id].children_ids.length == 0 && id != "tube").sort().map((containerKind) => {
+          return {
+            label: containerKind,
+            value: containerKind
+          }
+        })
+        return options
+      }
+      return []
+    }, [containerKinds])
 
     const dispatch = useAppDispatch()
     //retrieves container on search
@@ -75,8 +89,12 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
+                          <Row style={{padding: "10px"}}>
                             <Input value={newContainer.container_name} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
-                            <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={[{ value: '96-well plate', label: '96-well plate' }]}></Select>
+                          </Row>
+                          <Row style={{padding: "10px"}}>
+                            <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>
+                          </Row>
                         </Tabs.TabPane>
                         <Tabs.TabPane tab='Load Container' key={'load'}>
                             <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />

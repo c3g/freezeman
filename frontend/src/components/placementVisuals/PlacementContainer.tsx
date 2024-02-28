@@ -35,6 +35,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
     }, [])
 
     const getColumnFromCoordinates = useCallback((coordinates) => {
+        console.log(Number(coordinates.substring(1)))
         return Number(coordinates.substring(1))
     }, [])
 
@@ -58,20 +59,17 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         // Iterate over all selected cells and take the difference of the most left column and the current cell
         // and add the difference to the where it should be placed
         // selected cells have coords ['a_1', 'a_3'], hovered cell to place is 'b_4'. Destination samples will become ['b_4, 'b_6']
-        const cellsByCoordinate: any = []
         let preview: sampleInfo[] = []
 
-        let mostLeftColumn = columns;
         //iterates over the selected samples to find the most left column of them
         if (Object.keys(selectedSampleList).length > 0) {
-            Object.keys(selectedSampleList).forEach(id => {
-                cellsByCoordinate.push({ id: id, type: selectedSampleList[id].type, coordinates: selectedSampleList[id].coordinates })
-                const coords = selectedSampleList[id].coordinates
-                const column = (getColumnFromCoordinates(coords))
-                mostLeftColumn = column <= mostLeftColumn ? column : mostLeftColumn
-            })
-
-
+            
+            const cellsByCoordinate: any = Object.values(selectedSampleList)
+            const mostLeftColumn = cellsByCoordinate.reduce((acc, curr) => {
+              const currentColumn = getColumnFromCoordinates(curr.coordinates)
+              return Math.min(currentColumn, acc)
+            }, Infinity)
+            
             //sorting the sampleList by coordinates
             cellsByCoordinate.sort((sortByCoordinate))
 
@@ -79,7 +77,6 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             const placedColumn = getColumnFromCoordinates(coordinates)
             let transformedRow = getRowFromCoordinates(coordinates)
             let transformedColumn
-
 
             //row used to keep track whether to increase the transformed row
             let currentRow = getRowFromCoordinates(cellsByCoordinate[0].coordinates)
@@ -94,6 +91,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 }
                 //calculating the difference between the current cell's coordinate and the most left column in this selected samples group
                 const difference = getDiff(getColumnFromCoordinates(coord), mostLeftColumn)
+                console.log(difference)
 
                 //taking the current placedColumn and adding the differnece
                 transformedColumn = placedColumn + difference
@@ -104,7 +102,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 setPreviewCells(preview)
 
         }
-    }, [previewCells, selectedSampleList, pattern])
+    }, [previewCells, selectedSampleList])
 
     //allows to preview the cells that the group of selected samples will go into
     const previewGroupPlacement = useCallback((coordinates) => {
@@ -199,10 +197,11 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 }
             </div>)
             //renders each row with the corresponding row letter 'A','B', etc.
+            const cellSize = columns <= 12 ? "cell" : "tiny-cell"
             for (let i = 0; i < rows; i++) {
                 let rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
-                    <div key={char} className={"cell"} style={{ backgroundColor: '#001529', color: 'white' }}>
+                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white' }}>
                         {
                             char
                         }
@@ -219,6 +218,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                             sample={checkSamples(coordinates)}
                             coordinates={coordinates}
                             outline={previewCells.find(sample => sample.coordinates == coordinates) ? true : false}
+                            cellSize={cellSize}
                             onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
                     )
                 }

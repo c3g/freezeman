@@ -12,7 +12,7 @@ interface ContainerNameScrollerProps {
 //component used to display the container name, and also to cycle through the container list using callbacks
 const ContainerNameScroller = ({ name, changeContainer, changeContainerName, containerType, disabled}: ContainerNameScrollerProps) => {
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', padding: "2px", justifyContent: 'space-between' }}>
             <Button disabled={disabled} onClick={() => changeContainer('-1', containerType)}>
                 Previous
             </Button>

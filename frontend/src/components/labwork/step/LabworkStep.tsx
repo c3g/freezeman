@@ -361,7 +361,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step.id, selectedTableSamples])
 
 	const onTabChange = useCallback((tabKey) => {
-		if (tabKey == SELECTION_TAB_KEY && !isSorted) {
+		if (tabKey != GROUPED_SAMPLES_TAB_KEY && !isSorted) {
 			dispatch(updateSortSelectedSamples)
 			setIsSorted(true)
 		}
