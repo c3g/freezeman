@@ -19,6 +19,7 @@ export interface cellSample {
 export interface containerSample {
     samples: cellSample
     container_name: string,
+    container_barcode?: string,
     rows: number,
     columns: number,
     container_kind: string,

@@ -4,12 +4,11 @@ import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button, Popconfirm, Switch, Typography, Row, Col, Skeleton, notification } from 'antd'
+import { Radio, Button, Popconfirm, Switch, Typography, Row, Col, notification } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import AddPlacementContainer from "./AddPlacementContainer"
-import { TableOutlined } from "@ant-design/icons"
 
 const { Title } = Typography
 
@@ -261,7 +260,9 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         updateSampleList(samplesToUpdate, type)
     }, [selectedSamples, sourceSamples, destinationSamples])
 
-    const disableUndo = useMemo(() => Object.values(selectedSamples).some(sample => sample.type == SOURCE_STRING), [selectedSamples])
+    const disableUndo = useMemo(() => {
+      return !!!destinationSamples || Object.values(selectedSamples).some(sample => sample.type == SOURCE_STRING)
+    }, [selectedSamples])
 
     return (
         <>
@@ -295,11 +296,11 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                 updateSamples={updateSamples} />
                             </>
                               : 
-                              <div style={{alignContent: "center"}}>
-                                <Skeleton.Node active={true}>
-                                  <TableOutlined style={{ fontSize: 80, color: '#bfbfbf' }}/>
-                                </Skeleton.Node>
-                              </div>
+                              <Col span={12}>
+                                <div className={"flex-row"}>
+                                  <div className={"flex-column"}/>
+                                </div>
+                              </Col>
                             }
                             </div>
                           </div>
@@ -337,7 +338,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                           <Col span={3}>
                             <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType} onChange={updateGroupPlacement}></Switch>
                           </Col>
-                          <Col span={3}>
+                          <Col span={5}>
                             <Radio.Group
                                 disabled={!placementType}
                                 value={placementDirection}
@@ -347,7 +348,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                             </Radio.Group>
                           </Col>
                         <Col span={8}>
-                              <Button onClick={transferAllSamples}>Place All Source</Button>
+                              <Button onClick={transferAllSamples} disabled={!!!destinationSamples}>Place All Source</Button>
                               <Button onClick={clearSelection}>Deselect All</Button>
                               <Popconfirm
                                   title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}

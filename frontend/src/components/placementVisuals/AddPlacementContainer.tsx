@@ -56,14 +56,75 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
         setLoadedContainer({ container_name: containerName, container_kind: container.data.kind, samples: { ...newDestination }, })
     }, [coordinates])
 
+    const containerAlreadyExists = async (container, destinationContainerList: containerSample[]) => {
+      /* Centralized error notifications */
+      const barcodeExistsError = () => {
+        setError("Existing container barcode.")
+        const EXISTING_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-existing-container-barcode`
+        notification.error({
+          message: `New container barcode already exists.`,
+          key: EXISTING_BARCODE_NOTIFICATION_KEY,
+          duration: 20
+        })
+      }
+      const nameExistsError = () => {
+        setError("Existing container name.")
+        const EXISTING_NAME_NOTIFICATION_KEY = `LabworkStep.placement-existing-container-name`
+        notification.error({
+          message: `New container name already exists.`,
+          key: EXISTING_NAME_NOTIFICATION_KEY,
+          duration: 20
+        })
+      }
+
+      let exists: boolean = false
+      /* Get locally created containers first */
+      /* Check if the barcode is used in the destinationContainerList */
+      let barcode_exists: boolean = destinationContainerList.some(containerSample => containerSample.container_barcode == container.container_barcode)
+      if (barcode_exists) {
+        barcodeExistsError()
+      }
+      /* Check if the name is used in the destinationContainerList */
+      let name_exists: boolean = destinationContainerList.some(containerSample => containerSample.container_name == container.container_name)
+      if (name_exists) {
+        nameExistsError()
+      }
+      exists = name_exists || barcode_exists
+      if (exists) {
+        /* Fast return if already exists in frontend display */
+        return exists
+      }
+
+      /* Get existing containers from freezeman */
+      /* Check if there is already a container in Freezeman with that abrcode */
+      const barcodeResult = await dispatch(api.containers.list({barcode: container.container_barcode}))
+      barcode_exists = barcodeResult.data.count != 0
+      if (barcode_exists) {
+        barcodeExistsError()
+      }
+      /* Check if there is already a container in Freezeman with that name */
+      const nameResult = await dispatch(api.containers.list({name: container.container_name}))
+      name_exists = nameResult.data.count != 0
+      if (name_exists) {
+        nameExistsError()
+      }
+      exists = name_exists || barcode_exists
+      return exists
+    }
+
     //calls addDestination prop with 'New Destination' container
     const handleConfirm = useCallback(() => {
         const container = selectedTab == 'load' ? loadedContainer : newContainer
-        if (container.container_name && container.container_kind && container.container_kind != 'tube') {
-            onConfirm(container)
-            setIsPopup(false)
-            setNewContainer({})
-            setDestinationIndex(destinationContainerList.length)
+        container.container_name = container.container_name ? container.container_name : container.container_barcode
+        if (container.container_barcode && container.container_kind && container.container_kind != 'tube') {
+          containerAlreadyExists(container, destinationContainerList).then(exists => {
+            if (!exists) {
+              onConfirm(container)
+              setIsPopup(false)
+              setNewContainer({})
+              setDestinationIndex(destinationContainerList.length)
+            }
+          })
         } else {
             setError("Invalid container kind")
             const INVALID_KIND_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-kind`
@@ -90,7 +151,10 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
                           <Row style={{padding: "10px"}}>
-                            <Input value={newContainer.container_name} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
+                            <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')}></Input>
+                          </Row>
+                          <Row style={{padding: "10px"}}>
+                            <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
                           </Row>
                           <Row style={{padding: "10px"}}>
                             <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>
