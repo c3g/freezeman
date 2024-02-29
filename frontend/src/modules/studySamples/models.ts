@@ -1,3 +1,4 @@
+import { SampleAndLibrary } from "../../components/WorkflowSamplesTable/ColumnSets"
 import { FMSId, FMSSampleNextStepByStudy, FMSStepHistory, WorkflowStepOrder } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
@@ -20,9 +21,19 @@ export interface StudySampleStep {
 	readonly stepOrderID: FMSId      			// step order ID
 	readonly stepOrder: number					// step order
 	readonly protocolID: FMSId					// protocol ID
-	readonly sampleCount: number				// Total number of samples ready for processing, regardless of filters
-	readonly completedCount: number				// Total number of completed samples, regardless of filters
-	readonly dequeuedCount: number				// Total number of dequeued samples, regardless of filters
+	readonly ready: {
+		count: number,
+		samples: SampleAndLibrary[]
+	}
+	readonly completed: {
+		count: number,
+		samples: CompletedStudySample[]
+	}
+	readonly removed : {
+		count: number,
+		samples: CompletedStudySample[]
+	}
+	readonly sampleNextStepByID: { [key: Sample['id']]: FMSSampleNextStepByStudy['id'] }
 }
 
 // List of steps
@@ -57,9 +68,30 @@ export interface StudyUXSettings {
 
 export type StudySettingsByID = {[key: number] : StudyUXSettings | undefined }
 
+export interface StudyStepSamplesTableState {
+	pageNumber: number
+}
+
+export interface CompletedSamplesTableState {
+	pageNumber: number
+}
+
 // Complete study samples state
 export interface StudySamplesState {
 	readonly studySamplesByID:  StudySamplesByID			// Object where keys are study IDs and values are StudySampleList objects
 	readonly hideEmptySteps: boolean						// Global flag to show or hide empty steps in study detail pages
 	readonly studySettingsByID: StudySettingsByID
+	readonly studyTableStatesByID: {
+		[studyID: number]: {
+			steps: {
+				[stepOrderID: number]: {
+					tables: {
+						readonly ready: StudyStepSamplesTableState
+						readonly completed: CompletedSamplesTableState
+						readonly removed: CompletedSamplesTableState					
+					}
+				} | undefined
+			}
+		} | undefined
+	}
 }

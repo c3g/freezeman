@@ -1,11 +1,11 @@
 import { FMSId } from '../../models/fms_api_models'
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from '../../models/paged_items'
-import { selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
+import { selectStudiesByID, selectStudySamplesByID, selectStudySettingsByID, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { fetchSamples } from '../cache/cache'
 import { StudySampleStep, StudyStepSamplesTabSelection } from './models'
-import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
-import { fetchSamplesAtStepOrder, loadStudySamplesByStep } from './services'
+import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_NUMBER, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
+import { fetchSamplesAtStepOrder, loadStudySamplesInStepByStudy, loadStudySampleStep } from './services'
 
 
 export function getStudySamples(studyID: FMSId) {
@@ -19,8 +19,8 @@ export function getStudySamples(studyID: FMSId) {
 			if (study) {
 				const workflow = workflowsById[study.workflow_id]
 				if (workflow) {
-					dispatch(initStudySamplesSettings(studyID, workflow.steps_order.map((x) => x.id)))
-					studySamples = await Promise.all(workflow.steps_order.map((stepOrder) => loadStudySamplesByStep(studyID, stepOrder)))
+					dispatch(initStudySamplesSettingsAndTables(studyID, workflow.steps_order.map((x) => x.id)))
+					studySamples = await Promise.all(workflow.steps_order.map((stepOrder) => loadStudySampleStep(studyID, stepOrder)))
 				}
 			}
 			if (studySamples) {
@@ -39,28 +39,18 @@ export function refreshStudySamples(studyID: FMSId) {
 export function refreshAllStudySamples() {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const studySamplesByID = selectStudySamplesByID(getState())
-		for (const studyID in studySamplesByID) {
-			dispatch(refreshStudySamples(Number.parseInt(studyID)))
-		}
+		await Promise.all(Object.keys(studySamplesByID).map((studyID) => dispatch(refreshStudySamples(Number.parseInt(studyID)))))
 	}
 }
 
-function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
+export function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
 	return async (dispatch: AppDispatch) => {
-
-		// Get the updated list of SampleNextStep objects for the step
-		const { sampleNextSteps } = await fetchSamplesAtStepOrder(studyID, stepOrderID)
-		const sampleIDs = sampleNextSteps.map(nextStep => nextStep.sample)
-
-		// Fetch any samples that need to be loaded
-		await fetchSamples(sampleIDs)
-
-		// Update the study state
+		const studySamplesInStepByStudy = await loadStudySamplesInStepByStudy(studyID, stepOrderID)
 		dispatch({
 			type: SET_REFRESHED_STEP_SAMPLES,
 			studyID,
 			stepOrderID,
-			sampleIDs,
+			...studySamplesInStepByStudy
 		})
 
 	}
@@ -80,9 +70,10 @@ export function setHideEmptySteps(hide: boolean) {
 	}
 }
 
-function initStudySamplesSettings(studyID: FMSId, stepOrderIDs: FMSId[]) {
+// should only be used by getStudySamples
+function initStudySamplesSettingsAndTables(studyID: FMSId, stepOrderIDs: FMSId[]) {
 	return {
-		type: INIT_STUDY_SAMPLES_SETTINGS,
+		type: INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES,
 		studyID,
 		stepOrderIDs
 	}
@@ -95,8 +86,7 @@ export function clearFilters(studyID: FMSId, stepOrderID: FMSId) {
 			studyID,
 			stepOrderID
 		})
-		// Reset the sample list
-		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
@@ -126,7 +116,7 @@ export function setStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, descripti
 			description,
 			value
 		})
-		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}	
 }
 
@@ -139,7 +129,7 @@ export function setStudyStepFilterOptions(studyID: FMSId, stepOrderID: FMSId, de
 			description,
 			options
 		})
-		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
@@ -151,7 +141,7 @@ export function removeStudyStepFilter(studyID: FMSId, stepOrderID: FMSId, descri
 			stepOrderID,
 			description
 		})
-		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
@@ -163,17 +153,42 @@ export function setStudyStepSortOrder(studyID: FMSId, stepOrderID: FMSId, sortBy
 			stepOrderID,
 			sortBy
 		})
-		dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
 export function setStudyStepPageSize(studyID: FMSId, stepOrderID: FMSId, pageSize: number) {
+	return async (dispatch: AppDispatch) => {
+		dispatch({
+			type: SET_STUDY_STEP_PAGE_SIZE,
+			studyID,
+			stepOrderID,
+			pageSize
+		})
+		// FIXME: does not actually reset page number :(
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'ready', 1))
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'completed', 1))
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'removed', 1))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+	}
+}
+
+// set page number without fetching samples
+function setStudyStepPageNumberLight(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, pageNumber: number) {
 	return {
-		type: SET_STUDY_STEP_PAGE_SIZE,
+		type: SET_STUDY_STEP_PAGE_NUMBER,
 		studyID,
 		stepOrderID,
-		pageSize
-	} 
+		tabSelection,
+		pageNumber
+	}
+}
+
+export function setStudyStepPageNumber(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, pageNumber: number) {
+	return async (dispatch: AppDispatch) => {
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, tabSelection, pageNumber))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+	}
 }
 
 export default {

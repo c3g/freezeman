@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks'
 import { FMSId } from '../../models/fms_api_models'
 import { setHideEmptySteps, setStudyExpandedSteps, setStudyStepSamplesTab } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudySampleList, StudyUXSettings, StudyUXStepSettings } from '../../modules/studySamples/models'
-import { selectHideEmptySteps, selectStudySettingsByID } from '../../selectors'
+import { selectHideEmptySteps, selectStudySettingsByID, selectStudyTableStatesByID } from '../../selectors'
 import RefreshButton from '../RefreshButton'
 import CompletedSamplesTable from './CompletedSamplesTable'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
@@ -74,7 +74,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	try {
 		renderedSteps = [...studySamples.steps]
 		if (hideEmptySteps) {
-			renderedSteps = renderedSteps.filter((step) => step.sampleCount > 0 || step.completedCount > 0)
+			renderedSteps = renderedSteps.filter((step) => step.ready.count > 0 || step.completed.count > 0)
 		}
 	} catch (e) {
 	}
@@ -114,19 +114,20 @@ interface StepPanelProps {
 }
 function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 	const dispatch = useAppDispatch()
+	const tableStates = useAppSelector(selectStudyTableStatesByID)[studyID]?.steps[step.stepOrderID]?.tables
 	
-	const countString = `${step.completedCount} / ${step.sampleCount + step.completedCount + step.dequeuedCount}`
-	const countTitle = `${step.completedCount} of ${step.sampleCount + step.completedCount + step.dequeuedCount} samples are completed`
+	const countString = `${step.ready.count} / ${step.ready.count + step.completed.count + step.removed.count}`
+	const countTitle = `${step.completed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`
 	
-	const hasRemovedSamples = step.dequeuedCount > 0
+	const hasRemovedSamples = step.removed.count > 0
 
-	const removedTitle = step.dequeuedCount === 1 ? `1 sample was removed from study at this step` : `${step.dequeuedCount} samples were removed from study at this step`
+	const removedTitle = step.removed.count === 1 ? `1 sample was removed from study at this step` : `${step.removed.count} samples were removed from study at this step`
 
-	const readyTab = `Ready for Processing (${step.sampleCount})`
-	const completedTab = <Text>{`Completed (${step.completedCount})`}</Text>
+	const readyTab = `Ready for Processing (${step.ready.count})`
+	const completedTab = <Text>{`Completed (${step.completed.count})`}</Text>
 	const removedTab = 
 		<Space size={'small'}>
-			<Text>{`Removed (${step.dequeuedCount})`}</Text>
+			<Text>{`Removed (${step.removed.count})`}</Text>
 			<WarningOutlined style={{color: 'red'}} title={removedTitle}/>
 		</Space>
 		
@@ -160,14 +161,14 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 		>
 			<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
 				<Tabs.TabPane tab={readyTab} key='ready'>
-					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings}/>
+					<StudyStepSamplesTable studyID={studyID} step={step} tableState={tableStates?.ready} settings={uxSettings}/>
 				</Tabs.TabPane>
 				<Tabs.TabPane tab={completedTab} key='completed'>
-					<CompletedSamplesTable studyID={studyID} step={step} settings={uxSettings} workflowAction={'NEXT_STEP'}/>
+					<CompletedSamplesTable studyID={studyID} step={step} tableState={tableStates?.completed} settings={uxSettings} workflowAction={'NEXT_STEP'}/>
 				</Tabs.TabPane>
 				{hasRemovedSamples && 
 				<Tabs.TabPane tab={removedTab} key='removed'>
-					<CompletedSamplesTable studyID={studyID} step={step} settings={uxSettings} workflowAction={'DEQUEUE_SAMPLE'}/>
+					<CompletedSamplesTable studyID={studyID} step={step} tableState={tableStates?.removed} settings={uxSettings} workflowAction={'DEQUEUE_SAMPLE'}/>
 				</Tabs.TabPane>
 				}
 			</Tabs>

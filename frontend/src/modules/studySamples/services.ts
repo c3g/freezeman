@@ -2,13 +2,46 @@ import { SampleAndLibrary } from "../../components/WorkflowSamplesTable/ColumnSe
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
 import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory, WorkflowStepOrder, WorkflowActionType } from "../../models/fms_api_models"
 import { createItemsByID } from "../../models/frontend_models"
-import { selectLibrariesByID, selectSamplesByID, selectStudiesByID, selectStudySettingsByID, selectWorkflowsByID } from "../../selectors"
+import { selectLibrariesByID, selectSamplesByID, selectStudiesByID, selectStudySettingsByID, selectStudyTableStatesByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcessMeasurements, fetchProcesses, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleStep } from "./models"
 
-export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: WorkflowStepOrder): Promise<StudySampleStep> {
+export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId): Promise<Pick<StudySampleStep, 'ready' | 'sampleNextStepByID' | 'completed' | 'removed'>> {
+	// this will always be 10 anyway due it being the default in the setting
+	const limit = selectStudySettingsByID(store.getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? 10
+
+	const studyTableStatesByID = selectStudyTableStatesByID(store.getState())
+	const table = studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables
+
+	// Each step has its own samples table, with its own filters and sort order, so  we have to request samples for each step separately.
+	let offset = limit * ((table?.ready.pageNumber ?? 1) - 1)
+	const fetchSamplesAtStepOrderResponse = await fetchSamplesAtStepOrder(studyID, stepOrderID, offset, limit)
+	const { sampleNextSteps, count: readyCount } = fetchSamplesAtStepOrderResponse
+	const readySamples = await fetchSamplesAndLibraries(sampleNextSteps.map((s) => s.sample))
+	
+	// Get samples that have completed the process at a step
+	offset = limit * ((table?.completed.pageNumber ?? 1) - 1)
+	const { result: completedSamples, count: completedCount } = await fetchCompletedSamples(studyID, stepOrderID, 'NEXT_STEP', limit, offset)
+
+	// Get samples that have been dequeued at a step
+	offset = limit * ((table?.removed.pageNumber ?? 1) - 1)
+	const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, 'DEQUEUE_SAMPLE', limit, offset)
+
+	return {
+		ready: { samples: readySamples, count: readyCount },
+		completed: { samples: completedSamples, count: completedCount ?? 0 },
+		removed: { samples: dequeuedSamples, count: dequeuedCount ?? 0 },
+		sampleNextStepByID: sampleNextSteps.reduce((sampleNextStepByID, sampleNextStep) => {
+			sampleNextStepByID[sampleNextStep.sample] = sampleNextStep.id
+			return sampleNextStepByID
+		}, {} as StudySampleStep['sampleNextStepByID'])
+	}
+}
+
+// should be called after initStudySamplesSettings
+export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowStepOrder): Promise<StudySampleStep> {
 	const study = (await fetchStudies([studyID])).find(obj => obj.id === studyID)
 	if(! study) {
 		throw new Error(`Study "${studyID}" not found.`)
@@ -25,33 +58,13 @@ export async function loadStudySamplesByStep(studyID: FMSId, stepOrder: Workflow
 		throw new Error(`Cannot load study samples - workflow is still fetching`)
 	}
 
-	// Each step has its own samples table, with its own filters and sort order, so  we have to request samples for each step separately.
-	const fetchSamplesAtStepOrderResponse = await fetchSamplesAtStepOrder(studyID, stepOrder.id, 0, 1)
-	const sampleCount = fetchSamplesAtStepOrderResponse.count
-	
-	// Get samples that have completed the process at a step
-	const completedHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID, {step_order__id__in: stepOrder.id, workflow_action: 'NEXT_STEP', limit: 1, offset: 0}))
-	if (!completedHistoryResponse.data) {
-		throw new Error(`Failed to fetch completed samples for study #${studyID} and step_order #${stepOrder.id}`)
-	}
-	const completedCount = completedHistoryResponse.data.count
-
-	// Get samples that have been dequeued at a step
-	const dequeuedStepHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID, {step_order__id__in: stepOrder.id, workflow_action: 'DEQUEUE_SAMPLE', limit: 1, offset: 0}))
-	if (!dequeuedStepHistoryResponse.data) {
-		throw new Error(`Failed to fetch completed samples for study #${studyID} and step_order #${stepOrder.id}`)
-	}
-	const dequeuedCount = dequeuedStepHistoryResponse.data.count
-
 	return {
 		stepID: stepOrder.step_id,
 		stepName: stepOrder.step_name,
 		stepOrderID: stepOrder.id,
 		stepOrder: stepOrder.order,
 		protocolID: stepOrder.protocol_id,
-		sampleCount,
-		completedCount,
-		dequeuedCount,
+		...(await loadStudySamplesInStepByStudy(studyID, stepOrder.id))
 	}
 }
 
@@ -63,20 +76,15 @@ async function fetchSamplesAndLibraries(sampleList: number[]) {
 			await fetchLibrariesForSamples(sampleIDs)
 		}
 	}
-}
-
-export async function fetchSampleAndLibraryNextSteps(studyID: FMSId, stepOrderID: FMSId, limit: number, offset: number) {
-	const { sampleNextSteps } = await fetchSamplesAtStepOrder(studyID, stepOrderID, offset, limit)
-	await fetchSamplesAndLibraries(sampleNextSteps.map((s) => s.sample))
 
 	const samplesByID = selectSamplesByID(store.getState())
 	const librariesByID = selectLibrariesByID(store.getState())
 
-	const availableSamples = sampleNextSteps.reduce((availableSamples, s) => {
-		const sample = samplesByID[s.sample]
+	const availableSamples = sampleList.reduce((availableSamples, s) => {
+		const sample = samplesByID[s]
 		if (sample) {
 			if (sample.is_library) {
-				const library = librariesByID[s.sample]
+				const library = librariesByID[s]
 				availableSamples.push({ sample, library })
 			} else {
 				availableSamples.push({ sample })
@@ -85,7 +93,7 @@ export async function fetchSampleAndLibraryNextSteps(studyID: FMSId, stepOrderID
 		return availableSamples
 	}, [] as SampleAndLibrary[])
 
-	return { availableSamples, sampleNextSteps }
+	return availableSamples
 }
 
 export async function fetchCompletedSamples(studyID: FMSId, stepOrderID: FMSId, workflow_action: WorkflowActionType, limit: number, offset: number) {
@@ -93,8 +101,8 @@ export async function fetchCompletedSamples(studyID: FMSId, stepOrderID: FMSId, 
 	if (!stepHistoryResponse.data) {
 		throw new Error(`Failed to fetch completed samples for study #${studyID} and step_order #${stepOrderID}`)
 	}
-	const completedSamples: FMSStepHistory[] = stepHistoryResponse.data.results
-	const totalCount = stepHistoryResponse.data.count
+	const completedSamples: FMSStepHistory[] = stepHistoryResponse.data.results ?? []
+	const totalCount = stepHistoryResponse.data.count ?? 0
 
 	// Get the process measurements for the completed samples
 	const processMeasurementIDs = completedSamples.map(completed => completed.process_measurement)
@@ -132,8 +140,8 @@ export async function fetchCompletedSamples(studyID: FMSId, stepOrderID: FMSId, 
 	})
 
 	return {
-		completedStudySamples,
-		totalCount
+		result: completedStudySamples,
+		count: totalCount
 	}
 }
 

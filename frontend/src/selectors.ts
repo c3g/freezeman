@@ -31,7 +31,7 @@ import { LabworkStepSummaryState } from './modules/labworkSteps/models'
 import { LabworkSummaryState } from './modules/labwork/reducers'
 import { LabworkStepsState } from './modules/labworkSteps/models'
 import { ProjectSamplesTable } from './modules/projectSamplesTable/reducers'
-import { StudySamplesByID, StudySettingsByID } from './modules/studySamples/models'
+import { StudySamplesByID, StudySamplesState, StudySettingsByID } from './modules/studySamples/models'
 import { RootState } from './store'
 
 /*
@@ -119,6 +119,7 @@ export const selectStepsByID = (state: RootState) => state.steps.itemsByID
 export const selectStudiesByID = (state: RootState) => state.studies.itemsByID as ItemsByID<Study>
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
 export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
+export const selectStudyTableStatesByID = (state: RootState) => state.studySamples.studyTableStatesByID as StudySamplesState['studyTableStatesByID']
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
 export const selectTaxonsTable = (state: RootState) => state.taxonsTable
 export const selectToken = (state: RootState) => state.auth.tokens.access as unknown as string | null
