@@ -3,7 +3,7 @@ import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, SELECTED_STRING, sampl
 import Cell from "./Cell"
 
 interface PlacementContainerProps {
-    updateSamples: (sampleList, containerType) => void,
+    updateSamples: (sampleList, containerType, containerRows, containerColumns) => void,
     containerType: string,
     columns: number,
     rows: number,
@@ -35,7 +35,6 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
     }, [])
 
     const getColumnFromCoordinates = useCallback((coordinates) => {
-        console.log(Number(coordinates.substring(1)))
         return Number(coordinates.substring(1))
     }, [])
 
@@ -91,7 +90,6 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 }
                 //calculating the difference between the current cell's coordinate and the most left column in this selected samples group
                 const difference = getDiff(getColumnFromCoordinates(coord), mostLeftColumn)
-                console.log(difference)
 
                 //taking the current placedColumn and adding the differnece
                 transformedColumn = placedColumn + difference
@@ -136,7 +134,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
     const onClick = useCallback((sample) => {
         if ((!(previewCells.length > 0 && !isSelecting && sample.id)))
-            updateSamples([...previewCells, sample], containerType)
+            updateSamples([...previewCells, sample], containerType, rows, columns)
         if (sample.id)
             setIsSelecting(!isSelecting)
     }, [samples, isSelecting, direction, updateSamples, previewCells, selectedSampleList])
@@ -144,7 +142,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
     const onMouseHover = useCallback((sample: any) => {
         //add sample to selection
         if (isSelecting && sample.id) {
-            updateSamples([...previewCells, sample], containerType)
+            updateSamples([...previewCells, sample], containerType, rows, columns)
         } else {
             if (containerType == DESTINATION_STRING && !sample.id) {
                 if (!pattern) {

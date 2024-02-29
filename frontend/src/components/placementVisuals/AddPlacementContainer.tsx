@@ -45,15 +45,16 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
     const handleContainerLoad = useCallback(async (loadedContainer) => {
         const container = await dispatch(api.containers.get(loadedContainer))
         const containerName = container.data.name
+        const containerBarcode = container.data.barcode
         const newDestination = {}
         if (container.data.samples.length > 0) {
-            const loadedSamples = await dispatch(api.samples.list({ id__in: container.data.samples.join(',') }))
+            const loadedSamples = await dispatch(api.samples.list({ id__in: container.data.samples.join(','), limit: 100000}))
 
             loadedSamples.data.results.forEach(sample => {
                     newDestination[sample.id] = { id: sample.id, coordinates: (sample.coordinate && coordinates[sample.coordinate].name), type: PLACED_STRING, name: sample.name, sourceContainer: containerName }
             })
         }
-        setLoadedContainer({ container_name: containerName, container_kind: container.data.kind, samples: { ...newDestination }, })
+        setLoadedContainer({ container_barcode: containerBarcode, container_name: containerName, container_kind: container.data.kind, samples: { ...newDestination }, })
     }, [coordinates])
 
     const containerAlreadyExists = async (container, destinationContainerList: containerSample[]) => {
@@ -114,17 +115,25 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
 
     //calls addDestination prop with 'New Destination' container
     const handleConfirm = useCallback(() => {
-        const container = selectedTab == 'load' ? loadedContainer : newContainer
+        const AddContainer = (container) => {
+          onConfirm(container)
+          setIsPopup(false)
+          setNewContainer({})
+          setDestinationIndex(destinationContainerList.length)
+        }
+        const container = selectedTab == "load" ? loadedContainer : newContainer
         container.container_name = container.container_name ? container.container_name : container.container_barcode
-        if (container.container_barcode && container.container_kind && container.container_kind != 'tube') {
-          containerAlreadyExists(container, destinationContainerList).then(exists => {
-            if (!exists) {
-              onConfirm(container)
-              setIsPopup(false)
-              setNewContainer({})
-              setDestinationIndex(destinationContainerList.length)
-            }
-          })
+        if (container.container_barcode && container.container_kind) {
+          if (selectedTab == "load") {
+            AddContainer(container)
+          }
+          else {
+            containerAlreadyExists(container, destinationContainerList).then(exists => {
+              if (!exists) {
+                AddContainer(container)
+              }
+            })
+          }
         } else {
             setError("Invalid container kind")
             const INVALID_KIND_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-kind`
@@ -146,7 +155,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
     return (
         <>
             <Button onClick={() => setIsPopup(true)}>Add Destination</Button>
-            <Modal title="Add Destination" open={isPopup} onOk={handleConfirm} onCancel={() => setIsPopup(false)}>
+            <Modal title="Add Destination" open={isPopup} onOk={handleConfirm} onCancel={() => setIsPopup(false)} width={'40vw'}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
@@ -161,7 +170,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
                           </Row>
                         </Tabs.TabPane>
                         <Tabs.TabPane tab='Load Container' key={'load'}>
-                            <SearchContainer handleOnChange={(value) => handleContainerLoad(value)} />
+                            <SearchContainer exceptKinds={["tube"]} handleOnChange={(value) => handleContainerLoad(value)} />
                         </Tabs.TabPane>
                     </Tabs>
 

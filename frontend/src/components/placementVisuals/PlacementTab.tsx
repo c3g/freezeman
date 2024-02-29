@@ -68,7 +68,6 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
         const containers = (values.data.results.samples.groups)
         Promise.all(containers.map(async container => {
-          console.log(container)
           if (container.name != TUBES_WITHOUT_PARENT) {
             const container_detail: FMSContainer = await dispatch(api.containers.list({ name: container.name })).then(container => container.data.results[0])
             return {
@@ -81,7 +80,6 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
           }
         })).then(containerSamples => setSourceContainerList(containerSamples))
       }
-      console.log(sourceContainerList)
   }, [selectedSamples])
 
     useEffect(() => {
@@ -178,29 +176,17 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     }, [JSON.stringify(destinationContainerList), sourceContainerList, index, destinationIndex])
 
-
-
-
     //function used to save the changes, to the current displayed source and destination
     const saveChanges = useCallback(
-        (source, destination, name) => {
-            const setContainerSamples = (containerList, newSamples, index, name?) => {
+        (source, destination) => {
+            const setContainerSamples = (containerList, newSamples, index) => {
                 const newList = [...containerList]
                 newList[index].samples = newSamples
-                newList[index].container_name = name ? name : newList[index].container_name
                 return newList
             }
             setSourceContainerList(setContainerSamples([...sourceContainerList], source, index)) 
-            setDestinationContainerList(setContainerSamples([...destinationContainerList], destination, destinationIndex, name))
+            setDestinationContainerList(setContainerSamples([...destinationContainerList], destination, destinationIndex))
         }, [sourceContainerList, JSON.stringify(destinationContainerList), destinationIndex, index])
-
-    //function used to handle the change of displayed destination name
-    const changeDestinationName = useCallback(
-        (e) => {
-            const tempDestination = [...destinationContainerList]
-            tempDestination[destinationIndex].container_name = e.target.value
-            setDestinationContainerList(tempDestination)
-        }, [destinationContainerList, destinationIndex])
 
     //function used to pass all of the destination containers to the prefill so that the coordinates can be prefilled for selected samples at step
     const saveDestination = useCallback(() => {
@@ -209,20 +195,18 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         destinationContainerList.forEach(container => {
             const samples = container.samples
             if (!error && Object.keys(samples).length > 0) {
-                if (container.container_name != '') {
+                if (container.container_barcode != '') {
                     Object.keys(samples).forEach(id => {
-                        if (container.container_name != '') {
-                            //NOTE: for future, a sample should be able to have multiple destination coordinates as, hence the placement data at key is an array
-                            placementData[id] = []
-                            placementData[id].push({ coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
-                        }
+                      //NOTE: for future, a sample should be able to have multiple destination coordinates as, hence the placement data at key is an array
+                      placementData[id] = placementData[id] ? placementData[id] : []
+                      placementData[id].push({ coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_barcode, container_kind: container.container_kind })
                     })
                 } else {
                       error = true
-                      const MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-barcode`
+                      const MISSING_CONTAINER_DETAILS_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-details`
                       notification.error({
-                          message: `Missing destination container barcode in destination list.`,
-                          key: MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY,
+                          message: `Missing destination container information in destination list.`,
+                          key: MISSING_CONTAINER_DETAILS_NOTIFICATION_KEY,
                           duration: 20
                       })
                 }
@@ -252,7 +236,6 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
                 disableChangeDestination={destinationContainerList.length == 1}
                 cycleContainer={changeContainer}
                 saveChanges={saveChanges}
-                changeDestinationName={changeDestinationName}
                 addDestination={addContainer}
                 removeCells={removeCells}
                 saveDestination={saveDestination}

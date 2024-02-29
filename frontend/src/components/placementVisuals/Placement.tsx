@@ -22,13 +22,12 @@ interface PlacementProps {
     disableChangeDestination: boolean,
     removeCells: (samples) => void,
     saveDestination: () => void,
-    changeDestinationName: (name) => void,
     setDestinationIndex: (number) => void,
     destinationContainerList: containerSample[],
 }
 
 //component used to handle the transfer of samples from source to destination, or destination to destination
-const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveDestination, changeDestinationName, setDestinationIndex, destinationContainerList }: PlacementProps) => {
+const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveDestination, setDestinationIndex, destinationContainerList }: PlacementProps) => {
 
     //keyed object by sampleID, containing the coordinates, type, sourceContainer, id
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
@@ -86,14 +85,13 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
 
     //function used by PlacementContainer.tsx used for error prevention, checks if samples cannot be placed (out of bounds)
-    const updateSamples = useCallback((array, containerType) => {
+    const updateSamples = useCallback((array, containerType, containerRows, containerColumns) => {
         const coordinates = array.map((sample) => sample.coordinates)
         let canUpdate = true
 
         //checks if group can be placed, if cells are already filled, or if they go beyond the boundaries of the cells
-        //NOTE: needs to be changed to number of rows and columns, to support different types of containers
         if (containerType == DESTINATION_STRING) {
-            if (((coordinates.some(coord => coord.includes('I') || Number(coord.substring(1)) > 12)))) {
+            if (((coordinates.some(coord => coord.charCodeAt(0) - 64 > containerRows || Number(coord.substring(1)) > containerColumns)))) {
                 canUpdate = false
             }
         }
@@ -313,8 +311,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                   disabled={disableChangeDestination}
                                   containerType={DESTINATION_STRING}
                                   name={destinationSamples.container_name}
-                                  changeContainer={changeContainer}
-                                  changeContainerName={changeDestinationName} />
+                                  changeContainer={changeContainer}/>
                                 <PlacementContainer
                                   selectedSampleList={selectedSamples}
                                   containerType={DESTINATION_STRING}
