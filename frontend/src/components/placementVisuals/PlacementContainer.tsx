@@ -34,6 +34,10 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         return coordinates.substring(0, 1)
     }, [])
 
+    const getNumericRowFromCoordinates = useCallback((coordinates) => {
+        return coordinates.charCodeAt(0) - 64
+    }, [])
+
     const getColumnFromCoordinates = useCallback((coordinates) => {
         return Number(coordinates.substring(1))
     }, [])
@@ -57,16 +61,22 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         // so to repeat the pattern but displace the cells, I use the most left cell in the selected grouping and where it is to be placed (clicked cell) to calculate and transform the coords to the existing accordingly.
         // Iterate over all selected cells and take the difference of the most left column and the current cell
         // and add the difference to the where it should be placed
-        // selected cells have coords ['a_1', 'a_3'], hovered cell to place is 'b_4'. Destination samples will become ['b_4, 'b_6']
-        let preview: sampleInfo[] = []
+        // selected cells have coords ['a01', 'a03'], hovered cell to place is 'b04'. Destination samples will become ['b04, 'b06']
+        const preview: sampleInfo[] = []
 
         //iterates over the selected samples to find the most left column of them
         if (Object.keys(selectedSampleList).length > 0) {
-            
             const cellsByCoordinate: any = Object.values(selectedSampleList)
+
             const mostLeftColumn = cellsByCoordinate.reduce((acc, curr) => {
               const currentColumn = getColumnFromCoordinates(curr.coordinates)
               return Math.min(currentColumn, acc)
+            }, Infinity)
+
+            const TopMostRow = cellsByCoordinate.reduce((acc, curr) => {
+              const currentRow = getNumericRowFromCoordinates(curr.coordinates)
+              console.log(currentRow)
+              return Math.min(currentRow, acc)
             }, Infinity)
             
             //sorting the sampleList by coordinates
@@ -74,37 +84,32 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
             //getting coordinates of the clicked cell
             const placedColumn = getColumnFromCoordinates(coordinates)
-            let transformedRow = getRowFromCoordinates(coordinates)
+            const placedRow = getNumericRowFromCoordinates(coordinates)
+            let transformedRow
             let transformedColumn
 
-            //row used to keep track whether to increase the transformed row
-            let currentRow = getRowFromCoordinates(cellsByCoordinate[0].coordinates)
             //iterate through each selected sample and transforming the column and row to correspond to the one that was clicked
             cellsByCoordinate.forEach(value => {
                 const coord = value.coordinates
-                const row = getRowFromCoordinates(coord)
-                //if sample is in a different row than from the previous, increment row
-                if (row != currentRow) {
-                    currentRow = row
-                    transformedRow = String.fromCharCode(transformedRow.charCodeAt(0) + 1)
-                }
+                //calculating the difference between the current cell's coordinate and the top most row in this selected samples group
+                const verticalDifference = getDiff(getNumericRowFromCoordinates(coord), TopMostRow)
                 //calculating the difference between the current cell's coordinate and the most left column in this selected samples group
-                const difference = getDiff(getColumnFromCoordinates(coord), mostLeftColumn)
+                const horizontalDifference = getDiff(getColumnFromCoordinates(coord), mostLeftColumn)
 
-                //taking the current placedColumn and adding the differnece
-                transformedColumn = placedColumn + difference
-                preview.push({ id: value.id, type: PREVIEW_STRING, coordinates: transformedRow + padColumn(transformedColumn) })
+                // Finding the position by applying the differences
+                transformedRow = placedRow + verticalDifference + 64  // Add 64 to get the proper ASCII code
+                transformedColumn = placedColumn + horizontalDifference
+                preview.push({ id: value.id, type: PREVIEW_STRING, coordinates: String.fromCharCode(transformedRow) + padColumn(transformedColumn) })
             })
 
             if (preview.length > 0)
                 setPreviewCells(preview)
-
         }
     }, [previewCells, selectedSampleList])
 
     //allows to preview the cells that the group of selected samples will go into
     const previewGroupPlacement = useCallback((coordinates) => {
-        let preview: sampleInfo[] = []
+        const preview: sampleInfo[] = []
 
         //sorts list of cells by coordinate
         const cells: any = Object.keys(selectedSampleList).map(id => {
@@ -174,11 +179,11 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
     const renderCells = useCallback(
         () => {
-            let cells: any[] = [];
-            let char = 'A';
-            let coordinates = '';
+            const cells: any[] = []
+            let char = 'A'
+            let coordinates = ''
             //renders header based on the number of columns provided to the component
-            let headerCells: React.ReactElement[] = []
+            const headerCells: React.ReactElement[] = []
             for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
                     <div key={'header_' + i} className={"header"}>
@@ -197,7 +202,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             //renders each row with the corresponding row letter 'A','B', etc.
             const cellSize = columns <= 12 ? "cell" : "tiny-cell"
             for (let i = 0; i < rows; i++) {
-                let rowOfCells: React.ReactElement[] = []
+                const rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
                     <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white' }}>
                         {
@@ -236,11 +241,10 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
     return (
         <>
-            <div className={"transfer"} style={
-                { 
-                    cursor: isSelecting ? 'crosshair' : 'auto',
-                }
-            }>
+            <div className={"transfer"}
+              style={{ cursor: isSelecting ? 'crosshair' : 'auto' }}
+              onClick={isSelecting ? () => setIsSelecting(false) : () => setIsSelecting(true)} // deactivate selecting between cells
+            >
                 {
                     renderCells()
                 }

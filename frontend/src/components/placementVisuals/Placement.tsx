@@ -4,13 +4,12 @@ import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button, Popconfirm, Switch, Typography, Row, Col, notification } from 'antd'
+import { Radio, Button, Popconfirm, Switch, Row, Col, notification } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import AddPlacementContainer from "./AddPlacementContainer"
 
-const { Title } = Typography
 
 interface PlacementProps {
     sourceSamples?: containerSample,
@@ -259,7 +258,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
     }, [selectedSamples, sourceSamples, destinationSamples])
 
     const disableUndo = useMemo(() => {
-      return !!!destinationSamples || Object.values(selectedSamples).some(sample => sample.type == SOURCE_STRING)
+      return !destinationSamples || Object.keys(destinationSamples.samples).length == 0
     }, [selectedSamples])
 
     return (
@@ -345,7 +344,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                             </Radio.Group>
                           </Col>
                         <Col span={8}>
-                              <Button onClick={transferAllSamples} disabled={!!!destinationSamples}>Place All Source</Button>
+                              <Button onClick={transferAllSamples} disabled={!destinationSamples}>Place All Source</Button>
                               <Button onClick={clearSelection}>Deselect All</Button>
                               <Popconfirm
                                   title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
