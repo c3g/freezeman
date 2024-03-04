@@ -70,10 +70,12 @@ export type StudySettingsByID = {[key: number] : StudyUXSettings | undefined }
 
 export interface StudyStepSamplesTableState {
 	pageNumber: number
+	isFetching: boolean
 }
 
 export interface CompletedSamplesTableState {
 	pageNumber: number
+	isFetching: boolean
 }
 
 // Complete study samples state

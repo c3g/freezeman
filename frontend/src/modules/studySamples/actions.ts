@@ -1,10 +1,10 @@
 import { FMSId } from '../../models/fms_api_models'
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from '../../models/paged_items'
-import { selectStudiesByID, selectStudySamplesByID, selectStudySettingsByID, selectWorkflowsByID } from '../../selectors'
+import { selectStudiesByID, selectStudySamplesByID, selectStudySettingsByID, selectStudyTableStatesByID, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { fetchSamples } from '../cache/cache'
 import { StudySampleStep, StudyStepSamplesTabSelection } from './models'
-import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_NUMBER, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
+import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FETCHING, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_NUMBER, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
 import { fetchSamplesAtStepOrder, loadStudySamplesInStepByStudy, loadStudySampleStep } from './services'
 
 
@@ -20,7 +20,12 @@ export function getStudySamples(studyID: FMSId) {
 				const workflow = workflowsById[study.workflow_id]
 				if (workflow) {
 					dispatch(initStudySamplesSettingsAndTables(studyID, workflow.steps_order.map((x) => x.id)))
-					studySamples = await Promise.all(workflow.steps_order.map((stepOrder) => loadStudySampleStep(studyID, stepOrder)))
+					studySamples = await Promise.all(workflow.steps_order.map(async (stepOrder) => {
+						dispatch(setStudyStepFetching(studyID, stepOrder.id, true))
+						const result = await loadStudySampleStep(studyID, stepOrder)
+						dispatch(setStudyStepFetching(studyID, stepOrder.id, false))
+						return result
+					}))
 				}
 			}
 			if (studySamples) {
@@ -169,7 +174,10 @@ export function setStudyStepPageSize(studyID: FMSId, stepOrderID: FMSId, pageSiz
 		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'ready', 1))
 		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'completed', 1))
 		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'removed', 1))
+
+		dispatch(setStudyStepFetching(studyID, stepOrderID, true))
 		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+		dispatch(setStudyStepFetching(studyID, stepOrderID, false))
 	}
 }
 
@@ -187,7 +195,29 @@ function setStudyStepPageNumberLight(studyID: FMSId, stepOrderID: FMSId, tabSele
 export function setStudyStepPageNumber(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, pageNumber: number) {
 	return async (dispatch: AppDispatch) => {
 		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, tabSelection, pageNumber))
+
+		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, tabSelection, true))
 		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
+		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, tabSelection, false))
+	}
+}
+
+export function setStudyStepFetching(studyID: FMSId, stepOrderID: FMSId, isFetching: boolean) {
+	return async (dispatch: AppDispatch) => {
+		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, 'ready', isFetching))
+		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, 'completed', isFetching))
+		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, 'removed', isFetching))
+	}
+}
+
+
+function setStudyStepFetchingAtTab(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, isFetching: boolean) {
+	return {
+		type: SET_STUDY_STEP_FETCHING,
+		studyID,
+		stepOrderID,
+		tabSelection,
+		isFetching
 	}
 }
 

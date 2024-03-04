@@ -102,7 +102,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 		<WorkflowSamplesTable
 			clearFilters={localClearFilters}
 			hasFilter={true}
-			samples={step.ready.samples ?? []}
+			samples={step.ready.samples}
 			columns={columns}
 			filterDefinitions={{ ...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS }}
 			filterKeys={{ ...SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS, ...SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS }}
@@ -111,6 +111,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 			setFilterOptions={setFilterOptions}
 			setSortBy={setSortBy}
 			pagination={{ pageNumber, pageSize, totalCount: step.ready.count, onChangePageNumber, onChangePageSize }}
+			loading={tableState?.isFetching}
 		/>
 	)
 }

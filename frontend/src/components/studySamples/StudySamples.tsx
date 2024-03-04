@@ -126,7 +126,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 							}
 							style={{backgroundColor: 'white'}}
 						>
-							<StepPanel step={step} studyID={studyID} uxSettings={uxSettings?.stepSettings[step.stepOrderID]} removedTitle={removedTitle} />
+							<StepTabs step={step} studyID={studyID} uxSettings={uxSettings?.stepSettings[step.stepOrderID]} removedTitle={removedTitle} />
 						</Collapse.Panel>
 					)
 				})}
@@ -141,7 +141,7 @@ interface StepPanelProps {
 	uxSettings?: StudyUXStepSettings
 	removedTitle: string
 }
-function StepPanel({step, studyID, uxSettings, removedTitle} : StepPanelProps) {
+function StepTabs({step, studyID, uxSettings, removedTitle} : StepPanelProps) {
 	const dispatch = useAppDispatch()
 	const tableStates = useAppSelector(selectStudyTableStatesByID)[studyID]?.steps[step.stepOrderID]?.tables
 		
@@ -162,21 +162,19 @@ function StepPanel({step, studyID, uxSettings, removedTitle} : StepPanelProps) {
 	}
 
 	return (
-		<>
-			<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
-				<Tabs.TabPane tab={readyTab} key='ready'>
-					<StudyStepSamplesTable studyID={studyID} step={step} tableState={tableStates?.ready} settings={uxSettings}/>
-				</Tabs.TabPane>
-				<Tabs.TabPane tab={completedTab} key='completed'>
-					<CompletedSamplesTable studyID={studyID} step={step} tableState={tableStates?.completed} settings={uxSettings} workflowAction={'NEXT_STEP'}/>
-				</Tabs.TabPane>
-				{hasRemovedSamples && 
-				<Tabs.TabPane tab={removedTab} key='removed'>
-					<CompletedSamplesTable studyID={studyID} step={step} tableState={tableStates?.removed} settings={uxSettings} workflowAction={'DEQUEUE_SAMPLE'}/>
-				</Tabs.TabPane>
-				}
-			</Tabs>
-		</>
+		<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
+			<Tabs.TabPane tab={readyTab} key='ready'>
+				<StudyStepSamplesTable studyID={studyID} step={step} tableState={tableStates?.ready} settings={uxSettings}/>
+			</Tabs.TabPane>
+			<Tabs.TabPane tab={completedTab} key='completed'>
+				<CompletedSamplesTable studyID={studyID} step={step} tableState={tableStates?.completed} settings={uxSettings} workflowAction={'NEXT_STEP'}/>
+			</Tabs.TabPane>
+			{hasRemovedSamples && 
+			<Tabs.TabPane tab={removedTab} key='removed'>
+				<CompletedSamplesTable studyID={studyID} step={step} tableState={tableStates?.removed} settings={uxSettings} workflowAction={'DEQUEUE_SAMPLE'}/>
+			</Tabs.TabPane>
+			}
+		</Tabs>
 	)
 }
 

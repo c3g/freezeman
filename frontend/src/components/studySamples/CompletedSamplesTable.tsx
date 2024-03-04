@@ -106,6 +106,7 @@ function CompletedSamplesTable({studyID, step, workflowAction, tableState, setti
 			dataSource={dataSource}
 			rowKey={completedSample => completedSample.id}
 			pagination={false}
+			loading={tableState?.isFetching}
 		/>
 		<Pagination
 			className="ant-table-pagination ant-table-pagination-right"

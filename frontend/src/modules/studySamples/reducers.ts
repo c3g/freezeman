@@ -29,6 +29,7 @@ export const CLEAR_FILTERS = "STUDY_SAMPLES.CLEAR_FILTERS"
 // Table actions
 export const SET_STUDY_STEP_PAGE_SIZE = 'STUDY_SAMPLES.SET_STUDY_STEP_PAGE_SIZE'
 export const SET_STUDY_STEP_PAGE_NUMBER = 'STUDY_SAMPLES.SET_STUDY_STEP_PAGE_NUMBER'
+export const SET_STUDY_STEP_FETCHING = 'STUDY_SAMPLES.SET_STUDY_STEP_FETCHING'
 
 /* 
 	The studySamples state is used by the study details page to list the
@@ -152,9 +153,9 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			for (const stepOrderID of stepOrderIDs) {
 				const inStudy = state.studyTableStatesByID[studyID] ??= { steps: {} }
 				inStudy.steps[stepOrderID] ??= { tables: {
-					ready: { pageNumber: 1 },
-					completed: { pageNumber: 1 },
-					removed: { pageNumber: 1 }
+					ready: { pageNumber: 1, isFetching: false },
+					completed: { pageNumber: 1, isFetching: false },
+					removed: { pageNumber: 1, isFetching: false }
 				} }
 			}
 			break
@@ -244,11 +245,18 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			}
 			break
 		}
-	        case SET_STUDY_STEP_PAGE_NUMBER: {
+		case SET_STUDY_STEP_PAGE_NUMBER: {
 			const { studyID, stepOrderID, tabSelection, pageNumber } = action
 			let tableState = state.studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables[tabSelection as StudyStepSamplesTabSelection]
 			if (tableState) {
-                		tableState.pageNumber = pageNumber
+				tableState.pageNumber = pageNumber
+			}
+		}
+		case SET_STUDY_STEP_FETCHING: {
+			const { studyID, stepOrderID, tabSelection, isFetching } = action
+			let tableState = state.studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables[tabSelection as StudyStepSamplesTabSelection]
+			if (tableState) {
+				tableState.isFetching = isFetching
 			}
 		}
 	}
