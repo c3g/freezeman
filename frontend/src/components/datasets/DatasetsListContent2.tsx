@@ -39,42 +39,38 @@ function DatasetsListContent() {
 						callbacks.setFilterOptionsCallback)
 
 	const getDataObjectsByID = useItemsByIDToDataObjects(selectDatasetsByID, dataset => {return {dataset}})
+		return(
+			<>
+				<AppPageHeader title="Datasets"/>
+				<PageContent>
+					<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
+					<PagedItemsTable<ObjectWithDataset> 
+						columns={columns}
+						expandable={{
+							columnTitle: () => <div>Comments</div>,
+							expandIcon: ({ expanded, onExpand, record }) =>
+								expanded ? (
+									<Tooltip title="Hide Comments">
+										<MinusCircleTwoTone onClick={e => onExpand(record, e)} />
+									</Tooltip>
+								) : (
+									<Tooltip title="View Comments">
+										<PlusCircleTwoTone onClick={e => onExpand(record, e)} />
+									</Tooltip>
 
-	return(
-		<>
-			<AppPageHeader title="Datasets"/>
-			<PageContent>
-				<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
-				<PagedItemsTable<ObjectWithDataset> 
-					columns={columns}
-          expandable={{
-            columnTitle: () => <div>Comments</div>,
-            expandIcon: ({ expanded, onExpand, record }) =>
-                expanded ? (
-                    <Tooltip title="Hide Comments">
-                        <MinusCircleTwoTone onClick={e => onExpand(record, e)} />
-                    </Tooltip>
-                ) : (
-                    <Tooltip title="View Comments">
-                        <PlusCircleTwoTone onClick={e => onExpand(record, e)} />
-                    </Tooltip>
-
-                )
-            ,
-            expandedRowRender: (record) => {
-              const comments = record && record.dataset.archived_comments
-              return (
-                <ArchivedCommentsTimeline comments={comments}/>
-              )
-            }
-            ,
-        }}
-					getDataObjectsByID={getDataObjectsByID}
-					pagedItems={pagedItems}
-					usingFilters={false}
-					{...callbacks}
-				/>
-			</PageContent>
+								)
+							,
+							expandedRowRender: (record) => {
+								const comments = record && record.dataset.archived_comments
+								return (<ArchivedCommentsTimeline comments={comments}/>)
+							}
+						}}
+						getDataObjectsByID={getDataObjectsByID}
+						pagedItems={pagedItems}
+						usingFilters={false}
+						{...callbacks}
+					/>
+				</PageContent>
 		</>
 	)
 }
