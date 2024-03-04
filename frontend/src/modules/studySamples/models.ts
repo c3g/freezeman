@@ -22,18 +22,18 @@ export interface StudySampleStep {
 	readonly stepOrder: number					// step order
 	readonly protocolID: FMSId					// protocol ID
 	readonly ready: {
-		count: number,
-		samples: SampleAndLibrary[]
+		readonly count: number,
+		readonly samples: SampleAndLibrary[]
+		readonly sampleNextStepByID: { [key: Sample['id']]: FMSSampleNextStepByStudy['id'] }
 	}
 	readonly completed: {
-		count: number,
-		samples: CompletedStudySample[]
+		readonly count: number,
+		readonly samples: CompletedStudySample[]
 	}
 	readonly removed : {
-		count: number,
-		samples: CompletedStudySample[]
+		readonly count: number,
+		readonly samples: CompletedStudySample[]
 	}
-	readonly sampleNextStepByID: { [key: Sample['id']]: FMSSampleNextStepByStudy['id'] }
 }
 
 // List of steps

@@ -8,7 +8,7 @@ import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcessMeasurements, fetchProcesses, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleStep } from "./models"
 
-export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId): Promise<Pick<StudySampleStep, 'ready' | 'sampleNextStepByID' | 'completed' | 'removed'>> {
+export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId): Promise<Pick<StudySampleStep, 'ready' | 'completed' | 'removed'>> {
 	// this will always be 10 anyway due it being the default in the setting
 	const limit = selectStudySettingsByID(store.getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? 10
 
@@ -30,13 +30,16 @@ export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID:
 	const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, 'DEQUEUE_SAMPLE', limit, offset)
 
 	return {
-		ready: { samples: readySamples, count: readyCount },
+		ready: {
+			samples: readySamples,
+			count: readyCount,
+			sampleNextStepByID: sampleNextSteps.reduce((sampleNextStepByID, sampleNextStep) => {
+				sampleNextStepByID[sampleNextStep.sample] = sampleNextStep.id
+				return sampleNextStepByID
+			}, {} as StudySampleStep['ready']['sampleNextStepByID'])
+		},
 		completed: { samples: completedSamples, count: completedCount ?? 0 },
 		removed: { samples: dequeuedSamples, count: dequeuedCount ?? 0 },
-		sampleNextStepByID: sampleNextSteps.reduce((sampleNextStepByID, sampleNextStep) => {
-			sampleNextStepByID[sampleNextStep.sample] = sampleNextStep.id
-			return sampleNextStepByID
-		}, {} as StudySampleStep['sampleNextStepByID'])
 	}
 }
 

@@ -68,7 +68,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 						message: `Removing sample '${sample?.name}' from step '${step.stepName}'`,
 						key: REMOVE_NOTIFICATION_KEY
 					})
-					await dispatch(api.sampleNextStepByStudy.remove(step.sampleNextStepByID[sample.id]))
+					await dispatch(api.sampleNextStepByStudy.remove(step.ready.sampleNextStepByID[sample.id]))
 					await dispatch(refreshStudySamples(studyID))
 					notification.close(REMOVE_NOTIFICATION_KEY)
 				}}
@@ -78,7 +78,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 				<Typography.Link underline type={'danger'} href={''}>Remove</Typography.Link>
 			</Popconfirm>
 		}
-	}), [dispatch, step.sampleNextStepByID, step.stepID, step.stepName, studyID])
+	}), [dispatch, step.ready.sampleNextStepByID, step.stepID, step.stepName, studyID])
 
 	const columns: IdentifiedTableColumnType<SampleAndLibrary>[] = useMemo(() => {
 		if (stepDefinition) { // missing protocol leads to default columns

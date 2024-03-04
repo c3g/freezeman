@@ -104,7 +104,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 		}
 
 		case SET_REFRESHED_STEP_SAMPLES: {
-			const { studyID, stepOrderID, ready, sampleNextStepByID, completed, removed } = action
+			const { studyID, stepOrderID, ready, completed, removed } = action
 			const studySamples = state.studySamplesByID[studyID]
 			if (studySamples?.data?.steps) {
 				let stepIndex = studySamples.data.steps.findIndex((step) => step.stepOrderID === stepOrderID)
@@ -113,8 +113,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 						...studySamples.data.steps[stepIndex],
 						ready,
 						completed,
-						removed,
-						sampleNextStepByID
+						removed
 					}
 				}
 			}
