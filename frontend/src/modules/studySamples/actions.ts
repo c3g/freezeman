@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from '../../store'
 import { fetchSamples } from '../cache/cache'
 import { StudySampleStep, StudyStepSamplesTabSelection } from './models'
 import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FETCHING, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_NUMBER, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
-import { fetchSamplesAtStepOrder, loadStudySamplesInStepByStudy, loadStudySampleStep } from './services'
+import { lazyLoadStudySamplesInStepByStudy, loadStudySamplesInStepByStudy, loadStudySampleStep } from './services'
 
 
 export function getStudySamples(studyID: FMSId) {
@@ -48,9 +48,13 @@ export function refreshAllStudySamples() {
 	}
 }
 
-export function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
+export function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId, tabSelection?: StudyStepSamplesTabSelection) {
 	return async (dispatch: AppDispatch) => {
-		const studySamplesInStepByStudy = await loadStudySamplesInStepByStudy(studyID, stepOrderID)
+		dispatch(setStudyStepFetching(studyID, stepOrderID, true, tabSelection))
+
+		const studySamplesInStepByStudy = tabSelection ?
+			{ [tabSelection]: await lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)[tabSelection]() }
+			: await loadStudySamplesInStepByStudy(studyID, stepOrderID)
 		dispatch({
 			type: SET_REFRESHED_STEP_SAMPLES,
 			studyID,
@@ -58,6 +62,7 @@ export function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId) {
 			...studySamplesInStepByStudy
 		})
 
+		dispatch(setStudyStepFetching(studyID, stepOrderID, false, tabSelection))
 	}
 }
 
@@ -170,54 +175,42 @@ export function setStudyStepPageSize(studyID: FMSId, stepOrderID: FMSId, pageSiz
 			stepOrderID,
 			pageSize
 		})
-		// FIXME: does not actually reset page number :(
-		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'ready', 1))
-		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'completed', 1))
-		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 'removed', 1))
-
-		dispatch(setStudyStepFetching(studyID, stepOrderID, true))
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 1)) // FIXME: does not actually reset page number :(
 		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
-		dispatch(setStudyStepFetching(studyID, stepOrderID, false))
-	}
-}
-
-// set page number without fetching samples
-function setStudyStepPageNumberLight(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, pageNumber: number) {
-	return {
-		type: SET_STUDY_STEP_PAGE_NUMBER,
-		studyID,
-		stepOrderID,
-		tabSelection,
-		pageNumber
 	}
 }
 
 export function setStudyStepPageNumber(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, pageNumber: number) {
 	return async (dispatch: AppDispatch) => {
-		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, tabSelection, pageNumber))
-
-		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, tabSelection, true))
-		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
-		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, tabSelection, false))
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, pageNumber, tabSelection))
+		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID, tabSelection))
 	}
 }
 
-export function setStudyStepFetching(studyID: FMSId, stepOrderID: FMSId, isFetching: boolean) {
-	return async (dispatch: AppDispatch) => {
-		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, 'ready', isFetching))
-		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, 'completed', isFetching))
-		dispatch(setStudyStepFetchingAtTab(studyID, stepOrderID, 'removed', isFetching))
+// set page number without fetching samples
+function setStudyStepPageNumberLight(studyID: FMSId, stepOrderID: FMSId, pageNumber: number, tabSelection?: StudyStepSamplesTabSelection) {
+	return (dispatch: AppDispatch) => {
+		const tabSelections: StudyStepSamplesTabSelection[] = tabSelection ? [tabSelection] : ['ready', 'completed', 'removed']
+		tabSelections.forEach((tabSelection) => dispatch({
+			type: SET_STUDY_STEP_PAGE_NUMBER,
+			studyID,
+			stepOrderID,
+			tabSelection,
+			pageNumber
+		}))
 	}
 }
 
-
-function setStudyStepFetchingAtTab(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, isFetching: boolean) {
-	return {
-		type: SET_STUDY_STEP_FETCHING,
-		studyID,
-		stepOrderID,
-		tabSelection,
-		isFetching
+function setStudyStepFetching(studyID: FMSId, stepOrderID: FMSId, isFetching: boolean, tabSelection?: StudyStepSamplesTabSelection) {
+	return (dispatch: AppDispatch) => {
+		const tabSelections: StudyStepSamplesTabSelection[] = tabSelection ? [tabSelection] : ['ready', 'completed', 'removed']
+		tabSelections.forEach((tabSelection) => dispatch({
+			type: SET_STUDY_STEP_FETCHING,
+			studyID,
+			stepOrderID,
+			tabSelection,
+			isFetching
+		}))
 	}
 }
 

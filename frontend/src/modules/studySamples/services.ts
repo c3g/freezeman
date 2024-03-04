@@ -18,7 +18,7 @@ export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID:
 	}
 }
 
-function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId) {
+export function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId) {
 	const limit = selectStudySettingsByID(store.getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? 10
 
 	const studyTableStatesByID = selectStudyTableStatesByID(store.getState())
@@ -158,7 +158,7 @@ export async function fetchCompletedSamples(studyID: FMSId, stepOrderID: FMSId, 
 	}
 }
 
-export async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number, offset = 0, limit = 10) {
+async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number, offset = 0, limit = 10) {
 	const studySettingsByID = selectStudySettingsByID(store.getState())
 
 	// Get the current set of filters and sort order from UX settings for study and step
