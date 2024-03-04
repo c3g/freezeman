@@ -6,40 +6,50 @@ import { selectLibrariesByID, selectSamplesByID, selectStudiesByID, selectStudyS
 import store from "../../store"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcessMeasurements, fetchProcesses, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
-import { CompletedStudySample, StudySampleStep } from "./models"
+import { CompletedStudySample, StudySampleStep, StudyStepSamplesTabSelection } from "./models"
 
 export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId): Promise<Pick<StudySampleStep, 'ready' | 'completed' | 'removed'>> {
-	// this will always be 10 anyway due it being the default in the setting
+	const lazy = lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)
+	const results = await Promise.all([lazy.ready(), lazy.completed(), lazy.removed()])
+	return {
+		ready: results[0],
+		completed: results[1],
+		removed: results[2]
+	}
+}
+
+function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId) {
 	const limit = selectStudySettingsByID(store.getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? 10
 
 	const studyTableStatesByID = selectStudyTableStatesByID(store.getState())
 	const table = studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables
 
-	// Each step has its own samples table, with its own filters and sort order, so  we have to request samples for each step separately.
-	let offset = limit * ((table?.ready.pageNumber ?? 1) - 1)
-	const fetchSamplesAtStepOrderResponse = await fetchSamplesAtStepOrder(studyID, stepOrderID, offset, limit)
-	const { sampleNextSteps, count: readyCount } = fetchSamplesAtStepOrderResponse
-	const readySamples = await fetchSamplesAndLibraries(sampleNextSteps.map((s) => s.sample))
-	
-	// Get samples that have completed the process at a step
-	offset = limit * ((table?.completed.pageNumber ?? 1) - 1)
-	const { result: completedSamples, count: completedCount } = await fetchCompletedSamples(studyID, stepOrderID, 'NEXT_STEP', limit, offset)
-
-	// Get samples that have been dequeued at a step
-	offset = limit * ((table?.removed.pageNumber ?? 1) - 1)
-	const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, 'DEQUEUE_SAMPLE', limit, offset)
-
 	return {
-		ready: {
-			samples: readySamples,
-			count: readyCount,
-			sampleNextStepByID: sampleNextSteps.reduce((sampleNextStepByID, sampleNextStep) => {
-				sampleNextStepByID[sampleNextStep.sample] = sampleNextStep.id
-				return sampleNextStepByID
-			}, {} as StudySampleStep['ready']['sampleNextStepByID'])
+		ready: async () => {
+			const offset = limit * ((table?.ready.pageNumber ?? 1) - 1)
+			const fetchSamplesAtStepOrderResponse = await fetchSamplesAtStepOrder(studyID, stepOrderID, offset, limit)
+			const { sampleNextSteps, count: readyCount } = fetchSamplesAtStepOrderResponse
+			const readySamples = await fetchSamplesAndLibraries(sampleNextSteps.map((s) => s.sample))
+
+			return {
+				samples: readySamples,
+				count: readyCount,
+				sampleNextStepByID: sampleNextSteps.reduce((sampleNextStepByID, sampleNextStep) => {
+					sampleNextStepByID[sampleNextStep.sample] = sampleNextStep.id
+					return sampleNextStepByID
+				}, {} as StudySampleStep['ready']['sampleNextStepByID'])
+			}
 		},
-		completed: { samples: completedSamples, count: completedCount ?? 0 },
-		removed: { samples: dequeuedSamples, count: dequeuedCount ?? 0 },
+		completed: async () => {
+			const offset = limit * ((table?.completed.pageNumber ?? 1) - 1)
+			const { result: completedSamples, count: completedCount } = await fetchCompletedSamples(studyID, stepOrderID, 'NEXT_STEP', limit, offset)
+			return { samples: completedSamples, count: completedCount ?? 0 }
+		},
+		removed: async () => {
+			const offset = limit * ((table?.removed.pageNumber ?? 1) - 1)
+			const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, 'DEQUEUE_SAMPLE', limit, offset)
+			return { samples: dequeuedSamples, count: dequeuedCount ?? 0 }
+		}
 	}
 }
 

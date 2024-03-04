@@ -109,8 +109,9 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			if (studySamples?.data?.steps) {
 				let stepIndex = studySamples.data.steps.findIndex((step) => step.stepOrderID === stepOrderID)
 				if (stepIndex >= 0) {
-					const atStep = studySamples.data.steps[stepIndex]
-					studySamples.data.steps[stepIndex] = {
+					const steps = studySamples.data.steps
+					const atStep = steps[stepIndex]
+					steps[stepIndex] = {
 						...atStep,
 						ready: ready ?? atStep.ready,
 						completed: completed ?? atStep.completed,

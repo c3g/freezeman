@@ -143,7 +143,7 @@ interface StepPanelProps {
 }
 function StepTabs({step, studyID, uxSettings, removedTitle} : StepPanelProps) {
 	const dispatch = useAppDispatch()
-	const tableStates = useAppSelector(selectStudyTableStatesByID)[studyID]?.steps[step.stepOrderID]?.tables
+	const tableStates = useAppSelector((state) => selectStudyTableStatesByID(state)[studyID]?.steps[step.stepOrderID]?.tables)
 		
 	const hasRemovedSamples = step.removed.count > 0
 
