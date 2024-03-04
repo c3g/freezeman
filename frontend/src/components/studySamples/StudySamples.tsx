@@ -99,8 +99,36 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 			</div>
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
 				{renderedSteps.map((step) => {
+					const countString = `${step.ready.count} / ${step.ready.count + step.completed.count + step.removed.count}`
+					const countTitle = `${step.completed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`					
+					const removedTitle = step.removed.count === 1 ? `1 sample was removed from study at this step` : `${step.removed.count} samples were removed from study at this step`
+
 					// Call StepPanel as a function because the child of Collapse must be a CollapsePanel, not a StepPanel
-					return StepPanel({step, studyID, uxSettings:uxSettings?.stepSettings[step.stepOrderID]})
+					return (
+						<Collapse.Panel
+							key={step.stepOrderID}
+							header={
+								<Space align="baseline">
+									<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
+									<Title level={5}>{step.stepName}</Title>
+								</Space>
+							}
+							showArrow={true}
+							extra={
+								<>
+									<Space>
+										{step.removed.count > 0 && <WarningOutlined style={{color: 'red'}} title={removedTitle}/>}
+										<Title level={4} style={{ margin: '0' }} title={countTitle}>
+											{countString}
+										</Title>
+									</Space>
+								</>
+							}
+							style={{backgroundColor: 'white'}}
+						>
+							<StepPanel step={step} studyID={studyID} uxSettings={uxSettings?.stepSettings[step.stepOrderID]} removedTitle={removedTitle} />
+						</Collapse.Panel>
+					)
 				})}
 			</Collapse>
 		</>
@@ -111,17 +139,13 @@ interface StepPanelProps {
 	step: StudySampleStep
 	studyID: FMSId
 	uxSettings?: StudyUXStepSettings
+	removedTitle: string
 }
-function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
+function StepPanel({step, studyID, uxSettings, removedTitle} : StepPanelProps) {
 	const dispatch = useAppDispatch()
 	const tableStates = useAppSelector(selectStudyTableStatesByID)[studyID]?.steps[step.stepOrderID]?.tables
-	
-	const countString = `${step.ready.count} / ${step.ready.count + step.completed.count + step.removed.count}`
-	const countTitle = `${step.completed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`
-	
+		
 	const hasRemovedSamples = step.removed.count > 0
-
-	const removedTitle = step.removed.count === 1 ? `1 sample was removed from study at this step` : `${step.removed.count} samples were removed from study at this step`
 
 	const readyTab = `Ready for Processing (${step.ready.count})`
 	const completedTab = <Text>{`Completed (${step.completed.count})`}</Text>
@@ -138,27 +162,7 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 	}
 
 	return (
-		<Collapse.Panel
-			key={step.stepOrderID}
-			header={
-				<Space align="baseline">
-					<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
-					<Title level={5}>{step.stepName}</Title>
-				</Space>
-			}
-			showArrow={true}
-			extra={
-				<>
-					<Space>
-						{hasRemovedSamples && <WarningOutlined style={{color: 'red'}} title={removedTitle}/>}
-						<Title level={4} style={{ margin: '0' }} title={countTitle}>
-							{countString}
-						</Title>
-					</Space>
-				</>
-			}
-			style={{backgroundColor: 'white'}}
-		>
+		<>
 			<Tabs defaultActiveKey='ready' activeKey={uxSettings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
 				<Tabs.TabPane tab={readyTab} key='ready'>
 					<StudyStepSamplesTable studyID={studyID} step={step} tableState={tableStates?.ready} settings={uxSettings}/>
@@ -172,7 +176,7 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 				</Tabs.TabPane>
 				}
 			</Tabs>
-		</Collapse.Panel>
+		</>
 	)
 }
 
