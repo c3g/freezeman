@@ -1,17 +1,16 @@
 import React from "react";
-import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
 import {Table, Tag, Empty} from "antd";
 import { isNullish } from "../../../utils/functions";
+import { useAppSelector } from "../../../hooks";
+import { selectProtocolsByID, selectUsersByID } from "../../../selectors";
 
 
-const mapStateToProps = state => ({
-  usersByID: state.users.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-});
+const SampleDetailsProcessMeasurements = ({processMeasurements}) => {
+  const usersByID = useAppSelector(selectUsersByID)
+  const protocolsByID = useAppSelector(selectProtocolsByID)
 
-const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, protocolsByID,}) => {
     const columns = [
       {
         title: 'Sample Process ID',
@@ -83,4 +82,4 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
 }
 
 
-export default connect(mapStateToProps, undefined)(SampleDetailsProcessMeasurements);
+export default SampleDetailsProcessMeasurements

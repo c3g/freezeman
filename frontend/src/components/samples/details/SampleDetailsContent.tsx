@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { connect } from "react-redux";
+import React, { LegacyRef, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { QCFlag } from "../../QCFlag";
@@ -44,6 +43,10 @@ import {
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 import useHashURL from "../../../hooks/useHashURL";
 import { isNullish } from "../../../utils/functions";
+import { Library, ProcessMeasurement, Sample } from "../../../models/frontend_models";
+import { useAppDispatch, useAppSelector } from "../../../hooks";
+import { selectAuthTokenAccess, selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectLibrariesByID, selectProcessMeasurementsByID, selectSampleKindsByID, selectSamplesByID, selectUsersByID } from "../../../selectors";
+import { FMSId } from "../../../models/fms_api_models";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -79,195 +82,198 @@ const lineageStyle = {
 const listSampleMetadata = (token, options) =>
   withToken(token, api.sampleMetadata.get)(options).then(res => res.data)
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  sampleKindsByID: state.sampleKinds.itemsByID,
-  containersByID: state.containers.itemsByID,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  individualsByID: state.individuals.itemsByID,
-  librariesByID: state.libraries.itemsByID,
-  indicesByID: state.indices.itemsByID,
-  usersByID: state.users.itemsByID,
-  projectsByID: state.projects.itemsByID,
-  coordinatesByID: state.coordinates.itemsByID,
-});
-
-const actionCreators = { getSample, listVersions };
-
-const SampleDetailsContent = ({
-  token,
-  samplesByID,
-  sampleKindsByID,
-  containersByID,
-  processMeasurementsByID,
-  individualsByID,
-  librariesByID,
-  indicesByID,
-  usersByID,
-  projectsByID,
-  coordinatesByID,
-  getSample,
-  listVersions
-}) => {
+const SampleDetailsContent = () => {
   const history = useNavigate();
   const { id } = useParams();
 
+  const dispatch = useAppDispatch()
+
+  const token = useAppSelector(selectAuthTokenAccess)
+  const samplesByID = useAppSelector(selectSamplesByID)
+  const sampleKindsByID = useAppSelector(selectSampleKindsByID)
+  const containersByID = useAppSelector(selectContainersByID)
+  const librariesByID = useAppSelector(selectLibrariesByID)
+  const processMeasurementsByID = useAppSelector(selectProcessMeasurementsByID)
+  const individualsByID = useAppSelector(selectIndividualsByID)
+  const indicesByID = useAppSelector(selectIndicesByID)
+  const usersByID = useAppSelector(selectUsersByID)
+  const coordinatesByID = useAppSelector(selectCoordinatesByID)
+  
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
-  const sample = samplesByID[id] || {};
-  const error = sample.error?.name !== 'APIError' ? sample.error : undefined;
-  const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
-  const isFetching = !samplesByID[id] || sample.isFetching;
-  const sampleKind = sampleKindsByID[sample.sample_kind]?.name
-  const tissueSource = sampleKindsByID[sample.tissue_source]?.name
-  const volume = isNullish(sample.volume) ? '' : parseFloat(sample.volume).toFixed(3)
-  const container = containersByID[sample.container]
-  const experimentalGroups = sample.experimental_group || [];
-  const versions = sample.versions;
-  const isVersionsEmpty = versions && versions.length === 0;
-  const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
-  const isProjectsEmpty = sample.projects && sample.projects.length === 0;
-  const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
-  let processMeasurements = []
-  let experimentRunsIDs = []
-  const library = librariesByID[id]
-  const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
-  const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
-  const [sampleMetadata, setSampleMetadata] = useState([])
+  const sample: Sample | undefined = id && samplesByID[id];
+  const error = sample?.error?.name !== 'APIError' ? sample?.error : undefined;
+  const isLoaded: boolean = id && samplesByID[id] && !sample?.isFetching && !sample?.didFail;
+  const isFetching = !id || !sample || sample?.isFetching;
+  const sampleKind = sample && sampleKindsByID[sample.sample_kind]?.name
+  const tissueSource = sample?.tissue_source && sampleKindsByID[sample.tissue_source]?.name
+  const volume = isNullish(sample) ? '' : sample.volume.toFixed(3)
+  const container = sample && containersByID[sample.container]
+  const experimentalGroups = sample?.experimental_group ?? [] ;
+  const versions = sample?.versions
+  const isVersionsEmpty = versions && versions?.length === 0;
+  const isProcessesEmpty = sample?.process_measurements && sample.process_measurements.length === 0;
+  const flags = { quantity: sample?.quantity_flag, quality: sample?.quality_flag };
+  const [processMeasurements, setProcessMeasurements] = useState<ProcessMeasurement[]>([])
+  const experimentRunsIDs = container?.experiment_run ? [container?.experiment_run] : []
+  const library: Library | undefined = id && librariesByID[id]
+  const quantity = library && library.quantity_ng ? library?.quantity_ng.toFixed(3) : undefined
+  const concentration_nm = library && library.concentration_nm ? library?.concentration_nm.toFixed(3) : undefined
+  const [sampleMetadata, setSampleMetadata] = useState<any[]>([])
   const [activeKey, setActiveKey] = useHashURL('overview')
 
 
   // Navigate to a sample when the sample's node is clicked in the lineage graph.
-  const navigateToSample = (sample_id) => {
+  const navigateToSample = useCallback((sample_id: FMSId) => {
     if (sample_id) {
       history(`/samples/${sample_id}#lineage`)
     }
-  }
+  }, [history])
 
   // Navigate to a process measurement when the user clicks an edge
   // in the lineage graph.
-  const navigateToProcess = (process_id) => {
+  const navigateToProcess = useCallback((process_id: FMSId) => {
     if (process_id) {
       history(`/process-measurements/${process_id}`)
     }
-  }
+  }, [history])
 
-  // TODO: This spams API requests
-  if (!samplesByID[id])
-    getSample(id);
+  useEffect(() => {
+    if (id && !samplesByID[id])
+      dispatch(getSample(id));
+  }, [dispatch, id, samplesByID])
 
-  if (isLoaded && !sample.versions && !sample.isFetching)
-    listVersions(sample.id);
+  useEffect(() => {
+    if (isLoaded && sample && !sample?.isFetching && sample?.versions?.length == 0)
+      dispatch(listVersions(sample.id));
+  }, [dispatch, isLoaded, sample, versions?.length])
 
-  if (isLoaded && !isProcessesEmpty) {
-    sample.process_measurements.forEach((id, i) => {
-      withProcessMeasurement(processMeasurementsByID, id, process => process.id);
-      processMeasurements.push(processMeasurementsByID[id]);
-    })
-  }
+  useEffect(() => {    
+    if (isLoaded && !isProcessesEmpty && sample?.process_measurements) {
+      const promises: Promise<ProcessMeasurement>[] = sample.process_measurements.map((id) => {
+        return new Promise((resolve) => {
+          withProcessMeasurement(processMeasurementsByID, id.toString(), resolve);
+        })
+      })
+      Promise.all(promises).then((pms) => setProcessMeasurements(pms))
+    }
+  }, [isLoaded, isProcessesEmpty, processMeasurements, processMeasurementsByID, sample?.process_measurements])
 
-  if (isLoaded && container?.experiment_run) {
-    experimentRunsIDs.push(container.experiment_run)
-  }
-
-  if (!librariesByID[id])
-    getLibrary(id)
+  useEffect(() => {
+    if (id && !librariesByID[id])
+      dispatch(getLibrary(id))
+  }, [dispatch, id, librariesByID])
 
   useEffect(() => {
     const biosampleId = sample?.biosample_id
     listSampleMetadata(token, { "biosample__id": biosampleId }).then(metadata => {
       setSampleMetadata(metadata)
     })
-  }, [sample])
+  }, [sample, token])
+
+  useEffect(() => {
+    if (sample?.individual)
+      withIndividual(individualsByID, sample?.individual?.toString(), () => null)
+  }, [individualsByID, sample?.individual])
+
+  useEffect(() => {
+    if (sample?.container)
+      withContainer(containersByID, sample.container.toString(), () => null)
+  }, [containersByID, sample?.container])
+
+  useEffect(() => {
+    if (sample?.coordinate)
+      withCoordinate(coordinatesByID, sample.coordinate.toString(), () => null)
+  }, [coordinatesByID, sample?.coordinate])
+
+  const extracted_from = sample?.extracted_from !== undefined ? samplesByID[sample.extracted_from] : undefined
+
+  useEffect(() => {
+    if (extracted_from)
+      withSample(samplesByID, extracted_from.toString(), () => null)
+  }, [extracted_from, samplesByID])
+
+  useEffect(() => {
+    if (library?.index)
+      withIndex(indicesByID, library?.index.toString(), () => null)
+  }, [indicesByID, library?.index])
 
   return <>
     <AppPageHeader
-      title={`Sample ${sample.name || id}`}
+      title={`Sample ${sample?.name || id}`}
       extra={isLoaded ?
         <Space>
           <div key="kind" style={{ display: "inline-block", verticalAlign: "top", marginTop: "4px" }}>
             <Tag>{sampleKind}</Tag>
           </div>
           <div key="depleted" style={depletedStyle}>
-            <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
+            <Tag color={sample?.depleted ? "red" : "green"}>{sample?.depleted ? "" : "NOT "}DEPLETED</Tag>
           </div>
           <EditButton url={`/samples/${id}/update`} />
         </Space>
         : []}
     />
 
-    <PageContent loading={isFetching} style={pageStyle} tabs={true}>
+    <PageContent loading={isFetching} style={pageStyle as unknown as undefined} tabs={true}>
       {error &&
-        <ErrorMessage error={error} />
+        <ErrorMessage error={error} title={error?.name} description={''} />
       }
       <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" className={(activeKey === 'lineage' ? 'lineage-tab-active' : '')}>
         <TabPane tab="Overview" key="overview" style={tabStyle}>
           <Descriptions bordered={true} size="small">
-            <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
-            <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
-            <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
+            <Descriptions.Item label="ID">{sample?.id}</Descriptions.Item>
+            <Descriptions.Item label="Name">{sample?.name}</Descriptions.Item>
+            <Descriptions.Item label="Alias">{sample?.alias}</Descriptions.Item>
             <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
             <Descriptions.Item label="Volume (µL)">{volume}</Descriptions.Item>
             <Descriptions.Item label="Concentration (ng/µL)">
-              {sample.concentration == null
+              {sample?.concentration == null
                 ? "—"
-                : `${parseFloat(sample.concentration).toFixed(3)}`}
+                : `${sample && sample.concentration.toFixed(3)}`}
             </Descriptions.Item>
-            <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
+            <Descriptions.Item label="Depleted"><Depletion depleted={sample?.depleted} /></Descriptions.Item>
           </Descriptions>
           <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
             <Descriptions.Item label="Individual Name">
-              {sample.individual &&
+              {sample?.individual &&
                 <Link to={`/individuals/${sample.individual}`}>
-                  {
-                    withIndividual(
-                      individualsByID,
-                      sample.individual,
-                      individual => individual.name,
-                      "Loading..."
-                    )
-                  }
+                  { individualsByID[sample.individual]?.name ?? "Loading..." }
                 </Link>
               }
             </Descriptions.Item>
-            <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
+            <Descriptions.Item label="Collection Site">{sample?.collection_site}</Descriptions.Item>
             <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
             <Descriptions.Item label="Experimental Groups" span={2}>
               {experimentalGroups.map((g, i) =>
                 <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
             </Descriptions.Item>
-            <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
+            <Descriptions.Item label="Reception/Creation Date">{sample?.creation_date}</Descriptions.Item>
             <Descriptions.Item label="Container Barcode">
-              {sample.container &&
+              {sample?.container &&
                 <Link to={`/containers/${sample.container}`}>
-                  {withContainer(containersByID, sample.container, container => container.barcode, "Loading...")}
+                  {containersByID[sample.container]?.barcode ?? "Loading..."}
                 </Link>
               }
             </Descriptions.Item>
             <Descriptions.Item label="Coordinates">
-              {(sample.coordinate && withCoordinate(coordinatesByID, sample.coordinate, coordinate => coordinate.name, "Loading...")) || "—"}
+              {sample?.coordinate ? coordinatesByID[sample.coordinate]?.name ?? "Loading..." : "—"}
             </Descriptions.Item>
             <Descriptions.Item label="QC Flag">
               {!isNullish(flags.quantity) || !isNullish(flags.quality)
                 ? <QCFlag flags={flags} />
                 : null}
             </Descriptions.Item>
-            <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
+            <Descriptions.Item label="Comment" span={3}>{sample?.comment}</Descriptions.Item>
           </Descriptions>
-          {sample.extracted_from ? (
+          {extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{ marginTop: "24px" }}>
               <Descriptions.Item label="Extracted From">
-                <Link to={`/samples/${sample.extracted_from}`}>
-                  {withSample(samplesByID, sample.extracted_from, sample => sample.name, "Loading...")}
+                <Link to={`/samples/${extracted_from.id}`}>
+                  {extracted_from.name ?? "Loading..."}
                 </Link>
                 {" "}(
-                {withContainer(containersByID,
-                  withSample(samplesByID, sample.extracted_from, sample => sample.container),
-                  container => container.barcode,
-                  "... ")}
-                {withSample(samplesByID, sample.extracted_from, sample => sample.coordinates) &&
-                  ` at ${withSample(samplesByID, sample.extracted_from, sample => sample.coordinates)}`}
+                {containersByID[extracted_from.container]?.barcode ?? "... "}
+                {extracted_from.coordinate && ` at ${extracted_from.coordinate}`}
                 )
               </Descriptions.Item>
             </Descriptions>
@@ -281,8 +287,8 @@ const SampleDetailsContent = ({
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
                 <Descriptions.Item label="Index">
                   {library?.index && 
-                  <Link to={`/indices/${library?.index}`}>
-                    {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
+                  <Link to={`/indices/${library.index}`}>
+                    {(indicesByID[library.index]?.name) || "Loading..."}
                   </Link>}
                 </Descriptions.Item>
                 <Descriptions.Item label="Library Size (bp)">{sample?.fragment_size}</Descriptions.Item>
@@ -300,7 +306,7 @@ const SampleDetailsContent = ({
           <Title level={2} style={{ marginTop: '1rem' }}>Versions</Title>
           <Row>
             <Col sm={24} md={24}>
-              <div ref={timelineRef}>
+              <div ref={timelineRef as LegacyRef<HTMLDivElement>}>
                 <Card>
                   {
                     isVersionsEmpty ?
@@ -340,7 +346,7 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={"Associated Projects"} key="associated-projects" style={tabStyle}>
-          <SamplesAssociatedProjects sampleID={sample.id} />
+          <SamplesAssociatedProjects sampleID={sample?.id} />
         </TabPane>
 
         <TabPane tab={`Metadata`} key="metadata" style={tabStyle}>
@@ -356,7 +362,7 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={`Lineage`} key="lineage" style={lineageStyle}>
-          <SampleDetailsLineage sample={sample} 
+          <SampleDetailsLineage sample={sample ?? {}} 
             handleSampleClick={navigateToSample}
             handleProcessClick={navigateToProcess}
           />
@@ -383,4 +389,4 @@ function renderTimelineLabel(version, usersByID) {
   )
 }
 
-export default connect(mapStateToProps, actionCreators)(SampleDetailsContent);
+export default SampleDetailsContent;
