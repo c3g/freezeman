@@ -42,6 +42,7 @@ import {
 	FMSTrackedModel,
 	FMSUser,
 	FMSWorkflow,
+	FMSVersion,
 } from './fms_api_models'
 
 // Reducers tack on these two properties to objects that are fetched from
@@ -131,7 +132,9 @@ export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
 export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
 export interface RunType extends Readonly<FMSRunType>, FetchedObject {}
 export interface Readset extends Readonly<FMSReadset>, FetchedObject {}
-export interface Sample extends Readonly<FMSSample>, FetchedObject {}
+export interface Sample extends Readonly<FMSSample>, FetchedObject {
+	readonly versions?: FMSVersion[]
+}
 export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
 export interface SampleNextStep extends Readonly<FMSSampleNextStep>, FetchedObject {}
 export interface Sequence extends Readonly<FMSSequence>, FetchedObject {}

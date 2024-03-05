@@ -479,3 +479,23 @@ export interface WorkflowStepOrder {    // Not a tracked model - just a simple s
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }
+
+export interface FMSVersion {
+    id: number
+    object_id: string
+    db: string
+    format: string
+    serialized_data: string
+    object_repr: string
+    revision: {
+      id: number
+      date_created: string
+      comment: string
+      user: number
+    }
+    content_type: {
+      id: number
+      app_label: string
+      model: string
+    }
+  }
