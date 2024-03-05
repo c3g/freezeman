@@ -2,7 +2,7 @@ import {useRef, useEffect, useState} from "react";
 
 const OFFSET = 350
 
-export default function useTimeline() {
+export default function useTimeline(): [number, React.MutableRefObject<HTMLElement | null>] {
 
   const [timelineWidth, setTimelineWidth] = useState<number>(0);
   const timelineMarginLeft = -timelineWidth + OFFSET;
