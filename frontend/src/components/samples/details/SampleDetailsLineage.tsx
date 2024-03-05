@@ -14,7 +14,7 @@ import { ProcessMeasurement, Sample } from "../../../models/frontend_models";
 import { FMSProcessMeasurement, FMSSample } from "../../../models/fms_api_models";
 
 interface SampleDetailsLineageProps {
-  sample: Partial<Sample>
+  sample: Pick<Partial<Sample>, 'id'>
   handleSampleClick?: (id: FMSSample['id']) => void
   handleProcessClick?: (id: FMSProcessMeasurement['id']) => void
 }
