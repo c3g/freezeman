@@ -34,9 +34,10 @@ export interface WorkflowSamplesTableProps {
 		selectedSampleIDs: FMSId[],
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
 	}
+	loading?: boolean
 }
 
-function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters, loading }: WorkflowSamplesTableProps) {
 
 	const tableColumns = useMemo(() => {
 		const mergedColumns = addFiltersToColumns(
@@ -93,6 +94,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 						style={{ overflowX: 'auto' }}
 						onChange={handleTableOnChange}
 						pagination={pagination ? false : undefined}
+						loading={loading}
 					/>
 					{pagination &&
 						<Pagination
