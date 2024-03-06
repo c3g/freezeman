@@ -47,16 +47,18 @@ const SamplesAssociatedProjects = ({
   
   return (
 		// Don't render until the sample fixed filter is set, or you will get all of the projects.
-		sampleIDFilter && (
-			<PagedItemsTable
-				columns={columns}
-				fixedFilter={sampleIDFilter}
-				getDataObjectsByID={mapProjectIDs}
-				pagedItems={projectsOfSamples}
-				usingFilters={true}
-				{...tableCallbacks}
-			/>
-		)
+		sampleIDFilter
+    ? (
+        <PagedItemsTable
+          columns={columns}
+          fixedFilter={sampleIDFilter}
+          getDataObjectsByID={mapProjectIDs}
+          pagedItems={projectsOfSamples}
+          usingFilters={true}
+          {...tableCallbacks}
+        />
+      )
+    : <></>
   )
 }
 
