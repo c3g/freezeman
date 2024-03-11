@@ -99,11 +99,12 @@ const ContainersDetailContent = ({}) => {
           </TabPane>
 
           <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="experiment" style={tabStyle}>
-
-            {container && containerKindsByID[container.kind] && containerKindsByID[container.kind].is_run_container ?
-              <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
-              :
-              <div> Experiments are not run directly on containers of kind {container?.kind} </div>
+            {container &&
+              (
+                containerKindsByID[container.kind] && containerKindsByID[container.kind].is_run_container
+                  ? <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+                  : <div> Experiments are not run directly on containers of kind {container.kind} </div>
+              )
             }
 
           </TabPane>
