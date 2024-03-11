@@ -107,7 +107,7 @@ export function mergeItemsByID<T extends FMSTrackedModel>(itemsByID: ItemsByID<T
 
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {
-	parents?: Container["id"][]
+	parents?: Array<Container["id"]>
 }
 export interface Coordinate extends Readonly<FMSCoordinate>, FetchedObject {}
 export interface Dataset extends Readonly<FMSDataset>, FetchedObject {}
