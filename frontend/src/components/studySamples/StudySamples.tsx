@@ -71,12 +71,9 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	// If Hide Empty Steps then don't render steps with no ready or completed samples.
 	let renderedSteps: StudySampleStep[] = []
 
-	try {
-		renderedSteps = [...studySamples.steps]
-		if (hideEmptySteps) {
-			renderedSteps = renderedSteps.filter((step) => step.ready.count > 0 || step.completed.count > 0)
-		}
-	} catch (e) {
+	renderedSteps = [...studySamples.steps]
+	if (hideEmptySteps) {
+		renderedSteps = renderedSteps.filter((step) => step.ready.count > 0 || step.completed.count > 0)
 	}
 
 	return (
