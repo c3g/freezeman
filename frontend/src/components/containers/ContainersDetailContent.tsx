@@ -61,7 +61,7 @@ const ContainersDetailContent = ({}) => {
   return (
     <>
       <AppPageHeader
-        title={`Container ${container?.name ?? id}`}
+        title={`Container ${container?.name || id}`}
         extra={
           !isLoaded ? null :
             <Space>
