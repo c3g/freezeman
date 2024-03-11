@@ -11,6 +11,7 @@ import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
+import { get  as getCoordinate } from "../../modules/coordinates/actions"
 import { withContainer, withCoordinate } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
 import useHashURL from "../../hooks/useHashURL";
@@ -18,7 +19,8 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectContainerKindsByID, selectContainersByID, selectCoordinatesByID } from "../../selectors";
 import { Container } from "../../models/frontend_models";
 import { FMSId } from "../../models/fms_api_models";
-import { WithContainerRenderComponent, WithCoordinateRenderComponent } from "../shared/WithItemRenderComponent";
+import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
+import { isNullish } from "../../utils/functions";
 
 const pageStyle = {
   padding: 0,
@@ -47,6 +49,7 @@ const ContainersDetailContent = ({}) => {
   const isFetching = container ? container.isFetching : true;
   const isLoaded = container ? container.isLoaded : false;
   const experimentRunsIDs = isLoaded && container?.experiment_run ? [container.experiment_run] : []
+  const coordinate = container && (isNullish(container?.coordinate) ? undefined : coordinatesByID[container.coordinate])
 
   useEffect(() => {
     if (!isLoaded)
@@ -57,6 +60,12 @@ const ContainersDetailContent = ({}) => {
     if (isLoaded && !container?.parents)
       dispatch(listParents(id));
   }, [isLoaded, container?.parents, dispatch, id])
+
+  useEffect(() => {
+    if (container && !isNullish(container?.coordinate) && !coordinate?.isLoaded) {
+      getCoordinate(container.coordinate)
+    }
+  }, [isLoaded, container?.coordinate, coordinate?.isLoaded])
 
   return (
     <>
@@ -81,9 +90,7 @@ const ContainersDetailContent = ({}) => {
                     <WithContainerRenderComponent objectID={container.location} render={container => <>{container.barcode}</>} placeholder={"Loading..."} />
                   </Link>
                   : "—"}
-                {container?.coordinate && ` at ${
-                  <WithCoordinateRenderComponent objectID={container.coordinate} render={coordinate => <>{coordinate.name}</>}  placeholder={"Loading..."} />
-                }`}
+                {coordinate && ` at ${coordinate.name}`}
               </Descriptions.Item>
               <Descriptions.Item label="Kind">{container?.kind}</Descriptions.Item>
               <Descriptions.Item label="Comment" span={3}>{container?.comment}</Descriptions.Item>
