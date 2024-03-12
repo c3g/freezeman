@@ -94,10 +94,10 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 		}
 	}, [actionColumn, protocol, stepDefinition])
 
-	const localClearFilters = () => {
+	const localClearFilters = useCallback(() => {
 		if (clearFilters)
 			dispatch(clearFilters(studyID, step.stepOrderID))
-	}
+	}, [dispatch, step.stepOrderID, studyID])
 
 	return (
 		<WorkflowSamplesTable
