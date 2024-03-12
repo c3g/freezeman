@@ -6,6 +6,7 @@ import { WithSampleRenderComponent } from '../shared/WithItemRenderComponent'
 import { FMSId, WorkflowActionType } from '../../models/fms_api_models'
 import { setStudyStepPageNumber, setStudyStepPageSize } from '../../modules/studySamples/actions'
 import { useAppDispatch } from '../../hooks'
+import { DEFAULT_PAGE_SIZE } from '../../modules/studySamples/reducers'
 
 type CompletedSampleColumn = TableColumnType<CompletedStudySample>
 
@@ -80,7 +81,7 @@ interface CompletedSamplesTableProps {
 function CompletedSamplesTable({studyID, step, workflowAction, tableState, settings} : CompletedSamplesTableProps) {
 	const dispatch = useAppDispatch()
 
-	const pageSize = settings?.pageSize ?? 10
+	const pageSize = settings?.pageSize ?? DEFAULT_PAGE_SIZE
 	const pageNumber = tableState?.pageNumber ?? 1
 	const tableKind = workflowAction === 'NEXT_STEP' ? 'completed' : 'removed'
 
