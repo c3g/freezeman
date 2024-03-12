@@ -33,7 +33,7 @@ const tabStyle = {
   height: "100%",
 }
 
-const ContainersDetailContent = ({}) => {
+const ContainersDetailContent = () => {
   const history = useNavigate();
   const { id } = useParams();
   const [activeKey, setActiveKey] = useHashURL('overview')
