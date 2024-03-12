@@ -111,7 +111,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 			setFilterOptions={setFilterOptions}
 			setSortBy={setSortBy}
 			pagination={{ pageNumber, pageSize, totalCount: step.ready.count, onChangePageNumber, onChangePageSize }}
-			loading={tableState?.isFetching}
+			loading={tableState?.isFetching ?? true}
 		/>
 	)
 }
