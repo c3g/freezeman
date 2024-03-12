@@ -6,6 +6,8 @@ import { StudySampleList, StudySamplesState, StudyStepSamplesTabSelection, Study
 import { clearFilters, removeFilter, setFilterOptions, setFilterValue } from '../../models/filter_set_reducers'
 import { FMSId } from '../../models/fms_api_models'
 
+export const DEFAULT_PAGE_SIZE = 10
+
 // Define action types in the reducer to avoid a circular dependency between
 // the redux store ('store') and the actions. store.ts imports all reducers.
 // If an action needs to import store, but the reducer imports from the action file
@@ -146,7 +148,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 				for (const stepOrderID of stepOrderIDs) {
 					studyUXSettings.stepSettings[stepOrderID] = {
 						stepOrderID,
-						pageSize: 10
+						pageSize: DEFAULT_PAGE_SIZE
 					}
 				}
 				state.studySettingsByID[studyID] = studyUXSettings
