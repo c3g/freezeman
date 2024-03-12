@@ -13,6 +13,7 @@ import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items
 import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
+import { DEFAULT_PAGE_SIZE } from '../../modules/studySamples/reducers'
 
 interface StudyStepSamplesTableProps {
 	studyID: FMSId
@@ -27,7 +28,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)
 
-	const pageSize = settings?.pageSize ?? 10
+	const pageSize = settings?.pageSize ?? DEFAULT_PAGE_SIZE
 	const pageNumber = tableState?.pageNumber ?? 1
 
 	const onChangePageNumber = useCallback((pageNumber: number) => { dispatch(setStudyStepPageNumber(studyID, step.stepOrderID, 'ready', pageNumber)) }, [studyID, step.stepOrderID])
