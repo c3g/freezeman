@@ -13,7 +13,7 @@ import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items
 import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
-import { DEFAULT_SMALL_PAGINATION_LIMIT } from '../../modules/studySamples/reducers'
+import { DEFAULT_SMALL_PAGINATION_LIMIT } from '../../config'
 
 interface StudyStepSamplesTableProps {
 	studyID: FMSId
