@@ -1,4 +1,4 @@
-import React, { LegacyRef, useCallback, useEffect, useState } from "react";
+import React, { LegacyRef, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { QCFlag } from "../../QCFlag";
@@ -102,16 +102,17 @@ const SampleDetailsContent = () => {
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
   const sample: Sample | undefined = id && samplesByID[id];
+
   const error = sample?.error?.name !== 'APIError' ? sample?.error : undefined;
-  const isLoaded: boolean = id && samplesByID[id] && !sample?.isFetching && !sample?.didFail;
-  const isFetching = !id || !sample || sample?.isFetching;
-  const sampleKind = sample && sampleKindsByID[sample.sample_kind]?.name
-  const tissueSource = sample?.tissue_source && sampleKindsByID[sample.tissue_source]?.name
-  const volume = isNullish(sample) ? '' : sample.volume.toFixed(3)
-  const container = sample && containersByID[sample.container]
+  const isLoaded = !!sample?.isLoaded;
+  const isFetching = !!sample?.isFetching;
+  const sampleKind = !isFetching && sample && sampleKindsByID[sample.sample_kind]?.name
+  const tissueSource = !isFetching && sample?.tissue_source ? sampleKindsByID[sample.tissue_source]?.name : undefined
+  const volume = !isFetching && sample ? sample.volume.toFixed(3) : ''
+  const container = !isFetching ? sample && containersByID[sample.container] : undefined
   const experimentalGroups = sample?.experimental_group ?? [] ;
   const versions = sample?.versions
-  const isVersionsEmpty = versions && versions?.length === 0;
+  const isVersionsEmpty = !!versions && versions.length === 0;
   const isProcessesEmpty = sample?.process_measurements && sample.process_measurements.length === 0;
   const flags = { quantity: sample?.quantity_flag, quality: sample?.quality_flag };
   const [processMeasurements, setProcessMeasurements] = useState<ProcessMeasurement[]>([])
@@ -144,9 +145,9 @@ const SampleDetailsContent = () => {
   }, [dispatch, id, samplesByID])
 
   useEffect(() => {
-    if (isLoaded && sample && !sample?.isFetching && sample?.versions?.length == 0)
+    if (isLoaded && sample && sample.versions === undefined)
       dispatch(listVersions(sample.id));
-  }, [dispatch, isLoaded, sample, versions?.length])
+  }, [dispatch, isLoaded, sample, sample?.versions])
 
   useEffect(() => {    
     if (isLoaded && !isProcessesEmpty && sample?.process_measurements) {
@@ -157,7 +158,7 @@ const SampleDetailsContent = () => {
       })
       Promise.all(promises).then((pms) => setProcessMeasurements(pms))
     }
-  }, [isLoaded, isProcessesEmpty, processMeasurements, processMeasurementsByID, sample?.process_measurements])
+  }, [isLoaded, isProcessesEmpty, processMeasurementsByID, sample?.process_measurements])
 
   useEffect(() => {
     if (id && !librariesByID[id])
