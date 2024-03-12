@@ -1,9 +1,10 @@
+import { DEFAULT_SMALL_PAGINATION_LIMIT } from '../../config'
 import { FMSId } from '../../models/fms_api_models'
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from '../../models/paged_items'
 import { selectStudiesByID, selectStudySamplesByID, selectStudySettingsByID, selectStudyTableStatesByID, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { StudySampleStep, StudyStepSamplesTabSelection } from './models'
-import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FETCHING, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_NUMBER, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER, DEFAULT_PAGE_SIZE } from './reducers'
+import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FETCHING, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_NUMBER, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
 import { lazyLoadStudySamplesInStepByStudy, loadStudySamplesInStepByStudy, loadStudySampleStep } from './services'
 
 export function getStudySamples(studyID: FMSId) {
@@ -23,7 +24,7 @@ export function getStudySamples(studyID: FMSId) {
 					studySamples = await Promise.all(workflow.steps_order.map(async (stepOrder) => {
 						dispatch(setStudyStepFetching(studyID, stepOrder.id, true))
 						// it's called after initStudySamplesSettingsAndTables so it shouldn't be undefined
-						const pageSize = studySettings?.stepSettings[stepOrder.id]?.pageSize ?? DEFAULT_PAGE_SIZE
+						const pageSize = studySettings?.stepSettings[stepOrder.id]?.pageSize ?? DEFAULT_SMALL_PAGINATION_LIMIT
 						const result = await loadStudySampleStep(studyID, stepOrder, pageSize)
 						dispatch(setStudyStepFetching(studyID, stepOrder.id, false))
 						return result
@@ -55,7 +56,7 @@ export function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId, ta
 		dispatch(setStudyStepFetching(studyID, stepOrderID, true, tabSelection))
 		
 		// it's called after initStudySamplesSettingsAndTables so it shouldn't be undefined
-		const pageSize = selectStudySettingsByID(getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? DEFAULT_PAGE_SIZE
+		const pageSize = selectStudySettingsByID(getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? DEFAULT_SMALL_PAGINATION_LIMIT
 
 		let studySamplesInStepByStudy: Partial<Pick<StudySampleStep, "ready" | "completed" | "removed">>
 		if (tabSelection) {

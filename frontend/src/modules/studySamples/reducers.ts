@@ -4,8 +4,7 @@ import { AnyAction } from 'redux'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { StudySampleList, StudySamplesState, StudyStepSamplesTabSelection, StudyUXSettings } from './models'
 import { clearFilters, removeFilter, setFilterOptions, setFilterValue } from '../../models/filter_set_reducers'
-
-export const DEFAULT_PAGE_SIZE = 10
+import { DEFAULT_SMALL_PAGINATION_LIMIT } from '../../config'
 
 // Define action types in the reducer to avoid a circular dependency between
 // the redux store ('store') and the actions. store.ts imports all reducers.
@@ -147,7 +146,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 				for (const stepOrderID of stepOrderIDs) {
 					studyUXSettings.stepSettings[stepOrderID] = {
 						stepOrderID,
-						pageSize: DEFAULT_PAGE_SIZE
+						pageSize: DEFAULT_SMALL_PAGINATION_LIMIT
 					}
 				}
 				state.studySettingsByID[studyID] = studyUXSettings
