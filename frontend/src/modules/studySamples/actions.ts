@@ -178,20 +178,30 @@ export function setStudyStepSortOrder(studyID: FMSId, stepOrderID: FMSId, sortBy
 }
 
 export function setStudyStepPageSize(studyID: FMSId, stepOrderID: FMSId, pageSize: number) {
-	return async (dispatch: AppDispatch) => {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const setting = selectStudySettingsByID(getState())[studyID]?.stepSettings[stepOrderID]
+		if (setting?.pageSize === pageSize) {
+			return
+		}
+
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 1))
 		dispatch({
 			type: SET_STUDY_STEP_PAGE_SIZE,
 			studyID,
 			stepOrderID,
 			pageSize
 		})
-		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 1))
 		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }
 
 export function setStudyStepPageNumber(studyID: FMSId, stepOrderID: FMSId, tabSelection: StudyStepSamplesTabSelection, pageNumber: number) {
-	return async (dispatch: AppDispatch) => {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const table = selectStudyTableStatesByID(getState())[studyID]?.steps[stepOrderID]?.tables[tabSelection]
+		if (pageNumber === table?.pageNumber) {
+			return
+		}
+
 		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, pageNumber, tabSelection))
 		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID, tabSelection))
 	}
