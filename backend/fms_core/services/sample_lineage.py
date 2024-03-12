@@ -97,6 +97,16 @@ def get_sample_source_from_derived_sample(child_sample_id: int, child_derived_sa
         child_sample_param = tuple([child_sample_id])
         child_derived_sample_param = tuple([child_derived_sample_id])
 
+        """
+        This query does a recursive search on the sample_lineage table.
+        
+        It starts from an input of sample id with a paired derived_sample id (to uniquely identify a sample in a pool).
+       
+        The query lists all lineages (id, child_id and parent_id) encountered moving up the lineage (toward parent samples)
+        that matches the given derived_sample_id.
+
+        Returns a queryset with distinct fields id, child_id, parent_id. 
+        """
         samples = SampleLineage.objects.raw('''WITH RECURSIVE parent(id, child_id, parent_id, derived_sample_id) AS (
                                             select DISTINCT fcsl1.id, fcsl1.child_id, fcsl1.parent_id, fcd1.derived_sample_id
                                             FROM fms_core_samplelineage fcsl1

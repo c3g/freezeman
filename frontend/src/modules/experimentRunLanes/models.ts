@@ -10,15 +10,15 @@ export enum ValidationStatus {
 }
 
 export interface DatasetInfo {
-	datasetID: FMSId						// The ID of the dataset in the db
-	metricsURL?: string					// A link to the run metrics associated with this lane
+	datasetID: FMSId            // The ID of the dataset in the db
+	metricsURL?: string         // A link to the run metrics associated with this lane
 }
 
 export interface NumberOfReads {
-	derivedSampleID?: FMSId					// Sample ID if this is from a freezeman experiment run and the sample is in the DB
+	derivedSampleID?: FMSId         // Sample ID if this is from a freezeman experiment run and the sample is in the DB
   readsetID: FMSId                // the readset to which are attached those reads
-	sampleName: string						  // Name of the sample
-	nbReads : number						    // Number of reads for the sample
+	sampleName: string              // Name of the sample
+	nbReads : number                // Number of reads for the sample
 }
 
 export interface ReadsPerSample {
@@ -26,11 +26,11 @@ export interface ReadsPerSample {
 }
 
 export interface LaneInfo {
-	runName: string							          // Name of the run, for both freezeman and external runs
-	laneNumber: LaneNumber					      // The number of the lane
-	validationStatus: ValidationStatus		// The validation status for the lane
-	datasets: DatasetInfo[]					      // List of datasets associated with lane (may be more than one)
-	readsPerSample?: ReadsPerSample			  // List of reads counts per sample (loaded on demand)
+	runName: string                       // Name of the run, for both freezeman and external runs
+	laneNumber: LaneNumber                // The number of the lane
+	validationStatus: ValidationStatus    // The validation status for the lane
+	datasets: DatasetInfo[]               // List of datasets associated with lane (may be more than one)
+	readsPerSample?: ReadsPerSample       // List of reads counts per sample (loaded on demand)
 }
 
 export interface ExperimentRunLanes {
@@ -38,9 +38,9 @@ export interface ExperimentRunLanes {
 	lanes: LaneInfo[]
 }
 
-export interface ExperimentRunLanesUX {		// A place to store UX state (expanded lanes)
+export interface ExperimentRunLanesUX {   // A place to store UX state (expanded lanes)
 	experimentRunName: string,
-	expandedLanes: number[]					// The lane numbers of lanes which are expanded in the UX.
+	expandedLanes: number[]               // The lane numbers of lanes which are expanded in the UX.
 }
 
 export interface ExperimentRunLanesState {
