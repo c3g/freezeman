@@ -15,9 +15,9 @@ export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID:
 
 	const lazy = lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)
 	const results = await Promise.all([
-		lazy.ready(table?.ready.pageNumber ?? 1, limit),
-		lazy.completed(table?.completed.pageNumber ?? 1, limit),
-		lazy.removed(table?.removed.pageNumber ?? 1, limit)
+		lazy.ready(((table?.ready.pageNumber ?? 1) - 1) * limit, limit),
+		lazy.completed(((table?.completed.pageNumber ?? 1) - 1) * limit, limit),
+		lazy.removed(((table?.removed.pageNumber ?? 1) - 1) * limit, limit)
 	])
 	return {
 		ready: results[0],
