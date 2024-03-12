@@ -7,6 +7,7 @@ import store from "../../store"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcessMeasurements, fetchProcesses, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
 import { CompletedStudySample, StudySampleStep, StudyStepSamplesTabSelection } from "./models"
+import { timestampStringAsDate } from "../../utils/humanReadableTime"
 
 export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId): Promise<Pick<StudySampleStep, 'ready' | 'completed' | 'removed'>> {
 	const lazy = lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)
@@ -184,6 +185,3 @@ async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number, offs
 		})
 }
 
-function timestampStringAsDate(created_at: string): any {
-	throw new Error("Function not implemented.")
-}
