@@ -109,7 +109,7 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 			const { studyID, stepOrderID, ready, completed, removed } = action
 			const studySamples = state.studySamplesByID[studyID]
 			if (studySamples?.data?.steps) {
-				let stepIndex = studySamples.data.steps.findIndex((step) => step.stepOrderID === stepOrderID)
+				const stepIndex = studySamples.data.steps.findIndex((step) => step.stepOrderID === stepOrderID)
 				if (stepIndex >= 0) {
 					const steps = studySamples.data.steps
 					const atStep = steps[stepIndex]
@@ -250,17 +250,19 @@ export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, act
 		}
 		case SET_STUDY_STEP_PAGE_NUMBER: {
 			const { studyID, stepOrderID, tabSelection, pageNumber } = action
-			let tableState = state.studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables[tabSelection as StudyStepSamplesTabSelection]
+			const tableState = state.studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables[tabSelection as StudyStepSamplesTabSelection]
 			if (tableState) {
 				tableState.pageNumber = pageNumber
 			}
+			break;
 		}
 		case SET_STUDY_STEP_FETCHING: {
 			const { studyID, stepOrderID, tabSelection, isFetching } = action
-			let tableState = state.studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables[tabSelection as StudyStepSamplesTabSelection]
+			const tableState = state.studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables[tabSelection as StudyStepSamplesTabSelection]
 			if (tableState) {
 				tableState.isFetching = isFetching
 			}
+			break;
 		}
 	}
 	return state
