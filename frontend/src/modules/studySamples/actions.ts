@@ -7,6 +7,7 @@ import { StudySampleStep, StudyStepSamplesTabSelection } from './models'
 import { CLEAR_FILTERS, FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, INIT_STUDY_SAMPLES_SETTINGS_AND_TABLES, REMOVE_STUDY_STEP_FILTER, SET_HIDE_EMPTY_STEPS, SET_REFRESHED_STEP_SAMPLES, SET_STUDY_EXPANDED_STEPS, SET_STUDY_STEP_FETCHING, SET_STUDY_STEP_FILTER, SET_STUDY_STEP_FILTER_OPTIONS, SET_STUDY_STEP_PAGE_NUMBER, SET_STUDY_STEP_PAGE_SIZE, SET_STUDY_STEP_SAMPLES_TAB, SET_STUDY_STEP_SORT_ORDER } from './reducers'
 import { lazyLoadStudySamplesInStepByStudy, loadStudySamplesInStepByStudy, loadStudySampleStep } from './services'
 
+const DEFAULT_PAGE_SIZE = 10
 
 export function getStudySamples(studyID: FMSId) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -15,6 +16,8 @@ export function getStudySamples(studyID: FMSId) {
 			let studySamples: StudySampleStep[] = []
 			const studiesById = selectStudiesByID(getState())
 			const workflowsById = selectWorkflowsByID(getState())
+			const studySettings = selectStudySettingsByID(getState())[studyID]
+
 			const study = studiesById[studyID]
 			if (study) {
 				const workflow = workflowsById[study.workflow_id]
@@ -22,7 +25,9 @@ export function getStudySamples(studyID: FMSId) {
 					dispatch(initStudySamplesSettingsAndTables(studyID, workflow.steps_order.map((x) => x.id)))
 					studySamples = await Promise.all(workflow.steps_order.map(async (stepOrder) => {
 						dispatch(setStudyStepFetching(studyID, stepOrder.id, true))
-						const result = await loadStudySampleStep(studyID, stepOrder)
+						// it's called after initStudySamplesSettingsAndTables so it shouldn't be undefined
+						const pageSize = studySettings?.stepSettings[stepOrder.id]?.pageSize ?? DEFAULT_PAGE_SIZE
+						const result = await loadStudySampleStep(studyID, stepOrder, pageSize)
 						dispatch(setStudyStepFetching(studyID, stepOrder.id, false))
 						return result
 					}))
@@ -49,12 +54,19 @@ export function refreshAllStudySamples() {
 }
 
 export function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId, tabSelection?: StudyStepSamplesTabSelection) {
-	return async (dispatch: AppDispatch) => {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		dispatch(setStudyStepFetching(studyID, stepOrderID, true, tabSelection))
+		
+		// it's called after initStudySamplesSettingsAndTables so it shouldn't be undefined
+		const pageSize = selectStudySettingsByID(getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? DEFAULT_PAGE_SIZE
 
-		const studySamplesInStepByStudy = tabSelection ?
-			{ [tabSelection]: await lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)[tabSelection]() }
-			: await loadStudySamplesInStepByStudy(studyID, stepOrderID)
+		let studySamplesInStepByStudy: Partial<Pick<StudySampleStep, "ready" | "completed" | "removed">>
+		if (tabSelection) {
+			const pageNumber = selectStudyTableStatesByID(getState())[studyID]?.steps[stepOrderID]?.tables[tabSelection]?.pageNumber ?? 1
+			studySamplesInStepByStudy = { [tabSelection]: await lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)[tabSelection](pageNumber, pageSize) }
+		} else {
+			studySamplesInStepByStudy = await loadStudySamplesInStepByStudy(studyID, stepOrderID, pageSize)
+		}
 		dispatch({
 			type: SET_REFRESHED_STEP_SAMPLES,
 			studyID,

@@ -6,12 +6,19 @@ import { selectLibrariesByID, selectSamplesByID, selectStudiesByID, selectStudyS
 import store from "../../store"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcessMeasurements, fetchProcesses, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"
-import { CompletedStudySample, StudySampleStep, StudyStepSamplesTabSelection } from "./models"
+import { CompletedStudySample, StudySampleStep } from "./models"
 import { timestampStringAsDate } from "../../utils/humanReadableTime"
 
-export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId): Promise<Pick<StudySampleStep, 'ready' | 'completed' | 'removed'>> {
+export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId, limit: number): Promise<Pick<StudySampleStep, 'ready' | 'completed' | 'removed'>> {
+	const studyTableStatesByID = selectStudyTableStatesByID(store.getState())
+	const table = studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables
+
 	const lazy = lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)
-	const results = await Promise.all([lazy.ready(), lazy.completed(), lazy.removed()])
+	const results = await Promise.all([
+		lazy.ready(table?.ready.pageNumber ?? 1, limit),
+		lazy.completed(table?.completed.pageNumber ?? 1, limit),
+		lazy.removed(table?.removed.pageNumber ?? 1, limit)
+	])
 	return {
 		ready: results[0],
 		completed: results[1],
@@ -20,14 +27,8 @@ export async function loadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID:
 }
 
 export function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: FMSId) {
-	const limit = selectStudySettingsByID(store.getState())[studyID]?.stepSettings[stepOrderID]?.pageSize ?? 10
-
-	const studyTableStatesByID = selectStudyTableStatesByID(store.getState())
-	const table = studyTableStatesByID[studyID]?.steps[stepOrderID]?.tables
-
 	return {
-		ready: async () => {
-			const offset = limit * ((table?.ready.pageNumber ?? 1) - 1)
+		ready: async (offset: number, limit: number) => {
 			const fetchSamplesAtStepOrderResponse = await fetchSamplesAtStepOrder(studyID, stepOrderID, offset, limit)
 			const { sampleNextSteps, count: readyCount } = fetchSamplesAtStepOrderResponse
 			const readySamples = await fetchSamplesAndLibraries(sampleNextSteps.map((s) => s.sample))
@@ -41,13 +42,11 @@ export function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: F
 				}, {} as StudySampleStep['ready']['sampleNextStepByID'])
 			}
 		},
-		completed: async () => {
-			const offset = limit * ((table?.completed.pageNumber ?? 1) - 1)
+		completed: async (offset: number, limit: number) => {
 			const { result: completedSamples, count: completedCount } = await fetchCompletedSamples(studyID, stepOrderID, 'NEXT_STEP', limit, offset)
 			return { samples: completedSamples, count: completedCount ?? 0 }
 		},
-		removed: async () => {
-			const offset = limit * ((table?.removed.pageNumber ?? 1) - 1)
+		removed: async (offset: number, limit: number) => {
 			const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, 'DEQUEUE_SAMPLE', limit, offset)
 			return { samples: dequeuedSamples, count: dequeuedCount ?? 0 }
 		}
@@ -55,7 +54,7 @@ export function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: F
 }
 
 // should be called after initStudySamplesSettings
-export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowStepOrder): Promise<StudySampleStep> {
+export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowStepOrder, limit: number): Promise<StudySampleStep> {
 	const study = (await fetchStudies([studyID])).find(obj => obj.id === studyID)
 	if(! study) {
 		throw new Error(`Study "${studyID}" not found.`)
@@ -78,7 +77,7 @@ export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowSte
 		stepOrderID: stepOrder.id,
 		stepOrder: stepOrder.order,
 		protocolID: stepOrder.protocol_id,
-		...(await loadStudySamplesInStepByStudy(studyID, stepOrder.id))
+		...(await loadStudySamplesInStepByStudy(studyID, stepOrder.id, limit))
 	}
 }
 
@@ -159,7 +158,7 @@ export async function fetchCompletedSamples(studyID: FMSId, stepOrderID: FMSId, 
 	}
 }
 
-async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number, offset = 0, limit = 10) {
+async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number, offset: number, limit: number) {
 	const studySettingsByID = selectStudySettingsByID(store.getState())
 
 	// Get the current set of filters and sort order from UX settings for study and step
@@ -168,8 +167,7 @@ async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number, offs
 	if (settings) {
 		const serializedFilters = settings.filters ? serializeFilterParamsWithDescriptions(settings.filters) : {}
 		const ordering = settings.sortBy ? serializeSortByParams(settings.sortBy) : undefined
-		const limit = settings.pageSize
-		options = {...options, ordering, limit, ...serializedFilters}
+		options = {...options, ordering, ...serializedFilters}
 	}
 
 	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, {...options, offset}))
