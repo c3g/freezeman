@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { FMSId, FMSSampleNextStepByStudy } from '../../models/fms_api_models'
-import { Protocol, Sample } from '../../models/frontend_models'
+import { FMSId } from '../../models/fms_api_models'
+import { Protocol } from '../../models/frontend_models'
 import { clearFilters, refreshStudySamples, setStudyStepFilter, setStudyStepFilterOptions, setStudyStepPageNumber, setStudyStepPageSize, setStudyStepSortOrder } from '../../modules/studySamples/actions'
 import { StudySampleStep, StudyStepSamplesTableState, StudyUXStepSettings } from '../../modules/studySamples/models'
-import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID, selectStepsByID, selectStudyTableStatesByID } from '../../selectors'
+import { selectProtocolsByID, selectStepsByID } from '../../selectors'
 import { SampleAndLibrary, getColumnsForStudySamplesStep } from '../WorkflowSamplesTable/ColumnSets'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS } from '../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../samples/SampleTableColumns'
-import WorkflowSamplesTable, { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'
 import { Popconfirm, Typography, notification } from 'antd'
 import api from '../../utils/api'
@@ -31,8 +31,8 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 	const pageSize = settings?.pageSize ?? DEFAULT_PAGE_SIZE
 	const pageNumber = tableState?.pageNumber ?? 1
 
-	const onChangePageNumber = useCallback((pageNumber: number) => { dispatch(setStudyStepPageNumber(studyID, step.stepOrderID, 'ready', pageNumber)) }, [studyID, step.stepOrderID])
-	const onChangePageSize = useCallback((pageSize: number) => { dispatch(setStudyStepPageSize(studyID, step.stepOrderID, pageSize)) }, [studyID, step.stepOrderID])
+	const onChangePageNumber = useCallback((pageNumber: number) => { dispatch(setStudyStepPageNumber(studyID, step.stepOrderID, 'ready', pageNumber)) }, [dispatch, studyID, step.stepOrderID])
+	const onChangePageSize = useCallback((pageSize: number) => { dispatch(setStudyStepPageSize(studyID, step.stepOrderID, pageSize)) }, [dispatch, studyID, step.stepOrderID])
 
 	const setFilter = useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {

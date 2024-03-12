@@ -2,7 +2,7 @@ import { SampleAndLibrary } from "../../components/WorkflowSamplesTable/ColumnSe
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
 import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory, WorkflowStepOrder, WorkflowActionType } from "../../models/fms_api_models"
 import { createItemsByID } from "../../models/frontend_models"
-import { selectLibrariesByID, selectSamplesByID, selectStudiesByID, selectStudySettingsByID, selectStudyTableStatesByID, selectWorkflowsByID } from "../../selectors"
+import { selectLibrariesByID, selectSamplesByID, selectStudySettingsByID, selectStudyTableStatesByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcessMeasurements, fetchProcesses, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "../cache/cache"

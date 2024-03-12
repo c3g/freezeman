@@ -1,10 +1,9 @@
 import { Pagination, Table, TableColumnType } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { CompletedSamplesTableState, CompletedStudySample, StudySampleStep, StudyUXStepSettings } from "../../modules/studySamples/models"
 import { WithSampleRenderComponent } from '../shared/WithItemRenderComponent'
 import { FMSId, WorkflowActionType } from '../../models/fms_api_models'
-import { fetchCompletedSamples } from '../../modules/studySamples/services'
 import { setStudyStepPageNumber, setStudyStepPageSize } from '../../modules/studySamples/actions'
 import { useAppDispatch } from '../../hooks'
 
@@ -85,8 +84,8 @@ function CompletedSamplesTable({studyID, step, workflowAction, tableState, setti
 	const pageNumber = tableState?.pageNumber ?? 1
 	const tableKind = workflowAction === 'NEXT_STEP' ? 'completed' : 'removed'
 
-	const onChangePageNumber = useCallback((pageNumber: number) => { dispatch(setStudyStepPageNumber(studyID, step.stepOrderID, tableKind, pageNumber)) }, [studyID, step.stepOrderID])
-	const onChangePageSize = useCallback((pageSize: number) => { dispatch(setStudyStepPageSize(studyID, step.stepOrderID, pageSize)) }, [studyID, step.stepOrderID])
+	const onChangePageNumber = useCallback((pageNumber: number) => { dispatch(setStudyStepPageNumber(studyID, step.stepOrderID, tableKind, pageNumber)) }, [dispatch, studyID, step.stepOrderID, tableKind])
+	const onChangePageSize = useCallback((pageSize: number) => { dispatch(setStudyStepPageSize(studyID, step.stepOrderID, pageSize)) }, [dispatch, studyID, step.stepOrderID])
 
 	const dataSource = step[tableKind].samples
 	const total = step[tableKind].count

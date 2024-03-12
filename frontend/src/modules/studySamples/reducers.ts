@@ -4,7 +4,6 @@ import { AnyAction } from 'redux'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { StudySampleList, StudySamplesState, StudyStepSamplesTabSelection, StudyUXSettings } from './models'
 import { clearFilters, removeFilter, setFilterOptions, setFilterValue } from '../../models/filter_set_reducers'
-import { FMSId } from '../../models/fms_api_models'
 
 export const DEFAULT_PAGE_SIZE = 10
 
