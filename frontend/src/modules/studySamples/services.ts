@@ -162,15 +162,15 @@ async function fetchSamplesAtStepOrder(studyID: FMSId, stepOrderID: number, offs
 	const studySettingsByID = selectStudySettingsByID(store.getState())
 
 	// Get the current set of filters and sort order from UX settings for study and step
-	let options = { limit } as any
+	let options = {} as any
 	const settings = studySettingsByID[studyID]?.stepSettings[stepOrderID]
 	if (settings) {
 		const serializedFilters = settings.filters ? serializeFilterParamsWithDescriptions(settings.filters) : {}
 		const ordering = settings.sortBy ? serializeSortByParams(settings.sortBy) : undefined
-		options = {...options, ordering, ...serializedFilters}
+		options = { ordering, ...serializedFilters}
 	}
 
-	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, {...options, offset}))
+	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStepOrder(studyID, stepOrderID, {...options, limit, offset}))
 		.then(response => {
 			if (response.data?.results) {
 				return {
