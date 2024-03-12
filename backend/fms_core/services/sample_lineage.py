@@ -72,18 +72,67 @@ def create_sample_lineage_graph(sampleId: int) -> Tuple[List[Dict[str, Any]], Li
     
     return (nodes, edges, errors)
 
-def get_library_size_for_derived_sample(derived_sample_id: int) -> Optional[int]:
+def get_sample_source_from_derived_sample(child_sample_id: int, child_derived_sample_id: int) -> List[int]:
     """
-    Provides the latest measured fragment_size related to a derived_sample
+    Provides the sample id of the last aliquot of a sample that completed an experiment run before pooling 
+    using the derived sample and experiment sample id to trace it back.
 
     Args:
-        `derived_sample_id`: Derived_sample for which we want the latest measured fragment_size
+        `child_sample_id`: ID of the child sample of the lineage
+        `child_derived_sample_id`: ID of the child derived sample to disambiguate pools.
 
     Returns:
-        An integer that represents the fragment_size (library_size), None if not found or never measured.
+        Tuple with the sample source id, errors and warnings.
     """
-    samples_with_library_size = DerivedBySample.objects.filter(derived_sample_id=derived_sample_id, sample__fragment_size__isnull=False)
-     # Most recent sample in the lineage chain will have a larger id
-    ordered_samples_with_library_size = samples_with_library_size.order_by("-sample__parent_sample__id")
-    library_size = ordered_samples_with_library_size.values_list("sample__fragment_size", flat=True).first()
-    return library_size
+    candidate_sample_id = None
+    errors = []
+    warnings = []
+
+    if child_sample_id is None:
+        errors.append(f"Experiment sample is required.")
+    if child_derived_sample_id is None:
+        errors.append(f"Experiment sample derived sample is required.")
+
+    if not errors:
+        child_sample_param = tuple([child_sample_id])
+        child_derived_sample_param = tuple([child_derived_sample_id])
+
+        """
+        This query does a recursive search on the sample_lineage table.
+        
+        It starts from an input of sample id with a paired derived_sample id (to uniquely identify a sample in a pool).
+       
+        The query lists all lineages (id, child_id and parent_id) encountered moving up the lineage (toward parent samples)
+        that matches the given derived_sample_id.
+
+        Returns a queryset with distinct fields id, child_id, parent_id. 
+        """
+        samples = SampleLineage.objects.raw('''WITH RECURSIVE parent(id, child_id, parent_id, derived_sample_id) AS (
+                                            select DISTINCT fcsl1.id, fcsl1.child_id, fcsl1.parent_id, fcd1.derived_sample_id
+                                            FROM fms_core_samplelineage fcsl1
+                                            join fms_core_sample fcs1 on fcsl1.parent_id = fcs1.id
+                                            join fms_core_derivedbysample fcd1 on fcs1.id = fcd1.sample_id
+                                            WHERE fcsl1.child_id IN %s
+                                            and fcd1.derived_sample_id IN %s
+                                            UNION ALL
+                                            SELECT child.id, child.child_id, child.parent_id, child.derived_sample_id
+                                            FROM (
+                                            select fcsl2.id, fcsl2.child_id, fcsl2.parent_id, fcd2.derived_sample_id
+                                            from fms_core_samplelineage fcsl2
+                                            join fms_core_sample fcs2 on fcsl2.parent_id = fcs2.id
+                                            join fms_core_derivedbysample fcd2 on fcs2.id = fcd2.sample_id
+                                            ) child, parent
+                                            WHERE child.child_id = parent.parent_id
+                                            and child.derived_sample_id = parent.derived_sample_id
+                                            )
+                                            SELECT distinct id, child_id, parent_id FROM parent''', params=[child_sample_param, child_derived_sample_param])
+
+        sample_ids = tuple(sample.parent_id for sample in samples)
+        sample_extract = Sample.objects.filter(id__in=sample_ids).order_by("-id")
+
+        for sample in sample_extract:
+            candidate_sample_id = sample.id
+            if not sample.is_pool:
+                break
+            
+    return (candidate_sample_id, errors, warnings)

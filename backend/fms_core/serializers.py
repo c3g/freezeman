@@ -6,6 +6,8 @@ from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db.models import Max, F, Sum
 from fms_core.services.study import can_remove_study
+from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
+from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
 
 from .models import (
     Container,
@@ -30,6 +32,7 @@ from .models import (
     Project,
     Sample,
     SampleKind,
+    SampleLineage,
     SampleMetadata,
     Sequence,
     Taxon,
@@ -604,24 +607,37 @@ class DatasetSerializer(serializers.ModelSerializer):
         return Readset.objects.filter(dataset=obj.id).count()
 
 class ReadsetSerializer(serializers.ModelSerializer):
+    sample_source = serializers.SerializerMethodField()
     total_size = serializers.SerializerMethodField()
     library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
+    
+    def get_sample_source(self, obj: Readset):
+        experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
+        if experiment_container is None:
+            return None
+        else:
+            container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
+            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
+            source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
+            return source_sample
 
 class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
+    sample_source = serializers.SerializerMethodField()
     total_size = serializers.SerializerMethodField()
     metrics = serializers.SerializerMethodField(read_only=True)
     library_type = serializers.CharField(read_only=True, source="derived_sample.library.library_type.name")
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index")
     def get_metrics(self, instance):
         metrics = instance.metrics.all()
         serialized_metrics = MetricSerializer(metrics, many=True)
@@ -629,6 +645,17 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
+
+    def get_sample_source(self, obj: Readset):
+        experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
+        if experiment_container is None:
+            return None
+        else:
+            container_spec = CONTAINER_KIND_SPECS.get(experiment_container.kind, None)
+            coordinates = convert_ordinal_to_alpha_digit_coord(obj.dataset.lane, container_spec.coordinate_spec if container_spec is not None else None)
+            experimental_sample = Sample.objects.get(container=experiment_container, coordinate__name=coordinates)
+            source_sample, _, _ = get_sample_source_from_derived_sample(experimental_sample.id, obj.derived_sample.id)
+            return source_sample
 
 class DatasetFileSerializer(serializers.ModelSerializer):
     readset = ReadsetSerializer(read_only=True)
@@ -874,6 +901,7 @@ class CoordinateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class MetricSerializer(serializers.ModelSerializer):
+    readset_id = serializers.IntegerField(read_only=True)
     sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
     derived_sample_id = serializers.IntegerField(read_only=True, source='readset.derived_sample_id')
     run_name = serializers.CharField(read_only=True, source='readset.dataset.run_name')
@@ -885,6 +913,7 @@ class MetricSerializer(serializers.ModelSerializer):
         fields = ["id",
                   "name",
                   "metric_group",
+                  "readset_id",
                   "sample_name",
                   "derived_sample_id",
                   "run_name",

@@ -2,10 +2,10 @@ import React, { useEffect, useLayoutEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bar, BarChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { useAppDispatch } from '../../hooks'
-import { FMSId, FMSSample } from '../../models/fms_api_models'
+import { FMSId, FMSReadset } from '../../models/fms_api_models'
 import { loadReadsPerSample } from '../../modules/experimentRunLanes/actions'
 import { LaneInfo, NumberOfReads } from '../../modules/experimentRunLanes/models'
-import { list } from '../../modules/samples/actions'
+import api from "../../utils/api"
 import { useResizeObserver } from '../../utils/ref'
 import { notifyError } from '../../modules/notification/actions'
 
@@ -56,17 +56,12 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 		// only a single sample, if we disregard any pools that the derived sample
 		// may belong to. If, somehow, there is more than one sample associated with
 		// the derived sample then this function just does nothing.
-		async function goToSampleDetails(derivedSampleID: FMSId) {
-			const options = {
-				limit: 10,
-				derived_samples__id__in: derivedSampleID,
-				is_pooled: false,
-			}
+		async function goToSampleDetails(derivedSampleID: FMSId, readsetID: FMSId) {
 			try {
-				const response = await dispatch(list(options))
-				const samples = response.results as FMSSample[]
-				if (samples && samples.length === 1) {
-					const url = `/samples/${samples[0].id}`
+				const response = await dispatch(api.readsets.get(readsetID))
+        const readset: FMSReadset = response.data
+				if (readset && readset.sample_source) {
+					const url = `/samples/${readset.sample_source}/`
 					navigate(url)
 				}
 			} catch (err) {
@@ -82,7 +77,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 		}
 
 		if (data.derivedSampleID) {
-			goToSampleDetails(data.derivedSampleID)
+			goToSampleDetails(data.derivedSampleID, data.readsetID)
 		}
 	}
 
