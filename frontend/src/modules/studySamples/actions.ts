@@ -61,7 +61,7 @@ export function refreshSamplesAtStepOrder(studyID: FMSId, stepOrderID: FMSId, ta
 		let studySamplesInStepByStudy: Partial<Pick<StudySampleStep, "ready" | "completed" | "removed">>
 		if (tabSelection) {
 			const pageNumber = selectStudyTableStatesByID(getState())[studyID]?.steps[stepOrderID]?.tables[tabSelection]?.pageNumber ?? 1
-			studySamplesInStepByStudy = { [tabSelection]: await lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)[tabSelection](pageNumber, pageSize) }
+			studySamplesInStepByStudy = { [tabSelection]: await lazyLoadStudySamplesInStepByStudy(studyID, stepOrderID)[tabSelection]((pageNumber - 1) * pageSize, pageSize) }
 		} else {
 			studySamplesInStepByStudy = await loadStudySamplesInStepByStudy(studyID, stepOrderID, pageSize)
 		}
