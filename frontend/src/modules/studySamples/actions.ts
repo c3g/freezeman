@@ -185,7 +185,7 @@ export function setStudyStepPageSize(studyID: FMSId, stepOrderID: FMSId, pageSiz
 			stepOrderID,
 			pageSize
 		})
-		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 1)) // FIXME: does not actually reset page number :(
+		dispatch(setStudyStepPageNumberLight(studyID, stepOrderID, 1))
 		await dispatch(refreshSamplesAtStepOrder(studyID, stepOrderID))
 	}
 }

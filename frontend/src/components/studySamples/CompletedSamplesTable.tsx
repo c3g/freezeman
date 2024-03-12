@@ -116,8 +116,16 @@ function CompletedSamplesTable({studyID, step, workflowAction, tableState, setti
 			current={pageNumber}
 			pageSize={pageSize}
 			total={total}
-			onChange={(pageNumber: number) => onChangePageNumber(pageNumber)}
-			onShowSizeChange={(_: any, newPageSize: number) => onChangePageSize(newPageSize)}
+			onChange={(newPageNumber: number, newPageSize: number) => {
+				if (pageSize !== newPageSize) {
+					onChangePageNumber(1)
+				} else {
+					onChangePageNumber(newPageNumber)
+				}
+			}}
+			onShowSizeChange={(current, newPageSize) => {
+				onChangePageSize(newPageSize)
+			}}
 		/>
 	</>)
 }
