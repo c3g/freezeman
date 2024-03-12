@@ -38,19 +38,20 @@ const LabworkStepOverviewPanel = ({refreshing, grouping, groupingValue, samples,
 
 	return (
 		<>
-      {!refreshing && <WorkflowSamplesTable
+			<WorkflowSamplesTable
 				hasFilter={hasFilter}
 				samples={samples}
 				columns={columns}
 				filterDefinitions={filterDefinitions}
 				filterKeys={filterKeys}
-        filters={filters}
-        setFilter={setFilter}
-        setFilterOptions={setFilterOptions}
-        selection={selection}
-        setSortBy={setSortBy}
-        pagination={pagination}
-      />}
+				filters={filters}
+				setFilter={setFilter}
+				setFilterOptions={setFilterOptions}
+				selection={selection}
+				setSortBy={setSortBy}
+				pagination={pagination}
+				loading={refreshing}
+			/>
 		</>
 	)
 }
