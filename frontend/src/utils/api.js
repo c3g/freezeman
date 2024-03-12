@@ -298,7 +298,7 @@ const api = {
   },
 
   workflows: {
-    get: workflowId => get(`/workflows/${workflowId}`),
+    get: workflowId => get(`/workflows/${workflowId}/`),
     list: (options, abort) => get('/workflows/', options, { abort })
   },
 
