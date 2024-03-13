@@ -1,4 +1,5 @@
-import { FMSId, FMSSampleNextStepByStudy } from "../../models/fms_api_models"
+import { SampleAndLibrary } from "../../components/WorkflowSamplesTable/ColumnSets"
+import { FMSId, FMSSampleNextStepByStudy, FMSStepHistory, WorkflowStepOrder } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
 import { FetchedState } from "../common"
@@ -12,7 +13,6 @@ export interface CompletedStudySample {
 	readonly executionDate?: string
 	readonly executedBy?: string
 	readonly comment?: string
-	readonly removedFromWorkflow: boolean
 }
 
 export interface StudySampleStep {
@@ -21,11 +21,19 @@ export interface StudySampleStep {
 	readonly stepOrderID: FMSId      			// step order ID
 	readonly stepOrder: number					// step order
 	readonly protocolID: FMSId					// protocol ID
-	readonly sampleCount: number				// Total number of samples ready for processing, regardless of filters
-	readonly samples: FMSId[]					// List of (filtered) samples at step
-	readonly completedCount: number				// Total number of completed samples, regardless of filters
-	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
-	readonly sampleNextStepByStudyBySampleID: {[key: Sample['id']]: FMSSampleNextStepByStudy} // Mapping of Sample ID to FMSSampleNextStepByStudy
+	readonly ready: {
+		readonly count: number,
+		readonly samples: SampleAndLibrary[]
+		readonly sampleNextStepByID: { [key: Sample['id']]: FMSSampleNextStepByStudy['id'] }
+	}
+	readonly completed: {
+		readonly count: number,
+		readonly samples: CompletedStudySample[]
+	}
+	readonly removed : {
+		readonly count: number,
+		readonly samples: CompletedStudySample[]
+	}
 }
 
 // List of steps
@@ -40,11 +48,12 @@ export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampl
 // tab selection, and the filtering and sorting values.
 
 // Tab key values
-export type StudyStepSamplesTabSelection = 'ready' | 'completed'
+export type StudyStepSamplesTabSelection = 'ready' | 'completed' | 'removed'
 
 // Settings for one step
 export interface StudyUXStepSettings {
 	readonly stepOrderID: FMSId
+	readonly pageSize: number
 	readonly expanded?: boolean
 	readonly selectedSamplesTab?: StudyStepSamplesTabSelection
 	readonly filters?: FilterSet
@@ -54,14 +63,37 @@ export interface StudyUXStepSettings {
 // Settings for one study
 export interface StudyUXSettings {
 	readonly studyID: FMSId
-	readonly stepSettings: {[key : number] : StudyUXStepSettings}	// key: step order
+	readonly stepSettings: {[key : number] : StudyUXStepSettings | undefined }	// key: step order
 }
 
-export type StudySettingsByID = {[key: number] : StudyUXSettings}
+export type StudySettingsByID = {[key: number] : StudyUXSettings | undefined }
+
+export interface StudyStepSamplesTableState {
+	pageNumber: number
+	isFetching: boolean
+}
+
+export interface CompletedSamplesTableState {
+	pageNumber: number
+	isFetching: boolean
+}
 
 // Complete study samples state
 export interface StudySamplesState {
 	readonly studySamplesByID:  StudySamplesByID			// Object where keys are study IDs and values are StudySampleList objects
 	readonly hideEmptySteps: boolean						// Global flag to show or hide empty steps in study detail pages
 	readonly studySettingsByID: StudySettingsByID
+	readonly studyTableStatesByID: {
+		[studyID: number]: {
+			steps: {
+				[stepOrderID: number]: {
+					tables: {
+						readonly ready: StudyStepSamplesTableState
+						readonly completed: CompletedSamplesTableState
+						readonly removed: CompletedSamplesTableState					
+					}
+				} | undefined
+			}
+		} | undefined
+	}
 }
