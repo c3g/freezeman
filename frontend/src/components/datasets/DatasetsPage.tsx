@@ -2,7 +2,7 @@ import React from "react";
 import { Route, Routes, Navigate } from "react-router-dom"
 import PageContainer from "../PageContainer"
 import DatasetDetailContent from "./DatasetDetailContent";
-import DatasetsListContent from "./DatasetsListContent2";
+import DatasetsListContent from "./DatasetsListContent";
 
 const DatasetsPage = () => <PageContainer>
     <Routes>

@@ -3,6 +3,7 @@ import { Card, Typography, Form, Modal, FormItemProps, FormProps, Input, Tooltip
 import { LeftCircleOutlined, PlusCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
 import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
+import renderTextWithLineBreaks from "../../utils/renderTextWithLineBreaks"
 
 const { Text } = Typography
 
@@ -42,7 +43,8 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
           error = true
       }
       else {
-        formData[field] = fieldValues[field]    
+        formData[field] = fieldValues[field]
+        console.log(fieldValues[field])  
       }
     })
     if (error) {
@@ -108,8 +110,13 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
   )
 
   useEffect(() => {
+    comments && comments.length > 0 && setCurrentComment(comments[comments.length - 1])
+    setCommentIndex(0)
+  }, [comments])
+
+  useEffect(() => {
     comments && comments.length > 0 && setCurrentComment(comments[comments.length - commentIndex - 1])
-  }, [comments, commentIndex])
+  }, [commentIndex])
 
 	return (
     <Card
@@ -117,9 +124,9 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
       bodyStyle={{height: "480px", padding: "5px", overflow: "auto"}}
       
       actions={[
-        <Tooltip title="Previous Comment"><LeftCircleOutlined key="previous" onClick={handlePreviousComment}/></Tooltip>,
-        <Tooltip title="Add Comment"><PlusCircleOutlined key="add" onClick={handleAddCommentForm} />{addCommentForm}</Tooltip>,
-        <Tooltip title="Next Comment"><RightCircleOutlined key="next" onClick={handleNextDataset}/></Tooltip>,
+        <Tooltip title="Previous Comment"><LeftCircleOutlined style={{fontSize: "24px"}} key="previous" onClick={handlePreviousComment}/></Tooltip>,
+        <Tooltip title="Add Comment"><PlusCircleOutlined style={{fontSize: "24px"}} key="add" onClick={handleAddCommentForm} />{addCommentForm}</Tooltip>,
+        <Tooltip title="Next Comment"><RightCircleOutlined style={{fontSize: "24px"}} key="next" onClick={handleNextDataset}/></Tooltip>,
       ]}
     >
       <Card.Meta
@@ -127,7 +134,7 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
           <div>
             {currentComment && <Text strong>Added at : </Text>}{currentComment && dateToString(new Date(currentComment.updated_at), "compact")}
           </div>}
-        description={currentComment && currentComment.comment}
+        description={currentComment && renderTextWithLineBreaks(currentComment.comment)}
       />
     </Card>
 	)
