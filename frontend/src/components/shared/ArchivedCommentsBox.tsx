@@ -32,7 +32,7 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
   }
   
   const returnFormData = useCallback(() => {
-    const fieldValues = form.getFieldsValue();
+    const fieldValues = form.getFieldsValue()
     const formData: Record<string, string> = {}
     const errorData = {}
     let error = false
@@ -52,6 +52,13 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
     return formData
   }, [form])
 
+  const resetFormData = useCallback(() => {
+    const fieldValues = form.getFieldsValue()
+    Object.keys(fieldValues).forEach((field) => {
+      form.setFieldValue(field, undefined)
+    })
+  }, [form])
+
   const itemValidation = useCallback((key: string): FormItemProps => {
     if (formErrors && formErrors[key]) {
         return {
@@ -68,6 +75,7 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
     if (additionalData) {
       handleAddComment(additionalData["comment"])
       setOpenAddCommentForm(false)
+      resetFormData()
     }
   }, [handleAddComment, returnFormData])
 
@@ -75,8 +83,13 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
     setOpenAddCommentForm(true)
   }
 
+  const onCancel = useCallback(() => {
+    setOpenAddCommentForm(false)
+    resetFormData()
+  }, [])
+
   const addCommentForm = (
-    <Modal title={"Add Comment"} open={openAddCommentForm} okText={"Add"} onOk={form.submit} onCancel={() => setOpenAddCommentForm(false)} width={'60vw'}>
+    <Modal title={"Add Comment"} open={openAddCommentForm} okText={"Add"} onOk={form.submit} onCancel={onCancel} width={'60vw'}>
       <Form
           form={form}
           onFinish={onFinish}

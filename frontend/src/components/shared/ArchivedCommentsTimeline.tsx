@@ -10,14 +10,16 @@ interface commentsTimelineProps {
 
 export default function ArchivedCommentsTimeline({ comments } : commentsTimelineProps) {
   const [timelineMarginLeft, timelineRef] = useTimeline();
+  const compareComments = (a, b) => a.id - b.id
+  const orderedComments = comments.toSorted(compareComments).reverse()
 
 	return (
     <Row justify="center">
-      <Col span={comments.length > 0 ? 24 : 1}>
+      <Col span={orderedComments.length > 0 ? 24 : 1}>
         <div ref={timelineRef}>
           {comments.length > 0 ?
             <Timeline mode={"left"} style={{ marginLeft: timelineMarginLeft }}>
-              {comments.map(comment => <Timeline.Item key={comment.id} label={dateToString(new Date(comment.created_at), "full")}>{comment.comment}</Timeline.Item>)}
+              {orderedComments.map(comment => <Timeline.Item key={comment.id} label={dateToString(new Date(comment.created_at), "full")}>{comment.comment}</Timeline.Item>)}
             </Timeline>
             : Empty.PRESENTED_IMAGE_SIMPLE
           }

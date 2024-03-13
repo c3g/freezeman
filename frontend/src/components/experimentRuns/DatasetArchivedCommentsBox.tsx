@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { LeftCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
 import { Button, Tag, Row, Col, Typography, Tooltip } from 'antd'
 
@@ -18,7 +18,8 @@ const styleTag = {
   justifyText: "center",
   margin: "0 2px",
   height: "32px",
-  outerWidth: "flex"
+  outerWidth: "flex",
+  paddingTop: "3px"
 }
 
 export default function DatasetArchivedCommentsBox({datasets, handleAddComment}: DatasetCommentsProps) {
@@ -29,17 +30,17 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
     datasets && setCurrentDataset(datasets[datasetIndex])
   }, [datasets])
 
-  const handlePreviousDataset = () => {
+  const handlePreviousDataset = useCallback(() => {
     setDatasetIndex(datasetIndex - 1)
-  }
+  }, [datasetIndex])
 
-  const handleNextDataset = () => {
+  const handleNextDataset = useCallback(() => {
     setDatasetIndex(datasetIndex + 1)
-  }
+  }, [datasetIndex])
 
-  const handleDatasetAddComment = (comment) => {
+  const handleDatasetAddComment = useCallback((comment) => {
     currentDataset && handleAddComment(currentDataset.id, comment)
-  }
+  }, [currentDataset, handleAddComment])
 
 	return (
     <>
