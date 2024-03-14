@@ -1,6 +1,4 @@
 import React from "react"
-import { Tooltip } from "antd";
-import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import { useAppSelector } from "../../hooks"
@@ -12,7 +10,8 @@ import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
 import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
-import ArchivedCommentsTimeline from "../shared/ArchivedCommentsTimeline"
+import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
+
 
 const tableColumns = [
 	DATASET_COLUMN_DEFINITIONS.ID,
@@ -46,25 +45,7 @@ function DatasetsListContent() {
 					<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
 					<PagedItemsTable<ObjectWithDataset> 
 						columns={columns}
-						expandable={{
-							columnTitle: () => <div>Comments</div>,
-							expandIcon: ({ expanded, onExpand, record }) =>
-								expanded ? (
-									<Tooltip title="Hide Comments">
-										<MinusCircleTwoTone onClick={e => onExpand(record, e)} />
-									</Tooltip>
-								) : (
-									<Tooltip title="View Comments">
-										<PlusCircleTwoTone onClick={e => onExpand(record, e)} />
-									</Tooltip>
-
-								)
-							,
-							expandedRowRender: (record) => {
-								const comments = record && record.dataset.archived_comments
-								return (<ArchivedCommentsTimeline comments={comments}/>)
-							}
-						}}
+						expandable={ExpandableTableDatasetComments()}
 						getDataObjectsByID={getDataObjectsByID}
 						pagedItems={pagedItems}
 						usingFilters={false}
