@@ -45,6 +45,7 @@ from .sample_next_step_by_study import SampleNextStepByStudy
 from .coordinate import Coordinate
 from .metric import Metric
 from .readset import Readset
+from .archived_comment import ArchivedComment
 
 
 __all__ = [
@@ -94,4 +95,5 @@ __all__ = [
     "Coordinate",
     "Metric",
     "Readset",
+    "ArchivedComment",
 ]

@@ -21,6 +21,7 @@ const FilteredList = ({
   isFetching,
   page,
   listFilter,
+  expandable = undefined
 }) => {
 
 
@@ -111,6 +112,7 @@ const FilteredList = ({
         onLoad={listFilter}
         filterKey={filterKey}
         onChangeSort={setSorter}
+        expandable={expandable}
       />
     </PageContent>
   </>;

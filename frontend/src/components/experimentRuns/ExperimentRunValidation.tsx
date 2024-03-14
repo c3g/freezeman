@@ -1,13 +1,18 @@
-import { Button, Collapse, List, Popconfirm, Space, Typography } from 'antd'
+import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
-import { selectExperimentRunLanesState } from '../../selectors'
+import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
+import { addArchivedComment } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
+import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
+import { Dataset } from '../../models/frontend_models'
+import api from '../../utils/api'
 
+const { Sider, Content } = Layout;
 const { Title, Text } = Typography
 
 
@@ -146,6 +151,23 @@ interface LanePanelProps {
 }
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
+	const dispatch = useAppDispatch()
+  const datasetsById = useAppSelector(selectDatasetsByID)
+	const [datasets, setDatasets] = useState<Dataset[]>([])
+
+  useEffect(() => {
+    Promise.all(lane.datasets.map(async (dataset) => {
+      const response = await dispatch(api.datasets.get(dataset.datasetID))
+      return response.data
+    }))
+    .then((values) => {
+      setDatasets(values)})
+	}, [datasetsById])
+
+  const handleAddComment = useCallback(
+    (id, comment) => {
+        return dispatch(addArchivedComment(id, comment))
+    }, [dispatch])
 
 	// Create a list of unique metrics url's from the lane's datasets. Normally all of the
 	// datasets should have the same url.
@@ -160,6 +182,18 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 	if (lane.readsPerSample) {
 		title = `Reads Per Sample (${lane.readsPerSample.sampleReads.length})`
 	}
+
+  const layoutStyle = {
+    borderRadius: 8,
+    overflow: 'hidden',
+    width: 'calc(100% - 8px)',
+    maxWidth: 'calc(100% - 8px)',
+    backgroundColor: '#fff',
+  }
+
+  const siderStyle = {
+    backgroundColor: '#fff',
+  }
 
 	return (
 		<>
@@ -226,12 +260,15 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 					}
 				</Space>
 			</FlexBar>
-
-			<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-				<ReadsPerSampleGraph lane={lane} />
-				<Title level={5}>{title}</Title>
-			</div>
-			
+      <Layout style={layoutStyle}>
+        <Content style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+          <ReadsPerSampleGraph lane={lane} />
+          <Title level={5}>{title}</Title>
+        </Content>
+        <Sider width="30%" style={siderStyle}>
+          <DatasetArchivedCommentsBox datasets={datasets} handleAddComment={handleAddComment}/>
+        </Sider>
+			</Layout>
 		</>
 	)
 }

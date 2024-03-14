@@ -47,7 +47,8 @@ from .models import (
     SampleNextStepByStudy,
     StepHistory,
     Coordinate,
-    Metric
+    Metric,
+    ArchivedComment
 )
 
 from .models._constants import ReleaseStatus
@@ -107,6 +108,7 @@ __all__ = [
     "StepHistorySerializer",
     "CoordinateSerializer",
     "MetricSerializer",
+    "ArchivedCommentSerializer"
 ]
 
 
@@ -581,15 +583,22 @@ class ImportedFileSerializer(serializers.ModelSerializer):
         model = ImportedFile
         fields = "__all__"
 
+class ArchivedCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ArchivedComment
+        fields = "__all__"
+
 class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
     blocked_status_count = serializers.SerializerMethodField()
     latest_release_update = serializers.SerializerMethodField()
     readset_count = serializers.SerializerMethodField()
+    archived_comments = ArchivedCommentSerializer("archived_comments", many=True)
+
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url", "readset_count")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url", "readset_count", "archived_comments")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
