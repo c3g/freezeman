@@ -44,7 +44,6 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
       }
       else {
         formData[field] = fieldValues[field]
-        console.log(fieldValues[field])  
       }
     })
     if (error) {

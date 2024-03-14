@@ -31,6 +31,7 @@ function PaginatedTable ({
     pageSize,
     onLoad,
     onChangeSort,
+    expandable = undefined
   }) {
 
   const dispatch  = useDispatch();
@@ -93,6 +94,7 @@ function PaginatedTable ({
         childrenColumnName={'UNEXISTENT_KEY'}
         onChange={onChangeTable}
         scroll={{ x: 300 }}
+        expandable={expandable}
       />
       <Pagination
         className="ant-table-pagination ant-table-pagination-right"

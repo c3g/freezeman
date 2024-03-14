@@ -20,7 +20,8 @@ export default function ExpandableTableDatasetComments() {
 
           ),
       expandedRowRender: (record) => {
-        const comments = record && record.dataset.archived_comments
+        /* The dataset could be nested or not as a record */
+        const comments = record && (record.dataset ? record.dataset.archived_comments : record.archived_comments)
         return (<ArchivedCommentsTimeline comments={comments}/>)
       }
     }
