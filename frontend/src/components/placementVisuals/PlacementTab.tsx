@@ -78,6 +78,15 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
               container_kind: container_detail.kind
             }
           }
+          else {
+            return {
+              container_name: container.name,
+              samples: parseSamples(container.sample_locators, selectedSamples, container.name, [].concat(destination.map(container => Object.keys(container.samples)).flat(1))),
+              columns: 0,
+              rows: 0,
+              container_kind: undefined
+            }
+          }
         })).then(containerSamples => setSourceContainerList(containerSamples))
       }
   }, [selectedSamples])

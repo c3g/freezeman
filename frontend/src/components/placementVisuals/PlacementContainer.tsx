@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
-import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab";
+import React, { useCallback, useState } from "react"
+import { Empty } from "antd"
+import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
 import Cell from "./Cell"
 
 interface PlacementContainerProps {
@@ -75,7 +76,6 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
             const TopMostRow = cellsByCoordinate.reduce((acc, curr) => {
               const currentRow = getNumericRowFromCoordinates(curr.coordinates)
-              console.log(currentRow)
               return Math.min(currentRow, acc)
             }, Infinity)
             
@@ -137,11 +137,15 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
 
 
-    const onClick = useCallback((sample) => {
-        if ((!(previewCells.length > 0 && !isSelecting && sample.id)))
+    const onClick = useCallback((sample, e) => {
+        e.stopPropagation()
+        if ((!(previewCells.length > 0 && !isSelecting && sample.id))) {
             updateSamples([...previewCells, sample], containerType, rows, columns)
+        }
         if (sample.id)
+        {
             setIsSelecting(!isSelecting)
+        }
     }, [samples, isSelecting, direction, updateSamples, previewCells, selectedSampleList])
 
     const onMouseHover = useCallback((sample: any) => {
@@ -239,6 +243,10 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             return cells
         }, [samples, isSelecting, previewCells, direction, selectedSampleList, pattern])
 
+        const renderEmpty = useCallback(() => {
+          return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        }, [])
+
     return (
         <>
             <div className={"transfer"}
@@ -246,7 +254,11 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
               onClick={isSelecting ? () => setIsSelecting(false) : () => setIsSelecting(true)} // deactivate selecting between cells
             >
                 {
+                  (rows === 0 && columns === 0) ?
+                    renderEmpty()
+                  :
                     renderCells()
+                
                 }
             </div>
         </>
