@@ -109,12 +109,16 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
   )
 
   useEffect(() => {
-    comments && comments.length > 0 && setCurrentComment(comments[comments.length - 1])
-    setCommentIndex(0)
+    if (comments && comments.length > 0) {
+      setCurrentComment(comments[comments.length - 1])
+      setCommentIndex(0)
+    }
   }, [comments])
 
   useEffect(() => {
-    comments && comments.length > 0 && setCurrentComment(comments[comments.length - commentIndex - 1])
+    if (comments && comments.length > 0){
+      setCurrentComment(comments[comments.length - commentIndex - 1])
+    }
   }, [commentIndex])
 
 	return (
