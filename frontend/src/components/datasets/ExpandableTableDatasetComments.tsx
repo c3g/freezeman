@@ -3,6 +3,7 @@ import { TableProps, Tooltip } from "antd"
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import ArchivedCommentsTimeline from "../shared/ArchivedCommentsTimeline"
 import { ObjectWithDataset } from "./DatasetsTableColumns";
+import { Dataset } from "../../models/frontend_models";
 
 
 export default function ExpandableTableDatasetComments(): NonNullable<TableProps<any>['expandable']> {
@@ -20,11 +21,12 @@ export default function ExpandableTableDatasetComments(): NonNullable<TableProps
             </Tooltip>
 
           ),
-      expandedRowRender: (record) => {
+      expandedRowRender: (record: ObjectWithDataset | Dataset | undefined) => {
         /* The dataset could be nested or not as a record */
-        const comments = record && (record.dataset ? record.dataset.archived_comments : record.archived_comments)
+        const comments = record && ('dataset' in record ? record.dataset.archived_comments : record.archived_comments) || []
         return (<ArchivedCommentsTimeline comments={comments}/>)
       }
     }
   )
 }
+11
