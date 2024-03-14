@@ -1,13 +1,14 @@
 import React from "react"
-import { Tooltip } from "antd"
+import { TableProps, Tooltip } from "antd"
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import ArchivedCommentsTimeline from "../shared/ArchivedCommentsTimeline"
+import { ObjectWithDataset } from "./DatasetsTableColumns";
 
 
-export default function ExpandableTableDatasetComments() {
+export default function ExpandableTableDatasetComments(): NonNullable<TableProps<any>['expandable']> {
   return (
     {
-      columnTitle: () => <div>Comments</div>,
+      columnTitle: <div>Comments</div>,
       expandIcon: ({ expanded, onExpand, record }) =>
           expanded ? (
             <Tooltip title="Hide Comments">

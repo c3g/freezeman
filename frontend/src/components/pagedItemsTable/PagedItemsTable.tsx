@@ -47,7 +47,7 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 	usingFilters: boolean
 
 	selection?: PagedItemTableSelection<T>
-	expandable?: any
+	expandable?: TableProps<any>['expandable']
 	initialLoad?: boolean
 }
 
