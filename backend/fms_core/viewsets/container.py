@@ -174,7 +174,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         is_parent = _request.GET.get("parent") == 'true'
         is_sample_holding = _request.GET.get("sample_holding") == 'true'
         is_exact_match = _request.GET.get("exact_match") == 'true'
-        except_kinds = _request.GET.get("except_kinds").split(",") if _request.GET.get("except_kinds") else []
+        qs_except_kinds = _request.GET.get("except_kinds")
+        except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
         if search_input is not None:
             if is_exact_match:

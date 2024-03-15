@@ -29,7 +29,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
 
     const getContainerKindOptions = useCallback(() => {
       if (containerKinds) {
-        const options = Object.keys(containerKinds).filter(id => containerKinds[id].children_ids.length == 0 && id != "tube").sort().map((containerKind) => {
+        const options = Object.keys(containerKinds).filter(id => containerKinds[id].children_ids.length === 0 && id !== "tube").sort().map((containerKind) => {
           return {
             label: containerKind,
             value: containerKind
@@ -115,7 +115,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
 
     //calls addDestination prop with 'New Destination' container
     const handleConfirm = useCallback(() => {
-        const AddContainer = (container) => {
+        const addContainer = (container) => {
           onConfirm(container)
           setIsPopup(false)
           setNewContainer({})
@@ -125,12 +125,12 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
         container.container_name = container.container_name ? container.container_name : container.container_barcode
         if (container.container_barcode && container.container_kind) {
           if (selectedTab == "load") {
-            AddContainer(container)
+            addContainer(container)
           }
           else {
             containerAlreadyExists(container, destinationContainerList).then(exists => {
               if (!exists) {
-                AddContainer(container)
+                addContainer(container)
               }
             })
           }
