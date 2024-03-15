@@ -1,10 +1,10 @@
 import { AnyAction } from 'redux'
-import { FMSId } from '../../models/fms_api_models'
+import { FMSId, LabworkStepInfo } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from '../../models/paged_items_reducers'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
-import { LabworkStepSamples, LabworkStepsState, LabworkStepSummaryState } from './models'
+import { LabworkStepSamples, LabworkStepSamplesGroup, LabworkStepsState, LabworkStepSummaryState } from './models'
 import { createPagedItems, createPagedItemsByID } from '../../models/paged_items'
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
@@ -19,6 +19,7 @@ export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES_AT_STEP.L
 export const SHOW_SELECTION_CHANGED_MESSAGE = 'SAMPLES_AT_STEP:SHOW_SELECTION_CHANGED_MESSAGE'
 export const SET_SELECTED_SAMPLES_SORT_DIRECTION = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES_SORT_DIRECTION'
 export const GET_LABWORK_STEP_SUMMARY = createNetworkActionTypes('SAMPLES_AT_STEP.GET_LABWORK_STEP_SUMMARY')
+export const SELECT_SAMPLES_IN_GROUPS = [SET_SELECTED_SAMPLES, 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES_IN_GROUPS'] as const
 
 
 const INTIAL_STATE: LabworkStepsState = {
@@ -275,10 +276,20 @@ export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching:
 		}
 
 		case GET_LABWORK_STEP_SUMMARY.RECEIVE: {
+			const data = action.data as LabworkStepInfo["results"]["samples"]["groups"]
 			return {
 				...state,
 				isFetching: false,
-				groups: action.data
+				groups: data.map((group) => ({
+					name: group.name,
+					count: group.count,
+					sample_locators: group.sample_locators.reduce((prev, curr) => {
+						prev[curr.sample_id] = curr
+						return prev
+					}, {}),
+					selected_samples: {},
+					containers: undefined
+				} as LabworkStepSamplesGroup))
 			}
 		}
 
@@ -290,8 +301,18 @@ export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching:
 			}
 		}
 	}
+	if (action.type in SELECT_SAMPLES_IN_GROUPS) {
+		const { sampleIDs } = action as unknown as { sampleIDs: FMSId[] }
+		return {
+			...state,
+			groups: state.groups?.map((group) => ({
+				...group,
+				selected_samples: Object.fromEntries(sampleIDs.map((sampleID) => [sampleID, group.sample_locators[sampleID]] as const).filter((x) => x[1]))
+			})) ?? []
+		}
+	}
 	return state
 }
 
-
 export const sampleNextStepTemplateActions = templateActionsReducerFactory({LIST_TEMPLATE_ACTIONS})
+ 
