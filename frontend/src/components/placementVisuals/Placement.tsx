@@ -5,15 +5,15 @@ import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
 import { Radio, Button, Popconfirm, Switch, Row, Col, notification } from 'antd'
-import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
+import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import AddPlacementContainer from "./AddPlacementContainer"
-
+import { CellSample, ContainerSample } from "./models"
 
 interface PlacementProps {
-    sourceSamples?: containerSample,
-    destinationSamples?: containerSample,
+    sourceSamples?: ContainerSample,
+    destinationSamples?: ContainerSample,
     saveChanges: (sourceContainerSamples, destinationContainerSamples, destinationName) => void,
     cycleContainer: (number, containerType) => void,
     addDestination: (any) => void,
@@ -22,14 +22,14 @@ interface PlacementProps {
     removeCells: (samples) => void,
     saveDestination: () => void,
     setDestinationIndex: (number) => void,
-    destinationContainerList: containerSample[],
+    destinationContainerList: ContainerSample[],
 }
 
 //component used to handle the transfer of samples from source to destination, or destination to destination
 const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveDestination, setDestinationIndex, destinationContainerList }: PlacementProps) => {
 
     //keyed object by sampleID, containing the coordinates, type, sourceContainer, id
-    const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
+    const [selectedSamples, setSelectedSamples] = useState<CellSample>({})
 
     //used to determine whether the cells are to be placed in a column or row grouping (ordered by id), or by pattern (keeping same order as they were in the source)
     const [placementType, setPlacementType] = useState<boolean>(true)
@@ -157,9 +157,9 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         (sampleList, containerType) => {
             if (sourceSamples && destinationSamples) {
               //to avoid passing reference each object is copied
-              const tempSelectedSamples: cellSample = { ...selectedSamples }
-              const tempSourceSamples: cellSample = { ...sourceSamples.samples }
-              const tempDestinationSamples: cellSample = { ...destinationSamples.samples }
+              const tempSelectedSamples: CellSample = { ...selectedSamples }
+              const tempSourceSamples: CellSample = { ...sourceSamples.samples }
+              const tempDestinationSamples: CellSample = { ...destinationSamples.samples }
               const canPlace = sampleInCoords(sampleList, tempDestinationSamples)
               //iterates over list of samples to decide whether to place them in the 'selectedSamples' or the destination container
               sampleList.forEach(sample => {

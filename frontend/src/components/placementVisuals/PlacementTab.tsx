@@ -5,25 +5,8 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectContainerKindsByID } from "../../selectors";
 import api from "../../utils/api"
 import { FMSContainer } from "../../models/fms_api_models"
+import { ContainerSample } from "./models";
 
-export interface sampleInfo {
-    coordinates: string,
-    type: string,
-    sourceContainer?: string
-    name?: string,
-    id?: number,
-}
-export interface cellSample {
-    [id: number]: sampleInfo
-}
-export interface containerSample {
-    samples: cellSample
-    container_name: string,
-    container_barcode?: string,
-    rows: number,
-    columns: number,
-    container_kind: string,
-}
 export const NONE_STRING = 'none'
 export const PLACED_STRING = 'placed'
 export const SELECTED_STRING = 'selected'
@@ -42,8 +25,8 @@ interface PlacementTabProps {
 const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     const dispatch = useAppDispatch()
-    const [sourceContainerList, setSourceContainerList] = useState<containerSample[]>([])
-    const [destinationContainerList, setDestinationContainerList] = useState<containerSample[]>([])
+    const [sourceContainerList, setSourceContainerList] = useState<ContainerSample[]>([])
+    const [destinationContainerList, setDestinationContainerList] = useState<ContainerSample[]>([])
     const containerKinds = useAppSelector(selectContainerKindsByID)
 
     const [index, setIndex] = useState<number>(0)

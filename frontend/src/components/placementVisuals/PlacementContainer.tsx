@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from "react"
 import { Empty } from "antd"
-import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
+import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, SELECTED_STRING } from "./PlacementTab"
 import Cell from "./Cell"
+import { SampleInfo } from "./models"
 
 interface PlacementContainerProps {
     updateSamples: (sampleList, containerType, containerRows, containerColumns) => void,
@@ -63,7 +64,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         // Iterate over all selected cells and take the difference of the most left column and the current cell
         // and add the difference to the where it should be placed
         // selected cells have coords ['a01', 'a03'], hovered cell to place is 'b04'. Destination samples will become ['b04, 'b06']
-        const preview: sampleInfo[] = []
+        const preview: SampleInfo[] = []
 
         //iterates over the selected samples to find the most left column of them
         if (Object.keys(selectedSampleList).length > 0) {
@@ -109,7 +110,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
     //allows to preview the cells that the group of selected samples will go into
     const previewGroupPlacement = useCallback((coordinates) => {
-        const preview: sampleInfo[] = []
+        const preview: SampleInfo[] = []
 
         //sorts list of cells by coordinate
         const cells: any = Object.keys(selectedSampleList).map(id => {
