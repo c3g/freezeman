@@ -301,7 +301,7 @@ export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching:
 			}
 		}
 	}
-	if (action.type in SELECT_SAMPLES_IN_GROUPS) {
+	if (SELECT_SAMPLES_IN_GROUPS.some((s) => s === action.type)) {
 		const { sampleIDs } = action as unknown as { sampleIDs: FMSId[] }
 		return {
 			...state,

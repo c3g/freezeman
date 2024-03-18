@@ -1,5 +1,5 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
@@ -50,22 +50,24 @@ export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Cre
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
 const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
-	const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
   const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
-  
-  useEffect(() => {
-    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {}))
-    dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples))
-  }, [activeGrouping, step])
 
-  const handleChangeActiveGrouping = (grouping) => {
+  useEffect(() => {
+    const selectedSamples = [...stepSamples.selectedSamples]
+    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
+      dispatch(setSelectedSamplesInGroups(selectedSamples))
+    })
+  }, [activeGrouping.key, step.id])
+
+  const handleChangeActiveGrouping = useCallback((grouping) => {
     clearFilters && clearFilters(false)
     setActiveGrouping(grouping)
-  }
+  }, [])
 
-  const handleSelectGroup = async (groupSampleIds: FMSId[]) => {
+  const handleSelectGroup = useCallback(async (groupSampleIds: FMSId[]) => {
     const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples, groupSampleIds)
     if (mergedSelection.length > MAX_STEP_SAMPLE_SELECTION) {
       const TOO_MANY_SELECTED_NOTIFICATION_KEY = `LabworkStep.too-many-sample-selected-${step.id}`
@@ -83,11 +85,11 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
       dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
       setFetchingSamples(false)
     }
-  }
+  }, [stepSamples.selectedSamples, step.id, dispatch])
 
-  const handleClearGroup = (groupSampleIds: FMSId[]) => {    
+  const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {    
     dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
-  }
+  }, [dispatch, step.id, stepSamples.selectedSamples])
 
 	return (
 		<>

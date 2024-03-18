@@ -30,6 +30,7 @@ interface LabworkStepPanelProps {
 
 const LabworkStepOverviewPanel = ({refreshing, grouping, groupingValue, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
 
+  console.info(filters)
   useEffect(() => {
     clearFilters && clearFilters(false)
     const value: FilterValue = grouping===GROUPING_CREATION_DATE ? {min: groupingValue, max: groupingValue} : groupingValue
