@@ -105,15 +105,15 @@ CONTAINER_RENAME_TEMPLATE = {
 EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
           'name': 'Experiments',
-          'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
-                      'Instrument Name', 'Experiment Start Date (YYYY-MM-DD)', 'Comment'],
+          'headers': ['Experiment Name', 'Experiment Container Barcode', 'Instrument Name',
+                      'Experiment Container Kind', 'Experiment Start Date (YYYY-MM-DD)', 'Comment'],
           'stitch_column': 'Experiment Name',
           'batch': True,
       },
       {
           'name': 'Samples',
           'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates',
-                      'Source Sample Current Volume (uL)', 'Source Sample Volume Used (uL)', 'Experiment Container Coordinates', 'Comment', 'Workflow Action'],
+                      'Source Sample Current Volume (uL)', 'Source Sample Volume Used (uL)', 'Experiment Container Coordinates (Lane)', 'Comment', 'Workflow Action'],
           'stitch_column': 'Experiment Name',
           'batch': False,
       },]
@@ -132,7 +132,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Samples", "Experiment Container Coordinates", "coordinates"),
+      ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
       ("Experiments", "Experiment Container Barcode", "container_barcode"),
       ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
@@ -152,7 +152,7 @@ EXPERIMENT_MGI_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-    ("Samples", "Experiment Container Coordinates", "coordinates"),
+    ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
     ("Experiments", "Experiment Container Barcode", "container_barcode"),
     ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
@@ -160,7 +160,7 @@ EXPERIMENT_MGI_TEMPLATE = {
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {
   "identity": {"description": "Template to add Illumina experiments",
-               "file": static("submission_templates/Experiment_run_illumina_v4_7_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_illumina_v4_8_0.xlsx"),
                "protocol": "Illumina Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -172,7 +172,7 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Samples", "Experiment Container Coordinates", "coordinates"),
+      ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
       ("Experiments", "Experiment Container Barcode", "container_barcode"),
       ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
@@ -192,7 +192,7 @@ EXPERIMENT_AXIOM_TEMPLATE = {
     ],
     # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
     "placement info": [
-        ("Samples", "Experiment Container Coordinates", "coordinates"),
+        ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
         ("Experiments", "Experiment Container Barcode", "container_barcode"),
         ("Experiments", "Experiment Container Kind", "container_kind"),
     ],
