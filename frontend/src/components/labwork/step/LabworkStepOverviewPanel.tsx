@@ -33,6 +33,7 @@ const LabworkStepOverviewPanel = ({refreshing, grouping, groupingValue, samples,
   useEffect(() => {
     clearFilters && clearFilters(false)
     const value: FilterValue = grouping===GROUPING_CREATION_DATE ? {min: groupingValue, max: groupingValue} : groupingValue
+    setFilterOptions && setFilterOptions(grouping.key, 'exactMatch', true, grouping)
     setFilter && setFilter(grouping.key, value, grouping)
 	}, [groupingValue, setFilter])
 
