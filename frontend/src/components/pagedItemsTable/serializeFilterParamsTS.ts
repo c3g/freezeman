@@ -62,7 +62,7 @@ export default function serializeFilterParamsWithDescriptions(filters: FilterSet
 					if (options) {
 						if (options.recursiveMatch) key += '__recursive'
 						else if (options.startsWith) key += '__startswith'
-						else key += '__icontains'
+						else if (!options.exactMatch) key += '__icontains'
 					} else {
 						key += '__icontains'
 					}
