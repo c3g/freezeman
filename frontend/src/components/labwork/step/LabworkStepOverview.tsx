@@ -129,6 +129,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
                 selection={selection}
                 setSortBy={setSortBy}
                 pagination={pagination}
+		stepID={step.id}
               />
 						</Collapse.Panel>
 					)

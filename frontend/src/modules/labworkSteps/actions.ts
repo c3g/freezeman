@@ -234,7 +234,7 @@ export function flushSamplesAtStep(stepID: FMSId) {
 	}
 }
 
-export function setFilter(stepID: FMSId, description: FilterDescription, value: FilterValue) {
+export function setFilter(stepID: FMSId, description: FilterDescription, value: FilterValue, reset = true) {
 	return (dispatch) => {
 		dispatch({
 			type: SET_FILTER,
@@ -243,11 +243,12 @@ export function setFilter(stepID: FMSId, description: FilterDescription, value: 
 			description
 		})
 		// Reset the sample list
-		dispatch(loadSamplesAtStep(stepID, 1))
+		if (reset)
+			dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
 
-export function setFilterOptions(stepID: FMSId, description: FilterDescription, options: FilterOptions) {
+export function setFilterOptions(stepID: FMSId, description: FilterDescription, options: FilterOptions, reset = true) {
 	return (dispatch) => {
 		dispatch({
 			type: SET_FILTER_OPTION,
@@ -256,11 +257,12 @@ export function setFilterOptions(stepID: FMSId, description: FilterDescription, 
 			description
 		})
 		// Reset the sample list
-		dispatch(loadSamplesAtStep(stepID, 1))
+		if (reset)
+			dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
 
-export function clearFilters(stepID: FMSId, refresh: boolean=true) {
+export function clearFilters(stepID: FMSId, refresh: boolean = true) {
 	return (dispatch) => {
 		dispatch({
 			type: CLEAR_FILTERS,
@@ -388,3 +390,4 @@ export function setSelectedSamplesInGroups(sampleIDs: FMSId[]) {
 		sampleIDs
 	}
 }
+
