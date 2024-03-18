@@ -26,7 +26,7 @@ const InputFilter = ({value, options, description, filterKey, setFilter, setFilt
   
     const onChangeRecursive = checked => {
       onToggleSwitch( 'recursiveMatch', checked)
-      setFilterOption(filterKey, 'exactMatch', checked, description)
+      setFilterOption(filterKey, 'startsWith', checked, description)
     }
   
     useEffect(() => {
@@ -53,9 +53,9 @@ const InputFilter = ({value, options, description, filterKey, setFilter, setFilt
                   size="large"
                   checkedChildren="Exact"
                   unCheckedChildren="Exact"
-                  checked={options?.exactMatch ?? false}
+                  checked={options?.startsWith ?? false}
                   disabled={options?.recursiveMatch ?? false}
-                  onChange={e => onToggleSwitch( 'exactMatch', e)}
+                  onChange={e => onToggleSwitch( 'startsWith', e)}
                 />
               </Tooltip>
               {description.recursive &&
