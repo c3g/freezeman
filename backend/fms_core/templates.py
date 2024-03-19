@@ -337,7 +337,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
 
 LIBRARY_QC_TEMPLATE = {
   "identity": {"description": "Template to perform library quality control",
-               "file": static("submission_templates/Library_QC_v4_4_0.xlsx"),
+               "file": static("submission_templates/Library_QC_v4_8_0.xlsx"),
                "protocol": "Library Quality Control"},
   "sheets info": [
       {
@@ -578,7 +578,7 @@ SAMPLE_UPDATE_TEMPLATE = {
 
 SAMPLE_QC_TEMPLATE = {
   "identity": {"description": "Template to perform sample quality control",
-               "file": static("submission_templates/Sample_QC_v4_4_0.xlsx"),
+               "file": static("submission_templates/Sample_QC_v4_8_0.xlsx"),
                "protocol": "Sample Quality Control"},
   "sheets info": [
       {
