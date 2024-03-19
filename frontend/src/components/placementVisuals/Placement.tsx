@@ -8,7 +8,7 @@ import { Radio, Button, Popconfirm, Switch, Row, Col, notification } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
-import AddPlacementContainer from "./AddPlacementContainer"
+import AddPlacementContainer, { DestinationContainer } from "./AddPlacementContainer"
 import { CellSample, ContainerSample } from "./models"
 
 interface PlacementProps {
@@ -16,7 +16,7 @@ interface PlacementProps {
     destinationSamples?: ContainerSample,
     saveChanges: (sourceContainerSamples, destinationContainerSamples, destinationName) => void,
     cycleContainer: (number, containerType) => void,
-    addDestination: (any) => void,
+    addDestination: (container: DestinationContainer) => void,
     disableChangeSource: boolean,
     disableChangeDestination: boolean,
     removeCells: (samples) => void,

@@ -1,16 +1,33 @@
 import React, { useCallback, useState } from "react"
-import { Alert, Button, Form, Select, Tabs, notification, Row } from "antd"
+import { Button, Select, Tabs, notification, Row } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectCoordinatesByID, selectContainerKindsByID } from "../../selectors"
-import { PLACED_STRING, containerSample } from "./PlacementTab"
+import { PLACED_STRING } from "./PlacementTab"
 import Modal from "antd/lib/modal/Modal"
 import SearchContainer from "../SearchContainer"
 import Input from "antd/lib/input/Input"
 import api from "../../utils/api"
+import { ContainerSample } from "./models"
+import { FMSContainer, FMSSample } from "../../models/fms_api_models"
+
+interface NewContainer {
+  container_barcode?: string
+  container_name?: string
+  container_kind?: string
+}
+
+interface LoadedContainer {
+  container_barcode: string
+  container_name: string
+  container_kind: string
+  samples: Record<FMSSample['id'], { id: FMSSample['id'], coordinates?: string, type: string, name: FMSSample['name'], sourceContainer: string }>
+}
+
+export type DestinationContainer = NewContainer | LoadedContainer
 
 interface AddPlacementContainerProps {
-    onConfirm: (destinationContainer) => void
-    destinationContainerList: containerSample[]
+    onConfirm: (destinationContainer: DestinationContainer) => void
+    destinationContainerList: ContainerSample[]
     setDestinationIndex: (number: number) => void
 }
 
@@ -22,7 +39,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
     const [loadedContainer, setLoadedContainer] = useState<any>({})
     const [selectedTab, setSelectedTab] = useState<string>('new')
     const [error, setError] = useState<string | undefined>(undefined)
-    const [newContainer, setNewContainer] = useState<any>({})
+    const [newContainer, setNewContainer] = useState<NewContainer>({})
 
     const coordinates = useAppSelector(selectCoordinatesByID)
     const containerKinds = useAppSelector(selectContainerKindsByID)
@@ -43,21 +60,21 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
     const dispatch = useAppDispatch()
     //retrieves container on search
     const handleContainerLoad = useCallback(async (loadedContainer) => {
-        const container = await dispatch(api.containers.get(loadedContainer))
-        const containerName = container.data.name
-        const containerBarcode = container.data.barcode
+        const container: FMSContainer = (await dispatch(api.containers.get(loadedContainer))).data
+        const containerName = container.name
+        const containerBarcode = container.barcode
         const newDestination = {}
-        if (container.data.samples.length > 0) {
-            const loadedSamples = await dispatch(api.samples.list({ id__in: container.data.samples.join(','), limit: 100000}))
+        if (container.samples.length > 0) {
+            const loadedSamples: FMSSample[] = (await dispatch(api.samples.list({ id__in: container.samples.join(','), limit: 100000}))).data.results
 
-            loadedSamples.data.results.forEach(sample => {
-                    newDestination[sample.id] = { id: sample.id, coordinates: (sample.coordinate && coordinates[sample.coordinate].name), type: PLACED_STRING, name: sample.name, sourceContainer: containerName }
+            loadedSamples.forEach((sample: FMSSample) => {
+                newDestination[sample.id] = { id: sample.id, coordinates: (sample.coordinate && coordinates[sample.coordinate].name), type: PLACED_STRING, name: sample.name, sourceContainer: containerName }
             })
         }
-        setLoadedContainer({ container_barcode: containerBarcode, container_name: containerName, container_kind: container.data.kind, samples: { ...newDestination }, })
+        setLoadedContainer({ container_barcode: containerBarcode, container_name: containerName, container_kind: container.kind, samples: { ...newDestination }, })
     }, [coordinates])
 
-    const containerAlreadyExists = async (container, destinationContainerList: containerSample[]) => {
+    const containerAlreadyExists = async (container, destinationContainerList: ContainerSample[]) => {
       /* Centralized error notifications */
       const barcodeExistsError = () => {
         setError("Existing container barcode.")
@@ -78,7 +95,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
         })
       }
 
-      let exists: boolean = false
+      let exists = false
       /* Get locally created containers first */
       /* Check if the barcode is used in the destinationContainerList */
       let barcode_exists: boolean = destinationContainerList.some(containerSample => containerSample.container_barcode == container.container_barcode)
