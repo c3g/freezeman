@@ -107,7 +107,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
             <Space direction="horizontal" style={{width: '100%', justifyContent: 'center'}}>
               <Tag><Title style={{ margin: 0 }} level={4}>{`${Object.keys(group.selected_samples).length}/${group.count}`}</Title></Tag>
               <Button disabled={!group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
-              <Button disabled={stepSamples.selectedSamples.length === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
+              <Button disabled={Object.keys(group.selected_samples).length === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
             </Space>
           )
 
