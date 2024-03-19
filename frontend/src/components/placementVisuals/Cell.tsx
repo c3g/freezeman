@@ -1,13 +1,14 @@
 import React from "react"
 import { useCallback } from "react"
-import { PLACED_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
+import { PLACED_STRING, SELECTED_STRING } from "./PlacementTab"
 import './Placement.scss'
+import { SampleInfo } from "./models"
 
 interface CellProps {
     onCellClick: (e: any, sample: any) => void,
     onCellMouseOver: (e: any) => void,
     onCellMouseLeave: () => void,
-    sample?: sampleInfo,
+    sample?: SampleInfo,
     coordinates: string,
     isSelecting: boolean,
     outline: boolean,
