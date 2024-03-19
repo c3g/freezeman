@@ -10,6 +10,7 @@
 import {
   FMSArchivedComment,
 	FMSContainer,
+	FMSContainerKind,
 	FMSCoordinate,
 	FMSDataset,
 	FMSDatasetFile,
@@ -108,8 +109,9 @@ export function mergeItemsByID<T extends FMSTrackedModel>(itemsByID: ItemsByID<T
 
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {
-	parents?: Array<Container["id"]>
+parents?: Array<Container["id"]>
 }
+export interface ContainerKind extends Readonly<FMSContainerKind>, FetchedObject {}
 export interface Coordinate extends Readonly<FMSCoordinate>, FetchedObject {}
 export interface Dataset extends Readonly<FMSDataset>, FetchedObject {}
 export interface DatasetFile extends Readonly<FMSDatasetFile>, FetchedObject {}

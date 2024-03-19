@@ -5,17 +5,25 @@ import { resetTable } from "../../utils/reducers"
 import { summaryReducerFactory } from "../../utils/summary"
 import { templateActionsReducerFactory } from "../../utils/templateActions"
 import { AnyAction } from "redux"
-import { Container, ItemsByID } from "../../models/frontend_models"
+import { Container, ContainerKind, ItemsByID } from "../../models/frontend_models"
 import CONTAINERS from "./actions"
+import { FMSId } from "../../models/fms_api_models"
+
+export interface ContainerKindsState {
+  items: FMSId[]
+  itemsByID: Record<string, ContainerKind>
+  isFetching: boolean
+  error?: any
+}
 
 export const containerKinds = (
-  state = {
+  state: ContainerKindsState = {
     items: [],
     itemsByID: {},
     isFetching: false,
   },
-  action
-) => {
+  action: AnyAction
+): ContainerKindsState => {
   switch (action.type) {
     case CONTAINERS.LIST_KINDS.REQUEST:
       return {

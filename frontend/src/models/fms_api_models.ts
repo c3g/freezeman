@@ -61,6 +61,17 @@ export interface FMSContainer extends FMSTrackedModel {
     experiment_run?: FMSId              // Experiment run associate with the container (if any)
 }
 
+
+type CoordinateAxis = string[] 
+export interface FMSContainerKind extends FMSTrackedModel {
+    id: FMSId
+    coordinate_spec: [] | [CoordinateAxis] | [CoordinateAxis, CoordinateAxis]
+    coordinate_overlap_allowed: string[]
+    is_source: boolean
+    is_run_container: boolean
+    children_ids: string[]
+}
+
 export interface FMSCoordinate extends FMSTrackedModel {
   name: string                       // Coordinates
   column: number                     // Column ordinal starting at 0
@@ -483,4 +494,24 @@ export interface WorkflowStepOrder {    // Not a tracked model - just a simple s
     step_id: FMSId                      // Step ID
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
+}
+
+export interface SampleLocator {
+  sample_id: FMSId
+  contextual_container_barcode: string
+  contextual_coordinates: string
+}
+
+export interface LabworkStepInfo {
+    results: {
+        step_id: FMSId
+        samples: {
+            grouping_column: string
+            groups: {
+                name: string
+                count: number
+                sample_locators: SampleLocator[]
+            }[]
+        }
+    }
 }
