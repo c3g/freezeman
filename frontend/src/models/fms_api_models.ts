@@ -492,15 +492,15 @@ export interface SampleLocator {
 }
 
 export interface LabworkStepInfo {
-  results: {
-    step_id: FMSId
-    samples: {
-      grouping_column: string
-      groups: {
-	name: string
-	count: number
-	sample_locators: SampleLocator[]
-      }[]
+    results: {
+        step_id: FMSId
+        samples: {
+            grouping_column: string
+            groups: {
+                name: string
+                count: number
+                sample_locators: SampleLocator[]
+            }[]
+        }
     }
-  }
 }
