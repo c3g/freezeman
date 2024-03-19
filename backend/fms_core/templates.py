@@ -120,7 +120,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
   "identity": {"description": "Template to add Infinium experiments",
-               "file": static("submission_templates/Experiment_Infinium_24_v4_4_0.xlsx"),
+               "file": static("submission_templates/Experiment_Infinium_24_v4_8_0.xlsx"),
                "protocol": "Illumina Infinium Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -140,7 +140,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 
 EXPERIMENT_MGI_TEMPLATE = {
   "identity": {"description": "Template to add MGI experiments",
-               "file": static("submission_templates/Experiment_run_MGI_v4_4_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_MGI_v4_8_0.xlsx"),
                "protocol": "DNBSEQ Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -180,7 +180,7 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
 
 EXPERIMENT_AXIOM_TEMPLATE = {
     "identity" : {"description": "Template to add Axiom experiments",
-                  "file": static("submission_templates/Experiment_run_Axiom_v4_7_0.xlsx"),
+                  "file": static("submission_templates/Experiment_run_Axiom_v4_8_0.xlsx"),
                   "protocol": "Axiom Experiment Preparation"},
     "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
     # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
