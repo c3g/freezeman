@@ -1,5 +1,5 @@
 import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
-import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification } from 'antd'
+import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
@@ -39,7 +39,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// Keep track of the currently selected tab so that we can tweak the UX
 	const GROUPED_SAMPLES_TAB_KEY = 'groups'
-	const SAMPLES_TAB_KEY = 'samples'
 	const SELECTION_TAB_KEY = 'selection'
 	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
@@ -295,6 +294,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleClearSelection = useCallback(
 		() => {
 			dispatch(clearSelectedSamples(step.id))
+      onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
 		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
@@ -361,7 +361,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step.id, selectedTableSamples])
 
 	const onTabChange = useCallback((tabKey) => {
-		if (tabKey != SAMPLES_TAB_KEY && !isSorted) {
+		if (tabKey != GROUPED_SAMPLES_TAB_KEY && !isSorted) {
 			dispatch(updateSortSelectedSamples)
 			setIsSorted(true)
 		}
@@ -504,7 +504,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 					</Tabs.TabPane>
 					{step.needs_placement ?
-						<Tabs.TabPane tab="Placement" key={PLACEMENT_TAB_KEY}>
+						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={selectedTableSamples.length == 0}>
 							<PlacementTab
 								stepID={step.id}
 								save={placementSave}

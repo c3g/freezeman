@@ -7,13 +7,14 @@ import { selectAuthTokenAccess } from "../selectors";
 import { useAppSelector } from "../hooks";
 
 interface SearchContainerProps {
+    exceptKinds: string[]
     handleOnChange: (value) => void
 }
 
-const SearchContainer = ({handleOnChange}: SearchContainerProps) => {
+const SearchContainer = ({exceptKinds, handleOnChange}: SearchContainerProps) => {
     const token = useAppSelector(selectAuthTokenAccess)
     const searchContainers = (token, input, options) =>
-        withToken(token, api.containers.search)(input, { sample_holding: true, ...options }).then(res => res.data.results)
+        withToken(token, api.containers.search)(input, { sample_holding: true, except_kinds: exceptKinds.join(","), ...options }).then(res => res.data.results)
 
     const [containerOptions, setContainerOptions] = useState([]);
     const onFocusContainer = ev => { onSearchContainer(ev.target.value) }

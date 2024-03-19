@@ -4,17 +4,16 @@ import PageContent from "../PageContent"
 import PageContainer from "../PageContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import { useCallback } from "react"
-import { Radio, Button, Popconfirm, Switch } from 'antd'
+import { Radio, Button, Popconfirm, Switch, Row, Col, notification } from 'antd'
 import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, PLACED_STRING, SOURCE_STRING, cellSample, containerSample } from "./PlacementTab"
 
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import AddPlacementContainer from "./AddPlacementContainer"
 
 
-
 interface PlacementProps {
-    sourceSamples: containerSample,
-    destinationSamples: containerSample,
+    sourceSamples?: containerSample,
+    destinationSamples?: containerSample,
     saveChanges: (sourceContainerSamples, destinationContainerSamples, destinationName) => void,
     cycleContainer: (number, containerType) => void,
     addDestination: (any) => void,
@@ -22,13 +21,12 @@ interface PlacementProps {
     disableChangeDestination: boolean,
     removeCells: (samples) => void,
     saveDestination: () => void,
-    changeDestinationName: (name) => void,
     setDestinationIndex: (number) => void,
     destinationContainerList: containerSample[],
 }
 
 //component used to handle the transfer of samples from source to destination, or destination to destination
-const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveDestination, changeDestinationName, setDestinationIndex, destinationContainerList }: PlacementProps) => {
+const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChanges, addDestination, disableChangeSource, disableChangeDestination, removeCells, saveDestination, setDestinationIndex, destinationContainerList }: PlacementProps) => {
 
     //keyed object by sampleID, containing the coordinates, type, sourceContainer, id
     const [selectedSamples, setSelectedSamples] = useState<cellSample>({})
@@ -73,7 +71,7 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                 selected[id] = selectedSamples[id]
             }
         })
-        const removed = (Object.keys(selected).length > 0 ? selected : destinationSamples.samples)
+        const removed = (Object.keys(selected).length > 0 ? selected : destinationSamples ? destinationSamples.samples : {})
         removeCells(removed)
         clearSelection()
     }, [selectedSamples])
@@ -86,28 +84,26 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
 
     //function used by PlacementContainer.tsx used for error prevention, checks if samples cannot be placed (out of bounds)
-    const updateSamples = useCallback((array, containerType) => {
+    const updateSamples = useCallback((array, containerType, containerRows, containerColumns) => {
         const coordinates = array.map((sample) => sample.coordinates)
         let canUpdate = true
 
         //checks if group can be placed, if cells are already filled, or if they go beyond the boundaries of the cells
-        //NOTE: needs to be changed to number of rows and columns, to support different types of containers
         if (containerType == DESTINATION_STRING) {
-            if (((coordinates.some(coord => coord.includes('I') || Number(coord.substring(1)) > 12)))) {
+            if (((coordinates.some(coord => coord.charCodeAt(0) - 64 > containerRows || Number(coord.substring(1)) > containerColumns)))) {
                 canUpdate = false
             }
         }
         array = array.filter(sample => sample.id)
         if (canUpdate)
             updateSampleList(array, containerType)
-    }, [destinationSamples.samples, selectedSamples])
+    }, [destinationSamples, selectedSamples])
 
     //function used to send containers and their samples up to the parent component to be stored, will save the state of containers for when you cycle containers
     const saveContainerSamples = (source, destination) => {
-        if (sourceSamples.container_name) {
+        if (destinationSamples && sourceSamples && sourceSamples.container_name) {
             saveChanges(source, destination, destinationSamples.container_name)
         }
-
     }
 
     //used to check if the destination has samples in cells already
@@ -124,37 +120,49 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
 
     //function used to handle the transfer of all available samples from source to destination
     const transferAllSamples = useCallback(() => {
-        //sets all samples to certain type, 'none', 'placed'
-        const setType = (type, source, sampleObj) => {
+      if (sourceSamples && destinationSamples) {
+        if (sourceSamples.rows != destinationSamples.rows || sourceSamples.columns != destinationSamples.columns) {
+          const INCOMPATIBLE_CONTAINER_KIND_NOTIFICATION_KEY = `LabworkStep.placement-incompatible-container-kind`
+          notification.error({
+            message: `Source and destination containers must have compatible dimensions.`,
+            key: INCOMPATIBLE_CONTAINER_KIND_NOTIFICATION_KEY,
+            duration: 20
+          })
+        }
+        else {
+          //sets all samples to certain type, 'none', 'placed'
+          const setType = (type, source, sampleObj) => {
             Object.keys(source).forEach((id) => {
-                if (source[id].type == NONE_STRING && source[id].coordinates)
-                    sampleObj[id] = { ...source[id], type: type, sourceContainer: sourceSamples.container_name }
+              if (source[id].type == NONE_STRING && source[id].coordinates) {
+                sampleObj[id] = { ...source[id], type: type, sourceContainer: sourceSamples.container_name }
+              }
             })
             return sampleObj
+          }
+
+          const newSourceSamples = setType(PLACED_STRING, { ...sourceSamples.samples }, { ...sourceSamples.samples })
+          const newDestinationSamples = setType(NONE_STRING, { ...sourceSamples.samples }, { ...destinationSamples.samples })
+
+          if (!sampleInCoords(sourceSamples.samples, destinationSamples.samples)) {
+              saveContainerSamples(newSourceSamples, newDestinationSamples)
+              clearSelection()
+          }
         }
-
-        const newSourceSamples = setType(PLACED_STRING, { ...sourceSamples.samples }, { ...sourceSamples.samples })
-        const newDestinationSamples = setType(NONE_STRING, { ...sourceSamples.samples }, { ...destinationSamples.samples })
-
-
-        if (!sampleInCoords(sourceSamples.samples, destinationSamples.samples)) {
-            saveContainerSamples(newSourceSamples, newDestinationSamples)
-            clearSelection()
-        }
-    }, [sourceSamples.samples, destinationSamples.samples, sourceSamples.container_name, destinationSamples.container_name])
+      }
+    }, [sourceSamples, destinationSamples])
 
 
     //function used to update source and destination samples
     const updateSampleList = useCallback(
         (sampleList, containerType) => {
-            //to avoid passing reference each object is copied
-            const tempSelectedSamples: cellSample = { ...selectedSamples }
-            const tempSourceSamples: cellSample = { ...sourceSamples.samples }
-            const tempDestinationSamples: cellSample = { ...destinationSamples.samples }
-            const canPlace = sampleInCoords(sampleList, tempDestinationSamples)
-
-            //iterates over list of samples to decide whether to place them in the 'selectedSamples' or the destination container
-            sampleList.forEach(sample => {
+            if (sourceSamples && destinationSamples) {
+              //to avoid passing reference each object is copied
+              const tempSelectedSamples: cellSample = { ...selectedSamples }
+              const tempSourceSamples: cellSample = { ...sourceSamples.samples }
+              const tempDestinationSamples: cellSample = { ...destinationSamples.samples }
+              const canPlace = sampleInCoords(sampleList, tempDestinationSamples)
+              //iterates over list of samples to decide whether to place them in the 'selectedSamples' or the destination container
+              sampleList.forEach(sample => {
                 const id = parseInt(sample.id)
 
                 // to prevent users from placing into empty cells in source container
@@ -209,7 +217,8 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
             setSelectedSamples({ ...tempSelectedSamples })
             //updates samples to parent container
             saveContainerSamples(tempSourceSamples, tempDestinationSamples)
-        }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
+          }
+        }, [selectedSamples, sourceSamples, destinationSamples])
 
     //function handler for the sample selection table
     const onSampleTableSelect = useCallback((sampleRowKeys, type) => {
@@ -237,67 +246,95 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
         }
         else {
             //gets the newly added sample from the selection from the antd table
-            const samplePool = type == SOURCE_STRING ? sourceSamples.samples : destinationSamples.samples
+            const samplePool = type == SOURCE_STRING ? sourceSamples && sourceSamples.samples : destinationSamples && destinationSamples.samples
             keys.forEach(key => {
-                if (samplePool[key].type != PLACED_STRING && !filteredSelected.includes(key)) {
+                if (samplePool && samplePool[key].type != PLACED_STRING && !filteredSelected.includes(key)) {
                     samplesToUpdate.push({ id: key, coordinates: samplePool[key].coordinates, name: samplePool[key].name })
                 }
             })
         }
 
         updateSampleList(samplesToUpdate, type)
-    }, [selectedSamples, sourceSamples.samples, destinationSamples.samples])
+    }, [selectedSamples, sourceSamples, destinationSamples])
 
-    const disableUndo = useMemo(() => Object.values(selectedSamples).some(sample => sample.type == SOURCE_STRING), [selectedSamples])
+    const disableUndo = useMemo(() => {
+      return !destinationSamples || Object.keys(destinationSamples.samples).length == 0
+    }, [selectedSamples])
 
     return (
         <>
             <PageContainer>
                 <PageContent>
-                    <div className={"flex-column"}>
-                        <div className={"flex-row"} style={{ justifyContent: 'end', gap: '1vw' }}>
-
-                            <AddPlacementContainer onConfirm={(container) => addDestination(container)} setDestinationIndex={setDestinationIndex} destinationContainerList={destinationContainerList} />
-                            <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
-                        </div>
-                        <div className={"flex-row"}>
+                      <Row justify="end" style={{padding: "10px"}}>
+                        <Col span={3}>
+                          <AddPlacementContainer onConfirm={(container) => addDestination(container)} setDestinationIndex={setDestinationIndex} destinationContainerList={destinationContainerList} />
+                        </Col>
+                        <Col span={3}>
+                          <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
+                        </Col>
+                      </Row>  
+                      <Row justify="start" style={{paddingTop: "20px", paddingBottom: "40px" }}>
+                        <Col span={12}>
+                          <div className={"flex-row"}>
                             <div className={"flex-column"}>
+                            { sourceSamples ?
+                            <>
+                              <ContainerNameScroller
+                                disabled={disableChangeSource}
+                                containerType={SOURCE_STRING}
+                                name={sourceSamples.container_name}
+                                changeContainer={changeContainer} />
+                              <PlacementContainer
+                                selectedSampleList={selectedSamples}
+                                containerType={SOURCE_STRING}
+                                columns={sourceSamples.columns}
+                                rows={sourceSamples.rows}
+                                samples={sourceSamples.samples}
+                                updateSamples={updateSamples} />
+                            </>
+                              : 
+                              <Col span={12}>
+                                <div className={"flex-row"}>
+                                  <div className={"flex-column"}/>
+                                </div>
+                              </Col>
+                            }
+                            </div>
+                          </div>
+                        </Col>
+                        { sourceSamples && destinationSamples ?
+                          <Col span={12}>
+                            <div className={"flex-row"}>
+                              <div className={"flex-column"}>
                                 <ContainerNameScroller
-                                    disabled={disableChangeSource}
-                                    containerType={SOURCE_STRING}
-                                    name={sourceSamples.container_name}
-                                    changeContainer={changeContainer} />
+                                  disabled={disableChangeDestination}
+                                  containerType={DESTINATION_STRING}
+                                  name={destinationSamples.container_name}
+                                  changeContainer={changeContainer}/>
                                 <PlacementContainer
-                                    selectedSampleList={selectedSamples}
-                                    containerType={SOURCE_STRING}
-                                    columns={sourceSamples.columns}
-                                    rows={sourceSamples.rows}
-                                    samples={sourceSamples.samples}
-                                    updateSamples={updateSamples} />
+                                  selectedSampleList={selectedSamples}
+                                  containerType={DESTINATION_STRING}
+                                  columns={destinationSamples.columns}
+                                  rows={destinationSamples.rows}
+                                  samples={destinationSamples.samples}
+                                  updateSamples={updateSamples}
+                                  direction={placementType ? placementDirection : undefined}
+                                  pattern={!placementType} />
+                              </div>
                             </div>
-                            <div className={"flex-column"}>
-                                <ContainerNameScroller
-                                    disabled={disableChangeDestination}
-                                    containerType={DESTINATION_STRING}
-                                    name={destinationSamples.container_name}
-                                    changeContainer={changeContainer}
-                                    changeContainerName={changeDestinationName} />
-                                <PlacementContainer
-                                    selectedSampleList={selectedSamples}
-                                    containerType={DESTINATION_STRING}
-                                    columns={destinationSamples.columns}
-                                    rows={destinationSamples.rows}
-                                    samples={destinationSamples.samples}
-                                    updateSamples={updateSamples}
-                                    direction={placementType ? placementDirection : undefined}
-                                    pattern={!placementType} />
-                            </div>
-                        </div>
-                        <div></div>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1vw' }}>
-                            <div>
-                                <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType} onChange={updateGroupPlacement}></Switch>
-                            </div>
+                          </Col>
+                          : <Col span={12}>
+                              <div className={"flex-row"}>
+                                <div className={"flex-column"}/>
+                              </div>
+                            </Col>
+                        }
+                      </Row>
+                      <Row justify="end" style={{padding: "10px"}}>
+                          <Col span={3}>
+                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType} onChange={updateGroupPlacement}></Switch>
+                          </Col>
+                          <Col span={5}>
                             <Radio.Group
                                 disabled={!placementType}
                                 value={placementDirection}
@@ -305,27 +342,31 @@ const Placement = ({ sourceSamples, destinationSamples, cycleContainer, saveChan
                                 <Radio.Button value={'row'}> row </Radio.Button>
                                 <Radio.Button value={'column'}> column </Radio.Button>
                             </Radio.Group>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'end', gap: '1vw' }}>
-
-                            <Button onClick={transferAllSamples}>Place All Source</Button>
-                            <Button onClick={clearSelection}>Deselect All</Button>
-                            <Popconfirm
-                                title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
-                                onConfirm={removeSelectedCells}
-                                placement={'bottomRight'}
-                                disabled={disableUndo}
-                            >
-                                <Button disabled={disableUndo} > Undo Placement</Button>
-                            </Popconfirm>
-                        </div>
-                        <div className={"flex-row"}>
-                            <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples.samples)} selectedSamples={filterSelectedSamples(SOURCE_STRING)} />
-                            <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, DESTINATION_STRING)} samples={filterPlacedSamples(destinationSamples.samples)} selectedSamples={filterSelectedSamples(DESTINATION_STRING)} />
-                        </div>
-                    </div>
+                          </Col>
+                        <Col span={8}>
+                              <Button onClick={transferAllSamples} disabled={!destinationSamples}>Place All Source</Button>
+                              <Button onClick={clearSelection}>Deselect All</Button>
+                              <Popconfirm
+                                  title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
+                                  onConfirm={removeSelectedCells}
+                                  placement={'bottomRight'}
+                                  disabled={disableUndo}
+                              >
+                                  <Button disabled={disableUndo} > Undo Placement</Button>
+                              </Popconfirm>
+                        </Col>
+                      </Row>
+                      <Row justify="space-evenly"  style={{padding: "10px"}}>
+                        <Col span={10}>
+                          <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples ? sourceSamples.samples : {})} selectedSamples={filterSelectedSamples(SOURCE_STRING)} />
+                        </Col>
+                        <Col span={10}>
+                          <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, DESTINATION_STRING)} samples={filterPlacedSamples(destinationSamples ? destinationSamples.samples : {})} selectedSamples={filterSelectedSamples(DESTINATION_STRING)} />
+                        </Col>
+                      </Row>
                 </PageContent>
             </PageContainer>
-        </>)
+        </>
+  )
 }
 export default Placement

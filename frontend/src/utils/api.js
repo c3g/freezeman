@@ -32,8 +32,8 @@ const api = {
       templates: () => get(`/containers/list_prefills/`),
       request: (options, template) => filteredpost(`/containers/prefill_template/`, {...options}, form({ template: template })),
     },
-    search: (q, { parent, sample_holding, exact_match }) =>
-      get("/containers/search/", { q, parent, sample_holding, exact_match }),
+    search: (q, { parent, sample_holding, exact_match, except_kinds }) =>
+      get("/containers/search/", { q, parent, sample_holding, exact_match, except_kinds }),
   },
 
   coordinates: {

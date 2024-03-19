@@ -4,21 +4,22 @@ import { PLACED_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
 import './Placement.scss'
 
 interface CellProps {
-    onCellClick: (e: any) => void,
+    onCellClick: (e: any, sample: any) => void,
     onCellMouseOver: (e: any) => void,
     onCellMouseLeave: () => void,
     sample?: sampleInfo,
     coordinates: string,
     isSelecting: boolean,
     outline: boolean,
+    cellSize: string
 }
 
 // component is used to represent individual cells in visualization of the placement transfer tab
-const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, coordinates }: CellProps) => {
+const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, cellSize, coordinates }: CellProps) => {
 
-    const onClick = useCallback(() => {
+    const onClick = useCallback((e) => {
         if (sample?.type != PLACED_STRING) {
-            onCellClick(sample ? { ...sample } : { coordinates: coordinates })
+            onCellClick(sample ? { ...sample } : { coordinates: coordinates }, e)
         }
     }, [sample, onCellClick, isSelecting])
 
@@ -50,7 +51,7 @@ const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelect
 
     return (
         <div
-            className={'cell'}
+            className={cellSize}
             key={coordinates}
             onClick={onClick}
             onMouseOver={onMouseOver}

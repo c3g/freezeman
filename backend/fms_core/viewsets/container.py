@@ -170,12 +170,14 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         """
         Searches for parent containers that match the given query
         """
-        search_input = _request.GET.get("q")
+        search_input = _request.GET.get("q", None)
         is_parent = _request.GET.get("parent") == 'true'
         is_sample_holding = _request.GET.get("sample_holding") == 'true'
         is_exact_match = _request.GET.get("exact_match") == 'true'
+        qs_except_kinds = _request.GET.get("except_kinds")
+        except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
-        if search_input:
+        if search_input is not None:
             if is_exact_match:
                 query = Q(barcode=search_input)
                 query.add(Q(name=search_input), Q.OR)
@@ -185,9 +187,11 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 query.add(Q(name__icontains=search_input), Q.OR)
                 query.add(Q(id__icontains=search_input), Q.OR)
             if is_parent:
-                query.add(Q(kind__in=PARENT_CONTAINER_KINDS), Q.AND)
+                kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
+                query.add(Q(kind__in=kinds), Q.AND)
             if is_sample_holding:
-                query.add(Q(kind__in=SAMPLE_CONTAINER_KINDS), Q.AND)
+                kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
+                query.add(Q(kind__in=kinds), Q.AND)
             containers_data = Container.objects.filter(query)
         else:
             containers_data = Container.objects.all()

@@ -1,7 +1,33 @@
+import reversion
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.auth.models import User
 
+ADMIN_USERNAME = 'biobankadmin'
+
+def allow_placement_for_more_protocols(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+
+    STEPS_WITH_PLACEMENT = [
+        "Experiment Run Illumina",
+        "Experiment Run DNBSEQ",
+        "Experiment Run Infinium",
+        "Experiment Run Axiom",
+        "Normalization and Pooling",
+    ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        
+        reversion.set_comment("Set needs_placement to True for steps that can now use the placement tool.")
+        reversion.set_user(admin_user)
+
+        for name in STEPS_WITH_PLACEMENT:
+            step = Step.objects.get(name=name)
+            step.needs_placement = True
+            step.save()
+            reversion.add_to_revision(step)
 
 class Migration(migrations.Migration):
 
@@ -36,5 +62,9 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
+        ),
+        migrations.RunPython(
+            allow_placement_for_more_protocols,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
