@@ -190,7 +190,17 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             const headerCells: React.ReactElement[] = []
             for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
-                    <div key={'header_' + i} className={"header"}>
+                    <div key={'header_' + i} className={"header"} onClick={(e) => {
+		        e.stopPropagation()
+			const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
+			const samples = [...letters].map((rowLetter) => {
+			    const colNumber = i
+			    const coordinates = rowLetter + "" + (padColumn(colNumber))
+			    console.info(coordinates)
+			    return checkSamples(coordinates)
+			}).filter(x => x)
+			updateSamples([...previewCells, ...samples], containerType, rows, columns)
+		    }}>
                         {
                             i != 0 ? i : ''
                         }
@@ -206,9 +216,18 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             //renders each row with the corresponding row letter 'A','B', etc.
             const cellSize = columns <= 12 ? "cell" : "tiny-cell"
             for (let i = 0; i < rows; i++) {
-                const rowOfCells: React.ReactElement[] = []
+                const charCopy = char.repeat(1)
+		const rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
-                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white' }}>
+                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white' }} onClick={(e) => {
+		        e.stopPropagation()
+			const samples = [...Array(12).keys()].map((c) => {
+			    const colNumber = c + 1
+			    const coordinates = charCopy + "" + (padColumn(colNumber))
+			    return checkSamples(coordinates)
+			}).filter(x => x)
+			updateSamples([...previewCells, ...samples], containerType, rows, columns)
+		    }}>
                         {
                             char
                         }
