@@ -13,7 +13,7 @@ interface commentsTimelineProps {
 export default function ArchivedCommentsTimeline({ comments } : commentsTimelineProps) {
   const [timelineMarginLeft, timelineRef] = useTimeline();
   const compareComments = (a, b) => a.id - b.id
-  const orderedComments = comments.toSorted(compareComments).reverse()
+  const orderedComments = [...comments].sort(compareComments).reverse()
 
 	return (
     <Row justify="center">
