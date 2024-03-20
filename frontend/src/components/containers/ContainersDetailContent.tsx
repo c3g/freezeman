@@ -24,7 +24,7 @@ import { isNullish } from "../../utils/functions";
 
 const pageStyle = {
   padding: 0,
-  overflow: "hidden",
+  overflow: "auto",
 }
 
 const tabStyle = {
