@@ -14,12 +14,11 @@ def allow_placement_for_more_protocols(apps, schema_editor):
         "Experiment Run DNBSEQ",
         "Experiment Run Infinium",
         "Experiment Run Axiom",
-        "Normalization and Pooling",
     ]
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        
+
         reversion.set_comment("Set needs_placement to True for steps that can now use the placement tool.")
         reversion.set_user(admin_user)
 
@@ -28,6 +27,33 @@ def allow_placement_for_more_protocols(apps, schema_editor):
             step.needs_placement = True
             step.save()
             reversion.add_to_revision(step)
+
+def set_illumina_preparation_properties_optional(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+    PropertyType = apps.get_model("fms_core", "PropertyType")
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+
+    protocol_content_type = ContentType.objects.get_for_model(Protocol)
+    object_id = Protocol.objects.get(name="Illumina Preparation").id
+
+    NEW_OPTIONAL_PROPERTY_TYPES = ["PhiX V3 Lot",
+                                   "NaOH 2N Lot",
+                                   "Buffer Reagents Lot",
+                                   "SBS Reagents Lot",
+                                   "NovaSeq XP Lot",
+                                  ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        
+        reversion.set_comment("Set some property types as optional for Illumina Preparation protocol.")
+        reversion.set_user(admin_user)
+
+        for name in NEW_OPTIONAL_PROPERTY_TYPES:
+            property_type = PropertyType.objects.get(name=name, object_id=object_id, content_type=protocol_content_type)
+            property_type.is_optional = True
+            property_type.save()
+            reversion.add_to_revision(property_type)
 
 class Migration(migrations.Migration):
 
@@ -65,6 +91,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             allow_placement_for_more_protocols,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            set_illumina_preparation_properties_optional,
             reverse_code=migrations.RunPython.noop,
         ),
     ]

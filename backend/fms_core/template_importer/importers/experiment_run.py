@@ -90,9 +90,13 @@ class ExperimentRunImporter(GenericImporter):
         """
         sample_rows_data = defaultdict(list)
         for i, row_data in enumerate(samples_sheet.rows):
+            # Allows for submission of both numeric lanes (1, 2, 3, ...) and coordinates
+            lane_or_experiment_container_coordinates = str_cast_and_normalize(row_data['Experiment Container Coordinates (Lane)'])
+            # Convert internally to alphanumerical coordinates
+            experiment_container_coordinates = lane_or_experiment_container_coordinates if not lane_or_experiment_container_coordinates.isnumeric() else "A" + lane_or_experiment_container_coordinates.zfill(2)
             sample = {'experiment_name': str_cast_and_normalize(row_data['Experiment Name']),
                       'volume_used': load_all_or_float_to_decimal_and_none(row_data['Source Sample Volume Used (uL)']),
-                      'experiment_container_coordinates': str_cast_and_normalize(row_data['Experiment Container Coordinates']),
+                      'experiment_container_coordinates': experiment_container_coordinates,
                       'comment': str_cast_and_normalize(row_data['Comment']),
                       'workflow':
                           {'step_action': str_cast_and_normalize(row_data['Workflow Action']),
@@ -113,7 +117,7 @@ class ExperimentRunImporter(GenericImporter):
                 row_i=i,
                 **sample_kwargs,
             )
-            # Set the actual volumed_used in case the load all option was used
+            # Set the actual volume_used in case the load all option was used
             sample["volume_used"] = (sample['sample_obj'].volume if sample['sample_obj'] is not None else 0) if sample["volume_used"] == LOAD_ALL else sample["volume_used"]
             sample_rows_data[sample['experiment_name']].append(sample)
             sample_kwargs["sample"] = sample
