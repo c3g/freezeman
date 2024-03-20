@@ -197,7 +197,6 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 			const samples = [...letters].map((rowLetter) => {
 			    const colNumber = i
 			    const coordinates = rowLetter + "" + (padColumn(colNumber))
-			    console.info(coordinates)
 			    return checkSamples(coordinates)
 			}).filter(x => x)
 			updateSamples([...previewCells, ...samples], containerType, rows, columns)
