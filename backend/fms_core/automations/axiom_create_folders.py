@@ -5,6 +5,7 @@ from typing import List
 from fms_core.models import Container, Sample
 from collections import defaultdict
 from pandas import DataFrame
+import csv
 from fms_core.template_importer._constants import DESTINATION_CONTAINER_BARCODE_MARKER
 
 
@@ -52,7 +53,7 @@ class AxiomCreateFolders(GenericAutomation):
             with open(path.join(filepath, project + FILE_SUFFIX), "w") as fp:
                 fp.write(project)
             # Write csv file with sample info into directory
-            df.to_csv(path.join(filepath, project + ".csv"), header=False, index=False)
+            df.to_csv(path.join(filepath, project + ".csv"), header=False, index=False, quoting=csv.QUOTE_NONNUMERIC)
             # Add a comment to the container to provide a reference for validation during experiment run.
             container.comment = DESTINATION_CONTAINER_BARCODE_MARKER + additional_data[container.name] + " ." + container.comment
             container.save()
