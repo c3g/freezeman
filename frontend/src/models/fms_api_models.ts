@@ -484,3 +484,23 @@ export interface WorkflowStepOrder {    // Not a tracked model - just a simple s
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }
+
+export interface SampleLocator {
+  sample_id: FMSId
+  contextual_container_barcode: string
+  contextual_coordinates: string
+}
+
+export interface LabworkStepInfo {
+    results: {
+        step_id: FMSId
+        samples: {
+            grouping_column: string
+            groups: {
+                name: string
+                count: number
+                sample_locators: SampleLocator[]
+            }[]
+        }
+    }
+}

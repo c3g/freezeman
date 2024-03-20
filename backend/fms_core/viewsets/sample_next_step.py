@@ -329,12 +329,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                   {
                     name = grouping_value_1
                     count
-                    sample_ids: []
+                    sample_locators: []
                   },
                   {
                     name = grouping_value_2
                     count
-                    sample_ids: []
+                    sample_locators: []
                   },
                   ...
                 ],                

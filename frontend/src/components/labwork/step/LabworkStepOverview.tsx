@@ -1,8 +1,8 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
-import { getLabworkStepSummary, setSelectedSamples, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
 import LabworkStepOverviewPanel from './LabworkStepOverviewPanel'
 import { selectLabworkStepSummaryState } from '../../../selectors'
@@ -50,21 +50,24 @@ export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Cre
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
 const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
-	const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
   const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
-  
-  useEffect(() => {
-    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {}))
-	}, [activeGrouping, step])
 
-  const handleChangeActiveGrouping = (grouping) => {
+  useEffect(() => {
+    const selectedSamples = [...stepSamples.selectedSamples]
+    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
+      dispatch(setSelectedSamplesInGroups(selectedSamples))
+    })
+  }, [activeGrouping.key, step.id])
+
+  const handleChangeActiveGrouping = useCallback((grouping) => {
     clearFilters && clearFilters(false)
     setActiveGrouping(grouping)
-  }
+  }, [])
 
-  const handleSelectGroup = async (groupSampleIds: FMSId[]) => {
+  const handleSelectGroup = useCallback(async (groupSampleIds: FMSId[]) => {
     const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples, groupSampleIds)
     if (mergedSelection.length > MAX_STEP_SAMPLE_SELECTION) {
       const TOO_MANY_SELECTED_NOTIFICATION_KEY = `LabworkStep.too-many-sample-selected-${step.id}`
@@ -82,11 +85,11 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
       dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
       setFetchingSamples(false)
     }
-  }
+  }, [stepSamples.selectedSamples, step.id, dispatch])
 
-  const handleClearGroup = (groupSampleIds: FMSId[]) => {    
+  const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {    
     dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
-  }
+  }, [dispatch, step.id, stepSamples.selectedSamples])
 
 	return (
 		<>
@@ -99,12 +102,12 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
       <div style={{ display: 'flex', marginBottom: '1em' }}></div>
 			<Collapse accordion destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'}>
 				{labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
-          const sample_ids = group.sample_locators.map(sample_locator => sample_locator.sample_id)
+          const sample_ids = Object.keys(group.sample_locators).map((id) => Number(id))
           const ButtonsSelectAndClear = (
             <Space direction="horizontal" style={{width: '100%', justifyContent: 'center'}}>
-              <Tag><Title style={{ margin: 0 }} level={4}>{group.count}</Title></Tag>
+              <Tag><Title style={{ margin: 0 }} level={4}>{`${Object.keys(group.selected_samples).length}/${group.count}`}</Title></Tag>
               <Button disabled={!group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
-              <Button disabled={stepSamples.selectedSamples.length === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
+              <Button disabled={Object.keys(group.selected_samples).length === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
             </Space>
           )
 
@@ -126,6 +129,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
                 selection={selection}
                 setSortBy={setSortBy}
                 pagination={pagination}
+		stepID={step.id}
               />
 						</Collapse.Panel>
 					)
