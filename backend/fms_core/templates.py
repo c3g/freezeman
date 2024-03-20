@@ -5,7 +5,10 @@ various viewsets. Can be used to calculate URIs for the template files too.
 
 from django.templatetags.static import static
 
-from fms_core.template_importer._constants import VALID_ROBOT_CHOICES, LIBRARY_QC_QUALITY_INSTRUMENTS, LIBRARY_QC_QUANTITY_INSTRUMENTS
+from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
+                                                   VALID_QC_FLAG_CHOICES,
+                                                   LIBRARY_QC_QUALITY_INSTRUMENTS,
+                                                   LIBRARY_QC_QUANTITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
@@ -353,7 +356,9 @@ LIBRARY_QC_TEMPLATE = {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
       "Quality Instrument": LIBRARY_QC_QUALITY_INSTRUMENTS,
+      "Quality Flag": VALID_QC_FLAG_CHOICES,
       "Quantity Instrument": LIBRARY_QC_QUANTITY_INSTRUMENTS,
+      "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
 
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -594,7 +599,9 @@ SAMPLE_QC_TEMPLATE = {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
       "Quality Instrument": "qc-instrument",
-      "Quantity Instrument": "qc-instrument"
+      "Quality Flag": VALID_QC_FLAG_CHOICES,
+      "Quantity Instrument": "qc-instrument",
+      "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [
