@@ -191,7 +191,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             const cellSize = columns <= 12 ? "cell" : "tiny-cell"
 	    for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
-                    <div key={'header_' + i} className={cellSize} style={{ color: 'black' }} onClick={(e) => {
+                    <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white' }} onClick={(e) => {
 		        e.stopPropagation()
 			const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
 			const samples = [...letters].map((rowLetter) => {
