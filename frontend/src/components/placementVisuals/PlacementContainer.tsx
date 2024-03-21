@@ -220,7 +220,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 rowOfCells.push(
                     <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white' }} onClick={(e) => {
 		        e.stopPropagation()
-			const samples = [...Array(12).keys()].map((c) => {
+			const samples = [...Array(columns).keys()].map((c) => {
 			    const colNumber = c + 1
 			    const coordinates = charCopy + "" + (padColumn(colNumber))
 			    return checkSamples(coordinates)
