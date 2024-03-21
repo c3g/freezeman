@@ -8,7 +8,7 @@ import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
 import { useAppDispatch } from '../../../hooks'
 import { loadSamplesAtStep } from '../../../modules/labworkSteps/actions'
 
-interface LabworkStepPanelProps {
+export interface LabworkStepPanelProps {
   refreshing: boolean
   grouping: FilterDescription
   groupingValue: string

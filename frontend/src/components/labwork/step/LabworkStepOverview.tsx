@@ -1,10 +1,10 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
-import LabworkStepOverviewPanel from './LabworkStepOverviewPanel'
+import LabworkStepOverviewPanel, { LabworkStepPanelProps } from './LabworkStepOverviewPanel'
 import { selectLabworkStepSummaryState } from '../../../selectors'
 import { Step, Sample } from '../../../models/frontend_models'
 import { FMSId } from '../../../models/fms_api_models'
@@ -54,8 +54,18 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
   const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
+  
+  const loading = refreshing || FetchingSamples || labworkStepSummary.isFetching
+  // this might be totally unnecessary, but just to be safe we can have a noop selection :)
+  const noopSelection: LabworkStepPanelProps['selection'] = useMemo(() => ({
+      selectedSampleIDs: [],
+      onSelectionChanged: () => {}
+  }), [])
 
   useEffect(() => {
+    // need to preserve stepSamples.selectedSamples
+    // because getLabworkStepSummary will change
+    // stepSamples.selectedSamples
     const selectedSamples = [...stepSamples.selectedSamples]
     dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
       dispatch(setSelectedSamplesInGroups(selectedSamples))
@@ -82,13 +92,15 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
       setFetchingSamples(true)
       await fetchSamples(mergedSelection)
       await fetchLibrariesForSamples(mergedSelection)	
-      dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
+      await dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
       setFetchingSamples(false)
     }
   }, [stepSamples.selectedSamples, step.id, dispatch])
 
-  const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {    
-    dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
+  const handleClearGroup = useCallback(async (groupSampleIds: FMSId[]) => {    
+    setFetchingSamples(true)
+    await dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
+    setFetchingSamples(false)
   }, [dispatch, step.id, stepSamples.selectedSamples])
 
 	return (
@@ -107,15 +119,15 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
           const ButtonsSelectAndClear = (
             <Space direction="horizontal" style={{width: '100%', justifyContent: 'center'}}>
               <Tag><Title style={{ margin: 0 }} level={4}>{`${selectedCount}/${group.count}`}</Title></Tag>
-              <Button disabled={!group.count || selectedCount === group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
-              <Button disabled={selectedCount === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
+              <Button disabled={loading || group.count === 0 || selectedCount === group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
+              <Button disabled={loading || selectedCount === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
             </Space>
           )
 
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
-                refreshing={refreshing || FetchingSamples || labworkStepSummary.isFetching}
+                refreshing={loading}
                 grouping={activeGrouping}
                 groupingValue={group.name}
                 clearFilters={clearFilters}
@@ -127,7 +139,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
                 filters={filters}
                 setFilter={setFilter}
                 setFilterOptions={setFilterOptions}
-                selection={selection}
+                selection={loading ? noopSelection : selection}
                 setSortBy={setSortBy}
                 pagination={pagination}
 		stepID={step.id}
