@@ -256,6 +256,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
       defaultExpandedKeys={container.parents}
       loadData={onLoadData}
       height={400}
+      virtual={false}
     />
   );
 };
