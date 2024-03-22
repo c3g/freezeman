@@ -54,8 +54,6 @@ export default function serializeFilterParams(filters, descriptions) {
             key += "__recursive"
           else if (options.startsWith)
             key += "__startswith"
-	  else if (options.exactMatch)
-            key += "__exact"
           else
             key += "__icontains"
         } else {
