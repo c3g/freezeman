@@ -18,11 +18,12 @@ import PrefillButton from '../../PrefillTemplateColumns'
 import RefreshButton from '../../RefreshButton'
 import ExecuteAutomationButton from './AdditionalAutomationData'
 import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/ColumnSets'
-import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable, { PaginationParameters, WorkflowSamplesTableProps } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import PlacementTab from '../../placementVisuals/PlacementTab'
+import { fetchLibrariesForSamples, fetchSamples } from '../../../modules/cache/cache'
 
 const { Text } = Typography
 
@@ -199,22 +200,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			[GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
 		}
 	}, [])
-
-	// Columns for selected samples table
-	const columnsForSelection = useMemo(() => {
-		const columns = getColumnsForStep(step, protocol)
-		// Make the Coordinates column sortable. We have to force the sorter to appear since
-		// the selection table doesn't use column filters - otherwise, WorkflowSamplesTable would
-		// take care of setting the column sortable.
-		const coordsColumn = columns.find(col => col.columnID === SampleColumnID.COORDINATES)
-		if (coordsColumn) {
-			coordsColumn.sorter = true
-			coordsColumn.key = SampleColumnID.COORDINATES
-			coordsColumn.defaultSortOrder = 'ascend'
-			coordsColumn.sortDirections = ['ascend', 'descend', 'ascend']
-		}
-		return columns
-	}, [step, protocol])
 
 	// ** Table filtering and sorting ***
 
@@ -478,30 +463,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
-						{stepSamples.showSelectionChangedWarning &&
-							<Alert
-								type='warning'
-								message='Selection has changed'
-								description={`Some samples were removed from the selection because they are no longer at the ${step.name} step.`}
-								closable={true}
-								showIcon={true}
-								onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}
-								style={{ marginBottom: '1em' }}
-							/>
-						}
-						{/* Selection table does not allow filtering or sorting.*/}
-						{/* Also, we don't handle pagination for selected samples so we are required to 
-							load all of the selected samples and libraries for the table to work.
-							We should handle pagination and only load pages of samples and libraries on demand.	
-						*/}
-						<WorkflowSamplesTable
-							hasFilter={false}
-							samples={selectedTableSamples}
-							columns={columnsForSelection}
+						<SelectionTab
+							stepSamples={stepSamples}
+							step={step}
+							selectedTableSamples={selectedTableSamples}
+							protocol={protocol}
 							selection={selectionProps(setSelectedSamplesFromRow)}
 							setSortBy={handleSelectionTableSortChange}
 						/>
-						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 					</Tabs.TabPane>
 					{step.needs_placement ?
 						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={selectedTableSamples.length == 0}>
@@ -515,6 +484,77 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			</PageContent>
 		</>
 	)
+}
+
+export interface SelectionTabProps {
+	stepSamples: LabworkStepSamples
+	step: Step
+	selectedTableSamples: SampleAndLibrary[]
+	protocol: Protocol | undefined
+	selection: WorkflowSamplesTableProps['selection']
+	setSortBy: WorkflowSamplesTableProps['setSortBy']
+}
+
+function SelectionTab({stepSamples, step, selectedTableSamples, protocol, selection, setSortBy}: SelectionTabProps) {
+	const dispatch = useAppDispatch()
+	const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
+
+	useEffect(() => {
+		if (!FetchingSamples) {
+			(async () => {
+				setFetchingSamples(true)
+				await fetchSamples(stepSamples.selectedSamples)
+				await fetchLibrariesForSamples(stepSamples.selectedSamples)	
+				await dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples))	  
+				setFetchingSamples(false)
+			})()
+		}
+	}, [FetchingSamples, dispatch, step.id, stepSamples.selectedSamples])
+
+	// Columns for selected samples table
+	const columnsForSelection = useMemo(() => {
+		const columns = getColumnsForStep(step, protocol)
+		// Make the Coordinates column sortable. We have to force the sorter to appear since
+		// the selection table doesn't use column filters - otherwise, WorkflowSamplesTable would
+		// take care of setting the column sortable.
+		const coordsColumn = columns.find(col => col.columnID === SampleColumnID.COORDINATES)
+		if (coordsColumn) {
+			coordsColumn.sorter = true
+			coordsColumn.key = SampleColumnID.COORDINATES
+			coordsColumn.defaultSortOrder = 'ascend'
+			coordsColumn.sortDirections = ['ascend', 'descend', 'ascend']
+		}
+		return columns
+	}, [step, protocol])
+
+	return <>
+		{stepSamples.showSelectionChangedWarning &&
+		<Alert
+			type='warning'
+			message='Selection has changed'
+			description={`Some samples were removed from the selection because they are no longer at the ${step.name} step.`}
+			closable={true}
+			showIcon={true}
+			onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}
+			style={{ marginBottom: '1em' }}
+		/>
+		}
+		{/* Selection table does not allow filtering or sorting.*/}
+		{/* Also, we don't handle pagination for selected samples so we are required to 
+			load all of the selected samples and libraries for the table to work.
+			We should handle pagination and only load pages of samples and libraries on demand.	
+		*/}
+		<WorkflowSamplesTable
+			hasFilter={false}
+			samples={selectedTableSamples}
+			columns={columnsForSelection}
+			selection={selection}
+			setSortBy={setSortBy}
+			loading={FetchingSamples}
+		/>
+		<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
+
+	</>
 }
 
 export default LabworkStep

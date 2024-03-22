@@ -53,7 +53,6 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
   const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
-  const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
 
   useEffect(() => {
     const selectedSamples = [...stepSamples.selectedSamples]
@@ -79,16 +78,12 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
     }
     else {
       setIsSorted(false)
-      setFetchingSamples(true)
-      await fetchSamples(mergedSelection)
-      await fetchLibrariesForSamples(mergedSelection)	
-      dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
-      setFetchingSamples(false)
+      dispatch(setSelectedSamples(step.id, mergedSelection))
     }
   }, [stepSamples.selectedSamples, step.id, dispatch])
 
   const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {    
-    dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
+    dispatch(setSelectedSamples(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
   }, [dispatch, step.id, stepSamples.selectedSamples])
 
 	return (
@@ -114,7 +109,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
-                refreshing={refreshing || FetchingSamples || labworkStepSummary.isFetching}
+                refreshing={refreshing || labworkStepSummary.isFetching}
                 grouping={activeGrouping}
                 groupingValue={group.name}
                 clearFilters={clearFilters}
