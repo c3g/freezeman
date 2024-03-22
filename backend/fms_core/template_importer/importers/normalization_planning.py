@@ -75,10 +75,12 @@ class NormalizationPlanningImporter(GenericImporter):
                 'na_quantity': float_to_decimal_and_none(row_data['Norm. NA Quantity (ng)']),
                 'concentration_ngul': float_to_decimal_and_none(row_data['Norm. Conc. (ng/uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Norm. Conc. (nM)']),
+                'manual_diluent_volume': float_to_decimal_and_none(row_data['Manual Diluent Volume (uL)']),
                 'bypass_input_requirement': check_truth_like(str(bypass_input_requirement)) # Defaults to false
             }
 
             robot = str_cast_and_normalize(row_data['Robot'])
+            exclude_from_robot = check_truth_like(str(row_data['Exclude From Robot']))
 
             normalization_kwargs = dict(
                 type=type,
@@ -97,9 +99,9 @@ class NormalizationPlanningImporter(GenericImporter):
 
             if (normalization_row_mapping is None):
                 base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
-            
-            normalization_mapping_rows.append(normalization_row_mapping)
-            robot_choice.append(robot)
+            if not exclude_from_robot:
+                normalization_mapping_rows.append(normalization_row_mapping)
+                robot_choice.append(robot)
 
         if len(base_error_rows) > 1:
             self.base_errors.append(f"Rows {base_error_rows} have errors.")
@@ -275,7 +277,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 robot_src_coord = output_row_data["Robot Source Coord"]
                 robot_dst_coord = output_row_data["Robot Destination Coord"]
                 volume_library = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_library
+                volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
 
                 add_diluent_lines.append((",".join([robot_dst_barcode,
                                                     str(robot_dst_coord),
@@ -308,7 +310,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 robot_src_coord = get_source_container_coord(output_row_data, container_dict)
                 robot_dst_coord = output_row_data["Destination Container Coord"]
                 volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_sample
+                volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
 
                 normalization_lines.append((",".join([robot_src_barcode,
                                                       robot_src_coord,
@@ -337,7 +339,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 robot_src_coord = output_row_data["Robot Source Coord"]
                 robot_dst_coord = output_row_data["Robot Destination Coord"]
                 volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_sample
+                volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
 
                 normalization_lines.append((",".join([robot_src_barcode,
                                                       str(robot_src_coord),

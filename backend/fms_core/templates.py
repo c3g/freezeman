@@ -421,7 +421,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                     'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)', 'Available Input (ng)',
-                    'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Manual Dilutant Volume (uL)', 'Final Volume (uL)'],
+                    'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Manual Diluent Volume (uL)', 'Final Volume (uL)'],
         'batch': False,
       },
   ],
@@ -430,7 +430,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       "Norm. NA Quantity (ng)": "number",
       "Norm. Conc. (ng/uL)": "number",
       "Norm. Conc. (nM)": "number",
-      "Manual Dilutant Volume (uL)": "number",
+      "Manual Diluent Volume (uL)": "number",
       "Final Volume (uL)": "number",
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
