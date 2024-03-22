@@ -189,11 +189,11 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             //renders header based on the number of columns provided to the component
             const headerCells: React.ReactElement[] = []
             const cellSize = columns <= 12 ? "cell" : "tiny-cell"
-	    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
 	    for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
-                    <td key={'header_' + i} className={i != 0 ? cellSize : undefined} style={i != 0 ? { backgroundColor: '#001529', color: 'white', cursor: 'grab' } : undefined} onClick={(e) => {
+                    <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
 		        e.stopPropagation()
+			const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
 			const samples = [...letters].map((rowLetter) => {
 			    const colNumber = i
 			    const coordinates = rowLetter + "" + (padColumn(colNumber))
@@ -204,21 +204,21 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                         {
                             i != 0 ? i : ''
                         }
-                    </td>
+                    </div>
                 )
             }
             //adds number headers to total number of columns
-            cells.push(<tr key={'headers'} className={"header-row"}>
+            cells.push(<div key={'headers'} className={"header-row"}>
                 {
                     headerCells
                 }
-            </tr>)
+            </div>)
             //renders each row with the corresponding row letter 'A','B', etc.
             for (let i = 0; i < rows; i++) {
                 const charCopy = char.repeat(1)
 		const rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
-                    <td key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
+                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
 		        e.stopPropagation()
 			const samples = [...Array(columns).keys()].map((c) => {
 			    const colNumber = c + 1
@@ -230,32 +230,30 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                         {
                             char
                         }
-                    </td>
+                    </div>
                 )
                 //renders cells
                 for (let colNumber = 1; colNumber < columns + 1; colNumber++) {
                     coordinates = char + "" + (padColumn(colNumber))
                     rowOfCells.push(
-		        <td>
-                            <Cell key={coordinates}
-                                onCellMouseLeave={() => setPreviewCells([])}
-                                isSelecting={isSelecting}
-                                onCellMouseOver={onMouseHover}
-                                sample={checkSamples(coordinates)}
-                                coordinates={coordinates}
-                                outline={previewCells.find(sample => sample.coordinates == coordinates) ? true : false}
-                                cellSize={cellSize}
-                                onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
-			</td>
+                        <Cell key={coordinates}
+                            onCellMouseLeave={() => setPreviewCells([])}
+                            isSelecting={isSelecting}
+                            onCellMouseOver={onMouseHover}
+                            sample={checkSamples(coordinates)}
+                            coordinates={coordinates}
+                            outline={previewCells.find(sample => sample.coordinates == coordinates) ? true : false}
+                            cellSize={cellSize}
+                            onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
                     )
                 }
                 //pushes rowOfCells to cell array
                 cells.push(
-                    <tr key={'row_' + char} className={"row"}>
+                    <div key={'row_' + char} className={"row"}>
                         {
                             rowOfCells
                         }
-                    </tr>
+                    </div>
                 )
                 //changes next character in the alphabet for next row
                 char = nextChar(char)
@@ -269,7 +267,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 
     return (
         <>
-            <table className={"transfer"}
+            <div className={"transfer"}
               style={{ cursor: isSelecting ? 'crosshair' : 'auto' }}
               onClick={isSelecting ? () => setIsSelecting(false) : () => setIsSelecting(true)} // deactivate selecting between cells
             >
@@ -280,7 +278,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                     renderCells()
                 
                 }
-            </table>
+            </div>
         </>
     )
 }
