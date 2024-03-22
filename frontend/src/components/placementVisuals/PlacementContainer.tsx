@@ -189,23 +189,21 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             //renders header based on the number of columns provided to the component
             const headerCells: React.ReactElement[] = []
             const cellSize = columns <= 12 ? "cell" : "tiny-cell"
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
-            for (let i = 0; i < columns + 1; i++) {
+	    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
+	    for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
-                    <td>
-                        <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
-                            e.stopPropagation()
-                            const samples = [...letters].map((rowLetter) => {
-                                const colNumber = i
-                                const coordinates = rowLetter + "" + (padColumn(colNumber))
-                                return checkSamples(coordinates)
-                            }).filter(x => x)
-                            updateSamples([...previewCells, ...samples], containerType, rows, columns)
-                        }}>
-                                {
-                                    i != 0 ? i : ''
-                                }
-                        </div>
+                    <td key={'header_' + i} className={i != 0 ? cellSize : undefined} style={i != 0 ? { backgroundColor: '#001529', color: 'white', cursor: 'grab' } : undefined} onClick={(e) => {
+		        e.stopPropagation()
+			const samples = [...letters].map((rowLetter) => {
+			    const colNumber = i
+			    const coordinates = rowLetter + "" + (padColumn(colNumber))
+			    return checkSamples(coordinates)
+			}).filter(x => x)
+			updateSamples([...previewCells, ...samples], containerType, rows, columns)
+		    }}>
+                        {
+                            i != 0 ? i : ''
+                        }
                     </td>
                 )
             }
@@ -218,29 +216,27 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             //renders each row with the corresponding row letter 'A','B', etc.
             for (let i = 0; i < rows; i++) {
                 const charCopy = char.repeat(1)
-                const rowOfCells: React.ReactElement[] = []
+		const rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
-                    <td>
-                        <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
-                            e.stopPropagation()
-                            const samples = [...Array(columns).keys()].map((c) => {
-                                const colNumber = c + 1
-                                const coordinates = charCopy + "" + (padColumn(colNumber))
-                                return checkSamples(coordinates)
-                            }).filter(x => x)
-                            updateSamples([...previewCells, ...samples], containerType, rows, columns)
-                        }}>
-                            {
-                                char
-                            }
-                        </div>
+                    <td key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
+		        e.stopPropagation()
+			const samples = [...Array(columns).keys()].map((c) => {
+			    const colNumber = c + 1
+			    const coordinates = charCopy + "" + (padColumn(colNumber))
+			    return checkSamples(coordinates)
+			}).filter(x => x)
+			updateSamples([...previewCells, ...samples], containerType, rows, columns)
+		    }}>
+                        {
+                            char
+                        }
                     </td>
                 )
                 //renders cells
                 for (let colNumber = 1; colNumber < columns + 1; colNumber++) {
                     coordinates = char + "" + (padColumn(colNumber))
                     rowOfCells.push(
-                        <td>
+		        <td>
                             <Cell key={coordinates}
                                 onCellMouseLeave={() => setPreviewCells([])}
                                 isSelecting={isSelecting}
@@ -250,7 +246,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                                 outline={previewCells.find(sample => sample.coordinates == coordinates) ? true : false}
                                 cellSize={cellSize}
                                 onCellClick={isSelecting ? () => setIsSelecting(false) : onClick} />
-                        </td>
+			</td>
                     )
                 }
                 //pushes rowOfCells to cell array
