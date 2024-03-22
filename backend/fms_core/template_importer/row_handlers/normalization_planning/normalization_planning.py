@@ -16,7 +16,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
              The errors and warnings of the row in question after validation.
     """
 
-    def process_row_inner(self, type, source_sample, destination_sample, measurements, robot):
+    def process_row_inner(self, type, source_sample, destination_sample, measurements, robot, exclude_from_robot):
         concentration_nguL = None
         concentration_nm = None
         combined_concentration_nguL = None
@@ -129,12 +129,12 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 volume_used = input_requested / source_sample_obj.concentration # calculate the volume of source sample to use.
                 adjusted_concentration = combined_concentration_nguL
 
-            # final volume adjustment for Manual Dilutant
+            # final volume adjustment for Manual Diluent
             if measurements['manual_diluent_volume']:
                 volume_diluent = (decimal.Decimal(measurements['volume']) - volume_used) - decimal.Decimal(measurements['manual_diluent_volume'])
                 if volume_diluent < 0:
                     volume_used = volume_used + volume_diluent
-                    adjusted_concentration = (volume_used / decimal.Decimal(measurements['volume'])) * adjusted_concentration
+                    adjusted_concentration = (volume_used / decimal.Decimal(measurements['volume'])) * source_sample_obj.concentration
                     if measurements['bypass_input_requirement']:
                         self.warnings['manual_diluent'] = ('Insufficient concentration to add {0} uL of diluent. Bypassing input requirement by adjusting requested concentration to {1} ng/uL.', [measurements['manual_diluent_volume'], adjusted_concentration])
                     else:
@@ -150,12 +150,16 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 adjusted_concentration_nm, errors_conversion, warnings_conversion = convert_library_concentration_from_ngbyul_to_nm(source_sample_obj, adjusted_concentration)
                 self.errors['concentration_conversion'].extend(errors_conversion)
                 self.warnings['concentration_conversion'].extend(warnings_conversion)
+                adjusted_concentration_nm = decimal_rounded_to_precision(adjusted_concentration_nm)
+
+            adjusted_concentration = decimal_rounded_to_precision(adjusted_concentration)
 
             if not self.has_errors():
                 self.row_object = {
                     'Type': type,
                     'Source Sample': source_sample_obj,
                     'Sample Name': source_sample['name'],
+                    'Exclude From Robot': exclude_from_robot,
                     'Source Container Barcode': source_sample['container']['barcode'],
                     'Source Container Coord': source_sample['coordinates'],
                     'Robot Source Container': '',

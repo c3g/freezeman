@@ -88,6 +88,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 destination_sample=destination_sample,
                 measurements=measurements,
                 robot=robot,
+                exclude_from_robot=exclude_from_robot,
             )
 
             (result, normalization_row_mapping) = self.handle_row(
@@ -99,9 +100,9 @@ class NormalizationPlanningImporter(GenericImporter):
 
             if (normalization_row_mapping is None):
                 base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
-            if not exclude_from_robot:
-                normalization_mapping_rows.append(normalization_row_mapping)
-                robot_choice.append(robot)
+            
+            normalization_mapping_rows.append(normalization_row_mapping)
+            robot_choice.append(robot)
 
         if len(base_error_rows) > 1:
             self.base_errors.append(f"Rows {base_error_rows} have errors.")
@@ -271,23 +272,24 @@ class NormalizationPlanningImporter(GenericImporter):
             add_library_lines.append((",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n").encode())
 
             for output_row_data in output_norm_rows_data:
-                container_src_barcode = output_row_data["Source Container Barcode"]
-                robot_src_barcode = output_row_data["Robot Source Container"]
-                robot_dst_barcode = output_row_data["Robot Destination Container"]
-                robot_src_coord = output_row_data["Robot Source Coord"]
-                robot_dst_coord = output_row_data["Robot Destination Coord"]
-                volume_library = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
+                if not output_row_data["Exclude From Robot"]:
+                    container_src_barcode = output_row_data["Source Container Barcode"]
+                    robot_src_barcode = output_row_data["Robot Source Container"]
+                    robot_dst_barcode = output_row_data["Robot Destination Container"]
+                    robot_src_coord = output_row_data["Robot Source Coord"]
+                    robot_dst_coord = output_row_data["Robot Destination Coord"]
+                    volume_library = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                    volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
 
-                add_diluent_lines.append((",".join([robot_dst_barcode,
-                                                    str(robot_dst_coord),
-                                                    str(volume_diluent)]) + "\n").encode())
-                add_library_lines.append((",".join([container_src_barcode,
-                                                    robot_src_barcode,
-                                                    str(robot_src_coord),
-                                                    robot_dst_barcode,
-                                                    str(robot_dst_coord),
-                                                    str(volume_library)]) + "\n").encode())
+                    add_diluent_lines.append((",".join([robot_dst_barcode,
+                                                        str(robot_dst_coord),
+                                                        str(volume_diluent)]) + "\n").encode())
+                    add_library_lines.append((",".join([container_src_barcode,
+                                                        robot_src_barcode,
+                                                        str(robot_src_coord),
+                                                        robot_dst_barcode,
+                                                        str(robot_dst_coord),
+                                                        str(volume_library)]) + "\n").encode())
 
             add_diluent_io.writelines(add_diluent_lines)
             add_library_io.writelines(add_library_lines)
@@ -305,21 +307,22 @@ class NormalizationPlanningImporter(GenericImporter):
             normalization_lines.append((",".join(["Source_plate", "Source_well", "Dest_plate", "Dest_well", "Volume_Sample", "Diluant_Bath", "Diluant_Well", "Volume_Diluant"]) + "\n").encode())
 
             for output_row_data in output_norm_rows_data:
-                robot_src_barcode = output_row_data["Robot Source Container"]
-                robot_dst_barcode = output_row_data["Robot Destination Container"]
-                robot_src_coord = get_source_container_coord(output_row_data, container_dict)
-                robot_dst_coord = output_row_data["Destination Container Coord"]
-                volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
+                if not output_row_data["Exclude From Robot"]:
+                    robot_src_barcode = output_row_data["Robot Source Container"]
+                    robot_dst_barcode = output_row_data["Robot Destination Container"]
+                    robot_src_coord = get_source_container_coord(output_row_data, container_dict)
+                    robot_dst_coord = output_row_data["Destination Container Coord"]
+                    volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                    volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
 
-                normalization_lines.append((",".join([robot_src_barcode,
-                                                      robot_src_coord,
-                                                      robot_dst_barcode,
-                                                      robot_dst_coord,
-                                                      str(volume_sample),
-                                                      DILUENT,
-                                                      DILUENT_WELL,
-                                                      str(volume_diluent)]) + "\n").encode()) # Encode to store a bytes-like object
+                    normalization_lines.append((",".join([robot_src_barcode,
+                                                          robot_src_coord,
+                                                          robot_dst_barcode,
+                                                          robot_dst_coord,
+                                                          str(volume_sample),
+                                                          DILUENT,
+                                                          DILUENT_WELL,
+                                                          str(volume_diluent)]) + "\n").encode()) # Encode to store a bytes-like object
 
             normalization_io.writelines(normalization_lines)
             robot_files = [
@@ -334,19 +337,20 @@ class NormalizationPlanningImporter(GenericImporter):
             normalization_lines.append((",".join(["Src ID", "Src Coord", "Dst ID", "Dst Coord", "Diluent Vol", "Sample Vol"]) + "\n").encode())
 
             for output_row_data in output_norm_rows_data:
-                robot_src_barcode = output_row_data["Robot Source Container"]
-                robot_dst_barcode = output_row_data["Robot Destination Container"]
-                robot_src_coord = output_row_data["Robot Source Coord"]
-                robot_dst_coord = output_row_data["Robot Destination Coord"]
-                volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
+                if not output_row_data["Exclude From Robot"]:
+                    robot_src_barcode = output_row_data["Robot Source Container"]
+                    robot_dst_barcode = output_row_data["Robot Destination Container"]
+                    robot_src_coord = output_row_data["Robot Source Coord"]
+                    robot_dst_coord = output_row_data["Robot Destination Coord"]
+                    volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                    volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
 
-                normalization_lines.append((",".join([robot_src_barcode,
-                                                      str(robot_src_coord),
-                                                      robot_dst_barcode,
-                                                      str(robot_dst_coord),
-                                                      str(volume_diluent),
-                                                      str(volume_sample)]) + "\n").encode()) # Encode to store a bytes-like object
+                    normalization_lines.append((",".join([robot_src_barcode,
+                                                          str(robot_src_coord),
+                                                          robot_dst_barcode,
+                                                          str(robot_dst_coord),
+                                                          str(volume_diluent),
+                                                          str(volume_sample)]) + "\n").encode()) # Encode to store a bytes-like object
 
             normalization_io.writelines(normalization_lines)
             robot_files = [
