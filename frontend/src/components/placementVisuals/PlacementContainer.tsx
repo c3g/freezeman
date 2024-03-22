@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { Empty } from "antd"
 import { DESTINATION_STRING, NONE_STRING, PREVIEW_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
 import Cell from "./Cell"
@@ -165,11 +165,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         }
     }, [isSelecting, previewCells, direction, selectedSampleList, pattern, containerType])
 
-
-    //used in render to check to see if samples exist at that coordinate and returns sample
-    const checkSamples = useCallback((coordinate) => {
-
-        const id = Object.keys(samples).find((id) => (samples[id].coordinates) == coordinate) ?? null;
+    const checkSampleId = useCallback((id) => {
         let type = NONE_STRING
         if (id) {
             //if exists in selected list then the type is set to SELECTED_STRING
@@ -179,7 +175,40 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 type = samples[id].type
         }
         return id ? { ...samples[id], id: parseInt(id), type: type } : undefined
-    }, [samples, selectedSampleList])
+    }, [containerType, samples, selectedSampleList])
+
+    //used in render to check to see if samples exist at that coordinate and returns sample
+    const checkSamples = useCallback((coordinate) => {
+        const id = Object.keys(samples).find((id) => (samples[id].coordinates) == coordinate) ?? null;
+        return checkSampleId(id)
+    }, [checkSampleId, samples])
+
+    const letters = useMemo(() => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows), [rows])
+    const sampleValues = useMemo(() => Object.values(samples), [samples])
+
+    const selectColumn = useCallback((colNumber) => (e) => {
+        e.stopPropagation()
+        const mySample = [...letters].map((rowLetter) => {
+            const coordinate = rowLetter + "" + (padColumn(colNumber))
+            return checkSamples(coordinate)
+        }).filter(s => s)
+        updateSamples([...previewCells, ...mySample], containerType, rows, columns)
+    }, [letters, updateSamples, previewCells, containerType, rows, columns, padColumn, checkSamples])
+
+    const selectRow = useCallback((rowLetter) => (e) => {
+        e.stopPropagation()
+        const mySamples = [...Array(columns).keys()].map((c) => {
+            const colNumber = c + 1
+            const coordinate = rowLetter + "" + (padColumn(colNumber))
+            return checkSamples(coordinate)
+        }).filter(s => s)
+        updateSamples([...previewCells, ...mySamples], containerType, rows, columns)
+    }, [columns, updateSamples, previewCells, containerType, rows, padColumn, checkSamples])
+
+    const selectAll = useCallback((e) => {
+        e.stopPropagation()
+        updateSamples([...previewCells, ...sampleValues.map((s: any) => checkSampleId(s.id)).filter((s) => s)], containerType, rows, columns)
+    }, [updateSamples, previewCells, sampleValues, containerType, rows, columns, checkSampleId])
 
     const renderCells = useCallback(
         () => {
@@ -188,11 +217,12 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             let coordinates = ''
             //renders header based on the number of columns provided to the component
             const headerCells: React.ReactElement[] = []
-            for (let i = 0; i < columns + 1; i++) {
+            const cellSize = columns <= 12 ? "cell" : "tiny-cell"
+	    for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
-                    <div key={'header_' + i} className={"header"}>
+                    <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={i !== 0 ? selectColumn(i) : selectAll}>
                         {
-                            i != 0 ? i : ''
+                            i != 0 ? i : '+'
                         }
                     </div>
                 )
@@ -204,11 +234,11 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 }
             </div>)
             //renders each row with the corresponding row letter 'A','B', etc.
-            const cellSize = columns <= 12 ? "cell" : "tiny-cell"
             for (let i = 0; i < rows; i++) {
-                const rowOfCells: React.ReactElement[] = []
+                const charCopy = char.repeat(1)
+		const rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
-                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white' }}>
+                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={selectRow(charCopy)}>
                         {
                             char
                         }
