@@ -181,6 +181,31 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         return id ? { ...samples[id], id: parseInt(id), type: type } : undefined
     }, [samples, selectedSampleList])
 
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
+    const selectColumn = useCallback((colNumber) => (e) => {
+        e.stopPropagation()
+        const samples = [...letters].map((rowLetter) => {
+            const coordinates = rowLetter + "" + (padColumn(colNumber))
+            return checkSamples(coordinates)
+        }).filter(x => x)
+        updateSamples([...previewCells, ...samples], containerType, rows, columns)
+    }, [checkSamples, columns, containerType, padColumn, previewCells, rows, updateSamples, letters])
+
+    const selectRow = useCallback((rowLetter) => (e) => {
+        e.stopPropagation()
+        const samples = [...Array(columns).keys()].map((c) => {
+            const colNumber = c + 1
+            const coordinates = rowLetter + "" + (padColumn(colNumber))
+            return checkSamples(coordinates)
+        }).filter(x => x)
+        updateSamples([...previewCells, ...samples], containerType, rows, columns)
+    }, [checkSamples, columns, containerType, padColumn, previewCells, rows, updateSamples])
+
+    const selectAll = useCallback((e) => {
+        e.stopPropagation()
+        updateSamples([...previewCells, ...Object.values(samples)], containerType, rows, columns)
+    }, [updateSamples, previewCells, samples, containerType, rows, columns])
+
     const renderCells = useCallback(
         () => {
             const cells: any[] = []
@@ -191,19 +216,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             const cellSize = columns <= 12 ? "cell" : "tiny-cell"
 	    for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
-                    <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={i !== 0 ? (e) => {
-		        e.stopPropagation()
-			const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
-			const samples = [...letters].map((rowLetter) => {
-			    const colNumber = i
-			    const coordinates = rowLetter + "" + (padColumn(colNumber))
-			    return checkSamples(coordinates)
-			}).filter(x => x)
-			updateSamples([...previewCells, ...samples], containerType, rows, columns)
-		    } : (e) => {
-                e.stopPropagation()
-                updateSamples([...previewCells, ...Object.values(samples)], containerType, rows, columns)
-		    }}>
+                    <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={i !== 0 ? selectColumn(i) : selectAll}>
                         {
                             i != 0 ? i : '+'
                         }
@@ -221,15 +234,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
                 const charCopy = char.repeat(1)
 		const rowOfCells: React.ReactElement[] = []
                 rowOfCells.push(
-                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
-		        e.stopPropagation()
-			const samples = [...Array(columns).keys()].map((c) => {
-			    const colNumber = c + 1
-			    const coordinates = charCopy + "" + (padColumn(colNumber))
-			    return checkSamples(coordinates)
-			}).filter(x => x)
-			updateSamples([...previewCells, ...samples], containerType, rows, columns)
-		    }}>
+                    <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={selectRow(charCopy)}>
                         {
                             char
                         }
