@@ -191,7 +191,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
             const cellSize = columns <= 12 ? "cell" : "tiny-cell"
 	    for (let i = 0; i < columns + 1; i++) {
                 headerCells.push(
-                    <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={(e) => {
+                    <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={i !== 0 ? (e) => {
 		        e.stopPropagation()
 			const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, rows)
 			const samples = [...letters].map((rowLetter) => {
@@ -200,9 +200,12 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
 			    return checkSamples(coordinates)
 			}).filter(x => x)
 			updateSamples([...previewCells, ...samples], containerType, rows, columns)
+		    } : (e) => {
+                e.stopPropagation()
+                updateSamples([...previewCells, ...Object.values(samples)], containerType, rows, columns)
 		    }}>
                         {
-                            i != 0 ? i : ''
+                            i != 0 ? i : '+'
                         }
                     </div>
                 )
