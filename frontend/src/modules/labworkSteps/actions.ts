@@ -7,7 +7,7 @@ import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
 import { list as listSamples} from "../samples/actions"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
-import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS } from "./reducers"
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
 
 
@@ -103,14 +103,8 @@ export function selectAllSamplesAtStep(stepID: FMSId) {
 		const results = response.data.results;
 		if (results) {
 			const selectedSampleIDs = results.map(nextStep => nextStep.sample)
-			// We have to load all of the selected samples and libraries for the selected
-			// samples table to work properly. This is pretty expensive and the table should
-			// be refactored to load pages of samples on demand.
-			await fetchSamples(selectedSampleIDs)
-			await fetchLibrariesForSamples(selectedSampleIDs)
-			
-			dispatch(updateSelectedSamplesAtStep(stepID, selectedSampleIDs))
-		}	
+			await dispatch(setSelectedSamples(stepID, selectedSampleIDs, false))
+		}
 		else
 			return
 	}
@@ -156,16 +150,17 @@ export function refreshSamplesAtStep(stepID: FMSId) {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
-		if (token && step) {
+		if (token && step && !step.selectedSamples.isSorted) {
 			const pageNumber = step.pagedItems.page?.pageNumber ?? 1
-			dispatch(loadSamplesAtStep(stepID, pageNumber))
+			await dispatch(loadSamplesAtStep(stepID, pageNumber))
 
-			if (step.selectedSamples.length > 0) {
-				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples, step.selectedSamplesSortDirection)
-				if (refreshedSelection.length !== step.selectedSamples.length) {
+			if (step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted) {
+				dispatch(sortingSelectedSamples(stepID))
+				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples.items, step.selectedSamples.sortDirection)
+				if (refreshedSelection.length !== step.selectedSamples.items.length) {
 					dispatch(showSelectionChangedMessage(stepID, true))
 				}
-				dispatch(setSelectedSamples(stepID, refreshedSelection))
+				dispatch(receiveSortedSelectedSamples(stepID, refreshedSelection))
 			}
 		}
 	}
@@ -188,9 +183,10 @@ export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
-		if (token && step) {
-			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs, step.selectedSamplesSortDirection)
-			dispatch(setSelectedSamples(stepID, sortedSelection))
+		if (token && step && !step.selectedSamples.isSorted) {
+			dispatch(sortingSelectedSamples(stepID))
+			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs, step.selectedSamples.sortDirection)
+			dispatch(receiveSortedSelectedSamples(stepID, sortedSelection))
 		}
 	}
 }
@@ -208,23 +204,25 @@ function reloadSelectedSamplesAtStep(stepID: FMSId) {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
-		if (token && step && step.selectedSamples.length > 0) {
-			const sortedSelection = await refreshSelectedSamplesAtStep(token, step.stepID, step.selectedSamples, step.selectedSamplesSortDirection)
-			dispatch(setSelectedSamples(stepID, sortedSelection))
+		if (token && step && step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted) {
+			dispatch(sortingSelectedSamples(stepID))
+			const sortedSelection = await refreshSelectedSamplesAtStep(token, step.stepID, step.selectedSamples.items, step.selectedSamples.sortDirection)
+			dispatch(receiveSortedSelectedSamples(stepID, sortedSelection))
 		}
 	}
 }
 
-export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
+export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[], isSorted = false) {
 	return {
 		type: SET_SELECTED_SAMPLES,
 		stepID,
-		sampleIDs
+		sampleIDs,
+		isSorted
 	}
 }
 
 export function clearSelectedSamples(stepID: FMSId) {
-	return setSelectedSamples(stepID, [])
+	return setSelectedSamples(stepID, [], true)
 }
 
 export function flushSamplesAtStep(stepID: FMSId) {
@@ -315,8 +313,8 @@ export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_
 		if (step) {
 			const options = {
 				step__id__in: stepID,
-				sample__id__in: step.selectedSamples.join(','),
-				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
+				sample__id__in: step.selectedSamples.items.join(','),
+				ordering: getCoordinateOrderingParams(step.selectedSamples.sortDirection),
 			}
 			// {"Volume Used (uL)" : "30"}
 			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data), JSON.stringify(placement_data), options))
@@ -338,8 +336,8 @@ export const requestAutomationExecution = (stepID: FMSId, additionalData: object
 		if (step) {
 			const options = {
 				step__id__in: stepID,
-				sample__id__in: step.selectedSamples.join(','),
-				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
+				sample__id__in: step.selectedSamples.items.join(','),
+				ordering: getCoordinateOrderingParams(step.selectedSamples.sortDirection),
 			}
 			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, JSON.stringify(additionalData), options))
 			return response
@@ -391,3 +389,16 @@ export function setSelectedSamplesInGroups(sampleIDs: FMSId[]) {
 	}
 }
 
+function sortingSelectedSamples(stepID: FMSId) {
+	return {
+		type: REFRESH_SELECTED_SAMPLES.REQUEST,
+		stepID
+	}
+}
+function receiveSortedSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
+	return {
+		type: REFRESH_SELECTED_SAMPLES.RECEIVE,
+		stepID,
+		sampleIDs
+	}
+}
