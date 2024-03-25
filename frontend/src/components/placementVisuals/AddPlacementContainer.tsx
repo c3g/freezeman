@@ -172,7 +172,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
                           <Row style={{padding: "10px"}}>
-                            <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')}></Input>
+                            <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')} maxLength={200}></Input>
                           </Row>
                           <Row style={{padding: "10px"}}>
                             <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
