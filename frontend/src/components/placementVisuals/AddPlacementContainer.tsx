@@ -7,6 +7,7 @@ import Modal from "antd/lib/modal/Modal"
 import SearchContainer from "../SearchContainer"
 import Input from "antd/lib/input/Input"
 import api from "../../utils/api"
+import { barcodeRules } from "../../constants"
 
 interface AddPlacementContainerProps {
     onConfirm: (destinationContainer) => void
@@ -130,11 +131,12 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
           else {
             containerAlreadyExists(container, destinationContainerList).then(exists => {
               if (!exists) {
-                if (container.container_barcode.includes(' ')) {
-                  setError("Invalid container barcode")
+                const result = barcodeRules.filter((rule) => !(rule.pattern as RegExp).test(container.container_barcode))
+                if (result.length > 0) {
+                  setError("Invalid barcode")
                   const INVALID_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-barcode`
                   notification.error({
-                    message: `Destination container cannot have a barcode with spaces.`,
+                    message: `Container Barcode: ${result.map((rule) => rule.message).join(" ")}`,
                     key: INVALID_BARCODE_NOTIFICATION_KEY,
                     duration: 20
                   })
