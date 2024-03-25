@@ -21,7 +21,6 @@ const { Title } = Typography
 interface LabworkStepCollapseProps {
   step: Step,
   refreshing: boolean
-  setIsSorted: (sorted: boolean) => void
   stepSamples: LabworkStepSamples
   samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
@@ -49,19 +48,18 @@ export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", 
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
+const LabworkStepOverview = ({step, refreshing, stepSamples, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
   const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
-  const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
   
-  const loading = refreshing || FetchingSamples || labworkStepSummary.isFetching
+  const loading = refreshing  || labworkStepSummary.isFetching
 
   useEffect(() => {
     // need to preserve stepSamples.selectedSamples
     // because getLabworkStepSummary will change
     // stepSamples.selectedSamples
-    const selectedSamples = [...stepSamples.selectedSamples]
+    const selectedSamples = [...stepSamples.selectedSamples.items]
     dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
       dispatch(setSelectedSamplesInGroups(selectedSamples))
     })
@@ -73,7 +71,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
   }, [])
 
   const handleSelectGroup = useCallback(async (groupSampleIds: FMSId[]) => {
-    const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples, groupSampleIds)
+    const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples.items, groupSampleIds)
     if (mergedSelection.length > MAX_STEP_SAMPLE_SELECTION) {
       const TOO_MANY_SELECTED_NOTIFICATION_KEY = `LabworkStep.too-many-sample-selected-${step.id}`
         notification.error({
@@ -83,20 +81,14 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
         })
     }
     else {
-      setIsSorted(false)
-      setFetchingSamples(true)
-      await fetchSamples(mergedSelection)
-      await fetchLibrariesForSamples(mergedSelection)	
-      await dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
-      setFetchingSamples(false)
+      dispatch(setSelectedSamples(step.id, mergedSelection))
     }
-  }, [stepSamples.selectedSamples, step.id, dispatch])
+  }, [stepSamples.selectedSamples.items, step.id, dispatch])
 
-  const handleClearGroup = useCallback(async (groupSampleIds: FMSId[]) => {    
-    setFetchingSamples(true)
-    await dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
-    setFetchingSamples(false)
-  }, [dispatch, step.id, stepSamples.selectedSamples])
+  const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {   
+    // removing shouldn't break the order
+    dispatch(setSelectedSamples(step.id, stepSamples.selectedSamples.items.filter(id => !groupSampleIds.includes(id)), stepSamples.selectedSamples.isSorted))
+  }, [dispatch, step.id, stepSamples.selectedSamples.items])
 
 	return (
 		<>
@@ -122,7 +114,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
-                refreshing={loading}
+                refreshing={refreshing || labworkStepSummary.isFetching}
                 grouping={activeGrouping}
                 groupingValue={group.name}
                 clearFilters={clearFilters}

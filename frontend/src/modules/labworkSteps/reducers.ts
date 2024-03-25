@@ -10,6 +10,7 @@ import { createPagedItems, createPagedItemsByID } from '../../models/paged_items
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
 export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
+export const REFRESH_SELECTED_SAMPLES = createNetworkActionTypes('SAMPLES_AT_STEP:REFRESH_SELECTED_SAMPLES')
 export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
 export const SET_FILTER = 'SAMPLES_AT_STEP:SET_FILTER'
 export const SET_FILTER_OPTION = 'SAMPLES_AT_STEP:SET_FILTER_OPTION'
@@ -140,14 +141,18 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 				stepID,
 				pagedItems: createPagedItemsByID(),
 				displayedSamples: [],
-				selectedSamples: [],
-				selectedSamplesSortDirection: {orientation: 'column', order: 'ascend'},
+				selectedSamples: {
+					items: [],
+					isFetching: false,
+					isSorted: true,
+					sortDirection: {orientation: 'column', order: 'ascend'},
+				},
 				prefill: {
 					templates
 				},
-        action: {
-          templates: actions
-        },
+				action: {
+					templates: actions
+				},
 				showSelectionChangedWarning: false
 			}
 			return updateStepSamples(state, stepSamples)
@@ -165,16 +170,70 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			return handleListError(state, meta.stepID, error)
 		}
 		case SET_SELECTED_SAMPLES: {
-			const { stepID, sampleIDs } = action
+			const { stepID, sampleIDs, isSorted } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if(!stepSamples) {
 				return state
 			}
 			const newStepSamples : LabworkStepSamples = {
 				...stepSamples,
-				selectedSamples: sampleIDs
+				selectedSamples: {
+					...stepSamples.selectedSamples,
+					items: sampleIDs,
+					isSorted
+				}
 			}
 			return updateStepSamples(state, newStepSamples)
+		}
+		case REFRESH_SELECTED_SAMPLES.REQUEST: {
+			const { stepID } = action
+			
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (!stepSamples) {
+				return state
+			}
+
+			return updateStepSamples(state, {
+				...stepSamples,
+				selectedSamples: {
+					...stepSamples.selectedSamples,
+					isFetching: true
+				}
+			})
+		}
+		case REFRESH_SELECTED_SAMPLES.RECEIVE: {
+			const { stepID, sampleIDs } = action
+			
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (!stepSamples) {
+				return state
+			}
+
+			return updateStepSamples(state, {
+				...stepSamples,
+				selectedSamples: {
+					...stepSamples.selectedSamples,
+					items: sampleIDs,
+					isFetching: false,
+					isSorted: true,
+				}
+			})
+		}
+		case REFRESH_SELECTED_SAMPLES.ERROR: {
+			const { stepID } = action
+			
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (!stepSamples) {
+				return state
+			}
+
+			return updateStepSamples(state, {
+				...stepSamples,
+				selectedSamples: {
+					...stepSamples.selectedSamples,
+					isFetching: false,
+				}
+			})
 		}
 		case FLUSH_SAMPLES_AT_STEP: {
 			const { stepID } = action
@@ -245,7 +304,11 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			if (stepSamples) {
 				return updateStepSamples(state, {
 					...stepSamples,
-					selectedSamplesSortDirection: direction
+					selectedSamples: {
+						...stepSamples.selectedSamples,
+						sortDirection: direction,
+						isSorted: stepSamples.selectedSamples.sortDirection === direction
+					}
 				})
 			}
 			break
@@ -257,6 +320,9 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			if (stepSamples) {
 				return updateStepSamples(state, {
 					...stepSamples,
+					selectedSamples: {
+						...stepSamples.selectedSamples,
+					},
 					showSelectionChangedWarning: show
 				})
 			}

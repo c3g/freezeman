@@ -18,11 +18,12 @@ import PrefillButton from '../../PrefillTemplateColumns'
 import RefreshButton from '../../RefreshButton'
 import ExecuteAutomationButton from './AdditionalAutomationData'
 import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/ColumnSets'
-import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable, { PaginationParameters, WorkflowSamplesTableProps } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import PlacementTab from '../../placementVisuals/PlacementTab'
+import { fetchLibrariesForSamples, fetchSamples } from '../../../modules/cache/cache'
 
 const { Text } = Typography
 
@@ -30,6 +31,25 @@ interface LabworkStepPageProps {
 	protocol: Protocol | undefined
 	step: Step
 	stepSamples: LabworkStepSamples
+}
+
+function useSampleList(sampleIDs: FMSId[]) {
+	const samplesByID = useAppSelector(selectSamplesByID)
+	const librariesByID = useAppSelector(selectLibrariesByID)
+
+	const availableSamples = sampleIDs.reduce((acc, sampleID) => {
+		const sample = samplesByID[sampleID]
+		if (sample) {
+			if (sample.is_library) {
+				const library = librariesByID[sampleID]
+				acc.push({ sample, library })
+			} else {
+				acc.push({ sample })
+			}
+		}
+		return acc
+	}, [] as SampleAndLibrary[])
+	return availableSamples
 }
 
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
@@ -42,41 +62,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const SELECTION_TAB_KEY = 'selection'
 	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
-	const samplesByID = useAppSelector(selectSamplesByID)
-	const librariesByID = useAppSelector(selectLibrariesByID)
-	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
-	const [selectedTableSamples, setSelectedTableSamples] = useState<SampleAndLibrary[]>([])
+	const samples = useSampleList(stepSamples.displayedSamples)
+	const selectedTableSamples = useSampleList(stepSamples.selectedSamples.items)
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
-	const [isSorted, setIsSorted] = useState<boolean>(false)
 	const [placementData, setPlacementData] = useState<any>({})
 
 	const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
-
-
-	useEffect(() => {
-		const getSampleList = (sampleIDs) => {
-			const availableSamples = sampleIDs.reduce((acc, sampleID) => {
-				const sample = samplesByID[sampleID]
-				if (sample) {
-					if (sample.is_library) {
-						const library = librariesByID[sampleID]
-						acc.push({ sample, library })
-					} else {
-						acc.push({ sample })
-					}
-				}
-				return acc
-			}, [] as SampleAndLibrary[])
-			return availableSamples
-		}
-		setSamples(getSampleList(stepSamples.displayedSamples))
-
-		// This is pretty expensive. The selected samples table doesn't use pagination
-		// and so all of the selected samples and libraries needed to be loaded into redux
-		// for the table to work properly. It would be better if the samples and libraries
-		// were loaded on demand, by page like we usually do in tables.
-		setSelectedTableSamples(getSampleList(stepSamples.selectedSamples))
-	}, [samplesByID, librariesByID, stepSamples])
 
 	// ** Refresh **
 
@@ -108,7 +99,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
-	const canPrefill = selectedTemplate ? stepSamples.selectedSamples.length > 0 && stepSamples.prefill.templates.length > 0 : false
+	const canPrefill = selectedTemplate && stepSamples.selectedSamples.items.length > 0 && stepSamples.prefill.templates.length > 0
 
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
@@ -126,7 +117,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		, [step, selectedTemplate, dispatch, placementData])
 
 	// Submit Automation handler
-	const haveSelectedSamples = stepSamples.selectedSamples.length > 0
+	const haveSelectedSamples = stepSamples.selectedSamples.items.length > 0
 	// Submit Template handler
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
@@ -199,22 +190,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			[GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
 		}
 	}, [])
-
-	// Columns for selected samples table
-	const columnsForSelection = useMemo(() => {
-		const columns = getColumnsForStep(step, protocol)
-		// Make the Coordinates column sortable. We have to force the sorter to appear since
-		// the selection table doesn't use column filters - otherwise, WorkflowSamplesTable would
-		// take care of setting the column sortable.
-		const coordsColumn = columns.find(col => col.columnID === SampleColumnID.COORDINATES)
-		if (coordsColumn) {
-			coordsColumn.sorter = true
-			coordsColumn.key = SampleColumnID.COORDINATES
-			coordsColumn.defaultSortOrder = 'ascend'
-			coordsColumn.sortDirections = ['ascend', 'descend', 'ascend']
-		}
-		return columns
-	}, [step, protocol])
 
 	// ** Table filtering and sorting ***
 
@@ -300,9 +275,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Selection handler for sample selection checkboxes
 	const onSelectChange = useCallback((selectedSamples) => {
 		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
-		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
+		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples.items, stepSamples.displayedSamples, displayedSelection)
 		dispatch(setSelectedSamples(step.id, mergedSelection))
-		setIsSorted(false)
 	}, [step, stepSamples, dispatch])
 
 	const getIdsFromSelectedSamples = useCallback((selectedSamples) => {
@@ -317,13 +291,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const setSelectedSamplesFromRow = useCallback((selectedSamples) => {
 		dispatch(setSelectedSamples(step.id, getIdsFromSelectedSamples(selectedSamples)))
-		setIsSorted(false)
 	}, [step, dispatch])
 
 	// Selection handler for sample selection checkboxes
 	const selectionProps = useCallback((onSelectionChangeCallback) => {
 		return {
-			selectedSampleIDs: stepSamples.selectedSamples,
+			selectedSampleIDs: stepSamples.selectedSamples.items,
 			clearAllSamples: () => handleClearSelection(),
 			onSelectionChanged: onSelectionChangeCallback,
 		}
@@ -334,22 +307,21 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleCoordinateSortOrientation = useCallback((value: string) => {
 		switch (value) {
 			case 'row': {
-				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'row' }))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamples.sortDirection, orientation: 'row' }))
 				break
 			}
 			case 'column': {
-				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, orientation: 'column' }))
+				dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamples.sortDirection, orientation: 'column' }))
 				break
 			}
 		}
-		setIsSorted(true)
-	}, [dispatch, step, stepSamples.selectedSamplesSortDirection])
+	}, [dispatch, step, stepSamples.selectedSamples.sortDirection])
 
 	const handleSelectionTableSortChange = useCallback((sortBy: SortBy) => {
 		if (sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
-			dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamplesSortDirection, order: sortBy.order }))
+			dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamples.sortDirection, order: sortBy.order }))
 		}
-	}, [step.id, stepSamples.selectedSamplesSortDirection, dispatch])
+	}, [step.id, stepSamples.selectedSamples.sortDirection, dispatch])
 
 	const localClearFilters = useCallback((refresh: boolean = true) => {
 		if (clearFilters)
@@ -361,20 +333,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [step.id, selectedTableSamples])
 
 	const onTabChange = useCallback((tabKey) => {
-		if (tabKey != GROUPED_SAMPLES_TAB_KEY && !isSorted) {
-			dispatch(updateSortSelectedSamples)
-			setIsSorted(true)
-		}
 		setSelectedTab(tabKey)
-	}, [step.id, selectedTableSamples])
+	}, [step.id])
 
 
 	const onPrefillOpen = useCallback(() => {
-		if (!isSorted) {
-			dispatch(updateSortSelectedSamples)
-			setIsSorted(false)
-		}
-	}, [step.id, selectedTableSamples, isSorted])
+	}, [])
 
 	const placementSave = useCallback((placementData) => {	
 		setPlacementData(placementData)
@@ -383,7 +347,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	/** UX **/
 
 	// Display the number of selected samples in the tab title
-	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
+	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.items.length} ${stepSamples.selectedSamples.items.length === 1 ? "sample" : "samples"} selected)`
 	const buttonBar = (
 		<Space>
 			{stepSamples.prefill.templates.length > 1 &&
@@ -416,7 +380,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			{isAutomationStep &&
 				<>
-					<ExecuteAutomationButton waitResponse={waitResponse} canExecute={haveSelectedSamples} handleExecuteAutomation={handleExecuteAutomation} step={step} data={stepSamples.selectedSamples} />
+					<ExecuteAutomationButton waitResponse={waitResponse} canExecute={haveSelectedSamples} handleExecuteAutomation={handleExecuteAutomation} step={step} data={stepSamples.selectedSamples.items} />
 				</>
 			}
 			<RefreshButton
@@ -437,7 +401,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							<>
 								<Typography.Text>Sort Coordinates: </Typography.Text>
 								<Radio.Group
-									value={stepSamples.selectedSamplesSortDirection.orientation}
+									value={stepSamples.selectedSamples.sortDirection.orientation}
 									onChange={(evt) => { evt.target && handleCoordinateSortOrientation(evt.target.value) }}
 								>
 									<Radio.Button value='row'>by Row</Radio.Button>
@@ -446,14 +410,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							</>
 						}
 						<Popconfirm
-							disabled={stepSamples.selectedSamples.length == 0}
+							disabled={stepSamples.selectedSamples.items.length == 0}
 							title={'Clear the entire selection?'}
 							okText={'Yes'}
 							cancelText={'No'}
 							placement={'rightTop'}
 							onConfirm={() => handleClearSelection()}
 						>
-							<Button disabled={stepSamples.selectedSamples.length == 0} title='Deselect all samples'>Clear Selection</Button>
+							<Button disabled={stepSamples.selectedSamples.items.length == 0} title='Deselect all samples'>Clear Selection</Button>
 						</Popconfirm>
 					</Space>
 				} onChange={onTabChange}>
@@ -461,7 +425,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						<LabworkStepOverview
 							step={step}
 							refreshing={isRefreshing}
-							setIsSorted={setIsSorted}
 							stepSamples={stepSamples}
 							clearFilters={localClearFilters}
 							hasFilter={true}
@@ -478,43 +441,97 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
-						{stepSamples.showSelectionChangedWarning &&
-							<Alert
-								type='warning'
-								message='Selection has changed'
-								description={`Some samples were removed from the selection because they are no longer at the ${step.name} step.`}
-								closable={true}
-								showIcon={true}
-								onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}
-								style={{ marginBottom: '1em' }}
-							/>
-						}
-						{/* Selection table does not allow filtering or sorting.*/}
-						{/* Also, we don't handle pagination for selected samples so we are required to 
-							load all of the selected samples and libraries for the table to work.
-							We should handle pagination and only load pages of samples and libraries on demand.	
-						*/}
-						<WorkflowSamplesTable
-							hasFilter={false}
-							samples={selectedTableSamples}
-							columns={columnsForSelection}
+						<SelectionTab
+							stepSamples={stepSamples}
+							step={step}
+							protocol={protocol}
 							selection={selectionProps(setSelectedSamplesFromRow)}
 							setSortBy={handleSelectionTableSortChange}
 						/>
-						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 					</Tabs.TabPane>
 					{step.needs_placement ?
-						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={selectedTableSamples.length == 0}>
+						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={stepSamples.selectedSamples.items.length == 0}>
 							<PlacementTab
 								stepID={step.id}
 								save={placementSave}
-								selectedSamples={selectedTableSamples} />
+								selectedSamples={stepSamples.selectedSamples.items} />
 						</Tabs.TabPane>
 						: ''}
 				</Tabs>
 			</PageContent>
 		</>
 	)
+}
+
+export interface SelectionTabProps {
+	stepSamples: LabworkStepSamples
+	step: Step
+	protocol: Protocol | undefined
+	selection: WorkflowSamplesTableProps['selection']
+	setSortBy: WorkflowSamplesTableProps['setSortBy']
+}
+
+function SelectionTab({stepSamples, step, protocol, selection, setSortBy}: SelectionTabProps) {
+	const dispatch = useAppDispatch()
+	const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
+	const samples = useSampleList(stepSamples.selectedSamples.items)
+
+	useEffect(() => {
+		if (!FetchingSamples) {
+			(async () => {
+				setFetchingSamples(true)
+				await fetchSamples(stepSamples.selectedSamples.items)
+				await fetchLibrariesForSamples(stepSamples.selectedSamples.items)
+				await dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.items))
+				setFetchingSamples(false)
+			})()
+		}
+	}, [FetchingSamples, dispatch, step.id, stepSamples.selectedSamples.items])
+
+	// Columns for selected samples table
+	const columnsForSelection = useMemo(() => {
+		const columns = getColumnsForStep(step, protocol)
+		// Make the Coordinates column sortable. We have to force the sorter to appear since
+		// the selection table doesn't use column filters - otherwise, WorkflowSamplesTable would
+		// take care of setting the column sortable.
+		const coordsColumn = columns.find(col => col.columnID === SampleColumnID.COORDINATES)
+		if (coordsColumn) {
+			coordsColumn.sorter = true
+			coordsColumn.key = SampleColumnID.COORDINATES
+			coordsColumn.defaultSortOrder = 'ascend'
+			coordsColumn.sortDirections = ['ascend', 'descend', 'ascend']
+		}
+		return columns
+	}, [step, protocol])
+
+	return <>
+		{stepSamples.showSelectionChangedWarning &&
+		<Alert
+			type='warning'
+			message='Selection has changed'
+			description={`Some samples were removed from the selection because they are no longer at the ${step.name} step.`}
+			closable={true}
+			showIcon={true}
+			onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}
+			style={{ marginBottom: '1em' }}
+		/>
+		}
+		{/* Selection table does not allow filtering or sorting.*/}
+		{/* Also, we don't handle pagination for selected samples so we are required to 
+			load all of the selected samples and libraries for the table to work.
+			We should handle pagination and only load pages of samples and libraries on demand.	
+		*/}
+		<WorkflowSamplesTable
+			hasFilter={false}
+			samples={samples}
+			columns={columnsForSelection}
+			selection={selection}
+			setSortBy={setSortBy}
+			loading={FetchingSamples}
+		/>
+		<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
+
+	</>
 }
 
 export default LabworkStep
