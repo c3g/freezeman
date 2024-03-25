@@ -48,3 +48,5 @@ export const externalIdRules : Rule[] = [{ pattern: /^P[0-9]{6}$/, message: 'For
 export const barcodeRules : Rule[] = [{ pattern: /^[\S]{1,200}$/, message: 'Space not allowed.' }]
 export const nameRules : Rule[] = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/, message: 'Characters allowed: [a-z], [A-Z], [0-9], or [ - ][ . ][ _ ].' }]
 export const emailRules : Rule[] = [{ type: "email", message: "The input is not valid E-mail" }]
+
+export const MAX_CONTAINER_BARCODE_LENGTH = 200
