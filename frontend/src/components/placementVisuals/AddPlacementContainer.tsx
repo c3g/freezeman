@@ -130,8 +130,18 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
           else {
             containerAlreadyExists(container, destinationContainerList).then(exists => {
               if (!exists) {
-                addContainer(container)
-              }
+                if (container.container_barcode.includes(' ')) {
+                  setError("Invalid container barcode")
+                  const INVALID_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-barcode`
+                  notification.error({
+                    message: `Destination container cannot have a barcode with spaces.`,
+                    key: INVALID_BARCODE_NOTIFICATION_KEY,
+                    duration: 20
+                  })
+                } else {
+                  addContainer(container)
+                }
+               }
             })
           }
         } else {
