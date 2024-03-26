@@ -154,7 +154,7 @@ export function refreshSamplesAtStep(stepID: FMSId) {
 			const pageNumber = step.pagedItems.page?.pageNumber ?? 1
 			await dispatch(loadSamplesAtStep(stepID, pageNumber))
 
-			if (step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted) {
+			if (step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted && !step.selectedSamples.isFetching) {
 				dispatch(sortingSelectedSamples(stepID))
 				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples.items, step.selectedSamples.sortDirection)
 				if (refreshedSelection.length !== step.selectedSamples.items.length) {
@@ -183,7 +183,7 @@ export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
-		if (token && step && !step.selectedSamples.isSorted) {
+		if (token && step && !step.selectedSamples.isSorted && !step.selectedSamples.isFetching) {
 			dispatch(sortingSelectedSamples(stepID))
 			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs, step.selectedSamples.sortDirection)
 			dispatch(receiveSortedSelectedSamples(stepID, sortedSelection))
@@ -204,7 +204,7 @@ function reloadSelectedSamplesAtStep(stepID: FMSId) {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
-		if (token && step && step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted) {
+		if (token && step && step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted && !step.selectedSamples.isFetching) {
 			dispatch(sortingSelectedSamples(stepID))
 			const sortedSelection = await refreshSelectedSamplesAtStep(token, step.stepID, step.selectedSamples.items, step.selectedSamples.sortDirection)
 			dispatch(receiveSortedSelectedSamples(stepID, sortedSelection))
