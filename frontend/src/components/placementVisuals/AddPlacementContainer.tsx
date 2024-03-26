@@ -7,7 +7,7 @@ import Modal from "antd/lib/modal/Modal"
 import SearchContainer from "../SearchContainer"
 import Input from "antd/lib/input/Input"
 import api from "../../utils/api"
-import { MAX_CONTAINER_BARCODE_LENGTH, barcodeRules, nameRules } from "../../constants"
+import { MAX_CONTAINER_BARCODE_LENGTH, MAX_CONTAINER_NAME_LENGTH, barcodeRules, nameRules } from "../../constants"
 
 interface AddPlacementContainerProps {
     onConfirm: (destinationContainer) => void
@@ -184,7 +184,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
                             <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')} maxLength={MAX_CONTAINER_BARCODE_LENGTH}></Input>
                           </Row>
                           <Row style={{padding: "10px"}}>
-                            <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
+                            <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')} maxLength={MAX_CONTAINER_NAME_LENGTH}></Input>
                           </Row>
                           <Row style={{padding: "10px"}}>
                             <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>

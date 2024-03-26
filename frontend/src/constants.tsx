@@ -50,3 +50,4 @@ export const nameRules : Rule[] = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/, messag
 export const emailRules : Rule[] = [{ type: "email", message: "The input is not valid E-mail" }]
 
 export const MAX_CONTAINER_BARCODE_LENGTH = 200
+export const MAX_CONTAINER_NAME_LENGTH = 200
