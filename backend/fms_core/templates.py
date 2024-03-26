@@ -411,17 +411,17 @@ NORMALIZATION_TEMPLATE = {
 
 NORMALIZATION_PLANNING_TEMPLATE = {
   "identity": {"description": "Template to perform normalization planning",
-               "file": static("submission_templates/Normalization_planning_v4_7_0.xlsx"),
+               "file": static("submission_templates/Normalization_planning_v4_8_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Type', 'Robot', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
+        'headers': ['Type', 'Robot', 'Exclude From Robot', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
                     'Source Parent Container Barcode', 'Source Parent Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                     'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)', 'Available Input (ng)',
-                    'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
+                    'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Manual Diluent Volume (uL)', 'Final Volume (uL)'],
         'batch': False,
       },
   ],
@@ -430,6 +430,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       "Norm. NA Quantity (ng)": "number",
       "Norm. Conc. (ng/uL)": "number",
       "Norm. Conc. (nM)": "number",
+      "Manual Diluent Volume (uL)": "number",
       "Final Volume (uL)": "number",
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
