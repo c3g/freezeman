@@ -58,7 +58,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
   const loading = refreshing || FetchingSamples || labworkStepSummary.isFetching
   // this might be totally unnecessary, but just to be safe we can have a noop selection :)
   const noopSelection: LabworkStepPanelProps['selection'] = useMemo(() => ({
-      selectedSampleIDs: [],
+      selectedSampleIDs: selection?.selectedSampleIDs ?? [],
       onSelectionChanged: () => {}
   }), [])
 
