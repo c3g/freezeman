@@ -7,6 +7,7 @@ import Modal from "antd/lib/modal/Modal"
 import SearchContainer from "../SearchContainer"
 import Input from "antd/lib/input/Input"
 import api from "../../utils/api"
+import { MAX_CONTAINER_BARCODE_LENGTH, MAX_CONTAINER_NAME_LENGTH, barcodeRules, nameRules } from "../../constants"
 
 interface AddPlacementContainerProps {
     onConfirm: (destinationContainer) => void
@@ -130,8 +131,28 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
           else {
             containerAlreadyExists(container, destinationContainerList).then(exists => {
               if (!exists) {
-                addContainer(container)
-              }
+                const barCodeResults = barcodeRules.filter((rule) => !(rule.pattern as RegExp).test(container.container_barcode))
+                const nameResults = nameRules.filter((rule) => !(rule.pattern as RegExp).test(container.container_name))
+                if (barCodeResults.length > 0) {
+                  setError("Invalid new container")
+                  const INVALID_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-barcode`
+                  notification.error({
+                    message: `Container Barcode -- ${barCodeResults.map((rule) => rule.message).join(" ")}`,
+                    key: INVALID_BARCODE_NOTIFICATION_KEY,
+                    duration: 20
+                  })
+                } if (nameResults.length > 0) {
+                  setError("Invalid new container")
+                  const INVALID_NAME_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-name`
+                  notification.error({
+                    message: `Container Name -- ${nameResults.map((rule) => rule.message).join(" ")}`,
+                    key: INVALID_NAME_NOTIFICATION_KEY,
+                    duration: 20
+                  })
+                } else {
+                  addContainer(container)
+                }
+               }
             })
           }
         } else {
@@ -160,10 +181,10 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList, setDestina
                     <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
                         <Tabs.TabPane tab='New Container' key={'new'}>
                           <Row style={{padding: "10px"}}>
-                            <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')}></Input>
+                            <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')} maxLength={MAX_CONTAINER_BARCODE_LENGTH}></Input>
                           </Row>
                           <Row style={{padding: "10px"}}>
-                            <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')}></Input>
+                            <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')} maxLength={MAX_CONTAINER_NAME_LENGTH}></Input>
                           </Row>
                           <Row style={{padding: "10px"}}>
                             <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>
