@@ -1,6 +1,6 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { useAppDispatch, useAppSelector, useSampleList } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
@@ -22,7 +22,6 @@ interface LabworkStepCollapseProps {
   step: Step,
   refreshing: boolean
   stepSamples: LabworkStepSamples
-  samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
 	clearFilters?: (refresh?: boolean) => void,
@@ -48,12 +47,14 @@ export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", 
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-const LabworkStepOverview = ({step, refreshing, stepSamples, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
+const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
   const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
   
   const loading = refreshing  || labworkStepSummary.isFetching
+
+  const [samples, isFetchingSamples] = useSampleList(stepSamples.displayedSamples)
 
   useEffect(() => {
     // need to preserve stepSamples.selectedSamples
@@ -114,7 +115,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, samples, columns, f
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
-                refreshing={refreshing || labworkStepSummary.isFetching}
+                refreshing={isFetchingSamples || refreshing || labworkStepSummary.isFetching}
                 grouping={activeGrouping}
                 groupingValue={group.name}
                 clearFilters={clearFilters}
