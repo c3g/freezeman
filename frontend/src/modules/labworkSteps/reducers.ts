@@ -302,12 +302,14 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { stepID, direction } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if (stepSamples) {
+				const selectedSamples = stepSamples.selectedSamples
 				return updateStepSamples(state, {
 					...stepSamples,
 					selectedSamples: {
 						...stepSamples.selectedSamples,
 						sortDirection: direction,
-						isSorted: stepSamples.selectedSamples.sortDirection === direction
+						// if isSorted is false, stay false until REFRESH_SELECTED_SAMPLES is executed
+						isSorted: selectedSamples.isSorted && (selectedSamples.sortDirection === direction)
 					}
 				})
 			}
