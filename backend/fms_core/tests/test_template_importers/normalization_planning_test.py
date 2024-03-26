@@ -92,7 +92,8 @@ class NormalizationplanningTestCase(TestCase):
             {'name': 'Sample14NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_4', 'coordinates': None, 'library': None, 'fragment_size': None},
             {'name': 'Sample15NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_5', 'coordinates': None, 'library': None, 'fragment_size': None},
             {'name': 'Sample16NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_6', 'coordinates': None, 'library': None, 'fragment_size': None},
-            {'name': 'Sample17NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'E01', 'library': None, 'fragment_size': None},
+            {'name': 'Sample17NormPlanning', 'volume': 100, 'conc.': 20, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'E01', 'library': None, 'fragment_size': None},
+            {'name': 'Sample18NormPlanning', 'volume': 100, 'conc.': 20, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'E02', 'library': None, 'fragment_size': None},
         ]
 
         for info in containers_info:
@@ -207,46 +208,46 @@ class NormalizationplanningTestCase(TestCase):
                             self.assertEqual(csv_content[3][5], "20.000")
                             # Fourth sample
                             self.assertEqual(csv_content[4][0], "Src1")
-                            self.assertEqual(csv_content[4][1], "4")
+                            self.assertEqual(csv_content[4][1], "5")
                             self.assertEqual(csv_content[4][2], "Dst2")
-                            self.assertEqual(csv_content[4][3], "9")
-                            self.assertEqual(csv_content[4][4], "0.000")
-                            self.assertEqual(csv_content[4][5], "100.000")
+                            self.assertEqual(csv_content[4][3], "5")
+                            self.assertEqual(csv_content[4][4], "2.000")
+                            self.assertEqual(csv_content[4][5], "10.000")
                             # Fifth sample
                             self.assertEqual(csv_content[5][0], "Src1")
-                            self.assertEqual(csv_content[5][1], "12")
+                            self.assertEqual(csv_content[5][1], "4")
                             self.assertEqual(csv_content[5][2], "Dst2")
-                            self.assertEqual(csv_content[5][3], "10")
-                            self.assertEqual(csv_content[5][4], "20.000")
-                            self.assertEqual(csv_content[5][5], "30.000")
+                            self.assertEqual(csv_content[5][3], "9")
+                            self.assertEqual(csv_content[5][4], "0.000")
+                            self.assertEqual(csv_content[5][5], "100.000")
                             # Sixth sample
                             self.assertEqual(csv_content[6][0], "Src1")
-                            self.assertEqual(csv_content[6][1], "20")
+                            self.assertEqual(csv_content[6][1], "12")
                             self.assertEqual(csv_content[6][2], "Dst2")
-                            self.assertEqual(csv_content[6][3], "11")
-                            self.assertEqual(csv_content[6][4], "0.000")
-                            self.assertEqual(csv_content[6][5], "20.000")
+                            self.assertEqual(csv_content[6][3], "10")
+                            self.assertEqual(csv_content[6][4], "20.000")
+                            self.assertEqual(csv_content[6][5], "30.000")
                             # Seventh sample
                             self.assertEqual(csv_content[7][0], "Src1")
-                            self.assertEqual(csv_content[7][1], "28")
+                            self.assertEqual(csv_content[7][1], "20")
                             self.assertEqual(csv_content[7][2], "Dst2")
-                            self.assertEqual(csv_content[7][3], "12")
-                            self.assertEqual(csv_content[7][4], "10.000")
-                            self.assertEqual(csv_content[7][5], "100.000")
+                            self.assertEqual(csv_content[7][3], "11")
+                            self.assertEqual(csv_content[7][4], "0.000")
+                            self.assertEqual(csv_content[7][5], "20.000")
                             # Eighth sample
-                            self.assertEqual(csv_content[7][0], "Src1")
-                            self.assertEqual(csv_content[7][1], "5")
-                            self.assertEqual(csv_content[7][2], "Dst2")
-                            self.assertEqual(csv_content[7][3], "5")
-                            self.assertEqual(csv_content[7][4], "2.000")
-                            self.assertEqual(csv_content[7][5], "10.000")
+                            self.assertEqual(csv_content[8][0], "Src1")
+                            self.assertEqual(csv_content[8][1], "28")
+                            self.assertEqual(csv_content[8][2], "Dst2")
+                            self.assertEqual(csv_content[8][3], "12")
+                            self.assertEqual(csv_content[8][4], "10.000")
+                            self.assertEqual(csv_content[8][5], "100.000")
                             # ninth sample
-                            self.assertEqual(csv_content[7][0], "Src1")
-                            self.assertEqual(csv_content[7][1], "13")
-                            self.assertEqual(csv_content[7][2], "Dst2")
-                            self.assertEqual(csv_content[7][3], "13")
-                            self.assertEqual(csv_content[7][4], "2.000")
-                            self.assertEqual(csv_content[7][5], "10.000")
+                            self.assertEqual(csv_content[9][0], "Src1")
+                            self.assertEqual(csv_content[9][1], "13")
+                            self.assertEqual(csv_content[9][2], "Dst2")
+                            self.assertEqual(csv_content[9][3], "13")
+                            self.assertEqual(csv_content[9][4], "0.000")
+                            self.assertEqual(csv_content[9][5], "8.000")
 
                         elif filename.find("Normalization_sample_Biomek") != -1:
                             # 0: robot_src_barcode
@@ -354,11 +355,10 @@ class NormalizationplanningTestCase(TestCase):
 
         self.source_sample_3, _, _ = \
             create_full_sample(name="SOURCESAMPLENORM3", alias="SOURCESAMPLENORM3", volume=20, concentration=10,
-                               collection_site="Site2", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_3, coordinates="A01",
+                               collection_site="Site2", creation_date=datetime(2023, 9, 25, 0, 0), container=self.container_3, coordinates="A02",
                                sample_kind=self.DNA_sample_kind)
         
         result = {}
         result = load_template(importer=self.importer, file=self.invalid_template_tests[2])
         self.assertEqual(result['valid'], False)
-        print(result["result_previews"][0]["rows"][0]["validation_error"])
         self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["manual_diluent"][0].messages[0], "Volume of manual diluent required to comply cannot be supplied given the sample concentration. Use bypass if you want to submit and reduce the requested concentration.")

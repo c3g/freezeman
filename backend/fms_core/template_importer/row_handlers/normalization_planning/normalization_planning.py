@@ -176,7 +176,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     'Initial Conc. (ng/uL)': source_sample_obj.concentration,
                     'Current Volume (uL)': source_sample_obj.volume,
                     'Volume Used (uL)': str(volume_used),
-                    'Volume Diluent (uL)': str(max(volume_diluent, 0)), # We want the volume of diluent to insert in the robot csv
+                    'Volume Diluent (uL)': str(max(volume_diluent, decimal.Decimal("0.000"))), # We want the volume of diluent to insert in the robot csv
                     'Volume (uL)': str(final_volume),
                     'Conc. (ng/uL)': str(adjusted_concentration) if concentration_nguL is not None else '',
                     'Conc. (nM)': str(adjusted_concentration_nm) if concentration_nm is not None else '',
