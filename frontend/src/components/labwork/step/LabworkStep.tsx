@@ -477,7 +477,7 @@ function SelectionTab({stepSamples, step, protocol, selection, setSortBy}: Selec
 	const samples = useSampleList(stepSamples.selectedSamples.items)
 
 	useEffect(() => {
-		if (!FetchingSamples) {
+		if (!FetchingSamples && !stepSamples.selectedSamples.isSorted) {
 			(async () => {
 				setFetchingSamples(true)
 				await fetchSamples(stepSamples.selectedSamples.items)
