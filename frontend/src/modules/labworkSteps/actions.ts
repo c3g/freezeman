@@ -86,29 +86,7 @@ export function initSamplesAtStep(stepID: FMSId) {
 		await dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
-export function selectAllSamplesAtStep(stepID: FMSId) {
-	return async (dispatch, getState) => {
-		const labworkState = selectLabworkStepsState(getState())
-		const stepSamples = labworkState.steps[stepID]
-		if (!stepSamples) {
-			throw new Error(`No step samples state found for step ID "${stepID}"`)
-		}
-		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
-		const ordering = serializeSortByParams(stepSamples.pagedItems.sortBy)
-		const options = {
-			ordering,
-			...serializedFilters
-		}
-		const response = await dispatch(api.sampleNextStep.listSamplesAtStep(stepID, options))
-		const results = response.data.results;
-		if (results) {
-			const selectedSampleIDs = results.map(nextStep => nextStep.sample)
-			await dispatch(setSelectedSamples(stepID, selectedSampleIDs, false))
-		}
-		else
-			return
-	}
-}
+
 export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	return async (dispatch, getState) => {
 		const labworkState = selectLabworkStepsState(getState())
