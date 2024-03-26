@@ -3,7 +3,7 @@ import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography, noti
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
-import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { useAppDispatch, useAppSelector, useSampleList } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
@@ -437,37 +437,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	)
 }
 
-function useSampleList(sampleIDs: FMSId[], offset: number, size: number) {
-	const [isFetching, setIsFetching] = useState(false)
-
-	useEffect(() => {
-		(async () => {
-			setIsFetching(true)
-			const samples = await fetchSamples(sampleIDs.slice(offset, offset + size))
-			const samplesWithLibraries = samples.filter((s) => s.is_library).map((s) => s.id)
-			await fetchLibrariesForSamples(samplesWithLibraries)
-			setIsFetching(false)
-		})()
-	}, [sampleIDs, offset, size])
-
-	const samplesByID = useAppSelector(selectSamplesByID)
-	const librariesByID = useAppSelector(selectLibrariesByID)
-
-	const availableSamples = useMemo(() => sampleIDs.slice(offset, offset + size).reduce((acc, sampleID) => {
-		const sample = samplesByID[sampleID]
-		if (sample) {
-			if (sample.is_library) {
-				const library = librariesByID[sampleID]
-				acc.push({ sample, library })
-			} else {
-				acc.push({ sample })
-			}
-		}
-		return acc
-	}, [] as SampleAndLibrary[]), [sampleIDs, samplesByID, librariesByID, offset, size])
-
-	return [availableSamples, isFetching] as const
-}
 
 export interface SelectionTabProps {
 	stepSamples: LabworkStepSamples
