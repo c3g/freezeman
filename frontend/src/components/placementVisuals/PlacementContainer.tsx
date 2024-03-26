@@ -189,7 +189,7 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         e.stopPropagation()
         const mySample = [...letters].map((rowLetter) => {
             const coordinate = rowLetter + "" + (padColumn(colNumber))
-            return checkSamples(coordinate, SELECTED_STRING)
+            return checkSamples(coordinate, NONE_STRING)
         }).filter(s => s)
         updateSamples([...previewCells, ...mySample], containerType, rows, columns)
     }, [letters, updateSamples, previewCells, containerType, rows, columns, padColumn, checkSamples])
@@ -199,14 +199,14 @@ const PlacementContainer = ({ containerType, columns, rows, samples, direction, 
         const mySamples = [...Array(columns).keys()].map((c) => {
             const colNumber = c + 1
             const coordinate = rowLetter + "" + (padColumn(colNumber))
-            return checkSamples(coordinate, SELECTED_STRING)
+            return checkSamples(coordinate, NONE_STRING)
         }).filter(s => s)
         updateSamples([...previewCells, ...mySamples], containerType, rows, columns)
     }, [columns, updateSamples, previewCells, containerType, rows, padColumn, checkSamples])
 
     const selectAll = useCallback((e) => {
         e.stopPropagation()
-        const mySamples = sampleValues.map((s: any) => checkSampleId(s.id, SELECTED_STRING)).filter((s) => s)
+        const mySamples = sampleValues.map((s: any) => checkSampleId(s.id, NONE_STRING)).filter((s) => s)
         updateSamples([...previewCells, ...mySamples], containerType, rows, columns)
     }, [updateSamples, previewCells, sampleValues, containerType, rows, columns, checkSampleId])
 
