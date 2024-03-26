@@ -33,25 +33,6 @@ interface LabworkStepPageProps {
 	stepSamples: LabworkStepSamples
 }
 
-function useSampleList(sampleIDs: FMSId[]) {
-	const samplesByID = useAppSelector(selectSamplesByID)
-	const librariesByID = useAppSelector(selectLibrariesByID)
-
-	const availableSamples = sampleIDs.reduce((acc, sampleID) => {
-		const sample = samplesByID[sampleID]
-		if (sample) {
-			if (sample.is_library) {
-				const library = librariesByID[sampleID]
-				acc.push({ sample, library })
-			} else {
-				acc.push({ sample })
-			}
-		}
-		return acc
-	}, [] as SampleAndLibrary[])
-	return availableSamples
-}
-
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const dispatch = useAppDispatch()
@@ -62,8 +43,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const SELECTION_TAB_KEY = 'selection'
 	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
-	const samples = useSampleList(stepSamples.displayedSamples)
-	const selectedTableSamples = useSampleList(stepSamples.selectedSamples.items)
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
 	const [placementData, setPlacementData] = useState<any>({})
 
@@ -328,10 +307,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			dispatch(clearFilters(step.id, refresh))
 	}, [step, step.id])
 
-	const updateSortSelectedSamples = useCallback(async () => {
-		dispatch(updateSelectedSamplesAtStep(step.id, getIdsFromSelectedSamples(selectedTableSamples)))
-	}, [step.id, selectedTableSamples])
-
 	const onTabChange = useCallback((tabKey) => {
 		setSelectedTab(tabKey)
 	}, [step.id])
@@ -428,7 +403,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							stepSamples={stepSamples}
 							clearFilters={localClearFilters}
 							hasFilter={true}
-							samples={samples}
 							columns={columnsForSamples}
 							filterDefinitions={filterDefinitions}
 							filterKeys={filterKeys}
@@ -463,6 +437,38 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	)
 }
 
+function useSampleList(sampleIDs: FMSId[], offset: number, size: number) {
+	const [isFetching, setIsFetching] = useState(false)
+
+	useEffect(() => {
+		(async () => {
+			setIsFetching(true)
+			const samples = await fetchSamples(sampleIDs.slice(offset, offset + size))
+			const samplesWithLibraries = samples.filter((s) => s.is_library).map((s) => s.id)
+			await fetchLibrariesForSamples(samplesWithLibraries)
+			setIsFetching(false)
+		})()
+	}, [sampleIDs, offset, size])
+
+	const samplesByID = useAppSelector(selectSamplesByID)
+	const librariesByID = useAppSelector(selectLibrariesByID)
+
+	const availableSamples = useMemo(() => sampleIDs.slice(offset, offset + size).reduce((acc, sampleID) => {
+		const sample = samplesByID[sampleID]
+		if (sample) {
+			if (sample.is_library) {
+				const library = librariesByID[sampleID]
+				acc.push({ sample, library })
+			} else {
+				acc.push({ sample })
+			}
+		}
+		return acc
+	}, [] as SampleAndLibrary[]), [sampleIDs, samplesByID, librariesByID, offset, size])
+
+	return [availableSamples, isFetching] as const
+}
+
 export interface SelectionTabProps {
 	stepSamples: LabworkStepSamples
 	step: Step
@@ -473,20 +479,20 @@ export interface SelectionTabProps {
 
 function SelectionTab({stepSamples, step, protocol, selection, setSortBy}: SelectionTabProps) {
 	const dispatch = useAppDispatch()
-	const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
-	const samples = useSampleList(stepSamples.selectedSamples.items)
+
+	const [pageSize, setPageSize] = useState(10)
+	const [pageNumber, setPageNumber] = useState(1)
+	const totalCount = stepSamples.selectedSamples.items.length
+
+	const [samples, loading] = useSampleList(stepSamples.selectedSamples.items, pageSize * (pageNumber - 1), pageSize)
+
+	const onChangePageNumber = useCallback((pageNumber: number) => { dispatch(setPageNumber(pageNumber)) }, [dispatch])
+	const onChangePageSize = useCallback((pageSize: number) => { dispatch(setPageSize(pageSize)) }, [dispatch])
 
 	useEffect(() => {
-		if (!FetchingSamples && !stepSamples.selectedSamples.isSorted) {
-			(async () => {
-				setFetchingSamples(true)
-				await fetchSamples(stepSamples.selectedSamples.items)
-				await fetchLibrariesForSamples(stepSamples.selectedSamples.items)
-				await dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.items))
-				setFetchingSamples(false)
-			})()
-		}
-	}, [FetchingSamples, dispatch, step.id, stepSamples.selectedSamples.items])
+		// order checked automatically
+		dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.items))
+	}, [dispatch, step.id, stepSamples.selectedSamples.items])
 
 	// Columns for selected samples table
 	const columnsForSelection = useMemo(() => {
@@ -527,7 +533,8 @@ function SelectionTab({stepSamples, step, protocol, selection, setSortBy}: Selec
 			columns={columnsForSelection}
 			selection={selection}
 			setSortBy={setSortBy}
-			loading={FetchingSamples}
+			pagination={{ pageNumber, pageSize, onChangePageNumber, onChangePageSize, totalCount }}
+			loading={loading}
 		/>
 		<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
 
