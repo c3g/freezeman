@@ -56,11 +56,6 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
   const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
   
   const loading = refreshing || FetchingSamples || labworkStepSummary.isFetching
-  // this might be totally unnecessary, but just to be safe we can have a noop selection :)
-  const noopSelection: LabworkStepPanelProps['selection'] = useMemo(() => ({
-      selectedSampleIDs: selection?.selectedSampleIDs ?? [],
-      onSelectionChanged: () => {}
-  }), [])
 
   useEffect(() => {
     // need to preserve stepSamples.selectedSamples
@@ -139,7 +134,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
                 filters={filters}
                 setFilter={setFilter}
                 setFilterOptions={setFilterOptions}
-                selection={loading ? noopSelection : selection}
+                selection={selection}
                 setSortBy={setSortBy}
                 pagination={pagination}
 		stepID={step.id}
