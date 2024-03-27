@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
 
     'fms_core.apps.FmsCoreConfig',
+
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +68,8 @@ MIDDLEWARE = [
     'crequest.middleware.CrequestMiddleware',
     'reversion.middleware.RevisionMiddleware',
     'crum.CurrentRequestUserMiddleware',
+
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'fms.urls'

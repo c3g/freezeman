@@ -26,6 +26,7 @@ schema_view = get_schema_view(
 
 # noinspection PyUnresolvedReferences
 urlpatterns = [
+    path("__debug__/", include("debug_toolbar.urls")),
     path('api/', include(router.urls)),
     path('api/info/', SoftwareInformationView.as_view()),
     path('api/api-auth/', include('rest_framework.urls', namespace='rest_framework')),
