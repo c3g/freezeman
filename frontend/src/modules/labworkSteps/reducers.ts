@@ -1,5 +1,5 @@
 import { AnyAction } from 'redux'
-import { FMSId, LabworkStepInfo } from '../../models/fms_api_models'
+import { FMSId, LabworkStepInfo, SampleLocator } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from '../../models/paged_items_reducers'
 import { createNetworkActionTypes } from '../../utils/actions'
@@ -307,7 +307,13 @@ export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching:
 			...state,
 			groups: state.groups?.map((group) => ({
 				...group,
-				selected_samples: Object.fromEntries(sampleIDs.map((sampleID) => [sampleID, group.sample_locators[sampleID]] as const).filter((x) => x[1]))
+				selected_samples: sampleIDs.reduce((selected_samples, sampleID) => {
+				    const locator = group.sample_locators[sampleID]
+				    if (locator) {
+				        selected_samples[sampleID] = locator
+				    }
+				    return selected_samples
+				}, {} as Record<string, SampleLocator>)
 			})) ?? []
 		}
 	}
