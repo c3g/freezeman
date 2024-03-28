@@ -61,6 +61,17 @@ export interface FMSContainer extends FMSTrackedModel {
     experiment_run?: FMSId              // Experiment run associate with the container (if any)
 }
 
+export type CoordinateAxis = string[]
+export type CoordinateSpec = [] | [CoordinateAxis] | [CoordinateAxis, CoordinateAxis]
+export interface FMSContainerKind extends FMSTrackedModel {
+    id: FMSId
+    coordinate_spec: CoordinateSpec
+    coordinate_overlap_allowed: boolean
+    children_ids: FMSId[]
+    is_source: boolean
+    is_run_container: boolean
+}
+
 export interface FMSCoordinate extends FMSTrackedModel {
   name: string                       // Coordinates
   column: number                     // Column ordinal starting at 0
