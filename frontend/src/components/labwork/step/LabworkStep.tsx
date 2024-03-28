@@ -1,30 +1,27 @@
-import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
-import { Alert, Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
+import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
-import { useAppDispatch, useAppSelector, useSampleList } from '../../../hooks'
+import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
-import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import PrefillButton from '../../PrefillTemplateColumns'
 import RefreshButton from '../../RefreshButton'
 import ExecuteAutomationButton from './AdditionalAutomationData'
-import { SampleAndLibrary, getColumnsForStep } from '../../WorkflowSamplesTable/ColumnSets'
-import WorkflowSamplesTable, { PaginationParameters, WorkflowSamplesTableProps } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
+import { getColumnsForStep } from '../../WorkflowSamplesTable/ColumnSets'
+import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import PlacementTab from '../../placementVisuals/PlacementTab'
-import { fetchLibrariesForSamples, fetchSamples } from '../../../modules/cache/cache'
-import { DEFAULT_SMALL_PAGE_SIZE } from '../../../constants'
+import LabworkSelection from './LabworkSelection'
 
 const { Text } = Typography
 
@@ -416,7 +413,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
-						<SelectionTab
+						<LabworkSelection
 							stepSamples={stepSamples}
 							step={step}
 							protocol={protocol}
@@ -436,79 +433,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			</PageContent>
 		</>
 	)
-}
-
-
-export interface SelectionTabProps {
-	stepSamples: LabworkStepSamples
-	step: Step
-	protocol: Protocol | undefined
-	selection: WorkflowSamplesTableProps['selection']
-	setSortBy: WorkflowSamplesTableProps['setSortBy']
-}
-
-function SelectionTab({stepSamples, step, protocol, selection, setSortBy}: SelectionTabProps) {
-	const dispatch = useAppDispatch()
-
-	const [pageSize, setPageSize] = useState(DEFAULT_SMALL_PAGE_SIZE)
-	const [pageNumber, setPageNumber] = useState(1)
-	const totalCount = stepSamples.selectedSamples.items.length
-
-	const [samples, loading] = useSampleList(stepSamples.selectedSamples.items, pageSize * (pageNumber - 1), pageSize)
-
-	const onChangePageNumber = useCallback((pageNumber: number) => { setPageNumber(pageNumber) }, [])
-	const onChangePageSize = useCallback((pageSize: number) => { setPageSize(pageSize) }, [])
-
-	useEffect(() => {
-		// order checked automatically
-		dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.items))
-	}, [dispatch, step.id, stepSamples.selectedSamples.items])
-
-	// Columns for selected samples table
-	const columnsForSelection = useMemo(() => {
-		const columns = getColumnsForStep(step, protocol)
-		// Make the Coordinates column sortable. We have to force the sorter to appear since
-		// the selection table doesn't use column filters - otherwise, WorkflowSamplesTable would
-		// take care of setting the column sortable.
-		const coordsColumn = columns.find(col => col.columnID === SampleColumnID.COORDINATES)
-		if (coordsColumn) {
-			coordsColumn.sorter = true
-			coordsColumn.key = SampleColumnID.COORDINATES
-			coordsColumn.defaultSortOrder = 'ascend'
-			coordsColumn.sortDirections = ['ascend', 'descend', 'ascend']
-		}
-		return columns
-	}, [step, protocol])
-
-	return <>
-		{stepSamples.showSelectionChangedWarning &&
-		<Alert
-			type='warning'
-			message='Selection has changed'
-			description={`Some samples were removed from the selection because they are no longer at the ${step.name} step.`}
-			closable={true}
-			showIcon={true}
-			onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}
-			style={{ marginBottom: '1em' }}
-		/>
-		}
-		{/* Selection table does not allow filtering or sorting.*/}
-		{/* Also, we don't handle pagination for selected samples so we are required to 
-			load all of the selected samples and libraries for the table to work.
-			We should handle pagination and only load pages of samples and libraries on demand.	
-		*/}
-		<WorkflowSamplesTable
-			hasFilter={false}
-			samples={samples}
-			columns={columnsForSelection}
-			selection={selection}
-			setSortBy={setSortBy}
-			pagination={{ pageNumber, pageSize, onChangePageNumber, onChangePageSize, totalCount }}
-			loading={loading}
-		/>
-		<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by <Text italic strong>container name</Text> and then by <Text italic strong>coordinate</Text>.</Text></Space>
-
-	</>
 }
 
 export default LabworkStep
