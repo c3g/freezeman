@@ -428,7 +428,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							<PlacementTab
 								stepID={step.id}
 								save={placementSave}
-								selectedSamples={stepSamples.selectedSamples.items} />
+								sampleIDs={stepSamples.selectedSamples.items} />
 						</Tabs.TabPane>
 						: ''}
 				</Tabs>
