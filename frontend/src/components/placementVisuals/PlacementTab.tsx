@@ -4,7 +4,8 @@ import { notification } from "antd"
 import { useAppDispatch, useAppSelector, useSampleList } from "../../hooks"
 import { selectContainerKindsByID } from "../../selectors";
 import api from "../../utils/api"
-import { FMSContainer } from "../../models/fms_api_models"
+import { FMSContainer, SampleLocator } from "../../models/fms_api_models"
+import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
 
 export interface sampleInfo {
     coordinates: string,
@@ -54,12 +55,13 @@ const PlacementTab = ({ save, sampleIDs, stepID }: PlacementTabProps) => {
     //fetches containers based on selected samples from Step.
     const fetchListContainers = useCallback(async () => {
       //parses samples appropriately so the PlacementContainer component can render it
-      const parseSamples = (list, selectedSamples, container_name, destination) => {
+      const parseSamples = (list: SampleLocator[], selectedSamples: SampleAndLibrary[], container_name: string, destination) => {
           const object = {}
           list.forEach(located_sample => {
-              const id = located_sample.sample_id
-              const sample = selectedSamples.find(sample => sample.sample.id == id).sample
-              object[id] = { id: id, name: sample.name, coordinates: located_sample.contextual_coordinates, type: destination.includes(id.toString()) ? PLACED_STRING : NONE_STRING, sourceContainer: container_name }
+                const id = located_sample.sample_id
+                const sample = selectedSamples.find(sample => sample.sample?.id == id)?.sample
+                if (sample)
+                    object[id] = { id: id, name: sample.name, coordinates: located_sample.contextual_coordinates, type: destination.includes(id.toString()) ? PLACED_STRING : NONE_STRING, sourceContainer: container_name }
           })
           return object
       }
