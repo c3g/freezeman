@@ -54,8 +54,6 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   
   const loading = refreshing  || labworkStepSummary.isFetching
 
-  const [samples, isFetchingSamples] = useSampleList(stepSamples.displayedSamples)
-
   useEffect(() => {
     // need to preserve stepSamples.selectedSamples
     // because getLabworkStepSummary will change
@@ -115,12 +113,11 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
-                refreshing={isFetchingSamples || refreshing || labworkStepSummary.isFetching}
+                refreshing={refreshing || labworkStepSummary.isFetching}
                 grouping={activeGrouping}
                 groupingValue={group.name}
                 clearFilters={clearFilters}
 							  hasFilter={true}
-                samples={samples}
                 columns={columns}
                 filterDefinitions={filterDefinitions}
                 filterKeys={filterKeys}
