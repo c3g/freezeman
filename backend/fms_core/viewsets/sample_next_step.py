@@ -7,6 +7,8 @@ from rest_framework.decorators import action
 
 from fms_core.filters import SampleNextStepFilter
 
+from collections import defaultdict
+
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin, _list_keys
 from ._constants import _sample_next_step_filterset_fields
@@ -351,9 +353,15 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         grouped_step_summary = {"step_id": step_id, "samples": {"grouping_column": grouping_column, "groups": []}}
         
         grouped_step_samples = self.filter_queryset(self.get_queryset())
-        grouped_step_samples = grouped_step_samples.values(grouping_column).annotate(count=Count("sample_id", distinct=True)).order_by("-count", grouping_column)
-        for group in grouped_step_samples.all():
-            filter_column = grouping_column + "__exact"
-            sample_locators = self.filter_queryset(self.get_queryset()).filter(step__id__exact=step_id).filter(**{filter_column: group[grouping_column]}).values("sample_id").annotate(contextual_container_barcode=F("ordering_container_barcode")).annotate(contextual_coordinates=F("ordering_container_coordinates")).distinct()
-            grouped_step_summary["samples"]["groups"].append({"name": group[grouping_column], "count": group["count"], "sample_locators": sample_locators})
+        # Get all samples on the steps with the grouping field
+        grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id).values_list("sample_id", grouping_column, "ordering_container_barcode", "ordering_container_coordinates").distinct()
+        
+        groups = defaultdict(list)
+        # Extract the locators from the entries
+        for sample_id, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
+            groups[group_column].append({"sample_id": sample_id, "contextual_container_barcode": container_barcode, "contextual_coordinates": container_coordinates})
+        # Build the summary using locators
+        for grouping in sorted(groups.keys()):
+            grouped_step_summary["samples"]["groups"].append({"name": grouping, "count": len(groups[grouping]), "sample_locators": groups[grouping]})
+        
         return Response({"results": grouped_step_summary})
