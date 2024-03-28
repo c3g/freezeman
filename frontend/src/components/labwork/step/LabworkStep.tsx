@@ -455,8 +455,8 @@ function SelectionTab({stepSamples, step, protocol, selection, setSortBy}: Selec
 
 	const [samples, loading] = useSampleList(stepSamples.selectedSamples.items, pageSize * (pageNumber - 1), pageSize)
 
-	const onChangePageNumber = useCallback((pageNumber: number) => { dispatch(setPageNumber(pageNumber)) }, [dispatch])
-	const onChangePageSize = useCallback((pageSize: number) => { dispatch(setPageSize(pageSize)) }, [dispatch])
+	const onChangePageNumber = useCallback((pageNumber: number) => { setPageNumber(pageNumber) }, [])
+	const onChangePageSize = useCallback((pageSize: number) => { setPageSize(pageSize) }, [])
 
 	useEffect(() => {
 		// order checked automatically
