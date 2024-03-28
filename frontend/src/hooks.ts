@@ -22,7 +22,7 @@ export function useSampleList(sampleIDs: FMSId[], offset?: number, size?: number
 			await fetchLibrariesForSamples(samplesWithLibraries)
 			setIsFetching(false)
 		})()
-	}, [sampleIDs, endIndex, size])
+	}, [sampleIDs, offset, endIndex, size])
 
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
