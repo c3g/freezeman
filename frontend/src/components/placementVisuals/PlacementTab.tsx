@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react"
 import Placement from "./Placement"
 import { notification } from "antd"
-import { useAppDispatch, useAppSelector, useSampleList } from "../../hooks"
+import { useAppDispatch, useAppSelector, useSampleAndLibraryList } from "../../hooks"
 import { selectContainerKindsByID } from "../../selectors";
 import api from "../../utils/api"
 import { FMSContainer, SampleLocator } from "../../models/fms_api_models"
@@ -50,7 +50,7 @@ const PlacementTab = ({ save, sampleIDs, stepID }: PlacementTabProps) => {
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
-    const [selectedSamples] = useSampleList(sampleIDs)
+    const [selectedSamples] = useSampleAndLibraryList(sampleIDs)
 
     //fetches containers based on selected samples from Step.
     const fetchListContainers = useCallback(async () => {

@@ -1,6 +1,6 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useAppDispatch, useAppSelector, useSampleList } from '../../../hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'

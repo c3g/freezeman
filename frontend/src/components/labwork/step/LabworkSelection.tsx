@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from "@ant-design/icons"
 import { Alert, Space, Typography } from "antd"
 import React, { useState, useCallback, useEffect, useMemo } from "react"
 import { DEFAULT_SMALL_PAGE_SIZE } from "../../../constants"
-import { useAppDispatch, useSampleList } from "../../../hooks"
+import { useAppDispatch, useSampleAndLibraryList } from "../../../hooks"
 import { Protocol, Step } from "../../../models/frontend_models"
 import { updateSelectedSamplesAtStep, showSelectionChangedMessage } from "../../../modules/labworkSteps/actions"
 import { LabworkStepSamples } from "../../../modules/labworkSteps/models"
@@ -27,7 +27,7 @@ export function LabworkSelection({stepSamples, step, protocol, selection, setSor
 	const [pageNumber, setPageNumber] = useState(1)
 	const totalCount = stepSamples.selectedSamples.items.length
 
-	const [samples, loading] = useSampleList(stepSamples.selectedSamples.items, pageSize * (pageNumber - 1), pageSize)
+	const [samples, loading] = useSampleAndLibraryList(stepSamples.selectedSamples.items, pageSize * (pageNumber - 1), pageSize)
 
 	const onChangePageNumber = useCallback((pageNumber: number) => { setPageNumber(pageNumber) }, [])
 	const onChangePageSize = useCallback((pageSize: number) => { setPageSize(pageSize) }, [])

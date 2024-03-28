@@ -10,9 +10,9 @@ import { SampleAndLibrary } from './components/WorkflowSamplesTable/ColumnSets'
 export const useAppDispatch: () => AppDispatch = useDispatch
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
-export function useSampleList(sampleIDs: FMSId[], offset?: number, size?: number) {
+export function useSampleAndLibraryList(sampleIDs: FMSId[], offset?: number, pageSize?: number) {
 	const [isFetching, setIsFetching] = useState(false)
-    const endIndex = size !== undefined ? (offset ?? 0) + size : undefined
+    const endIndex = pageSize !== undefined ? (offset ?? 0) + pageSize : undefined
 
 	useEffect(() => {
 		(async () => {
@@ -22,7 +22,7 @@ export function useSampleList(sampleIDs: FMSId[], offset?: number, size?: number
 			await fetchLibrariesForSamples(samplesWithLibraries)
 			setIsFetching(false)
 		})()
-	}, [sampleIDs, offset, endIndex, size])
+	}, [sampleIDs, offset, endIndex, pageSize])
 
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)

@@ -5,7 +5,7 @@ import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
-import { useAppDispatch, useAppSelector, useSampleList } from '../../../hooks'
+import { useAppDispatch, useAppSelector, useSampleAndLibraryList } from '../../../hooks'
 import { loadSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { selectLabworkStepsState } from '../../../selectors'
 
@@ -36,7 +36,7 @@ const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, 
   const dispatch = useAppDispatch()
 
   const stepSamples = useAppSelector(selectLabworkStepsState)?.steps[stepID]
-  const [samples, isFetchingSamples] = useSampleList(stepSamples?.displayedSamples ?? [])
+  const [samples, isFetchingSamples] = useSampleAndLibraryList(stepSamples?.displayedSamples ?? [])
 
   useEffect(() => {
     clearFilters && clearFilters(false)
