@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react"
 import Placement from "./Placement"
 import { notification } from "antd"
-import { useAppDispatch, useAppSelector } from "../../hooks"
+import { useAppDispatch, useAppSelector, useSampleList } from "../../hooks"
 import { selectContainerKindsByID } from "../../selectors";
 import api from "../../utils/api"
 import { FMSContainer } from "../../models/fms_api_models"
@@ -34,12 +34,12 @@ export const TUBES_WITHOUT_PARENT = "tubes_without_parent_container"
 
 interface PlacementTabProps {
     save: (changes) => void,
-    selectedSamples: any,
+    sampleIDs: number[],
     stepID: any,
 }
 
 //component used to display the tab for sample placement (plate visualization)
-const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
+const PlacementTab = ({ save, sampleIDs, stepID }: PlacementTabProps) => {
 
     const dispatch = useAppDispatch()
     const [sourceContainerList, setSourceContainerList] = useState<containerSample[]>([])
@@ -48,6 +48,8 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
+
+    const [selectedSamples] = useSampleList(sampleIDs)
 
     //fetches containers based on selected samples from Step.
     const fetchListContainers = useCallback(async () => {
@@ -62,7 +64,6 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
           return object
       }
 
-      const sampleIDs = selectedSamples.map(sample => sample.sample.id)
       const destination: any = handleSelectedSamples(sampleIDs)
       if (sampleIDs.length > 0) {
         const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
