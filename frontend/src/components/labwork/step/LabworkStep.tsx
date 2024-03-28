@@ -24,6 +24,7 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import PlacementTab from '../../placementVisuals/PlacementTab'
 import { fetchLibrariesForSamples, fetchSamples } from '../../../modules/cache/cache'
+import { DEFAULT_SMALL_PAGE_SIZE } from '../../../constants'
 
 const { Text } = Typography
 
@@ -449,7 +450,7 @@ export interface SelectionTabProps {
 function SelectionTab({stepSamples, step, protocol, selection, setSortBy}: SelectionTabProps) {
 	const dispatch = useAppDispatch()
 
-	const [pageSize, setPageSize] = useState(10)
+	const [pageSize, setPageSize] = useState(DEFAULT_SMALL_PAGE_SIZE)
 	const [pageNumber, setPageNumber] = useState(1)
 	const totalCount = stepSamples.selectedSamples.items.length
 

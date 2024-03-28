@@ -51,3 +51,5 @@ export const emailRules : Rule[] = [{ type: "email", message: "The input is not 
 
 export const MAX_CONTAINER_BARCODE_LENGTH = 200
 export const MAX_CONTAINER_NAME_LENGTH = 200
+
+export const DEFAULT_SMALL_PAGE_SIZE = 10
