@@ -10,7 +10,6 @@ import { createPagedItems, createPagedItemsByID } from '../../models/paged_items
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
 export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
-export const UNSELECT_SAMPLES = 'SAMPLES_AT_STEP:UNSELECT_SAMPLES'
 export const REFRESH_SELECTED_SAMPLES = createNetworkActionTypes('SAMPLES_AT_STEP:REFRESH_SELECTED_SAMPLES')
 export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
 export const SET_FILTER = 'SAMPLES_AT_STEP:SET_FILTER'
@@ -185,25 +184,6 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 				}
 			}
 			return updateStepSamples(state, newStepSamples)
-		}
-		case UNSELECT_SAMPLES: {
-			const { stepID, sampleIDs } = action
-			const stepSamples = getStepSamplesByID(state, stepID)
-			if(!stepSamples) {
-				return state
-			}
-
-			const sampleIdSet = new Set(sampleIDs)
-			const filteredSampleIDs = stepSamples.selectedSamples.items.filter((sampleID) => !sampleIdSet.has(sampleID))
-			return labworkSteps(
-				state,
-				{
-					type: SET_SELECTED_SAMPLES,
-					stepID,
-					sampleIDs: filteredSampleIDs,
-					isSorted: true
-				}
-			)
 		}
 		case REFRESH_SELECTED_SAMPLES.REQUEST: {
 			const { stepID } = action

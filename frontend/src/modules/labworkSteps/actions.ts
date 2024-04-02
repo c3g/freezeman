@@ -2,12 +2,13 @@ import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "..
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
 import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState } from "../../selectors"
+import { AppDispatch, RootState } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
 import { list as listSamples} from "../samples/actions"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
-import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES, UNSELECT_SAMPLES } from "./reducers"
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
 
 
@@ -199,11 +200,15 @@ export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[], isSorted =
 	}
 }
 
-export function unselectSamples(stepID: FMSId, sampleIDs: FMSId[]) {
-	return {
-		type: UNSELECT_SAMPLES,
-		stepID,
-		sampleIDs
+export function unselectSamples(stepID: FMSId, unselectedSampleIDs: FMSId[]) {
+	return (dispatch: AppDispatch, getState: () => RootState) => {
+		const labworkStepsState = selectLabworkStepsState(getState())
+		const step = labworkStepsState.steps[stepID]
+		if (step) {
+			const unselectedSampleIDSet = new Set(unselectedSampleIDs)
+			const retainedSampleIDs = step.selectedSamples.items.filter((sampleID) => !unselectedSampleIDSet.has(sampleID))
+			dispatch(setSelectedSamples(stepID, retainedSampleIDs, true))
+		}
 	}
 }
 
