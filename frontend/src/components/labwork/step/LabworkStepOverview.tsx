@@ -2,7 +2,7 @@ import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
-import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups } from '../../../modules/labworkSteps/actions'
+import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, unselectSamples } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
 import LabworkStepOverviewPanel, { LabworkStepPanelProps } from './LabworkStepOverviewPanel'
 import { selectLabworkStepSummaryState } from '../../../selectors'
@@ -85,9 +85,8 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   }, [stepSamples.selectedSamples.items, step.id, dispatch])
 
   const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {   
-    // removing shouldn't break the order
-    dispatch(setSelectedSamples(step.id, stepSamples.selectedSamples.items.filter(id => !groupSampleIds.includes(id)), stepSamples.selectedSamples.isSorted))
-  }, [dispatch, step.id, stepSamples.selectedSamples.items])
+    dispatch(unselectSamples(step.id, groupSampleIds))
+  }, [dispatch, step.id])
 
 	return (
 		<>

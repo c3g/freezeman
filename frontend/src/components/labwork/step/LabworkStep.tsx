@@ -6,7 +6,7 @@ import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples, unselectSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import { downloadFromFile } from '../../../utils/download'
@@ -246,9 +246,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleClearSelection = useCallback(
 		() => {
 			dispatch(clearSelectedSamples(step.id))
-      onTabChange(GROUPED_SAMPLES_TAB_KEY)
+      		onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
-		, [step, dispatch])
+	, [step, dispatch])
 	// Selection handler for sample selection checkboxes
 	const onSelectChange = useCallback((selectedSamples) => {
 		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
@@ -266,10 +266,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return ids;
 	}, [])
 
-	const setSelectedSamplesFromRow = useCallback((selectedSamples) => {
-		dispatch(setSelectedSamples(step.id, getIdsFromSelectedSamples(selectedSamples)))
-	}, [step, dispatch])
-
 	// Selection handler for sample selection checkboxes
 	const selectionProps = useCallback((onSelectionChangeCallback) => {
 		return {
@@ -277,7 +273,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			clearAllSamples: () => handleClearSelection(),
 			onSelectionChanged: onSelectionChangeCallback,
 		}
-	}, [step, stepSamples])
+	}, [handleClearSelection, stepSamples.selectedSamples.items])
 
 	/** Sorting by coordinate **/
 
@@ -309,6 +305,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		setSelectedTab(tabKey)
 	}, [step.id])
 
+	useEffect(() => {
+		if (stepSamples.selectedSamples.items.length === 0) {
+			onTabChange(GROUPED_SAMPLES_TAB_KEY)
+		}
+	}, [onTabChange, stepSamples.selectedSamples.items.length])
 
 	const onPrefillOpen = useCallback(() => {
 	}, [])
@@ -417,7 +418,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							stepSamples={stepSamples}
 							step={step}
 							protocol={protocol}
-							selection={selectionProps(setSelectedSamplesFromRow)}
 							setSortBy={handleSelectionTableSortChange}
 						/>
 					</Tabs.TabPane>
