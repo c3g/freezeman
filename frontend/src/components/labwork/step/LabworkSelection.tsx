@@ -4,11 +4,12 @@ import React, { useState, useCallback, useEffect, useMemo } from "react"
 import { DEFAULT_SMALL_PAGE_SIZE } from "../../../constants"
 import { useAppDispatch, useSampleAndLibraryList } from "../../../hooks"
 import { Protocol, Step } from "../../../models/frontend_models"
-import { updateSelectedSamplesAtStep, showSelectionChangedMessage } from "../../../modules/labworkSteps/actions"
+import { updateSelectedSamplesAtStep, showSelectionChangedMessage, setSelectedSamples, unselectSamples } from "../../../modules/labworkSteps/actions"
 import { LabworkStepSamples } from "../../../modules/labworkSteps/models"
-import { getColumnsForStep } from "../../WorkflowSamplesTable/ColumnSets"
+import { SampleAndLibrary, getColumnsForStep } from "../../WorkflowSamplesTable/ColumnSets"
 import WorkflowSamplesTable, { WorkflowSamplesTableProps } from "../../WorkflowSamplesTable/WorkflowSamplesTable"
 import { SampleColumnID } from "../../samples/SampleTableColumns"
+import { FMSId } from "../../../models/fms_api_models"
 
 const { Text } = Typography
 
@@ -16,11 +17,19 @@ export interface LabworkSelectionProps {
 	stepSamples: LabworkStepSamples
 	step: Step
 	protocol: Protocol | undefined
-	selection: WorkflowSamplesTableProps['selection']
 	setSortBy: WorkflowSamplesTableProps['setSortBy']
 }
 
-export function LabworkSelection({stepSamples, step, protocol, selection, setSortBy}: LabworkSelectionProps) {
+function samplesAndLibrariesToSampleIDs(sampleAndLibraries: SampleAndLibrary[]) {
+	return sampleAndLibraries.reduce((sampleIDs, sampleAndLibrary) => {
+		if (sampleAndLibrary.sample) {
+			sampleIDs.push(sampleAndLibrary.sample.id)
+		}
+		return sampleIDs
+	}, [] as FMSId[])
+}
+
+export function LabworkSelection({stepSamples, step, protocol, setSortBy}: LabworkSelectionProps) {
 	const dispatch = useAppDispatch()
 
 	const [pageSize, setPageSize] = useState(DEFAULT_SMALL_PAGE_SIZE)
@@ -52,6 +61,15 @@ export function LabworkSelection({stepSamples, step, protocol, selection, setSor
 		}
 		return columns
 	}, [step, protocol])
+
+	const selection: WorkflowSamplesTableProps['selection'] = useMemo(() => ({
+		selectedSampleIDs: stepSamples.selectedSamples.items,
+		onSelectionChanged(selectedSamples) {
+			const selectedSamplesInPage = samplesAndLibrariesToSampleIDs(selectedSamples)
+			const unselectedSamples = samplesAndLibrariesToSampleIDs(samples).filter((id) => !selectedSamplesInPage.includes(id))
+			dispatch(unselectSamples(step.id, unselectedSamples))
+		}
+	}), [dispatch, samples, step.id, stepSamples.selectedSamples.items])
 
 	return <>
 		{stepSamples.showSelectionChangedWarning &&
