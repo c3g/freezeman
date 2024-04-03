@@ -69,17 +69,17 @@ class AxiomCreateFoldersTestCase(TestCase):
             with open(os.path.join(self.automation_path, file_prefix, file_prefix + ".csv")) as f:
                 if i==0:
                     row = f.readline().strip("\n").split(",")
-                    self.assertEqual(row[0], "A01")
-                    self.assertEqual(row[1], "ArrayTest1")
-                    self.assertIn("AxiomTestSample1", row[2])
+                    self.assertEqual(row[0], '"A01"')
+                    self.assertEqual(row[1], '"ArrayTest1"')
+                    self.assertIn('AxiomTestSample1', row[2])
                     row = f.readline().strip("\n").split(",")
-                    self.assertEqual(row[0], "B01")
-                    self.assertEqual(row[1], "ArrayTest1")
-                    self.assertIn("AxiomTestSample2", row[2])
+                    self.assertEqual(row[0], '"B01"')
+                    self.assertEqual(row[1], '"ArrayTest1"')
+                    self.assertIn('AxiomTestSample2', row[2])
                 elif i==1:
                     row = f.readline().strip("\n").split(",")
-                    self.assertEqual(row[0], "A01")
-                    self.assertEqual(row[1], "ArrayTest2")
-                    self.assertIn("AxiomTestSample3", row[2])
+                    self.assertEqual(row[0], '"A01"')
+                    self.assertEqual(row[1], '"ArrayTest2"')
+                    self.assertIn('AxiomTestSample3', row[2])
                 else:
                     self.assertTrue(False)

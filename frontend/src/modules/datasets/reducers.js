@@ -128,6 +128,13 @@ export const datasets = (
             return merge(state, ['itemsByID', action.meta.id],
                 { error: action.error, isFetching: false, didFail: true });
 
+        case DATASETS.ADD_ARCHIVED_COMMENT.REQUEST:
+              return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
+        case DATASETS.ADD_ARCHIVED_COMMENT.RECEIVE:
+              return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
+        case DATASETS.ADD_ARCHIVED_COMMENT.ERROR:
+              return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
+
         default:
             return state;
     }

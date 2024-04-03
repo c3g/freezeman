@@ -1,8 +1,16 @@
 from django.db.models import Q
 
-from fms_core.models.sample_next_step import SampleNextStep
-
-from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample, Readset
+from .models import (Container,
+                     DerivedBySample,
+                     Index,
+                     Individual,
+                     Sample,
+                     PropertyValue,
+                     Dataset,
+                     Biosample,
+                     Readset,
+                     SampleNextStep,
+                     SampleNextStepByStudy)
 
 import django_filters
 
@@ -16,6 +24,7 @@ from .viewsets._constants import (
     _dataset_filterset_fields,
     _pooled_sample_filterset_fields,
     _sample_next_step_filterset_fields,
+    _sample_next_step_by_study_filterset_fields,
     _readset_filterset_fields,
 )
 
@@ -196,6 +205,7 @@ class SampleNextStepFilter(GenericFilter):
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
     quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
     ordering_container_name__icontains = django_filters.CharFilter(method="ordering_container_name_icontains_filter")
+    ordering_container_name = django_filters.CharFilter(method="ordering_container_name_exact_filter")
 
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
@@ -219,9 +229,30 @@ class SampleNextStepFilter(GenericFilter):
         condition = Q(ordering_container_name__icontains=value)
         return queryset.filter(condition)
 
+    def ordering_container_name_exact_filter(self, queryset, name, value):
+        condition = Q(ordering_container_name__exact=value)
+        return queryset.filter(condition)
+
     class Meta:
         model = SampleNextStep
         fields = _sample_next_step_filterset_fields
+
+class SampleNextStepByStudyFilter(GenericFilter):
+    qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
+
+    def qc_flag_filter(self, queryset, name, values):
+        condition = Q()
+        for value in values.split(','):
+            if value == "None":
+                bool_value = None
+            else:
+                bool_value = (value == 'true')
+            condition |= Q(qc_flag=bool_value)
+        return queryset.filter(condition)
+
+    class Meta:
+        model = SampleNextStepByStudy
+        fields = _sample_next_step_by_study_filterset_fields
 
 class ReadsetFilter(GenericFilter):
 

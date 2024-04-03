@@ -24,7 +24,7 @@ class PropertyType(TrackedModel):
     is_optional = models.BooleanField(default=False, help_text="Whether this property is optional or not.")
     content_type_choices = models.Q(app_label = 'fms_core', model = 'protocol')
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, limit_choices_to=content_type_choices)
-    object_id = models.PositiveIntegerField()
+    object_id = models.BigIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:

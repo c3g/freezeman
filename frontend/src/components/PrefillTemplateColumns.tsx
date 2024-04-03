@@ -3,6 +3,7 @@ import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemP
 import api from '../utils/api'
 import { InstrumentType } from '../models/frontend_models'
 import store from '../store'
+import moment from 'moment'
 import { useAppDispatch } from '../hooks'
 
 type ColumnType = 'number' | 'text' | 'date' | 'qc-instrument' | string[]
@@ -112,7 +113,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
                     if (!column.toLocaleLowerCase().includes("date")) {
                         prefillData[column] = fieldValues[column]
                     } else {
-                        prefillData[column] = new Date(fieldValues[column]).toISOString().split('T')[0]
+                        prefillData[column] = moment(fieldValues[column]).format("YYYY-MM-DD")
                     }
                 }
             }
@@ -159,7 +160,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
     return (
         <>
             <Button type='primary' disabled={!canPrefill} onClick={onButtonClick} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
-            <Modal title={"Optional Column Prefilling"} visible={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate} width={'30vw'}>
+            <Modal title={"Optional Column Prefilling"} open={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate} width={'30vw'}>
                 <Typography.Paragraph>
                     Select the columns you would like to prefill with a value for all samples.
                 </Typography.Paragraph>

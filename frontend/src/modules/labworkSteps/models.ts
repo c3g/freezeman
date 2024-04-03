@@ -1,4 +1,4 @@
-import { FMSId } from "../../models/fms_api_models"
+import { FMSId, LabworkStepInfo, SampleLocator } from "../../models/fms_api_models"
 import { SampleNextStep } from "../../models/frontend_models"
 import { PagedItemsByID } from "../../models/paged_items"
 
@@ -39,15 +39,10 @@ export interface LabworkStepSamples {
 	showSelectionChangedWarning: boolean					// If true, a warning is displayed that the selected samples were changed during refresh
 }
 
-export interface LabworkStepSamplesGroup {
-	name: string                      // Name identifying that group
-  count: number                     // Number of samples included in group
-  sample_locators: SampleLocator[]               // Samples included in group
-  containers: any
-}
+type LabworkStepInfoGroup = LabworkStepInfo["results"]["samples"]["groups"][number]
 
-export interface SampleLocator {
-  sample_id: FMSId
-  contextual_container_barcode: string
-  contextual_coordinates: string
+export interface LabworkStepSamplesGroup extends Pick<LabworkStepInfoGroup, 'name' | 'count'> {
+  containers: any
+  sample_locators: Record<FMSId, SampleLocator | undefined>
+  selected_samples: Record<FMSId, SampleLocator | undefined>
 }

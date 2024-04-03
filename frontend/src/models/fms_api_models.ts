@@ -68,16 +68,21 @@ export interface FMSCoordinate extends FMSTrackedModel {
 }
 
 export interface FMSDataset extends FMSTrackedModel {
-    external_project_id : FMSId         // External (Hercules) project ID
-    files: FMSId[]                      // List of dataset file ID's
-    lane: number                        // Flowcell lane number of dataset
-    latest_release_update?: string      // ?
-    released_status_count: number       // Number of files released
-    blocked_status_count: number        // Number of files blocked
-    run_name: string                    // The name of the experiment run that generated this dataset
-    project_name: string                // Human readable name for the project
-    metric_report_url?: string          // An external url to a report containing metrics for the dataset run
+    external_project_id : FMSId             // External (Hercules) project ID
+    files: FMSId[]                          // List of dataset file ID's
+    lane: number                            // Flowcell lane number of dataset
+    latest_release_update?: string          // ?
+    released_status_count: number           // Number of files released
+    blocked_status_count: number            // Number of files blocked
+    run_name: string                        // The name of the experiment run that generated this dataset
+    project_name: string                    // Human readable name for the project
+    metric_report_url?: string              // An external url to a report containing metrics for the dataset run
     readset_count: number
+    archived_comments: FMSArchivedComment[] // Array containing the archived comments
+}
+
+export interface FMSArchivedComment extends FMSTrackedModel {
+    comment: string 
 }
 
 export interface FMSReadset extends FMSTrackedModel {
@@ -85,6 +90,7 @@ export interface FMSReadset extends FMSTrackedModel {
     name: string                       // External name that identifies the readset if the run did not come from Freezeman
     sample_name: string                // Name that identifies the sample if the run did not come from Freezeman
     derived_sample: FMSId              // Derived sample matching the readset
+    sample_source: FMSId               // Last non pool sample (if any, else last pool) before experiment
     release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
     release_status_timestamp: Date
     validation_status: number
@@ -213,6 +219,7 @@ export interface FMSLibraryType extends FMSTrackedModel {
 export interface FMSMetric extends FMSTrackedModel {
     name: string                        // Metric name
     metric_group: string                // Named group that metric belongs to
+    readset_id: FMSId                   // Readset ID
     sample_name: string                 // Name of sample metric applies to
     derived_sample_id?: FMSId           // Derived sample id, if metric is from a freezeman experiment run
     run_name: string                    // Name of run that generated metric
@@ -476,4 +483,24 @@ export interface WorkflowStepOrder {    // Not a tracked model - just a simple s
     step_id: FMSId                      // Step ID
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
+}
+
+export interface SampleLocator {
+  sample_id: FMSId
+  contextual_container_barcode: string
+  contextual_coordinates: string
+}
+
+export interface LabworkStepInfo {
+    results: {
+        step_id: FMSId
+        samples: {
+            grouping_column: string
+            groups: {
+                name: string
+                count: number
+                sample_locators: SampleLocator[]
+            }[]
+        }
+    }
 }

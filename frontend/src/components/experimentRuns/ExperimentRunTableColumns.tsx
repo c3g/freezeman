@@ -178,9 +178,9 @@ export const EXPERIMENT_RUN_FILTER_DEFINITIONS: { [key in ExperimentRunFilterID]
 export const EXPERIMENT_RUN_FILTER_KEYS: { [key in ExperimentRunFilterID]: string } = {
     [ExperimentRunFilterID.ID]: 'id',
     [ExperimentRunFilterID.NAME]: 'name',
-    [ExperimentRunFilterID.RUN_TYPE]: 'run_type',
-    [ExperimentRunFilterID.INSTRUMENT]: 'instrument',
-    [ExperimentRunFilterID.INSTRUMENT_TYPE]: 'instrument_type',
-    [ExperimentRunFilterID.CONTAINER_BARCODE]: 'container_barcode',
+    [ExperimentRunFilterID.RUN_TYPE]: 'run_type__name',
+    [ExperimentRunFilterID.INSTRUMENT]: 'instrument__name',
+    [ExperimentRunFilterID.INSTRUMENT_TYPE]: 'instrument__type__type',
+    [ExperimentRunFilterID.CONTAINER_BARCODE]: 'container__barcode',
     [ExperimentRunFilterID.START_DATE]: 'start_date',
 }

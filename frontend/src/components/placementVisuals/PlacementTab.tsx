@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react"
 import Placement from "./Placement"
 import { notification } from "antd"
-import { useAppDispatch } from "../../hooks"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { selectContainerKindsByID } from "../../selectors";
 import api from "../../utils/api"
+import { FMSContainer } from "../../models/fms_api_models"
 
 export interface sampleInfo {
     coordinates: string,
@@ -17,6 +19,7 @@ export interface cellSample {
 export interface containerSample {
     samples: cellSample
     container_name: string,
+    container_barcode?: string,
     rows: number,
     columns: number,
     container_kind: string,
@@ -27,41 +30,74 @@ export const SELECTED_STRING = 'selected'
 export const SOURCE_STRING = 'source'
 export const DESTINATION_STRING = 'destination'
 export const PREVIEW_STRING = 'preview'
+export const TUBES_WITHOUT_PARENT = "tubes_without_parent_container"
 
 interface PlacementTabProps {
     save: (changes) => void,
     selectedSamples: any,
     stepID: any,
 }
-const createEmptyContainerArray = (): containerSample[] => {
-    return [
-        {
-            container_name: '',
-            rows: 8,
-            columns: 12,
-            container_kind: '96-well plate',
-            samples: {
-            },
-        },
-    ]
-}
+
 //component used to display the tab for sample placement (plate visualization)
 const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     const dispatch = useAppDispatch()
-    const [sourceContainerList, setSourceContainerList] = useState<containerSample[]>(createEmptyContainerArray())
-    const [destinationContainerList, setDestinationContainerList] = useState<containerSample[]>(createEmptyContainerArray())
+    const [sourceContainerList, setSourceContainerList] = useState<containerSample[]>([])
+    const [destinationContainerList, setDestinationContainerList] = useState<containerSample[]>([])
+    const containerKinds = useAppSelector(selectContainerKindsByID)
 
     const [index, setIndex] = useState<number>(0)
     const [destinationIndex, setDestinationIndex] = useState<number>(0)
 
-    useEffect(() => {
-        fetchListContainers()
-    }, [selectedSamples])
+    //fetches containers based on selected samples from Step.
+    const fetchListContainers = useCallback(async () => {
+      //parses samples appropriately so the PlacementContainer component can render it
+      const parseSamples = (list, selectedSamples, container_name, destination) => {
+          const object = {}
+          list.forEach(located_sample => {
+              const id = located_sample.sample_id
+              const sample = selectedSamples.find(sample => sample.sample.id == id).sample
+              object[id] = { id: id, name: sample.name, coordinates: located_sample.contextual_coordinates, type: destination.includes(id.toString()) ? PLACED_STRING : NONE_STRING, sourceContainer: container_name }
+          })
+          return object
+      }
+
+      const sampleIDs = selectedSamples.map(sample => sample.sample.id)
+      const destination: any = handleSelectedSamples(sampleIDs)
+      if (sampleIDs.length > 0) {
+        const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
+        const containers = (values.data.results.samples.groups)
+        Promise.all(containers.map(async container => {
+          if (container.name != TUBES_WITHOUT_PARENT) {
+            const container_detail: FMSContainer = await dispatch(api.containers.list({ name: container.name })).then(container => container.data.results[0])
+            return {
+              container_name: container.name,
+              samples: parseSamples(container.sample_locators, selectedSamples, container.name, [].concat(destination.map(container => Object.keys(container.samples)).flat(1))),
+              columns: containerKinds[container_detail.kind].coordinate_spec[1].length,
+              rows: containerKinds[container_detail.kind].coordinate_spec[0].length,
+              container_kind: container_detail.kind
+            }
+          }
+          else {
+            return {
+              container_name: container.name,
+              samples: parseSamples(container.sample_locators, selectedSamples, container.name, [].concat(destination.map(container => Object.keys(container.samples)).flat(1))),
+              columns: 0,
+              rows: 0,
+              container_kind: undefined
+            }
+          }
+        })).then(containerSamples => setSourceContainerList(containerSamples))
+      }
+  }, [selectedSamples])
 
     useEffect(() => {
-        setSourceContainerList(createEmptyContainerArray())
-        setDestinationContainerList(createEmptyContainerArray())
+        fetchListContainers()
+    }, [fetchListContainers])
+
+    useEffect(() => {
+        setSourceContainerList([])
+        setDestinationContainerList([])
     }, [stepID])
 
     const handleSelectedSamples =
@@ -82,48 +118,15 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
             return tempDestination
         }
 
-    //fetches containers based on selected samples from Step.
-    const fetchListContainers = useCallback(async () => {
-        //parses samples appropriately so the PlacementContainer component can render it
-        const parseSamples = (list, selectedSamples, container_name, destination) => {
-            const object = {}
-            list.forEach(located_sample => {
-                const id = located_sample.sample_id
-                const sample = selectedSamples.find(sample => sample.sample.id == id).sample
-                object[id] = { id: id, name: sample.name, coordinates: located_sample.contextual_coordinates, type: destination.includes(id.toString()) ? PLACED_STRING : NONE_STRING, sourceContainer: container_name }
-            })
-            return object
-        }
-
-        const sampleIDs = selectedSamples.map(sample => sample.sample.id)
-        const destination: any = handleSelectedSamples(sampleIDs)
-        let containerSamples: containerSample[] = createEmptyContainerArray()
-        if (sampleIDs.length > 0) {
-            const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
-            const containers = (values.data.results.samples.groups)
-            containerSamples = []
-            containers.forEach(container => {
-                containerSamples.push({
-                    container_name: container.name,
-                    samples: parseSamples(container.sample_locators, selectedSamples, container.name, [].concat(destination.map(container => Object.keys(container.samples)).flat(1))),
-                    columns: 12,
-                    rows: 8,
-                    container_kind: '96-well plate'
-                })
-            })
-        }
-        setSourceContainerList(containerSamples)
-    }, [selectedSamples])
+    
 
     //function used to handle add Container, adds it to destination container list
     const addContainer = useCallback(
         (newContainer) => {
             const mutatedContainer = {
-                container_name: 'destination' + (destinationContainerList.length + 1),
                 samples: {},
-                rows: 8,
-                columns: 12,
-                container_kind: '96-well plate',
+                rows: containerKinds[newContainer.container_kind].coordinate_spec[0].length,
+                columns: containerKinds[newContainer.container_kind].coordinate_spec[1].length,
                 ...newContainer
             }
             setDestinationContainerList([...destinationContainerList, mutatedContainer])
@@ -182,29 +185,17 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
 
     }, [JSON.stringify(destinationContainerList), sourceContainerList, index, destinationIndex])
 
-
-
-
     //function used to save the changes, to the current displayed source and destination
     const saveChanges = useCallback(
-        (source, destination, name) => {
-            const setContainerSamples = (containerList, newSamples, index, name?) => {
+        (source, destination) => {
+            const setContainerSamples = (containerList, newSamples, index) => {
                 const newList = [...containerList]
                 newList[index].samples = newSamples
-                newList[index].container_name = name ? name : newList[index].container_name
                 return newList
             }
             setSourceContainerList(setContainerSamples([...sourceContainerList], source, index)) 
-            setDestinationContainerList(setContainerSamples([...destinationContainerList], destination, destinationIndex, name))
+            setDestinationContainerList(setContainerSamples([...destinationContainerList], destination, destinationIndex))
         }, [sourceContainerList, JSON.stringify(destinationContainerList), destinationIndex, index])
-
-    //function used to handle the change of displayed destination name
-    const changeDestinationName = useCallback(
-        (e) => {
-            const tempDestination = [...destinationContainerList]
-            tempDestination[destinationIndex].container_name = e.target.value
-            setDestinationContainerList(tempDestination)
-        }, [destinationContainerList, destinationIndex])
 
     //function used to pass all of the destination containers to the prefill so that the coordinates can be prefilled for selected samples at step
     const saveDestination = useCallback(() => {
@@ -213,20 +204,18 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
         destinationContainerList.forEach(container => {
             const samples = container.samples
             if (!error && Object.keys(samples).length > 0) {
-                if (container.container_name != '') {
+                if (container.container_barcode != '') {
                     Object.keys(samples).forEach(id => {
-                        if (container.container_name != '') {
-                            //NOTE: for future, a sample should be able to have multiple destination coordinates as, hence the placement data at key is an array
-                            placementData[id] = []
-                            placementData[id].push({ coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_name, container_kind: '96-well plate' })
-                        }
+                      //NOTE: for future, a sample should be able to have multiple destination coordinates as, hence the placement data at key is an array
+                      placementData[id] = placementData[id] ? placementData[id] : []
+                      placementData[id].push({ coordinates: samples[id].coordinates, container_name: container.container_name, container_barcode: container.container_barcode, container_kind: container.container_kind })
                     })
                 } else {
                       error = true
-                      const MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-barcode`
+                      const MISSING_CONTAINER_DETAILS_NOTIFICATION_KEY = `LabworkStep.placement-missing-container-details`
                       notification.error({
-                          message: `Missing destination container barcode in destination list.`,
-                          key: MISSING_CONTAINER_BARCODE_NOTIFICATION_KEY,
+                          message: `Missing destination container information in destination list.`,
+                          key: MISSING_CONTAINER_DETAILS_NOTIFICATION_KEY,
                           duration: 20
                       })
                 }
@@ -250,13 +239,12 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
     return (
         <>
             <Placement
-                sourceSamples={sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0]}
-                destinationSamples={destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0]}
+                sourceSamples={sourceContainerList.length > 0 ? sourceContainerList[index] ? sourceContainerList[index] : sourceContainerList[0] : undefined}
+                destinationSamples={destinationContainerList.length > 0 ? destinationContainerList[destinationIndex] ? destinationContainerList[destinationIndex] : destinationContainerList[0] : undefined}
                 disableChangeSource={sourceContainerList.length == 1}
                 disableChangeDestination={destinationContainerList.length == 1}
                 cycleContainer={changeContainer}
                 saveChanges={saveChanges}
-                changeDestinationName={changeDestinationName}
                 addDestination={addContainer}
                 removeCells={removeCells}
                 saveDestination={saveDestination}

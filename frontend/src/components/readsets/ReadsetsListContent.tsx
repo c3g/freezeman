@@ -210,11 +210,11 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                     expandIcon: ({ expanded, onExpand, record }) =>
                         expanded ? (
                             <Tooltip title="Hide Metrics">
-                                <MinusCircleTwoTone onClick={e => onExpand(record, e)} />
+                                <MinusCircleTwoTone style={{fontSize: 18}} onClick={e => onExpand(record, e)} />
                             </Tooltip>
                         ) : (
                             <Tooltip title="View Metrics">
-                                <PlusCircleTwoTone onClick={e => onExpand(record, e)} />
+                                <PlusCircleTwoTone style={{fontSize: 18}} onClick={e => onExpand(record, e)} />
                             </Tooltip>
 
                         )

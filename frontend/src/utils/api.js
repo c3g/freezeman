@@ -32,8 +32,8 @@ const api = {
       templates: () => get(`/containers/list_prefills/`),
       request: (options, template) => filteredpost(`/containers/prefill_template/`, {...options}, form({ template: template })),
     },
-    search: (q, { parent, sample_holding, exact_match }) =>
-      get("/containers/search/", { q, parent, sample_holding, exact_match }),
+    search: (q, { parent, sample_holding, exact_match, except_kinds }) =>
+      get("/containers/search/", { q, parent, sample_holding, exact_match, except_kinds }),
   },
 
   coordinates: {
@@ -45,13 +45,16 @@ const api = {
   datasets: {
     get: id => get(`/datasets/${id}/`),
     list: (options, abort) => get("/datasets/", options, { abort }),
-    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters })
+    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters }),
+    addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
   },
+
   readsets: {
-    get: id => get(`/readsets/${id}`),
+    get: id => get(`/readsets/${id}/`),
     list: (options, abort) => get(`/readsets/`, options, { abort }),
     setReleaseStatus: (id, release_status) => post(`/readsets/set_release_status/`, {id, release_status}),
   },
+
   datasetFiles: {
     get: id => get(`/dataset-files/${id}/`),
     update: dataset => patch(`/dataset-files/${dataset.id}/`, dataset),
@@ -298,7 +301,7 @@ const api = {
   },
 
   workflows: {
-    get: workflowId => get(`/workflows/${workflowId}`),
+    get: workflowId => get(`/workflows/${workflowId}/`),
     list: (options, abort) => get('/workflows/', options, { abort })
   },
 

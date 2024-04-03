@@ -1,21 +1,25 @@
 from django.utils import timezone
 from django.http import HttpResponseBadRequest
 from django.db import transaction
+from django.db.models import Q, F, Max, Count
+from django.contrib.contenttypes.models import ContentType
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import Q, F, Max, Count
 from fms_core.filters import DatasetFilter
 from fms_core.models.dataset import Dataset
+from fms_core.models.archived_comment import ArchivedComment
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models._constants import ReleaseStatus, ValidationStatus
 from fms_core.serializers import  DatasetSerializer
 from fms_core.models.readset import Readset
 
+import fms_core.services.dataset as service
+
 from ._utils import _list_keys
 from ._constants import _dataset_filterset_fields
 
-import fms_core.services.dataset as service
 
 class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
@@ -83,3 +87,20 @@ class DatasetViewSet(viewsets.ModelViewSet):
             excluded_readset.save()
 
         return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)
+    
+    @action(detail=True, methods=["post"])
+    def add_archived_comment(self, request, pk):
+        data = request.data
+        comment = data.get("comment")
+        error_response = HttpResponseBadRequest(f"Could not create comment.")
+
+        content_type_dataset = ContentType.objects.get_for_model(Dataset)
+        try:
+            archived_comment = ArchivedComment.objects.create(content_type=content_type_dataset, object_id=pk, comment=comment)
+        except Dataset.DoesNotExist as err:
+            error_response = HttpResponseBadRequest(f"Dataset for comment does not exist.")
+            
+        if (archived_comment is not None):
+            return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)
+        else:
+            return error_response

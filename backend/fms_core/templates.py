@@ -5,7 +5,10 @@ various viewsets. Can be used to calculate URIs for the template files too.
 
 from django.templatetags.static import static
 
-from fms_core.template_importer._constants import VALID_ROBOT_CHOICES, LIBRARY_QC_QUALITY_INSTRUMENTS, LIBRARY_QC_QUANTITY_INSTRUMENTS
+from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
+                                                   VALID_QC_FLAG_CHOICES,
+                                                   LIBRARY_QC_QUALITY_INSTRUMENTS,
+                                                   LIBRARY_QC_QUANTITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 
@@ -105,22 +108,22 @@ CONTAINER_RENAME_TEMPLATE = {
 EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
           'name': 'Experiments',
-          'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
-                      'Instrument Name', 'Experiment Start Date (YYYY-MM-DD)', 'Comment'],
+          'headers': ['Experiment Name', 'Experiment Container Barcode', 'Instrument Name',
+                      'Experiment Container Kind', 'Experiment Start Date (YYYY-MM-DD)', 'Comment'],
           'stitch_column': 'Experiment Name',
           'batch': True,
       },
       {
           'name': 'Samples',
           'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates',
-                      'Source Sample Current Volume (uL)', 'Source Sample Volume Used (uL)', 'Experiment Container Coordinates', 'Comment', 'Workflow Action'],
+                      'Source Sample Current Volume (uL)', 'Source Sample Volume Used (uL)', 'Experiment Container Coordinates (Lane)', 'Comment', 'Workflow Action'],
           'stitch_column': 'Experiment Name',
           'batch': False,
       },]
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
   "identity": {"description": "Template to add Infinium experiments",
-               "file": static("submission_templates/Experiment_Infinium_24_v4_4_0.xlsx"),
+               "file": static("submission_templates/Experiment_Infinium_24_v4_8_0.xlsx"),
                "protocol": "Illumina Infinium Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -132,7 +135,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Samples", "Experiment Container Coordinates", "coordinates"),
+      ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
       ("Experiments", "Experiment Container Barcode", "container_barcode"),
       ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
@@ -140,7 +143,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 
 EXPERIMENT_MGI_TEMPLATE = {
   "identity": {"description": "Template to add MGI experiments",
-               "file": static("submission_templates/Experiment_run_MGI_v4_4_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_MGI_v4_8_0.xlsx"),
                "protocol": "DNBSEQ Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -152,7 +155,7 @@ EXPERIMENT_MGI_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-    ("Samples", "Experiment Container Coordinates", "coordinates"),
+    ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
     ("Experiments", "Experiment Container Barcode", "container_barcode"),
     ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
@@ -160,7 +163,7 @@ EXPERIMENT_MGI_TEMPLATE = {
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {
   "identity": {"description": "Template to add Illumina experiments",
-               "file": static("submission_templates/Experiment_run_illumina_v4_7_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_illumina_v4_8_0.xlsx"),
                "protocol": "Illumina Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -172,7 +175,7 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("Samples", "Experiment Container Coordinates", "coordinates"),
+      ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
       ("Experiments", "Experiment Container Barcode", "container_barcode"),
       ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
@@ -180,7 +183,7 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
 
 EXPERIMENT_AXIOM_TEMPLATE = {
     "identity" : {"description": "Template to add Axiom experiments",
-                  "file": static("submission_templates/Experiment_run_Axiom_v4_7_0.xlsx"),
+                  "file": static("submission_templates/Experiment_run_Axiom_v4_8_0.xlsx"),
                   "protocol": "Axiom Experiment Preparation"},
     "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
     # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -192,7 +195,7 @@ EXPERIMENT_AXIOM_TEMPLATE = {
     ],
     # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
     "placement info": [
-        ("Samples", "Experiment Container Coordinates", "coordinates"),
+        ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
         ("Experiments", "Experiment Container Barcode", "container_barcode"),
         ("Experiments", "Experiment Container Kind", "container_kind"),
     ],
@@ -337,7 +340,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
 
 LIBRARY_QC_TEMPLATE = {
   "identity": {"description": "Template to perform library quality control",
-               "file": static("submission_templates/Library_QC_v4_4_0.xlsx"),
+               "file": static("submission_templates/Library_QC_v4_8_0.xlsx"),
                "protocol": "Library Quality Control"},
   "sheets info": [
       {
@@ -353,7 +356,9 @@ LIBRARY_QC_TEMPLATE = {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
       "Quality Instrument": LIBRARY_QC_QUALITY_INSTRUMENTS,
+      "Quality Flag": VALID_QC_FLAG_CHOICES,
       "Quantity Instrument": LIBRARY_QC_QUANTITY_INSTRUMENTS,
+      "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
 
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -406,17 +411,17 @@ NORMALIZATION_TEMPLATE = {
 
 NORMALIZATION_PLANNING_TEMPLATE = {
   "identity": {"description": "Template to perform normalization planning",
-               "file": static("submission_templates/Normalization_planning_v4_7_0.xlsx"),
+               "file": static("submission_templates/Normalization_planning_v4_8_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Type', 'Robot', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
+        'headers': ['Type', 'Robot', 'Exclude From Robot', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
                     'Source Parent Container Barcode', 'Source Parent Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                     'Source Sample Current Volume (uL)', 'Source Sample Current Conc. (ng/uL)', 'Available Input (ng)',
-                    'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
+                    'Norm. NA Quantity (ng)', 'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Manual Diluent Volume (uL)', 'Final Volume (uL)'],
         'batch': False,
       },
   ],
@@ -425,6 +430,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       "Norm. NA Quantity (ng)": "number",
       "Norm. Conc. (ng/uL)": "number",
       "Norm. Conc. (nM)": "number",
+      "Manual Diluent Volume (uL)": "number",
       "Final Volume (uL)": "number",
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -578,7 +584,7 @@ SAMPLE_UPDATE_TEMPLATE = {
 
 SAMPLE_QC_TEMPLATE = {
   "identity": {"description": "Template to perform sample quality control",
-               "file": static("submission_templates/Sample_QC_v4_4_0.xlsx"),
+               "file": static("submission_templates/Sample_QC_v4_8_0.xlsx"),
                "protocol": "Sample Quality Control"},
   "sheets info": [
       {
@@ -594,7 +600,9 @@ SAMPLE_QC_TEMPLATE = {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
       "Quality Instrument": "qc-instrument",
-      "Quantity Instrument": "qc-instrument"
+      "Quality Flag": VALID_QC_FLAG_CHOICES,
+      "Quantity Instrument": "qc-instrument",
+      "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
   "prefill info": [

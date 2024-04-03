@@ -13,7 +13,8 @@ export const SET_SORT_BY           = "DATASETS.SET_SORT_BY";
 export const SET_FILTER            = "DATASETS.SET_FILTER";
 export const SET_FILTER_OPTION     = "DATASETS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "DATASETS.CLEAR_FILTERS";
-export const SET_RELEASE_STATUS     = createNetworkActionTypes("DATASETS.SET_RELEASE_STATUS");
+export const SET_RELEASE_STATUS    = createNetworkActionTypes("DATASETS.SET_RELEASE_STATUS");
+export const ADD_ARCHIVED_COMMENT  = createNetworkActionTypes("DATASETS.ADD_ARCHIVED_COMMENT");
 
 export const get = id => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id];
@@ -103,6 +104,14 @@ export const setReleaseStatusAll = (id, releaseStatus, exceptions = [], filters 
     }
 };
 
+export const addArchivedComment = (id, comment) => async (dispatch, getState) => {
+  const dataset = getState().datasets.itemsByID[id];
+  if (dataset && dataset.isFetching)
+      return;
+
+  return await dispatch(networkAction(ADD_ARCHIVED_COMMENT, api.datasets.addArchivedComment(id, comment), { meta: { id, comment } }));
+};
+
 export default {
     GET,
     SET_SORT_BY,
@@ -113,6 +122,7 @@ export default {
     LIST_FILTER,
     LIST_TABLE,
     SET_RELEASE_STATUS,
+    ADD_ARCHIVED_COMMENT,
     get,
     setSortBy,
     setFilter,
@@ -121,6 +131,7 @@ export default {
     list,
     listTable,
     listFilter,
+    addArchivedComment,
 };
 
 // Helper to call list() after another action

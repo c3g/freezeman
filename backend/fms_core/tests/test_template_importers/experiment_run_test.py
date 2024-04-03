@@ -16,7 +16,7 @@ from fms_core.services.project import create_project
 class ExperimentRunInfiniumTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_Infinium_24_v4_4_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_Infinium_24_v4_8_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "EQ00539851"
@@ -201,7 +201,7 @@ class ExperimentRunInfiniumTestCase(TestCase):
 class ExperimentRunMGITestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_MGI_v4_4_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_MGI_v4_8_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "CONTAINERWITHSAMPLETESTMGI"
@@ -278,7 +278,7 @@ class ExperimentRunMGITestCase(TestCase):
         # Check property values DNBSEQ preparation process
         self.assertEqual(p1.value, 'flowlot')
         self.assertEqual(p2.value, 'Auto-Loader')
-        self.assertEqual(p3.value, 'Side A')
+        self.assertEqual(p3.value, 'A')
         self.assertEqual(p4.value, 'DNBSEQ-T7 PE100')
         self.assertEqual(p5.value, 'seq kit lot')
         self.assertEqual(p6.value, 'cartridge lot')
@@ -292,7 +292,7 @@ class ExperimentRunMGITestCase(TestCase):
 class ExperimentRunAxiomTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_Axiom_v4_7_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_Axiom_v4_8_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "CONTAINERTESTAXIOM"
@@ -350,7 +350,7 @@ class ExperimentRunAxiomTestCase(TestCase):
 class ExperimentRunIlluminaTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_illumina_v4_4_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_illumina_v4_8_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "CONTAINERWITHSAMPLETESTILLUMINA"
@@ -423,11 +423,11 @@ class ExperimentRunIlluminaTestCase(TestCase):
 
         # Check property values for Illumina preparation process
         self.assertEqual(p1.value, 'flowcell-lot')
-        self.assertEqual(p2.value, 'Side A')
+        self.assertEqual(p2.value, 'A')
         self.assertEqual(p3.value, 'phix lot')
         self.assertEqual(p4.value, '2n lot')
         self.assertEqual(p5.value, 'buffer lot')
-        self.assertEqual(p6.value, 'sbs lot')
+        self.assertEqual(p6.value, ' ')
         self.assertEqual(p7.value, 'xp-lot')
         self.assertEqual(p8.value, 'r1c')
         self.assertEqual(p9.value, 'r2c')

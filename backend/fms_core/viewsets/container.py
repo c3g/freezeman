@@ -98,20 +98,32 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
 
     def create(self, request):
         container = request.data
+        container_parent = None
+        coordinates = None
 
         try:
             if container['name'] and Container.objects.filter(name=container['name']).exists():
                 raise ValidationError({"name": f"Container with name {container['name']} already exists."})
             if not container['name'] and Container.objects.filter(name=container['barcode']).exists():
                 raise ValidationError({"barcode": f"Container with name {container['barcode']} already exists. Missing container name, barcode will replace container name."})
-
             container = remove_empty_str_from_dict(container)
-            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=container['coordinate'], container_parent=container['location'], creation_comment=container['comment'])
+            if container['location']:
+                try:
+                    container_parent = Container.objects.get(id=container['location'])
+                except Exception as err:
+                    raise ValidationError({"location": f"Failed to find parent container with ID {container['location']}."})
+            if container['coordinate']:
+                try:
+                    coordinates = Coordinate.objects.get(id=container['coordinate']).name
+                except Exception as err:
+                    raise ValidationError({"coordinate": f"Failed to find coordinate with ID {container['coordinate']}."})
+            container_obj, errors, warnings = create_container(barcode=container['barcode'], kind=container['kind'], name=container['name'], coordinates=coordinates, container_parent=container_parent, creation_comment=container['comment'])
             serializer = ContainerSerializer(container_obj)
         except Exception as errors:
             raise ValidationError(errors)
         
         return Response(serializer.data)
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
@@ -158,12 +170,14 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         """
         Searches for parent containers that match the given query
         """
-        search_input = _request.GET.get("q")
+        search_input = _request.GET.get("q", None)
         is_parent = _request.GET.get("parent") == 'true'
         is_sample_holding = _request.GET.get("sample_holding") == 'true'
         is_exact_match = _request.GET.get("exact_match") == 'true'
+        qs_except_kinds = _request.GET.get("except_kinds")
+        except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
-        if search_input:
+        if search_input is not None:
             if is_exact_match:
                 query = Q(barcode=search_input)
                 query.add(Q(name=search_input), Q.OR)
@@ -173,9 +187,11 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
                 query.add(Q(name__icontains=search_input), Q.OR)
                 query.add(Q(id__icontains=search_input), Q.OR)
             if is_parent:
-                query.add(Q(kind__in=PARENT_CONTAINER_KINDS), Q.AND)
+                kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
+                query.add(Q(kind__in=kinds), Q.AND)
             if is_sample_holding:
-                query.add(Q(kind__in=SAMPLE_CONTAINER_KINDS), Q.AND)
+                kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
+                query.add(Q(kind__in=kinds), Q.AND)
             containers_data = Container.objects.filter(query)
         else:
             containers_data = Container.objects.all()

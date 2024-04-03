@@ -6,6 +6,7 @@ import { Link } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { clearFilters, listFilter, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/datasets/actions"
 import { selectDatasetsState } from "../../selectors"
+import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
 
 import { FMSDataset } from "../../models/fms_api_models"
 import FilteredList from "../FilteredList"
@@ -114,6 +115,7 @@ const DatasetTable = ({ run_name }: DatasetTableProps) => {
                     filterKey={DATASET_FILTERS.run_name.key}
                     isFetching={isFetching}
                     page={page}
+                    expandable={ExpandableTableDatasetComments()}
                 />
                 : <>
                     <div className='filters-warning-bar'>
@@ -142,6 +144,7 @@ const DatasetTable = ({ run_name }: DatasetTableProps) => {
                         onLoad={dispatchListTable}
                         onChangeSort={dispatchSetSortBy}
                         filterKey={undefined}   // TS complains if the filterKey prop is missing
+                        expandable={ExpandableTableDatasetComments()}
                     />
                 </>
         }

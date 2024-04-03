@@ -1,8 +1,10 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 import reversion
+from django.contrib.contenttypes.fields import GenericRelation
 
 from .tracked_model import TrackedModel
+from .archived_comment import ArchivedComment
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH
 
@@ -15,6 +17,7 @@ class Dataset(TrackedModel):
     lane = models.PositiveIntegerField(help_text="Coordinates of the lane in a container")
     experiment_run = models.ForeignKey(blank=True, null=True, help_text='Experiment run matching the dataset.', on_delete=models.PROTECT, related_name='datasets', to='fms_core.experimentrun')
     metric_report_url = models.CharField(null=True, blank=True, max_length=STANDARD_FILE_PATH_LENGTH, help_text="URL to the run processing metrics report.")
+    archived_comments = GenericRelation(ArchivedComment)
 
     class Meta:
         constraints = [

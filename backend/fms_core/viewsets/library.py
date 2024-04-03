@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery, IntegerField
-from collections import Counter
+from collections import Counter, defaultdict
 
 from fms_core.filters import LibraryFilter
 from fms_core.models import Sample, Container, DerivedBySample, LibraryType, Library
@@ -208,24 +208,20 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         database.
         """
         pooled_libraries = self.queryset.filter(is_pooled=True).values('id')
+        count_pooled = pooled_libraries.count()
         non_pooled_libraries = self.queryset.filter(is_pooled=False)
+        count_unpooled = non_pooled_libraries.count()
 
-        # Get the existing library types from the current libraries
-        library_types_ids = non_pooled_libraries.values_list('derived_samples__library__library_type')
+        total_count = count_pooled + count_unpooled
 
-        class SubqueryCount(Subquery):
-            template = "(SELECT count(*) FROM (%(subquery)s) _count)"
-            output_field = IntegerField()
-
-        # Count the number of libraries per library type by doing a SubQueryCount (see class above)
-        library_types = LibraryType.objects.filter(id__in=[library_types_ids]).annotate(
-            library_count=SubqueryCount(
-                non_pooled_libraries.filter(derived_samples__library__library_type_id=OuterRef("pk"))
-            ))
+        library_type_counts = defaultdict(int)
+        for item in non_pooled_libraries.values("id", "derived_samples__library__library_type"):
+            library_type = item["derived_samples__library__library_type"]
+            library_type_counts[library_type] += 1
 
         return Response({
-            "total_count": len(pooled_libraries) + len(non_pooled_libraries),
-            "library_type_counts": {c['id']: c['library_count'] for c in library_types.values('id', 'library_count')},
+            "total_count": total_count,
+            "library_type_counts": library_type_counts,
         })
 
     @action(detail=False, methods=["get"])
