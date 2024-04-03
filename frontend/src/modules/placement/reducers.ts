@@ -2,17 +2,32 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Container, Coordinate, Sample } from "../../models/frontend_models"
 import { CoordinateSpec } from "../../models/fms_api_models"
 
+type ContainerIdentifier = Container['name']
+
 export interface CellIdentifier {
-    parentContainerID: Container['id']
+    parentContainer: ContainerIdentifier
     column: number
     row: number
 }
 
-export type CellState = {
-    state: 'none' | 'selected' | 'preview' | 'placed-out' | 'placed-in'
-    sample: Sample['id'] | null
-    toCell: CellIdentifier | null
-    fromCell: CellIdentifier | null
+export interface CellState {
+    state: {
+        status: 'none'
+        sample?: Sample['id']
+    } | {
+        status: 'selected'
+        sample: Sample['id']
+    } | {
+        status: 'preview'
+        fromCell: CellIdentifier
+    } | {
+        status: 'placed-in'
+        fromCell: CellIdentifier
+    } | {
+        status: 'placed-out'
+        sample: Sample['id']
+        toCell: CellIdentifier
+    }
 }
 
 export interface PlacementContainerState {
@@ -21,20 +36,19 @@ export interface PlacementContainerState {
 }
 
 export interface PlacementState {
-    parentContainers: Record<Container['id'], PlacementContainerState | undefined>
+    parentContainers: Record<ContainerIdentifier, PlacementContainerState | undefined>
     activeSelection: CellIdentifier[]
-    dragStart: CellIdentifier  | null
+    dragStart: CellIdentifier | null
 }
 
 export interface LoadSamplesAndContainersPayload {
     parentContainers: {
-        isSource: boolean
-        id: Container['id']
+        name: ContainerIdentifier
         spec: CoordinateSpec
         containers: {
             row: Coordinate['row']
             column: Coordinate['column']
-            sample?: Sample['id']
+            sample: Sample['id']
         }[]
     }[]
 }
@@ -51,7 +65,7 @@ const slice = createSlice({
     name: 'PLACEMENT',
     initialState,
     reducers: {
-        loadSourceSamples(state, action: PayloadAction<LoadSamplesAndContainersPayload>) {
+        loadSamplesAndContainers(state, action: PayloadAction<LoadSamplesAndContainersPayload>) {
             const parentContainers = action.payload.parentContainers
             for (const parentContainer of parentContainers) {
                 // initialize empty cells array
@@ -59,7 +73,7 @@ const slice = createSlice({
                     cells: [],
                     spec: parentContainer.spec
                 }
-                state.parentContainers[parentContainer.id] = parentContainerState
+                state.parentContainers[parentContainer.name] = parentContainerState
 
                 // initialize array of cells
                 const rowLength = parentContainer.spec[0]?.length ?? 1
@@ -67,12 +81,7 @@ const slice = createSlice({
                     for (let row = 0; row < rowLength; row++) {
                         const rowCell: CellState[] = []
                         for (let col = 0; col < (parentContainer.spec[1]?.length ?? 1); col++) {
-                            rowCell.push({
-                                state: 'none',
-                                sample: null,
-                                toCell: null,
-                                fromCell: null
-                            })
+                            rowCell.push({ state: { status: 'none' } })
                         }
                         parentContainerState.cells.push(rowCell)
                     }
@@ -81,28 +90,33 @@ const slice = createSlice({
                 // populate cells
                 const cells = parentContainerState.cells
                 for (const container of parentContainer.containers) {
-                    cells[container.row][container.column].sample = container.sample ?? null
+		            cells[container.row][container.column].state = { status: 'none', sample: container.sample }
                 }
             }
         },
         clickCell(state, action: PayloadAction<ClickCellPayload>) {
-            const { parentContainerID, row, column } = action.payload
+            const { parentContainer: parentContainerID, row, column } = action.payload
             const parentContainer = state.parentContainers[parentContainerID]
             if (parentContainer) {
                 const cell = parentContainer.cells[row][column]
-                if (cell.state === 'none'|| cell.state === 'preview') {
-                    if (cell.sample) {
+                if (cell.state.status === 'none') {
+                    if (cell.state.sample) {
                         state.activeSelection.push(action.payload)
                     } else if (state.activeSelection.length > 0) {
-                        cell.state = 'placed-in'
-                        cell.fromCell = action.payload
-                        // should not be undefined
-                        const activeSelection = state.activeSelection.pop() as CellIdentifier
-                        const sourceCell = state.parentContainers[activeSelection.parentContainerID]?.cells[activeSelection.row][activeSelection.column]
-                        if (sourceCell) {
-                            sourceCell.state = 'placed-out'
-                            sourceCell.toCell = action.payload
+                        cell.state = {
+			    status: 'placed-in',
+			    fromCell: action.payload
+			}
+                        const activeSelection = state.activeSelection[0]
+                        const sourceCell = state.parentContainers[activeSelection.parentContainer]?.cells[activeSelection.row][activeSelection.column]
+                        if (sourceCell && sourceCell.state.status === 'selected') {
+                            sourceCell.state = {
+			        status: 'placed-out',
+				sample: sourceCell.state.sample,
+			        toCell: { parentContainer: parentContainerID, row, column }
+			    }
                         }
+			state.activeSelection = []
                     }
                 }
             }
@@ -111,5 +125,5 @@ const slice = createSlice({
     }
 })
 
-export const { loadSourceSamples } = slice.actions
+export const { loadSamplesAndContainers, clickCell } = slice.actions
 export default slice.reducer
