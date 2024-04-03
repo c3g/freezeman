@@ -96,7 +96,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 			</div>
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
 				{renderedSteps.map((step) => {
-					const countString = `${step.ready.count} / ${step.ready.count + step.completed.count + step.removed.count}`
+					const countString = `${step.completed.count} / ${step.ready.count + step.completed.count + step.removed.count}`
 					const countTitle = `${step.completed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`					
 					const removedTitle = step.removed.count === 1 ? `1 sample was removed from study at this step` : `${step.removed.count} samples were removed from study at this step`
 
