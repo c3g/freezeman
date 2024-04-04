@@ -12,17 +12,17 @@ export interface CellIdentifier {
 export interface CellState {
     state: {
         status: 'none'
-        sample?: Sample['id']
+        sample: Sample['id'] | null
     } | {
         status: 'selected'
         sample: Sample['id']
     } | {
         status: 'preview'
-        sample: undefined
+        sample: null
         fromCell: CellIdentifier
     } | {
-        status: 'placed-in' | 'highlight'
-        sample: undefined
+        status: 'placed-in'
+        sample: null
         fromCell: CellIdentifier
     } | {
         status: 'placed-out'
@@ -33,13 +33,12 @@ export interface CellState {
 
 export interface PlacementContainerState {
     spec: CoordinateSpec
-    cells: Record<string, CellState>
+    cells: Record<string, CellState | undefined>
 }
 
 export interface PlacementState {
     parentContainers: Record<ContainerIdentifier, PlacementContainerState | undefined>
-    activeSelection: CellIdentifier[]
-    dragStart: CellIdentifier | null
+    activeSelections: CellIdentifier[]
     placementType: 'group' | 'pattern'
     placementDirection: 'row' | 'column'
 }
@@ -57,10 +56,25 @@ export interface LoadSamplesAndContainersPayload {
 
 export interface ClickCellPayload extends CellIdentifier { }
 
-const initialState: PlacementState = {
+export function createEmptyCells(spec: CoordinateSpec) {
+    const cells: PlacementContainerState['cells'] = {}
+    for (const row of spec[0] ?? []) {
+        for (const col of spec[1] ?? []) {
+            cells[row + col] = {
+                state: {
+                    status: 'none',
+                    sample: null
+                }
+            }
+        }
+    }
+
+    return cells
+}
+
+export const initialState: PlacementState = {
     parentContainers: {},
-    activeSelection: [],
-    dragStart: null,
+    activeSelections: [],
     placementType: 'pattern',
     placementDirection: 'row'
 }
@@ -79,38 +93,60 @@ const slice = createSlice({
                 }
                 state.parentContainers[parentContainer.name] = parentContainerState
 
+                parentContainerState.cells = createEmptyCells(parentContainer.spec)
+
                 // populate cells
                 for (const container of parentContainer.containers) {
-                    parentContainerState.cells[container.coordinate].state = { status: 'none', sample: container.sample }
-                }
-            }
-        },
-        clickCell(state, action: PayloadAction<ClickCellPayload>) {
-            const { parentContainer: parentContainerID, coordinate } = action.payload
-            const parentContainer = state.parentContainers[parentContainerID]
-            if (parentContainer) {
-                const destCell = parentContainer.cells[coordinate]
-                if (destCell.state.status === 'none') {
-                    if (destCell.state.sample) {
-                        state.activeSelection.push(action.payload)
-                    } else if (state.activeSelection.length > 0) {
-                        const activeSelection = state.activeSelection[0]
-                        const sourceCell = state.parentContainers[activeSelection.parentContainer]?.cells[activeSelection.coordinate]
-                        if (sourceCell && sourceCell.state.status === 'selected') {
-                            sourceCell.state = {
-                                status: 'placed-out',
-                                sample: sourceCell.state.sample,
-                                toCell: action.payload
-                            }
-                            destCell.state = {
-                                status: 'placed-in',
-                                sample: undefined,
-                                fromCell: { parentContainer: activeSelection.parentContainer, coordinate }
-                            }
+                    parentContainerState.cells[container.coordinate] = {
+                        state: {
+                            status: 'none', sample: container.sample
                         }
-                        state.activeSelection = []
                     }
                 }
+            }
+            return state
+        },
+        clickCell(state, action: PayloadAction<ClickCellPayload>) {
+            const { parentContainer: parentContainerName, coordinate } = action.payload
+            const parentContainer = state.parentContainers[parentContainerName]
+            if (parentContainer) {
+                const clickedCell = parentContainer.cells[coordinate]
+                if (!clickedCell) {
+                    throw new Error(`Invalid coordinate "${coordinate}" for parent container "${parentContainerName}"`)
+                }
+
+                // TODO: throw error if clickedCell is not at 'none' status
+                if (clickedCell.state.status === 'none') {
+                    if (clickedCell.state.sample) {
+                        state.activeSelections.push(action.payload)
+                        clickedCell.state = {
+                            status: 'selected',
+                            sample: clickedCell.state.sample
+                        }
+                    } else if (state.activeSelections.length > 0) {
+                        // TODO: handle many activeSelection
+                        const srcLocation = state.activeSelections[0]
+                        const srcCell = state.parentContainers[srcLocation.parentContainer]?.cells[srcLocation.coordinate]
+                        // srcCell must be in 'selected' status while in activeSelections anyways
+                        if (srcCell && srcCell.state.status === 'selected') {
+                            srcCell.state = {
+                                status: 'placed-out',
+                                sample: srcCell.state.sample,
+                                toCell: action.payload
+                            }
+                            clickedCell.state = {
+                                status: 'placed-in',
+                                sample: null,
+                                fromCell: srcLocation
+                            }
+                        }
+                        state.activeSelections = []
+                    }
+                } else {
+                    throw new Error(`The clicked cell at "${parentContainerName}@${coordinate}" is at status "${clickedCell?.state.status}" not "none"`)
+                }
+            } else {
+                throw new Error(`Parent container with name '${parentContainerName}' has not been loaded`)
             }
             return state
         }
