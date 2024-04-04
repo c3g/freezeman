@@ -10,25 +10,11 @@ export interface CellIdentifier {
 }
 
 export interface CellState {
-    state: {
-        status: 'none'
-        sample: Sample['id'] | null
-    } | {
-        status: 'selected'
-        sample: Sample['id']
-    } | {
-        status: 'preview'
-        sample: null
-        fromCell: CellIdentifier
-    } | {
-        status: 'placed-in'
-        sample: null
-        fromCell: CellIdentifier
-    } | {
-        status: 'placed-out'
-        sample: Sample['id']
-        toCell: CellIdentifier
-    }
+    preview: boolean
+    selected: boolean
+    sample: Sample['id'] | null
+    fromCell?: CellIdentifier
+    toCell?: CellIdentifier
 }
 
 export interface PlacementContainerState {
@@ -39,8 +25,7 @@ export interface PlacementContainerState {
 export interface PlacementState {
     parentContainers: Record<ContainerIdentifier, PlacementContainerState | undefined>
     activeSelections: CellIdentifier[]
-    placementType: 'group' | 'pattern'
-    placementDirection: 'row' | 'column'
+    error?: string
 }
 
 export interface LoadSamplesAndContainersPayload {
@@ -54,17 +39,25 @@ export interface LoadSamplesAndContainersPayload {
     }[]
 }
 
-export interface ClickCellPayload extends CellIdentifier { }
+export interface MouseOnCellPayload extends CellIdentifier {
+    placementType?: 'group' | 'pattern'
+    placementDirection?: 'row' | 'column'
+}
+
+interface PlaceCellPayload {
+    placedOutLocation: CellIdentifier
+    placedInLocation: CellIdentifier
+}
 
 export function createEmptyCells(spec: CoordinateSpec) {
     const cells: PlacementContainerState['cells'] = {}
     for (const row of spec[0] ?? []) {
         for (const col of spec[1] ?? []) {
             cells[row + col] = {
-                state: {
-                    status: 'none',
-                    sample: null
-                }
+                sample: null,
+                preview: false,
+                selected: false,
+
             }
         }
     }
@@ -72,11 +65,17 @@ export function createEmptyCells(spec: CoordinateSpec) {
     return cells
 }
 
+function atLocation(id: CellIdentifier) {
+    return `${id.coordinate}@${id.parentContainer}`
+}
+
+function placementCoordinates(sources: CellIdentifier[], destination: CellIdentifier): CellIdentifier[] {
+    
+}
+
 export const initialState: PlacementState = {
     parentContainers: {},
     activeSelections: [],
-    placementType: 'pattern',
-    placementDirection: 'row'
 }
 
 const slice = createSlice({
@@ -98,60 +97,78 @@ const slice = createSlice({
                 // populate cells
                 for (const container of parentContainer.containers) {
                     parentContainerState.cells[container.coordinate] = {
-                        state: {
-                            status: 'none', sample: container.sample
-                        }
+                        sample: container.sample,
+                        preview: false,
+                        selected: false
                     }
                 }
             }
             return state
         },
-        clickCell(state, action: PayloadAction<ClickCellPayload>) {
-            const { parentContainer: parentContainerName, coordinate } = action.payload
-            const parentContainer = state.parentContainers[parentContainerName]
-            if (parentContainer) {
-                const clickedCell = parentContainer.cells[coordinate]
-                if (!clickedCell) {
-                    throw new Error(`Invalid coordinate "${coordinate}" for parent container "${parentContainerName}"`)
-                }
+        placeCell(state, action: PayloadAction<PlaceCellPayload>) {
+            const { placedOutLocation, placedInLocation } = action.payload
 
-                // TODO: throw error if clickedCell is not at 'none' status
-                if (clickedCell.state.status === 'none') {
-                    if (clickedCell.state.sample) {
-                        state.activeSelections.push(action.payload)
-                        clickedCell.state = {
-                            status: 'selected',
-                            sample: clickedCell.state.sample
-                        }
-                    } else if (state.activeSelections.length > 0) {
-                        // TODO: handle many activeSelection
-                        const srcLocation = state.activeSelections[0]
-                        const srcCell = state.parentContainers[srcLocation.parentContainer]?.cells[srcLocation.coordinate]
-                        // srcCell must be in 'selected' status while in activeSelections anyways
-                        if (srcCell && srcCell.state.status === 'selected') {
-                            srcCell.state = {
-                                status: 'placed-out',
-                                sample: srcCell.state.sample,
-                                toCell: action.payload
-                            }
-                            clickedCell.state = {
-                                status: 'placed-in',
-                                sample: null,
-                                fromCell: srcLocation
-                            }
-                        }
-                        state.activeSelections = []
-                    }
-                } else {
-                    throw new Error(`The clicked cell at "${parentContainerName}@${coordinate}" is at status "${clickedCell?.state.status}" not "none"`)
-                }
-            } else {
-                throw new Error(`Parent container with name '${parentContainerName}' has not been loaded`)
+            const sourceContainer = state.parentContainers[placedOutLocation.parentContainer]
+            if (!sourceContainer) {
+                state.error = `Invalid source parent container: "${placedOutLocation.parentContainer}"`
+                return state
             }
+            const placedOutCell = sourceContainer.cells[placedOutLocation.coordinate]
+            if (!placedOutCell) {
+                state.error = `Invalid coordinate: "${atLocation(placedOutLocation)}"`
+                return state
+            }
+            if (!placedOutCell.sample) {
+                state.error = `Container at "${atLocation(placedOutLocation)}" has no sample`
+                return state
+            }
+            if (placedOutCell.fromCell || placedOutCell.toCell) {
+                state.error = `Cannot place sample at ${atLocation(placedOutLocation)}`
+                return state
+            }
+
+            const destinationContainer = state.parentContainers[placedInLocation.parentContainer]
+            if (!destinationContainer) {
+                state.error = `Invalid destination parent container: "${placedInLocation.parentContainer}"`
+                return state
+            }
+            const placedInCell = destinationContainer.cells[placedInLocation.coordinate]
+            if (!placedInCell) {
+                state.error = `Invalid coordinate: "${atLocation(placedInLocation)}"`
+                return state
+            }
+            if (placedInCell.sample !== null) {
+                state.error = `Container at ${atLocation(placedInLocation)} already contains sample`
+                return state
+            }
+            if (placedInCell.fromCell || placedInCell.toCell) {
+                state.error = `Cannot place sample at ${atLocation(placedInLocation)}`
+                return state
+            }
+
+            placedOutCell.toCell = placedInLocation
+            placedInCell.fromCell = placedOutLocation
+
             return state
+        },
+        clickCell(state, action: PayloadAction<MouseOnCellPayload>) {
+            const { parentContainer, coordinate, placementType = 'group', placementDirection = 'row' } = action.payload
+            
+            const container = state.parentContainers[parentContainer]
+            if (!container) {
+                state.error = `Invalid source parent container: "${parentContainer}"`
+                return state
+            }
+            const placedOutCell = container.cells[coordinate]
+            if (!placedOutCell) {
+                state.error = `Invalid coordinate: "${atLocation({ parentContainer, coordinate })}"`
+                return state
+            }
+
+            
         }
     }
 })
 
-export const { loadSamplesAndContainers, clickCell } = slice.actions
+export const { loadSamplesAndContainers } = slice.actions
 export default slice.reducer

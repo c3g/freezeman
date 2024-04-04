@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { loadSamplesAndContainers, clickCell, initialState, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, createEmptyCells } from './reducers'
+import reducer, { loadSamplesAndContainers, clickCell, initialState, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, createEmptyCells, MouseOnCellPayload } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
 
 test('initialize with 0 containers and samples', () => {
@@ -45,23 +45,23 @@ const dstContainer: LoadParentContainerPayload = {
 }
 
 
-test('initialize with 2 containers containing more than one container', () => {
-    function makeExpectedParentContainerState(parentContainer: LoadParentContainerPayload): PlacementState['parentContainers'] {
-        const { name, spec, containers } = parentContainer
-        return {
-            [name]: {
-                spec,
-                cells: {
-                    ...createEmptyCells(spec),
-                    ...containers.reduce((cells: PlacementContainerState['cells'], c) => {
-                        cells[c.coordinate] = { state: { status: 'none', sample: c.sample } }
-                        return cells
-                    }, {})
-                }
+function makeExpectedParentContainerState(parentContainer: LoadParentContainerPayload): PlacementState['parentContainers'] {
+    const { name, spec, containers } = parentContainer
+    return {
+        [name]: {
+            spec,
+            cells: {
+                ...createEmptyCells(spec),
+                ...containers.reduce((cells: PlacementContainerState['cells'], c) => {
+                    cells[c.coordinate] = { state: { status: 'none', sample: c.sample } }
+                    return cells
+                }, {})
             }
         }
     }
+}
 
+test('initialize with 2 containers containing more than one container', () => {
     const expectedState: PlacementState = {
         ...initialState,
         parentContainers: {
@@ -76,36 +76,34 @@ test('initialize with 2 containers containing more than one container', () => {
     )).toEqual(expectedState)
 })
 
-describe('select a sample from source and place it in destination', () => {
+describe('select all samples from source, preview them on destination and then place', () => {
     let state = reducer(initialState, loadSamplesAndContainers({ parentContainers: [srcContainer, dstContainer] }))
 
-    const srcLocation: CellIdentifier = { parentContainer: srcContainer.name, coordinate: srcContainer.containers[0].coordinate }
-    test('select a sample from source', () => {
-        state = reducer(state, clickCell(srcLocation))
-        expect(state.parentContainers[srcContainer.name]?.cells[srcLocation.coordinate]?.state.status).toEqual('selected')
-        expect(state.activeSelections).toEqual([srcLocation])
+    const placedOutCoords = srcContainer.containers.map((container) => container.coordinate)
+
+    test('select all samples from source', () => {
+        state = placedOutCoords.reduce((state, coordinate) => {
+            return reducer(state, clickCell({
+                parentContainer: srcContainer.name,
+                coordinate
+            }))
+        }, state)
+        expect(placedOutCoords.map((coordinate) => state.parentContainers[srcContainer.name]?.cells[coordinate]?.state)).toMatchObject({ status: 'selected' })
+        expect(state.activeSelections).toHaveLength(3)
     })
 
-    const dstLocation: CellIdentifier = { parentContainer: dstContainer.name, coordinate: 'A04' }
+    const placedInCoords = ['D01', 'D02', 'D03']
+
+    const dstLocation: MouseOnCellPayload = {
+        parentContainer: dstContainer.name,
+        coordinate: 'D01',
+        placementType: 'group',
+        placementDirection: 'row'
+    }
     test('place a sample in destination from source', () => {
         state = reducer(state, clickCell(dstLocation))
 
-        const srcCellState = state.parentContainers[srcContainer.name]?.cells[srcLocation.coordinate]?.state
-        const dstCellState = state.parentContainers[dstContainer.name]?.cells[dstLocation.coordinate]?.state
-
-        if (srcCellState && dstCellState) {
-            expect(srcCellState).toEqual({
-                status: 'placed-out',
-                sample: srcContainer.containers[0].sample,
-                toCell: dstLocation
-            } as CellState['state'])
-
-            expect(dstCellState).toEqual({
-                status: 'placed-in',
-                sample: null,
-                fromCell: srcLocation
-            } as CellState['state'])
-        }
+        placedOutCoords.map(())
 
         expect(state.activeSelections).toHaveLength(0)
     })
