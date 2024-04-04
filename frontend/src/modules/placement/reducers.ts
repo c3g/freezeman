@@ -1,4 +1,4 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit"
+import { Draft, PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateSpec } from "../../models/fms_api_models"
 
@@ -44,11 +44,6 @@ export interface MouseOnCellPayload extends CellIdentifier {
     placementDirection?: 'row' | 'column'
 }
 
-interface PlaceCellPayload {
-    placedOutLocation: CellIdentifier
-    placedInLocation: CellIdentifier
-}
-
 export function createEmptyCells(spec: CoordinateSpec) {
     const cells: PlacementContainerState['cells'] = {}
     for (const row of spec[0] ?? []) {
@@ -69,8 +64,56 @@ function atLocation(id: CellIdentifier) {
     return `${id.coordinate}@${id.parentContainer}`
 }
 
+function getCell(state: Draft<PlacementState>, location: CellIdentifier) {
+    const container = state.parentContainers[location.parentContainer]
+    if (!container) {
+        state.error = `Invalid container: "${location.parentContainer}"`
+        return [] as const
+    }
+    const cell = container.cells[location.coordinate]
+    if (!cell) {
+        state.error = `Invalid coordinate: "${atLocation(location)}"`
+        return [] as const
+    }
+
+    return [container, cell] as const
+}
+
+function placeCell(state: Draft<PlacementState>, sourceLocation: CellIdentifier, destinationLocation: CellIdentifier) {
+    const [sourceContainer, sourceCell] = getCell(state, sourceLocation)
+    if (!sourceContainer || !sourceCell) {
+        return state
+    }
+    if (!sourceCell.sample) {
+        state.error = `Container at "${atLocation(sourceLocation)}" has no sample`
+        return
+    }
+    if (sourceCell.fromCell || sourceCell.toCell) {
+        state.error = `Cannot place sample at ${atLocation(sourceLocation)}`
+        return
+    }
+
+    const [destinationContainer, destinationCell] = getCell(state, destinationLocation)
+    if (!destinationContainer || !destinationCell) {
+        return state
+    }
+    if (destinationCell.sample !== null) {
+        state.error = `Container at ${atLocation(destinationLocation)} already contains sample`
+        return
+    }
+    if (destinationCell.fromCell || destinationCell.toCell) {
+        state.error = `Cannot place sample at ${atLocation(destinationLocation)}`
+        return
+    }
+
+    sourceCell.toCell = destinationLocation
+    destinationCell.fromCell = sourceLocation
+
+    return state
+}
+
 function placementCoordinates(sources: CellIdentifier[], destination: CellIdentifier): CellIdentifier[] {
-    
+    return []
 }
 
 export const initialState: PlacementState = {
@@ -105,67 +148,13 @@ const slice = createSlice({
             }
             return state
         },
-        placeCell(state, action: PayloadAction<PlaceCellPayload>) {
-            const { placedOutLocation, placedInLocation } = action.payload
-
-            const sourceContainer = state.parentContainers[placedOutLocation.parentContainer]
-            if (!sourceContainer) {
-                state.error = `Invalid source parent container: "${placedOutLocation.parentContainer}"`
-                return state
-            }
-            const placedOutCell = sourceContainer.cells[placedOutLocation.coordinate]
-            if (!placedOutCell) {
-                state.error = `Invalid coordinate: "${atLocation(placedOutLocation)}"`
-                return state
-            }
-            if (!placedOutCell.sample) {
-                state.error = `Container at "${atLocation(placedOutLocation)}" has no sample`
-                return state
-            }
-            if (placedOutCell.fromCell || placedOutCell.toCell) {
-                state.error = `Cannot place sample at ${atLocation(placedOutLocation)}`
-                return state
-            }
-
-            const destinationContainer = state.parentContainers[placedInLocation.parentContainer]
-            if (!destinationContainer) {
-                state.error = `Invalid destination parent container: "${placedInLocation.parentContainer}"`
-                return state
-            }
-            const placedInCell = destinationContainer.cells[placedInLocation.coordinate]
-            if (!placedInCell) {
-                state.error = `Invalid coordinate: "${atLocation(placedInLocation)}"`
-                return state
-            }
-            if (placedInCell.sample !== null) {
-                state.error = `Container at ${atLocation(placedInLocation)} already contains sample`
-                return state
-            }
-            if (placedInCell.fromCell || placedInCell.toCell) {
-                state.error = `Cannot place sample at ${atLocation(placedInLocation)}`
-                return state
-            }
-
-            placedOutCell.toCell = placedInLocation
-            placedInCell.fromCell = placedOutLocation
-
-            return state
-        },
         clickCell(state, action: PayloadAction<MouseOnCellPayload>) {
             const { parentContainer, coordinate, placementType = 'group', placementDirection = 'row' } = action.payload
             
-            const container = state.parentContainers[parentContainer]
-            if (!container) {
-                state.error = `Invalid source parent container: "${parentContainer}"`
+            const [clickedContainer, clickedCell] = getCell(state, { parentContainer, coordinate })
+            if (!clickedContainer || !clickedCell) {
                 return state
             }
-            const placedOutCell = container.cells[coordinate]
-            if (!placedOutCell) {
-                state.error = `Invalid coordinate: "${atLocation({ parentContainer, coordinate })}"`
-                return state
-            }
-
-            
         }
     }
 })
