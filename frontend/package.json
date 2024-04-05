@@ -4,7 +4,7 @@
   "description": "React-based front-end for FreezeMan",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "watch": "webpack --watch --mode development",
     "build": "webpack --mode production",
     "build-dev": "webpack --mode development",
