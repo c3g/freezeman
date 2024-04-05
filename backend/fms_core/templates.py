@@ -43,13 +43,13 @@ MAX_HEADER_OFFSET = 20
 
 AXIOM_PREPARATION_TEMPLATE = {
   "identity": {"description": "Template to prepare samples for Axiom genotyping",
-               "file": static("submission_templates/Axiom_sample_preparation_v4_5_0.xlsx"),
+               "file": static("submission_templates/Axiom_sample_preparation_v4_9_0.xlsx"),
                "protocol": "Axiom Sample Preparation"},
   "sheets info": [
       {
           'name': 'Axiom Batch',
           'headers': ['Container Barcode', 'Container Name', 'Preparation Start Date (YYYY-MM-DD)', 'Comment', 'Workflow Action',
-                      'Axiom Module 1 Barcode', 'Incubation Time In Amplification', 'Incubation Time Out Amplification',
+                      'Axiom Module 1 Barcode', 'Incubation Time In Amplification (YYYY-MM-DD HH:MM)', 'Incubation Time Out Amplification (YYYY-MM-DD HH:MM)',
                       'Liquid Handler Instrument Amplification', 'Stored Before Fragmentation', 'Comment Amplification',
                       'Axiom Module 2.1 Barcode Fragmentation', 'Axiom Module 2.2 Barcode Fragmentation',
                       'Liquid Handler Instrument Fragmentation', 'Comment Fragmentation', 'Axiom Module 2.1 Barcode Precipitation',

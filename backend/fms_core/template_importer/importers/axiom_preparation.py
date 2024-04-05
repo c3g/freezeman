@@ -8,6 +8,13 @@ from fms_core.utils import str_cast_and_normalize
 
 PROPERTIES_STARTING_INDEX = 5
 
+# Some template columns have headers that are not valid names (invalid characters)
+# {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
+TEMPLATE_PROPERTY_MAPPING = {
+    "Incubation Time In Amplification (YYYY-MM-DD HH:MM)": "Incubation Time In Amplification",
+    "Incubation Time Out Amplification (YYYY-MM-DD HH:MM)": "Incubation Time Out Amplification",
+}
+
 class AxiomPreparationImporter(GenericImporter):
     SHEETS_INFO = AXIOM_PREPARATION_TEMPLATE["sheets info"]
 
@@ -44,8 +51,10 @@ class AxiomPreparationImporter(GenericImporter):
     def import_template_inner(self):
         batch_sheet = self.sheets['Axiom Batch']
         batch_df = batch_sheet.dataframe
-
-        self.initialize_data_for_template(properties=batch_df.values[batch_sheet.header_row_nb][self.properties_starting_index:].tolist())
+        properties = batch_df.values[batch_sheet.header_row_nb][self.properties_starting_index:].tolist()
+        # Replace in the list of property types that are modified in the Template header definition
+        properties = [TEMPLATE_PROPERTY_MAPPING[property] if property in TEMPLATE_PROPERTY_MAPPING.keys() else property for property in properties]
+        self.initialize_data_for_template(properties=properties)
 
         # Identify for each row of the matching workflow step
         step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO, True)
@@ -62,7 +71,9 @@ class AxiomPreparationImporter(GenericImporter):
                 if i < self.properties_starting_index:
                     sample_preparation_dict[key] = row[key]
                 else:
-                    process_properties[key]['value'] = val
+                    # Convert problematic header names
+                    combined_key = TEMPLATE_PROPERTY_MAPPING[key] if key in TEMPLATE_PROPERTY_MAPPING.keys() else key
+                    process_properties[combined_key]['value'] = val
 
             axiom_preparation_kwargs = dict(
                 container={'barcode': str_cast_and_normalize(sample_preparation_dict['Container Barcode']),
