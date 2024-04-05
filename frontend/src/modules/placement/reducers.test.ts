@@ -1,7 +1,15 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { actions, initialState, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, createEmptyCells, MouseOnCellPayload, coordinatesToOffsets, offsetsToCoordinates, PlacementType, PlacementDirection, placementDestinationLocations } from './reducers'
-const { loadSamplesAndContainers, clickCell } = actions
+import reducer, { loadSamplesAndContainers, clickCell, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, PlacementType, PlacementDirection, helpers } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
+
+const {
+    initialState,
+    createEmptyCells,
+    coordinatesToOffsets,
+    offsetsToCoordinates,
+    placementDestinationLocations,
+    clickCellHelper,
+} = helpers
 
 type LoadParentContainerPayload = LoadSamplesAndContainersPayload['parentContainers'][number]
 

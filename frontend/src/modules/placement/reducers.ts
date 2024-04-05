@@ -46,7 +46,7 @@ export interface MouseOnCellPayload extends CellIdentifier {
     placementDirection: PlacementDirection
 }
 
-export function createEmptyCells(spec: CoordinateSpec) {
+function createEmptyCells(spec: CoordinateSpec) {
     const cells: PlacementContainerState['cells'] = {}
     for (const row of spec[0] ?? []) {
         for (const col of spec[1] ?? ['']) {
@@ -99,7 +99,7 @@ function placeCell(state: Draft<PlacementState>, sourceLocation: CellIdentifier,
     destinationCell.placedFrom = sourceLocation
 }
 
-export function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
+function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
     const offsets: number[] = []
     const originalCoordinates = coordinates
     for (const axis of spec) {
@@ -117,7 +117,7 @@ export function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) 
     return offsets
 }
 
-export function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) {
+function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) {
     if (spec.length !== offsets.length) {
         throw new Error(`Cannot convert offsets ${JSON.stringify(offsets)} to coordinates with spec ${JSON.stringify(spec)}`)
     }
@@ -135,7 +135,7 @@ export function offsetsToCoordinates(offsets: readonly number[], spec: Coordinat
     return coordinates.join('')
 }
 
-export function placementDestinationLocations(state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementType: PlacementType, placementDirection: PlacementDirection): CellIdentifier[] {
+function placementDestinationLocations(state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementType: PlacementType, placementDirection: PlacementDirection): CellIdentifier[] {
     const newOffsetsList: number[][] = []
     const destinationContainer = state.parentContainers[destination.parentContainer]
     if (!destinationContainer) {
@@ -180,7 +180,7 @@ export function placementDestinationLocations(state: PlacementState, sources: Ce
     return newOffsetsList.map((offsets) => ({ parentContainer: destination.parentContainer, coordinates: offsetsToCoordinates(offsets, destinationContainer.spec) }))
 }
 
-export function clickCellHelper(state: Draft<PlacementState>, action: PayloadAction<MouseOnCellPayload>) {
+function clickCellHelper(state: Draft<PlacementState>, action: PayloadAction<MouseOnCellPayload>) {
     const { parentContainer, coordinates: coordinate, placementType = 'group', placementDirection = 'row' } = action.payload
                 
     const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
@@ -204,7 +204,7 @@ export function clickCellHelper(state: Draft<PlacementState>, action: PayloadAct
     }
 }
 
-export const initialState: PlacementState = {
+const initialState: PlacementState = {
     parentContainers: {},
     activeSelections: [],
 }
@@ -252,5 +252,13 @@ const slice = createSlice({
     }
 })
 
-export const actions = slice.actions
+export const { loadSamplesAndContainers, clickCell } = slice.actions
+export const helpers = {
+    initialState,
+    createEmptyCells,
+    coordinatesToOffsets,
+    offsetsToCoordinates,
+    placementDestinationLocations,
+    clickCellHelper,
+}
 export default slice.reducer
