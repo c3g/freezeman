@@ -180,6 +180,30 @@ export function placementDestinationLocations(state: PlacementState, sources: Ce
     return newOffsetsList.map((offsets) => ({ parentContainer: destination.parentContainer, coordinates: offsetsToCoordinates(offsets, destinationContainer.spec) }))
 }
 
+export function clickCellHelper(state: Draft<PlacementState>, action: PayloadAction<MouseOnCellPayload>) {
+    const { parentContainer, coordinates: coordinate, placementType = 'group', placementDirection = 'row' } = action.payload
+                
+    const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
+    const clickedCell = getContainerAndCell(state, clickedLocation).cell
+    if (!clickedCell.placedAt) {
+        clickedCell.selected = !clickedCell.selected
+        if (clickedCell.selected) {
+            state.activeSelections.push(clickedLocation)
+        } else {
+            state.activeSelections = state.activeSelections.filter((c) => !(c.coordinates === clickedLocation.coordinates && c.parentContainer === clickedLocation.parentContainer))
+        }
+    } else if (state.activeSelections.length > 0) {
+        // relying on placeCell to do error checking
+
+        const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementType, placementDirection)
+        for (let index = 0; index < state.activeSelections.length; index++) {
+            placeCell(state, state.activeSelections[index], destinationLocations[index])
+            getContainerAndCell(state, state.activeSelections[index]).cell.selected = false
+        }
+        state.activeSelections = []
+    }
+}
+
 export const initialState: PlacementState = {
     parentContainers: {},
     activeSelections: [],
@@ -214,30 +238,9 @@ const slice = createSlice({
         },
         clickCell(state, action: PayloadAction<MouseOnCellPayload>) {
             try {
-                const { parentContainer, coordinates: coordinate, placementType = 'group', placementDirection = 'row' } = action.payload
-                
-                const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
-                const clickedCell = getContainerAndCell(state, clickedLocation).cell
-                if (!clickedCell.placedAt) {
-                    clickedCell.selected = !clickedCell.selected
-                    if (clickedCell.selected) {
-                        state.activeSelections.push(clickedLocation)
-                    } else {
-                        state.activeSelections = state.activeSelections.filter((c) => !(c.coordinates === clickedLocation.coordinates && c.parentContainer === clickedLocation.parentContainer))
-                    }
-                } else if (state.activeSelections.length > 0) {
-                    // relying on placeCell to do error checking
-
-                    const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementType, placementDirection)
-                    for (let index = 0; index < state.activeSelections.length; index++) {
-                        placeCell(state, state.activeSelections[index], destinationLocations[index])
-                        getContainerAndCell(state, state.activeSelections[index]).cell.selected = false
-                    }
-                    state.activeSelections = []
-                }
+                clickCellHelper(state, action)
             } catch (e) {
                 const originalState = original(state) ?? initialState
-                throw e
                 return {
                     ...originalState,
                     error: e.toString()
