@@ -1,6 +1,6 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
-import { CoordinateSpec } from "../../models/fms_api_models"
+import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 
 type ContainerIdentifier = Container['name']
 
@@ -174,19 +174,20 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
                 return offsets.map((_, index) => offsets[index] < minOffsets[index] ? offsets[index] : minOffsets[index])
             }, sourceOffsetsList[0])
         
-            for (const sourceOffsets of sourceOffsetsList) {
-                const newSourceOffsets: typeof sourceOffsets = []
-                destinationContainer.spec.forEach((_, index) => {
-                    newSourceOffsets.push(sourceOffsets[index] - minOffsets[index] + destinationStartingOffsets[index])
-                })
-                newOffsetsList.push(newSourceOffsets)
-            }
+
+            newOffsetsList.push(
+                ...sourceOffsetsList.map(
+                    (sourceOffsets) => destinationContainer.spec.map(
+                        (_: CoordinateAxis, index: number) => sourceOffsets[index] - minOffsets[index] + destinationStartingOffsets[index]
+                    )
+                )
+            )
             break
         }
         case 'group': {
             // it is possible to place samples from multiple containers in one shot
 
-            // sort source locations by sample id
+            // sort source location indices by sample id
             const sourceIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
                 const b = sources[indexB]
@@ -202,9 +203,9 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
             })
 
             newOffsetsList.push(
-                ...sourceIndices.map((index) =>
-                    destinationStartingOffsets.map((offset, axis) =>
-                        offset + (placementOptions.direction === 'row' && axis == 1 ? index : 0) + (placementOptions.direction === 'column' && axis == 0 ? index : 0)
+                ...sourceIndices.map(
+                    (index) => destinationStartingOffsets.map(
+                        (offset, axis) => offset + (placementOptions.direction === 'row' && axis == 1 ? index : 0) + (placementOptions.direction === 'column' && axis == 0 ? index : 0)
                     )
                 )
             )
@@ -234,7 +235,9 @@ function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPaylo
             placeCell(state, state.activeSelections[index], destinationLocations[index])
             const cell = getContainerAndCell(state, state.activeSelections[index]).cell
             cell.selected = false
-            cell.preview = false
+        })
+        destinationLocations.forEach((location) => {
+            getContainerAndCell(state, location).cell.preview = false
         })
         state.activeSelections = []
     }

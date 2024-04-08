@@ -304,12 +304,12 @@ describe('select all samples from source, preview them on destination and then p
     })
 
     const destCoords = ['D01', 'D02', 'D03']
-
     const dstLocation: MouseOnCellPayload = {
         parentContainer: dstContainer.name,
         coordinates: 'D01',
         placementOptions: { type: 'group', direction: 'row' }
     }
+
     test('preview destinations', () => {
         state = produce(state, (draft) => setPreviews(draft, dstLocation, true))
         destCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates]).forEach((cell) => {
