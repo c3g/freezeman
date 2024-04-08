@@ -142,6 +142,10 @@ function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) 
 }
 
 function placementDestinationLocations(state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions): CellIdentifier[] {
+    if (sources.length == 0) {
+        return []
+    }
+
     const newOffsetsList: number[][] = []
     const destinationContainer = state.parentContainers[destination.parentContainer]
     if (!destinationContainer) {
@@ -164,22 +168,46 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
                     throw new Error(`Could not find source container at ${atLocation(source)}`)
                 }
             })
+
+            // find top left corner that tightly bounds all of the selections
+            const minOffsets = sourceOffsetsList.reduce((minOffsets, offsets) => {
+                return offsets.map((_, index) => offsets[index] < minOffsets[index] ? offsets[index] : minOffsets[index])
+            }, sourceOffsetsList[0])
         
             for (const sourceOffsets of sourceOffsetsList) {
                 const newSourceOffsets: typeof sourceOffsets = []
                 for (let index = 0; index < destinationContainer.spec.length; index++) {
-                    newSourceOffsets.push(sourceOffsets[index] + destinationStartingOffsets[index])
+                    newSourceOffsets.push(sourceOffsets[index] - minOffsets[index] + destinationStartingOffsets[index])
                 }
                 newOffsetsList.push(newSourceOffsets)
             }
             break
         }
         case 'group': {
-            for (let index = 0; index < sources.length; index++) {
-                newOffsetsList.push(destinationStartingOffsets.map((offset, axis) =>
-                    offset + (placementOptions.direction === 'row' && axis == 1 ? index : 0) + (placementOptions.direction === 'column' && axis == 0 ? index : 0)
-                ))
-            }        
+            // it is possible to place samples from multiple containers in one shot
+
+            // sort source locations by sample id
+            const sourceIndices = [...sources.keys()].sort((indexA, indexB) => {
+                const a = sources[indexA]
+                const b = sources[indexB]
+                const sampleA = getContainerAndCell(state, a).cell.sample
+                const sampleB = getContainerAndCell(state, b).cell.sample
+                if (sampleA === null) {
+                    throw new Error(`Cell at coordinates ${atLocation(a)} has no sample`)
+                }
+                if (sampleB === null) {
+                    throw new Error(`Cell at coordinates ${atLocation(b)} has no sample`)
+                }
+                return sampleA - sampleB
+            })
+
+            newOffsetsList.push(
+                ...sourceIndices.map((index) =>
+                    destinationStartingOffsets.map((offset, axis) =>
+                        offset + (placementOptions.direction === 'row' && axis == 1 ? index : 0) + (placementOptions.direction === 'column' && axis == 0 ? index : 0)
+                    )
+                )
+            )
         }
     }
 

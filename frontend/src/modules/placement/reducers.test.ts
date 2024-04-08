@@ -99,12 +99,12 @@ describe('coordinatesToOffsets', () => {
         expect(coordinatesToOffsets(spec, coordinates)).toEqual(offsets)
     })
 
-    type BadTestCase = { spec: CoordinateSpec, coordinates: string }
+    type BadTestCase = { spec: CoordinateSpec, coordinates: string, specString: string }
     const badTestCases: BadTestCase[] = [
-        { spec: srcContainer.spec, coordinates: "D04"},
-        { spec: dstContainer.spec, coordinates: "E05"},
+        { spec: srcContainer.spec, coordinates: "D04", specString: JSON.stringify(srcContainer.spec)},
+        { spec: dstContainer.spec, coordinates: "E05", specString: JSON.stringify(srcContainer.spec)},
     ]
-    test.each(badTestCases)('throw error when converting invalid coordinates ($coordinates) based on spec', ({spec, coordinates}) => {
+    test.each(badTestCases)('throw error when converting invalid coordinates ($coordinates) based on spec ($specString)', ({spec, coordinates}) => {
         expect(() => (coordinatesToOffsets(spec, coordinates))).toThrow()
     })
 })
@@ -122,13 +122,13 @@ describe('offsetsToCoordinates', () => {
         expect(offsetsToCoordinates(offsets, spec)).toEqual(coordinates)
     })
 
-    type BadTestCase = { spec: CoordinateSpec, offsets: number[] }
+    type BadTestCase = { spec: CoordinateSpec, offsets: number[], specString: string }
     const badTestCases: BadTestCase[] = [
-        { spec: dstContainer.spec, offsets: [-1, -1] },
-        { spec: dstContainer.spec, offsets: [4, 4] },
-        { spec: srcContainer.spec, offsets: [3, 3] },
+        { spec: dstContainer.spec, offsets: [-1, -1], specString: JSON.stringify(dstContainer.spec) },
+        { spec: dstContainer.spec, offsets: [4, 4], specString: JSON.stringify(dstContainer.spec) },
+        { spec: srcContainer.spec, offsets: [3, 3], specString: JSON.stringify(srcContainer.spec) },
     ]
-    test.each(badTestCases)('throw error when converting invalid index offsets ($offsets) based on spec', ({spec, offsets}) => {
+    test.each(badTestCases)('throw error when converting invalid index offsets ($offsets) based on spec ($specString)', ({spec, offsets}) => {
         expect(() => offsetsToCoordinates(offsets, spec)).toThrow()
     })
 })
@@ -138,6 +138,7 @@ describe('placementDestinationLocations', () => {
 
     type GoodTestCase = { state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions, expected: CellIdentifier[] }
     const goodTestCases: GoodTestCase[] = [
+        // group row
         {
             state: state,
             sources: [
@@ -153,6 +154,23 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: dstContainer.name, coordinates: "B04" }
             ]
         },
+        // ordered by sample id
+        {
+            state: state,
+            sources: [
+                { parentContainer: srcContainer.name, coordinates: "C03" },
+                { parentContainer: srcContainer.name, coordinates: "B02" },
+                { parentContainer: srcContainer.name, coordinates: "A01" },
+            ],
+            destination: { parentContainer: dstContainer.name, coordinates: "B02" },
+            placementOptions: { type: 'group', direction: 'row' },
+            expected: [
+                { parentContainer: dstContainer.name, coordinates: "B04" },
+                { parentContainer: dstContainer.name, coordinates: "B03" },
+                { parentContainer: dstContainer.name, coordinates: "B02" },
+            ]
+        },
+        // group-column
         {
             state: state,
             sources: [
@@ -168,28 +186,46 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: dstContainer.name, coordinates: "D02" }
             ]
         },
+        // ordered by sample id
         {
             state: state,
             sources: [
-                { parentContainer: srcContainer.name, coordinates: "A01" },
+                { parentContainer: srcContainer.name, coordinates: "C03" },
                 { parentContainer: srcContainer.name, coordinates: "B02" },
-                { parentContainer: srcContainer.name, coordinates: "C03" }
+                { parentContainer: srcContainer.name, coordinates: "A01" },
             ],
             destination: { parentContainer: dstContainer.name, coordinates: "B02" },
+            placementOptions: { type: 'group', direction: 'column' },
+            expected: [
+                { parentContainer: dstContainer.name, coordinates: "D02" },
+                { parentContainer: dstContainer.name, coordinates: "C02" },
+                { parentContainer: dstContainer.name, coordinates: "B02" },
+            ]
+        },
+        // pattern
+        {
+            state: state,
+            sources: [
+                { parentContainer: srcContainer.name, coordinates: "C02" },
+                { parentContainer: srcContainer.name, coordinates: "B02" },
+                { parentContainer: srcContainer.name, coordinates: "B03" },
+            ],
+            destination: { parentContainer: dstContainer.name, coordinates: "C03" },
             placementOptions: { type: 'pattern' },
             expected: [
-                { parentContainer: dstContainer.name, coordinates: "B02" },
+                { parentContainer: dstContainer.name, coordinates: "D03" },
                 { parentContainer: dstContainer.name, coordinates: "C03" },
-                { parentContainer: dstContainer.name, coordinates: "D04" }
+                { parentContainer: dstContainer.name, coordinates: "C04" },
             ]
         },
     ]
-    test.each(goodTestCases)('successfully generate destination locations from source samples with type ($placementType) and direction ($placementDirection)', ({ state, sources, destination, placementOptions, expected }) => {
+    test.each(goodTestCases)('successfully generate destination locations from source samples', ({ state, sources, destination, placementOptions, expected }) => {
         expect(placementDestinationLocations(state, sources, destination, placementOptions)).toEqual(expected)
     })
 
     type BadTestCase = { state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions }
     const badTastCases: BadTestCase[] = [
+        // group row
         {
             state: state,
             sources: [
@@ -200,6 +236,7 @@ describe('placementDestinationLocations', () => {
             destination: { parentContainer: dstContainer.name, coordinates: "B03" },
             placementOptions: { type: 'group', direction: 'row' }
         },
+        // group column
         {
             state: state,
             sources: [
@@ -210,18 +247,19 @@ describe('placementDestinationLocations', () => {
             destination: { parentContainer: dstContainer.name, coordinates: "C02" },
             placementOptions: { type: 'group', direction: 'column' }
         },
+        // pattern
         {
             state: state,
             sources: [
-                { parentContainer: srcContainer.name, coordinates: "A01" },
+                { parentContainer: srcContainer.name, coordinates: "C02" },
                 { parentContainer: srcContainer.name, coordinates: "B02" },
-                { parentContainer: srcContainer.name, coordinates: "C03" }
+                { parentContainer: srcContainer.name, coordinates: "B03" },
             ],
-            destination: { parentContainer: dstContainer.name, coordinates: "C03" },
-            placementOptions: { type: 'pattern' }
+            destination: { parentContainer: dstContainer.name, coordinates: "D04" },
+            placementOptions: { type: 'pattern' },
         },
     ]
-    test.each(badTastCases)('throw error when there is risk of going out of bounds with type ($placementType) and direction ($placementDirection)', ({ state, sources, destination, placementOptions }) => {
+    test.each(badTastCases)('throw error when there is risk of going out of bounds', ({ state, sources, destination, placementOptions }) => {
         expect(() => placementDestinationLocations(state, sources, destination, placementOptions)).toThrow()
     })
 
