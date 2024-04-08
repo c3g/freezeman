@@ -176,9 +176,9 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
         
             for (const sourceOffsets of sourceOffsetsList) {
                 const newSourceOffsets: typeof sourceOffsets = []
-                for (let index = 0; index < destinationContainer.spec.length; index++) {
+                destinationContainer.spec.forEach((_, index) => {
                     newSourceOffsets.push(sourceOffsets[index] - minOffsets[index] + destinationStartingOffsets[index])
-                }
+                })
                 newOffsetsList.push(newSourceOffsets)
             }
             break
@@ -230,11 +230,28 @@ function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPaylo
         // relying on placeCell to do error checking
 
         const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementOptions)
-        for (let index = 0; index < state.activeSelections.length; index++) {
+        state.activeSelections.forEach((_, index) => {
             placeCell(state, state.activeSelections[index], destinationLocations[index])
-            getContainerAndCell(state, state.activeSelections[index]).cell.selected = false
-        }
+            const cell = getContainerAndCell(state, state.activeSelections[index]).cell
+            cell.selected = false
+            cell.preview = false
+        })
         state.activeSelections = []
+    }
+
+    return state
+}
+
+function setPreviews(state: Draft<PlacementState>, payload: MouseOnCellPayload, preview: boolean) {
+    const { parentContainer, coordinates: coordinate, placementOptions } = payload
+    const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
+    const clickedCell = getContainerAndCell(state, clickedLocation).cell
+
+    if (clickedCell.sample === null || clickedCell.placedAt) {
+        const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementOptions)
+        state.activeSelections.forEach((_, index) => {
+            getContainerAndCell(state, destinationLocations[index]).cell.preview = preview
+        })
     }
 
     return state
@@ -282,11 +299,33 @@ const slice = createSlice({
                     error: e.toString()
                 }
             }
+        },
+        onCellEnter(state, action: PayloadAction<MouseOnCellPayload>) {
+            try {
+                return setPreviews(state, action.payload, true)
+            } catch (e) {
+                const originalState = original(state) ?? initialState
+                return {
+                    ...originalState,
+                    error: e.toString()
+                }
+            }
+        },
+        onCellExit(state, action: PayloadAction<MouseOnCellPayload>) {
+            try {
+                return setPreviews(state, action.payload, false)
+            } catch (e) {
+                const originalState = original(state) ?? initialState
+                return {
+                    ...originalState,
+                    error: e.toString()
+                }
+            }
         }
     }
 })
 
-export const { loadSamplesAndContainers, clickCell } = slice.actions
+export const { loadSamplesAndContainers, clickCell, onCellEnter, onCellExit } = slice.actions
 export const internals = {
     initialState,
     createEmptyCells,
@@ -294,5 +333,6 @@ export const internals = {
     offsetsToCoordinates,
     placementDestinationLocations,
     clickCellHelper,
+    setPreviews,
 }
 export default slice.reducer

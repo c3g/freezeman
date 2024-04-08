@@ -10,6 +10,7 @@ const {
     offsetsToCoordinates,
     placementDestinationLocations,
     clickCellHelper,
+    setPreviews
 } = internals
 
 type LoadParentContainerPayload = LoadSamplesAndContainersPayload['parentContainers'][number]
@@ -309,6 +310,13 @@ describe('select all samples from source, preview them on destination and then p
         coordinates: 'D01',
         placementOptions: { type: 'group', direction: 'row' }
     }
+    test('preview destinations', () => {
+        state = produce(state, (draft) => setPreviews(draft, dstLocation, true))
+        destCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates]).forEach((cell) => {
+            expect(cell?.preview).toEqual(true)
+        })
+    })
+
     test('place samples into destination from source', () => {
         state = produce(state, (draft) => clickCellHelper(draft, dstLocation))
 
@@ -320,6 +328,7 @@ describe('select all samples from source, preview them on destination and then p
         })
         destCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates]).forEach((cell) => {
             expect(cell?.placedFrom).toBeDefined()
+            expect(cell?.preview).toEqual(false)
         })
     })
 })
