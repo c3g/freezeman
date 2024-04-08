@@ -39,11 +39,17 @@ export interface LoadSamplesAndContainersPayload {
     }[]
 }
 
-export type PlacementType = 'group' | 'pattern'
-export type PlacementDirection = 'row' | 'column'  
+export interface PlacementPatternOptions {
+    type: 'pattern'
+}
+export interface PlacementGroupOptions {
+    type: 'group'
+    direction: 'row' | 'column'
+}
+export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
+
 export interface MouseOnCellPayload extends CellIdentifier {
-    placementType: PlacementType
-    placementDirection: PlacementDirection
+    placementOptions: PlacementOptions
 }
 
 function createEmptyCells(spec: CoordinateSpec) {
@@ -135,7 +141,7 @@ function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) 
     return coordinates.join('')
 }
 
-function placementDestinationLocations(state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementType: PlacementType, placementDirection: PlacementDirection): CellIdentifier[] {
+function placementDestinationLocations(state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions): CellIdentifier[] {
     const newOffsetsList: number[][] = []
     const destinationContainer = state.parentContainers[destination.parentContainer]
     if (!destinationContainer) {
@@ -143,7 +149,7 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
     }
     const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, destination.coordinates)
 
-    switch (placementType) {
+    switch (placementOptions.type) {
         case 'pattern': {
             const sourceContainerNames = new Set(sources.map((s) => s.parentContainer))
             if (sourceContainerNames.size > 1) {
@@ -171,7 +177,7 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
         case 'group': {
             for (let index = 0; index < sources.length; index++) {
                 newOffsetsList.push(destinationStartingOffsets.map((offset, axis) =>
-                    offset + (placementDirection === 'row' && axis == 1 ? index : 0) + (placementDirection === 'column' && axis == 0 ? index : 0)
+                    offset + (placementOptions.direction === 'row' && axis == 1 ? index : 0) + (placementOptions.direction === 'column' && axis == 0 ? index : 0)
                 ))
             }        
         }
@@ -181,7 +187,7 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
 }
 
 function clickCellHelper(state: Draft<PlacementState>, action: PayloadAction<MouseOnCellPayload>) {
-    const { parentContainer, coordinates: coordinate, placementType = 'group', placementDirection = 'row' } = action.payload
+    const { parentContainer, coordinates: coordinate, placementOptions } = action.payload
                 
     const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
     const clickedCell = getContainerAndCell(state, clickedLocation).cell
@@ -195,7 +201,7 @@ function clickCellHelper(state: Draft<PlacementState>, action: PayloadAction<Mou
     } else if (state.activeSelections.length > 0) {
         // relying on placeCell to do error checking
 
-        const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementType, placementDirection)
+        const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementOptions)
         for (let index = 0; index < state.activeSelections.length; index++) {
             placeCell(state, state.activeSelections[index], destinationLocations[index])
             getContainerAndCell(state, state.activeSelections[index]).cell.selected = false

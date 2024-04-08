@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { loadSamplesAndContainers, clickCell, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, PlacementType, PlacementDirection, internals } from './reducers'
+import reducer, { loadSamplesAndContainers, clickCell, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
 
 const {
@@ -136,7 +136,7 @@ describe('offsetsToCoordinates', () => {
 describe('placementDestinationLocations', () => {
     const state = reducer(initialState, loadSamplesAndContainers({ parentContainers: [srcContainer, dstContainer] }))
 
-    type GoodTestCase = { state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementType: PlacementType, placementDirection: PlacementDirection, expected: CellIdentifier[] }
+    type GoodTestCase = { state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions, expected: CellIdentifier[] }
     const goodTestCases: GoodTestCase[] = [
         {
             state: state,
@@ -146,8 +146,7 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: srcContainer.name, coordinates: "C03" }
             ],
             destination: { parentContainer: dstContainer.name, coordinates: "B02" },
-            placementType: 'group',
-            placementDirection: 'row',
+            placementOptions: { type: 'group', direction: 'row' },
             expected: [
                 { parentContainer: dstContainer.name, coordinates: "B02" },
                 { parentContainer: dstContainer.name, coordinates: "B03" },
@@ -162,8 +161,7 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: srcContainer.name, coordinates: "C03" }
             ],
             destination: { parentContainer: dstContainer.name, coordinates: "B02" },
-            placementType: 'group',
-            placementDirection: 'column',
+            placementOptions: { type: 'group', direction: 'column' },
             expected: [
                 { parentContainer: dstContainer.name, coordinates: "B02" },
                 { parentContainer: dstContainer.name, coordinates: "C02" },
@@ -178,8 +176,7 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: srcContainer.name, coordinates: "C03" }
             ],
             destination: { parentContainer: dstContainer.name, coordinates: "B02" },
-            placementType: 'pattern',
-            placementDirection: 'column',
+            placementOptions: { type: 'pattern' },
             expected: [
                 { parentContainer: dstContainer.name, coordinates: "B02" },
                 { parentContainer: dstContainer.name, coordinates: "C03" },
@@ -187,11 +184,11 @@ describe('placementDestinationLocations', () => {
             ]
         },
     ]
-    test.each(goodTestCases)('successfully generate destination locations from source samples with type ($placementType) and direction ($placementDirection)', ({ state, sources, destination, placementType, placementDirection, expected }) => {
-        expect(placementDestinationLocations(state, sources, destination, placementType, placementDirection)).toEqual(expected)
+    test.each(goodTestCases)('successfully generate destination locations from source samples with type ($placementType) and direction ($placementDirection)', ({ state, sources, destination, placementOptions, expected }) => {
+        expect(placementDestinationLocations(state, sources, destination, placementOptions)).toEqual(expected)
     })
 
-    type BadTestCase = { state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementType: PlacementType, placementDirection: PlacementDirection }
+    type BadTestCase = { state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions }
     const badTastCases: BadTestCase[] = [
         {
             state: state,
@@ -201,8 +198,7 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: srcContainer.name, coordinates: "C03" }
             ],
             destination: { parentContainer: dstContainer.name, coordinates: "B03" },
-            placementType: 'group',
-            placementDirection: 'row',
+            placementOptions: { type: 'group', direction: 'row' }
         },
         {
             state: state,
@@ -212,8 +208,7 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: srcContainer.name, coordinates: "C03" }
             ],
             destination: { parentContainer: dstContainer.name, coordinates: "C02" },
-            placementType: 'group',
-            placementDirection: 'column',
+            placementOptions: { type: 'group', direction: 'column' }
         },
         {
             state: state,
@@ -223,12 +218,11 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: srcContainer.name, coordinates: "C03" }
             ],
             destination: { parentContainer: dstContainer.name, coordinates: "C03" },
-            placementType: 'pattern',
-            placementDirection: 'column',
+            placementOptions: { type: 'pattern' }
         },
     ]
-    test.each(badTastCases)('throw error when there is risk of going out of bounds with type ($placementType) and direction ($placementDirection)', ({ state, sources, destination, placementType, placementDirection }) => {
-        expect(() => placementDestinationLocations(state, sources, destination, placementType, placementDirection)).toThrow()
+    test.each(badTastCases)('throw error when there is risk of going out of bounds with type ($placementType) and direction ($placementDirection)', ({ state, sources, destination, placementOptions }) => {
+        expect(() => placementDestinationLocations(state, sources, destination, placementOptions)).toThrow()
     })
 
 })
@@ -243,8 +237,7 @@ describe.skip('select all samples from source, preview them on destination and t
             return reducer(state, clickCell({
                 parentContainer: srcContainer.name,
                 coordinates,
-                placementType: 'group',
-                placementDirection: 'row'
+                placementOptions: { type: 'group', direction: 'row' }
             }))
         }, state)
         placedOutCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
@@ -259,8 +252,7 @@ describe.skip('select all samples from source, preview them on destination and t
     const dstLocation: MouseOnCellPayload = {
         parentContainer: dstContainer.name,
         coordinates: 'D01',
-        placementType: 'group',
-        placementDirection: 'row'
+        placementOptions: { type: 'group', direction: 'row' }
     }
     test('place a sample in destination from source', () => {
         state = reducer(state, clickCell(dstLocation))
