@@ -253,7 +253,7 @@ const slice = createSlice({
 })
 
 export const { loadSamplesAndContainers, clickCell } = slice.actions
-export const helpers = {
+export const internals = {
     initialState,
     createEmptyCells,
     coordinatesToOffsets,
