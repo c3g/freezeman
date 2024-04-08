@@ -13,8 +13,8 @@ export interface CellState {
     preview: boolean
     selected: boolean
     sample: Sample['id'] | null
-    placedFrom?: CellIdentifier
-    placedAt?: CellIdentifier
+    samplePlacedFrom?: CellIdentifier
+    samplePlacedAt?: CellIdentifier
 }
 
 export interface PlacementContainerState {
@@ -25,6 +25,8 @@ export interface PlacementContainerState {
 export interface PlacementState {
     parentContainers: Record<ContainerIdentifier, PlacementContainerState | undefined>
     activeSelections: CellIdentifier[]
+    activeSourceContainer?: ContainerIdentifier
+    activeDestinationContainer?: ContainerIdentifier
     error?: string
 }
 
@@ -71,7 +73,7 @@ function atLocation(id: CellIdentifier) {
     return `${id.coordinates}@${id.parentContainer}`
 }
 
-function getContainerAndCell(state: Draft<PlacementState>, location: CellIdentifier) {
+function getCell(state: Draft<PlacementState>, location: CellIdentifier) {
     const container = state.parentContainers[location.parentContainer]
     if (!container) {
         throw new Error(`Container not found: "${location.parentContainer}"`)
@@ -81,28 +83,28 @@ function getContainerAndCell(state: Draft<PlacementState>, location: CellIdentif
         throw new Error(`Invalid coordinate: "${atLocation(location)}"`)
     }
 
-    return { container, cell }
+    return cell
 }
 
 function placeCell(state: Draft<PlacementState>, sourceLocation: CellIdentifier, destinationLocation: CellIdentifier) {
-    const sourceCell = getContainerAndCell(state, sourceLocation).cell
+    const sourceCell = getCell(state, sourceLocation)
     if (!sourceCell.sample) {
         throw new Error(`Source container at "${atLocation(sourceLocation)}" has no sample`)
     }
-    if (sourceCell.placedAt) {
-        throw new Error(`Source sample from ${sourceLocation} already placed (at ${sourceCell.placedAt})`)
+    if (sourceCell.samplePlacedAt) {
+        throw new Error(`Source sample from ${sourceLocation} already placed (at ${sourceCell.samplePlacedAt})`)
     }
 
-    const destinationCell = getContainerAndCell(state, destinationLocation).cell
-    if (destinationCell.sample === null && destinationCell.placedFrom) {
-        throw new Error(`Destination container at ${atLocation(destinationLocation)} already contains a sample from ${destinationCell.placedFrom}`)
+    const destinationCell = getCell(state, destinationLocation)
+    if (destinationCell.sample === null && destinationCell.samplePlacedFrom) {
+        throw new Error(`Destination container at ${atLocation(destinationLocation)} already contains a sample from ${destinationCell.samplePlacedFrom}`)
     }
-    if (destinationCell.sample !== null && !destinationCell.placedAt) {
+    if (destinationCell.sample !== null && !destinationCell.samplePlacedAt) {
         throw new Error(`Destination container at ${atLocation(destinationLocation)} still contains a sample`)
     }
 
-    sourceCell.placedAt = destinationLocation
-    destinationCell.placedFrom = sourceLocation
+    sourceCell.samplePlacedAt = destinationLocation
+    destinationCell.samplePlacedFrom = sourceLocation
 }
 
 function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
@@ -191,8 +193,8 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
             const sourceIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
                 const b = sources[indexB]
-                const sampleA = getContainerAndCell(state, a).cell.sample
-                const sampleB = getContainerAndCell(state, b).cell.sample
+                const sampleA = getCell(state, a).sample
+                const sampleB = getCell(state, b).sample
                 if (sampleA === null) {
                     throw new Error(`Cell at coordinates ${atLocation(a)} has no sample`)
                 }
@@ -219,8 +221,10 @@ function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPaylo
     const { parentContainer, coordinates: coordinate, placementOptions } = payload
                 
     const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
-    const clickedCell = getContainerAndCell(state, clickedLocation).cell
-    if (clickedCell.sample !== null && !clickedCell.placedAt) {
+    const clickedCell = getCell(state, clickedLocation)
+    if (clickedCell.sample !== null && !clickedCell.samplePlacedAt) {
+        if (parentContainer !== state.activeSourceContainer) return state
+
         clickedCell.selected = !clickedCell.selected
         if (clickedCell.selected) {
             state.activeSelections.push(clickedLocation)
@@ -228,16 +232,18 @@ function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPaylo
             state.activeSelections = state.activeSelections.filter((c) => !(c.coordinates === clickedLocation.coordinates && c.parentContainer === clickedLocation.parentContainer))
         }
     } else if (state.activeSelections.length > 0) {
+        if (parentContainer !== state.activeDestinationContainer) return state
+
         // relying on placeCell to do error checking
 
         const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementOptions)
         state.activeSelections.forEach((_, index) => {
             placeCell(state, state.activeSelections[index], destinationLocations[index])
-            const cell = getContainerAndCell(state, state.activeSelections[index]).cell
+            const cell = getCell(state, state.activeSelections[index])
             cell.selected = false
         })
         destinationLocations.forEach((location) => {
-            getContainerAndCell(state, location).cell.preview = false
+            getCell(state, location).preview = false
         })
         state.activeSelections = []
     }
@@ -247,13 +253,16 @@ function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPaylo
 
 function setPreviews(state: Draft<PlacementState>, payload: MouseOnCellPayload, preview: boolean) {
     const { parentContainer, coordinates: coordinate, placementOptions } = payload
-    const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
-    const clickedCell = getContainerAndCell(state, clickedLocation).cell
+    if (parentContainer !== state.activeDestinationContainer) return state
 
-    if (clickedCell.sample === null || clickedCell.placedAt) {
+    const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
+
+    const clickedCell = getCell(state, clickedLocation)
+
+    if (clickedCell.sample === null || clickedCell.samplePlacedAt) {
         const destinationLocations = placementDestinationLocations(state, state.activeSelections, clickedLocation, placementOptions)
         state.activeSelections.forEach((_, index) => {
-            getContainerAndCell(state, destinationLocations[index]).cell.preview = preview
+            getCell(state, destinationLocations[index]).preview = preview
         })
     }
 
@@ -292,6 +301,14 @@ const slice = createSlice({
             }
             return state
         },
+        setActiveSourceContainer(state, action: PayloadAction<ContainerIdentifier>) {
+            state.activeSourceContainer = action.payload
+            return state
+        },
+        setActiveDestinationContainer(state, action: PayloadAction<ContainerIdentifier>) {
+            state.activeDestinationContainer = action.payload
+            return state
+        },
         clickCell(state, action: PayloadAction<MouseOnCellPayload>) {
             try {
                 return clickCellHelper(state, action.payload)
@@ -328,7 +345,7 @@ const slice = createSlice({
     }
 })
 
-export const { loadSamplesAndContainers, clickCell, onCellEnter, onCellExit } = slice.actions
+export const { loadSamplesAndContainers, setActiveSourceContainer, setActiveDestinationContainer, clickCell, onCellEnter, onCellExit } = slice.actions
 export const internals = {
     initialState,
     createEmptyCells,

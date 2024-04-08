@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { loadSamplesAndContainers, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions } from './reducers'
+import reducer, { loadSamplesAndContainers, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions, setActiveSourceContainer, setActiveDestinationContainer } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
 import produce from 'immer';
 
@@ -285,6 +285,8 @@ describe('placementDestinationLocations', () => {
 
 describe('select all samples from source, preview them on destination and then place', () => {
     let state = reducer(initialState, loadSamplesAndContainers({ parentContainers: [srcContainer, dstContainer] }))
+    state = reducer(state, setActiveSourceContainer(srcContainer.name))
+    state = reducer(state, setActiveDestinationContainer(dstContainer.name))
 
     const sourceCoords = srcContainer.containers.map((container) => container.coordinates)
 
@@ -324,10 +326,10 @@ describe('select all samples from source, preview them on destination and then p
         expect(state.error).toBeUndefined()
 
         sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
-            expect(cell?.placedAt).toBeDefined()
+            expect(cell?.samplePlacedAt).toBeDefined()
         })
         destCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates]).forEach((cell) => {
-            expect(cell?.placedFrom).toBeDefined()
+            expect(cell?.samplePlacedFrom).toBeDefined()
             expect(cell?.preview).toEqual(false)
         })
     })
