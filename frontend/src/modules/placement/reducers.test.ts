@@ -1,6 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { loadSamplesAndContainers, clickCell, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions } from './reducers'
+import reducer, { loadSamplesAndContainers, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
+import produce from 'immer';
 
 const {
     initialState,
@@ -218,6 +219,22 @@ describe('placementDestinationLocations', () => {
                 { parentContainer: dstContainer.name, coordinates: "C04" },
             ]
         },
+        // pattern
+        {
+            state: state,
+            sources: [
+                { parentContainer: srcContainer.name, coordinates: "C02" },
+                { parentContainer: srcContainer.name, coordinates: "C03" },
+                { parentContainer: srcContainer.name, coordinates: "B03" },
+            ],
+            destination: { parentContainer: dstContainer.name, coordinates: "C03" },
+            placementOptions: { type: 'pattern' },
+            expected: [
+                { parentContainer: dstContainer.name, coordinates: "D03" },
+                { parentContainer: dstContainer.name, coordinates: "D04" },
+                { parentContainer: dstContainer.name, coordinates: "C04" },
+            ]
+        },
     ]
     test.each(goodTestCases)('successfully generate destination locations from source samples', ({ state, sources, destination, placementOptions, expected }) => {
         expect(placementDestinationLocations(state, sources, destination, placementOptions)).toEqual(expected)
@@ -265,39 +282,44 @@ describe('placementDestinationLocations', () => {
 
 })
 
-describe.skip('select all samples from source, preview them on destination and then place', () => {
+describe('select all samples from source, preview them on destination and then place', () => {
     let state = reducer(initialState, loadSamplesAndContainers({ parentContainers: [srcContainer, dstContainer] }))
 
-    const placedOutCoords = srcContainer.containers.map((container) => container.coordinates)
+    const sourceCoords = srcContainer.containers.map((container) => container.coordinates)
 
     test('select all samples from source', () => {
-        state = placedOutCoords.reduce((state, coordinates) => {
-            return reducer(state, clickCell({
+        state = sourceCoords.reduce((state, coordinates) => {
+            return produce(state, (draft) => clickCellHelper(draft, {
                 parentContainer: srcContainer.name,
                 coordinates,
                 placementOptions: { type: 'group', direction: 'row' }
             }))
         }, state)
-        placedOutCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
+        sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
             expect(cell?.selected).toEqual(true)
         })
-        expect(state.activeSelections).toHaveLength(placedOutCoords.length)
+        expect(state.activeSelections).toHaveLength(sourceCoords.length)
         expect(state.error).toBeUndefined()
     })
 
-    const placedInCoords = ['D01', 'D02', 'D03']
+    const destCoords = ['D01', 'D02', 'D03']
 
     const dstLocation: MouseOnCellPayload = {
         parentContainer: dstContainer.name,
         coordinates: 'D01',
         placementOptions: { type: 'group', direction: 'row' }
     }
-    test('place a sample in destination from source', () => {
-        state = reducer(state, clickCell(dstLocation))
-
-        placedOutCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates])
+    test('place samples into destination from source', () => {
+        state = produce(state, (draft) => clickCellHelper(draft, dstLocation))
 
         expect(state.activeSelections).toHaveLength(0)
         expect(state.error).toBeUndefined()
+
+        sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
+            expect(cell?.placedAt).toBeDefined()
+        })
+        destCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates]).forEach((cell) => {
+            expect(cell?.placedFrom).toBeDefined()
+        })
     })
 })

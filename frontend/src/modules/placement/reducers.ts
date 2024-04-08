@@ -87,18 +87,18 @@ function getContainerAndCell(state: Draft<PlacementState>, location: CellIdentif
 function placeCell(state: Draft<PlacementState>, sourceLocation: CellIdentifier, destinationLocation: CellIdentifier) {
     const sourceCell = getContainerAndCell(state, sourceLocation).cell
     if (!sourceCell.sample) {
-        throw new Error(`Container at "${atLocation(sourceLocation)}" has no sample`)
+        throw new Error(`Source container at "${atLocation(sourceLocation)}" has no sample`)
     }
     if (sourceCell.placedAt) {
-        throw new Error(`Sample at ${atLocation(sourceLocation)} already placed`)
+        throw new Error(`Source sample from ${sourceLocation} already placed (at ${sourceCell.placedAt})`)
     }
 
     const destinationCell = getContainerAndCell(state, destinationLocation).cell
-    if (destinationCell.sample !== null && !destinationCell.placedAt) {
-        throw new Error(`Container at ${atLocation(destinationLocation)} already contains sample`)
+    if (destinationCell.sample === null && destinationCell.placedFrom) {
+        throw new Error(`Destination container at ${atLocation(destinationLocation)} already contains a sample from ${destinationCell.placedFrom}`)
     }
-    if (destinationCell.sample === null && !destinationCell.placedFrom) {
-        throw new Error(`Sample already placed at ${atLocation(destinationLocation)}`)
+    if (destinationCell.sample !== null && !destinationCell.placedAt) {
+        throw new Error(`Destination container at ${atLocation(destinationLocation)} still contains a sample`)
     }
 
     sourceCell.placedAt = destinationLocation
@@ -214,12 +214,12 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
     return newOffsetsList.map((offsets) => ({ parentContainer: destination.parentContainer, coordinates: offsetsToCoordinates(offsets, destinationContainer.spec) }))
 }
 
-function clickCellHelper(state: Draft<PlacementState>, action: PayloadAction<MouseOnCellPayload>) {
-    const { parentContainer, coordinates: coordinate, placementOptions } = action.payload
+function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPayload) {
+    const { parentContainer, coordinates: coordinate, placementOptions } = payload
                 
     const clickedLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
     const clickedCell = getContainerAndCell(state, clickedLocation).cell
-    if (!clickedCell.placedAt) {
+    if (clickedCell.sample !== null && !clickedCell.placedAt) {
         clickedCell.selected = !clickedCell.selected
         if (clickedCell.selected) {
             state.activeSelections.push(clickedLocation)
@@ -236,6 +236,8 @@ function clickCellHelper(state: Draft<PlacementState>, action: PayloadAction<Mou
         }
         state.activeSelections = []
     }
+
+    return state
 }
 
 const initialState: PlacementState = {
@@ -272,7 +274,7 @@ const slice = createSlice({
         },
         clickCell(state, action: PayloadAction<MouseOnCellPayload>) {
             try {
-                clickCellHelper(state, action)
+                return clickCellHelper(state, action.payload)
             } catch (e) {
                 const originalState = original(state) ?? initialState
                 return {
@@ -280,8 +282,6 @@ const slice = createSlice({
                     error: e.toString()
                 }
             }
-
-            return state
         }
     }
 })
