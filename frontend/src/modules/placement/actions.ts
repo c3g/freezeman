@@ -2,7 +2,7 @@ import { FMSContainer, FMSId, LabworkStepInfo } from '../../models/fms_api_model
 import { selectContainerKindsByID } from '../../selectors';
 import store, { AppDispatch, RootState } from '../../store';
 import api from '../../utils/api';
-import { LoadSamplesAndContainersPayload, loadSamplesAndContainers as reduceLoadSamplesAndContainers, clickCell as reduceClickCell } from './reducers';
+import { LoadSamplesAndContainersPayload, loadSamplesAndContainers as reduceLoadSamplesAndContainers, clickCell as reduceClickCell, PlacementOptions } from './reducers';
 
 export function loadSamplesAndContainers(stepID: FMSId, sampleIDs: FMSId[]) {
     return async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -21,7 +21,7 @@ export function loadSamplesAndContainers(stepID: FMSId, sampleIDs: FMSId[]) {
                             containers: containerGroup.sample_locators.map((locator) => {
                                 return {
                                     sample: locator.sample_id,
-                                    coordinate: locator.contextual_coordinates
+                                    coordinates: locator.contextual_coordinates
                                 }
                             })
                         }
@@ -32,7 +32,7 @@ export function loadSamplesAndContainers(stepID: FMSId, sampleIDs: FMSId[]) {
                             containers: containerGroup.sample_locators.map((locator) => {
                                 return {
                                     sample: locator.sample_id,
-                                    coordinate: locator.contextual_coordinates
+                                    coordinates: locator.contextual_coordinates
                                 }
                             })
                         }
@@ -42,12 +42,5 @@ export function loadSamplesAndContainers(stepID: FMSId, sampleIDs: FMSId[]) {
         dispatch(reduceLoadSamplesAndContainers(payload))
 
         return Object.keys(getState().placement.parentContainers)
-    }
-}
-
-export function clickCell(parentContainerName: string, coordinate: string) {
-    return (dispatch: AppDispatch, getState: () => RootState) => {
-        dispatch(reduceClickCell({ parentContainer: parentContainerName, coordinate }))
-        return getState().placement.parentContainers[parentContainerName]?.cells[coordinate].state
     }
 }

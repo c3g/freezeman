@@ -302,11 +302,22 @@ const slice = createSlice({
             return state
         },
         setActiveSourceContainer(state, action: PayloadAction<ContainerIdentifier>) {
-            state.activeSourceContainer = action.payload
+            if (action.payload in state.parentContainers) {
+                state.activeSourceContainer = action.payload
+            } else {
+                state.error = `Container with name ${action.payload} has not been loaded`
+            }
             return state
         },
         setActiveDestinationContainer(state, action: PayloadAction<ContainerIdentifier>) {
-            state.activeDestinationContainer = action.payload
+            if (action.payload in state.parentContainers) {
+                if (action.payload !== state.activeDestinationContainer) {
+                    state.activeSelections = []
+                }
+                state.activeDestinationContainer = action.payload
+            } else {
+                state.error = `Container with name ${action.payload} has not been loaded`
+            }
             return state
         },
         clickCell(state, action: PayloadAction<MouseOnCellPayload>) {
