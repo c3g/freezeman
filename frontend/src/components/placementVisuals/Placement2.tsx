@@ -1,15 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { loadSamplesAndContainers } from "../../modules/placement/actions"
-import { Button, Col, Input, Modal, Popconfirm, Radio, Row, Select, Switch, Tabs } from "antd"
-import { MAX_CONTAINER_BARCODE_LENGTH, MAX_CONTAINER_NAME_LENGTH } from "../../constants"
+import { loadContainers as loadSourceContainers } from "../../modules/placement/actions"
+import { PlacementDirections, PlacementGroupOptions, PlacementOptions, loadContainers as loadDestinationContainers, setActiveDestinationContainer, setActiveSourceContainer } from '../../modules/placement/reducers'
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
-import AddPlacementContainer from "./AddPlacementContainer2"
-import ContainerNameScroller from "./ContainerNameScroller"
-import PlacementContainer from "./PlacementContainer"
+import AddPlacementContainer, { DestinationContainer } from "./AddPlacementContainer2"
+import ContainerNameScroller from "./ContainerNameScroller2"
+import PlacementContainer from "./PlacementContainer2"
 import PlacementSamplesTable from "./PlacementSamplesTable"
+import { selectContainerKindsByID } from "../../selectors"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -18,10 +19,71 @@ interface PlacementProps {
 
 function Placement({ stepID, sampleIDs }: PlacementProps) {
     const dispatch = useAppDispatch()
+
+    const containerKinds = useAppSelector(selectContainerKindsByID)
+    const parentContainers = useAppSelector((state) => state.placement.parentContainers)
+    const activeSourceContainer = useAppSelector((state) => state.placement.activeSourceContainer)
+    const activeDestinationContainer = useAppSelector((state) => state.placement.activeDestinationContainer)
+
+    const [sourceContainers, setSourceContainers] = useState<string[]>([])
+    const [destinationContainers, setDestinationContainers] = useState<string[]>([])
+
+    const changeSourceContainer = useCallback((direction: number) => {
+        const currentIndex = sourceContainers.findIndex((x) => x === activeSourceContainer)
+        if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= sourceContainers.length) {
+            return
+        }
+        dispatch(setActiveSourceContainer(sourceContainers[currentIndex + direction]))
+    }, [activeSourceContainer, dispatch, sourceContainers])
+    const changeDestinationContainer = useCallback((direction: number) => {
+        const currentIndex = destinationContainers.findIndex((x) => x === activeDestinationContainer)
+        if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= destinationContainers.length) {
+            return
+        }
+        dispatch(setActiveDestinationContainer(destinationContainers[currentIndex + direction]))
+    }, [destinationContainers, dispatch, activeDestinationContainer])
+
     useEffect(() => {
-        dispatch(loadSamplesAndContainers(stepID, sampleIDs))
+        dispatch(loadSourceContainers(stepID, sampleIDs)).then((parentContainers) => {
+            parentContainers.sort()
+            setSourceContainers(parentContainers)
+            dispatch(setActiveSourceContainer(parentContainers[0]))
+        })
     }, [dispatch, sampleIDs, stepID])
 
+    const onConfirmAddDestinationContainer = useCallback((container: DestinationContainer) => {
+        dispatch(loadDestinationContainers([{
+            name: container.container_name,
+            barcode: container.container_barcode,
+            kind: container.container_kind,
+            spec: containerKinds[container.container_kind].coordinate_spec,
+            containers: Object.values(container.samples).map((sample) => ({
+                coordinates: sample.coordinates,
+                sample: sample.id
+            }))
+        }]))
+        setDestinationContainers((destinationContainers) => {
+            const result = [...destinationContainers, container.container_name]
+            result.sort()
+            return result
+        })
+        dispatch(setActiveDestinationContainer(container.container_name))
+    }, [containerKinds, dispatch])
+
+    const [placementDirection, setPlacementDirection] = useState<PlacementGroupOptions['direction']>('row')
+    const [placementType, setPlacementType] = useState<PlacementOptions['type']>('group')
+    const updatePlacementDirection = useCallback((event: RadioChangeEvent) => {
+        setPlacementDirection(event.target.value)
+    }, [])
+    const updatePlacementType = useCallback((checked: boolean) => {
+            setPlacementType(checked ? 'group' : 'pattern')
+    }, [])
+    const placementOptions: PlacementOptions = placementType == 'group'
+        ? { type: 'group', direction: placementDirection }
+        : { type: 'pattern' }
+
+    // TODO: complete implementation
+    const saveToPrefill = useCallback(() => { }, [])
 
     return (
         <>
@@ -29,83 +91,80 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                 <PageContent>
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
-                            <AddPlacementContainer onConfirm={(container) => addDestination(container)} destinationContainerList={destinationContainerList} />
+                            <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={Object.entries(parentContainers).map(([name, container]) => ({
+                                container_barcode: container?.meta.barcode as string,
+                                container_name: name,
+                                container_kind: container?.meta.kind as string,
+                                samples: []
+                            }))} />
                         </Col>
                         <Col span={3}>
-                            <Button onClick={saveDestination} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
+                            <Button onClick={saveToPrefill} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
                         </Col>
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
                         <Col span={12}>
                             <div className={"flex-row"}>
                                 <div className={"flex-column"}>
-                                    {sourceSamples ?
+                                    {activeSourceContainer &&
                                         <>
                                             <ContainerNameScroller
-                                                disabled={disableChangeSource}
-                                                containerType={SOURCE_STRING}
-                                                name={sourceSamples.container_name}
-                                                changeContainer={changeContainer} />
+                                                disabled={sourceContainers.length <= 1}
+                                                name={activeSourceContainer}
+                                                changeContainer={changeSourceContainer} />
                                             <PlacementContainer
-                                                selectedSampleList={selectedSamples}
-                                                containerType={SOURCE_STRING}
-                                                columns={sourceSamples.columns}
-                                                rows={sourceSamples.rows}
-                                                samples={sourceSamples.samples}
-                                                updateSamples={updateSamples} />
+                                                container={activeSourceContainer}
+                                                placementOptions={placementOptions}
+                                            />
                                         </>
-                                        :
-                                        <Col span={12}>
-                                            <div className={"flex-row"}>
-                                                <div className={"flex-column"} />
-                                            </div>
-                                        </Col>
+                                    }
+                                    :
+                                    <Col span={12}>
+                                        <div className={"flex-row"}>
+                                            <div className={"flex-column"} />
+                                        </div>
+                                    </Col>
+                                </div>
+                            </div>
+                        </Col>
+                        <Col span={12}>
+                            <div className={"flex-row"}>
+                                <div className={"flex-column"}>
+                                    {activeDestinationContainer &&
+                                        <>
+                                            <ContainerNameScroller
+                                                disabled={destinationContainers.length <= 1}
+                                                name={activeDestinationContainer}
+                                                changeContainer={changeDestinationContainer} />
+                                            <PlacementContainer
+                                                container={activeDestinationContainer}
+                                                placementOptions={placementOptions}
+                                            />
+                                        </>
                                     }
                                 </div>
                             </div>
                         </Col>
-                        {sourceSamples && destinationSamples ?
-                            <Col span={12}>
-                                <div className={"flex-row"}>
-                                    <div className={"flex-column"}>
-                                        <ContainerNameScroller
-                                            disabled={disableChangeDestination}
-                                            containerType={DESTINATION_STRING}
-                                            name={destinationSamples.container_name}
-                                            changeContainer={changeContainer} />
-                                        <PlacementContainer
-                                            selectedSampleList={selectedSamples}
-                                            containerType={DESTINATION_STRING}
-                                            columns={destinationSamples.columns}
-                                            rows={destinationSamples.rows}
-                                            samples={destinationSamples.samples}
-                                            updateSamples={updateSamples}
-                                            direction={placementType ? placementDirection : undefined}
-                                            pattern={!placementType} />
-                                    </div>
-                                </div>
-                            </Col>
-                            : <Col span={12}>
-                                <div className={"flex-row"}>
-                                    <div className={"flex-column"} />
-                                </div>
-                            </Col>
-                        }
+                        : <Col span={12}>
+                            <div className={"flex-row"}>
+                                <div className={"flex-column"} />
+                            </div>
+                        </Col>
                     </Row>
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
-                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType} onChange={updateGroupPlacement}></Switch>
+                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementOptions.type === 'pattern'} onChange={updatePlacementType}></Switch>
                         </Col>
                         <Col span={5}>
                             <Radio.Group
-                                disabled={!placementType}
-                                value={placementDirection}
-                                onChange={evt => updatePlacementDirection(evt.target.value)}>
-                                <Radio.Button value={'row'}> row </Radio.Button>
-                                <Radio.Button value={'column'}> column </Radio.Button>
+                                disabled={placementOptions.type === 'pattern'}
+                                value={placementOptions.type === 'group' && placementOptions.direction}
+                                onChange={updatePlacementDirection}>
+                                <Radio.Button value={PlacementDirections.row}> row </Radio.Button>
+                                <Radio.Button value={PlacementDirections.column}> column </Radio.Button>
                             </Radio.Group>
                         </Col>
-                        <Col span={8}>
+                        {/* <Col span={8}>
                             <Button onClick={transferAllSamples} disabled={!destinationSamples}>Place All Source</Button>
                             <Button onClick={clearSelection}>Deselect All</Button>
                             <Popconfirm
@@ -116,16 +175,16 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             >
                                 <Button disabled={disableUndo} > Undo Placement</Button>
                             </Popconfirm>
-                        </Col>
+                        </Col> */}
                     </Row>
-                    <Row justify="space-evenly" style={{ padding: "10px" }}>
+                    {/* <Row justify="space-evenly" style={{ padding: "10px" }}>
                         <Col span={10}>
                             <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples ? sourceSamples.samples : {})} selectedSamples={filterSelectedSamples(SOURCE_STRING)} />
                         </Col>
                         <Col span={10}>
                             <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, DESTINATION_STRING)} samples={filterPlacedSamples(destinationSamples ? destinationSamples.samples : {})} selectedSamples={filterSelectedSamples(DESTINATION_STRING)} />
                         </Col>
-                    </Row>
+                    </Row> */}
                 </PageContent>
             </PageContainer>
         </>

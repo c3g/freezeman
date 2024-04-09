@@ -17,6 +17,7 @@ export function loadContainers(stepID: FMSId, sampleIDs: FMSId[]) {
                 return {
                     name: containerDetail.name,
                     barcode: containerDetail.barcode,
+                    kind: containerDetail.kind,
                     spec,
                     containers: containerGroup.sample_locators.map((locator) => {
                         return {

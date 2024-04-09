@@ -9,20 +9,20 @@ import api from "../../utils/api"
 import { MAX_CONTAINER_BARCODE_LENGTH, MAX_CONTAINER_NAME_LENGTH, barcodeRules, nameRules } from "../../constants"
 import { FMSContainer, FMSId, FMSSample } from "../../models/fms_api_models"
 
-interface DestinationContainer {
+export interface DestinationContainer {
     container_barcode: string
     container_name: string
     container_kind: string
-    samples: { [key in FMSId]: { id: FMSId, coordinates: string | 0, name: string } }
+    samples: { [key in FMSId]: { id: FMSId, coordinates: string, name: string } }
 }
 
 interface AddPlacementContainerProps {
     onConfirm: (destinationContainer: DestinationContainer) => void
-    destinationContainerList: DestinationContainer[]
+    existingContainers: DestinationContainer[]
 }
 
 //component used to handle the creation of a new destination container
-const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlacementContainerProps) => {
+const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementContainerProps) => {
     const [isPopup, setIsPopup] = useState<boolean>(false)
 
     //used to hold loaded container data
@@ -57,7 +57,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
             const loadedSamples: FMSSample[] = (await dispatch(api.samples.list({ id__in: container.samples.join(','), limit: 100000 }))).data.results
 
             loadedSamples.forEach(sample => {
-                newDestination[sample.id] = { id: sample.id, coordinates: (sample.coordinate && coordinates[sample.coordinate].name), name: sample.name }
+                newDestination[sample.id] = { id: sample.id, coordinates: (sample.coordinate && coordinates[sample.coordinate].name) as string, name: sample.name }
             })
         }
         setLoadedContainer({ container_barcode: containerBarcode, container_name: containerName, container_kind: container.kind, samples: { ...newDestination }, })
@@ -131,7 +131,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
                 addContainer(container as DestinationContainer)
             }
             else {
-                containerAlreadyExists(container as DestinationContainer, destinationContainerList).then(exists => {
+                containerAlreadyExists(container as DestinationContainer, existingContainers).then(exists => {
                     if (!exists) {
                         const barCodeResults = barcodeRules.filter((rule) => !rule.pattern.test(container.container_barcode as string))
                         const nameResults = nameRules.filter((rule) => !rule.pattern.test(container.container_name as string))
@@ -163,7 +163,7 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
                 duration: 20
             })
         }
-    }, [selectedTab, loadedContainer, newContainer, dispatch, onConfirm, destinationContainerList])
+    }, [selectedTab, loadedContainer, newContainer, dispatch, onConfirm, existingContainers])
 
     const handleOnChange = useCallback((e, name) => {
         const container = { ...newContainer }

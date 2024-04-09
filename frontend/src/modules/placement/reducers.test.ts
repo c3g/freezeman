@@ -60,6 +60,7 @@ describe('loadSamplesAndContainers', () => {
             return {
                 [name]: {
                     spec,
+                    meta: {},
                     cells: {
                         ...createEmptyCells(spec),
                         ...containers.reduce((cells: PlacementContainerState['cells'], c) => {
@@ -299,7 +300,6 @@ describe('select all samples from source, preview them on destination and then p
         sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
             expect(cell?.selected).toEqual(true)
         })
-        expect(state.activeSelections).toHaveLength(sourceCoords.length)
         expect(state.error).toBeUndefined()
     })
 
@@ -320,11 +320,11 @@ describe('select all samples from source, preview them on destination and then p
     test('place samples into destination from source', () => {
         state = produce(state, (draft) => clickCellHelper(draft, dstLocation))
 
-        expect(state.activeSelections).toHaveLength(0)
         expect(state.error).toBeUndefined()
 
         sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
             expect(cell?.samplePlacedAt).toBeDefined()
+            expect(cell?.selected).toEqual(false)
         })
         destCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates]).forEach((cell) => {
             expect(cell?.samplePlacedFrom).toBeDefined()
