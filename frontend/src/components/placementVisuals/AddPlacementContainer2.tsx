@@ -28,7 +28,6 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
     //used to hold loaded container data
     const [loadedContainer, setLoadedContainer] = useState<Partial<DestinationContainer>>({})
     const [selectedTab, setSelectedTab] = useState<string>('new')
-    const [error, setError] = useState<string | undefined>(undefined)
     const [newContainer, setNewContainer] = useState<Partial<DestinationContainer>>({})
 
     const coordinates = useAppSelector(selectCoordinatesByID)
@@ -69,7 +68,6 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
         const containerAlreadyExists = async (container: DestinationContainer, destinationContainerList: DestinationContainer[]) => {
             /* Centralized error notifications */
             const barcodeExistsError = () => {
-                setError("Existing container barcode.")
                 const EXISTING_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-existing-container-barcode`
                 notification.error({
                     message: `New container barcode already exists.`,
@@ -78,7 +76,6 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
                 })
             }
             const nameExistsError = () => {
-                setError("Existing container name.")
                 const EXISTING_NAME_NOTIFICATION_KEY = `LabworkStep.placement-existing-container-name`
                 notification.error({
                     message: `New container name already exists.`,
@@ -139,7 +136,6 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
                         const barCodeResults = barcodeRules.filter((rule) => !rule.pattern.test(container.container_barcode as string))
                         const nameResults = nameRules.filter((rule) => !rule.pattern.test(container.container_name as string))
                         if (barCodeResults.length > 0) {
-                            setError("Invalid new container")
                             const INVALID_BARCODE_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-barcode`
                             notification.error({
                                 message: `Container Barcode -- ${barCodeResults.map((rule) => rule.message).join(" ")}`,
@@ -147,7 +143,6 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
                                 duration: 20
                             })
                         } if (nameResults.length > 0) {
-                            setError("Invalid new container")
                             const INVALID_NAME_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-name`
                             notification.error({
                                 message: `Container Name -- ${nameResults.map((rule) => rule.message).join(" ")}`,
@@ -161,7 +156,6 @@ const AddPlacementContainer = ({ onConfirm, destinationContainerList }: AddPlace
                 })
             }
         } else {
-            setError("Invalid container kind")
             const INVALID_KIND_NOTIFICATION_KEY = `LabworkStep.placement-invalid-container-kind`
             notification.error({
                 message: `Invalid destination container kind.`,

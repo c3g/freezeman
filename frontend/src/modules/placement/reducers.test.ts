@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { loadSamplesAndContainers, PlacementState, PlacementContainerState, LoadSamplesAndContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions, setActiveSourceContainer, setActiveDestinationContainer } from './reducers'
+import reducer, { loadContainers, PlacementState, PlacementContainerState, LoadContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions, setActiveSourceContainer, setActiveDestinationContainer } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
 import produce from 'immer';
 
@@ -13,9 +13,7 @@ const {
     setPreviews
 } = internals
 
-type LoadParentContainerPayload = LoadSamplesAndContainersPayload['parentContainers'][number]
-
-const srcContainer: LoadParentContainerPayload = {
+const srcContainer: LoadContainersPayload[number] = {
     name: 'Source Container',
     spec: [['A', 'B', 'C'], ['01', '02', '03']] as CoordinateSpec,
     containers: [{
@@ -30,7 +28,7 @@ const srcContainer: LoadParentContainerPayload = {
     }]
 }
 
-const dstContainer: LoadParentContainerPayload = {
+const dstContainer: LoadContainersPayload[number] = {
     name: 'Destination Container',
     spec: [['A', 'B', 'C', 'D'], ['01', '02', '03', '04']] as CoordinateSpec,
     containers: [{
@@ -52,12 +50,12 @@ describe('loadSamplesAndContainers', () => {
     test('initialize with 0 containers and samples', () => {
         expect(reducer(
             initialState,
-            loadSamplesAndContainers({ parentContainers: [] })
+            loadContainers([])
         )).toEqual(initialState)
     })
     
     test('initialize with 2 containers containing more than one container', () => {
-        function makeExpectedParentContainerState(parentContainer: LoadParentContainerPayload): PlacementState['parentContainers'] {
+        function makeExpectedParentContainerState(parentContainer: LoadContainersPayload[number]): PlacementState['parentContainers'] {
             const { name, spec, containers } = parentContainer
             return {
                 [name]: {
@@ -83,7 +81,7 @@ describe('loadSamplesAndContainers', () => {
     
         expect(reducer(
             initialState,
-            loadSamplesAndContainers({ parentContainers: [srcContainer, dstContainer] })
+            loadContainers([srcContainer, dstContainer])
         )).toEqual(expectedState)
     })    
 })
@@ -136,7 +134,7 @@ describe('offsetsToCoordinates', () => {
 })
 
 describe('placementDestinationLocations', () => {
-    const state = reducer(initialState, loadSamplesAndContainers({ parentContainers: [srcContainer, dstContainer] }))
+    const state = reducer(initialState, loadContainers([srcContainer, dstContainer]))
 
     type GoodTestCase = { state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions, expected: CellIdentifier[] }
     const goodTestCases: GoodTestCase[] = [
@@ -284,7 +282,7 @@ describe('placementDestinationLocations', () => {
 })
 
 describe('select all samples from source, preview them on destination and then place', () => {
-    let state = reducer(initialState, loadSamplesAndContainers({ parentContainers: [srcContainer, dstContainer] }))
+    let state = reducer(initialState, loadContainers([srcContainer, dstContainer]))
     state = reducer(state, setActiveSourceContainer(srcContainer.name))
     state = reducer(state, setActiveDestinationContainer(dstContainer.name))
 

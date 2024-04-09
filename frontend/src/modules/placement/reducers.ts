@@ -18,6 +18,7 @@ export interface CellState {
 }
 
 export interface PlacementContainerState {
+    barcode?: string
     spec: CoordinateSpec
     cells: Record<string, CellState | undefined>
 }
@@ -30,16 +31,15 @@ export interface PlacementState {
     error?: string
 }
 
-export interface LoadSamplesAndContainersPayload {
-    parentContainers: {
-        name: ContainerIdentifier
-        spec: CoordinateSpec
-        containers: {
-            coordinates: string
-            sample: Sample['id']
-        }[]
+export type LoadContainersPayload = {
+    name: ContainerIdentifier
+    barcode?: string
+    spec: CoordinateSpec
+    containers: {
+        coordinates: string
+        sample: Sample['id']
     }[]
-}
+}[]
 
 export interface PlacementPatternOptions {
     type: 'pattern'
@@ -278,11 +278,12 @@ const slice = createSlice({
     name: 'PLACEMENT',
     initialState,
     reducers: {
-        loadSamplesAndContainers(state, action: PayloadAction<LoadSamplesAndContainersPayload>) {
-            const parentContainers = action.payload.parentContainers
+        loadContainers(state, action: PayloadAction<LoadContainersPayload>) {
+            const parentContainers = action.payload
             for (const parentContainer of parentContainers) {
                 // initialize container state
                 const parentContainerState: PlacementContainerState = {
+                    barcode: parentContainer.barcode,
                     cells: {},
                     spec: parentContainer.spec
                 }
@@ -356,7 +357,7 @@ const slice = createSlice({
     }
 })
 
-export const { loadSamplesAndContainers, setActiveSourceContainer, setActiveDestinationContainer, clickCell, onCellEnter, onCellExit } = slice.actions
+export const { loadContainers, setActiveSourceContainer, setActiveDestinationContainer, clickCell, onCellEnter, onCellExit } = slice.actions
 export const internals = {
     initialState,
     createEmptyCells,
