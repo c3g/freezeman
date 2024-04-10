@@ -92,9 +92,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={Object.entries(parentContainers).map(([name, container]) => ({
-                                container_barcode: container?.meta.barcode as string,
+                                container_barcode: container?.barcode as string,
                                 container_name: name,
-                                container_kind: container?.meta.kind as string,
+                                container_kind: container?.kind as string,
                                 samples: []
                             }))} />
                         </Col>

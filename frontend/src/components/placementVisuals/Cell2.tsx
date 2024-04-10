@@ -70,7 +70,7 @@ function getColor(cell: CellState) {
         return "#74bbfc"
     }
 
-    return ""
+    return cell.sample ? "1890ff" : "white"
 }
 
 export default Cell

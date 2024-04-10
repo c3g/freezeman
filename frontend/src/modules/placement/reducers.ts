@@ -20,10 +20,8 @@ export interface CellState {
 export interface PlacementContainerState {
     spec: CoordinateSpec
     cells: Record<string, CellState | undefined>
-    meta: {
-        barcode?: string
-        kind?: string
-    }
+    barcode?: string
+    kind?: string
 }
 
 export interface PlacementState {
@@ -364,6 +362,20 @@ const initialState: PlacementState = {
     parentContainers: {},
 }
 
+function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => PlacementState) {
+    return (state: Draft<PlacementState>, action: PayloadAction<P>) => {
+        try {
+            return func(state, action.payload)
+        } catch (e) {
+            const originalState = original(state) ?? initialState
+            return {
+                ...originalState,
+                error: e.toString()
+            } as PlacementState
+        }
+    }
+}
+
 const slice = createSlice({
     name: 'PLACEMENT',
     initialState,
@@ -372,83 +384,42 @@ const slice = createSlice({
             const parentContainers = action.payload
             for (const parentContainer of parentContainers) {
                 // initialize container state
-                const parentContainerState: PlacementContainerState = {
-                    meta: {
-                        barcode: parentContainer.barcode,
-                        kind: parentContainer.kind,
-                    },
-                    cells: {},
-                    spec: parentContainer.spec
+                const parentContainerState = {
+                    barcode: parentContainer.barcode,
+                    kind: parentContainer.kind,
+                    cells: createEmptyCells(parentContainer.spec),
+                    spec: parentContainer.spec,
+                    ...state.parentContainers[parentContainer.name] // might not be a good idea with WritableDraft...
                 }
-                state.parentContainers[parentContainer.name] = parentContainerState
-
-                parentContainerState.cells = createEmptyCells(parentContainer.spec)
 
                 // populate cells
                 for (const container of parentContainer.containers) {
-                    parentContainerState.cells[container.coordinates] = {
-                        sample: container.sample,
-                        preview: false,
-                        selected: false
+                    const cell = parentContainerState.cells[container.coordinates]
+                    if (cell?.sample !== container.sample) {
+                        parentContainerState.cells[container.coordinates] = {
+                            sample: container.sample,
+                            preview: false,
+                            selected: false
+                        }
                     }
                 }
             }
             return state
         },
-        setActiveSourceContainer(state, action: PayloadAction<ContainerIdentifier>) {
-            getContainer(state, action.payload) // // throws error if container not loaded
-            state.activeSourceContainer = action.payload
+        setActiveSourceContainer: reducerWithThrows((state, containerName: string) => {
+            getContainer(state, containerName) // // throws error if container not loaded
+            state.activeSourceContainer = containerName
             return state
-        },
-        setActiveDestinationContainer(state, action: PayloadAction<ContainerIdentifier>) {
-            getContainer(state, action.payload) // throws error if container not loaded
-            state.activeDestinationContainer = action.payload
+        }),
+        setActiveDestinationContainer: reducerWithThrows((state, containerName: string) => {
+            getContainer(state, containerName) // throws error if container not loaded
+            state.activeDestinationContainer = containerName
             return state
-        },
-        clickCell(state, action: PayloadAction<MouseOnCellPayload>) {
-            try {
-                return clickCellHelper(state, action.payload)
-            } catch (e) {
-                const originalState = original(state) ?? initialState
-                return {
-                    ...originalState,
-                    error: e.toString()
-                }
-            }
-        },
-        multiSelect(state, action: PayloadAction<MultiSelectPayload>) {
-            try {
-                return multiSelectHelper(state, action.payload)
-            } catch (e) {
-                const originalState = original(state) ?? initialState
-                return {
-                    ...originalState,
-                    error: e.toString()
-                }
-            }
-        },
-        onCellEnter(state, action: PayloadAction<MouseOnCellPayload>) {
-            try {
-                return setPreviews(state, action.payload, true)
-            } catch (e) {
-                const originalState = original(state) ?? initialState
-                return {
-                    ...originalState,
-                    error: e.toString()
-                }
-            }
-        },
-        onCellExit(state, action: PayloadAction<MouseOnCellPayload>) {
-            try {
-                return setPreviews(state, action.payload, false)
-            } catch (e) {
-                const originalState = original(state) ?? initialState
-                return {
-                    ...originalState,
-                    error: e.toString()
-                }
-            }
-        }
+        }),
+        clickCell: reducerWithThrows(clickCellHelper),
+        multiSelect: reducerWithThrows(multiSelectHelper),
+        onCellEnter: reducerWithThrows((state, payload: MouseOnCellPayload) =>  setPreviews(state, payload, true)),
+        onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) =>  setPreviews(state, payload, false)),
     }
 })
 

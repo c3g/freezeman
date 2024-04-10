@@ -22,6 +22,7 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import PlacementTab from '../../placementVisuals/PlacementTab'
 import LabworkSelection from './LabworkSelection'
+import Placement from '../../placementVisuals/Placement2'
 
 const { Text } = Typography
 
@@ -430,9 +431,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					</Tabs.TabPane>
 					{step.needs_placement ?
 						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={stepSamples.selectedSamples.items.length == 0}>
-							<PlacementTab
+							<Placement
 								stepID={step.id}
-								save={placementSave}
 								sampleIDs={stepSamples.selectedSamples.items} />
 						</Tabs.TabPane>
 						: ''}

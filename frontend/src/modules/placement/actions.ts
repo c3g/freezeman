@@ -2,7 +2,7 @@ import { FMSContainer, FMSId, LabworkStepInfo } from '../../models/fms_api_model
 import { selectContainerKindsByID } from '../../selectors';
 import store, { AppDispatch, RootState } from '../../store';
 import api from '../../utils/api';
-import { LoadContainersPayload, loadContainers as reduceLoadSamplesAndContainers, clickCell as reduceClickCell, PlacementOptions } from './reducers';
+import { LoadContainersPayload, loadContainers as reduceLoadContainers } from './reducers';
 
 export function loadContainers(stepID: FMSId, sampleIDs: FMSId[]) {
     return async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -11,6 +11,7 @@ export function loadContainers(stepID: FMSId, sampleIDs: FMSId[]) {
         const containers = values.results.samples.groups
         const payload: LoadContainersPayload = await Promise.all(containers.map(async (containerGroup) => {
             // Handles containers like tubes_without_parent_container. It assumes there isn't a container named like that.
+            // TODO: actually handle tubes_without_parent_container containers
             const [containerDetail] = await store.dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
             if (containerDetail) {
                 const spec = containerKinds[containerDetail.kind].coordinate_spec
@@ -39,7 +40,7 @@ export function loadContainers(stepID: FMSId, sampleIDs: FMSId[]) {
                 }
             }
         }))
-        dispatch(reduceLoadSamplesAndContainers(payload))
+        dispatch(reduceLoadContainers(payload))
 
         return Object.keys(getState().placement.parentContainers)
     }

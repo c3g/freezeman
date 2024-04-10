@@ -60,7 +60,6 @@ describe('loadSamplesAndContainers', () => {
             return {
                 [name]: {
                     spec,
-                    meta: {},
                     cells: {
                         ...createEmptyCells(spec),
                         ...containers.reduce((cells: PlacementContainerState['cells'], c) => {
