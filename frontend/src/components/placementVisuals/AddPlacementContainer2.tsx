@@ -28,7 +28,9 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
     //used to hold loaded container data
     const [loadedContainer, setLoadedContainer] = useState<Partial<DestinationContainer>>({})
     const [selectedTab, setSelectedTab] = useState<string>('new')
-    const [newContainer, setNewContainer] = useState<Partial<DestinationContainer>>({})
+    
+    // make at least empty samples required for newly created container
+    const [newContainer, setNewContainer] = useState<Pick<DestinationContainer, 'samples'> & Partial<DestinationContainer>>({ samples: {} })
 
     const coordinates = useAppSelector(selectCoordinatesByID)
     const containerKinds = useAppSelector(selectContainerKindsByID)
@@ -122,7 +124,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
         const addContainer = (container: DestinationContainer) => {
             onConfirm(container)
             setIsPopup(false)
-            setNewContainer({})
+            setNewContainer({ samples: {} })
         }
         const container = selectedTab == "load" ? loadedContainer : newContainer
         container.container_name = container.container_name ? container.container_name : container.container_barcode
@@ -165,12 +167,11 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
         }
     }, [selectedTab, loadedContainer, newContainer, dispatch, onConfirm, existingContainers])
 
-    const handleOnChange = useCallback((e, name) => {
-        const container = { ...newContainer }
+    const handleOnChange = useCallback((e: any, name: keyof typeof newContainer) => {
+        const container: typeof newContainer = { ...newContainer }
         container[name] = e.target ? e.target.value : e
         setNewContainer(container)
     }, [newContainer])
-
 
     return (
         <>

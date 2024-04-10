@@ -6,23 +6,15 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 
 interface PlacementContainerProps {
     container: string
-    placementOptions: PlacementOptions
-}
-
-function nextChar(c: string) {
-    return String.fromCharCode(c.charCodeAt(0) + 1);
-}
-
-function padColumn(col: number) {
-    return (col < 10 ? col.toString().padStart(2, '0') : col)
 }
 
 //component is used to visually represent the container, and its rows and columns of cells
-const PlacementContainer = ({ container: containerName, placementOptions }: PlacementContainerProps) => {
+const PlacementContainer = ({ container: containerName }: PlacementContainerProps) => {
     const dispatch = useAppDispatch()
     const container = useAppSelector((state) => state.placement.parentContainers[containerName])
-    const rows = container?.spec[0]?.length ?? 0
-    const columns = container?.spec[1]?.length ?? 0
+    const [axisRow = [''], axisColumn = ['']] = container?.spec ?? [[''], ['']] as const
+    const totalRow = axisRow?.length
+    const totalColumn = axisColumn?.length
 
     const selectColumn = useCallback((column: number) => {
         return () => dispatch(multiSelect({
@@ -47,16 +39,16 @@ const PlacementContainer = ({ container: containerName, placementOptions }: Plac
 
     const cells: ReactNode[] = useMemo(() => {
         const cells: ReactNode[] = []
-        let char = 'A'
-        let coordinates = ''
+
         //renders header based on the number of columns provided to the component
         const headerCells: ReactNode[] = []
-        const cellSize = columns <= 12 ? "cell" : "tiny-cell"
-        for (let i = 0; i < columns + 1; i++) {
+        const cellSize = totalColumn <= 12 ? "cell" : "tiny-cell"
+        const columnLabelsWithPlus = ['+', ...axisColumn]
+        for (let i = 0; i < totalColumn + 1; i++) {
             headerCells.push(
                 <div key={'header_' + i} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={i !== 0 ? selectColumn(i - 1) : selectAll}>
                     {
-                        i != 0 ? i : '+'
+                        columnLabelsWithPlus[i]
                     }
                 </div>
             )
@@ -68,47 +60,44 @@ const PlacementContainer = ({ container: containerName, placementOptions }: Plac
             }
         </div>)
         //renders each row with the corresponding row letter 'A','B', etc.
-        for (let i = 0; i < rows; i++) {
+        for (let rowNumber = 0; rowNumber < totalRow; rowNumber++) {
             const rowOfCells: React.ReactElement[] = []
             rowOfCells.push(
-                <div key={char} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={selectRow(i)}>
+                <div key={axisRow[rowNumber]} className={cellSize} style={{ backgroundColor: '#001529', color: 'white', cursor: 'grab' }} onClick={selectRow(rowNumber)}>
                     {
-                        char
+                        axisRow[rowNumber]
                     }
                 </div>
             )
             //renders cells
-            for (let colNumber = 1; colNumber < columns + 1; colNumber++) {
-                coordinates = char + "" + (padColumn(colNumber))
+            for (let colNumber = 0; colNumber < totalColumn; colNumber++) {
+                const coordinates = axisRow[rowNumber] + axisColumn[colNumber]
                 rowOfCells.push(
                     <Cell
                         key={coordinates}
                         container={containerName}
                         coordinates={coordinates}
                         cellSize={cellSize}
-                        placementOptions={placementOptions}
                     />
                 )
             }
             //pushes rowOfCells to cell array
             cells.push(
-                <div key={'row_' + char} className={"row"}>
+                <div key={'row_' + axisRow[rowNumber]} className={"row"}>
                     {
                         rowOfCells
                     }
                 </div>
             )
-            //changes next character in the alphabet for next row
-            char = nextChar(char)
         }
         return cells
-    }, [columns, containerName, placementOptions, rows, selectAll, selectColumn, selectRow])
+    }, [totalColumn, axisColumn, selectColumn, selectAll, totalRow, axisRow, selectRow, containerName])
 
     return (
         <>
             <div className={"transfer"}>
                 {
-                    (rows === 0 && columns === 0) ?
+                    (totalRow === 0 && totalColumn === 0) ?
                         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         :
                         cells

@@ -293,7 +293,6 @@ describe('select all samples from source, preview them on destination and then p
             return produce(state, (draft) => clickCellHelper(draft, {
                 parentContainer: srcContainer.name,
                 coordinates,
-                placementOptions: { type: 'group', direction: 'row' }
             }))
         }, state)
         sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
@@ -306,7 +305,6 @@ describe('select all samples from source, preview them on destination and then p
     const dstLocation: MouseOnCellPayload = {
         parentContainer: dstContainer.name,
         coordinates: 'D01',
-        placementOptions: { type: 'group', direction: 'row' }
     }
 
     test('preview destinations', () => {

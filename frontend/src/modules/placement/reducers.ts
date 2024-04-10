@@ -24,8 +24,24 @@ export interface PlacementContainerState {
     kind?: string
 }
 
+export interface PlacementPatternOptions {
+    type: 'pattern'
+}
+
+export const PlacementDirections = {
+    row: 'row',
+    column: 'column'
+} as const
+export interface PlacementGroupOptions {
+    type: 'group'
+    direction: keyof typeof PlacementDirections
+}
+
+export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
+
 export interface PlacementState {
     parentContainers: Record<ContainerIdentifier, PlacementContainerState | undefined>
+    placementOptions: PlacementOptions
     activeSourceContainer?: ContainerIdentifier
     activeDestinationContainer?: ContainerIdentifier
     error?: string
@@ -42,24 +58,7 @@ export type LoadContainersPayload = {
     }[]
 }[]
 
-export interface PlacementPatternOptions {
-    type: 'pattern'
-}
-
-export const PlacementDirections = {
-    row: 'row',
-    column: 'column'
-} as const
-export interface PlacementGroupOptions {
-    type: 'group'
-    direction: keyof typeof PlacementDirections
-}
-
-export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
-
-export interface MouseOnCellPayload extends CellIdentifier {
-    placementOptions: PlacementOptions
-}
+export interface MouseOnCellPayload extends CellIdentifier { }
 
 export type MultiSelectPayload = {
     container: string
@@ -75,8 +74,9 @@ export type MultiSelectPayload = {
 
 function createEmptyCells(spec: CoordinateSpec) {
     const cells: PlacementContainerState['cells'] = {}
-    for (const row of spec[0] ?? []) {
-        for (const col of spec[1] ?? ['']) {
+    const [axisRow = [''], axisColumn = ['']] = spec
+    for (const row of axisRow) {
+        for (const col of axisColumn) {
             cells[row + col] = {
                 sample: null,
                 preview: false,
@@ -152,7 +152,7 @@ function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) 
     if (spec.length !== offsets.length) {
         throw new Error(`Cannot convert offsets ${JSON.stringify(offsets)} to coordinates with spec ${JSON.stringify(spec)}`)
     }
-    
+
     const coordinates: string[] = []
     for (let i = 0; i < spec.length; i++) {
         if (offsets[i] < 0) {
@@ -192,7 +192,7 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
             const minOffsets = sourceOffsetsList.reduce((minOffsets, offsets) => {
                 return offsets.map((_, index) => offsets[index] < minOffsets[index] ? offsets[index] : minOffsets[index])
             }, sourceOffsetsList[0])
-        
+
 
             newOffsetsList.push(
                 ...sourceOffsetsList.map(
@@ -248,13 +248,19 @@ function getActiveSelections(state: PlacementState, parentContainerName: string)
     }, [] as CellIdentifier[])
 }
 
+function cellSelectable(state: Draft<PlacementState>, id: CellIdentifier) {
+    const cell = getCell(state, id)
+    return (id.parentContainer === state.activeSourceContainer && cell.sample !== null && !cell.samplePlacedAt)
+        || (id.parentContainer === state.activeDestinationContainer && !!cell.samplePlacedFrom)
+}
+
 function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPayload) {
-    const { parentContainer: clickedContainerName, coordinates: coordinate, placementOptions } = payload
-                
+    const { parentContainer: clickedContainerName, coordinates: coordinate } = payload
+
     const clickedLocation: CellIdentifier = { parentContainer: clickedContainerName, coordinates: coordinate }
     const clickedCell = getCell(state, clickedLocation)
 
-    if (clickedContainerName === state.activeSourceContainer && clickedCell.sample !== null && !clickedCell.samplePlacedAt) {
+    if (cellSelectable(state, clickedLocation)) {
         clickedCell.selected = !clickedCell.selected
         return state
     }
@@ -271,10 +277,10 @@ function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPaylo
             if (clickedContainerName !== state.activeDestinationContainer) {
                 throw new Error(`'${clickedContainerName}' is not the current active destination container ('${state.activeDestinationContainer}')`)
             }
-    
+
             // relying on placeCell to do error checking
-    
-            const destinationLocations = placementDestinationLocations(state, activeSelections, clickedLocation, placementOptions)
+
+            const destinationLocations = placementDestinationLocations(state, activeSelections, clickedLocation, state.placementOptions)
             activeSelections.forEach((_, index) => {
                 placeCell(state, activeSelections[index], destinationLocations[index])
                 getCell(state, activeSelections[index]).selected = false
@@ -290,10 +296,11 @@ function clickCellHelper(state: Draft<PlacementState>, payload: MouseOnCellPaylo
 }
 
 function setPreviews(state: Draft<PlacementState>, payload: MouseOnCellPayload, preview: boolean) {
-    const { parentContainer, coordinates: coordinate, placementOptions } = payload
- 
+    const { parentContainer, coordinates: coordinate } = payload
+
     if (parentContainer !== state.activeDestinationContainer) {
-        throw new Error(`'${parentContainer}' is not the current active destination container ('${state.activeDestinationContainer}')`)
+        // throw new Error(`'${parentContainer}' is not the current active destination container ('${state.activeDestinationContainer}')`)
+        return state
     }
     if (state.activeSourceContainer === undefined) {
         throw new Error('state.activeSourceContainer is undefined')
@@ -302,7 +309,7 @@ function setPreviews(state: Draft<PlacementState>, payload: MouseOnCellPayload, 
     const onMouseLocation: CellIdentifier = { parentContainer, coordinates: coordinate }
 
     const activeSelections = getActiveSelections(state, state.activeSourceContainer)
-    const destinationLocations = placementDestinationLocations(state, activeSelections, onMouseLocation, placementOptions)
+    const destinationLocations = placementDestinationLocations(state, activeSelections, onMouseLocation, state.placementOptions)
     activeSelections.forEach((_, index) => {
         getCell(state, destinationLocations[index]).preview = preview
     })
@@ -313,13 +320,14 @@ function setPreviews(state: Draft<PlacementState>, payload: MouseOnCellPayload, 
 
 function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPayload) {
     const container = getContainer(state, payload.container)
-    const rowSize = container.spec[0]?.length ?? 1
-    const colSize = container.spec[1]?.length ?? 1
+    const [rowAxis = [''], colAxis = ['']] = container.spec
+    const rowSize = rowAxis.length
+    const colSize = colAxis.length
 
     const offsets: number[][] = []
     switch (payload.type) {
         case 'row': {
-            if (! (0 <= payload.row && payload.row < rowSize)) {
+            if (!(0 <= payload.row && payload.row < rowSize)) {
                 throw new Error(`Row ${payload.row} is not within the range of [0, ${rowSize})`)
             }
             for (let col = 0; col < colSize; col++) {
@@ -328,7 +336,7 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
             break
         }
         case 'column': {
-            if (! (0 <= payload.column && payload.column < rowSize)) {
+            if (!(0 <= payload.column && payload.column < colSize)) {
                 throw new Error(`Column ${payload.column} is not within the range of [0, ${colSize})`)
             }
             for (let row = 0; row < rowSize; row++) {
@@ -346,10 +354,14 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
         }
     }
 
-    const cells = offsets.map((offsets) => getCell(state, {
-        parentContainer: payload.container,
-        coordinates: offsetsToCoordinates(offsets, container.spec)
-    }))
+    const cells = offsets
+        .map((offsets) => ({
+            parentContainer: payload.container,
+            coordinates: offsetsToCoordinates(offsets, container.spec)
+        }))
+        .filter((id) => cellSelectable(state, id))
+        .map((id) => getCell(state, id))
+
     const allSelected = !cells.find((c) => !c.selected)
     cells.forEach((cell) => {
         cell.selected = !allSelected
@@ -358,9 +370,11 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
     return state
 }
 
+const initialPlacementOptions: PlacementOptions = { type: 'group', direction: 'row' } as const
 const initialState: PlacementState = {
     parentContainers: {},
-}
+    placementOptions: initialPlacementOptions
+} as const
 
 function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => PlacementState) {
     return (state: Draft<PlacementState>, action: PayloadAction<P>) => {
@@ -391,6 +405,7 @@ const slice = createSlice({
                     spec: parentContainer.spec,
                     ...state.parentContainers[parentContainer.name] // might not be a good idea with WritableDraft...
                 }
+                state.parentContainers[parentContainer.name] = parentContainerState
 
                 // populate cells
                 for (const container of parentContainer.containers) {
@@ -418,12 +433,41 @@ const slice = createSlice({
         }),
         clickCell: reducerWithThrows(clickCellHelper),
         multiSelect: reducerWithThrows(multiSelectHelper),
-        onCellEnter: reducerWithThrows((state, payload: MouseOnCellPayload) =>  setPreviews(state, payload, true)),
-        onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) =>  setPreviews(state, payload, false)),
+        onCellEnter: reducerWithThrows((state, payload: MouseOnCellPayload) => setPreviews(state, payload, true)),
+        onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) => setPreviews(state, payload, false)),
+        setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
+            if (action.payload === 'group') {
+                state.placementOptions = {
+                    type: 'group',
+                    direction: state.placementOptions.type === 'group'
+                        ? state.placementOptions.direction
+                        : initialPlacementOptions.direction
+                }
+            } else {
+                state.placementOptions.type = 'pattern'
+            }
+        },
+        setPlacementDirection: reducerWithThrows((state, payload: PlacementGroupOptions['direction']) => {
+            if (state.placementOptions.type !== 'group') {
+                throw new Error('Placement direction can only be set for placement of type "group"')
+            }
+            state.placementOptions.direction = payload
+            return state
+        })
     }
 })
 
-export const { loadContainers, setActiveSourceContainer, setActiveDestinationContainer, clickCell, onCellEnter, onCellExit, multiSelect } = slice.actions
+export const {
+    loadContainers,
+    setActiveSourceContainer,
+    setActiveDestinationContainer,
+    clickCell,
+    onCellEnter,
+    onCellExit,
+    multiSelect,
+    setPlacementType,
+    setPlacementDirection,
+} = slice.actions
 export const internals = {
     initialState,
     createEmptyCells,

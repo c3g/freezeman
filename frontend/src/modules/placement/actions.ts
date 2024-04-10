@@ -11,7 +11,6 @@ export function loadContainers(stepID: FMSId, sampleIDs: FMSId[]) {
         const containers = values.results.samples.groups
         const payload: LoadContainersPayload = await Promise.all(containers.map(async (containerGroup) => {
             // Handles containers like tubes_without_parent_container. It assumes there isn't a container named like that.
-            // TODO: actually handle tubes_without_parent_container containers
             const [containerDetail] = await store.dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
             if (containerDetail) {
                 const spec = containerKinds[containerDetail.kind].coordinate_spec

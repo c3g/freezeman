@@ -1,15 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { loadContainers as loadSourceContainers } from "../../modules/placement/actions"
-import { PlacementDirections, PlacementGroupOptions, PlacementOptions, loadContainers as loadDestinationContainers, setActiveDestinationContainer, setActiveSourceContainer } from '../../modules/placement/reducers'
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
+import { PlacementDirections, loadContainers as loadDestinationContainers, setActiveDestinationContainer, setActiveSourceContainer, setPlacementDirection, setPlacementType } from '../../modules/placement/reducers'
+import { Button, Col, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { DestinationContainer } from "./AddPlacementContainer2"
 import ContainerNameScroller from "./ContainerNameScroller2"
 import PlacementContainer from "./PlacementContainer2"
-import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectContainerKindsByID } from "../../selectors"
 
 interface PlacementProps {
@@ -24,6 +23,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const parentContainers = useAppSelector((state) => state.placement.parentContainers)
     const activeSourceContainer = useAppSelector((state) => state.placement.activeSourceContainer)
     const activeDestinationContainer = useAppSelector((state) => state.placement.activeDestinationContainer)
+    const placementOptions = useAppSelector((state) => state.placement.placementOptions)
 
     const [sourceContainers, setSourceContainers] = useState<string[]>([])
     const [destinationContainers, setDestinationContainers] = useState<string[]>([])
@@ -35,6 +35,8 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
         dispatch(setActiveSourceContainer(sourceContainers[currentIndex + direction]))
     }, [activeSourceContainer, dispatch, sourceContainers])
+    const sourceContainerIndex = useMemo(() => sourceContainers.findIndex((x) => x === activeSourceContainer), [activeSourceContainer, sourceContainers])
+
     const changeDestinationContainer = useCallback((direction: number) => {
         const currentIndex = destinationContainers.findIndex((x) => x === activeDestinationContainer)
         if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= destinationContainers.length) {
@@ -42,6 +44,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
         dispatch(setActiveDestinationContainer(destinationContainers[currentIndex + direction]))
     }, [destinationContainers, dispatch, activeDestinationContainer])
+    const destinationContainerIndex = useMemo(() => destinationContainers.findIndex((x) => x === activeDestinationContainer), [activeDestinationContainer, destinationContainers])
 
     useEffect(() => {
         dispatch(loadSourceContainers(stepID, sampleIDs)).then((parentContainers) => {
@@ -70,17 +73,12 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         dispatch(setActiveDestinationContainer(container.container_name))
     }, [containerKinds, dispatch])
 
-    const [placementDirection, setPlacementDirection] = useState<PlacementGroupOptions['direction']>('row')
-    const [placementType, setPlacementType] = useState<PlacementOptions['type']>('group')
     const updatePlacementDirection = useCallback((event: RadioChangeEvent) => {
-        setPlacementDirection(event.target.value)
-    }, [])
+        dispatch(setPlacementDirection(event.target.value))
+    }, [dispatch])
     const updatePlacementType = useCallback((checked: boolean) => {
-            setPlacementType(checked ? 'group' : 'pattern')
-    }, [])
-    const placementOptions: PlacementOptions = placementType == 'group'
-        ? { type: 'group', direction: placementDirection }
-        : { type: 'pattern' }
+            dispatch(setPlacementType(checked ? 'pattern' : 'group'))
+    }, [dispatch])
 
     // TODO: complete implementation
     const saveToPrefill = useCallback(() => { }, [])
@@ -109,12 +107,11 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                     {activeSourceContainer &&
                                         <>
                                             <ContainerNameScroller
-                                                disabled={sourceContainers.length <= 1}
-                                                name={activeSourceContainer}
+                                                names={sourceContainers}
+                                                index={sourceContainerIndex}
                                                 changeContainer={changeSourceContainer} />
                                             <PlacementContainer
                                                 container={activeSourceContainer}
-                                                placementOptions={placementOptions}
                                             />
                                         </>
                                     }
@@ -133,12 +130,11 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                     {activeDestinationContainer &&
                                         <>
                                             <ContainerNameScroller
-                                                disabled={destinationContainers.length <= 1}
-                                                name={activeDestinationContainer}
+                                                names={destinationContainers}
+                                                index={destinationContainerIndex}
                                                 changeContainer={changeDestinationContainer} />
                                             <PlacementContainer
                                                 container={activeDestinationContainer}
-                                                placementOptions={placementOptions}
                                             />
                                         </>
                                     }
