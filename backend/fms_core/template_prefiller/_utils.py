@@ -33,3 +33,19 @@ def find_worksheet_header_offset(worksheet, header_values, max_offset=-1):
         elif max_offset >= 0 and i > max_offset:
             return HEADER_NOT_FOUND
     return HEADER_NOT_FOUND
+
+def is_sheet_true_batch(sheet_name, sheets_info):
+    """
+    This function establish if the current sheet is a true batch for prefilling (no stitching to a sample sheet).
+
+    Args:
+        `sheet_name`: A string that contains the name of the template sheet to test.
+        `sheets_info`: Template definition for the current template.
+
+    Returns:
+        Boolean value indication if the sheet is a true batch.
+    """
+    for sheet in sheets_info:
+        if sheet["name"] == sheet_name and sheet.get("batch", False) and not (sheet.get("stitch_column", None)):
+                return True
+    return False
