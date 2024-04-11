@@ -1,11 +1,13 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
+import { FMSContainer, FMSId, FMSPagedResultsReponse, FMSSampleNextStep, LabworkStepInfo } from "../../models/fms_api_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
-import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState } from "../../selectors"
+import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState, selectContainerKindsByID } from "../../selectors"
 import { AppDispatch, RootState } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
-import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
+import { LoadContainersPayload, flushContainers as flushPlacementContainers, loadContainers as loadPlacementContainer } from "../placement/reducers"
+import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
+const { setActiveSourceContainer, loadSourceContainers, maybeFlushSourceContainers: flushSourceContainers } = labworkStepPlacementActions
 import { list as listSamples} from "../samples/actions"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES } from "./reducers"
@@ -392,4 +394,57 @@ function receiveSortedSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 		stepID,
 		sampleIDs
 	}
+}
+
+export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) {
+    return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const originalContainerNames = getState().labworkStepPlacement.sourceContainers
+		dispatch(flushSourceContainers(stepID))
+
+        const containerKinds = selectContainerKindsByID(getState())
+        const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))).data
+        const containers = values.results.samples.groups
+        const payload: LoadContainersPayload = await Promise.all(containers.map(async (containerGroup) => {
+            // Handles containers like tubes_without_parent_container. It assumes there isn't a container named like that.
+            const [containerDetail] = await dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
+            if (containerDetail) {
+                const spec = containerKinds[containerDetail.kind].coordinate_spec
+                return {
+                    type: 'source',
+                    name: containerDetail.name,
+                    barcode: containerDetail.barcode,
+                    kind: containerDetail.kind,
+                    spec,
+                    containers: containerGroup.sample_locators.map((locator) => {
+                        return {
+                            sample: locator.sample_id,
+                            coordinates: locator.contextual_coordinates
+                        }
+                    })
+                }
+            } else {
+                return {
+                    type: 'source',
+                    name: containerGroup.name,
+                    spec: [],
+                    containers: containerGroup.sample_locators.map((locator) => {
+                        return {
+                            sample: locator.sample_id,
+                            coordinates: locator.contextual_coordinates
+                        }
+                    })
+                }
+            }
+        }))
+        dispatch(loadPlacementContainer(payload))
+
+		const containerNames = payload.map((c) => c.name)
+
+		// remove outdated containers in placement
+		const toFlushContainers = originalContainerNames.filter((n) => !containerNames.includes(n))
+		dispatch(flushPlacementContainers(toFlushContainers))
+
+		dispatch(loadSourceContainers(containerNames))
+		dispatch(setActiveSourceContainer(containerNames[0]))
+    }
 }

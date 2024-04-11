@@ -14,8 +14,8 @@ export interface CellProps {
 const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     const dispatch = useAppDispatch()
     const cell = useAppSelector((state) => state.placement.parentContainers[container]?.cells[coordinates])
-    const activeSourceContainer = useAppSelector((state) => state.placement.activeSourceContainer)
-    const activeDestinationContainer = useAppSelector((state) => state.placement.activeDestinationContainer)
+    const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
+    const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
     const isSource = container === activeSourceContainer
     const isDestination = container === activeDestinationContainer
 
@@ -56,25 +56,22 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
 }
 
 function getColor(cell: CellState, isSource: boolean, isDestination: boolean) {
-    if (cell.samplePlacedAt) {
-        return "grey"
-    }
-    if (cell.samplePlacedFrom) {
-        return "#1890ff"
-    }
     if (cell.selected) {
         return "#86ebc1"
     }
     if (cell.preview) {
-        return "#74bbfc"
+        return cell.sample || cell.samplePlacedFrom ? "pink" : "#74bbfc"
     }
-    if (cell.sample) {
-        if (isDestination) {
-            return "grey"
-        }
-        if (isSource) {
-            return "#1890ff"
-        }
+    
+    if (isSource && cell.sample) {
+        return cell.samplePlacedAt ? "grey" : "#1890ff"
+    }
+
+    if (isDestination && cell.sample) {
+        return "grey"
+    }
+    if (isDestination && cell.samplePlacedFrom) {
+        return "#1890ff"
     }
 
     return "white"

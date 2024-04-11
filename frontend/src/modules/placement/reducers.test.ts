@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { loadContainers, PlacementState, PlacementContainerState, LoadContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions, setActiveSourceContainer, setActiveDestinationContainer } from './reducers'
+import reducer, { loadContainers, PlacementState, PlacementContainerState, LoadContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
 import produce from 'immer';
 
@@ -14,6 +14,7 @@ const {
 } = internals
 
 const srcContainer: LoadContainersPayload[number] = {
+    type: 'source',
     name: 'Source Container',
     spec: [['A', 'B', 'C'], ['01', '02', '03']] as CoordinateSpec,
     containers: [{
@@ -29,6 +30,7 @@ const srcContainer: LoadContainersPayload[number] = {
 }
 
 const dstContainer: LoadContainersPayload[number] = {
+    type: 'destination',
     name: 'Destination Container',
     spec: [['A', 'B', 'C', 'D'], ['01', '02', '03', '04']] as CoordinateSpec,
     containers: [{
@@ -56,14 +58,21 @@ describe('loadSamplesAndContainers', () => {
     
     test('initialize with 2 containers containing more than one container', () => {
         function makeExpectedParentContainerState(parentContainer: LoadContainersPayload[number]): PlacementState['parentContainers'] {
-            const { name, spec, containers } = parentContainer
+            const { type, name, spec, containers } = parentContainer
             return {
                 [name]: {
+                    type,
                     spec,
                     cells: {
                         ...createEmptyCells(spec),
                         ...containers.reduce((cells: PlacementContainerState['cells'], c) => {
-                            cells[c.coordinates] = { preview: false, selected: false, sample: c.sample }
+                            cells[c.coordinates] = {
+                                preview: false,
+                                selected: false,
+                                sample: c.sample,
+                                samplePlacedAt: null,
+                                samplePlacedFrom: null
+                            }
                             return cells
                         }, {})
                     }
@@ -283,8 +292,6 @@ describe('placementDestinationLocations', () => {
 
 describe('select all samples from source, preview them on destination and then place', () => {
     let state = reducer(initialState, loadContainers([srcContainer, dstContainer]))
-    state = reducer(state, setActiveSourceContainer(srcContainer.name))
-    state = reducer(state, setActiveDestinationContainer(dstContainer.name))
 
     const sourceCoords = srcContainer.containers.map((container) => container.coordinates)
 

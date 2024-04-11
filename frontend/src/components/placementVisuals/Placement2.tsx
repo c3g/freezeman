@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { loadContainers as loadSourceContainers } from "../../modules/placement/actions"
-import { PlacementDirections, loadContainers as loadDestinationContainers, setActiveDestinationContainer, setActiveSourceContainer, setPlacementDirection, setPlacementType } from '../../modules/placement/reducers'
+import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, setPlacementDirection, setPlacementType } from '../../modules/placement/reducers'
+import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
+const { setActiveDestinationContainer, setActiveSourceContainer, loadDestinationContainers, maybeFlushSourceContainers, maybeFlushDestinationContainers } = labworkStepPlacementActions
 import { Button, Col, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
@@ -10,6 +11,7 @@ import AddPlacementContainer, { DestinationContainer } from "./AddPlacementConta
 import ContainerNameScroller from "./ContainerNameScroller2"
 import PlacementContainer from "./PlacementContainer2"
 import { selectContainerKindsByID } from "../../selectors"
+import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -21,12 +23,12 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const containerKinds = useAppSelector(selectContainerKindsByID)
     const parentContainers = useAppSelector((state) => state.placement.parentContainers)
-    const activeSourceContainer = useAppSelector((state) => state.placement.activeSourceContainer)
-    const activeDestinationContainer = useAppSelector((state) => state.placement.activeDestinationContainer)
     const placementOptions = useAppSelector((state) => state.placement.placementOptions)
 
-    const [sourceContainers, setSourceContainers] = useState<string[]>([])
-    const [destinationContainers, setDestinationContainers] = useState<string[]>([])
+    const sourceContainers = useAppSelector((state) => state.labworkStepPlacement.sourceContainers)
+    const destinationContainers = useAppSelector((state) => state.labworkStepPlacement.destinationContainers)
+    const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)    
+    const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
 
     const changeSourceContainer = useCallback((direction: number) => {
         const currentIndex = sourceContainers.findIndex((x) => x === activeSourceContainer)
@@ -47,15 +49,17 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const destinationContainerIndex = useMemo(() => destinationContainers.findIndex((x) => x === activeDestinationContainer), [activeDestinationContainer, destinationContainers])
 
     useEffect(() => {
-        dispatch(loadSourceContainers(stepID, sampleIDs)).then((parentContainers) => {
-            parentContainers.sort()
-            setSourceContainers(parentContainers)
-            dispatch(setActiveSourceContainer(parentContainers[0]))
-        })
+        dispatch(maybeFlushSourceContainers(stepID))
+        dispatch(maybeFlushDestinationContainers(stepID))
+    }, [dispatch, stepID])
+
+    useEffect(() => {
+        dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs))
     }, [dispatch, sampleIDs, stepID])
 
     const onConfirmAddDestinationContainer = useCallback((container: DestinationContainer) => {
-        dispatch(loadDestinationContainers([{
+        dispatch(loadPlacementDestinationContainers([{
+            type: 'destination',
             name: container.container_name,
             barcode: container.container_barcode,
             kind: container.container_kind,
@@ -65,11 +69,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                 sample: sample.id
             }))
         }]))
-        setDestinationContainers((destinationContainers) => {
-            const result = [...destinationContainers, container.container_name]
-            result.sort()
-            return result
-        })
+        dispatch(loadDestinationContainers([container.container_name]))
         dispatch(setActiveDestinationContainer(container.container_name))
     }, [containerKinds, dispatch])
 
