@@ -62,6 +62,7 @@ export interface MouseOnCellPayload extends CellIdentifier { }
 
 export type MultiSelectPayload = {
     container: string
+    forcedSelectedValue?: boolean
 } & ({
     type: 'row'
     row: number
@@ -320,10 +321,10 @@ function setPreviews(state: Draft<PlacementState>, payload: MouseOnCellPayload, 
     return state
 }
 
-function selectMultipleCells(cells: Draft<CellState>[]) {
+function selectMultipleCells(cells: Draft<CellState>[], forcedSelectedValue?: boolean) {
     const allSelected = !cells.find((c) => !c.selected)
     cells.forEach((cell) => {
-        cell.selected = !allSelected
+        cell.selected = forcedSelectedValue ?? !allSelected
     })
 }
 
@@ -338,7 +339,7 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
             }
             return cells
         }, [] as Draft<CellState>[])
-        selectMultipleCells(cells)
+        selectMultipleCells(cells, payload.forcedSelectedValue)
         return state
     }
 
