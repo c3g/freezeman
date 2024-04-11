@@ -70,6 +70,9 @@ export type MultiSelectPayload = {
     column: number
 } | {
     type: 'all'
+} | {
+    type: 'sample-ids'
+    ids: Array<Sample['id']>
 })
 
 function createEmptyCells(spec: CoordinateSpec) {
@@ -317,9 +320,28 @@ function setPreviews(state: Draft<PlacementState>, payload: MouseOnCellPayload, 
     return state
 }
 
+function selectMultipleCells(cells: Draft<CellState>[]) {
+    const allSelected = !cells.find((c) => !c.selected)
+    cells.forEach((cell) => {
+        cell.selected = !allSelected
+    })
+}
 
 function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPayload) {
     const container = getContainer(state, payload.container)
+
+    if (payload.type === 'sample-ids') {
+        const sampleIDs = new Set(payload.ids)
+        const cells = Object.values(container.cells).reduce((cells, c) => {
+            if (c?.sample && sampleIDs.has(c?.sample)) {
+                cells.push(c)
+            }
+            return cells
+        }, [] as Draft<CellState>[])
+        selectMultipleCells(cells)
+        return state
+    }
+
     const [rowAxis = [''], colAxis = ['']] = container.spec
     const rowSize = rowAxis.length
     const colSize = colAxis.length
@@ -361,11 +383,7 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
         }))
         .filter((id) => cellSelectable(state, id))
         .map((id) => getCell(state, id))
-
-    const allSelected = !cells.find((c) => !c.selected)
-    cells.forEach((cell) => {
-        cell.selected = !allSelected
-    })
+    selectMultipleCells(cells)
 
     return state
 }
