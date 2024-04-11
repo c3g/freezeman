@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, setPlacementDirection, setPlacementType } from '../../modules/placement/reducers'
+import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, multiSelect, setPlacementDirection, setPlacementType } from '../../modules/placement/reducers'
 import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
 const { setActiveDestinationContainer, setActiveSourceContainer, loadDestinationContainers, maybeFlushSourceContainers, maybeFlushDestinationContainers } = labworkStepPlacementActions
 import { Button, Col, Radio, RadioChangeEvent, Row, Switch } from "antd"
@@ -12,6 +12,7 @@ import ContainerNameScroller from "./ContainerNameScroller2"
 import PlacementContainer from "./PlacementContainer2"
 import { selectContainerKindsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
+import PlacementSamplesTable, { PlacementSamplesTableProps } from "./PlacementSamplesTable"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -173,14 +174,14 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             </Popconfirm>
                         </Col> */}
                     </Row>
-                    {/* <Row justify="space-evenly" style={{ padding: "10px" }}>
+                    <Row justify="space-evenly" style={{ padding: "10px" }}>
                         <Col span={10}>
-                            <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, SOURCE_STRING)} samples={filterPlacedSamples(sourceSamples ? sourceSamples.samples : {})} selectedSamples={filterSelectedSamples(SOURCE_STRING)} />
+                            {activeSourceContainer && <PlacementSamplesTable stepID={stepID} container={activeSourceContainer} />}
                         </Col>
                         <Col span={10}>
-                            <PlacementSamplesTable onSampleSelect={(samples) => onSampleTableSelect(samples, DESTINATION_STRING)} samples={filterPlacedSamples(destinationSamples ? destinationSamples.samples : {})} selectedSamples={filterSelectedSamples(DESTINATION_STRING)} />
+                            {activeDestinationContainer && <PlacementSamplesTable stepID={stepID} container={activeDestinationContainer} />}
                         </Col>
-                    </Row> */}
+                    </Row>
                 </PageContent>
             </PageContainer>
         </>
