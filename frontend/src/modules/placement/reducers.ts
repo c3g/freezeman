@@ -431,22 +431,24 @@ const slice = createSlice({
     initialState,
     reducers: {
         loadContainers(state, action: PayloadAction<LoadContainersPayload>) {
-            const parentContainers = action.payload
-            for (const parentContainer of parentContainers) {
+            const parentContainersPayload = action.payload
+            for (const parentContainerPayload of parentContainersPayload) {
                 // initialize container state
                 const parentContainerState: PlacementContainerState = {
-                    cells: state.parentContainers[parentContainer.name]?.cells ?? createEmptyCells(parentContainer.spec),
-                    type: parentContainer.type,
-                    name: parentContainer.name,
-                    barcode: parentContainer.barcode,
-                    kind: parentContainer.kind,
-                    spec: parentContainer.spec,
+                    cells: state.parentContainers[parentContainerPayload.name]?.cells ?? createEmptyCells(parentContainerPayload.spec),
+                    type: parentContainerPayload.type,
+                    name: parentContainerPayload.name,
+                    barcode: parentContainerPayload.barcode,
+                    kind: parentContainerPayload.kind,
+                    spec: parentContainerPayload.spec,
                 }
 
-                state.parentContainers[parentContainer.name] = parentContainerState
+                state.parentContainers[parentContainerPayload.name] = parentContainerState
 
                 // populate cells
-                for (const container of parentContainer.containers) {
+                // remove sample in cells that don't have sample and also other cells in other containers that
+                // depend on the cell
+                for (const container of parentContainerPayload.containers) {
                     const cell = parentContainerState.cells[container.coordinates]
                     if (cell?.sample !== container.sample) {
                         parentContainerState.cells[container.coordinates] = {
