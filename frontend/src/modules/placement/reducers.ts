@@ -435,14 +435,14 @@ const slice = createSlice({
             for (const parentContainer of parentContainers) {
                 // initialize container state
                 const parentContainerState: PlacementContainerState = {
+                    cells: state.parentContainers[parentContainer.name]?.cells ?? createEmptyCells(parentContainer.spec),
                     type: parentContainer.type,
                     name: parentContainer.name,
                     barcode: parentContainer.barcode,
                     kind: parentContainer.kind,
                     spec: parentContainer.spec,
-                    cells: createEmptyCells(parentContainer.spec),
-                    ...state.parentContainers[parentContainer.name]
                 }
+
                 state.parentContainers[parentContainer.name] = parentContainerState
 
                 // populate cells
@@ -513,10 +513,22 @@ const slice = createSlice({
             }
             return state
         }),
-        flushContainers(state, action: PayloadAction<undefined | string[]>) {
-            const containers = action.payload ? action.payload : Object.keys(state.parentContainers)
-            containers.forEach((container) => {
-                delete state.parentContainers[container]
+        flushContainers(state, action: PayloadAction<undefined | Array<Container['name']>>) {
+            const containerNames = action.payload ? action.payload : Object.keys(state.parentContainers)
+            containerNames.forEach((deletedContainerName) => {
+                delete state.parentContainers[deletedContainerName]
+
+                // undo placements from and to deleted container
+                Object.values(state.parentContainers).forEach((parentContainer) => {
+                    if (!parentContainer) return
+                    Object.values(parentContainer.cells).forEach((cell) => {
+                        if (!cell) return
+                        if (cell.placedFrom?.parentContainer === deletedContainerName)
+                            cell.placedFrom = null
+                        if (cell.placedAt?.parentContainer === deletedContainerName)
+                            cell.placedAt = null
+                    })
+                })
             })
             return state
         }

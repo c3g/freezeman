@@ -6,9 +6,6 @@ import { initSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { selectAppInitialized, selectLabworkStepsState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
 import LabworkStep from './LabworkStep'
-import { flushContainers } from '../../../modules/placement/reducers'
-import { labworkStepPlacementActions } from '../../../modules/labworkSteps/reducers'
-
 
 /* 
 	LabworkStepRoute is responsible for loading all of the labwork step samples
@@ -58,16 +55,6 @@ const LabworkStepRoute = () => {
 			}
 		}
 	}, [step, labworkStepsState, dispatch])
-
-
-	const placementLastStepID = useAppSelector((state) => state.labworkStepPlacement.stepID)
-	useEffect(() => {
-		if (placementLastStepID !== Number(stepID)) {
-			dispatch(labworkStepPlacementActions.maybeFlushDestinationContainers(Number(stepID)))
-			dispatch(labworkStepPlacementActions.maybeFlushDestinationContainers(Number(stepID)))
-			dispatch(flushContainers())
-		}
-	}, [dispatch, placementLastStepID, stepID])
 
 	return (
 		step && labworkStepSamples ?

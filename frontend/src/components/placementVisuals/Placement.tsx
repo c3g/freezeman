@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, undoSelectedSamples } from '../../modules/placement/reducers'
+import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, undoSelectedSamples } from '../../modules/placement/reducers'
 import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
 import PageContainer from "../PageContainer"
@@ -60,6 +60,14 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
     }, [destinationContainers, dispatch, activeDestinationContainer])
     const destinationContainerIndex = useMemo(() => destinationContainers.findIndex((x) => x === activeDestinationContainer), [activeDestinationContainer, destinationContainers])
 
+    const oldStepID = useAppSelector((state) => state.labworkStepPlacement.stepID)
+    useEffect(() => {
+        if (stepID !== oldStepID) {
+            dispatch(flushContainers(destinationContainers))
+            dispatch(labworkStepPlacementActions.flushDestinationContainers())
+            dispatch(labworkStepPlacementActions.setStepID(stepID))
+        }
+    }, [destinationContainers, dispatch, oldStepID, stepID])
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs))
     }, [dispatch, sampleIDs, stepID])

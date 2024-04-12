@@ -7,7 +7,7 @@ import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { LoadContainersPayload, flushContainers as flushPlacementContainers, loadContainers as loadPlacementContainer } from "../placement/reducers"
 import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
-const { setActiveSourceContainer, loadSourceContainers, maybeFlushSourceContainers: flushSourceContainers } = labworkStepPlacementActions
+const { setActiveSourceContainer, loadSourceContainers, flushSourceContainers: flushSourceContainers } = labworkStepPlacementActions
 import { list as listSamples} from "../samples/actions"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES } from "./reducers"
@@ -399,7 +399,7 @@ function receiveSortedSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) {
     return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const originalContainerNames = getState().labworkStepPlacement.sourceContainers
-		dispatch(flushSourceContainers(stepID))
+		dispatch(flushSourceContainers())
 
         const containerKinds = selectContainerKindsByID(getState())
         const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))).data

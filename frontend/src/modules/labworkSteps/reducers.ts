@@ -401,6 +401,10 @@ const labworkStepPlacementSlice = createSlice({
 		placementOptions: { type: 'group', direction: 'row' } as PlacementOptions
 	},
 	reducers: {
+		setStepID(state, action: PayloadAction<FMSId>) {
+			state.stepID = action.payload
+			return state
+		},
 		loadSourceContainers(state, action: PayloadAction<string[]>) {
 			action.payload.forEach((container) => {
 				if (!state.sourceContainers.includes(container)) {
@@ -431,20 +435,14 @@ const labworkStepPlacementSlice = createSlice({
 			}
 			return state
 		},
-		maybeFlushSourceContainers(state, action: PayloadAction<FMSId>) {
-			if (state.stepID !== action.payload) {
-				state.sourceContainers = []
-				state.activeSourceContainer = null
-			}
-			state.stepID = action.payload
+		flushSourceContainers(state) {
+			state.activeSourceContainer = null
+			state.sourceContainers = []
 			return state
 		},
-		maybeFlushDestinationContainers(state, action: PayloadAction<FMSId>) {
-			if (state.stepID !== action.payload) {
-				state.destinationContainers = []
-				state.activeDestinationContainer = null
-			}
-			state.stepID = action.payload
+		flushDestinationContainers(state) {
+			state.activeDestinationContainer = null
+			state.destinationContainers = []
 			return state
 		},
 		setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
