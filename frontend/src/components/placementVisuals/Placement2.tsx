@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, multiSelect, setPlacementDirection, setPlacementType } from '../../modules/placement/reducers'
+import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
 import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
 const { setActiveDestinationContainer, setActiveSourceContainer, loadDestinationContainers, maybeFlushSourceContainers, maybeFlushDestinationContainers } = labworkStepPlacementActions
-import { Button, Col, Radio, RadioChangeEvent, Row, Switch } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer2"
@@ -13,6 +13,7 @@ import PlacementContainer from "./PlacementContainer2"
 import { selectContainerKindsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
+import { batch } from "react-redux"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -90,7 +91,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             dispatch(setPlacementType(checked ? 'pattern' : 'group'))
     }, [dispatch])
 
-    const aCellIsSelectedInSource = useMemo(() => {
+    const aCellIsSelectedInSources = useMemo(() => {
         for (const containerName in parentContainers) {
             const container = parentContainers[containerName]
             if (!container || container.type === 'destination') continue
@@ -103,9 +104,60 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         return false
     }, [parentContainers])
 
+    const aCellIsSelectedInActiveDestination = useMemo(() => {
+        if (activeDestinationContainer) {
+            const container = parentContainers[activeDestinationContainer]
+            if (!container) return false
+            for (const coordinates in container.cells) {
+                const cell = container.cells[coordinates]
+                if (!cell) continue
+                if (cell.selected) return true
+            }
+        }
+        return false
+    }, [parentContainers])
+
+    const canTransferAllSamples = useMemo(() => {
+        if (!activeSourceContainer || !activeDestinationContainer) return false
+        const sourceContainer = parentContainers[activeSourceContainer]
+        const destinationContainer = parentContainers[activeDestinationContainer]
+        
+        if (!sourceContainer || !destinationContainer) return false
+        const [sRow = [''], sCol = ['']] = sourceContainer.spec
+        const [dRow = [''], dCol = ['']] = destinationContainer.spec
+
+        return sRow.length <= dRow.length && sCol.length <= dCol.length
+    }, [activeDestinationContainer, activeSourceContainer, parentContainers])
+
     const transferAllSamples = useCallback(() => {
-        dispatch()
-    }, [])
+        if (activeSourceContainer && activeDestinationContainer)
+            dispatch(placeAllSource({ source: activeSourceContainer, destination: activeDestinationContainer }))
+    }, [activeDestinationContainer, activeSourceContainer, dispatch])
+
+    const clearSelection = useCallback(() => {
+        batch(() => {
+            for (const container of sourceContainers) {
+                dispatch(multiSelect({
+                    container,
+                    type: 'all',
+                    forcedSelectedValue: false
+                }))
+            }
+            for (const container of destinationContainers) {
+                dispatch(multiSelect({
+                    container,
+                    type: 'all',
+                    forcedSelectedValue: false
+                }))
+            }
+        })
+    }, [destinationContainers, dispatch, sourceContainers])
+
+    const removeSelectedCells = useCallback(() => {
+        if (activeDestinationContainer) {
+            dispatch(undoSelectedSamples(activeDestinationContainer))
+        }
+    }, [activeDestinationContainer, dispatch])
 
     // TODO: complete implementation
     const saveToPrefill = useCallback(() => { }, [])
@@ -183,15 +235,15 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             </Radio.Group>
                         </Col>
                         <Col span={8}>
-                            <Button onClick={transferAllSamples} disabled={!aCellIsSelectedInSource}>Place All Source</Button>
+                            <Button onClick={transferAllSamples} disabled={!canTransferAllSamples}>Place All Source</Button>
                             <Button onClick={clearSelection}>Deselect All</Button>
                             <Popconfirm
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
                                 onConfirm={removeSelectedCells}
                                 placement={'bottomRight'}
-                                disabled={disableUndo}
+                                disabled={!aCellIsSelectedInActiveDestination}
                             >
-                                <Button disabled={disableUndo} > Undo Placement</Button>
+                                <Button disabled={!aCellIsSelectedInActiveDestination} > Undo Placement</Button>
                             </Popconfirm>
                         </Col>
                     </Row>
