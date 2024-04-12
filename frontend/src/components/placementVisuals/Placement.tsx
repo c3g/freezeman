@@ -211,7 +211,6 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                                             />
                                         </>
                                     }
-                                    :
                                     <Col span={12}>
                                         <div className={"flex-row"}>
                                             <div className={"flex-column"} />
@@ -237,7 +236,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                                 </div>
                             </div>
                         </Col>
-                        : <Col span={12}>
+                        <Col span={12}>
                             <div className={"flex-row"}>
                                 <div className={"flex-column"} />
                             </div>
