@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
 import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
 const { setActiveDestinationContainer, setActiveSourceContainer, loadDestinationContainers, maybeFlushSourceContainers, maybeFlushDestinationContainers } = labworkStepPlacementActions
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer2"
@@ -14,13 +14,15 @@ import { selectContainerKindsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
+import { PlacementData } from "../labwork/step/LabworkStep"
 
 interface PlacementProps {
     sampleIDs: number[],
     stepID: FMSId,
+    save: (placementData: PlacementData) => void
 }
 
-function Placement({ stepID, sampleIDs }: PlacementProps) {
+function Placement({ stepID, sampleIDs, save }: PlacementProps) {
     const dispatch = useAppDispatch()
 
     const containerKinds = useAppSelector(selectContainerKindsByID)
@@ -38,7 +40,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const sourceContainers = useAppSelector((state) => state.labworkStepPlacement.sourceContainers)
     const destinationContainers = useAppSelector((state) => state.labworkStepPlacement.destinationContainers)
-    const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)    
+    const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
     const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
 
     const changeSourceContainer = useCallback((direction: number) => {
@@ -88,21 +90,8 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         dispatch(setPlacementDirection(event.target.value))
     }, [dispatch])
     const updatePlacementType = useCallback((checked: boolean) => {
-            dispatch(setPlacementType(checked ? 'pattern' : 'group'))
+        dispatch(setPlacementType(checked ? 'pattern' : 'group'))
     }, [dispatch])
-
-    const aCellIsSelectedInSources = useMemo(() => {
-        for (const containerName in parentContainers) {
-            const container = parentContainers[containerName]
-            if (!container || container.type === 'destination') continue
-            for (const coordinates in container.cells) {
-                const cell = container.cells[coordinates]
-                if (!cell) continue
-                if (cell.selected) return true
-            }
-        }
-        return false
-    }, [parentContainers])
 
     const aCellIsSelectedInActiveDestination = useMemo(() => {
         if (activeDestinationContainer) {
@@ -115,13 +104,13 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             }
         }
         return false
-    }, [parentContainers])
+    }, [activeDestinationContainer, parentContainers])
 
     const canTransferAllSamples = useMemo(() => {
         if (!activeSourceContainer || !activeDestinationContainer) return false
         const sourceContainer = parentContainers[activeSourceContainer]
         const destinationContainer = parentContainers[activeDestinationContainer]
-        
+
         if (!sourceContainer || !destinationContainer) return false
         const [sRow = [''], sCol = ['']] = sourceContainer.spec
         const [dRow = [''], dCol = ['']] = destinationContainer.spec
@@ -160,7 +149,40 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     }, [activeDestinationContainer, dispatch])
 
     // TODO: complete implementation
-    const saveToPrefill = useCallback(() => { }, [])
+    const saveToPrefill = useCallback(() => {
+        try {
+            const placementData = destinationContainers.reduce((placementData, containerName) => {
+                const destinationContainer = parentContainers[containerName]
+                if (!destinationContainer) throw new Error(`Could not find destination container '${containerName}'`)
+                for (const coordinates in destinationContainer.cells) {
+                    const destinationCell = destinationContainer.cells[coordinates]
+                    if (!destinationCell) throw new Error(`Could not find cell at  ${coordinates}@${containerName}`)
+                    if (!destinationCell.samplePlacedFrom) continue // cell does not contain sample placed from any source container
+                    const sourceContainer = parentContainers[destinationCell.samplePlacedFrom.parentContainer]
+                    if (!sourceContainer) throw new Error(`Could not find source container '${destinationCell.samplePlacedFrom.parentContainer}'`)
+                    const sourceCell = sourceContainer.cells[destinationCell.samplePlacedFrom.coordinates]
+                    if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.samplePlacedFrom.coordinates}@${destinationCell.samplePlacedFrom.parentContainer}`)
+                    if (!sourceCell.sample) throw new Error(`There is not sample in source cell at ${destinationCell.samplePlacedFrom.coordinates}@${destinationCell.samplePlacedFrom.parentContainer}`)
+                    placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []        
+                    placementData[sourceCell.sample].push({
+                        coordinates: coordinates,
+                        container_name: containerName,
+                        container_barcode: destinationContainer.barcode as string,
+                        container_kind: destinationContainer.kind as string
+                    })
+                }
+                return placementData
+            }, {} as PlacementData)
+            save(placementData)
+    
+        } catch (e) {
+            notification.error({
+                message: e.message,
+                key: 'LabworkStep.Placement.Prefilling-Failed',
+                duration: 20
+            })
+        }
+    }, [destinationContainers, parentContainers, save])
 
     return (
         <>

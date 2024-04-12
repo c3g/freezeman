@@ -32,6 +32,15 @@ interface LabworkStepPageProps {
 	stepSamples: LabworkStepSamples
 }
 
+export type PlacementData = {
+	[key in FMSId]: {
+		coordinates: string,
+		container_name: string,
+		container_barcode: string,
+		container_kind: string
+	}[]
+}
+
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const dispatch = useAppDispatch()
@@ -43,7 +52,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
-	const [placementData, setPlacementData] = useState<any>({})
+	const [placementData, setPlacementData] = useState<PlacementData>({})
 
 	const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
@@ -58,10 +67,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// A selected template picker is used if protocol supports more than one template
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
-	
+
 	useEffect(() => {
-	        return () => {
-		        dispatch(clearSelectedSamples(step.id))
+		return () => {
+			dispatch(clearSelectedSamples(step.id))
 			dispatch(flushSamplesAtStep(step.id))
 		}
 	}, [dispatch])
@@ -254,9 +263,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleClearSelection = useCallback(
 		() => {
 			dispatch(clearSelectedSamples(step.id))
-      		onTabChange(GROUPED_SAMPLES_TAB_KEY)
+			onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
-	, [step, dispatch])
+		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
 	const onSelectChange = useCallback((selectedSamples) => {
 		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
@@ -322,7 +331,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const onPrefillOpen = useCallback(() => {
 	}, [])
 
-	const placementSave = useCallback((placementData) => {	
+	const placementSave = useCallback((placementData: PlacementData) => {
+		console.info(`Saving ${JSON.stringify(placementData)}`)
 		setPlacementData(placementData)
 	}, [])
 
@@ -433,7 +443,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={stepSamples.selectedSamples.items.length == 0}>
 							<Placement
 								stepID={step.id}
-								sampleIDs={stepSamples.selectedSamples.items} />
+								sampleIDs={stepSamples.selectedSamples.items}
+								save={placementSave}
+							/>
 						</Tabs.TabPane>
 						: ''}
 				</Tabs>
