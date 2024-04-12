@@ -16,7 +16,7 @@ export interface DestinationContainer {
     samples: { [key in FMSId]: { id: FMSId, coordinates: string, name: string } }
 }
 
-interface AddPlacementContainerProps {
+export interface AddPlacementContainerProps {
     onConfirm: (destinationContainer: DestinationContainer) => void
     existingContainers: DestinationContainer[]
 }
