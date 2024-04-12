@@ -22,7 +22,7 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import PlacementTab from '../../placementVisuals/PlacementTab'
 import LabworkSelection from './LabworkSelection'
-import Placement from '../../placementVisuals/Placement2'
+import Placement from '../../placementVisuals/Placement'
 
 const { Text } = Typography
 

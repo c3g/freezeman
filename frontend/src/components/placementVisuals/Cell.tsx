@@ -1,66 +1,80 @@
 import React from "react"
 import { useCallback } from "react"
-import { PLACED_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
 import './Placement.scss'
+import { CellState, PlacementOptions, clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 
-interface CellProps {
-    onCellClick: (e: any, sample: any) => void,
-    onCellMouseOver: (e: any) => void,
-    onCellMouseLeave: () => void,
-    sample?: sampleInfo,
-    coordinates: string,
-    isSelecting: boolean,
-    outline: boolean,
+export interface CellProps {
+    container: string
+    coordinates: string
     cellSize: string
 }
 
 // component is used to represent individual cells in visualization of the placement transfer tab
-const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, cellSize, coordinates }: CellProps) => {
+const Cell = ({ container, coordinates, cellSize }: CellProps) => {
+    const dispatch = useAppDispatch()
+    const cell = useAppSelector((state) => state.placement.parentContainers[container]?.cells[coordinates])
+    const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
+    const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
+    const isSource = container === activeSourceContainer
+    const isDestination = container === activeDestinationContainer
 
-    const onClick = useCallback((e) => {
-        if (sample?.type != PLACED_STRING) {
-            onCellClick(sample ? { ...sample } : { coordinates: coordinates }, e)
-        }
-    }, [sample, onCellClick, isSelecting])
+    const onClick = useCallback(() => {
+        dispatch(clickCell({
+            parentContainer: container,
+            coordinates,
+        }))
+    }, [container, coordinates, dispatch])
 
     const onMouseEnter = useCallback(() => {
-        if (isSelecting) {
-        }
-    }, [isSelecting])
+        dispatch(onCellEnter({
+            parentContainer: container,
+            coordinates,
+        }))
+    }, [container, coordinates, dispatch])
 
     const onMouseLeave = useCallback(() => {
-        onCellMouseLeave()
-    }, [])
+        dispatch(onCellExit({
+            parentContainer: container,
+            coordinates,
+        }))
+    }, [container, coordinates, dispatch])
 
-    const onMouseOver = useCallback(() => onCellMouseOver({ ...sample, coordinates }), [sample, onCellMouseOver, onCellClick])
-    //returns appropriate color depending on the type of cell it represents. If a sample is in cell or not, also if it is selected, placed, or neutral.
-    const getColor = useCallback((sample) => {
-        if (sample) {
-            switch (sample.type) {
-                case PLACED_STRING: {
-                    return "grey"
-                } case SELECTED_STRING: {
-                    return "#86ebc1"
-                } default: {
-                    return "#1890ff"
-                }
-            }
-        }
-        return ''
-    }, [sample, sample?.type])
 
     return (
+        cell &&
         <div
             className={cellSize}
             key={coordinates}
             onClick={onClick}
-            onMouseOver={onMouseOver}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample)}}
+            style={{backgroundColor: getColor(cell, isSource, isDestination)}}
         >
         </div>
     )
+}
+
+function getColor(cell: CellState, isSource: boolean, isDestination: boolean) {
+    if (cell.selected) {
+        return "#86ebc1"
+    }
+    if (cell.preview) {
+        return cell.sample || cell.samplePlacedFrom ? "pink" : "#74bbfc"
+    }
+    
+    if (isSource && cell.sample) {
+        return cell.samplePlacedAt ? "grey" : "#1890ff"
+    }
+
+    if (isDestination && cell.sample) {
+        return "grey"
+    }
+    if (isDestination && cell.samplePlacedFrom) {
+        return "#1890ff"
+    }
+
+    return "white"
 }
 
 export default Cell
