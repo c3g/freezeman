@@ -18,21 +18,21 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
 
     const selectColumn = useCallback((column: number) => {
         return () => dispatch(multiSelect({
-            container: containerName,
+            parentContainer: containerName,
             type: 'column',
             column
         }))
     }, [containerName, dispatch])
     const selectRow = useCallback((row: number) => {
         return () => dispatch(multiSelect({
-            container: containerName,
+            parentContainer: containerName,
             type: 'row',
             row
         }))
     }, [containerName, dispatch])
     const selectAll = useCallback(() => {
         dispatch(multiSelect({
-            container: containerName,
+            parentContainer: containerName,
             type: 'all'
         }))
     }, [containerName, dispatch])

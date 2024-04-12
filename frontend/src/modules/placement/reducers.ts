@@ -2,29 +2,6 @@ import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec, FMSId } from "../../models/fms_api_models"
 
-type ContainerIdentifier = Container['name']
-
-export interface CellIdentifier {
-    parentContainer: ContainerIdentifier
-    coordinates: string
-}
-
-export interface CellState {
-    preview: boolean
-    selected: boolean
-    sample: Sample['id'] | null
-    samplePlacedFrom: null | CellIdentifier
-    samplePlacedAt: null | CellIdentifier
-}
-
-export interface PlacementContainerState {
-    type: 'source' | 'destination'
-    spec: CoordinateSpec
-    cells: Record<string, CellState | undefined>
-    barcode?: string
-    kind?: string
-}
-
 export interface PlacementPatternOptions {
     type: 'pattern'
 }
@@ -40,17 +17,41 @@ export interface PlacementGroupOptions {
 
 export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
+interface ContainerIdentifier {
+    parentContainer: Container['name']
+}
+
+export interface CellIdentifier extends ContainerIdentifier {
+    coordinates: string
+}
+
+export interface CellState {
+    preview: boolean
+    selected: boolean
+    sample: Sample['id'] | null
+    placedFrom: null | CellIdentifier
+    placedAt: null | CellIdentifier
+}
+
+export interface PlacementContainerState {
+    type: 'source' | 'destination'
+    name: string
+    spec: CoordinateSpec
+    barcode: string
+    kind: string
+    cells: Record<CellIdentifier['coordinates'], undefined | CellState>
+}
+
 export interface PlacementState {
-    parentContainers: Record<ContainerIdentifier, PlacementContainerState | undefined>
-    placementOptions: PlacementOptions
+    parentContainers: Record<ContainerIdentifier['parentContainer'], PlacementContainerState | undefined>
     error?: string
 }
 
 export type LoadContainersPayload = {
     type: PlacementContainerState['type']
-    name: ContainerIdentifier
-    barcode?: string
-    kind?: PlacementContainerState['kind']
+    name: PlacementContainerState['name']
+    barcode: string
+    kind: PlacementContainerState['kind']
     spec: PlacementContainerState['spec']
     containers: {
         coordinates: string
@@ -58,10 +59,12 @@ export type LoadContainersPayload = {
     }[]
 }[]
 
-export interface MouseOnCellPayload extends CellIdentifier {}
+export interface MouseOnCellPayload extends CellIdentifier {
+    placementOptions: PlacementOptions
+}
 
 export type MultiSelectPayload = {
-    container: string
+    parentContainer: string
     forcedSelectedValue?: boolean
 } & ({
     type: 'row'
@@ -72,7 +75,7 @@ export type MultiSelectPayload = {
 } | {
     type: 'all'
 } | {
-    type: 'sample-ids' // also checks cell.samplePlacedFrom
+    type: 'sample-ids' // also checks cell.placedFrom
     sampleIDs: Array<Sample['id']>
 } | {
     type: 'coordinates'
@@ -80,8 +83,8 @@ export type MultiSelectPayload = {
 })
 
 export interface PlaceAllSourcePayload {
-    source: ContainerIdentifier
-    destination: ContainerIdentifier
+    source: ContainerIdentifier['parentContainer']
+    destination: ContainerIdentifier['parentContainer']
 }
 
 function createEmptyCells(spec: CoordinateSpec) {
@@ -94,8 +97,8 @@ function createEmptyCells(spec: CoordinateSpec) {
                 sample: null,
                 preview: false,
                 selected: false,
-                samplePlacedAt: null,
-                samplePlacedFrom: null,
+                placedAt: null,
+                placedFrom: null,
             }
         }
     }
@@ -103,52 +106,52 @@ function createEmptyCells(spec: CoordinateSpec) {
     return cells
 }
 
-function atLocation(id: CellIdentifier) {
-    return `${id.coordinates}@${id.parentContainer}`
+export function atLocations(...ids: CellIdentifier[]) {
+    return ids.map((id) => `${id.coordinates}@${id.parentContainer}`).join(',') 
 }
 
-function getContainer(state: Draft<PlacementState>, containerName: string) {
-    const container = state.parentContainers[containerName]
+function getContainer(state: Draft<PlacementState>, location: ContainerIdentifier) {
+    const container = state.parentContainers[location.parentContainer]
     if (!container) {
-        throw new Error(`Container not loaded: "${containerName}"`)
+        throw new Error(`Container not loaded: "${location.parentContainer}"`)
     }
     return container
 }
 
 function getCell(state: Draft<PlacementState>, location: CellIdentifier) {
-    const container = getContainer(state, location.parentContainer)
+    const container = getContainer(state, location)
     const cell = container.cells[location.coordinates]
     if (!cell) {
-        throw new Error(`Invalid coordinate: "${atLocation(location)}"`)
+        throw new Error(`Invalid coordinate: "${atLocations(location)}"`)
     }
     return cell
 }
 
 function placeCell(state: Draft<PlacementState>, sourceLocation: CellIdentifier, destinationLocation: CellIdentifier) {
-    if (getContainer(state, sourceLocation.parentContainer).type !== 'source') {
+    if (getContainer(state, sourceLocation).type !== 'source') {
         throw new Error(`Container '${sourceLocation.parentContainer}' is not a source container`)
     }
     const sourceCell = getCell(state, sourceLocation)
     if (!sourceCell.sample) {
-        throw new Error(`Source container at "${atLocation(sourceLocation)}" has no sample`)
+        throw new Error(`Source container at "${atLocations(sourceLocation)}" has no sample`)
     }
-    if (sourceCell.samplePlacedAt) {
-        throw new Error(`Source sample from ${atLocation(sourceLocation)} already placed (at ${atLocation(sourceCell.samplePlacedAt)})`)
+    if (sourceCell.placedAt) {
+        throw new Error(`Source sample from ${atLocations(sourceLocation)} already placed (at ${atLocations(sourceCell.placedAt)})`)
     }
 
-    if (getContainer(state, destinationLocation.parentContainer).type !== 'destination') {
+    if (getContainer(state, destinationLocation).type !== 'destination') {
         throw new Error(`Container '${destinationLocation.parentContainer}' is not a destination container`)
     }
     const destinationCell = getCell(state, destinationLocation)
-    if (destinationCell.sample === null && destinationCell.samplePlacedFrom) {
-        throw new Error(`Destination container at ${atLocation(destinationLocation)} already contains a sample from ${atLocation(destinationCell.samplePlacedFrom)}`)
+    if (destinationCell.sample === null && destinationCell.placedFrom) {
+        throw new Error(`Destination container at ${atLocations(destinationLocation)} already contains a sample from ${atLocations(destinationCell.placedFrom)}`)
     }
     if (destinationCell.sample !== null) {
-        throw new Error(`Destination container at ${atLocation(destinationLocation)} already contains a sample that has not been placed elsewhere`)
+        throw new Error(`Destination container at ${atLocations(destinationLocation)} already contains a sample that has not been placed elsewhere`)
     }
 
-    sourceCell.samplePlacedAt = destinationLocation
-    destinationCell.samplePlacedFrom = sourceLocation
+    sourceCell.placedAt = destinationLocation
+    destinationCell.placedFrom = sourceLocation
 }
 
 function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
@@ -194,7 +197,7 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
 
     const newOffsetsList: number[][] = []
 
-    const destinationContainer = getContainer(state, destination.parentContainer)
+    const destinationContainer = getContainer(state, destination)
     const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, destination.coordinates)
 
     switch (placementOptions.type) {
@@ -205,7 +208,7 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
             }
 
             const sourceOffsetsList = sources.map((source) => {
-                const parentContainer = getContainer(state, source.parentContainer)
+                const parentContainer = getContainer(state, source)
                 return coordinatesToOffsets(parentContainer.spec, source.coordinates)
             })
 
@@ -234,10 +237,10 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
                 const sampleA = getCell(state, a).sample
                 const sampleB = getCell(state, b).sample
                 if (sampleA === null) {
-                    throw new Error(`Cell at coordinates ${atLocation(a)} has no sample`)
+                    throw new Error(`Cell at coordinates ${atLocations(a)} has no sample`)
                 }
                 if (sampleB === null) {
-                    throw new Error(`Cell at coordinates ${atLocation(b)} has no sample`)
+                    throw new Error(`Cell at coordinates ${atLocations(b)} has no sample`)
                 }
                 return sampleA - sampleB
             })
@@ -255,14 +258,14 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
     return newOffsetsList.map((offsets) => ({ parentContainer: destination.parentContainer, coordinates: offsetsToCoordinates(offsets, destinationContainer.spec) }))
 }
 
-function findSelections(state: PlacementState, filter: (containerName: string, container: PlacementContainerState, cell: CellState) => boolean) {
+function findSelections(state: PlacementState, filter: (container: PlacementContainerState, cell: CellState) => boolean) {
     const ids: CellIdentifier[] = []
     for (const parentContainer in state.parentContainers) {
-        const container = getContainer(state, parentContainer)
+        const container = getContainer(state, { parentContainer })
         for (const coordinates in container.cells) {
             const id = { parentContainer, coordinates }
             const cell = getCell(state, id)
-            if (filter(parentContainer, container, cell) && cell.selected)
+            if (filter(container, cell) && cell.selected)
                 ids.push(id)
         }
     }
@@ -270,17 +273,17 @@ function findSelections(state: PlacementState, filter: (containerName: string, c
 }
 
 function findSelectionsInSourceContainers(state: PlacementState) {
-    return findSelections(state, (_, container) => container.type === 'source')
+    return findSelections(state, (container) => container.type === 'source')
 }
 
 function cellSelectable(state: PlacementState, id: CellIdentifier) {
-    const container = getContainer(state, id.parentContainer)
+    const container = getContainer(state, id)
     const cell = getCell(state, id)
     if (container.type === 'source') {
-        return cell.sample !== null && cell.samplePlacedAt === null
+        return cell.sample !== null && !cell.placedAt
     }
     if (container.type === 'destination') {
-        return cell.sample === null && cell.samplePlacedFrom !== null
+        return cell.sample === null && cell.placedFrom
     }
     return false
 }
@@ -304,24 +307,21 @@ function placeCellsHelper(state: Draft<PlacementState>, sources: CellIdentifier[
 }
 
 function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnCellPayload) {
-    
+
     if (cellSelectable(state, clickedLocation)) {
         const clickedCell = getCell(state, clickedLocation)
         clickedCell.selected = !clickedCell.selected
-        return state
     }
-    
-    // from this point on we assume the container is a destination
-    if (getContainer(state, clickedLocation.parentContainer).type !== 'destination') return state
 
-    placeCellsHelper(state, findSelectionsInSourceContainers(state), clickedLocation, state.placementOptions)
+    if (getContainer(state, clickedLocation).type === 'destination')
+        placeCellsHelper(state, findSelectionsInSourceContainers(state), clickedLocation, clickedLocation.placementOptions)
 
     return state
 }
 
 function setPreviews(state: Draft<PlacementState>, onMouseLocation: MouseOnCellPayload, preview: boolean) {
     const activeSelections = findSelectionsInSourceContainers(state)
-    const destinationLocations = placementDestinationLocations(state, activeSelections, onMouseLocation, state.placementOptions)
+    const destinationLocations = placementDestinationLocations(state, activeSelections, onMouseLocation, onMouseLocation.placementOptions)
     activeSelections.forEach((_, index) => {
         getCell(state, destinationLocations[index]).preview = preview
     })
@@ -337,7 +337,7 @@ function selectMultipleCells(cells: Draft<CellState>[], forcedSelectedValue?: bo
 }
 
 function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPayload) {
-    const container = getContainer(state, payload.container)
+    const container = getContainer(state, payload)
 
     if (payload.type === 'sample-ids') {
         const sampleIDs = new Set(payload.sampleIDs)
@@ -345,8 +345,8 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
             if (!cell) return cells
 
             let sample = cell?.sample
-            if (cell?.samplePlacedFrom) {
-                sample = getCell(state, cell.samplePlacedFrom).sample
+            if (cell?.placedFrom) {
+                sample = getCell(state, cell.placedFrom).sample
             }
             if (sample && sampleIDs.has(sample)) {
                 cells.push(cell)
@@ -358,7 +358,7 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
     }
 
     if (payload.type === 'coordinates') {
-        selectMultipleCells(payload.coordinatesList.map((coordinates) => getCell(state, { parentContainer: payload.container, coordinates })), payload.forcedSelectedValue)
+        selectMultipleCells(payload.coordinatesList.map((coordinates) => getCell(state, { parentContainer: payload.parentContainer, coordinates })), payload.forcedSelectedValue)
         return state
     }
 
@@ -398,7 +398,7 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
 
     const cells = offsets
         .map((offsets) => ({
-            parentContainer: payload.container,
+            parentContainer: payload.parentContainer,
             coordinates: offsetsToCoordinates(offsets, container.spec)
         }))
         .filter((id) => cellSelectable(state, id))
@@ -408,10 +408,8 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
     return state
 }
 
-const initialPlacementOptions: PlacementOptions = { type: 'group', direction: 'row' } as const
 const initialState: PlacementState = {
     parentContainers: {},
-    placementOptions: initialPlacementOptions
 } as const
 
 function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => PlacementState) {
@@ -438,10 +436,11 @@ const slice = createSlice({
                 // initialize container state
                 const parentContainerState: PlacementContainerState = {
                     type: parentContainer.type,
+                    name: parentContainer.name,
                     barcode: parentContainer.barcode,
                     kind: parentContainer.kind,
-                    cells: createEmptyCells(parentContainer.spec),
                     spec: parentContainer.spec,
+                    cells: createEmptyCells(parentContainer.spec),
                     ...state.parentContainers[parentContainer.name]
                 }
                 state.parentContainers[parentContainer.name] = parentContainerState
@@ -454,8 +453,8 @@ const slice = createSlice({
                             sample: container.sample,
                             preview: false,
                             selected: false,
-                            samplePlacedFrom: null,
-                            samplePlacedAt: null,
+                            placedFrom: null,
+                            placedAt: null,
                         }
                     }
                 }
@@ -465,11 +464,11 @@ const slice = createSlice({
         clickCell: reducerWithThrows(clickCellHelper),
         placeAllSource: reducerWithThrows((state, payload: PlaceAllSourcePayload) => {
             // checking container existence
-            const sourceContainer = getContainer(state, payload.source)
-            const [axisRow = '', axisCol = ''] = getContainer(state, payload.destination).spec
+            const sourceContainer = getContainer(state, { parentContainer: payload.source })
+            const [axisRow = '', axisCol = ''] = getContainer(state, { parentContainer: payload.destination }).spec
 
             const sourceIDs = Object.entries(sourceContainer.cells).reduce((ids, [coordinates, cell]) => {
-                if (cell && cell.sample && !cell.samplePlacedAt) {
+                if (cell && cell.sample && !cell.placedAt) {
                     ids.push({
                         parentContainer: payload.source,
                         coordinates,
@@ -486,38 +485,19 @@ const slice = createSlice({
         }),
         multiSelect: reducerWithThrows(multiSelectHelper),
         onCellEnter: reducerWithThrows((state, payload: MouseOnCellPayload) => {
-            const container = getContainer(state, payload.parentContainer)
+            const container = getContainer(state, payload)
             if (container.type === 'destination') setPreviews(state, payload, true)
             return state
         }),
         onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) => {
-            const container = getContainer(state, payload.parentContainer)
+            const container = getContainer(state, payload)
             if (container.type === 'destination') setPreviews(state, payload, false)
             return state
         }),
-        setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
-            if (action.payload === 'group') {
-                state.placementOptions = {
-                    type: 'group',
-                    direction: state.placementOptions.type === 'group'
-                        ? state.placementOptions.direction
-                        : initialPlacementOptions.direction
-                }
-            } else {
-                state.placementOptions.type = 'pattern'
-            }
-        },
-        setPlacementDirection: reducerWithThrows((state, payload: PlacementGroupOptions['direction']) => {
-            if (state.placementOptions.type !== 'group') {
-                throw new Error('Placement direction can only be set for placement of type "group"')
-            }
-            state.placementOptions.direction = payload
-            return state
-        }),
-        undoSelectedSamples: reducerWithThrows((state, containerName: Container['name']) => {
-            let cells = findSelections(state, (name) => name === containerName).map((id) => getCell(state, id))
+        undoSelectedSamples: reducerWithThrows((state, parentContainer: Container['name']) => {
+            let cells = findSelections(state, (container) => container.name === parentContainer).map((id) => getCell(state, id))
             if (cells.length === 0) {
-                cells = Object.values(getContainer(state, containerName).cells).reduce((cells, cell) => {
+                cells = Object.values(getContainer(state, { parentContainer }).cells).reduce((cells, cell) => {
                     if (cell) {
                         cells.push(cell)
                     }
@@ -525,16 +505,17 @@ const slice = createSlice({
                 }, [] as Draft<CellState>[])
             }
             for (const cell of cells) {
-                if (!cell.samplePlacedFrom) continue
-                const sourceCell = getCell(state, cell.samplePlacedFrom)
-                cell.samplePlacedFrom = null
+                if (!cell.placedFrom) continue
+                const sourceCell = getCell(state, cell.placedFrom)
+                cell.placedFrom = null
                 cell.selected = false
-                sourceCell.samplePlacedAt = null
+                sourceCell.placedAt = null
             }
             return state
         }),
-        flushContainers(state, action: PayloadAction<string[]>) {
-            action.payload.forEach((container) => {
+        flushContainers(state, action: PayloadAction<undefined | string[]>) {
+            const containers = action.payload ? action.payload : Object.keys(state.parentContainers)
+            containers.forEach((container) => {
                 delete state.parentContainers[container]
             })
             return state
@@ -549,8 +530,6 @@ export const {
     onCellEnter,
     onCellExit,
     multiSelect,
-    setPlacementType,
-    setPlacementDirection,
     undoSelectedSamples,
     flushContainers,
 } = slice.actions
@@ -560,7 +539,7 @@ export const internals = {
     coordinatesToOffsets,
     offsetsToCoordinates,
     placementDestinationLocations,
-    getActiveSelections: findSelections,
+    findSelections,
     clickCellHelper,
     setPreviews,
     multiSelectHelper,

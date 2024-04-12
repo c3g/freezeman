@@ -52,17 +52,17 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
 
                     let sample: null | FMSId = null
 
-                    if (container.type === 'source' && cell.sample && !cell.samplePlacedAt) {
+                    if (container.type === 'source' && cell.sample && !cell.placedAt) {
                         sample = cell.sample
-                    } else if (container.type === 'destination' && cell.samplePlacedFrom) {
-                        const otherContainer = containers[cell.samplePlacedFrom.parentContainer]
+                    } else if (container.type === 'destination' && cell.placedFrom) {
+                        const otherContainer = containers[cell.placedFrom.parentContainer]
                         if (!otherContainer) {
-                            console.error(`Container '${cell.samplePlacedFrom.parentContainer}' is not loaded`)
+                            console.error(`Container '${cell.placedFrom.parentContainer}' is not loaded`)
                             return samples
                         }
-                        const otherCell = otherContainer.cells[cell.samplePlacedFrom.coordinates]
+                        const otherCell = otherContainer.cells[cell.placedFrom.coordinates]
                         if (!otherCell) {
-                            console.error(`Cell at location '${cell.samplePlacedFrom.coordinates}@${cell.samplePlacedFrom.parentContainer}' is not loaded`)
+                            console.error(`Cell at location '${cell.placedFrom.coordinates}@${cell.placedFrom.parentContainer}' is not loaded`)
                             return samples
                         }
                         sample = otherCell.sample
@@ -104,12 +104,12 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
         batch(() => {
             dispatch(multiSelect({
                 type: 'all',
-                container: containerName,
+                parentContainer: containerName,
                 forcedSelectedValue: false
             }))
             dispatch(multiSelect({
                 type: 'sample-ids',
-                container: containerName,
+                parentContainer: containerName,
                 sampleIDs: keys.map((k) => Number(k)),
                 forcedSelectedValue: true,
             }))

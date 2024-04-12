@@ -426,7 +426,9 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
                 return {
                     type: 'source',
                     name: containerGroup.name,
+					barcode: 'INVALID_BARCODE',
                     spec: [],
+					kind: 'INVALID_KIND',
                     containers: containerGroup.sample_locators.map((locator) => {
                         return {
                             sample: locator.sample_id,

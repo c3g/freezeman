@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
+import { PlacementDirections, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, undoSelectedSamples } from '../../modules/placement/reducers'
 import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
-const { setActiveDestinationContainer, setActiveSourceContainer, loadDestinationContainers, maybeFlushSourceContainers, maybeFlushDestinationContainers } = labworkStepPlacementActions
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
@@ -27,7 +26,6 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
 
     const containerKinds = useAppSelector(selectContainerKindsByID)
     const parentContainers = useAppSelector((state) => state.placement.parentContainers)
-    const placementOptions = useAppSelector((state) => state.placement.placementOptions)
 
     const existingDestinationContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return Object.entries(parentContainers).map(([name, container]) => ({
@@ -42,13 +40,14 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
     const destinationContainers = useAppSelector((state) => state.labworkStepPlacement.destinationContainers)
     const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
     const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
+    const placementOptions = useAppSelector((state) => state.labworkStepPlacement.placementOptions)
 
     const changeSourceContainer = useCallback((direction: number) => {
         const currentIndex = sourceContainers.findIndex((x) => x === activeSourceContainer)
         if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= sourceContainers.length) {
             return
         }
-        dispatch(setActiveSourceContainer(sourceContainers[currentIndex + direction]))
+        dispatch(labworkStepPlacementActions.setActiveSourceContainer(sourceContainers[currentIndex + direction]))
     }, [activeSourceContainer, dispatch, sourceContainers])
     const sourceContainerIndex = useMemo(() => sourceContainers.findIndex((x) => x === activeSourceContainer), [activeSourceContainer, sourceContainers])
 
@@ -57,14 +56,9 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
         if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= destinationContainers.length) {
             return
         }
-        dispatch(setActiveDestinationContainer(destinationContainers[currentIndex + direction]))
+        dispatch(labworkStepPlacementActions.setActiveDestinationContainer(destinationContainers[currentIndex + direction]))
     }, [destinationContainers, dispatch, activeDestinationContainer])
     const destinationContainerIndex = useMemo(() => destinationContainers.findIndex((x) => x === activeDestinationContainer), [activeDestinationContainer, destinationContainers])
-
-    useEffect(() => {
-        dispatch(maybeFlushSourceContainers(stepID))
-        dispatch(maybeFlushDestinationContainers(stepID))
-    }, [dispatch, stepID])
 
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs))
@@ -82,29 +76,16 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                 sample: sample.id
             }))
         }]))
-        dispatch(loadDestinationContainers([container.container_name]))
-        dispatch(setActiveDestinationContainer(container.container_name))
+        dispatch(labworkStepPlacementActions.loadDestinationContainers([container.container_name]))
+        dispatch(labworkStepPlacementActions.setActiveDestinationContainer(container.container_name))
     }, [containerKinds, dispatch])
 
     const updatePlacementDirection = useCallback((event: RadioChangeEvent) => {
-        dispatch(setPlacementDirection(event.target.value))
+        dispatch(labworkStepPlacementActions.setPlacementDirection(event.target.value))
     }, [dispatch])
     const updatePlacementType = useCallback((checked: boolean) => {
-        dispatch(setPlacementType(checked ? 'pattern' : 'group'))
+        dispatch(labworkStepPlacementActions.setPlacementType(checked ? 'pattern' : 'group'))
     }, [dispatch])
-
-    const aCellIsSelectedInActiveDestination = useMemo(() => {
-        if (activeDestinationContainer) {
-            const container = parentContainers[activeDestinationContainer]
-            if (!container) return false
-            for (const coordinates in container.cells) {
-                const cell = container.cells[coordinates]
-                if (!cell) continue
-                if (cell.selected) return true
-            }
-        }
-        return false
-    }, [activeDestinationContainer, parentContainers])
 
     const canTransferAllSamples = useMemo(() => {
         if (!activeSourceContainer || !activeDestinationContainer) return false
@@ -125,16 +106,16 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
 
     const clearSelection = useCallback(() => {
         batch(() => {
-            for (const container of sourceContainers) {
+            for (const parentContainer of sourceContainers) {
                 dispatch(multiSelect({
-                    container,
+                    parentContainer,
                     type: 'all',
                     forcedSelectedValue: false
                 }))
             }
-            for (const container of destinationContainers) {
+            for (const parentContainer of destinationContainers) {
                 dispatch(multiSelect({
-                    container,
+                    parentContainer,
                     type: 'all',
                     forcedSelectedValue: false
                 }))
@@ -157,13 +138,13 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                 for (const coordinates in destinationContainer.cells) {
                     const destinationCell = destinationContainer.cells[coordinates]
                     if (!destinationCell) throw new Error(`Could not find cell at  ${coordinates}@${containerName}`)
-                    if (!destinationCell.samplePlacedFrom) continue // cell does not contain sample placed from any source container
-                    const sourceContainer = parentContainers[destinationCell.samplePlacedFrom.parentContainer]
-                    if (!sourceContainer) throw new Error(`Could not find source container '${destinationCell.samplePlacedFrom.parentContainer}'`)
-                    const sourceCell = sourceContainer.cells[destinationCell.samplePlacedFrom.coordinates]
-                    if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.samplePlacedFrom.coordinates}@${destinationCell.samplePlacedFrom.parentContainer}`)
-                    if (!sourceCell.sample) throw new Error(`There is not sample in source cell at ${destinationCell.samplePlacedFrom.coordinates}@${destinationCell.samplePlacedFrom.parentContainer}`)
-                    placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []        
+                    if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
+                    const sourceContainer = parentContainers[destinationCell.placedFrom.parentContainer]
+                    if (!sourceContainer) throw new Error(`Could not find source container '${destinationCell.placedFrom.parentContainer}'`)
+                    const sourceCell = sourceContainer.cells[destinationCell.placedFrom.coordinates]
+                    if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
+                    if (!sourceCell.sample) throw new Error(`There is not sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
+                    placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
                     placementData[sourceCell.sample].push({
                         coordinates: coordinates,
                         container_name: containerName,
@@ -262,9 +243,8 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
                                 onConfirm={removeSelectedCells}
                                 placement={'bottomRight'}
-                                disabled={!aCellIsSelectedInActiveDestination}
                             >
-                                <Button disabled={!aCellIsSelectedInActiveDestination} > Undo Placement</Button>
+                                <Button> Undo Placement</Button>
                             </Popconfirm>
                         </Col>
                     </Row>

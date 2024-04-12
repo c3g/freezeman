@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import reducer, { loadContainers, PlacementState, PlacementContainerState, LoadContainersPayload, CellIdentifier, CellState, MouseOnCellPayload, internals, PlacementOptions } from './reducers'
+import reducer, { loadContainers, PlacementState, PlacementContainerState, LoadContainersPayload, CellIdentifier, internals, PlacementOptions, MouseOnCellPayload } from './reducers'
 import { CoordinateSpec } from '../../models/fms_api_models';
 import produce from 'immer';
 
@@ -17,6 +17,8 @@ const srcContainer: LoadContainersPayload[number] = {
     type: 'source',
     name: 'Source Container',
     spec: [['A', 'B', 'C'], ['01', '02', '03']] as CoordinateSpec,
+    barcode: 'barcode',
+    kind: 'kind',
     containers: [{
         coordinates: 'A01',
         sample: 1
@@ -33,6 +35,8 @@ const dstContainer: LoadContainersPayload[number] = {
     type: 'destination',
     name: 'Destination Container',
     spec: [['A', 'B', 'C', 'D'], ['01', '02', '03', '04']] as CoordinateSpec,
+    barcode: 'barcode',
+    kind: 'kind',
     containers: [{
         coordinates: 'A01',
         sample: 1
@@ -58,11 +62,14 @@ describe('loadSamplesAndContainers', () => {
     
     test('initialize with 2 containers containing more than one container', () => {
         function makeExpectedParentContainerState(parentContainer: LoadContainersPayload[number]): PlacementState['parentContainers'] {
-            const { type, name, spec, containers } = parentContainer
+            const { type, name, barcode, kind, spec, containers } = parentContainer
             return {
                 [name]: {
                     type,
                     spec,
+                    name,
+                    barcode,
+                    kind,
                     cells: {
                         ...createEmptyCells(spec),
                         ...containers.reduce((cells: PlacementContainerState['cells'], c) => {
@@ -70,8 +77,8 @@ describe('loadSamplesAndContainers', () => {
                                 preview: false,
                                 selected: false,
                                 sample: c.sample,
-                                samplePlacedAt: null,
-                                samplePlacedFrom: null
+                                placedAt: null,
+                                placedFrom: null
                             }
                             return cells
                         }, {})
@@ -300,6 +307,7 @@ describe('select all samples from source, preview them on destination and then p
             return produce(state, (draft) => clickCellHelper(draft, {
                 parentContainer: srcContainer.name,
                 coordinates,
+                placementOptions: { type: 'group', direction: 'row' }
             }))
         }, state)
         sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
@@ -312,6 +320,7 @@ describe('select all samples from source, preview them on destination and then p
     const dstLocation: MouseOnCellPayload = {
         parentContainer: dstContainer.name,
         coordinates: 'D01',
+        placementOptions: { type: 'group', direction: 'row' }
     }
 
     test('preview destinations', () => {
@@ -327,11 +336,11 @@ describe('select all samples from source, preview them on destination and then p
         expect(state.error).toBeUndefined()
 
         sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
-            expect(cell?.samplePlacedAt).toBeDefined()
+            expect(cell?.placedAt).toBeDefined()
             expect(cell?.selected).toEqual(false)
         })
         destCoords.map((coordinates) => state.parentContainers[dstContainer.name]?.cells[coordinates]).forEach((cell) => {
-            expect(cell?.samplePlacedFrom).toBeDefined()
+            expect(cell?.placedFrom).toBeDefined()
             expect(cell?.preview).toEqual(false)
         })
     })

@@ -1,8 +1,9 @@
 import React from "react"
 import { useCallback } from "react"
 import './Placement.scss'
-import { CellState, PlacementOptions, clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
+import { CellState, atLocations, clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
+import { Popover } from "antd"
 
 export interface CellProps {
     container: string
@@ -14,8 +15,10 @@ export interface CellProps {
 const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     const dispatch = useAppDispatch()
     const cell = useAppSelector((state) => state.placement.parentContainers[container]?.cells[coordinates])
+    const sampleID = useAppSelector((state) => cell?.sample ?? (cell?.placedFrom ? state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined : undefined))
     const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
     const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
+    const placementOptions = useAppSelector((state) => state.labworkStepPlacement.placementOptions)
     const isSource = container === activeSourceContainer
     const isDestination = container === activeDestinationContainer
 
@@ -23,35 +26,46 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
         dispatch(clickCell({
             parentContainer: container,
             coordinates,
+            placementOptions
         }))
-    }, [container, coordinates, dispatch])
+    }, [container, coordinates, dispatch, placementOptions])
 
     const onMouseEnter = useCallback(() => {
         dispatch(onCellEnter({
             parentContainer: container,
             coordinates,
+            placementOptions
         }))
-    }, [container, coordinates, dispatch])
+    }, [container, coordinates, dispatch, placementOptions])
 
     const onMouseLeave = useCallback(() => {
         dispatch(onCellExit({
             parentContainer: container,
             coordinates,
+            placementOptions
         }))
-    }, [container, coordinates, dispatch])
+    }, [container, coordinates, dispatch, placementOptions])
 
 
     return (
         cell &&
-        <div
-            className={cellSize}
-            key={coordinates}
-            onClick={onClick}
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            style={{backgroundColor: getColor(cell, isSource, isDestination)}}
-        >
-        </div>
+        <Popover content={<>
+            <div>{`Sample: ${sampleID ?? 'None'}`}</div>
+            {cell.placedFrom && <div>{`From: ${atLocations(cell.placedFrom)}`}</div>}
+            {cell.placedAt && <div>{`To: ${atLocations(cell.placedAt)}`}</div>}
+        </>}>
+            <div
+                className={cellSize}
+                key={coordinates}
+                onClick={onClick}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                style={{ backgroundColor: getColor(cell, isSource, isDestination) }}
+            >
+                
+
+            </div>
+        </Popover>
     )
 }
 
@@ -60,17 +74,17 @@ function getColor(cell: CellState, isSource: boolean, isDestination: boolean) {
         return "#86ebc1"
     }
     if (cell.preview) {
-        return cell.sample || cell.samplePlacedFrom ? "pink" : "#74bbfc"
+        return cell.sample || cell.placedFrom ? "pink" : "#74bbfc"
     }
-    
+
     if (isSource && cell.sample) {
-        return cell.samplePlacedAt ? "grey" : "#1890ff"
+        return cell.placedAt ? "grey" : "#1890ff"
     }
 
     if (isDestination && cell.sample) {
         return "grey"
     }
-    if (isDestination && cell.samplePlacedFrom) {
+    if (isDestination && cell.placedFrom) {
         return "#1890ff"
     }
 

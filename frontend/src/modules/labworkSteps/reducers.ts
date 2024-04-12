@@ -7,6 +7,7 @@ import { templateActionsReducerFactory } from '../../utils/templateActions'
 import { LabworkStepSamples, LabworkStepSamplesGroup, LabworkStepsState, LabworkStepSummaryState } from './models'
 import { createPagedItems, createPagedItemsByID } from '../../models/paged_items'
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
+import { PlacementGroupOptions, PlacementOptions } from '../placement/reducers'
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
@@ -396,7 +397,8 @@ const labworkStepPlacementSlice = createSlice({
 		sourceContainers: [] as string[],
 		destinationContainers: [] as string[],
 		activeSourceContainer: null as null | string,
-		activeDestinationContainer: null as null | string
+		activeDestinationContainer: null as null | string,
+		placementOptions: { type: 'group', direction: 'row' } as PlacementOptions
 	},
 	reducers: {
 		loadSourceContainers(state, action: PayloadAction<string[]>) {
@@ -444,7 +446,24 @@ const labworkStepPlacementSlice = createSlice({
 			}
 			state.stepID = action.payload
 			return state
-		}
+		},
+		setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
+            if (action.payload === 'group') {
+                state.placementOptions = {
+                    type: 'group',
+                    direction: state.placementOptions.type === 'group'
+                        ? state.placementOptions.direction
+                        : 'row'
+                }
+            } else {
+                state.placementOptions.type = 'pattern'
+            }
+        },
+        setPlacementDirection(state, action: PayloadAction<PlacementGroupOptions['direction']>) {
+            if (state.placementOptions.type !== 'group') return state
+            state.placementOptions.direction = action.payload
+            return state
+        },
 	}
 })
 
