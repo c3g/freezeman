@@ -398,7 +398,6 @@ const labworkStepPlacementSlice = createSlice({
 		destinationContainers: [] as string[],
 		activeSourceContainer: null as null | string,
 		activeDestinationContainer: null as null | string,
-		placementOptions: { type: 'group', direction: 'row' } as PlacementOptions
 	},
 	reducers: {
 		setStepID(state, action: PayloadAction<FMSId>) {
@@ -445,23 +444,6 @@ const labworkStepPlacementSlice = createSlice({
 			state.destinationContainers = []
 			return state
 		},
-		setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
-            if (action.payload === 'group') {
-                state.placementOptions = {
-                    type: 'group',
-                    direction: state.placementOptions.type === 'group'
-                        ? state.placementOptions.direction
-                        : 'row'
-                }
-            } else {
-                state.placementOptions.type = 'pattern'
-            }
-        },
-        setPlacementDirection(state, action: PayloadAction<PlacementGroupOptions['direction']>) {
-            if (state.placementOptions.type !== 'group') return state
-            state.placementOptions.direction = action.payload
-            return state
-        },
 	}
 })
 

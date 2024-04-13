@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, undoSelectedSamples } from '../../modules/placement/reducers'
+import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
 import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
 import PageContainer from "../PageContainer"
@@ -40,7 +40,8 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
     const destinationContainers = useAppSelector((state) => state.labworkStepPlacement.destinationContainers)
     const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
     const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
-    const placementOptions = useAppSelector((state) => state.labworkStepPlacement.placementOptions)
+    const placementType = useAppSelector((state) => state.placement.placementType)
+    const placementDirection = useAppSelector((state) => state.placement.placementDirection)
 
     const changeSourceContainer = useCallback((direction: number) => {
         const currentIndex = sourceContainers.findIndex((x) => x === activeSourceContainer)
@@ -89,10 +90,10 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
     }, [containerKinds, dispatch])
 
     const updatePlacementDirection = useCallback((event: RadioChangeEvent) => {
-        dispatch(labworkStepPlacementActions.setPlacementDirection(event.target.value))
+        dispatch(setPlacementDirection(event.target.value))
     }, [dispatch])
     const updatePlacementType = useCallback((checked: boolean) => {
-        dispatch(labworkStepPlacementActions.setPlacementType(checked ? 'pattern' : 'group'))
+        dispatch(setPlacementType(checked ? 'pattern' : 'group'))
     }, [dispatch])
 
     const canTransferAllSamples = useMemo(() => {
@@ -233,12 +234,12 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                     </Row>
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
-                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementOptions.type === 'pattern'} onChange={updatePlacementType}></Switch>
+                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType === 'pattern'} onChange={updatePlacementType}></Switch>
                         </Col>
                         <Col span={5}>
                             <Radio.Group
-                                disabled={placementOptions.type === 'pattern'}
-                                value={placementOptions.type === 'group' && placementOptions.direction}
+                                disabled={placementType === 'pattern'}
+                                value={placementDirection}
                                 onChange={updatePlacementDirection}>
                                 <Radio.Button value={PlacementDirections.row}> row </Radio.Button>
                                 <Radio.Button value={PlacementDirections.column}> column </Radio.Button>

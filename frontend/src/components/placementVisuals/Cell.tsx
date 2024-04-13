@@ -18,7 +18,6 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     const sampleID = useAppSelector((state) => cell?.sample ?? (cell?.placedFrom ? state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined : undefined))
     const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
     const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
-    const placementOptions = useAppSelector((state) => state.labworkStepPlacement.placementOptions)
     const isSource = container === activeSourceContainer
     const isDestination = container === activeDestinationContainer
 
@@ -26,25 +25,22 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
         dispatch(clickCell({
             parentContainer: container,
             coordinates,
-            placementOptions
         }))
-    }, [container, coordinates, dispatch, placementOptions])
+    }, [container, coordinates, dispatch])
 
     const onMouseEnter = useCallback(() => {
         dispatch(onCellEnter({
             parentContainer: container,
             coordinates,
-            placementOptions
         }))
-    }, [container, coordinates, dispatch, placementOptions])
+    }, [container, coordinates, dispatch])
 
     const onMouseLeave = useCallback(() => {
         dispatch(onCellExit({
             parentContainer: container,
             coordinates,
-            placementOptions
         }))
-    }, [container, coordinates, dispatch, placementOptions])
+    }, [container, coordinates, dispatch])
 
 
     return (
