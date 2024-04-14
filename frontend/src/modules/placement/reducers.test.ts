@@ -19,7 +19,7 @@ const srcContainer: LoadContainersPayload[number] = {
     spec: [['A', 'B', 'C'], ['01', '02', '03']] as CoordinateSpec,
     barcode: 'barcode',
     kind: 'kind',
-    containers: [{
+    cells: [{
         coordinates: 'A01',
         sample: 1
     }, {
@@ -37,7 +37,7 @@ const dstContainer: LoadContainersPayload[number] = {
     spec: [['A', 'B', 'C', 'D'], ['01', '02', '03', '04']] as CoordinateSpec,
     barcode: 'barcode',
     kind: 'kind',
-    containers: [{
+    cells: [{
         coordinates: 'A01',
         sample: 1
     }, {
@@ -62,7 +62,7 @@ describe('loadSamplesAndContainers', () => {
     
     test('initialize with 2 containers containing more than one container', () => {
         function makeExpectedParentContainerState(parentContainer: LoadContainersPayload[number]): PlacementState['parentContainers'] {
-            const { type, name, barcode, kind, spec, containers } = parentContainer
+            const { type, name, barcode, kind, spec, cells } = parentContainer
             return {
                 [name]: {
                     type,
@@ -72,7 +72,7 @@ describe('loadSamplesAndContainers', () => {
                     kind,
                     cells: {
                         ...createEmptyCells(spec),
-                        ...containers.reduce((cells: PlacementContainerState['cells'], c) => {
+                        ...cells.reduce((cells: PlacementContainerState['cells'], c) => {
                             cells[c.coordinates] = {
                                 preview: false,
                                 selected: false,
@@ -300,14 +300,13 @@ describe('placementDestinationLocations', () => {
 describe('select all samples from source, preview them on destination and then place', () => {
     let state = reducer(initialState, loadContainers([srcContainer, dstContainer]))
 
-    const sourceCoords = srcContainer.containers.map((container) => container.coordinates)
+    const sourceCoords = srcContainer.cells.map((container) => container.coordinates)
 
     test('select all samples from source', () => {
         state = sourceCoords.reduce((state, coordinates) => {
             return produce(state, (draft) => clickCellHelper(draft, {
                 parentContainer: srcContainer.name,
                 coordinates,
-                placementOptions: { type: 'group', direction: 'row' }
             }))
         }, state)
         sourceCoords.map((coordinates) => state.parentContainers[srcContainer.name]?.cells[coordinates]).forEach((cell) => {
@@ -320,7 +319,6 @@ describe('select all samples from source, preview them on destination and then p
     const dstLocation: MouseOnCellPayload = {
         parentContainer: dstContainer.name,
         coordinates: 'D01',
-        placementOptions: { type: 'group', direction: 'row' }
     }
 
     test('preview destinations', () => {
