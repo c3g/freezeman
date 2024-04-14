@@ -46,6 +46,7 @@ export interface PlacementState {
     parentContainers: Record<ContainerIdentifier['parentContainer'], PlacementContainerState | undefined>
     placementType: PlacementOptions['type']
     placementDirection: PlacementGroupOptions['direction']
+    placementUpdated: boolean
     error?: string
 }
 
@@ -152,6 +153,7 @@ function placeCell(state: Draft<PlacementState>, sourceLocation: CellIdentifier,
 
     sourceCell.placedAt = destinationLocation
     destinationCell.placedFrom = sourceLocation
+    state.placementUpdated = true
 }
 
 function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
@@ -417,7 +419,8 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
 const initialState: PlacementState = {
     parentContainers: {},
     placementType: 'group',
-    placementDirection: 'row'
+    placementDirection: 'row',
+    placementUpdated: false,
 } as const
 
 function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => PlacementState) {
@@ -477,12 +480,14 @@ const slice = createSlice({
                         oldCell.sample = newSample
                         oldCell.selected = false
                         // undo a placement that's no longer valid
+                        // does not undo placement if the sample in a cell was just swapped
                         if (newSample === null && oldCell.placedAt) {
                             const destCell = getCell(state, oldCell.placedAt)
                             destCell.placedFrom = null
+                            oldCell.placedAt = null
+                            state.placementUpdated = true
                             destCell.selected = false
                         }
-                        oldCell.placedAt = null
                     }
                 }
             }
@@ -550,6 +555,7 @@ const slice = createSlice({
                 cell.placedFrom = null
                 cell.selected = false
                 sourceCell.placedAt = null
+                state.placementUpdated = true
             }
             return state
         }),
@@ -565,15 +571,21 @@ const slice = createSlice({
                         if (!cell) return
                         if (cell.placedFrom?.parentContainer === deletedContainerName) {
                             cell.placedFrom = null
+                            state.placementUpdated = true
                             cell.selected = false
                         }
                         if (cell.placedAt?.parentContainer === deletedContainerName) {
                             cell.placedAt = null
+                            state.placementUpdated = true
                             cell.selected = false
                         }
                     })
                 })
             })
+            return state
+        },
+        unsetPlacementUpdated(state) {
+            state.placementUpdated = false
             return state
         }
     }
@@ -590,6 +602,7 @@ export const {
     multiSelect,
     undoSelectedSamples,
     flushContainers,
+    unsetPlacementUpdated,
 } = slice.actions
 export const internals = {
     initialState,

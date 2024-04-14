@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
+import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples, unsetPlacementUpdated } from '../../modules/placement/reducers'
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
@@ -152,7 +152,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
-    // TODO: complete implementation
+    const placementUpdated = useAppSelector((state) => state.placement.placementUpdated)
     const saveToPrefill = useCallback(() => {
         try {
             const placementData = destinationContainers.reduce((placementData, containerName) => {
@@ -178,7 +178,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                 return placementData
             }, {} as PlacementData)
             save(placementData)
-    
+            dispatch(unsetPlacementUpdated())
         } catch (e) {
             notification.error({
                 message: e.message,
@@ -186,7 +186,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                 duration: 20
             })
         }
-    }, [destinationContainers, parentContainers, save])
+    }, [destinationContainers, dispatch, parentContainers, save])
 
     return (
         <>
@@ -197,7 +197,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
                         </Col>
                         <Col span={3}>
-                            <Button onClick={saveToPrefill} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
+                            <Button onClick={saveToPrefill} disabled={!placementUpdated}> Save to Prefill </Button>
                         </Col>
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
