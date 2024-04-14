@@ -1,14 +1,16 @@
 import { Button, Tag, Typography } from "antd"
-import React from "react"
+import React, { useMemo } from "react"
 const { Text, Title } = Typography;
 
 interface ContainerNameScrollerProps {
     changeContainer: (direction: -1 | 1) => void,
     names: string[],
-    index: number
+    name: string
 }
 //component used to display the container name, and also to cycle through the container list using callbacks
-const ContainerNameScroller = ({ names, index, changeContainer }: ContainerNameScrollerProps) => {
+const ContainerNameScroller = ({ names, name, changeContainer }: ContainerNameScrollerProps) => {
+    const index = useMemo(() => names.findIndex((x) => x === name), [name, names])
+
     return (
         <div style={{ display: 'flex', flexDirection: 'row', padding: "2px", justifyContent: 'space-between' }}>
             <Button disabled={index === 0 || names.length === 1} onClick={() => changeContainer(-1)}>

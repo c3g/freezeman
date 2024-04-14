@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
-import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
@@ -27,7 +26,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
     const containerKinds = useAppSelector(selectContainerKindsByID)
     const parentContainers = useAppSelector((state) => state.placement.parentContainers)
 
-    const existingDestinationContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
+    const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return Object.entries(parentContainers).map(([name, container]) => ({
             container_barcode: container?.barcode as string,
             container_name: name,
@@ -36,10 +35,26 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
         }))
     }, [parentContainers])
 
-    const sourceContainers = useAppSelector((state) => state.labworkStepPlacement.sourceContainers)
-    const destinationContainers = useAppSelector((state) => state.labworkStepPlacement.destinationContainers)
-    const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
-    const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
+    const sourceContainers = useMemo(() => {
+        return Object.values(parentContainers).reduce((containerNames, container) => {
+            if (container?.type === 'source') {
+                containerNames.push(container.name)
+            }
+            return containerNames
+        }, [] as string[])
+    }, [parentContainers])
+    const destinationContainers = useMemo(() => {
+        return Object.values(parentContainers).reduce((containerNames, container) => {
+            if (container?.type === 'destination') {
+                containerNames.push(container.name)
+            }
+            return containerNames
+        }, [] as string[])
+    }, [parentContainers])
+
+    const [activeSourceContainer, setActiveSourceContainer] = useState(sourceContainers.length > 0 ? sourceContainers[0] : undefined)
+    const [activeDestinationContainer, setActiveDestinationContainer] = useState(destinationContainers.length > 0 ? destinationContainers[0] : undefined)
+
     const placementType = useAppSelector((state) => state.placement.placementType)
     const placementDirection = useAppSelector((state) => state.placement.placementDirection)
 
@@ -48,29 +63,29 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
         if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= sourceContainers.length) {
             return
         }
-        dispatch(labworkStepPlacementActions.setActiveSourceContainer(sourceContainers[currentIndex + direction]))
-    }, [activeSourceContainer, dispatch, sourceContainers])
-    const sourceContainerIndex = useMemo(() => sourceContainers.findIndex((x) => x === activeSourceContainer), [activeSourceContainer, sourceContainers])
+        setActiveSourceContainer(sourceContainers[currentIndex + direction])
+    }, [activeSourceContainer, sourceContainers])
 
     const changeDestinationContainer = useCallback((direction: number) => {
         const currentIndex = destinationContainers.findIndex((x) => x === activeDestinationContainer)
         if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= destinationContainers.length) {
             return
         }
-        dispatch(labworkStepPlacementActions.setActiveDestinationContainer(destinationContainers[currentIndex + direction]))
-    }, [destinationContainers, dispatch, activeDestinationContainer])
-    const destinationContainerIndex = useMemo(() => destinationContainers.findIndex((x) => x === activeDestinationContainer), [activeDestinationContainer, destinationContainers])
+        setActiveDestinationContainer(destinationContainers[currentIndex + direction])
+    }, [destinationContainers, activeDestinationContainer])
 
-    const oldStepID = useAppSelector((state) => state.labworkStepPlacement.stepID)
+    const [oldStepID, setOldStepID] = useState(stepID)
     useEffect(() => {
         if (stepID !== oldStepID) {
             dispatch(flushContainers(destinationContainers))
-            dispatch(labworkStepPlacementActions.flushDestinationContainers())
-            dispatch(labworkStepPlacementActions.setStepID(stepID))
+            dispatch(setOldStepID(stepID))
         }
     }, [destinationContainers, dispatch, oldStepID, stepID])
     useEffect(() => {
-        dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs))
+        dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {
+            containerNames.sort()
+            setActiveSourceContainer(containerNames[0])
+        })
     }, [dispatch, sampleIDs, stepID])
 
     const onConfirmAddDestinationContainer = useCallback((container: DestinationContainer) => {
@@ -80,13 +95,12 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
             barcode: container.container_barcode,
             kind: container.container_kind,
             spec: containerKinds[container.container_kind].coordinate_spec,
-            containers: Object.values(container.samples).map((sample) => ({
+            cells: Object.values(container.samples).map((sample) => ({
                 coordinates: sample.coordinates,
                 sample: sample.id
             }))
         }]))
-        dispatch(labworkStepPlacementActions.loadDestinationContainers([container.container_name]))
-        dispatch(labworkStepPlacementActions.setActiveDestinationContainer(container.container_name))
+        setActiveDestinationContainer(container.container_name)
     }, [containerKinds, dispatch])
 
     const updatePlacementDirection = useCallback((event: RadioChangeEvent) => {
@@ -102,8 +116,8 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
         const destinationContainer = parentContainers[activeDestinationContainer]
 
         if (!sourceContainer || !destinationContainer) return false
-        const [sRow = [''], sCol = ['']] = sourceContainer.spec
-        const [dRow = [''], dCol = ['']] = destinationContainer.spec
+        const [sRow = [] as const, sCol = [] as const] = sourceContainer.spec
+        const [dRow = [] as const, dCol = [] as const] = destinationContainer.spec
 
         return sRow.length <= dRow.length && sCol.length <= dCol.length
     }, [activeDestinationContainer, activeSourceContainer, parentContainers])
@@ -180,7 +194,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                 <PageContent>
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
-                            <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={existingDestinationContainers} />
+                            <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
                         </Col>
                         <Col span={3}>
                             <Button onClick={saveToPrefill} style={{ backgroundColor: "#1890ff", color: "white" }}> Save to Prefill </Button>
@@ -194,7 +208,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                                         <>
                                             <ContainerNameScroller
                                                 names={sourceContainers}
-                                                index={sourceContainerIndex}
+                                                name={activeSourceContainer}
                                                 changeContainer={changeSourceContainer} />
                                             <PlacementContainer
                                                 container={activeSourceContainer}
@@ -216,7 +230,7 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                                         <>
                                             <ContainerNameScroller
                                                 names={destinationContainers}
-                                                index={destinationContainerIndex}
+                                                name={activeDestinationContainer}
                                                 changeContainer={changeDestinationContainer} />
                                             <PlacementContainer
                                                 container={activeDestinationContainer}

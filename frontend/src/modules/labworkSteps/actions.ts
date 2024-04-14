@@ -5,9 +5,7 @@ import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectP
 import { AppDispatch, RootState } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
-import { LoadContainersPayload, flushContainers as flushPlacementContainers, loadContainers as loadPlacementContainer } from "../placement/reducers"
-import { labworkStepPlacementActions } from "../../modules/labworkSteps/reducers"
-const { setActiveSourceContainer, loadSourceContainers, flushSourceContainers: flushSourceContainers } = labworkStepPlacementActions
+import { LoadContainersPayload, flushContainers as flushPlacementContainers, loadContainers as loadPlacementContainers } from "../placement/reducers"
 import { list as listSamples} from "../samples/actions"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES } from "./reducers"
@@ -398,8 +396,12 @@ function receiveSortedSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 
 export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) {
     return async (dispatch: AppDispatch, getState: () => RootState) => {
-		const originalContainerNames = getState().labworkStepPlacement.sourceContainers
-		dispatch(flushSourceContainers())
+		const oldContainerNames = Object.values(getState().placement.parentContainers).reduce((containerNames, container) => {
+			if (container?.type === 'source') {
+				containerNames.push(container.name)
+			}
+			return containerNames
+		}, [] as string[])
 
         const containerKinds = selectContainerKindsByID(getState())
         const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))).data
@@ -415,7 +417,7 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
                     barcode: containerDetail.barcode,
                     kind: containerDetail.kind,
                     spec,
-                    containers: containerGroup.sample_locators.map((locator) => {
+                    cells: containerGroup.sample_locators.map((locator) => {
                         return {
                             sample: locator.sample_id,
                             coordinates: locator.contextual_coordinates
@@ -429,7 +431,7 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 					barcode: 'INVALID_BARCODE',
                     spec: [],
 					kind: 'INVALID_KIND',
-                    containers: containerGroup.sample_locators.map((locator) => {
+                    cells: containerGroup.sample_locators.map((locator) => {
                         return {
                             sample: locator.sample_id,
                             coordinates: locator.contextual_coordinates
@@ -438,15 +440,14 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
                 }
             }
         }))
-        dispatch(loadPlacementContainer(payload))
+        dispatch(loadPlacementContainers(payload))
 
-		const containerNames = payload.map((c) => c.name)
+		const newContainerNames = payload.map((c) => c.name)
 
 		// remove outdated containers in placement
-		const toFlushContainers = originalContainerNames.filter((n) => !containerNames.includes(n))
+		const toFlushContainers = oldContainerNames.filter((n) => !newContainerNames.includes(n))
 		dispatch(flushPlacementContainers(toFlushContainers))
 
-		dispatch(loadSourceContainers(containerNames))
-		dispatch(setActiveSourceContainer(containerNames[0]))
+		return newContainerNames
     }
 }

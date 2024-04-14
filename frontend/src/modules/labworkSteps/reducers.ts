@@ -6,8 +6,6 @@ import { createNetworkActionTypes } from '../../utils/actions'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
 import { LabworkStepSamples, LabworkStepSamplesGroup, LabworkStepsState, LabworkStepSummaryState } from './models'
 import { createPagedItems, createPagedItemsByID } from '../../models/paged_items'
-import { PayloadAction, createSlice } from '@reduxjs/toolkit'
-import { PlacementGroupOptions, PlacementOptions } from '../placement/reducers'
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
@@ -389,66 +387,6 @@ export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching:
 	}
 	return state
 }
-
-const labworkStepPlacementSlice = createSlice({
-	name: 'LABWORK_STEP_PLACEMENT',
-	initialState: {
-		stepID: null as null | FMSId,
-		sourceContainers: [] as string[],
-		destinationContainers: [] as string[],
-		activeSourceContainer: null as null | string,
-		activeDestinationContainer: null as null | string,
-	},
-	reducers: {
-		setStepID(state, action: PayloadAction<FMSId>) {
-			state.stepID = action.payload
-			return state
-		},
-		loadSourceContainers(state, action: PayloadAction<string[]>) {
-			action.payload.forEach((container) => {
-				if (!state.sourceContainers.includes(container)) {
-					state.sourceContainers.push(container)
-				}
-			})
-			state.sourceContainers.sort()
-			return state
-		},
-		loadDestinationContainers(state, action: PayloadAction<string[]>) {
-			action.payload.forEach((container) => {
-				if (!state.destinationContainers.includes(container)) {
-					state.destinationContainers.push(container)
-				}
-			})
-			state.destinationContainers.sort()
-			return state
-		},
-		setActiveSourceContainer(state, action: PayloadAction<null | string>) {
-			if (action.payload === null || state.sourceContainers.includes(action.payload)) {
-				state.activeSourceContainer = action.payload
-			}
-			return state
-		},
-		setActiveDestinationContainer(state, action: PayloadAction<null | string>) {
-			if (action.payload === null || state.destinationContainers.includes(action.payload)) {
-				state.activeDestinationContainer = action.payload
-			}
-			return state
-		},
-		flushSourceContainers(state) {
-			state.activeSourceContainer = null
-			state.sourceContainers = []
-			return state
-		},
-		flushDestinationContainers(state) {
-			state.activeDestinationContainer = null
-			state.destinationContainers = []
-			return state
-		},
-	}
-})
-
-export const labworkStepPlacementActions = labworkStepPlacementSlice.actions
-export const labworkStepPlacement = labworkStepPlacementSlice.reducer
 
 export const sampleNextStepTemplateActions = templateActionsReducerFactory({LIST_TEMPLATE_ACTIONS})
  

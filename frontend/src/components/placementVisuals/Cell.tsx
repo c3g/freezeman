@@ -12,35 +12,34 @@ export interface CellProps {
 }
 
 // component is used to represent individual cells in visualization of the placement transfer tab
-const Cell = ({ container, coordinates, cellSize }: CellProps) => {
+const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) => {
     const dispatch = useAppDispatch()
-    const cell = useAppSelector((state) => state.placement.parentContainers[container]?.cells[coordinates])
+    const container = useAppSelector((state) => state.placement.parentContainers[containerName])
+    const cell = useAppSelector((state) => state.placement.parentContainers[containerName]?.cells[coordinates])
     const sampleID = useAppSelector((state) => cell?.sample ?? (cell?.placedFrom ? state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined : undefined))
-    const activeSourceContainer = useAppSelector((state) => state.labworkStepPlacement.activeSourceContainer)
-    const activeDestinationContainer = useAppSelector((state) => state.labworkStepPlacement.activeDestinationContainer)
-    const isSource = container === activeSourceContainer
-    const isDestination = container === activeDestinationContainer
+    const isSource = container?.type === 'source'
+    const isDestination = container?.type === 'destination'
 
     const onClick = useCallback(() => {
         dispatch(clickCell({
-            parentContainer: container,
+            parentContainer: containerName,
             coordinates,
         }))
-    }, [container, coordinates, dispatch])
+    }, [containerName, coordinates, dispatch])
 
     const onMouseEnter = useCallback(() => {
         dispatch(onCellEnter({
-            parentContainer: container,
+            parentContainer: containerName,
             coordinates,
         }))
-    }, [container, coordinates, dispatch])
+    }, [containerName, coordinates, dispatch])
 
     const onMouseLeave = useCallback(() => {
         dispatch(onCellExit({
-            parentContainer: container,
+            parentContainer: containerName,
             coordinates,
         }))
-    }, [container, coordinates, dispatch])
+    }, [containerName, coordinates, dispatch])
 
 
     return (

@@ -1,7 +1,7 @@
-import React, { ReactNode, useCallback, useMemo, useState } from "react"
+import React, { ReactNode, useCallback, useMemo } from "react"
 import { Empty } from "antd"
 import Cell from "./Cell"
-import { PlacementOptions, multiSelect } from "../../modules/placement/reducers"
+import { multiSelect } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 
 interface PlacementContainerProps {
@@ -12,7 +12,7 @@ interface PlacementContainerProps {
 const PlacementContainer = ({ container: containerName }: PlacementContainerProps) => {
     const dispatch = useAppDispatch()
     const container = useAppSelector((state) => state.placement.parentContainers[containerName])
-    const [axisRow = [''], axisColumn = ['']] = container?.spec ?? [[''], ['']] as const
+    const [axisRow = [] as const, axisColumn = [] as const] = container?.spec ?? [[], []] as const
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length
 
@@ -97,7 +97,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
         <>
             <div className={"transfer"}>
                 {
-                    (totalRow === 0 && totalColumn === 0) ?
+                    (totalRow === 0 || totalColumn === 0) ?
                         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         :
                         cells
