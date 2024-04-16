@@ -11,6 +11,7 @@ from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    LIBRARY_QC_QUANTITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
+from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment
 
 __all__ = [
     "EXPERIMENT_AXIOM_TEMPLATE",
@@ -57,7 +58,7 @@ AXIOM_PREPARATION_TEMPLATE = {
           'batch': True,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
     ("Axiom Batch", "Container Barcode", "container__barcode", "container_barcode"),
     ("Axiom Batch", "Container Name", "container__name", "container_name"),
@@ -74,7 +75,7 @@ CONTAINER_CREATION_TEMPLATE = {
                       'Parent Container Coordinates', 'Comment'],
           'batch': False,
       },],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [],
   "placement info": [],
 }
@@ -87,9 +88,9 @@ CONTAINER_MOVE_TEMPLATE = {
           'headers': ['Container Barcode to move', 'Dest. Location Barcode', 'Dest. Location Coord', 'Update Comment'],
           'batch': False,
       },],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("ContainerMove", "Container Barcode to move", "barcode", None),],
+      ("ContainerMove", "Container Barcode to move", "barcode", None, None),],
   "placement info": [],
 }
 
@@ -101,9 +102,9 @@ CONTAINER_RENAME_TEMPLATE = {
           'headers': ['Old Container Barcode', 'New Container Barcode', 'New Container Name', 'Update Comment'],
           'batch': False,
       },],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("ContainerRename", "Old Container Barcode", "barcode", None),],
+      ("ContainerRename", "Old Container Barcode", "barcode", None, None),],
   "placement info": [],
 }
 
@@ -129,12 +130,12 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
                "file": static("submission_templates/Experiment_Infinium_24_v4_8_0.xlsx"),
                "protocol": "Illumina Infinium Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Samples", "Source Sample Name", "name", "name"),
-      ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
-      ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+      ("Samples", "Source Sample Name", "name", "name", None),
+      ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+      ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -149,12 +150,12 @@ EXPERIMENT_MGI_TEMPLATE = {
                "file": static("submission_templates/Experiment_run_MGI_v4_8_0.xlsx"),
                "protocol": "DNBSEQ Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Samples", "Source Sample Name", "name", "name"),
-      ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
-      ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+      ("Samples", "Source Sample Name", "name", "name", None),
+      ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+      ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -169,12 +170,12 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
                "file": static("submission_templates/Experiment_run_illumina_v4_8_0.xlsx"),
                "protocol": "Illumina Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Samples", "Source Sample Name", "name", "name"),
-      ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
-      ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+      ("Samples", "Source Sample Name", "name", "name", None),
+      ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+      ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -189,12 +190,13 @@ EXPERIMENT_AXIOM_TEMPLATE = {
                   "file": static("submission_templates/Experiment_run_Axiom_v4_8_0.xlsx"),
                   "protocol": "Axiom Experiment Preparation"},
     "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
-    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
     "prefill info": [
-        ("Samples", "Source Sample Name", "name", "name"),
-        ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-        ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),
-        ("Samples", "Source Sample Current Volume (uL)", "volume", "volume"),
+        ("Samples", "Source Sample Name", "name", "name", None),
+        ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
+        ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+        ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
+        ("Experiments", "Experiment Container Barcode", "container__comment", "container_comment", get_axiom_experiment_barcode_from_comment),
     ],
     # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
     "placement info": [
@@ -212,7 +214,7 @@ INDEX_CREATION_TEMPLATE = {
           'headers': ['Set Name', 'Index Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
           'batch': False,
       },],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [],
   "placement info": [],
 }
@@ -240,12 +242,12 @@ LIBRARY_CAPTURE_TEMPLATE = {
           'batch': False,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Library", "Library Name", "name", "name"),
-      ("Library", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Library", "Source Container Coordinates", "coordinate__name", "coordinates"),
-      ("Library", "Current Volume (uL)", "volume", "volume"),
+      ("Library", "Library Name", "name", "name", None),
+      ("Library", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("Library", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+      ("Library", "Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -280,14 +282,14 @@ LIBRARY_CONVERSION_TEMPLATE = {
           'batch': False,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Library", "Library Source Name", "name", "name"),
-      ("Library", "Library Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Library", "Library Source Container Coordinates", "coordinate__name", "coordinates"),
-      ("Library", "Library Source Concentration (ng/uL)", "concentration", "concentration"),
-      ("Library", "Library Size (bp)", "fragment_size", "library_size"),
-      ("Library", "Current Volume (uL)", "volume", "volume"),
+      ("Library", "Library Source Name", "name", "name", None),
+      ("Library", "Library Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("Library", "Library Source Container Coordinates", "coordinate__name", "coordinates", None),
+      ("Library", "Library Source Concentration (ng/uL)", "concentration", "concentration", None),
+      ("Library", "Library Size (bp)", "fragment_size", "library_size", None),
+      ("Library", "Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -325,12 +327,12 @@ LIBRARY_PREPARATION_TEMPLATE = {
   "user prefill info": {
       "Strandedness": STRANDEDNESS_CHOICES
   },
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Library", "Sample Name", "name", "name"),
-      ("Library", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Library", "Sample Container Coordinates", "coordinate__name", "coordinates"),
-      ("Library", "Sample Current Volume (uL)", "volume", "volume"),
+      ("Library", "Sample Name", "name", "name", None),
+      ("Library", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("Library", "Sample Container Coordinates", "coordinate__name", "coordinates", None),
+      ("Library", "Sample Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -364,13 +366,13 @@ LIBRARY_QC_TEMPLATE = {
       "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
 
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-    ("LibraryQC", "Library Name", "name", "name"),
-    ("LibraryQC", "Library Container Barcode", "container__barcode", "container_barcode"),
-    ("LibraryQC", "Library Container Coord", "coordinate__name", "coordinates"),
-    ("LibraryQC", "Current Volume (uL)", "volume", "volume"),
-    ("LibraryQC", "Strandedness", "sample_strandedness", "strandedness"),
+    ("LibraryQC", "Library Name", "name", "name", None),
+    ("LibraryQC", "Library Container Barcode", "container__barcode", "container_barcode", None),
+    ("LibraryQC", "Library Container Coord", "coordinate__name", "coordinates", None),
+    ("LibraryQC", "Current Volume (uL)", "volume", "volume", None),
+    ("LibraryQC", "Strandedness", "sample_strandedness", "strandedness", None),
     ],
   "placement info": [],
 }
@@ -395,13 +397,13 @@ NORMALIZATION_TEMPLATE = {
         "Conc. (ng/uL)": "number",
         "Conc. (nM)": "number",
   },
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Normalization", "Sample Name", "name", "name"),
-      ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("Normalization", "Initial Conc. (ng/uL)", "concentration", "concentration"),
-      ("Normalization", "Current Volume (uL)", "volume", "volume"),
+      ("Normalization", "Sample Name", "name", "name", None),
+      ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("Normalization", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("Normalization", "Initial Conc. (ng/uL)", "concentration", "concentration", None),
+      ("Normalization", "Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -436,15 +438,15 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       "Manual Diluent Volume (uL)": "number",
       "Final Volume (uL)": "number",
   },
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Normalization", "Sample Name", "name", "name"),
-      ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("Normalization", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
-      ("Normalization", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
-      ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume"),
-      ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration"),
+      ("Normalization", "Sample Name", "name", "name", None),
+      ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("Normalization", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("Normalization", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode", None),
+      ("Normalization", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates", None),
+      ("Normalization", "Source Sample Current Volume (uL)", "volume", "volume", None),
+      ("Normalization", "Source Sample Current Conc. (ng/uL)", "concentration", "concentration", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -476,11 +478,11 @@ SAMPLE_METADATA_TEMPLATE = {
           'batch': False,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Metadata", "Sample Name", "name", "name"),
-      ("Metadata", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Metadata", "Sample Container Coordinates", "coordinate__name", "coordinates"),
+      ("Metadata", "Sample Name", "name", "name", None),
+      ("Metadata", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("Metadata", "Sample Container Coordinates", "coordinate__name", "coordinates", None),
   ],
   "placement info": [],
 }
@@ -513,21 +515,21 @@ SAMPLE_POOLING_TEMPLATE = {
           "stitch_column": "Pool Name",
       }
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("SamplesToPool", "Source Sample Name", "name", "name"),
-      ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("SamplesToPool", "Current Volume (uL)", "volume", "volume"),
-      ("LabInput", "Sample Name", "name", "name"),
-      ("LabInput", "Library Type", None, "library_type"),
-      ("LabInput", "Index Name", None, "index_name"),
-      ("LabInput", "Volume (uL)", "volume", "volume"),
-      ("LabInput", "LibQC Name", "container__name", "container_name"),
-      ("LabInput", "Plate Barcode (Library)", "container__barcode", "container_barcode"),
-      ("LabInput", "Well Coord", "coordinate__name", "coordinates"),
-      ("LabInput", "Concentration (qPCR in nM)", None, "concentration_as_nm"),
-      ("LabInput", "Library Size (bp)", "fragment_size", "library_size"),
+      ("SamplesToPool", "Source Sample Name", "name", "name", None),
+      ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SamplesToPool", "Current Volume (uL)", "volume", "volume", None),
+      ("LabInput", "Sample Name", "name", "name", None),
+      ("LabInput", "Library Type", None, "library_type", None),
+      ("LabInput", "Index Name", None, "index_name", None),
+      ("LabInput", "Volume (uL)", "volume", "volume", None),
+      ("LabInput", "LibQC Name", "container__name", "container_name", None),
+      ("LabInput", "Plate Barcode (Library)", "container__barcode", "container_barcode", None),
+      ("LabInput", "Well Coord", "coordinate__name", "coordinates", None),
+      ("LabInput", "Concentration (qPCR in nM)", None, "concentration_as_nm", None),
+      ("LabInput", "Library Size (bp)", "fragment_size", "library_size", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -561,7 +563,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
           'batch': True,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [],
   "placement info": [],
 }
@@ -576,11 +578,11 @@ SAMPLE_UPDATE_TEMPLATE = {
           'batch': False,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("SampleUpdate", "Sample Name", "name", "name"),
-      ("SampleUpdate", "Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleUpdate", "Coord (if plate)", "coordinate__name", "coordinates"),
+      ("SampleUpdate", "Sample Name", "name", "name", None),
+      ("SampleUpdate", "Container Barcode", "container__barcode", "container_barcode", None),
+      ("SampleUpdate", "Coord (if plate)", "coordinate__name", "coordinates", None),
   ],
   "placement info": [],
 }
@@ -607,14 +609,14 @@ SAMPLE_QC_TEMPLATE = {
       "Quantity Instrument": "qc-instrument",
       "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("SampleQC", "Sample Name", "name", "name"),
-      ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
-      ("SampleQC", "Sample Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
-      ("SampleQC", "Sample Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
-      ("SampleQC", "Current Volume (uL)", "volume", "volume"),
+      ("SampleQC", "Sample Name", "name", "name", None),
+      ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates", None),
+      ("SampleQC", "Sample Parent Container Barcode", "container__location__barcode", "container_location_barcode", None),
+      ("SampleQC", "Sample Parent Container Coord", "container__coordinate__name", "container_location_coordinates", None),
+      ("SampleQC", "Current Volume (uL)", "volume", "volume", None),
   ],
   "placement info": [],
 }
@@ -644,14 +646,14 @@ SAMPLE_EXTRACTION_TEMPLATE = {
       "Comment": "text",
   }
   ,
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("ExtractionTemplate", "Current Volume (uL)", "volume", "volume"),
-      ("ExtractionTemplate", "Source Sample Name", "name", "name"),
-      ("ExtractionTemplate", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("ExtractionTemplate", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode"),
-      ("ExtractionTemplate", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates"),
+      ("ExtractionTemplate", "Current Volume (uL)", "volume", "volume", None),
+      ("ExtractionTemplate", "Source Sample Name", "name", "name", None),
+      ("ExtractionTemplate", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("ExtractionTemplate", "Source Parent Container Barcode", "container__location__barcode", "container_location_barcode", None),
+      ("ExtractionTemplate", "Source Parent Container Coord", "container__coordinate__name", "container_location_coordinates", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -684,12 +686,12 @@ SAMPLE_TRANSFER_TEMPLATE = {
       "Transfer Date (YYYY-MM-DD)": "date",
       "Comment": "text"
   },
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("SampleTransfer", "Source Sample Name", "name", "name"),
-      ("SampleTransfer", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleTransfer", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("SampleTransfer", "Current Volume (uL)", "volume", "volume"),
+      ("SampleTransfer", "Source Sample Name", "name", "name", None),
+      ("SampleTransfer", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("SampleTransfer", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SampleTransfer", "Current Volume (uL)", "volume", "volume", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
@@ -713,11 +715,11 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
           'batch': False,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Samples", "Sample Name", "name", "name"),
-      ("Samples", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Sample Container Coord", "coordinate__name", "coordinates"),
+      ("Samples", "Sample Name", "name", "name", None),
+      ("Samples", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("Samples", "Sample Container Coord", "coordinate__name", "coordinates", None),
   ],
   "placement info": [],
 }
@@ -731,11 +733,11 @@ PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
           'batch': False,
       },
   ],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("ProjectLinkSamples", "Sample Name", "name", "name"),
-      ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("ProjectLinkSamples", "Sample Container Coord", "coordinate__name", "coordinates"),
+      ("ProjectLinkSamples", "Sample Name", "name", "name", None),
+      ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("ProjectLinkSamples", "Sample Container Coord", "coordinate__name", "coordinates", None),
   ],
   "placement info": [],
 }
