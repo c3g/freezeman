@@ -1,5 +1,7 @@
+import json
 from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Value
-from django.http import HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponseBadRequest
+from django.db.models.manager import BaseManager
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -196,6 +198,41 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": EXPERIMENT_AXIOM_TEMPLATE},
     ]
+
+    @action(detail=False, methods=["post"])
+    def list_post(self, request: HttpRequest):
+        jsonQueryParams = json.loads(request.body.decode())
+
+        offset = None
+        if 'offset' in jsonQueryParams:
+            offset = int(jsonQueryParams['offset'])
+            del jsonQueryParams['offset']
+        limit = None
+        if 'limit' in jsonQueryParams:
+            limit = int(jsonQueryParams['limit'])
+            del jsonQueryParams['limit']
+        ordering = None
+        if 'ordering' in jsonQueryParams:
+            ordering = jsonQueryParams['ordering'].split(",")
+            del jsonQueryParams['ordering']
+        
+        for key in jsonQueryParams:
+            if key.endswith('__in'):
+                value = jsonQueryParams[key]
+                if isinstance(value, int):
+                    value = [value]
+                elif isinstance(value, str):
+                    value = [s.strip() for s in jsonQueryParams[key].split(",")]
+                jsonQueryParams[key] = value
+
+        queryset = self.get_queryset()
+        queryset = queryset.filter(**jsonQueryParams)
+        queryset = queryset.order_by(*ordering) if ordering else queryset
+        queryset = queryset[offset:] if offset else queryset
+        queryset = queryset[:limit] if limit else queryset
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"results": serializer.data, "count": len(queryset)})
 
     @action(detail=False, methods=["get"])
     def labwork_info(self, request, *args, **kwargs):
