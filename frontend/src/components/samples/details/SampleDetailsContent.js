@@ -161,7 +161,7 @@ const SampleDetailsContent = () => {
     listSampleMetadata(token, { "biosample__id": biosampleId }).then(metadata => {
       setSampleMetadata(metadata)
     })
-  }, [sample, token])
+  }, [sample])
 
   return <>
     <AppPageHeader
