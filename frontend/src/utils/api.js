@@ -239,7 +239,7 @@ const api = {
     executeAutomation: (stepId, additionalData, options) => filteredpost(`/sample-next-step/execute_automation/`, {...options}, form({step_id: stepId, additional_data: additionalData, ...options}),),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
     labworkStepSummary: (stepId, groupBy, options) => get('/sample-next-step/labwork_step_info/', {...options, step__id__in: stepId, group_by: groupBy}),
-    listSamplesAtStep: (stepId, options) => post('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}),
+    listSamplesAtStep: (stepId, options, sample__id__in) => filteredpost('/sample-next-step/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
       request: (templateID, user_prefill_data, placement_data,  options) => filteredpost('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID}))
