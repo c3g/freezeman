@@ -149,7 +149,7 @@ const SampleDetailsContent = () => {
     if (isLoaded && container?.experiment_run) {
       setExperimentRunIDs((experimentRunsIDs) => [...experimentRunsIDs, container.experiment_run])
     }
-  }, [container?.experiment_run, experimentRunsIDs, isLoaded])
+  }, [container?.experiment_run, isLoaded])
 
   useEffect(() => {
     if (!librariesByID[id])
