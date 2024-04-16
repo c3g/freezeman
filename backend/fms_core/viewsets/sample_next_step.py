@@ -198,7 +198,8 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": EXPERIMENT_AXIOM_TEMPLATE},
     ]
 
-    def list(self, request: HttpRequest, *args, **kwargs):
+    @action(detail=False, methods=['post'])
+    def list_post(self, request: HttpRequest, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
         if request.method == 'POST':
