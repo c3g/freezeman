@@ -242,7 +242,7 @@ const api = {
     listSamplesAtStep: (stepId, options, sample__id__in) => filteredpost('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
-      request: (templateID, user_prefill_data, placement_data,  options) => filteredpost('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID}))
+      request: (templateID, user_prefill_data, placement_data, sample__id__in,  options) => filteredpost('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID, sample__id__in }))
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),
