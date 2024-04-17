@@ -103,7 +103,7 @@ const SampleDetailsContent = () => {
   const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
   const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
   const [processMeasurements, setProcessMeasurements] = useState([])
-  const [experimentRunsIDs, setExperimentRunIDs] = useState([])
+  const experimentRunsIDs = isLoaded && container?.experiment_run ? [container.experiment_run] : []
   const library = librariesByID[id]
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
@@ -144,12 +144,6 @@ const SampleDetailsContent = () => {
       })
     }
   }, [isLoaded, isProcessesEmpty, sample.process_measurements])
-
-  useEffect(() => {
-    if (isLoaded && container?.experiment_run) {
-      setExperimentRunIDs((experimentRunsIDs) => [...experimentRunsIDs, container.experiment_run])
-    }
-  }, [container?.experiment_run, isLoaded])
 
   useEffect(() => {
     if (!librariesByID[id])
@@ -312,7 +306,7 @@ const SampleDetailsContent = () => {
           <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
         </TabPane>
 
-        <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="experiment" style={tabStyle}>
+        <TabPane tab={`Experiment (${experimentRunsIDs.length})`} key="experiment" style={tabStyle}>
            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
         </TabPane>
 
