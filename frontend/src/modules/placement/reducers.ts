@@ -304,8 +304,6 @@ function placeCellsHelper(state: Draft<PlacementState>, sources: CellIdentifier[
             getCell(state, location).preview = false
         })
     }
-
-    return state
 }
 
 function getPlacementOption(state: PlacementState): PlacementOptions {
@@ -323,8 +321,6 @@ function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnC
 
     if (getContainer(state, clickedLocation).type === 'destination')
         placeCellsHelper(state, findSelectionsInSourceContainers(state), clickedLocation, getPlacementOption(state))
-
-    return state
 }
 
 function setPreviews(state: Draft<PlacementState>, onMouseLocation: MouseOnCellPayload, preview: boolean) {
@@ -333,8 +329,6 @@ function setPreviews(state: Draft<PlacementState>, onMouseLocation: MouseOnCellP
     activeSelections.forEach((_, index) => {
         getCell(state, destinationLocations[index]).preview = preview
     })
-
-    return state
 }
 
 function selectMultipleCells(cells: Draft<CellState>[], forcedSelectedValue?: boolean) {
@@ -412,8 +406,6 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
         .filter((id) => cellSelectable(state, id))
         .map((id) => getCell(state, id))
     selectMultipleCells(cells, payload.forcedSelectedValue)
-
-    return state
 }
 
 const initialState: PlacementState = {
@@ -423,16 +415,14 @@ const initialState: PlacementState = {
     placementUpdated: false,
 } as const
 
-function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => PlacementState) {
+function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => void) {
     return (state: Draft<PlacementState>, action: PayloadAction<P>) => {
         try {
-            return func(state, action.payload)
+            func(state, action.payload)
         } catch (error) {
             const originalState = original(state) ?? initialState
-            return {
-                ...originalState,
-                error: error.message
-            } as PlacementState
+            Object.assign(state, originalState)
+            state.error = error.message
         }
     }
 }
@@ -518,7 +508,7 @@ const slice = createSlice({
             if (axisRow === undefined) return state
 
             // use pattern placement to place all source starting from the top-left of destination
-            return placeCellsHelper(state, sourceIDs, {
+            placeCellsHelper(state, sourceIDs, {
                 parentContainer: payload.destination,
                 coordinates: axisRow[0] + axisCol[0]
             }, {
@@ -529,12 +519,10 @@ const slice = createSlice({
         onCellEnter: reducerWithThrows((state, payload: MouseOnCellPayload) => {
             const container = getContainer(state, payload)
             if (container.type === 'destination') setPreviews(state, payload, true)
-            return state
         }),
         onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) => {
             const container = getContainer(state, payload)
             if (container.type === 'destination') setPreviews(state, payload, false)
-            return state
         }),
         undoSelectedSamples: reducerWithThrows((state, parentContainer: Container['name']) => {
             // find selected cells in parentContainer
@@ -557,7 +545,6 @@ const slice = createSlice({
                 sourceCell.placedAt = null
                 state.placementUpdated = true
             }
-            return state
         }),
         flushContainers(state, action: PayloadAction<undefined | Array<Container['name']>>) {
             const containerNames = action.payload ? action.payload : Object.keys(state.parentContainers)
@@ -582,11 +569,9 @@ const slice = createSlice({
                     })
                 })
             })
-            return state
         },
         unsetPlacementUpdated(state) {
             state.placementUpdated = false
-            return state
         }
     }
 })
