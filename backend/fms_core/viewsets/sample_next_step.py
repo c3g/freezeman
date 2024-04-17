@@ -202,15 +202,14 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     def list_post(self, request: HttpRequest, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        if request.method == 'POST':
-            jsonQueryParams = json.loads(request.body.decode())
-            if 'sample__id__in' in jsonQueryParams:
-                value = jsonQueryParams['sample__id__in']
-                if isinstance(value, int):
-                    value = [value]
-                elif isinstance(value, str):
-                    value = [s.strip() for s in value.split(",")]
-                queryset = queryset.filter(sample__id__in=value)
+        jsonQueryParams = json.loads(request.body.decode())
+        if 'sample__id__in' in jsonQueryParams:
+            value = jsonQueryParams['sample__id__in']
+            if isinstance(value, int):
+                value = [value]
+            elif isinstance(value, str):
+                value = [s.strip() for s in value.split(",")]
+            queryset = queryset.filter(sample__id__in=value)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
