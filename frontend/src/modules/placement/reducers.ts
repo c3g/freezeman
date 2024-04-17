@@ -419,6 +419,7 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
     return (state: Draft<PlacementState>, action: PayloadAction<P>) => {
         try {
             func(state, action.payload)
+            state.error = undefined
         } catch (error) {
             const originalState = original(state) ?? initialState
             Object.assign(state, originalState)
