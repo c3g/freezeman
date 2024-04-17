@@ -53,7 +53,7 @@ class AxiomPreparationImporter(GenericImporter):
         batch_df = batch_sheet.dataframe
         properties = batch_df.values[batch_sheet.header_row_nb][self.properties_starting_index:].tolist()
         # Replace in the list of property types that are modified in the Template header definition
-        properties = [TEMPLATE_PROPERTY_MAPPING[property] if property in TEMPLATE_PROPERTY_MAPPING.keys() else property for property in properties]
+        properties = [TEMPLATE_PROPERTY_MAPPING[column_name] if column_name in TEMPLATE_PROPERTY_MAPPING.keys() else column_name for column_name in properties]
         self.initialize_data_for_template(properties=properties)
 
         # Identify for each row of the matching workflow step
