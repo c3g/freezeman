@@ -20,9 +20,9 @@ import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamples
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
-import PlacementTab from '../../placementVisuals/PlacementTab'
 import LabworkSelection from './LabworkSelection'
 import Placement from '../../placementVisuals/Placement'
+import { flushContainers } from '../../../modules/placement/reducers'
 
 const { Text } = Typography
 
@@ -335,6 +335,13 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		console.info(`Saving ${JSON.stringify(placementData)}`)
 		setPlacementData(placementData)
 	}, [])
+
+	/** Flushing */
+	useEffect(() => {
+		return () => {
+			dispatch(flushContainers())
+		}
+	}, [dispatch])
 
 	/** UX **/
 
