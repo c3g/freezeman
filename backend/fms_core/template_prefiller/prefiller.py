@@ -21,12 +21,10 @@ def PrefillTemplate(template_path, template_info, queryset):
     position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]
-        is_sheet_pure_batch = is_sheet_true_batch(sheet_name, template_info["sheets info"])
-        if is_sheet_pure_batch:
-            queryset = queryset.values(*filter(lambda x: x is not None, sheet_dict["queryset_column_list"]))
+        queryset = queryset.values(*filter(lambda x: x is not None, sheet_dict["queryset_column_list"]))
+        if is_sheet_true_batch(sheet_name, template_info["sheets info"]):
             queryset = queryset.order_by().distinct()
-        else:
-            queryset = queryset.values(*filter(lambda x: x is not None, sheet_dict["queryset_column_list"]))
+
         for i, entry in enumerate(queryset):
             for prefill_sheet_name, template_column, queryset_column, _ in template_info["prefill info"]:
                 if prefill_sheet_name == sheet_name and queryset_column is not None:
