@@ -6,10 +6,9 @@ import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
-import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import PrefillButton from '../../PrefillTemplateColumns'
@@ -32,14 +31,6 @@ interface LabworkStepPageProps {
 	stepSamples: LabworkStepSamples
 }
 
-export type PlacementData = {
-	[key in FMSId]: {
-		coordinates: string,
-		container_name: string,
-		container_barcode: string,
-		container_kind: string
-	}[]
-}
 
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
@@ -52,8 +43,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
-	const [placementData, setPlacementData] = useState<PlacementData>({})
-
 	const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
 	// ** Refresh **
@@ -98,17 +87,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
 			if (selectedTemplate) {
-				try {
-					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData, placementData))
-					if (result) {
-						downloadFromFile(result.filename, result.data)
-					}
-				} catch (err) {
-					console.error(err)
-				}
+				dispatch(prefillTemplate(selectedTemplate, step, prefillData))
 			}
 		}
-		, [step, selectedTemplate, dispatch, placementData])
+		, [dispatch, selectedTemplate, step])
 
 	// Submit Automation handler
 	const haveSelectedSamples = stepSamples.selectedSamples.items.length > 0
@@ -331,11 +313,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const onPrefillOpen = useCallback(() => {
 	}, [])
 
-	const placementSave = useCallback((placementData: PlacementData) => {
-		console.info(`Saving ${JSON.stringify(placementData)}`)
-		setPlacementData(placementData)
-	}, [])
-
 	/** Flushing */
 	useEffect(() => {
 		return () => {
@@ -451,7 +428,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							<Placement
 								stepID={step.id}
 								sampleIDs={stepSamples.selectedSamples.items}
-								save={placementSave}
 							/>
 						</Tabs.TabPane>
 						: ''}

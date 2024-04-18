@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples, unsetPlacementUpdated } from '../../modules/placement/reducers'
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
+import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -12,15 +12,13 @@ import { selectContainerKindsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
-import { PlacementData } from "../labwork/step/LabworkStep"
 
 interface PlacementProps {
     sampleIDs: number[],
     stepID: FMSId,
-    save: (placementData: PlacementData) => void
 }
 
-function Placement({ stepID, sampleIDs, save }: PlacementProps) {
+function Placement({ stepID, sampleIDs }: PlacementProps) {
     const dispatch = useAppDispatch()
 
     const containerKinds = useAppSelector(selectContainerKindsByID)
@@ -152,42 +150,6 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
-    const placementUpdated = useAppSelector((state) => state.placement.placementUpdated)
-    const saveToPrefill = useCallback(() => {
-        try {
-            const placementData = destinationContainers.reduce((placementData, containerName) => {
-                const destinationContainer = parentContainers[containerName]
-                if (!destinationContainer) throw new Error(`Could not find destination container '${containerName}'`)
-                for (const coordinates in destinationContainer.cells) {
-                    const destinationCell = destinationContainer.cells[coordinates]
-                    if (!destinationCell) throw new Error(`Could not find cell at  ${coordinates}@${containerName}`)
-                    if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
-                    const sourceContainer = parentContainers[destinationCell.placedFrom.parentContainer]
-                    if (!sourceContainer) throw new Error(`Could not find source container '${destinationCell.placedFrom.parentContainer}'`)
-                    const sourceCell = sourceContainer.cells[destinationCell.placedFrom.coordinates]
-                    if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
-                    if (!sourceCell.sample) throw new Error(`There is not sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
-                    placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
-                    placementData[sourceCell.sample].push({
-                        coordinates: coordinates,
-                        container_name: containerName,
-                        container_barcode: destinationContainer.barcode as string,
-                        container_kind: destinationContainer.kind as string
-                    })
-                }
-                return placementData
-            }, {} as PlacementData)
-            save(placementData)
-            dispatch(unsetPlacementUpdated())
-        } catch (e) {
-            notification.error({
-                message: e.message,
-                key: 'LabworkStep.Placement.Prefilling-Failed',
-                duration: 20
-            })
-        }
-    }, [destinationContainers, dispatch, parentContainers, save])
-
     return (
         <>
             <PageContainer>
@@ -195,9 +157,6 @@ function Placement({ stepID, sampleIDs, save }: PlacementProps) {
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
-                        </Col>
-                        <Col span={3}>
-                            <Button onClick={saveToPrefill} disabled={!placementUpdated}> Save to Prefill </Button>
                         </Col>
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>

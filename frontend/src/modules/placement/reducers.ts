@@ -46,7 +46,6 @@ export interface PlacementState {
     parentContainers: Record<ContainerIdentifier['parentContainer'], PlacementContainerState | undefined>
     placementType: PlacementOptions['type']
     placementDirection: PlacementGroupOptions['direction']
-    placementUpdated: boolean
     error?: string
 }
 
@@ -153,7 +152,6 @@ function placeCell(state: Draft<PlacementState>, sourceLocation: CellIdentifier,
 
     sourceCell.placedAt = destinationLocation
     destinationCell.placedFrom = sourceLocation
-    state.placementUpdated = true
 }
 
 function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
@@ -412,7 +410,6 @@ const initialState: PlacementState = {
     parentContainers: {},
     placementType: 'group',
     placementDirection: 'row',
-    placementUpdated: false,
 } as const
 
 function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => void) {
@@ -476,7 +473,6 @@ const slice = createSlice({
                             const destCell = getCell(state, oldCell.placedAt)
                             destCell.placedFrom = null
                             oldCell.placedAt = null
-                            state.placementUpdated = true
                             destCell.selected = false
                         }
                     }
@@ -544,7 +540,6 @@ const slice = createSlice({
                 cell.placedFrom = null
                 cell.selected = false
                 sourceCell.placedAt = null
-                state.placementUpdated = true
             }
         }),
         flushContainers(state, action: PayloadAction<undefined | Array<Container['name']>>) {
@@ -559,21 +554,16 @@ const slice = createSlice({
                         if (!cell) return
                         if (cell.placedFrom?.parentContainer === deletedContainerName) {
                             cell.placedFrom = null
-                            state.placementUpdated = true
                             cell.selected = false
                         }
                         if (cell.placedAt?.parentContainer === deletedContainerName) {
                             cell.placedAt = null
-                            state.placementUpdated = true
                             cell.selected = false
                         }
                     })
                 })
             })
         },
-        unsetPlacementUpdated(state) {
-            state.placementUpdated = false
-        }
     }
 })
 
@@ -588,7 +578,6 @@ export const {
     multiSelect,
     undoSelectedSamples,
     flushContainers,
-    unsetPlacementUpdated,
 } = slice.actions
 export const internals = {
     initialState,
