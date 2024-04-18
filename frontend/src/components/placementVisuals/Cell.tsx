@@ -3,7 +3,7 @@ import { useCallback } from "react"
 import './Placement.scss'
 import { CellState, atLocations, clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Popover } from "antd"
+import { Tooltip } from "antd"
 
 export interface CellProps {
     container: string
@@ -44,11 +44,16 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
 
     return (
         cell &&
-        <Popover content={<>
-            <div>{`Sample: ${sampleID ?? 'None'}`}</div>
-            {cell.placedFrom && <div>{`From: ${atLocations(cell.placedFrom)}`}</div>}
-            {cell.placedAt && <div>{`To: ${atLocations(cell.placedAt)}`}</div>}
-        </>}>
+        <Tooltip
+            title={<>
+                <div>{`Sample: ${sampleID ?? 'None'}`}</div>
+                {cell.placedFrom && <div>{`From: ${atLocations(cell.placedFrom)}`}</div>}
+                {cell.placedAt && <div>{`To: ${atLocations(cell.placedAt)}`}</div>}
+            </>}
+            destroyTooltipOnHide={true}
+            mouseEnterDelay={0.5}
+            mouseLeaveDelay={0.1}
+        >
             <div
                 className={cellSize}
                 key={coordinates}
@@ -60,7 +65,7 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 
 
             </div>
-        </Popover>
+        </Tooltip>
     )
 }
 
