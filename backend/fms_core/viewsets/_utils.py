@@ -343,12 +343,14 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod
     def _prepare_prefill_dicts(cls, template, queryset, user_prefill_data, placement_data) -> List:
         
-        def default_prefilling(sample_id: int, template, user_prefill_data):
+        def default_prefilling(sample: Sample, template, user_prefill_data):
             sample_row_dict = {}
             # Use sample to extract the sample information guided by the template definition prefill info.
-            sample = Sample.objects.get(id=sample_id)
-            for _, column_name, _, attribute in template["prefill info"]:
-                value = getattr(sample, attribute)
+            for _, column_name, _, attribute, func in template["prefill info"]:
+                if func:
+                    value = func(getattr(sample, attribute))
+                else:
+                    value = getattr(sample, attribute)
                 sample_row_dict[column_name] = value
             # Insert user inputted info to prefill template
             if user_prefill_data:
@@ -375,6 +377,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
 
             return batch_rows_list
 
+        AXIOM_EXPERIMENT_STEP = "Experiment Run Axiom"
         TEMP_BATCH_PREFIX = "CHANGE ME "
         # Create the dictionnary used for prefilling using template definition and step specs. Tolerate templates with 2 sheets max.
         dict_sheets_rows_dicts = {sheet["name"]: [] for sheet in template["sheets info"]} # Initialize each sheet list
@@ -405,9 +408,10 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
             for sample_id, step_id in queryset.values_list("sample", "step").distinct():
                 new_step = False
                 new_batch_container = False
+                sample = Sample.objects.get(id=sample_id)
                 # without placement there is only 1 destination for each sample
                 if placement_data is None or placement_data.get(str(sample_id)) is None:
-                    sample_row_dict = default_prefilling(sample_id, template, user_prefill_data)
+                    sample_row_dict = default_prefilling(sample, template, user_prefill_data)
                     batch_row_dict = {}
                     # Use step to extract specifications and attach it to the correct sheet and column
                     step = Step.objects.get(id=step_id)
@@ -424,6 +428,18 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                                 new_step = True
                     if new_step:
                         step_dict[step.id] = step
+                    # Extra prefilling step for Axiom experiment - get experiment container barcode from comment
+                    if step.name == AXIOM_EXPERIMENT_STEP:
+                        # Replace stitch fields by source container name
+                        sample_row_dict[dict_stitch[dict_batch_sheet.get(False, None)]] = sample.container_name
+                        if not batch_container_dict.get(sample.container_name, None):
+                            batch_row_dict[dict_stitch[dict_batch_sheet.get(True, None)]] = sample.container_name
+                            batch_prefill_info = [prefill for prefill in template["prefill info"] if prefill[0] == dict_batch_sheet.get(True, None)] # prefill[0] is the template sheet name
+                            # Get batch field value
+                            for _, column_name, _, attribute, func in batch_prefill_info:
+                                value = getattr(sample, attribute)
+                                batch_row_dict[column_name] = func(value) if func else value
+                            batch_container_dict[sample.container_barcode] = sample.container_barcode # share the dict
                     # Append current rows to the dict for the sample sheet
                     dict_sheets_rows_dicts[dict_batch_sheet[False]].append(sample_row_dict)
                     # Append current rows to the dict for the extra sheets
@@ -468,6 +484,22 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                                     new_step = True
                         if new_step:
                             step_dict[step.id] = step
+                        # Extra prefilling step for Axiom experiment - get experiment container barcode from comment
+                        if step.name == AXIOM_EXPERIMENT_STEP:
+                            # Replace stitch fields by source container name
+                            sample_row_dict[dict_stitch[dict_batch_sheet.get(False, None)]] = sample.container_name
+                            if not batch_container_dict.get(sample.container_name, None):
+                                batch_row_dict[dict_stitch[dict_batch_sheet.get(True, None)]] = sample.container_name
+                                batch_prefill_info = [prefill for prefill in template["prefill info"] if prefill[0] == dict_batch_sheet.get(True, None)] # prefill[0] is the template sheet name
+                                # Get batch field value
+                                for _, column_name, _, attribute, func in batch_prefill_info:
+                                    if func:
+                                        value = func(getattr(sample, attribute))
+                                    else:
+                                        value = getattr(sample, attribute)
+                                    batch_row_dict[column_name] = value
+                                batch_container_dict[sample.container_barcode] = sample.container_barcode # share the dict
+
                         # Append current rows to the dict for the sample sheet
                         dict_sheets_rows_dicts[dict_batch_sheet[False]].append(sample_row_dict)
                         # Append current rows to the dict for the extra sheets

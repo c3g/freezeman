@@ -109,6 +109,10 @@ class Sample(TrackedModel):
         return self.container.name if self.container else None
 
     @property
+    def container_comment(self) -> Optional[str]:
+        return self.container.comment if self.container else None
+     
+    @property
     def container_location(self) -> Optional[Container]:
         return self.container.location if self.container else None
 
