@@ -1,4 +1,4 @@
-import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
+import { Draft, PayloadAction, createSlice, current, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec, FMSId } from "../../models/fms_api_models"
 
@@ -430,14 +430,11 @@ const slice = createSlice({
     name: 'PLACEMENT',
     initialState,
     reducers: {
-        loadContainers(state, action: PayloadAction<LoadContainersPayload>) {
-            const newSamples: Record<CellIdentifier['parentContainer'], undefined | Record<CellIdentifier['coordinates'], undefined | FMSId>> = {}
-
-            const parentContainersPayload = action.payload
+        loadContainers: reducerWithThrows((state, parentContainersPayload: LoadContainersPayload) => {
             for (const parentContainerPayload of parentContainersPayload) {
                 // initialize container state
-                const parentContainerState: PlacementContainerState = {
-                    cells: state.parentContainers[parentContainerPayload.name]?.cells ?? createEmptyCells(parentContainerPayload.spec),
+                const parentContainerState = state.parentContainers[parentContainerPayload.name] ??= {
+                    cells: createEmptyCells(parentContainerPayload.spec),
                     type: parentContainerPayload.type,
                     name: parentContainerPayload.name,
                     barcode: parentContainerPayload.barcode,
@@ -445,42 +442,38 @@ const slice = createSlice({
                     spec: parentContainerPayload.spec,
                 }
 
-                state.parentContainers[parentContainerPayload.name] = parentContainerState
-                
-
-                const newSamplesByContainer = newSamples[parentContainerPayload.name] ??= {}
+                const newSamplesByCoordinates: Record<string, undefined | Sample['id']> = {}
                 for (const container of parentContainerPayload.cells) {
-                    newSamplesByContainer[container.coordinates] = container.sample
+                    newSamplesByCoordinates[container.coordinates] = container.sample
                 }
-            }
 
-            // populate cells
-            // handle (dis)appearing sample in cells
-            for (const containerName in state.parentContainers) {
-                const parentContainerState = state.parentContainers[containerName]
-                const newSamplesByCoordinates = newSamples[containerName]
-                if (!parentContainerState) return
-                if (!newSamplesByCoordinates) return
-
+                // populate cells
+                // handle (dis)appearing sample in cells
                 for (const coordinates in parentContainerState.cells) {
-                    const oldCell = parentContainerState.cells[coordinates] as CellState // ought to exist
-                    const newSample = newSamplesByCoordinates[coordinates] ?? null // container spec mustn't change
+                    const oldCell = parentContainerState.cells[coordinates] as CellState // not supposed to be undefined
+                    const newSample = newSamplesByCoordinates[coordinates] ?? null
                     if (oldCell.sample !== newSample) {
                         oldCell.sample = newSample
                         oldCell.selected = false
-                        // undo a placement that's no longer valid
-                        // does not undo placement if the sample in a cell was just swapped
-                        if (newSample === null && oldCell.placedAt) {
+                        // undo a placement that might not be valid
+                        if (oldCell.placedAt) {
                             const destCell = getCell(state, oldCell.placedAt)
                             destCell.placedFrom = null
-                            oldCell.placedAt = null
                             destCell.selected = false
+
+                            oldCell.placedAt = null
+                        }
+                        if (oldCell.placedFrom) {
+                            const sourceCell = getCell(state, oldCell.placedFrom)
+                            sourceCell.placedAt = null
+                            sourceCell.selected = false
+
+                            oldCell.placedFrom = null
                         }
                     }
                 }
             }
-            return state
-        },
+        }),
         setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
 			state.placementType = action.payload
         },
@@ -544,7 +537,7 @@ const slice = createSlice({
             }
         }),
         flushContainers(state, action: PayloadAction<undefined | Array<Container['name']>>) {
-            const containerNames = action.payload ? action.payload : Object.keys(state.parentContainers)
+            const containerNames = action.payload ?? Object.keys(state.parentContainers)
             containerNames.forEach((deletedContainerName) => {
                 delete state.parentContainers[deletedContainerName]
 

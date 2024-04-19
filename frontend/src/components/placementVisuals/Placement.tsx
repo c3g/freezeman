@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, flushContainers, loadContainers as loadPlacementDestinationContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
+import { PlacementDirections, loadContainers as loadPlacementContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
@@ -72,13 +72,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         setActiveDestinationContainer(destinationContainers[currentIndex + direction])
     }, [destinationContainers, activeDestinationContainer])
 
-    const [oldStepID, setOldStepID] = useState(stepID)
-    useEffect(() => {
-        if (stepID !== oldStepID) {
-            dispatch(flushContainers(destinationContainers))
-            dispatch(setOldStepID(stepID))
-        }
-    }, [destinationContainers, dispatch, oldStepID, stepID])
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {
             containerNames.sort()
@@ -87,7 +80,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     }, [dispatch, sampleIDs, stepID])
 
     const onConfirmAddDestinationContainer = useCallback((container: DestinationContainer) => {
-        dispatch(loadPlacementDestinationContainers([{
+        dispatch(loadPlacementContainers([{
             type: 'destination',
             name: container.container_name,
             barcode: container.container_barcode,
