@@ -438,7 +438,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                             # Get batch field value
                             for _, column_name, _, attribute, func in batch_prefill_info:
                                 value = getattr(sample, attribute)
-                                batch_row_dict[column_name] = func(value)
+                                batch_row_dict[column_name] = func(value) if func else value
                             batch_container_dict[sample.container_barcode] = sample.container_barcode # share the dict
                     # Append current rows to the dict for the sample sheet
                     dict_sheets_rows_dicts[dict_batch_sheet[False]].append(sample_row_dict)
