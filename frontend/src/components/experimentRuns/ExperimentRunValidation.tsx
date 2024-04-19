@@ -233,17 +233,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 					}
 					
 					{canValidate &&
-						<Popconfirm
-							title="Set the lane's validation status to Passed?"
-							okText={'Yes'}
-							cancelText={'No'}
-							onConfirm={() => {
-								setPassed(lane)
-							}}
-						>
-							<Button disabled={isValidationInProgress || lane.validationStatus === ValidationStatus.PASSED}>Passed</Button>
-						</Popconfirm>
-						
+							<Button disabled={isValidationInProgress || lane.validationStatus === ValidationStatus.PASSED} onClick={() => setPassed(lane)}>Passed</Button>
 					}
 
 					{canValidate &&
