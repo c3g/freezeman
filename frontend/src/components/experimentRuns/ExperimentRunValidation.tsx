@@ -244,6 +244,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 							onConfirm={() => {
 								setFailed(lane)
 							}}
+							placement={'topRight'}
 						>
 							<Button disabled={isValidationInProgress || lane.validationStatus === ValidationStatus.FAILED}>Failed</Button>
 						</Popconfirm>
