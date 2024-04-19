@@ -258,14 +258,15 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
     return newOffsetsList.map((offsets) => ({ parentContainer: destination.parentContainer, coordinates: offsetsToCoordinates(offsets, destinationContainer.spec) }))
 }
 
-function findSelections(state: PlacementState, filter: (container: PlacementContainerState, cell: CellState) => boolean = () => true) {
+function findSelections(state: PlacementState, filterContainer: (container: PlacementContainerState) => boolean = () => true) {
     const ids: CellIdentifier[] = []
     for (const parentContainer in state.parentContainers) {
         const container = getContainer(state, { parentContainer })
+        if (!filterContainer(container)) continue
         for (const coordinates in container.cells) {
             const id = { parentContainer, coordinates }
             const cell = getCell(state, id)
-            if (filter(container, cell) && cell.selected)
+            if (cell.selected)
                 ids.push(id)
         }
     }
