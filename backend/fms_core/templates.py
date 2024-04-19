@@ -58,7 +58,10 @@ AXIOM_PREPARATION_TEMPLATE = {
       },
   ],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
-  "prefill info": [],
+  "prefill info": [
+    ("Axiom Batch", "Container Barcode", "container__barcode", "container_barcode"),
+    ("Axiom Batch", "Container Name", "container__name", "container_name"),
+  ],
   "placement info": [],
 }
 
