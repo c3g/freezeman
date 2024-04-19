@@ -16,7 +16,7 @@ from fms_core.services.sample import create_full_sample
 class AxiomPreparationTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = AxiomPreparationImporter()
-        self.file = APP_DATA_ROOT / "Axiom_sample_preparation_v4_5_0.xlsx"
+        self.file = APP_DATA_ROOT / "Axiom_sample_preparation_v4_9_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.prefill_data()
