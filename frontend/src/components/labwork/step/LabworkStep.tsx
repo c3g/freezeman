@@ -57,13 +57,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// A selected template picker is used if protocol supports more than one template
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
 
-	useEffect(() => {
-		return () => {
-			dispatch(clearSelectedSamples(step.id))
-			dispatch(flushSamplesAtStep(step.id))
-		}
-	}, [dispatch])
-
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if (!selectedTemplate) {
@@ -316,9 +309,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	/** Flushing */
 	useEffect(() => {
 		return () => {
+			dispatch(clearSelectedSamples(step.id))
+			dispatch(flushSamplesAtStep(step.id))
 			dispatch(flushContainers())
 		}
-	}, [dispatch])
+	}, [dispatch, step.id])
 
 	/** UX **/
 
