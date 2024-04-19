@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps, SelectProps, InputProps } from "antd"
+import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemProps, Select, FormProps, SelectProps } from "antd"
 import api from '../utils/api'
 import { InstrumentType } from '../models/frontend_models'
 import store from '../store'
@@ -35,7 +35,7 @@ const { Item } = Form
 
 interface PrefillButtonProps {
     canPrefill: boolean,
-    handlePrefillTemplate: (data: { [column: string]: any }) => void,
+    handlePrefillTemplate: (data: { [column: string]: any }) => Promise<void>,
     data: { [column: string]: ColumnType },
     onPrefillOpen: () => void,
 }
@@ -65,6 +65,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
     const [checkedFields, setCheckedFields] = useState<{ [column: string]: boolean }>({});
     const [formErrors, setFormErrors] = useState<Record<string, string>>({})
     const maxLabelWidth = useMemo(() => Math.max(...Object.keys(data).map((name) => name.length), 10), [data])
+    const [isPrefilling, setIsPrefilling] = useState(false)
 
     const itemValidation = useCallback((key: string): FormItemProps => {
         if (formErrors && formErrors[key]) {
@@ -125,11 +126,16 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
         return prefillData
     }, [checkedFields, form])
 
-    const onFinish: NonNullable<FormProps['onFinish']> = useCallback(() => {
+    const onFinish: NonNullable<FormProps['onFinish']> = useCallback(async () => {
         const prefillData = returnPrefillData()
         if (prefillData) {
-            handlePrefillTemplate(prefillData)
             setIsPrefillColumnsShown(false)
+            try {
+                setIsPrefilling(true)
+                await handlePrefillTemplate(prefillData)
+            } finally {
+                setIsPrefilling(false)
+            }
         }
     }, [handlePrefillTemplate, returnPrefillData])
 
@@ -155,11 +161,11 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
         }else{
             showPrefillColumns()
         }
-    }, [data, onPrefillOpen])
+    }, [data, dispatch, handlePrefillTemplate, onPrefillOpen, showPrefillColumns])
 
     return (
         <>
-            <Button type='primary' disabled={!canPrefill} onClick={onButtonClick} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
+            <Button type='primary' disabled={!canPrefill || isPrefilling} onClick={onButtonClick} title='Download a prefilled template with the selected samples'>{isPrefilling ? "Prefilling Template..." : "Prefill Template"}</Button>
             <Modal title={"Optional Column Prefilling"} open={isPrefillColumnsShown} okText={"Prefill"} onOk={form.submit} onCancel={cancelPrefillTemplate} width={'30vw'}>
                 <Typography.Paragraph>
                     Select the columns you would like to prefill with a value for all samples.

@@ -36,7 +36,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
-
+	
 	// Keep track of the currently selected tab so that we can tweak the UX
 	const GROUPED_SAMPLES_TAB_KEY = 'groups'
 	const SELECTION_TAB_KEY = 'selection'
@@ -108,7 +108,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
-	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0 && stepSamples.prefill.templates.length > 0
+	const canPrefill = selectedTemplate ? stepSamples.selectedSamples.length > 0 && stepSamples.prefill.templates.length > 0 : false
 
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
@@ -410,7 +410,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			{!isAutomationStep &&
 				<>
-					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill ?? false} handlePrefillTemplate={(prefillData: any) => handlePrefillTemplate(prefillData)} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
+					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
 					<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
 				</>
 			}
