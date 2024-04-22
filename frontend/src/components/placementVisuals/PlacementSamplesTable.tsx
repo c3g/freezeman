@@ -37,7 +37,8 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
     const samplesByID = useAppSelector(selectSamplesByID)
 
     type Samples = {
-        cell: CellState,
+        sample: FMSId,
+        selected: boolean
         name: string
         coordinates: string
     }[]
@@ -76,7 +77,8 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
 
                     const name = samplesByID[sample].name
                     samples.push({
-                        cell,
+                        sample,
+                        selected: cell.selected,
                         name,
                         coordinates
                     })
@@ -90,8 +92,8 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
 
     const placementSelectedSamples = useMemo(
         () => container ? samples.reduce((sampleIDs, s) => {
-            if (s.cell.selected && s.cell.sample) {
-                sampleIDs.push(s.cell.sample)
+            if (s.selected && s.sample) {
+                sampleIDs.push(s.sample)
             }
             return sampleIDs
         }, [] as FMSId[]) : [],
@@ -125,20 +127,20 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
         sortedSamples.sort((a, b) => {
             let orderA = 100
             let orderB = 100
-            if (a.cell.selected) orderA -= 10
-            if (b.cell.selected) orderB -= 10
-            if (a.cell.sample && b.cell.sample) {
-                if (a.cell.sample > b.cell.sample) orderB -= 5
-                if (a.cell.sample < b.cell.sample) orderA -= 5
+            if (a.selected) orderA -= 10
+            if (b.selected) orderB -= 10
+            if (a.sample && b.sample) {
+                if (a.sample > b.sample) orderB -= 5
+                if (a.sample < b.sample) orderA -= 5
             }
             return orderA - orderB
         })
         return sortedSamples.reduce((sortedSamples, s) => {
-            // sample should never be null here
-            if (s.cell.sample) {
+            // s.sample also represents a sample from another container
+            if (s.sample) {
                 sortedSamples.push({
                     name: s.name,
-                    id: s.cell.sample,
+                    id: s.sample,
                     coordinates: s.coordinates
                 })
             }
