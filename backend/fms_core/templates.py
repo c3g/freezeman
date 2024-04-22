@@ -489,7 +489,7 @@ SAMPLE_METADATA_TEMPLATE = {
 
 SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries",
-               "file": static("submission_templates/Sample_pooling_v4_4_0.xlsx"),
+               "file": static("submission_templates/Sample_pooling_v4_9_0.xlsx"),
                "protocol": "Sample Pooling"},
   "sheets info": [
       {
@@ -502,7 +502,7 @@ SAMPLE_POOLING_TEMPLATE = {
       },
       {
           "name": "SamplesToPool",
-          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
+          "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
                       "Source Depleted", "Current Volume (uL)", "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
