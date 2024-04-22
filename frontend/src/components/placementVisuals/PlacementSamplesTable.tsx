@@ -3,7 +3,7 @@ import { Table } from "antd";
 import { TableRowSelection } from "antd/lib/table/interface";
 import { FMSId } from "../../models/fms_api_models";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { multiSelect } from "../../modules/placement/reducers";
+import { CellState, multiSelect } from "../../modules/placement/reducers";
 import { selectSamplesByID } from "../../selectors";
 import { batch } from "react-redux";
 import { fetchSamples } from "../../modules/cache/cache";
@@ -36,13 +36,12 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
     const container = containers[containerName]
     const samplesByID = useAppSelector(selectSamplesByID)
 
-    type LocalSample = {
-        name: string,
-        id: FMSId,
+    type Samples = {
+        cell: CellState,
+        name: string
         coordinates: string
-    }
-
-    const [samples, setSamples] = useState<LocalSample[]>([])
+    }[]
+    const [samples, setSamples] = useState<Samples>([])
     useEffect(() => {
         const missingSamples: FMSId[] = []
         setSamples(
@@ -77,12 +76,12 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
 
                     const name = samplesByID[sample].name
                     samples.push({
-                        id: sample,
-                        name: name,
+                        cell,
+                        name,
                         coordinates
                     })
                     return samples
-                }, [] as LocalSample[])
+                }, [] as Samples)
                 : []
         )
         if (missingSamples.length > 0)
@@ -91,9 +90,8 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
 
     const placementSelectedSamples = useMemo(
         () => container ? samples.reduce((sampleIDs, s) => {
-            const cell = container.cells[s.coordinates]
-            if (cell && cell.selected) {
-                sampleIDs.push(s.id)
+            if (s.cell.selected && s.cell.sample) {
+                sampleIDs.push(s.cell.sample)
             }
             return sampleIDs
         }, [] as FMSId[]) : [],
@@ -116,23 +114,45 @@ const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: c
         })
     }, [containerName, dispatch])
 
-    const sortedSamples: LocalSample[] = useMemo(() => {
+    type SortedSample = {
+        name: string,
+        id: FMSId,
+        coordinates: string
+    }
+    const sortedSamples: SortedSample[] = useMemo(() => {
         // const reverse = labworkSelectedSamples.reverse()
         const sortedSamples = [...samples]
-        const indices = Object.fromEntries(labworkSelectedSamples.map((id, index) => [id, index]))
         sortedSamples.sort((a, b) => {
-            return indices[b.id] - indices[a.id]
+            let orderA = 100
+            let orderB = 100
+            if (a.cell.selected) orderA -= 10
+            if (b.cell.selected) orderB -= 10
+            if (a.cell.sample && b.cell.sample) {
+                if (a.cell.sample > b.cell.sample) orderB -= 5
+                if (a.cell.sample < b.cell.sample) orderA -= 5
+            }
+            return orderA - orderB
         })
-        return sortedSamples
-    }, [samples, labworkSelectedSamples])
+        return sortedSamples.reduce((sortedSamples, s) => {
+            // sample should never be null here
+            if (s.cell.sample) {
+                sortedSamples.push({
+                    name: s.name,
+                    id: s.cell.sample,
+                    coordinates: s.coordinates
+                })
+            }
+            return sortedSamples
+        }, [] as SortedSample[])
+    }, [samples])
 
-    const selectionProps: TableRowSelection<LocalSample> = {
+    const selectionProps: TableRowSelection<SortedSample> = {
         selectedRowKeys: placementSelectedSamples,
         onChange,
     }
 
     return (
-        <Table<LocalSample>
+        <Table<SortedSample>
             dataSource={sortedSamples}
             columns={columns}
             rowKey={obj => obj.id}
