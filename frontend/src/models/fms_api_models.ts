@@ -67,6 +67,11 @@ export interface FMSCoordinate extends FMSTrackedModel {
   row: number                        // Row ordinal starting at 0
 }
 
+export enum ValidationStatus {
+    AVAILABLE = 0,
+    PASSED = 1,
+    FAILED = 2,
+}
 export interface FMSDataset extends FMSTrackedModel {
     external_project_id : FMSId             // External (Hercules) project ID
     files: FMSId[]                          // List of dataset file ID's
@@ -74,6 +79,7 @@ export interface FMSDataset extends FMSTrackedModel {
     latest_release_update?: string          // ?
     released_status_count: number           // Number of files released
     blocked_status_count: number            // Number of files blocked
+    validation_status: ValidationStatus
     run_name: string                        // The name of the experiment run that generated this dataset
     project_name: string                    // Human readable name for the project
     metric_report_url?: string              // An external url to a report containing metrics for the dataset run

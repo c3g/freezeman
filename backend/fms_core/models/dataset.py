@@ -1,3 +1,4 @@
+from typing import Optional
 from django.db import models
 from django.core.exceptions import ValidationError
 import reversion
@@ -6,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from .tracked_model import TrackedModel
 from .archived_comment import ArchivedComment
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH, ValidationStatus
 
 @reversion.register()
 class Dataset(TrackedModel):
@@ -23,6 +24,12 @@ class Dataset(TrackedModel):
         constraints = [
             models.UniqueConstraint(fields=["external_project_id", "run_name", "lane"], name="dataset_externalprojectid_runname_lane_key")
         ]
+
+    @property
+    def validation_status(self) -> Optional[ValidationStatus]:
+        readset = self.readsets.first()
+        if readset:
+            return readset.validation_status
 
     def clean(self):
         super().clean()

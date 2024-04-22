@@ -8,13 +8,14 @@ import { clearFilters, listFilter, listTable, setFilter, setFilterOption, setSor
 import { selectDatasetsState } from "../../selectors"
 import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
 
-import { FMSDataset } from "../../models/fms_api_models"
+import { FMSDataset, ValidationStatus } from "../../models/fms_api_models"
 import FilteredList from "../FilteredList"
 import PaginatedTable from "../PaginatedTable"
 import FiltersWarning from "../filters/FiltersWarning"
 import { DATASET_FILTERS } from "../filters/descriptions"
 import getFilterProps from "../filters/getFilterProps"
 import getNFilters from "../filters/getNFilters"
+import { CheckOutlined, CloseOutlined } from "@ant-design/icons"
 
 
 const getTableColumns = () => {
@@ -44,6 +45,17 @@ const getTableColumns = () => {
             title: "Lane",
             dataIndex: "lane",
             sorter: true,
+        },
+        {
+            title: "Validation Status",
+            dataIndex: "validation_status",
+            render: (validation_status) => {
+                return (
+                    (validation_status === ValidationStatus.PASSED && <Button style={{color: "#a0d911"}}><CheckOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>Passed</Button>)
+                    ||
+                    (validation_status === ValidationStatus.FAILED && <Button style={{color: "#f5222d"}}><CloseOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>Failed</Button>)
+                )
+            }
         },
         {
             title: "Readsets Released",
