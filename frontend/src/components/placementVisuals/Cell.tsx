@@ -29,6 +29,7 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
     const isDestination = containerType === 'destination'
     const sample = useAppSelector((state) => sampleID !== undefined ? selectSamplesByID(state)[sampleID] : undefined)
     const [popOverOpen, setPopOverOpen] = useState(false)
+    const thereIsError = !!useAppSelector((state) => state.placement.error)
 
     const onClick = useCallback(() => {
         dispatch(clickCell({
@@ -73,7 +74,7 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 onFocus={() => {}}
-                style={{ backgroundColor: getColor(cell, isSource, isDestination) }}
+                style={{ backgroundColor: getColor(cell, isSource, isDestination, thereIsError) }}
             >
                 
 
@@ -82,12 +83,12 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
     )
 }
 
-function getColor(cell: CellState, isSource: boolean, isDestination: boolean) {
+function getColor(cell: CellState, isSource: boolean, isDestination: boolean, thereIsError: boolean) {
     if (cell.selected) {
         return "#86ebc1"
     }
     if (cell.preview) {
-        return cell.sample || cell.placedFrom ? "pink" : "#74bbfc"
+        return cell.sample || cell.placedFrom || thereIsError ? "pink" : "#74bbfc"
     }
 
     if (isSource && cell.sample) {

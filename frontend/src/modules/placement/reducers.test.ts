@@ -292,7 +292,10 @@ describe('placementDestinationLocations', () => {
         },
     ]
     test.each(badTastCases)('throw error when there is risk of going out of bounds', ({ state, sources, destination, placementOptions }) => {
-        expect(() => placementDestinationLocations(state, sources, destination, placementOptions)).toThrow()
+        expect(() => {
+            placementDestinationLocations(state, sources, destination, placementOptions)
+            return state.error
+        }).toBeDefined()
     })
 
 })

@@ -191,6 +191,10 @@ function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) 
 }
 
 function placementDestinationLocations(state: PlacementState, sources: CellIdentifier[], destination: CellIdentifier, placementOptions: PlacementOptions): CellIdentifier[] {
+    /**
+     * If this function encounters an error, it will set state.error and return an array that might be less the length of sources arguments
+     */
+
     if (sources.length == 0) {
         return []
     }
@@ -255,7 +259,14 @@ function placementDestinationLocations(state: PlacementState, sources: CellIdent
         }
     }
 
-    return newOffsetsList.map((offsets) => ({ parentContainer: destination.parentContainer, coordinates: offsetsToCoordinates(offsets, destinationContainer.spec) }))
+    return newOffsetsList.reduce((results, offsets) => {
+        try {
+            results.push({ parentContainer: destination.parentContainer, coordinates: offsetsToCoordinates(offsets, destinationContainer.spec) })
+        } catch (e) {
+            state.error ??= e.message
+        }
+        return results
+    }, [] as CellIdentifier[])
 }
 
 function findSelections(state: PlacementState, filterContainer: (container: PlacementContainerState) => boolean = () => true) {
@@ -294,6 +305,8 @@ function placeCellsHelper(state: Draft<PlacementState>, sources: CellIdentifier[
         // relying on placeCell to do error checking
 
         const destinationLocations = placementDestinationLocations(state, sources, destination, placementOptions)
+        if (state.error) throw { message: state.error } // placementDestinationLocations threw an error at some point
+
         sources.forEach((_, index) => {
             placeCell(state, sources[index], destinationLocations[index])
             getCell(state, sources[index]).selected = false
@@ -325,8 +338,8 @@ function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnC
 function setPreviews(state: Draft<PlacementState>, onMouseLocation: MouseOnCellPayload, preview: boolean) {
     const activeSelections = findSelectionsInSourceContainers(state)
     const destinationLocations = placementDestinationLocations(state, activeSelections, onMouseLocation, getPlacementOption(state))
-    activeSelections.forEach((_, index) => {
-        getCell(state, destinationLocations[index]).preview = preview
+    destinationLocations.forEach((location) => {
+        getCell(state, location).preview = preview
     })
 }
 
@@ -416,8 +429,8 @@ const initialState: PlacementState = {
 function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) => void) {
     return (state: Draft<PlacementState>, action: PayloadAction<P>) => {
         try {
-            func(state, action.payload)
             state.error = undefined
+            func(state, action.payload)
         } catch (error) {
             const originalState = original(state) ?? initialState
             Object.assign(state, originalState)
@@ -513,7 +526,17 @@ const slice = createSlice({
         }),
         onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) => {
             const container = getContainer(state, payload)
-            if (container.type === 'destination') setPreviews(state, payload, false)
+            if (container.type === 'destination') {
+                const cells = container.cells
+                if (!cells) {
+                    throw new Error(`Container '${payload.parentContainer}' has no cells`)
+                }
+                for (const coordinate in cells) {
+                    const cell = cells[coordinate]
+                    if (!cell) continue // this shouldn't happen
+                    cell.preview = false
+                }
+            }
         }),
         undoSelectedSamples: reducerWithThrows((state, parentContainer: Container['name']) => {
             // find selected cells in parentContainer
