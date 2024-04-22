@@ -15,11 +15,11 @@ export interface CellProps {
 // component is used to represent individual cells in visualization of the placement transfer tab
 const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) => {
     const dispatch = useAppDispatch()
-    const container = useAppSelector((state) => state.placement.parentContainers[containerName])
+    const containerType = useAppSelector((state) => state.placement.parentContainers[containerName]?.type)
     const cell = useAppSelector((state) => state.placement.parentContainers[containerName]?.cells[coordinates])
     const sampleID = useAppSelector((state) => cell?.sample ?? (cell?.placedFrom ? state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined : undefined))
-    const isSource = container?.type === 'source'
-    const isDestination = container?.type === 'destination'
+    const isSource = containerType === 'source'
+    const isDestination = containerType === 'destination'
     const sample = useAppSelector((state) => sampleID !== undefined ? selectSamplesByID(state)[sampleID] : undefined)
     const [popOverOpen, setPopOverOpen] = useState(false)
 
