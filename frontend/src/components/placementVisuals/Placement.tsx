@@ -225,10 +225,10 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     </Row>
                     <Row justify="space-evenly" style={{ padding: "10px" }}>
                         <Col span={10}>
-                            {activeSourceContainer && <PlacementSamplesTable sampleIDs={sampleIDs} container={activeSourceContainer} />}
+                            {activeSourceContainer && <PlacementSamplesTable container={activeSourceContainer} />}
                         </Col>
                         <Col span={10}>
-                            {activeDestinationContainer && <PlacementSamplesTable sampleIDs={sampleIDs} container={activeDestinationContainer} />}
+                            {activeDestinationContainer && <PlacementSamplesTable container={activeDestinationContainer} />}
                         </Col>
                     </Row>
                 </PageContent>

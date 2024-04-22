@@ -8,7 +8,6 @@ import { selectSamplesByID } from "../../selectors";
 import { batch } from "react-redux";
 import { fetchSamples } from "../../modules/cache/cache";
 export interface PlacementSamplesTableProps {
-    sampleIDs: number[]
     container: string
 }
 const columns = [
@@ -29,7 +28,7 @@ const columns = [
     },
 ];
 //component used to display and select samples in a table format for plate visualization placement
-const PlacementSamplesTable = ({ sampleIDs: labworkSelectedSamples, container: containerName }: PlacementSamplesTableProps) => {
+const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTableProps) => {
     const dispatch = useAppDispatch()
     // TODO: use sorted selected items instead when the field is defined in the labwork-refactor
     const containers = useAppSelector((state) => state.placement.parentContainers)
