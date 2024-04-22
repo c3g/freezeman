@@ -1,9 +1,10 @@
-import React from "react"
+import React, { useState } from "react"
 import { useCallback } from "react"
 import './Placement.scss'
 import { CellState, atLocations, clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Tooltip } from "antd"
+import { Popover } from "antd"
+import { selectSamplesByID } from "../../selectors"
 
 export interface CellProps {
     container: string
@@ -19,6 +20,8 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
     const sampleID = useAppSelector((state) => cell?.sample ?? (cell?.placedFrom ? state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined : undefined))
     const isSource = container?.type === 'source'
     const isDestination = container?.type === 'destination'
+    const sample = useAppSelector((state) => sampleID !== undefined ? selectSamplesByID(state)[sampleID] : undefined)
+    const [popOverOpen, setPopOverOpen] = useState(false)
 
     const onClick = useCallback(() => {
         dispatch(clickCell({
@@ -32,6 +35,7 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
             parentContainer: containerName,
             coordinates,
         }))
+        setPopOverOpen(true)
     }, [containerName, coordinates, dispatch])
 
     const onMouseLeave = useCallback(() => {
@@ -39,20 +43,21 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
             parentContainer: containerName,
             coordinates,
         }))
+        setPopOverOpen(false)
     }, [containerName, coordinates, dispatch])
 
 
     return (
         cell &&
-        <Tooltip
-            title={<>
-                <div>{`Sample: ${sampleID ?? 'None'}`}</div>
+        <Popover
+            content={<>
+                <div>{`Sample: ${sample?.name ?? 'None'}`}</div>
                 {cell.placedFrom && <div>{`From: ${atLocations(cell.placedFrom)}`}</div>}
                 {cell.placedAt && <div>{`To: ${atLocations(cell.placedAt)}`}</div>}
             </>}
             destroyTooltipOnHide={true}
-            mouseEnterDelay={0.5}
-            mouseLeaveDelay={0.1}
+            open={popOverOpen}
+            overlayStyle={{opacity: 0.9}}
         >
             <div
                 className={cellSize}
@@ -60,12 +65,13 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
+                onFocus={() => {}}
                 style={{ backgroundColor: getColor(cell, isSource, isDestination) }}
             >
                 
 
             </div>
-        </Tooltip>
+        </Popover>
     )
 }
 

@@ -107,7 +107,7 @@ function createEmptyCells(spec: CoordinateSpec) {
 }
 
 export function atLocations(...ids: CellIdentifier[]) {
-    return ids.map((id) => `${id.coordinates}@${id.parentContainer}`).join(',')
+    return ids.map((id) => `${id.parentContainer}@${id.coordinates}`).join(',')
 }
 
 function getContainer(state: Draft<PlacementState>, location: ContainerIdentifier) {
