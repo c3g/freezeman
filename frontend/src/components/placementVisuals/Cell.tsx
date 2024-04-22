@@ -17,7 +17,14 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
     const dispatch = useAppDispatch()
     const containerType = useAppSelector((state) => state.placement.parentContainers[containerName]?.type)
     const cell = useAppSelector((state) => state.placement.parentContainers[containerName]?.cells[coordinates])
-    const sampleID = useAppSelector((state) => cell?.sample ?? (cell?.placedFrom ? state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined : undefined))
+    const sampleID = useAppSelector((state) => {
+        if (cell?.sample) {
+            return cell.sample
+        }
+        if (cell?.placedFrom) {
+            return state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined
+        }
+    })
     const isSource = containerType === 'source'
     const isDestination = containerType === 'destination'
     const sample = useAppSelector((state) => sampleID !== undefined ? selectSamplesByID(state)[sampleID] : undefined)
