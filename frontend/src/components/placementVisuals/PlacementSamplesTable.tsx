@@ -124,13 +124,16 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         // const reverse = labworkSelectedSamples.reverse()
         const sortedSamples = [...samples]
         sortedSamples.sort((a, b) => {
-            let orderA = 100
-            let orderB = 100
-            if (a.selected) orderA -= 10
-            if (b.selected) orderB -= 10
+	    const MAX = 100
+            const HALF = MAX/2
+
+            let orderA = MAX
+            let orderB = MAX
+            if (a.selected) orderA -= HALF
+            if (b.selected) orderB -= HALF
             if (a.sample && b.sample) {
-                if (a.sample > b.sample) orderB -= 5
-                if (a.sample < b.sample) orderA -= 5
+                if (a.sample > b.sample) orderB -= HALF
+                if (a.sample < b.sample) orderA -= HALF
             }
             return orderA - orderB
         })
