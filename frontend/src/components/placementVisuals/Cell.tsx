@@ -63,7 +63,7 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 {cell.placedFrom && <div>{`From: ${atLocations(cell.placedFrom)}`}</div>}
                 {cell.placedAt && <div>{`To: ${atLocations(cell.placedAt)}`}</div>}
             </>}
-            destroyTooltipOnHide={true}
+            destroyTooltipOnHide={{ keepParent: false }}
             open={popOverOpen}
         >
             <div
@@ -72,7 +72,6 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                onFocus={() => {}}
                 style={{ backgroundColor: getColor(cell, isSource, isDestination, thereIsError) }}
             >
                 
