@@ -126,14 +126,15 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         sortedSamples.sort((a, b) => {
 	    const MAX = 100
             const HALF = MAX/2
+	    const QUARTER = HALF/2
 
             let orderA = MAX
             let orderB = MAX
             if (a.selected) orderA -= HALF
             if (b.selected) orderB -= HALF
             if (a.sample && b.sample) {
-                if (a.sample > b.sample) orderB -= HALF
-                if (a.sample < b.sample) orderA -= HALF
+                if (a.sample > b.sample) orderB -= QUARTER
+                if (a.sample < b.sample) orderA -= QUARTER
             }
             return orderA - orderB
         })
