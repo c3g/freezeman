@@ -1,66 +1,106 @@
-import React from "react"
+import React, { useState } from "react"
 import { useCallback } from "react"
-import { PLACED_STRING, SELECTED_STRING, sampleInfo } from "./PlacementTab"
 import './Placement.scss'
+import { CellState, atLocations, clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { Popover } from "antd"
+import { selectSamplesByID } from "../../selectors"
 
-interface CellProps {
-    onCellClick: (e: any, sample: any) => void,
-    onCellMouseOver: (e: any) => void,
-    onCellMouseLeave: () => void,
-    sample?: sampleInfo,
-    coordinates: string,
-    isSelecting: boolean,
-    outline: boolean,
+export interface CellProps {
+    container: string
+    coordinates: string
     cellSize: string
 }
 
 // component is used to represent individual cells in visualization of the placement transfer tab
-const Cell = ({ onCellClick, sample, onCellMouseOver, onCellMouseLeave, isSelecting, outline, cellSize, coordinates }: CellProps) => {
-
-    const onClick = useCallback((e) => {
-        if (sample?.type != PLACED_STRING) {
-            onCellClick(sample ? { ...sample } : { coordinates: coordinates }, e)
+const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) => {
+    const dispatch = useAppDispatch()
+    const containerType = useAppSelector((state) => state.placement.parentContainers[containerName]?.type)
+    const cell = useAppSelector((state) => state.placement.parentContainers[containerName]?.cells[coordinates])
+    const sampleID = useAppSelector((state) => {
+        if (cell?.sample) {
+            return cell.sample
         }
-    }, [sample, onCellClick, isSelecting])
+        if (cell?.placedFrom) {
+            return state.placement.parentContainers[cell.placedFrom.parentContainer]?.cells[cell.placedFrom.coordinates]?.sample ?? undefined
+        }
+    })
+    const isSource = containerType === 'source'
+    const isDestination = containerType === 'destination'
+    const sample = useAppSelector((state) => sampleID !== undefined ? selectSamplesByID(state)[sampleID] : undefined)
+    const [popOverOpen, setPopOverOpen] = useState(false)
+    const thereIsError = !!useAppSelector((state) => state.placement.error)
+
+    const onClick = useCallback(() => {
+        dispatch(clickCell({
+            parentContainer: containerName,
+            coordinates,
+        }))
+    }, [containerName, coordinates, dispatch])
 
     const onMouseEnter = useCallback(() => {
-        if (isSelecting) {
-        }
-    }, [isSelecting])
+        dispatch(onCellEnter({
+            parentContainer: containerName,
+            coordinates,
+        }))
+        setPopOverOpen(true)
+    }, [containerName, coordinates, dispatch])
 
     const onMouseLeave = useCallback(() => {
-        onCellMouseLeave()
-    }, [])
+        dispatch(onCellExit({
+            parentContainer: containerName,
+            coordinates,
+        }))
+        setPopOverOpen(false)
+    }, [containerName, coordinates, dispatch])
 
-    const onMouseOver = useCallback(() => onCellMouseOver({ ...sample, coordinates }), [sample, onCellMouseOver, onCellClick])
-    //returns appropriate color depending on the type of cell it represents. If a sample is in cell or not, also if it is selected, placed, or neutral.
-    const getColor = useCallback((sample) => {
-        if (sample) {
-            switch (sample.type) {
-                case PLACED_STRING: {
-                    return "grey"
-                } case SELECTED_STRING: {
-                    return "#86ebc1"
-                } default: {
-                    return "#1890ff"
-                }
-            }
-        }
-        return ''
-    }, [sample, sample?.type])
 
     return (
-        <div
-            className={cellSize}
-            key={coordinates}
-            onClick={onClick}
-            onMouseOver={onMouseOver}
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            style={{backgroundColor: outline ? 'rgb(24, 143, 255, 0.3)' : getColor(sample)}}
+        cell &&
+        <Popover
+            content={<>
+                <div>{`Sample: ${sample?.name ?? 'None'}`}</div>
+                {cell.placedFrom && <div>{`From: ${atLocations(cell.placedFrom)}`}</div>}
+                {cell.placedAt && <div>{`To: ${atLocations(cell.placedAt)}`}</div>}
+            </>}
+            destroyTooltipOnHide={{ keepParent: false }}
+            open={popOverOpen}
         >
-        </div>
+            <div
+                className={cellSize}
+                key={coordinates}
+                onClick={onClick}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                style={{ backgroundColor: getColor(cell, isSource, isDestination, thereIsError) }}
+            >
+                
+
+            </div>
+        </Popover>
     )
+}
+
+function getColor(cell: CellState, isSource: boolean, isDestination: boolean, thereIsError: boolean) {
+    if (cell.selected) {
+        return "#86ebc1"
+    }
+    if (cell.preview) {
+        return cell.sample || cell.placedFrom || thereIsError ? "pink" : "#74bbfc"
+    }
+
+    if (isSource && cell.sample) {
+        return cell.placedAt ? "grey" : "#1890ff"
+    }
+
+    if (isDestination && cell.sample) {
+        return "grey"
+    }
+    if (isDestination && cell.placedFrom) {
+        return "#1890ff"
+    }
+
+    return "white"
 }
 
 export default Cell

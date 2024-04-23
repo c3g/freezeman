@@ -7,7 +7,6 @@ import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { selectAppInitialized, selectLabworkStepsState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
 import LabworkStep from './LabworkStep'
 
-
 /* 
 	LabworkStepRoute is responsible for loading all of the labwork step samples
 	data. Once loaded, it renders a LabworkStep component to display the data.

@@ -6,10 +6,9 @@ import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
-import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import PrefillButton from '../../PrefillTemplateColumns'
@@ -20,8 +19,9 @@ import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamples
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
-import PlacementTab from '../../placementVisuals/PlacementTab'
 import LabworkSelection from './LabworkSelection'
+import Placement from '../../placementVisuals/Placement'
+import { flushContainers } from '../../../modules/placement/reducers'
 
 const { Text } = Typography
 
@@ -30,6 +30,7 @@ interface LabworkStepPageProps {
 	step: Step
 	stepSamples: LabworkStepSamples
 }
+
 
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
@@ -42,8 +43,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const PLACEMENT_TAB_KEY = 'placement'
 	const [selectedTab, setSelectedTab] = useState<string>(GROUPED_SAMPLES_TAB_KEY)
 	const [waitResponse, setWaitResponse] = useState<boolean>(false)
-	const [placementData, setPlacementData] = useState<any>({})
-
 	const isAutomationStep = protocol === undefined && step.type === "AUTOMATION"
 
 	// ** Refresh **
@@ -57,13 +56,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// A selected template picker is used if protocol supports more than one template
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
-	
-	useEffect(() => {
-	        return () => {
-		        dispatch(clearSelectedSamples(step.id))
-			dispatch(flushSamplesAtStep(step.id))
-		}
-	}, [dispatch])
 
 	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
@@ -88,17 +80,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
 			if (selectedTemplate) {
-				try {
-					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id, prefillData, placementData))
-					if (result) {
-						downloadFromFile(result.filename, result.data)
-					}
-				} catch (err) {
-					console.error(err)
-				}
+				dispatch(prefillTemplate(selectedTemplate, step, prefillData))
 			}
 		}
-		, [step, selectedTemplate, dispatch, placementData])
+		, [dispatch, selectedTemplate, step])
 
 	// Submit Automation handler
 	const haveSelectedSamples = stepSamples.selectedSamples.items.length > 0
@@ -253,9 +238,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleClearSelection = useCallback(
 		() => {
 			dispatch(clearSelectedSamples(step.id))
-      		onTabChange(GROUPED_SAMPLES_TAB_KEY)
+			onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
-	, [step, dispatch])
+		, [step, dispatch])
 	// Selection handler for sample selection checkboxes
 	const onSelectChange = useCallback((selectedSamples) => {
 		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
@@ -321,9 +306,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const onPrefillOpen = useCallback(() => {
 	}, [])
 
-	const placementSave = useCallback((placementData) => {	
-		setPlacementData(placementData)
-	}, [])
+	/** Flushing */
+	useEffect(() => {
+		return () => {
+			dispatch(clearSelectedSamples(step.id))
+			dispatch(flushSamplesAtStep(step.id))
+			dispatch(flushContainers())
+		}
+	}, [dispatch, step.id])
 
 	/** UX **/
 
@@ -430,10 +420,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					</Tabs.TabPane>
 					{step.needs_placement ?
 						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={stepSamples.selectedSamples.items.length == 0}>
-							<PlacementTab
+							<Placement
 								stepID={step.id}
-								save={placementSave}
-								sampleIDs={stepSamples.selectedSamples.items} />
+								sampleIDs={stepSamples.selectedSamples.items}
+							/>
 						</Tabs.TabPane>
 						: ''}
 				</Tabs>

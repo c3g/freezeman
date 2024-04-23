@@ -1,15 +1,18 @@
+import { notification } from "antd"
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
+import { FMSContainer, FMSId, FMSPagedResultsReponse, FMSSampleNextStep, LabworkStepInfo } from "../../models/fms_api_models"
+import { Step } from "../../models/frontend_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
-import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState } from "../../selectors"
+import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState, selectContainerKindsByID } from "../../selectors"
 import { AppDispatch, RootState } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
-import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
+import { LoadContainersPayload, flushContainers as flushPlacementContainers, loadContainers as loadPlacementContainers } from "../placement/reducers"
 import { list as listSamples} from "../samples/actions"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
+import { downloadFromFile } from "../../utils/download"
 
 
 // Initialize the redux state for samples at step
@@ -389,5 +392,125 @@ function receiveSortedSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 		type: REFRESH_SELECTED_SAMPLES.RECEIVE,
 		stepID,
 		sampleIDs
+	}
+}
+
+export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) {
+    return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const oldContainerNames = Object.values(getState().placement.parentContainers).reduce((containerNames, container) => {
+			if (container?.type === 'source') {
+				containerNames.push(container.name)
+			}
+			return containerNames
+		}, [] as string[])
+
+        const containerKinds = selectContainerKindsByID(getState())
+        const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))).data
+        const containers = values.results.samples.groups
+        const payload: LoadContainersPayload = await Promise.all(containers.map(async (containerGroup) => {
+            // Handles containers like tubes_without_parent_container. It assumes there isn't a container named like that.
+            const [containerDetail] = await dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
+            if (containerDetail) {
+                const spec = containerKinds[containerDetail.kind].coordinate_spec
+                return {
+                    type: 'source',
+                    name: containerDetail.name,
+                    barcode: containerDetail.barcode,
+                    kind: containerDetail.kind,
+                    spec,
+                    cells: containerGroup.sample_locators.map((locator) => {
+                        return {
+                            sample: locator.sample_id,
+                            coordinates: locator.contextual_coordinates
+                        }
+                    })
+                }
+            } else {
+                return {
+                    type: 'source',
+                    name: containerGroup.name,
+					barcode: 'INVALID_BARCODE',
+                    spec: [],
+					kind: 'INVALID_KIND',
+                    cells: containerGroup.sample_locators.map((locator) => {
+                        return {
+                            sample: locator.sample_id,
+                            coordinates: locator.contextual_coordinates
+                        }
+                    })
+                }
+            }
+        }))
+        dispatch(loadPlacementContainers(payload))
+
+		const newContainerNames = payload.map((c) => c.name)
+
+		// remove outdated containers in placement
+		const toFlushContainers = oldContainerNames.filter((n) => !newContainerNames.includes(n))
+		dispatch(flushPlacementContainers(toFlushContainers))
+
+		return newContainerNames
+    }
+}
+
+export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, step: Step, prefillData: { [column: string]: any }) {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		type PlacementData = {
+			[key in FMSId]: {
+				coordinates: string,
+				container_name: string,
+				container_barcode: string,
+				container_kind: string
+			}[]
+		}
+		
+		let placementData: PlacementData = {}
+		try {
+			const parentContainers = getState().placement.parentContainers
+			const destinationContainers = Object.values(parentContainers).reduce((containers, container) => {
+				if (container?.type === 'destination') {
+					containers.push(container.name)
+				}
+				return containers
+			}, [] as string[])
+
+			placementData = destinationContainers.reduce((placementData, containerName) => {
+				const destinationContainer = parentContainers[containerName]
+				if (!destinationContainer) throw new Error(`Could not find destination container '${containerName}'`)
+				for (const coordinates in destinationContainer.cells) {
+					const destinationCell = destinationContainer.cells[coordinates]
+					if (!destinationCell) throw new Error(`Could not find cell at  ${coordinates}@${containerName}`)
+					if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
+					const sourceContainer = parentContainers[destinationCell.placedFrom.parentContainer]
+					if (!sourceContainer) throw new Error(`Could not find source container '${destinationCell.placedFrom.parentContainer}'`)
+					const sourceCell = sourceContainer.cells[destinationCell.placedFrom.coordinates]
+					if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
+					if (!sourceCell.sample) throw new Error(`There is not sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
+					placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
+					placementData[sourceCell.sample].push({
+						coordinates: coordinates,
+						container_name: containerName,
+						container_barcode: destinationContainer.barcode as string,
+						container_kind: destinationContainer.kind as string
+					})
+				}
+				return placementData
+			}, {} as PlacementData)
+		} catch (e) {
+			notification.error({
+				message: e.message,
+				key: 'LabworkStep.Placement.Prefilling-Failed',
+				duration: 20
+			})
+		}
+
+		try {
+			const result = await dispatch(requestPrefilledTemplate(template.id, step.id, prefillData, placementData))
+			if (result) {
+				downloadFromFile(result.filename, result.data)
+			}
+		} catch (err) {
+			console.error(err)
+		}
 	}
 }

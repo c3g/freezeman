@@ -105,6 +105,7 @@ import { usersTable } from "./modules/usersTable/reducers"
 import { indicesTable } from './modules/indicesTable/reducers'
 import { datasetsTable } from './modules/datasetsTable/reducers'
 import { experimentRunsTable } from "./modules/experimentRunsTable/reducers"
+import placement from "./modules/placement/reducers";
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -188,6 +189,7 @@ const allReducers = combineReducers({
   sampleNextStepTemplateActions,
   steps,
   notifications,
+  placement,
 });
 
 export default function rootReducer(state, action) {
