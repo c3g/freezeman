@@ -540,6 +540,29 @@ SAMPLE_POOLING_TEMPLATE = {
   ],
 }
 
+SAMPLE_POOLING_PLANNING_TEMPLATE = {
+  "identity": {"description": "Template to perform pooling planning",
+               "file": static("submission_templates/Sample_pooling_planning_v4_9_0.xlsx"),
+               "protocol": "Sample Pooling"},
+  "sheets info": [
+      {
+          "name": "SamplesToPool",
+          "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
+                      "Current NA Quantity (ng)", "NA Quantity Used (ng)", "Source Depleted"],
+          'batch': False,
+      },
+  ],
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("SamplesToPool", "Source Sample Name", "name", "name", None),
+      ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SamplesToPool", "Current NA Quantity (ng)", None, "quantity_in_ng", None),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [],
+}
+
 SAMPLE_SUBMISSION_TEMPLATE = {
   "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_5_0.xlsx")},
   "sheets info": [
