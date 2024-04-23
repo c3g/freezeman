@@ -65,7 +65,6 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
             </>}
             destroyTooltipOnHide={true}
             open={popOverOpen}
-            overlayStyle={{opacity: 0.9}}
         >
             <div
                 className={cellSize}
