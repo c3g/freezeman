@@ -321,6 +321,15 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
         queryset = self.filter_queryset(self.get_queryset())
+        sample__id__in = request.POST.get("sample__id__in")
+        if sample__id__in:
+            if isinstance(sample__id__in, int):
+                sample__id__in = [sample__id__in]
+            elif isinstance(sample__id__in, str):
+                sample__id__in = [s.strip() for s in sample__id__in.split(",")]
+            queryset = queryset.filter(sample__id__in=sample__id__in)
+
+
         if not user_prefill_data and not template["prefill info"]:
             return HttpResponseBadRequest(json.dumps({"detail": f"No prefilling available for current template."}), content_type="application/json")
         else:

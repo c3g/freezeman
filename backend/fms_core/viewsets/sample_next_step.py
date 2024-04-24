@@ -1,5 +1,6 @@
+import json
 from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Value
-from django.http import HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -197,6 +198,27 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": EXPERIMENT_AXIOM_TEMPLATE},
     ]
+
+    @action(detail=False, methods=['post'])
+    def list_post(self, request: HttpRequest, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        jsonQueryParams = json.loads(request.body.decode())
+        if 'sample__id__in' in jsonQueryParams:
+            value = jsonQueryParams['sample__id__in']
+            if isinstance(value, int):
+                value = [value]
+            elif isinstance(value, str):
+                value = [s.strip() for s in value.split(",")]
+            queryset = queryset.filter(sample__id__in=value)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def labwork_info(self, request, *args, **kwargs):
