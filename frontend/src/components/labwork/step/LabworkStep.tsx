@@ -75,7 +75,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
-	const canPrefill = selectedTemplate && stepSamples.selectedSamples.items.length > 0 && stepSamples.prefill.templates.length > 0
+	const canPrefill = selectedTemplate ? stepSamples.selectedSamples.items.length > 0 && stepSamples.prefill.templates.length > 0 : false
 
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
