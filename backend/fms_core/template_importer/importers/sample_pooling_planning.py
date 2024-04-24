@@ -16,7 +16,7 @@ from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower,
 from io import BytesIO
 from datetime import datetime
 import decimal
-from collections import defaultdict
+from collections import namedtuple
 
 class SamplePoolingPlanningImporter(GenericImporter):
     """
@@ -42,11 +42,18 @@ class SamplePoolingPlanningImporter(GenericImporter):
         sheet = self.sheets["SamplesToPool"]
         sheet_df = sheet.dataframe
 
-        pooling_mapping_rows = defaultdict(list)
+        MAX_SOURCE_CONTAINERS = 8
+        MAX_DESTINATION_CONTAINERS = 24
+
+        source_containers_barcodes = set()
+        destination_containers_barcodes = set()
+
+        pooling_mapping_rows = []
+        container_unique_id = get_unique_id()
         base_error_rows = []
         # For each row initialize the object that is going to be prefilled in the pooling template
         for row_id, row_data in enumerate(sheet.rows):
-            type = str_cast_and_normalize(row_data["Type"])
+            pooling_type = str_cast_and_normalize(row_data["Type"])
             source_sample = {
                 "name": str_cast_and_normalize(row_data["Source Sample Name"]),
                 "container": {"barcode": str_cast_and_normalize(row_data["Source Container Barcode"])},
@@ -54,12 +61,14 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 "depleted": check_truth_like(row_data["Source Depleted"]) if row_data["Source Depleted"] else None,
             }
 
+            pool_name = str_cast_and_normalize(row_data["Pool Name"])
+
             pool = {
-                "name": str_cast_and_normalize(row_data["Pool Name"]),
+                "name": pool_name,
                 "coordinates": None, # No coordinate in tube
                 "container": {
-                    "barcode": "", # Artificial barcode built from the pool name and a sequential number
-                    "name": "", # Same as barcode
+                    "barcode": pool_name + "_" + str(container_unique_id), # Artificial barcode built from the pool name and a sequential number
+                    "name": pool_name + "_" + str(container_unique_id), # Same as barcode
                     "kind": "", # tube
                     "coordinates": None, # Do not place into a parent
                     "parent_barcode": None, # Do not place into a parent
@@ -70,8 +79,11 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 'na_quantity': float_to_decimal_and_none(row_data['NA Quantity Used (ng)']),
             }
 
+            source_containers_barcodes.add(source_sample["container"]["barcode"])
+            destination_containers_barcodes.add(pool["container"]["barcode"])
+
             pooling_kwargs = dict(
-                type=type,
+                type=pooling_type,
                 source_sample=source_sample,
                 pool=pool,
                 measurements=measurements,
@@ -87,7 +99,12 @@ class SamplePoolingPlanningImporter(GenericImporter):
             if (pooling_row_mapping is None):
                 base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
             
-            pooling_mapping_rows[pool["name"]].append(pooling_row_mapping)
+            pooling_mapping_rows.append(pooling_row_mapping)
+
+        if (len(source_containers_barcodes) > MAX_SOURCE_CONTAINERS):
+            self.base_errors.append(f"Too many source containers ({MAX_SOURCE_CONTAINERS}) for the robot.")
+        if (len(destination_containers_barcodes) > MAX_DESTINATION_CONTAINERS):
+            self.base_errors.append(f"Too many pools ({MAX_DESTINATION_CONTAINERS}) for the robot.")
 
         if len(base_error_rows) > 1:
             self.base_errors.append(f"Rows {base_error_rows} have errors.")
@@ -95,17 +112,17 @@ class SamplePoolingPlanningImporter(GenericImporter):
             self.base_errors.append(f"Row {base_error_rows[0]} has errors.")
 
         if not self.dry_run and not self.base_errors:
-            # Create robot file using both the input from the normalization sheet and the pools sheet.
-            robot_files, updated_norm_mapping_rows = self.prepare_robot_file(pooling_mapping_rows, type)
+            # Create robot file and create the dictionary to populate both pooling template sheets.
+            robot_files, updated_pooling_mapping_rows, pool_mapping_rows = self.prepare_robot_file(pooling_mapping_rows, pooling_type)
 
-            # Prepare the Normalization template
-            normalization_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [updated_norm_mapping_rows])
-            normalization_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
-            files_to_zip = [{'name': normalization_prefilled_template_name,
-                             'content': normalization_prefilled_template,}]
+            # Prepare the pooling template, the dict for each sheet need to be in the order listed in the template sheet definition
+            pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [pool_mapping_rows, updated_pooling_mapping_rows])
+            pooling_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
+            files_to_zip = [{'name': pooling_prefilled_template_name,
+                             'content': pooling_prefilled_template,}]
 
             files_to_zip.extend(robot_files)
-            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{str(get_unique_id())}"
+            output_zip_name = f"Sample_pooling_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{str(get_unique_id())}"
 
             # Zip files
             zip_buffer = zip_files(output_zip_name, files_to_zip)
@@ -115,7 +132,7 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 'content': zip_buffer.getvalue()
             }
             
-    def prepare_robot_file(self, norm_rows_data, type, robot):
+    def prepare_robot_file(self, pooling_rows_data, pooling_type):
         """
         This function takes the content of the pooling planning template as input to create
         a csv file that contains the required configuration for the robot execution of the
@@ -130,23 +147,21 @@ class SamplePoolingPlanningImporter(GenericImporter):
         """
         FIRST_COORD_AXIS = 0
         TUBE = "tube"
-        DILUENT = "Water"   # This is an hardcoded value for Biomek config file
-        DILUENT_WELL = "4"  # This is an hardcoded value for Biomek config file
+        DILUENT_VOLUME = "0"  # This is an hardcoded value since no diluent volume is added to the pool
+        
+        ROBOT_SRC_PREFIX = "Src"
+        ROBOT_DST_PREFIX = "TubeDst"
 
-        if type == LIBRARY_TYPE:
-            ROBOT_SRC_PREFIX = "Source"
-            ROBOT_DST_PREFIX = "Dil"
-        elif type == SAMPLE_TYPE or type == GENOTYPING_TYPE:
-            ROBOT_SRC_PREFIX = "Src"
-            ROBOT_DST_PREFIX = "Dst"
+        container_data = namedtuple("container_data", ["pool_name", "barcode"])
 
-        def build_source_container_dict(rows_data):
+        def build_source_container_dict(src_containers: type[container_data]):
             container_dict = {}
-            for row_data in rows_data:
-                container = Container.objects.get(barcode=row_data["Source Container Barcode"])
+            for i, src_container in enumerate(src_containers, start=1):
+                container = Container.objects.get(barcode=src_container["barcode"])
                 container_dict[container.barcode] = (container,
                                                      container.location.barcode if container.location else None,
-                                                     container.location.kind if container.location else None)
+                                                     container.location.kind if container.location else None,
+                                                     ROBOT_SRC_PREFIX + str(i))
             return container_dict
 
         def get_robot_destination_container(row_data) -> str:
@@ -180,164 +195,72 @@ class SamplePoolingPlanningImporter(GenericImporter):
             second_axis_coord = int(fms_coord[1:])
             return (ord(fms_coord[:1]) - 64) + (first_axis_len * (second_axis_coord - 1)) # ord A is 65 we need to shift -64 to recenter it
 
-        mapping_dest_containers = {}
         mapping_src_containers = {}
-        coord_spec_by_barcode = {}
-        output_norm_rows_data = norm_rows_data[:]
+        output_sample_rows_data = pooling_rows_data[:]
+        output_pool_rows_data = {}
         robot_files = []
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         ##################### Ordering and setup of the normalization data ###########################
         
-        for output_row_data in output_norm_rows_data:
-            if output_row_data["Destination Container Kind"] is None:
-                if Container.objects.filter(barcode=output_row_data["Destination Container Barcode"]).exists():
-                    # Ensure the Destination Container Kind is in the template even in the case where the user reuse an existing container
-                    output_row_data["Destination Container Kind"] = Container.objects.get(barcode=output_row_data["Destination Container Barcode"]).kind
-                else:
-                    # Container kind information is needed to calculate position
-                    raise ValidationError(f"Normalization destination container need a container kind if it does not exist in Freezeman.")
 
-        dup_containers = zip([output_row_data["Destination Container Barcode"] for output_row_data in output_norm_rows_data],
-                             [output_row_data["Destination Container Kind"] for output_row_data in output_norm_rows_data])
+        dst_containers = unique(container_data(sample_row_data["Pool Name"], sample_row_data["Destination Container Barcode"]) for sample_row_data in output_sample_rows_data)
 
-        dest_containers = unique(dup_containers)
+        # Map destination container barcode to robot destination coordinates
+        for i, dst_container in enumerate(dst_containers, start=1):
+            output_pool_rows_data[dst_containers["pool_name"]] = {"Pool Name": dst_container["pool_name"],
+                                                                  "Destination Container Barcode": dst_container["barcode"],
+                                                                  "Robot Destination Container": ROBOT_DST_PREFIX + str(i),
+                                                                  "Robot Destination Coord": i}
 
-        # Map container spec to destination container barcode
-        for barcode, kind in dest_containers:
-            if kind == TUBE:
-                # Tube is not a valid destination container for normalization
-                raise ValidationError(f"Normalization destination container cannot be a tube.")
-            coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec # kind should not be tube
+        
+        src_containers = unique(container_data(sample_row_data["Pool Name"], sample_row_data["Source Container Barcode"]) for sample_row_data in output_sample_rows_data)
+        container_dict = build_source_container_dict(src_containers)
 
-        # Map destination container barcode to robot destination barcodes
-        for i, (barcode, _) in enumerate(dest_containers, start=1):
-            mapping_dest_containers[barcode] = ROBOT_DST_PREFIX + str(i)
-
-        for output_row_data in output_norm_rows_data:
-            # Add robot barcode to the rows_data
-            output_row_data["Robot Destination Container"] = mapping_dest_containers[output_row_data["Destination Container Barcode"]]
-            # Add robot dest coord to the rows_data
-            output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode[output_row_data["Destination Container Barcode"]],
-                                                                                          output_row_data["Destination Container Coord"])
 
         # Sort incomming list using the destination plates barcodes and coords
-        output_norm_rows_data.sort(key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)), reverse=False)
+        output_sample_rows_data.sort(key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)), reverse=False)
 
-        container_dict = build_source_container_dict(output_norm_rows_data)
+        
         
         src_containers = unique(get_source_container_barcode(output_row_data, container_dict) for output_row_data in output_norm_rows_data)
 
-        # Map source container barcode to robot source barcodes
-        for i, barcode in enumerate(src_containers, start=1):
-            mapping_src_containers[barcode] = ROBOT_SRC_PREFIX + str(i)
+        
 
-        for output_row_data in output_norm_rows_data:
+        for output_row_data in output_sample_rows_data:
             # Add robot barcode to the rows_data
             output_row_data["Robot Source Container"] = mapping_src_containers[get_source_container_barcode(output_row_data, container_dict)]
             # Add robot src coord to the sorted rows_data
             output_row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(get_source_container_spec(output_row_data, container_dict),
                                                                                      get_source_container_coord(output_row_data, container_dict))
             # Add type to the rows_data
-            output_row_data["Type"] = type
+            output_row_data["Type"] = pooling_type
 
-        if type == LIBRARY_TYPE:
-            # Creating the 2 robot files
-            add_diluent_io = BytesIO()
-            add_library_io = BytesIO()
-            add_diluent_lines = []
-            add_library_lines = []
-            add_diluent_lines.append((",".join(["DstNameForDiluent", "DstWellForDiluent", "DiluentVol"]) + "\n").encode())
-            add_library_lines.append((",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n").encode())
+        # Create the single robot file
+        pooling_io = BytesIO()
+        pooling_lines = []
+        pooling_lines.append((",".join(["Src ID", "Src Coord", "Dst ID", "Dst Coord", "Diluent Vol", "Sample Vol"]) + "\n").encode())
 
-            for output_row_data in output_norm_rows_data:
-                if not output_row_data["Exclude From Robot"]:
-                    container_src_barcode = output_row_data["Source Container Barcode"]
-                    robot_src_barcode = output_row_data["Robot Source Container"]
-                    robot_dst_barcode = output_row_data["Robot Destination Container"]
-                    robot_src_coord = output_row_data["Robot Source Coord"]
-                    robot_dst_coord = output_row_data["Robot Destination Coord"]
-                    volume_library = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                    volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
+        for output_row_data in output_norm_rows_data:
+                robot_src_barcode = output_row_data["Robot Source Container"]
+                robot_dst_barcode = output_row_data["Robot Destination Container"]
+                robot_src_coord = output_row_data["Robot Source Coord"]
+                robot_dst_coord = output_row_data["Robot Destination Coord"]
+                volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                volume_diluent = DILUENT_VOLUME
 
-                    add_diluent_lines.append((",".join([robot_dst_barcode,
-                                                        str(robot_dst_coord),
-                                                        str(volume_diluent)]) + "\n").encode())
-                    add_library_lines.append((",".join([container_src_barcode,
-                                                        robot_src_barcode,
-                                                        str(robot_src_coord),
-                                                        robot_dst_barcode,
-                                                        str(robot_dst_coord),
-                                                        str(volume_library)]) + "\n").encode())
+                pooling_lines.append((",".join([robot_src_barcode,
+                                                str(robot_src_coord),
+                                                robot_dst_barcode,
+                                                str(robot_dst_coord),
+                                                str(volume_diluent),
+                                                str(volume_sample)]) + "\n").encode()) # Encode to store a bytes-like object
 
-            add_diluent_io.writelines(add_diluent_lines)
-            add_library_io.writelines(add_library_lines)
-            robot_files = [
-                {"name": f"Normalization_{type.lower()}_diluent_{timestamp.replace(' ', '_')}.csv",
-                 "content": add_diluent_io.getvalue(),},
-                {"name": f"Normalization_{type.lower()}_main_dilution_{timestamp.replace(' ', '_')}.csv",
-                 "content": add_library_io.getvalue(),},
-            ]
-
-        elif robot == ROBOT_BIOMEK:
-            # Create the single robot file
-            normalization_io = BytesIO()
-            normalization_lines = []
-            normalization_lines.append((",".join(["Source_plate", "Source_well", "Dest_plate", "Dest_well", "Volume_Sample", "Diluant_Bath", "Diluant_Well", "Volume_Diluant"]) + "\n").encode())
-
-            for output_row_data in output_norm_rows_data:
-                if not output_row_data["Exclude From Robot"]:
-                    robot_src_barcode = output_row_data["Robot Source Container"]
-                    robot_dst_barcode = output_row_data["Robot Destination Container"]
-                    robot_src_coord = get_source_container_coord(output_row_data, container_dict)
-                    robot_dst_coord = output_row_data["Destination Container Coord"]
-                    volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                    volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
-
-                    normalization_lines.append((",".join([robot_src_barcode,
-                                                          robot_src_coord,
-                                                          robot_dst_barcode,
-                                                          robot_dst_coord,
-                                                          str(volume_sample),
-                                                          DILUENT,
-                                                          DILUENT_WELL,
-                                                          str(volume_diluent)]) + "\n").encode()) # Encode to store a bytes-like object
-
-            normalization_io.writelines(normalization_lines)
-            robot_files = [
-                {"name": f"Pooling_{type.lower()}_Janus_{timestamp}.csv",
-                 "content": normalization_io.getvalue(),},
-            ]
-
-        elif robot == ROBOT_JANUS:
-            # Create the single robot file
-            normalization_io = BytesIO()
-            normalization_lines = []
-            normalization_lines.append((",".join(["Src ID", "Src Coord", "Dst ID", "Dst Coord", "Diluent Vol", "Sample Vol"]) + "\n").encode())
-
-            for output_row_data in output_norm_rows_data:
-                if not output_row_data["Exclude From Robot"]:
-                    robot_src_barcode = output_row_data["Robot Source Container"]
-                    robot_dst_barcode = output_row_data["Robot Destination Container"]
-                    robot_src_coord = output_row_data["Robot Source Coord"]
-                    robot_dst_coord = output_row_data["Robot Destination Coord"]
-                    volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
-                    volume_diluent = decimal.Decimal(output_row_data["Volume Diluent (uL)"])
-
-                    normalization_lines.append((",".join([robot_src_barcode,
-                                                          str(robot_src_coord),
-                                                          robot_dst_barcode,
-                                                          str(robot_dst_coord),
-                                                          str(volume_diluent),
-                                                          str(volume_sample)]) + "\n").encode()) # Encode to store a bytes-like object
-
-            normalization_io.writelines(normalization_lines)
-            robot_files = [
-                {"name": f"Pooling_{type.lower()}_Janus_{timestamp}.csv",
-                 "content": normalization_io.getvalue(),},
-            ]
-        else:
-            raise ValidationError(f"Invalid robot for normalization.")
+        pooling_io.writelines(pooling_lines)
+        robot_files = [
+            {"name": f"Pooling_{pooling_type.lower()}_Janus_{timestamp}.csv",
+             "content": pooling_io.getvalue(),},
+        ]
 
         return robot_files, output_norm_rows_data
