@@ -55,14 +55,10 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   const loading = refreshing  || labworkStepSummary.isFetching
 
   useEffect(() => {
-    // need to preserve stepSamples.selectedSamples
-    // because getLabworkStepSummary will change
-    // stepSamples.selectedSamples
-    const selectedSamples = [...stepSamples.selectedSamples.items]
     dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
-      dispatch(setSelectedSamplesInGroups(selectedSamples))
+        dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
     })
-  }, [activeGrouping.key, step.id])
+  }, [activeGrouping.key, dispatch, step.id, stepSamples.selectedSamples.items])
 
   const handleChangeActiveGrouping = useCallback((grouping) => {
     clearFilters && clearFilters(false)
