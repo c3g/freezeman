@@ -309,7 +309,7 @@ export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_
 				ordering: getCoordinateOrderingParams(step.selectedSamples.sortDirection),
 			}
 			// {"Volume Used (uL)" : "30"}
-			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data), JSON.stringify(placement_data), step.selectedSamples.join(','), options))
+			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data), JSON.stringify(placement_data), step.selectedSamples.items.join(','), options))
 			return fileData
 		}
 	}

@@ -80,7 +80,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handlePrefillTemplate = useCallback(
 		async (prefillData: { [column: string]: any }) => {
 			if (selectedTemplate) {
-				dispatch(prefillTemplate(selectedTemplate, step, prefillData))
+				await dispatch(prefillTemplate(selectedTemplate, step, prefillData))
 			}
 		}
 		, [dispatch, selectedTemplate, step])
