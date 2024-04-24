@@ -1,11 +1,12 @@
 import { AnyAction } from 'redux'
-import { FMSId, LabworkStepInfo, SampleLocator } from '../../models/fms_api_models'
-import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
+import { CoordinateSpec, FMSId, LabworkStepInfo, SampleLocator } from '../../models/fms_api_models'
+import { Container, createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from '../../models/paged_items_reducers'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
 import { LabworkStepSamples, LabworkStepSamplesGroup, LabworkStepsState, LabworkStepSummaryState } from './models'
 import { createPagedItems, createPagedItemsByID } from '../../models/paged_items'
+import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
@@ -389,4 +390,90 @@ export const labworkStepSummary = (state: LabworkStepSummaryState = {isFetching:
 }
 
 export const sampleNextStepTemplateActions = templateActionsReducerFactory({LIST_TEMPLATE_ACTIONS})
- 
+
+// undefined is for tubes without parent
+
+interface LabworkStepPlacementParentContainer {
+	name: Container['name']
+	barcode: Container['barcode']
+	kind: Container['kind']
+	spec: CoordinateSpec
+}
+type LabworkStepPlacementContainer = LabworkStepPlacementParentContainer | {
+	name: null
+	// barcode?: undefined
+	// kind?: undefined
+	spec: []
+}
+
+export interface LabworkStepPlacementState {
+	sourceContainers: LabworkStepPlacementContainer[]
+	destinationContainers: LabworkStepPlacementParentContainer[]
+	activeSourceContainer: LabworkStepPlacementContainer | undefined
+	activeDestinationContainer: LabworkStepPlacementParentContainer | undefined
+	error?: string
+}
+const labworkStepPlacementSlice = createSlice({
+	name: 'LABWORK_STEP:PLACEMENT',
+	initialState: {
+		sourceContainers: [],
+		destinationContainers: [],
+		activeSourceContainer: undefined,
+		activeDestinationContainer: undefined
+	} as LabworkStepPlacementState,
+	reducers: {
+		loadSourceContainer(state, action: PayloadAction<LabworkStepPlacementContainer>) {
+			const payload = action.payload
+			if (!selectSourceContainer(state)(payload.name)) {
+				state.sourceContainers.push(payload)
+			}
+		},
+		loadDestinationContainer(state, action: PayloadAction<Required<LabworkStepPlacementParentContainer>>) {
+			const payload = action.payload
+			if (!selectDestinationContainer(state)(payload.name)) {
+				state.destinationContainers.push(payload)
+			}
+		},
+		setActiveSourceContainer(state, action: PayloadAction<string | null>) {
+			const container = selectSourceContainer(state)(action.payload)
+			if (!container) {
+				state.error = `Could not find source container '${action.payload}'`
+				return
+			}
+			state.activeSourceContainer = container
+		},
+		setActiveDestinationContainer(state, action: PayloadAction<string>) {
+			const container = selectDestinationContainer(state)(action.payload)
+			if (!container) {
+				state.error = `Could not find destination container '${action.payload}'`
+				return
+			}
+			state.activeDestinationContainer = container
+		},
+		flushContainers(state, action: PayloadAction<(string | null)[] | undefined>) {
+			const payload = action.payload
+			if (payload === undefined) {
+				state.sourceContainers = []
+				state.destinationContainers = []
+				state.activeSourceContainer = undefined
+				state.activeDestinationContainer = undefined
+				return
+			}
+			for (const name of payload) {
+				state.sourceContainers = state.sourceContainers.filter((c) => c.name !== name)
+				state.destinationContainers = state.destinationContainers.filter((c) => c.name !== name)
+				if (name === state.activeSourceContainer?.name) {
+					state.activeSourceContainer = undefined
+				}
+				if (name === state.activeDestinationContainer?.name) {
+					state.activeDestinationContainer = undefined
+				}
+			}
+		}
+	}
+})
+export const { loadSourceContainer, loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer, flushContainers } = labworkStepPlacementSlice.actions
+export const labworkStepPlacement = labworkStepPlacementSlice.reducer
+
+export const selectSourceContainer = (state: LabworkStepPlacementState) => (name: string | null) => state.sourceContainers.find((c) => c.name === name)
+export const selectDestinationContainer = (state: LabworkStepPlacementState) => (name: string) => state.destinationContainers.find((c) => c.name === name)

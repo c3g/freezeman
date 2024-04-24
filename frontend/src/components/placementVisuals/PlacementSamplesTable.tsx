@@ -3,12 +3,15 @@ import { Table } from "antd";
 import { TableRowSelection } from "antd/lib/table/interface";
 import { FMSId } from "../../models/fms_api_models";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { CellState, multiSelect } from "../../modules/placement/reducers";
+import { multiSelect } from "../../modules/placement/reducers";
 import { selectSamplesByID } from "../../selectors";
 import { batch } from "react-redux";
 import { fetchSamples } from "../../modules/cache/cache";
+import { selectCell, selectContainer } from "../../modules/placement/selectors";
+import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
+import store from "../../store";
 export interface PlacementSamplesTableProps {
-    container: string
+    container: string | null
 }
 const columns = [
     {
@@ -31,37 +34,35 @@ const columns = [
 const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTableProps) => {
     const dispatch = useAppDispatch()
     // TODO: use sorted selected items instead when the field is defined in the labwork-refactor
-    const containers = useAppSelector((state) => state.placement.parentContainers)
-    const container = containers[containerName]
+    const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
     const samplesByID = useAppSelector(selectSamplesByID)
+    const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
+    const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
+    const isSource = containerName === activeSourceContainer?.name
+    const isDestination = containerName === activeDestinationContainer?.name
 
     type Samples = {
         sample: FMSId,
         selected: boolean
         name: string
-        coordinates: string
+        coordinates: string | undefined
     }[]
     const [samples, setSamples] = useState<Samples>([])
     useEffect(() => {
         const missingSamples: FMSId[] = []
         setSamples(
             container
-                ? Object.entries(container?.cells).reduce((samples, [coordinates, cell]) => {
+                ? container.cells.reduce((samples, cell) => {
                     if (!cell) return samples
 
                     let sample: null | FMSId = null
 
-                    if (container.type === 'source' && cell.sample && !cell.placedAt) {
+                    if (isSource && cell.sample && !cell.placedAt) {
                         sample = cell.sample
-                    } else if (container.type === 'destination' && cell.placedFrom) {
-                        const otherContainer = containers[cell.placedFrom.parentContainer]
-                        if (!otherContainer) {
-                            console.error(`Container '${cell.placedFrom.parentContainer}' is not loaded`)
-                            return samples
-                        }
-                        const otherCell = otherContainer.cells[cell.placedFrom.coordinates]
+                    } else if (isDestination && cell.placedFrom) {
+                        const otherCell = selectCell(store.getState())(cell.placedFrom)
                         if (!otherCell) {
-                            console.error(`Cell at location '${cell.placedFrom.coordinates}@${cell.placedFrom.parentContainer}' is not loaded`)
+                            console.error(`Cell at location '${cell.placedFrom.parentContainerName}@${cell.placedFrom.coordinates}' is not loaded`)
                             return samples
                         }
                         sample = otherCell.sample
@@ -79,7 +80,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                         sample,
                         selected: cell.selected,
                         name,
-                        coordinates
+                        coordinates: cell.coordinates
                     })
                     return samples
                 }, [] as Samples)
@@ -87,7 +88,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         )
         if (missingSamples.length > 0)
             fetchSamples(missingSamples)
-    }, [container, containers, samplesByID])
+    }, [container, isDestination, isSource, samplesByID])
 
     const placementSelectedSamples = useMemo(
         () => container ? samples.reduce((sampleIDs, s) => {
@@ -104,21 +105,27 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
             dispatch(multiSelect({
                 type: 'all',
                 parentContainer: containerName,
-                forcedSelectedValue: false
+                forcedSelectedValue: false,
+                context: {
+                    source: activeSourceContainer?.name
+                }
             }))
             dispatch(multiSelect({
                 type: 'sample-ids',
                 parentContainer: containerName,
                 sampleIDs: keys.map((k) => Number(k)),
                 forcedSelectedValue: true,
+                context: {
+                    source: activeSourceContainer?.name
+                }
             }))
         })
-    }, [containerName, dispatch])
+    }, [activeSourceContainer?.name, containerName, dispatch])
 
     type SortedSample = {
         name: string,
         id: FMSId,
-        coordinates: string
+        coordinates: string | undefined
     }
     const sortedSamples: SortedSample[] = useMemo(() => {
         // const reverse = labworkSelectedSamples.reverse()

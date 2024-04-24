@@ -21,7 +21,8 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import LabworkSelection from './LabworkSelection'
 import Placement from '../../placementVisuals/Placement'
-import { flushContainers } from '../../../modules/placement/reducers'
+import { flushPlacement } from '../../../modules/placement/reducers'
+import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
 
 const { Text } = Typography
 
@@ -311,7 +312,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return () => {
 			dispatch(clearSelectedSamples(step.id))
 			dispatch(flushSamplesAtStep(step.id))
-			dispatch(flushContainers())
+			dispatch(flushPlacement())
+			dispatch(flushLabworkStepPlacementContainers())
 		}
 	}, [dispatch, step.id])
 

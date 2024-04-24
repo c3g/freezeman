@@ -4,8 +4,8 @@ const { Text, Title } = Typography;
 
 interface ContainerNameScrollerProps {
     changeContainer: (direction: -1 | 1) => void,
-    names: string[],
-    name: string
+    names: (string | null)[],
+    name: string | null
 }
 //component used to display the container name, and also to cycle through the container list using callbacks
 const ContainerNameScroller = ({ names, name, changeContainer }: ContainerNameScrollerProps) => {
@@ -17,7 +17,7 @@ const ContainerNameScroller = ({ names, name, changeContainer }: ContainerNameSc
                 Previous
             </Button>
             { 
-              <Tag style={{ height: "32px", paddingTop: "3px", textAlign: 'center' }}><Text strong><Title level={5}>{names[index]}</Title></Text></Tag>
+              <Tag style={{ height: "32px", paddingTop: "3px", textAlign: 'center' }}><Text strong><Title level={5}>{names[index] ?? 'Tubes without parent'}</Title></Text></Tag>
             }
             <Button disabled={index === names.length - 1 || names.length === 1} onClick={() => changeContainer(1)}>
                 Next

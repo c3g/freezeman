@@ -3,42 +3,58 @@ import { Empty } from "antd"
 import Cell from "./Cell"
 import { multiSelect } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
+import store from "../../store"
+import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
+import { selectContainer } from "../../modules/placement/selectors"
 
 interface PlacementContainerProps {
-    container: string
+    container: string | null
 }
 
 //component is used to visually represent the container, and its rows and columns of cells
 const PlacementContainer = ({ container: containerName }: PlacementContainerProps) => {
     const dispatch = useAppDispatch()
-    const container = useAppSelector((state) => state.placement.parentContainers[containerName])
+    const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
     const [axisRow = [] as const, axisColumn = [] as const] = container?.spec ?? [[], []] as const
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length
 
     const selectColumn = useCallback((column: number) => {
-        return () => dispatch(multiSelect({
+        return () => containerName && dispatch(multiSelect({
             parentContainer: containerName,
             type: 'column',
-            column
+            column,
+            context: {
+                source: selectActiveSourceContainer(store.getState())?.name
+            }
         }))
     }, [containerName, dispatch])
     const selectRow = useCallback((row: number) => {
-        return () => dispatch(multiSelect({
+        return () => containerName && dispatch(multiSelect({
             parentContainer: containerName,
             type: 'row',
-            row
+            row,
+            context: {
+                source: selectActiveSourceContainer(store.getState())?.name
+            }
         }))
     }, [containerName, dispatch])
     const selectAll = useCallback(() => {
         dispatch(multiSelect({
             parentContainer: containerName,
-            type: 'all'
+            type: 'all',
+            context: {
+                source: selectActiveSourceContainer(store.getState())?.name
+            }
         }))
     }, [containerName, dispatch])
 
     const cells: ReactNode[] = useMemo(() => {
         const cells: ReactNode[] = []
+
+        if (!containerName) {
+            return cells
+        }
 
         //renders header based on the number of columns provided to the component
         const headerCells: ReactNode[] = []
@@ -97,7 +113,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
         <>
             <div className={"transfer"}>
                 {
-                    (totalRow === 0 || totalColumn === 0) ?
+                    (totalRow === 0 || totalColumn === 0 || cells.length === 0) ?
                         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                         :
                         cells

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { PlacementDirections, loadContainers as loadPlacementContainers, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from '../../modules/placement/reducers'
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
@@ -12,6 +11,10 @@ import { selectContainerKindsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
+import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
+import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
+import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
+import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -22,124 +25,132 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const dispatch = useAppDispatch()
 
     const containerKinds = useAppSelector(selectContainerKindsByID)
-    const parentContainers = useAppSelector((state) => state.placement.parentContainers)
+
+    const labworkStepPlacement = useAppSelector(selectLabworkStepPlacement)
+    const sourceContainers = labworkStepPlacement.sourceContainers
+    const destinationContainers = labworkStepPlacement.destinationContainers
+    const activeSourceContainer = labworkStepPlacement.activeSourceContainer
+    const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
-        return Object.entries(parentContainers).map(([name, container]) => ({
-            container_barcode: container?.barcode as string,
-            container_name: name,
-            container_kind: container?.kind as string,
-            samples: []
-        }))
-    }, [parentContainers])
-
-    const sourceContainers = useMemo(() => {
-        return Object.values(parentContainers).reduce((containerNames, container) => {
-            if (container?.type === 'source') {
-                containerNames.push(container.name)
-            }
-            return containerNames
-        }, [] as string[])
-    }, [parentContainers])
-    const destinationContainers = useMemo(() => {
-        return Object.values(parentContainers).reduce((containerNames, container) => {
-            if (container?.type === 'destination') {
-                containerNames.push(container.name)
-            }
-            return containerNames
-        }, [] as string[])
-    }, [parentContainers])
-
-    const [activeSourceContainer, setActiveSourceContainer] = useState(sourceContainers.length > 0 ? sourceContainers[0] : undefined)
-    const [activeDestinationContainer, setActiveDestinationContainer] = useState(destinationContainers.length > 0 ? destinationContainers[0] : undefined)
+        return [
+            ...sourceContainers.reduce((list, c) => {
+                if (c.name) {
+                    list.push({
+                        container_barcode: c.barcode,
+                        container_name: c.name,
+                        container_kind: c.kind,
+                        samples: {}
+                    })
+                }
+                return list
+            }, [] as DestinationContainer[]),
+            ...destinationContainers.map((c) => ({
+                container_barcode: c.barcode,
+                container_name: c.name,
+                container_kind: c.kind,
+                samples: {}
+            }))
+        ]
+    }, [destinationContainers, sourceContainers])
 
     const placementType = useAppSelector((state) => state.placement.placementType)
     const placementDirection = useAppSelector((state) => state.placement.placementDirection)
 
     const changeSourceContainer = useCallback((direction: number) => {
-        const currentIndex = sourceContainers.findIndex((x) => x === activeSourceContainer)
+        const currentIndex = sourceContainers.findIndex((x) => x.name === activeSourceContainer?.name)
         if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= sourceContainers.length) {
             return
         }
-        setActiveSourceContainer(sourceContainers[currentIndex + direction])
-    }, [activeSourceContainer, sourceContainers])
+        dispatch(setActiveSourceContainer(sourceContainers[currentIndex + direction]?.name))
+    }, [activeSourceContainer?.name, dispatch, sourceContainers])
 
     const changeDestinationContainer = useCallback((direction: number) => {
-        const currentIndex = destinationContainers.findIndex((x) => x === activeDestinationContainer)
+        const currentIndex = destinationContainers.findIndex((x) => x.name === activeDestinationContainer?.name)
         if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= destinationContainers.length) {
             return
         }
-        setActiveDestinationContainer(destinationContainers[currentIndex + direction])
-    }, [destinationContainers, activeDestinationContainer])
+        setActiveDestinationContainer(destinationContainers[currentIndex + direction].name)
+    }, [activeDestinationContainer, destinationContainers])
 
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {
             containerNames.sort()
-            setActiveSourceContainer(containerNames[0])
+            dispatch(setActiveSourceContainer(containerNames[0]))
         })
     }, [dispatch, sampleIDs, stepID])
 
     const onConfirmAddDestinationContainer = useCallback((container: DestinationContainer) => {
-        dispatch(loadPlacementContainers([{
-            type: 'destination',
-            name: container.container_name,
-            barcode: container.container_barcode,
-            kind: container.container_kind,
+        dispatch(loadPlacementContainer({
+            parentContainerName: container.container_name,
             spec: containerKinds[container.container_kind].coordinate_spec,
             cells: Object.values(container.samples).map((sample) => ({
                 coordinates: sample.coordinates,
                 sample: sample.id
             }))
-        }]))
-        setActiveDestinationContainer(container.container_name)
+        }))
+        const nextContainer = {
+            name: container.container_name,
+            barcode: container.container_barcode,
+            kind: container.container_kind,
+            spec: containerKinds[container.container_kind].coordinate_spec,
+        }
+        dispatch(loadDestinationContainer(nextContainer))
+        dispatch(setActiveDestinationContainer(nextContainer.name))
     }, [containerKinds, dispatch])
 
     const updatePlacementDirection = useCallback((event: RadioChangeEvent) => {
         dispatch(setPlacementDirection(event.target.value))
     }, [dispatch])
     const updatePlacementType = useCallback((checked: boolean) => {
-        dispatch(setPlacementType(checked ? 'pattern' : 'group'))
+        dispatch(setPlacementType(checked ? PlacementType.PATTERN : PlacementType.GROUP))
     }, [dispatch])
 
     const canTransferAllSamples = useMemo(() => {
         if (!activeSourceContainer || !activeDestinationContainer) return false
-        const sourceContainer = parentContainers[activeSourceContainer]
-        const destinationContainer = parentContainers[activeDestinationContainer]
+        const sourceContainer = activeSourceContainer
+        const destinationContainer = activeDestinationContainer
 
         if (!sourceContainer || !destinationContainer) return false
         const [sRow = [] as const, sCol = [] as const] = sourceContainer.spec
         const [dRow = [] as const, dCol = [] as const] = destinationContainer.spec
 
         return sRow.length <= dRow.length && sCol.length <= dCol.length
-    }, [activeDestinationContainer, activeSourceContainer, parentContainers])
+    }, [activeDestinationContainer, activeSourceContainer])
 
     const transferAllSamples = useCallback(() => {
         if (activeSourceContainer && activeDestinationContainer)
-            dispatch(placeAllSource({ source: activeSourceContainer, destination: activeDestinationContainer }))
+            dispatch(placeAllSource({ source: activeSourceContainer.name, destination: activeDestinationContainer.name }))
     }, [activeDestinationContainer, activeSourceContainer, dispatch])
 
     const clearSelection = useCallback(() => {
         batch(() => {
             for (const parentContainer of sourceContainers) {
                 dispatch(multiSelect({
-                    parentContainer,
+                    parentContainer: parentContainer.name,
                     type: 'all',
-                    forcedSelectedValue: false
+                    forcedSelectedValue: false,
+                    context: {
+                        source: activeSourceContainer?.name
+                    }
                 }))
             }
             for (const parentContainer of destinationContainers) {
                 dispatch(multiSelect({
-                    parentContainer,
+                    parentContainer: parentContainer.name,
                     type: 'all',
-                    forcedSelectedValue: false
+                    forcedSelectedValue: false,
+                    context: {
+                        source: activeSourceContainer?.name
+                    }
                 }))
             }
         })
-    }, [destinationContainers, dispatch, sourceContainers])
+    }, [activeSourceContainer?.name, destinationContainers, dispatch, sourceContainers])
 
     const removeSelectedCells = useCallback(() => {
         if (activeDestinationContainer) {
-            dispatch(undoSelectedSamples(activeDestinationContainer))
+            dispatch(undoSelectedSamples(activeDestinationContainer.name))
         }
     }, [activeDestinationContainer, dispatch])
 
@@ -156,14 +167,14 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         <Col span={12}>
                             <div className={"flex-row"}>
                                 <div className={"flex-column"}>
-                                    {activeSourceContainer &&
-                                        <>
+                                    {
+                                        activeSourceContainer !== undefined && <>
                                             <ContainerNameScroller
-                                                names={sourceContainers}
-                                                name={activeSourceContainer}
+                                                names={sourceContainers.map((c) => c.name)}
+                                                name={activeSourceContainer.name}
                                                 changeContainer={changeSourceContainer} />
                                             <PlacementContainer
-                                                container={activeSourceContainer}
+                                                container={activeSourceContainer.name}
                                             />
                                         </>
                                     }
@@ -181,11 +192,11 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                     {activeDestinationContainer &&
                                         <>
                                             <ContainerNameScroller
-                                                names={destinationContainers}
-                                                name={activeDestinationContainer}
+                                                names={destinationContainers.map((c) => c.name)}
+                                                name={activeDestinationContainer.name}
                                                 changeContainer={changeDestinationContainer} />
                                             <PlacementContainer
-                                                container={activeDestinationContainer}
+                                                container={activeDestinationContainer.name}
                                             />
                                         </>
                                     }
@@ -200,15 +211,15 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     </Row>
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
-                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType === 'pattern'} onChange={updatePlacementType}></Switch>
+                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType === PlacementType.PATTERN} onChange={updatePlacementType}></Switch>
                         </Col>
                         <Col span={5}>
                             <Radio.Group
-                                disabled={placementType === 'pattern'}
+                                disabled={placementType === PlacementType.PATTERN}
                                 value={placementDirection}
                                 onChange={updatePlacementDirection}>
-                                <Radio.Button value={PlacementDirections.row}> row </Radio.Button>
-                                <Radio.Button value={PlacementDirections.column}> column </Radio.Button>
+                                <Radio.Button value={PlacementDirections.ROW}> row </Radio.Button>
+                                <Radio.Button value={PlacementDirections.COLUMN}> column </Radio.Button>
                             </Radio.Group>
                         </Col>
                         <Col span={8}>
@@ -225,10 +236,10 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     </Row>
                     <Row justify="space-evenly" style={{ padding: "10px" }}>
                         <Col span={10}>
-                            {activeSourceContainer && <PlacementSamplesTable container={activeSourceContainer} />}
+                            {activeSourceContainer !== undefined && <PlacementSamplesTable container={activeSourceContainer.name} />}
                         </Col>
                         <Col span={10}>
-                            {activeDestinationContainer && <PlacementSamplesTable container={activeDestinationContainer} />}
+                            {activeDestinationContainer !== undefined && <PlacementSamplesTable container={activeDestinationContainer.name} />}
                         </Col>
                     </Row>
                 </PageContent>
