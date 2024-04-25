@@ -76,4 +76,6 @@ class SamplePoolingPlanningRowHandler(GenericRowHandler):
                     "Volume Used (uL)": str(volume_used),
                     "Volume In Pool (uL)": str(volume_used), # no dilution expected, all solvent removed after pooling
                     "Destination Container Barcode": destination_container_dict["barcode"],
+                    "Robot Destination Container": "",
+                    "Robot Destination Coord": "",
                 }
