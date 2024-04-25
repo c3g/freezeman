@@ -406,6 +406,7 @@ export interface FMSStep extends FMSTrackedModel {
     type: string
     protocol_id: FMSId
     needs_placement: boolean
+    needs_planning: boolean
     step_specifications: FMSStepSpecification[]
 }
 

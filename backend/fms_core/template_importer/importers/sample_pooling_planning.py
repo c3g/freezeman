@@ -13,7 +13,7 @@ from fms_core.utils import str_cast_and_normalize, unique, check_truth_like
 from io import BytesIO
 from datetime import datetime
 import decimal
-from collections import namedtuple
+from collections import OrderedDict
 
 class SamplePoolingPlanningImporter(GenericImporter):
     """
@@ -37,7 +37,6 @@ class SamplePoolingPlanningImporter(GenericImporter):
 
     def import_template_inner(self):
         sheet = self.sheets["SamplesToPool"]
-        sheet_df = sheet.dataframe
 
         MAX_SOURCE_CONTAINERS = 8
         MAX_DESTINATION_CONTAINERS = 24
@@ -56,7 +55,7 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 "name": str_cast_and_normalize(row_data["Source Sample Name"]),
                 "container": {"barcode": str_cast_and_normalize(row_data["Source Container Barcode"])},
                 "coordinates": str_cast_and_normalize(row_data["Source Container Coord"]),
-                "depleted": check_truth_like(row_data["Source Depleted"]) if row_data["Source Depleted"] else None,
+                "depleted": str_cast_and_normalize(row_data["Source Depleted"]),
             }
 
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
@@ -113,8 +112,11 @@ class SamplePoolingPlanningImporter(GenericImporter):
             # Create robot file and create the dictionary to populate both pooling template sheets.
             robot_files, updated_pooling_mapping_rows, pool_mapping_rows = self.prepare_robot_file(pooling_mapping_rows, pooling_type)
 
+            labinput_prefill_info = [info for info in SAMPLE_POOLING_TEMPLATE["prefill info"] if info[0] == "LabInput"] # info[0] is the sheet name
+            labinput_mapping_rows = self.default_prefilling(updated_pooling_mapping_rows, labinput_prefill_info)
+
             # Prepare the pooling template, the dict for each sheet need to be in the order listed in the template sheet definition
-            pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [pool_mapping_rows, updated_pooling_mapping_rows])
+            pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [pool_mapping_rows, updated_pooling_mapping_rows, labinput_mapping_rows])
             pooling_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
             files_to_zip = [{'name': pooling_prefilled_template_name,
                              'content': pooling_prefilled_template,}]
@@ -130,6 +132,22 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 'content': zip_buffer.getvalue()
             }
             
+    def default_prefilling(self, sample_rows, template_prefill_info):
+        rows_data = []
+        for sample_row in sample_rows:
+            sample = sample_row["Source Sample"]
+            row_dict = {}
+            # Use sample to extract the sample information guided by the template definition prefill info.
+            for _, column_name, _, attribute, func in template_prefill_info:
+                if func:
+                    value = func(getattr(sample, attribute))
+                else:
+                    value = getattr(sample, attribute)
+                row_dict[column_name] = value
+            rows_data.append(row_dict)
+
+        return rows_data
+
     def prepare_robot_file(self, pooling_rows_data, pooling_type):
         """
         This function takes the content of the pooling planning template as input to create
@@ -151,12 +169,10 @@ class SamplePoolingPlanningImporter(GenericImporter):
         ROBOT_SRC_PREFIX = "Src"
         ROBOT_DST_PREFIX = "TubeDst"
 
-        container_data = namedtuple("container_data", ["pool_name", "barcode"])
-
-        def build_source_container_dict(src_containers: type[container_data]):
+        def build_source_container_dict(src_containers: list[tuple]):
             container_dict = {}
-            for i, src_container in enumerate(src_containers, start=1):
-                container = Container.objects.get(barcode=src_container["barcode"])
+            for i, (_, barcode) in enumerate(src_containers, start=1):
+                container = Container.objects.get(barcode=barcode)
                 container_dict[container.barcode] = (container, ROBOT_SRC_PREFIX + str(i))
             return container_dict
 
@@ -172,26 +188,28 @@ class SamplePoolingPlanningImporter(GenericImporter):
             first_axis_len = len(coord_spec[FIRST_COORD_AXIS])
             second_axis_coord = int(fms_coord[1:])
             return (ord(fms_coord[:1]) - 64) + (first_axis_len * (second_axis_coord - 1)) # ord A is 65 we need to shift -64 to recenter it
-
+        
+        output_pool_rows_data = OrderedDict()
         output_sample_rows_data = pooling_rows_data[:]
         output_pool_rows_data = {}
         robot_files = []
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        ##################### Ordering and setup of the normalization data ###########################
+        ##################### Ordering and setup of the pooling data ###########################
         
-
-        dst_containers = unique(container_data(sample_row_data["Pool Name"], sample_row_data["Destination Container Barcode"]) for sample_row_data in output_sample_rows_data)
-
+        dst_containers = unique((sample_row_data["Pool Name"], sample_row_data["Destination Container Barcode"]) for sample_row_data in output_sample_rows_data)
+    
         # Map destination container barcode to robot destination coordinates
-        for i, dst_container in enumerate(dst_containers, start=1):
-            output_pool_rows_data[dst_containers["pool_name"]] = {"Pool Name": dst_container["pool_name"],
-                                                                  "Destination Container Barcode": dst_container["barcode"],
-                                                                  "Robot Destination Container": ROBOT_DST_PREFIX + str(i),
-                                                                  "Robot Destination Coord": i}
+        for i, (pool_name, barcode) in enumerate(dst_containers, start=1):
+            pool_row = {}
+            pool_row["Pool Name"] = pool_name
+            pool_row["Destination Container Barcode"] = barcode
+            pool_row["Robot Destination Container"] = ROBOT_DST_PREFIX + str(i)
+            pool_row["Robot Destination Coord"] = i
+            output_pool_rows_data[pool_name] = pool_row
 
-        src_containers = unique(container_data(sample_row_data["Pool Name"], sample_row_data["Source Container Barcode"]) for sample_row_data in output_sample_rows_data)
+        src_containers = unique((sample_row_data["Pool Name"], sample_row_data["Source Container Barcode"]) for sample_row_data in output_sample_rows_data)
         container_dict = build_source_container_dict(src_containers)
 
         for output_row_data in output_sample_rows_data:
@@ -230,4 +248,4 @@ class SamplePoolingPlanningImporter(GenericImporter):
              "content": pooling_io.getvalue(),},
         ]
 
-        return robot_files, output_sample_rows_data, output_pool_rows_data
+        return robot_files, output_sample_rows_data, list(output_pool_rows_data.values())
