@@ -494,16 +494,17 @@ SAMPLE_POOLING_TEMPLATE = {
   "sheets info": [
       {
           "name": "Pools",
-          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name",
-                      "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
-                      "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
+          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Coord",
+                      "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode",
+                      "Destination Parent Container Coord", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
       },
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Source Depleted", "Current Volume (uL)", "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
+                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
+                      "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
       },
