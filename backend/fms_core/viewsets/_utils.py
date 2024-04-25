@@ -462,7 +462,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                     sample_id = str(sample_id)
                     for placement in placement_data[sample_id]:
                         # for each placement collect basic prefilling
-                        sample_row_dict = default_prefilling(sample_id, template, user_prefill_data)
+                        sample_row_dict = default_prefilling(sample, template, user_prefill_data)
                         batch_row_dict = {}
 
                         for sheet_name, column_name, identifier in template["placement info"]:
