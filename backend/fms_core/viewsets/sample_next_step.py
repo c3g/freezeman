@@ -200,9 +200,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     ]
 
     def get_queryset(self):
+        HANDLED_VIEWS = ['samplenextstep-list-post', 'samplenextstep-labwork-step-info', 'samplenextstep-prefill-template']
+
+        view_name = self.request.resolver_match.view_name
         queryset = super().get_queryset()
 
-        if self.request.method == 'POST':
+        if self.request.method == 'POST' and view_name in HANDLED_VIEWS:
             sample__id__in = None
 
             if self.request.META.get('CONTENT_TYPE', '') == 'application/json':
