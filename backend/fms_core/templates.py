@@ -552,6 +552,9 @@ SAMPLE_POOLING_PLANNING_TEMPLATE = {
           'batch': False,
       },
   ],
+  "user prefill info": {
+      "NA Quantity Used (ng)": "number",
+  },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
       ("SamplesToPool", "Source Sample Name", "name", "name", None),
