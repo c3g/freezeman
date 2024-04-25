@@ -58,7 +58,7 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 "depleted": str_cast_and_normalize(row_data["Source Depleted"]),
             }
 
-            pool_name = str_cast_and_normalize(row_data["Pool Name"])
+            pool_name = str_cast_and_normalize(row_data["Pool Name"]) if str_cast_and_normalize(row_data["Pool Name"]) else ""
 
             pool = {
                 "name": pool_name,

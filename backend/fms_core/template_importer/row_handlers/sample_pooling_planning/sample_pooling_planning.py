@@ -15,6 +15,9 @@ class SamplePoolingPlanningRowHandler(GenericRowHandler):
 
     def process_row_inner(self, type, source_sample, pool, measurements):
         
+        if not pool["name"]:
+            self.errors["pool"] = f"A pool name is required."
+
         source_sample_obj, self.errors["sample"], self.warnings["sample"] = get_sample_from_container(
             barcode=source_sample["container"]["barcode"],
             coordinates=source_sample['coordinates'])
