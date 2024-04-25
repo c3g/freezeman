@@ -1,6 +1,6 @@
 import json
 from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Value
-from django.http import HttpRequest, HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponseBadRequest, QueryDict
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -199,18 +199,29 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": EXPERIMENT_AXIOM_TEMPLATE},
     ]
 
-    @action(detail=False, methods=['post'])
-    def list_post(self, request: HttpRequest, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+    def get_queryset(self):
+        queryset = super().get_queryset()
 
-        jsonQueryParams = json.loads(request.body.decode())
-        if 'sample__id__in' in jsonQueryParams:
-            value = jsonQueryParams['sample__id__in']
-            if isinstance(value, int):
-                value = [value]
-            elif isinstance(value, str):
-                value = [s.strip() for s in value.split(",")]
-            queryset = queryset.filter(sample__id__in=value)
+        if self.request.method == 'POST':
+            sample__id__in = None
+
+            if self.request.META.get('CONTENT_TYPE', '') == 'application/json':
+                jsonQueryParams = json.loads(self.request.body.decode())
+                if 'sample__id__in' in jsonQueryParams:
+                    sample__id__in = jsonQueryParams['sample__id__in']
+            if self.request.META.get('CONTENT_TYPE', '').startswith('multipart/form-data'):
+                if self.request.POST.get("sample__id__in"):
+                    sample__id__in = self.request.POST["sample__id__in"]
+                    sample__id__in = [int(s.strip()) for s in sample__id__in.split(",")]
+
+            if sample__id__in is not None:
+                queryset = queryset.filter(sample__id__in=sample__id__in)
+
+        return queryset
+
+    @action(detail=False, methods=['post'])
+    def list_post(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -325,8 +336,8 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         return Response({"results": sample_next_step_summary})
 
-    @action(detail=False, methods=["get"])
-    def labwork_step_info(self, request, *args, **kwargs):
+    @action(detail=False, methods=["post"])
+    def labwork_step_info(self, request: HttpRequest, *args, **kwargs):
         """
         API call to retrieve the lab work information for a step about the number samples waiting for a grouping column provided.
 
@@ -367,8 +378,9 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             }
           }
         """
-        step_id = request.GET.get('step__id__in')
-        grouping_column = request.GET.get('group_by')
+        params = QueryDict(request.META.get('QUERY_STRING'))
+        step_id = params.get('step__id__in')
+        grouping_column = params.get('group_by')
 
         if step_id is None or grouping_column is None:
             return HttpResponseBadRequest(f"Step ID and a grouping column must be provided.")
