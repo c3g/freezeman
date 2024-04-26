@@ -9,6 +9,9 @@ from fms_core.services.id_generator import get_unique_id
 from ._generic import GenericImporter
 from .._utils import float_to_decimal_and_none, zip_files
 from fms_core.utils import str_cast_and_normalize, unique, check_truth_like
+from fms_core.services.index import validate_indices
+from fms_core.models._constants import INDEX_READ_FORWARD
+from fms_core.template_importer._constants import INDEX_COLLISION_THRESHOLD
 
 from io import BytesIO
 from datetime import datetime
@@ -103,6 +106,38 @@ class SamplePoolingPlanningImporter(GenericImporter):
         if (len(destination_containers_barcodes) > MAX_DESTINATION_CONTAINERS):
             self.base_errors.append(f"Too many pools ({MAX_DESTINATION_CONTAINERS}) for the robot.")
 
+        # Build indices by pool dictionary
+        indices_by_pool = {}
+        for row in pooling_mapping_rows:
+            pool = indices_by_pool.get(row["Pool Name"], dict({"indices": [], "samples_name": []}))
+            sample_name = row["Source Sample"].name
+            for derived_sample in row["Source Sample"].derived_samples.all():
+                pool["indices"].append(derived_sample.library.index)
+                pool["samples_name"].append(sample_name)
+            indices_by_pool[row["Pool Name"]] = pool
+
+        # Validate indices from the samples being pooled
+        for pool_name, pool in indices_by_pool.items():
+            indices = pool["indices"]
+            samples_name = pool["samples_name"]
+            results, _, _ = validate_indices(indices=indices,
+                                              index_read_direction_5_prime=INDEX_READ_FORWARD,
+                                              index_read_direction_3_prime=INDEX_READ_FORWARD,
+                                              threshold=INDEX_COLLISION_THRESHOLD)
+
+            if not results["is_valid"]:
+                # Verify first for direct collision (raise error in this case)
+                index_errors = []
+                for i, index_ref in enumerate(indices):
+                    for j, index_val in enumerate(indices):
+                        index_distance = results["distances"][i][j]
+                        if index_distance is not None and all(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
+                            index_errors.append(f"Pool {pool_name}: Index {index_ref.name} for sample {samples_name[i]} and "
+                                                f"Index {index_val.name} for sample {samples_name[j]} are not different "
+                                                f"for index validation length ({results['validation_length_3prime']}, "
+                                                f"{results['validation_length_5prime']}).")
+                self.base_errors.extend(index_errors)
+
         if len(base_error_rows) > 1:
             self.base_errors.append(f"Rows {base_error_rows} have errors.")
         elif len(base_error_rows) == 1:
@@ -110,13 +145,13 @@ class SamplePoolingPlanningImporter(GenericImporter):
 
         if not self.dry_run and not self.base_errors:
             # Create robot file and create the dictionary to populate both pooling template sheets.
-            robot_files, updated_pooling_mapping_rows, pool_mapping_rows = self.prepare_robot_file(pooling_mapping_rows, pooling_type)
+            robot_files, updated_sample_mapping_rows, pool_mapping_rows = self.prepare_robot_file(pooling_mapping_rows, pooling_type)
 
             labinput_prefill_info = [info for info in SAMPLE_POOLING_TEMPLATE["prefill info"] if info[0] == "LabInput"] # info[0] is the sheet name
-            labinput_mapping_rows = self.default_prefilling(updated_pooling_mapping_rows, labinput_prefill_info)
+            labinput_mapping_rows = self.default_prefilling(updated_sample_mapping_rows, labinput_prefill_info)
 
             # Prepare the pooling template, the dict for each sheet need to be in the order listed in the template sheet definition
-            pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [pool_mapping_rows, updated_pooling_mapping_rows, labinput_mapping_rows])
+            pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [pool_mapping_rows, updated_sample_mapping_rows, labinput_mapping_rows])
             pooling_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
             files_to_zip = [{'name': pooling_prefilled_template_name,
                              'content': pooling_prefilled_template,}]

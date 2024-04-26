@@ -116,7 +116,8 @@ class IndexServicesTestCase(TestCase):
             indices.append(index_obj)
         # test
         results, errors, warnings = validate_indices(indices=indices,
-                                                     instrument_type=instrument_type_obj,
+                                                     index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
+                                                     index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
                                                      length_5_prime=10,
                                                      length_3_prime=10,
                                                      threshold=1)
@@ -145,7 +146,8 @@ class IndexServicesTestCase(TestCase):
             create_indices_5prime_by_sequence(index_obj, [sequence5prime])
             indices.append(index_obj)
         results, errors, warnings = validate_indices(indices=indices,
-                                                     instrument_type=instrument_type_obj,
+                                                     index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
+                                                     index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
                                                      length_5_prime=10,
                                                      length_3_prime=10,
                                                      threshold=1)
