@@ -204,12 +204,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         if self.request.method == 'POST':
             sample__id__in = None
-
-            if self.request.META.get('CONTENT_TYPE', '') == 'application/json':
+            content_type = self.request.META.get('CONTENT_TYPE', '')
+            if content_type == 'application/json':
                 jsonQueryParams = json.loads(self.request.body.decode())
                 if 'sample__id__in' in jsonQueryParams:
                     sample__id__in = jsonQueryParams['sample__id__in']
-            if self.request.META.get('CONTENT_TYPE', '').startswith('multipart/form-data'):
+            elif content_type.startswith('multipart/form-data'):
                 if self.request.POST.get("sample__id__in"):
                     sample__id__in = self.request.POST["sample__id__in"]
                     sample__id__in = [int(s.strip()) for s in sample__id__in.split(",")]
