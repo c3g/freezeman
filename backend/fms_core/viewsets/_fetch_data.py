@@ -226,6 +226,7 @@ class FetchSampleData(FetchData):
         # full location
         sample_ids = tuple(self.queryset.values_list('id', flat=True))
         samples_with_full_location = tuple()
+        samples_with_site = tuple()
         if sample_ids: # Query crashes on empty tuple
             samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinate_id, coordinates, full_location) AS (                                                   
                                                                SELECT container.id, container.location_id, coordinate.id, coordinate.name, container.barcode::varchar || ' (' || container.kind::varchar || ') '
