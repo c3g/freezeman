@@ -459,9 +459,10 @@ const labworkStepPlacementSlice = createSlice({
 				state.activeDestinationContainer = undefined
 				return
 			}
-			for (const name of payload) {
-				state.sourceContainers = state.sourceContainers.filter((c) => c.name !== name)
-				state.destinationContainers = state.destinationContainers.filter((c) => c.name !== name)
+			const names = new Set(payload)
+			state.sourceContainers = state.sourceContainers.filter((c) => !names.has(c.name))
+			state.destinationContainers = state.destinationContainers.filter((c) => !names.has(c.name))
+			for (const name of names) {
 				if (name === state.activeSourceContainer?.name) {
 					state.activeSourceContainer = undefined
 				}

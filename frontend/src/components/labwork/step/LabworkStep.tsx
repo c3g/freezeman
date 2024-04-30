@@ -21,8 +21,10 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import LabworkSelection from './LabworkSelection'
 import Placement from '../../placementVisuals/Placement'
-import { flushPlacement } from '../../../modules/placement/reducers'
+import { flushPlacement, flushContainers as flushPlacementContainers } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
+import { selectSourceContainers } from '../../../modules/labworkSteps/selectors'
+import store from '../../../store'
 
 const { Text } = Typography
 
@@ -300,6 +302,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	useEffect(() => {
 		if (stepSamples.selectedSamples.items.length === 0) {
+			// ensures there are no left over samples from containers that have no selection
+			// because of the abrupt disable of placement tab
+			const sourceContainers = selectSourceContainers(store.getState()).map((c) => c.name)
+			dispatch(flushPlacementContainers(sourceContainers))
+			dispatch(flushLabworkStepPlacementContainers(sourceContainers))
+
 			onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
 	}, [onTabChange, stepSamples.selectedSamples.items.length])
