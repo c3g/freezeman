@@ -61,7 +61,7 @@ const initialState : SamplesState = {
 export const samples = (
     state : SamplesState = initialState,
     action: AnyAction
-) => {
+): SamplesState => {
     switch (action.type) {
 
         case SAMPLES.GET.REQUEST:

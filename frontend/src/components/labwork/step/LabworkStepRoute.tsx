@@ -3,10 +3,8 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { useIDParam } from '../../../hooks/useIDParams'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { initSamplesAtStep } from '../../../modules/labworkSteps/actions'
-import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { selectAppInitialized, selectLabworkStepsState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
 import LabworkStep from './LabworkStep'
-
 
 /* 
 	LabworkStepRoute is responsible for loading all of the labwork step samples
@@ -21,10 +19,10 @@ const LabworkStepRoute = () => {
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)
 	const dispatch = useAppDispatch()
+	const labworkStepSamples = stepID ? labworkStepsState.steps[stepID] : undefined
 
 	const [step, setStep] = useState<Step>()
 	const [protocol, setProtocol] = useState<Protocol>()
-	const [labworkStepSamples, setLabworkStepSamples] = useState<LabworkStepSamples>()
 
 	useEffect(() => {
 		if (stepID && appInitialized) {
@@ -49,9 +47,7 @@ const LabworkStepRoute = () => {
 	useEffect(() => {
 		if(step) {
 			const foundLabwork = labworkStepsState.steps[step.id]
-			if(foundLabwork) {
-				setLabworkStepSamples(foundLabwork)
-			} else {
+			if(!foundLabwork) {
 				dispatch(initSamplesAtStep(step.id))
 			}
 		}
