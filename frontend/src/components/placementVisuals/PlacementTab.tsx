@@ -65,7 +65,7 @@ const PlacementTab = ({ save, selectedSamples, stepID }: PlacementTabProps) => {
       const sampleIDs = selectedSamples.map(sample => sample.sample.id)
       const destination: any = handleSelectedSamples(sampleIDs)
       if (sampleIDs.length > 0) {
-        const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))
+        const values = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { }, sampleIDs))
         const containers = (values.data.results.samples.groups)
         Promise.all(containers.map(async container => {
           if (container.name != TUBES_WITHOUT_PARENT) {

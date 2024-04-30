@@ -43,7 +43,7 @@ export async function refreshSelectedSamplesAtStep(token: string, stepID: FMSId,
 				limit: sampleIDs.length,
 				ordering: getCoordinateOrderingParams(direction)
 			}
-			const reply = await withToken(token, api.sampleNextStep.listSamplesAtStep)(stepID, options, sampleIDs.join(','))
+			const reply = await withToken(token, api.sampleNextStep.listSamplesAtStep)(stepID, options, sampleIDs)
 			const response : FMSPagedResultsReponse<FMSSampleNextStep> = reply.data
 			if (response.count > 0) {
 				const refreshSampleIDs = response.results.map(nextStep => nextStep.sample)
