@@ -187,9 +187,9 @@ const slice = createSlice({
             for (const parentContainer of state.containers) {
                 for (const cell of parentContainer.cells) {
                     if (
-                        (cell.placedAt?.parentContainerName && deletedContainerNames.has(cell.placedAt.parentContainerName))
+                        (cell.placedAt?.parentContainerName !== undefined && deletedContainerNames.has(cell.placedAt.parentContainerName))
                         ||
-                        (cell.placedFrom?.parentContainerName && deletedContainerNames.has(cell.placedFrom.parentContainerName))
+                        (cell.placedFrom?.parentContainerName !== undefined && deletedContainerNames.has(cell.placedFrom.parentContainerName))
                     ) {
                         undoCellPlacement(state, cell)
                     }
