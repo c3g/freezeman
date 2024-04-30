@@ -184,7 +184,6 @@ const slice = createSlice({
         }),
         flushContainers(state, action: PayloadAction<Array<ContainerState['name']>>) {
             const deletedContainerNames = new Set(action.payload ?? state.containers.map((c) => c.name))
-            state.containers = state.containers.filter((c) => !deletedContainerNames.has(c.name))
             for (const parentContainer of state.containers) {
                 for (const cell of parentContainer.cells) {
                     if (
@@ -196,6 +195,7 @@ const slice = createSlice({
                     }
                 }
             }
+	    state.containers = state.containers.filter((c) => !deletedContainerNames.has(c.name))
         },
 	flushPlacement(state) {
 	    Object.assign(state, initialState)
