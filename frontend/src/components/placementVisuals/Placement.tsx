@@ -59,18 +59,20 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const changeSourceContainer = useCallback((direction: number) => {
         const currentIndex = sourceContainers.findIndex((x) => x.name === activeSourceContainer?.name)
-        if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= sourceContainers.length) {
+	const newIndex = currentIndex + direction
+        if (currentIndex < 0 || newIndex < 0 || newIndex >= sourceContainers.length) {
             return
         }
-        dispatch(setActiveSourceContainer(sourceContainers[currentIndex + direction]?.name))
+        dispatch(setActiveSourceContainer(sourceContainers[newIndex]?.name))
     }, [activeSourceContainer?.name, dispatch, sourceContainers])
 
     const changeDestinationContainer = useCallback((direction: number) => {
         const currentIndex = destinationContainers.findIndex((x) => x.name === activeDestinationContainer?.name)
-        if (currentIndex < 0 || currentIndex + direction < 0 || currentIndex + direction >= destinationContainers.length) {
+	const newIndex = currentIndex + direction
+        if (currentIndex < 0 || newIndex < 0 || newIndex >= destinationContainers.length) {
             return
         }
-        setActiveDestinationContainer(destinationContainers[currentIndex + direction].name)
+        dispatch(setActiveDestinationContainer(destinationContainers[newIndex].name))
     }, [activeDestinationContainer, destinationContainers])
 
     useEffect(() => {
