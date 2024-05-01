@@ -1,5 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
+import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep, LabworkStepInfo } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -17,7 +18,7 @@ const api = {
     get: id => get(`/containers/${id}/`),
     add: container => post("/containers/", container),
     update: container => patch(`/containers/${container.id}/`, container),
-    list: (options, abort) => get("/containers/", options, { abort }),
+    list: (options, abort?) => get("/containers/", options, { abort }),
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
@@ -38,34 +39,34 @@ const api = {
 
   coordinates: {
     get: coordinateId => get(`/coordinates/${coordinateId}/`),
-    list: (options, abort) => get("/coordinates/", options, { abort }),
+    list: (options, abort?) => get("/coordinates/", options, { abort }),
     search: (q, options) => get("/coordinates/search/", { q, ...options }),
   },
 
   datasets: {
     get: id => get(`/datasets/${id}/`),
-    list: (options, abort) => get("/datasets/", options, { abort }),
+    list: (options, abort?) => get("/datasets/", options, { abort }),
     setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters }),
     addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
   },
 
   readsets: {
     get: id => get(`/readsets/${id}/`),
-    list: (options, abort) => get(`/readsets/`, options, { abort }),
+    list: (options, abort?) => get(`/readsets/`, options, { abort }),
     setReleaseStatus: (id, release_status) => post(`/readsets/set_release_status/`, {id, release_status}),
   },
 
   datasetFiles: {
     get: id => get(`/dataset-files/${id}/`),
     update: dataset => patch(`/dataset-files/${dataset.id}/`, dataset),
-    list: (options, abort) => get("/dataset-files/", options, { abort }),
+    list: (options, abort?) => get("/dataset-files/", options, { abort }),
   },
 
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}/`),
-    list: (options, abort) => get("/experiment-runs/", options, {abort}),
+    list: (options, abort?) => get("/experiment-runs/", options, {abort}),
     listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
-    listExternalRuns: (options, abort) => get("/experiment-runs/list_external_experiment_run/", {limit: 100000, ...options}, {abort}),
+    listExternalRuns: (options, abort?) => get("/experiment-runs/list_external_experiment_run/", {limit: 100000, ...options}, {abort}),
     template: {
       actions: () => get(`/experiment-runs/template_actions/`),
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
@@ -83,13 +84,13 @@ const api = {
 
   importedFiles: {
     get: fileId => get(`/imported-files/${fileId}/`),
-    list: (options, abort) => get("/imported-files/", options, { abort }),
+    list: (options, abort?) => get("/imported-files/", options, { abort }),
     download: fileId => get(`/imported-files/${fileId}/download/`),
   },
 
   indices: {
     get: indexId => get(`/indices/${indexId}/`),
-    list: (options, abort) => get("/indices/", options, { abort }),
+    list: (options, abort?) => get("/indices/", options, { abort }),
     listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
     listSets: () => get("/indices/list_sets/"),
     summary: () => get("/indices/summary/"),
@@ -105,7 +106,7 @@ const api = {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
     update: individual => patch(`/individuals/${individual.id}/`, individual),
-    list: (options, abort) => get("/individuals/", options, { abort }),
+    list: (options, abort?) => get("/individuals/", options, { abort }),
     listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
     search: (q, options) => get("/individuals/search/", { q, ...options }),
   },
@@ -120,7 +121,7 @@ const api = {
 
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
-    list: (options, abort) => get("/libraries/", options, { abort }),
+    list: (options, abort?) => get("/libraries/", options, { abort }),
     listExport: options => get("/libraries/list_export/", {format: "csv", ...options}),
     summary: () => get("/libraries/summary/"),
     template: {
@@ -137,7 +138,7 @@ const api = {
 
   libraryTypes: {
     get: libraryTypeId => get(`/library-types/${libraryTypeId}/`),
-    list: (options, abort) => get("/library-types/", options, { abort }),
+    list: (options, abort?) => get("/library-types/", options, { abort }),
   },
 
   metrics: {
@@ -146,22 +147,22 @@ const api = {
 
   platforms: {
     get: platformId => get(`/platforms/${platformId}/`),
-    list: (options, abort) => get("/platforms/", options, { abort }),
+    list: (options, abort?) => get("/platforms/", options, { abort }),
   },
 
   pooledSamples: {
-    list: (options, abort) => get("/pooled-samples/", options, { abort }),
+    list: (options, abort?) => get("/pooled-samples/", options, { abort }),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
   },
 
   processes: {
     get: processId => get(`/processes/${processId}/`),
-    list: (options, abort) => get("/processes/", options, { abort }),
+    list: (options, abort?) => get("/processes/", options, { abort }),
   },
 
   processMeasurements: {
     get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
-    list: (options, abort) => get("/process-measurements/", options, { abort }),
+    list: (options, abort?) => get("/process-measurements/", options, { abort }),
     listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
     search: q => get("/process-measurements/search/", { q }),
     summary: () => get("/process-measurements/summary/"),
@@ -176,7 +177,7 @@ const api = {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
-    list: (options, abort) => get("/projects/", options, { abort }),
+    list: (options, abort?) => get("/projects/", options, { abort }),
     listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
     summary: () => get("/projects/summary/"),
     template: {
@@ -187,19 +188,19 @@ const api = {
   },
 
   propertyValues: {
-    list: (options, abort) => get("/property-values/", options, { abort }),
+    list: (options, abort?) => get("/property-values/", options, { abort }),
   },
 
   protocols: {
-    list:  (options, abort) => get("/protocols/", options, { abort }),
-    lastProtocols: (options, abort) => get("/protocols/last_protocols/", options, { abort }),
+    list:  (options, abort?) => get("/protocols/", options, { abort }),
+    lastProtocols: (options, abort?) => get("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {
     get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
     add: referenceGenome => post(`/reference-genomes/`, referenceGenome),
     update: referenceGenome => patch(`/reference-genomes/${referenceGenome.id}/`, referenceGenome),
-    list: (options, abort) => get('/reference-genomes/', options, { abort }),
+    list: (options, abort?) => get('/reference-genomes/', options, { abort }),
     search: q => get("/reference-genomes/search/", { q }),
   },
 
@@ -207,7 +208,7 @@ const api = {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     update: sample => patch(`/samples/${sample.id}/`, sample),
-    list: (options, abort) => get("/samples/", options, { abort }),
+    list: (options, abort?) => get("/samples/", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
@@ -238,11 +239,11 @@ const api = {
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
     executeAutomation: (stepId, additionalData, options) => filteredpost(`/sample-next-step/execute_automation/`, {...options}, form({step_id: stepId, additional_data: additionalData, ...options}),),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
-    labworkStepSummary: (stepId, groupBy, options, sample__id__in) => filteredpost('/sample-next-step/labwork_step_info/', {...options, step__id__in: stepId, group_by: groupBy}, { sample__id__in }),
-    listSamplesAtStep: (stepId, options, sample__id__in) => filteredpost('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
+    labworkStepSummary: (stepId: FMSId, groupBy: string, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<LabworkStepInfo>>('/sample-next-step/labwork_step_info/', {...options, step__id__in: stepId, group_by: groupBy}, { sample__id__in }),
+    listSamplesAtStep: (stepId: FMSId, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
-      request: (templateID, user_prefill_data, placement_data, sample__id__in,  options) => filteredpost('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID, sample__id__in }))
+      request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string,  options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID, sample__id__in }))
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),
@@ -256,12 +257,12 @@ const api = {
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
-    list: (options, abort) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
+    list: (options, abort?) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },
 
   sequences: {
     get: sequenceId => get(`/sequences/${sequenceId}/`),
-    list: (options, abort) => get("/sequences/", options, { abort }),
+    list: (options, abort?) => get("/sequences/", options, { abort }),
   },
 
   stepHistory: {
@@ -270,14 +271,14 @@ const api = {
   },
 
   steps: {
-    list: (options, abort) => get('/steps/', options, { abort} ),
+    list: (options, abort?) => get('/steps/', options, { abort} ),
   },
 
   studies: {
     get: studyId => get(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
-    list: (options, abort) => get('/studies', options, {abort}),
+    list: (options, abort?) => get('/studies', options, {abort}),
     listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
@@ -286,7 +287,7 @@ const api = {
     get: taxonId => get(`/taxons/${taxonId}/`),
     add: taxon => post(`/taxons/`, taxon),
     update: taxon => patch(`/taxons/${taxon.id}/`, taxon),
-    list: (options, abort) => get("/taxons/", options, { abort }),
+    list: (options, abort?) => get("/taxons/", options, { abort }),
     search: q => get("/taxons/search/", { q }),
   },
 
@@ -295,18 +296,18 @@ const api = {
     add: user => post("/users/", user),
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
-    list: (options, abort) => get("/users/", options, { abort }),
+    list: (options, abort?) => get("/users/", options, { abort }),
     listRevisions: (userId, options = {}) => get(`/revisions/`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions/`, { revision__user: userId, ...options }),
   },
 
   workflows: {
     get: workflowId => get(`/workflows/${workflowId}/`),
-    list: (options, abort) => get('/workflows/', options, { abort })
+    list: (options, abort?) => get('/workflows/', options, { abort })
   },
 
   groups: {
-    list: (options, abort) => get("/groups/", options, { abort }),
+    list: (options, abort?) => get("/groups/", options, { abort }),
   },
 
   query: {
@@ -314,23 +315,30 @@ const api = {
   },
 
   sample_lineage: {
-    get: sampleId => get(`/sample-lineage/${sampleId}/graph/`)
+    get: (sampleId: FMSId) => get<JsonResponse>(`/sample-lineage/${sampleId}/graph/`)
   }
 };
 
 
 export default api;
 
-export function withToken(token, fn) {
-  return (...args) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
+type WithTokenFn<R extends ResponseWithData<any>> = (...args: any[]) => (_: undefined, getState: () => AuthTokensAccess) => Promise<R>
+export function withToken<R extends ResponseWithData<any>>(token: string | undefined, fn: WithTokenFn<R>) {
+  return (...args: Parameters<typeof fn>) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
 }
 
-const ongoingRequests = {}
+const ongoingRequests: Record<string, AbortController> = {}
 
-function apiFetch(method, route, body, options = { abort: false }) {
+type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
+interface APIFetchOptions {
+  abort: boolean
+}
+interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
+
+function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
   const baseRoute = getPathname(route)
 
-  return (_, getState) => {
+  return (_: any, getState: () => AuthTokensAccess) => {
 
     const accessToken = getState().auth.tokens.access;
 
@@ -343,7 +351,7 @@ function apiFetch(method, route, body, options = { abort: false }) {
       headers["content-type"] = "application/json"
 
     // For abortable requests
-    let signal
+    let signal: AbortSignal | undefined
     if (options.abort) {
       const controller = new AbortController()
       signal = controller.signal
@@ -372,7 +380,7 @@ function apiFetch(method, route, body, options = { abort: false }) {
       }
       return res
     })
-    .then(attachData)
+    .then((response) => attachData<R>(response))
     .then(response => {
       if (response.ok) {
         return response;
@@ -382,31 +390,43 @@ function apiFetch(method, route, body, options = { abort: false }) {
   };
 }
 
-function get(route, queryParams, options) {
+type QueryParams = Parameters<typeof qs>[0]
+
+function get<R extends ResponseWithData<any>>(route: string, queryParams?: QueryParams, options?: APIFetchOptions) {
   const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
-  return apiFetch('GET', fullRoute, undefined, options);
+  return apiFetch<R>('GET', fullRoute, undefined, options);
 }
 
-function filteredpost(route, queryParams, body, options) {
+function filteredpost<R extends ResponseWithData<any>>(route: string, queryParams: QueryParams, body: any, options?: APIFetchOptions) {
   const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
-  return apiFetch('POST', fullRoute, body, options);
+  return apiFetch<R>('POST', fullRoute, body, options);
 }
 
-function post(route, body, options) {
-  return apiFetch('POST', route, body, options);
+function post<R extends ResponseWithData<any>>(route: string, body: any, options?: APIFetchOptions) {
+  return apiFetch<R>('POST', route, body, options);
 }
 
-function patch(route, body, options) {
-  return apiFetch('PATCH', route, body, options);
+function patch<R extends ResponseWithData<any>>(route: string, body: any, options?: APIFetchOptions) {
+  return apiFetch<R>('PATCH', route, body, options);
 }
 
-function remove(route, body, options) {
-  return apiFetch('DELETE', route, body, options);
+function remove<R extends ResponseWithData<any>>(route: string) {
+  return apiFetch<R>('DELETE', route);
 }
 
-function createAPIError(response) {
-  let data = response.data;
-  let detail;
+interface ApiError extends Omit<Error, 'stack'> {
+	name: 'APIError'
+	message: string
+  stack: string[]
+	data: Record<string, string[]>
+	fromAPI: boolean
+	status: number
+	statusText: string
+  url: string
+}
+function createAPIError<R extends ResponseWithData<any>>(response: R): ApiError {
+  const data = response.data;
+  let detail: any;
 
   // Server errors
   if (response.isJSON && response.status === 400) {
@@ -424,7 +444,7 @@ function createAPIError(response) {
     ('API error: ' + detail) :
     (`HTTP error ${response.status}: ` + response.statusText + ': ' + response.url)
 
-  const error = new Error(message);
+  const error = new Error(message) as unknown as ApiError;
   error.name = 'APIError';
   error.fromAPI = Boolean(detail);
   error.data = data || {};
@@ -436,7 +456,18 @@ function createAPIError(response) {
   return error;
 }
 
-function attachData(response) {
+interface FMSResponse<T = any> extends Response {
+  isJSON: boolean
+  data: T
+  filename?: string
+}
+interface JsonResponse<T = any> extends FMSResponse<T> { isJSON: true }
+interface ArrayBufferResponse extends FMSResponse<ArrayBuffer> { isJSON: false }
+interface StringResponse extends FMSResponse<string> { isJSON: false }
+interface EmptyResponse extends FMSResponse<Record<string, never>> { isJSON: false }
+type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | EmptyResponse
+
+function attachData<R extends ResponseWithData<any>>(response: Response) {
   const contentType = response.headers.get('content-type') || '' ;
   const contentDispo = response.headers.get('content-disposition');
   const filename = getFilenameOrNull(contentDispo)
@@ -463,40 +494,41 @@ function attachData(response) {
   return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
   .then(data => {
     response.data = data;
-    return response;
+    return response as R
   })
   .catch(() => {
     response.data = {};
-    return response;
+    return response as R // as EmptyResponse (ideally)
   })
 }
 
-function getFilenameOrNull(contentDispo){
+function getFilenameOrNull(contentDispo: string | null) {
   if(contentDispo)
     return contentDispo.split('filename=').length > 1
+      // eslint-disable-next-line no-useless-escape
       ? contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
       : null
   else
     return null
 }
 
-function form(params) {
+function form(params: Record<string, string | Blob>) {
   const formData = new FormData()
-  for (let key in params) {
+  for (const key in params) {
     const value = params[key]
     formData.append(key, value)
   }
   return formData
 }
 
-function isObject(object) {
+function isObject(object: any): object is object {
   return object !== null && typeof object === 'object'
 }
 
-function isFormData(object) {
+function isFormData(object: any): object is FormData {
   return object instanceof FormData
 }
 
-function getPathname(route) {
+function getPathname(route: string) {
   return route.replace(/\?.*$/, '')
 }
