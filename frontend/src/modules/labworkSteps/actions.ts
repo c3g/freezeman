@@ -474,8 +474,8 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 				for (const destinationCell of cells) {
 					if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
 					const sourceCell = selectCell(getState())(destinationCell.placedFrom)
-					if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
-					if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainer}`)
+					if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+					if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
 					placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
 					placementData[sourceCell.sample].push({
 						coordinates: destinationCell.coordinates,
