@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
@@ -73,7 +73,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             return
         }
         dispatch(setActiveDestinationContainer(destinationContainers[newIndex].name))
-    }, [activeDestinationContainer, destinationContainers])
+    }, [activeDestinationContainer?.name, destinationContainers, dispatch])
 
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {
