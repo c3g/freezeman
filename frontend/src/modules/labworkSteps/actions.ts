@@ -353,7 +353,7 @@ export function showSelectionChangedMessage(stepID: FMSId, show: boolean) {
 	}
 }
 
-export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options) => async (dispatch, getState) => {
+export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options, sampleIDs: FMSId[] = []) => async (dispatch, getState) => {
 	const summary = selectLabworkStepSummaryState(getState())
 	if (summary && summary.isFetching) {
 		return
@@ -362,7 +362,7 @@ export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options) =
 	dispatch({ type: GET_LABWORK_STEP_SUMMARY.REQUEST })
 
 	try {
-		const response = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, groupBy, options))
+		const response = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, groupBy, options, sampleIDs))
 		const summary = response.data.results.samples.groups
 		dispatch({
 			type: GET_LABWORK_STEP_SUMMARY.RECEIVE,
@@ -403,7 +403,7 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 		const newContainerNames: (string | null)[] = []
 
         const containerKinds = selectContainerKindsByID(getState())
-        const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", { sample__id__in: sampleIDs.join(',') }))).data
+        const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", {}, sampleIDs))).data
         const containerGroups = values.results.samples.groups
 		for (const containerGroup of containerGroups) {
 			// Handles containers like 'tubes without container'. It assumes there isn't a container named like that.
