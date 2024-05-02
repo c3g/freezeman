@@ -20,6 +20,7 @@ class Step(TrackedModel):
     expected_sample_type = models.CharField(choices=SampleType.choices, default=SampleType.ANY, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="The acceptable sample type for the step.")
     type = models.CharField(choices=StepType.choices, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Type of step.")
     needs_placement = models.BooleanField(default=True, help_text="Samples on this step need a destination container and coordinates assigned.")
+    needs_planning = models.BooleanField(default=False, help_text="Step has a planning template to fill before the main template.")
 
     def __str__(self):
         return self.name

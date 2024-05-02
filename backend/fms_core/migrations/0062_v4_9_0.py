@@ -57,6 +57,7 @@ def add_new_pooling_steps(apps, schema_editor):
                                        protocol_id=protocol.id,
                                        type="PROTOCOL",
                                        needs_placement=False,
+                                       needs_planning=True,
                                        expected_sample_type=step_definition["expected_sample_type"],
                                        created_by_id=admin_user.id,
                                        updated_by_id=admin_user.id)
@@ -75,7 +76,6 @@ def replace_steps_in_existing_workflows(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     StepOrder = apps.get_model("fms_core", "StepOrder")
     SampleNextStep = apps.get_model("fms_core", "SampleNextStep")
-    StepHistory = apps.get_model("fms_core", "StepHistory")
 
     # 2 current workflow step orders are required to be changed from Experiment Run to Capture
     WORFLOW_STEP_ORDER_CHANGES = [
@@ -104,6 +104,21 @@ def replace_steps_in_existing_workflows(apps, schema_editor):
                 reversion.add_to_revision(sample_next_step)
 
 
+def add_needs_planning_to_normalization_steps(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Modify normalization steps needs_planning attribute to True.")
+        reversion.set_user(admin_user)
+
+        steps = Step.objects.filter(protocol__name="Normalization")
+        for step in steps.all():
+            step.needs_planning = True
+            step.save()
+            reversion.add_to_revision(step)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -111,6 +126,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='step',
+            name='needs_planning',
+            field=models.BooleanField(default=False, help_text='Step has a planning template to fill before the main template.'),
+        ),
         migrations.RunPython(
             redefine_current_pooling_step,
             reverse_code=migrations.RunPython.noop,
@@ -121,6 +141,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             replace_steps_in_existing_workflows,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            add_needs_planning_to_normalization_steps,
             reverse_code=migrations.RunPython.noop,
         ),
     ]

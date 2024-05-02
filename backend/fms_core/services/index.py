@@ -119,7 +119,31 @@ def _reverse_complement(sequence):
 
 # Test each listed index against each other, given the instrument type reading sense and the length provided for each index part.
 # If not provided (both 0) the length will be automatically calculated.
-def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=0, threshold=None):
+def validate_indices(indices, index_read_direction_5_prime=INDEX_READ_FORWARD, index_read_direction_3_prime=INDEX_READ_FORWARD, length_5_prime=0, length_3_prime=0, threshold=None):
+    """
+    Validate a set of index against each other to ensure they do not collide.
+
+    Args:
+        `indices`: List of index object to be tested
+        `index_read_direction_5_prime`: Direction the 5 prime index is read in the sequencer. Default to INDEX_READ_FORWARD.
+        `index_read_direction_3_prime`: Direction the 3 prime index is read in the sequencer. Default to INDEX_READ_FORWARD.
+        `length_5_prime`: Length the algorithm tests each 5 prime index. Default to the calculated value for given indices.
+        `length_3_prime`: Length the algorithm tests each 3 prime index. Default to the calculated value for given indices.
+        `threshold`: Number of differences (distance) allowed before calling a collision. A threshold of 0 test if 2 indices are identical.
+
+    Returns:
+        Tuple with validation results, the errors and the warnings.
+        results : `index_read_direction_5_prime`: Read direaction 5 prime.
+                  `index_read_direction_3_prime`: Read direaction 3 prime.
+                  `validation_length_is_calculated`: Flag indicating if the validation length was calculated or given.
+                  `validation_length_5prime`: Length used for validation 5 prime indices.
+                  `validation_length_3prime`: Length used for validation 3 prime indices.
+                  `threshold`: Distance used to declare validity.
+                  `header`: Header of the distance matrix (index ids)
+                  `distances`: Matrix with distances between each indices.
+                  `is_valid`: Boolean declaring validity using the given threshold. Not populated if no threshold provided.
+
+    """
     results = {}
     errors = []
     warnings = []
@@ -134,9 +158,6 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
     if len(indices) == 0:
         warnings.append(("No indices were provided for validation.", []))
     else:
-        index_read_direction_5_prime = instrument_type.index_read_5_prime
-        index_read_direction_3_prime = instrument_type.index_read_3_prime
-
         # Calculate the length of the default indices.
         # first get the length of each partial index and flanker in a tuple list
         for index in indices:
@@ -240,7 +261,8 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
         if not errors:
             validation_length_5prime = target_min_5prime_length
             validation_length_3prime = target_min_3prime_length
-            results["instrument_type"] = instrument_type.type
+            results["index_read_direction_5_prime"] = index_read_direction_5_prime
+            results["index_read_direction_3_prime"] = index_read_direction_3_prime
             results["validation_length_is_calculated"] = validation_length_is_calculated
             results["validation_length_5prime"] = validation_length_5prime
             results["validation_length_3prime"] = validation_length_3prime
