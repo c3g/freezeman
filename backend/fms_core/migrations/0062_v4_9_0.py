@@ -110,7 +110,7 @@ def add_needs_planning_to_normalization_steps(apps, schema_editor):
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment("Modify normalization steps needs_planning atribute to True.")
+        reversion.set_comment("Modify normalization steps needs_planning attribute to True.")
         reversion.set_user(admin_user)
 
         steps = Step.objects.filter(protocol__name="Normalization")
