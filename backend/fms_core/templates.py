@@ -489,21 +489,22 @@ SAMPLE_METADATA_TEMPLATE = {
 
 SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries",
-               "file": static("submission_templates/Sample_pooling_v4_4_0.xlsx"),
+               "file": static("submission_templates/Sample_pooling_v4_9_0.xlsx"),
                "protocol": "Sample Pooling"},
   "sheets info": [
       {
           "name": "Pools",
-          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name",
-                      "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
-                      "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
+          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Coord",
+                      "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode",
+                      "Destination Parent Container Coord", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
       },
       {
           "name": "SamplesToPool",
-          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Source Depleted", "Current Volume (uL)", "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
+          "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
+                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
+                      "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
       },
@@ -538,6 +539,32 @@ SAMPLE_POOLING_TEMPLATE = {
       ("Pools", "Destination Container Name", "container_name"),
       ("Pools", "Destination Container Kind", "container_kind"),
   ],
+}
+
+SAMPLE_POOLING_PLANNING_TEMPLATE = {
+  "identity": {"description": "Template to perform pooling planning",
+               "file": static("submission_templates/Sample_pooling_planning_v4_9_0.xlsx"),
+               "protocol": "Sample Pooling"},
+  "sheets info": [
+      {
+          "name": "SamplesToPool",
+          "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
+                      "Current NA Quantity (ng)", "NA Quantity Used (ng)", "Source Depleted"],
+          'batch': False,
+      },
+  ],
+  "user prefill info": {
+      "NA Quantity Used (ng)": "number",
+  },
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("SamplesToPool", "Source Sample Name", "name", "name", None),
+      ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SamplesToPool", "Current NA Quantity (ng)", None, "quantity_in_ng", None),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {

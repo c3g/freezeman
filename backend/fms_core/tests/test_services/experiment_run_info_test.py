@@ -42,13 +42,13 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_4_0.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_9_0.xlsx')
 
         self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_4_0.xlsx')
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0_after_capture.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_4_0_after_capture.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_9_0_after_capture.xlsx')
 
 
     def import_template(self, importer, file):
