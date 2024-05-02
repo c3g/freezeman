@@ -44,7 +44,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     queryset = queryset.annotate(
         ordering_container_name=Case(
             When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__name')),
-            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container")),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes without parent container")),
             default=F('sample__container__name'),
             output_field=CharField()
         )
@@ -53,7 +53,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     queryset = queryset.annotate(
         ordering_container_barcode=Case(
             When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__barcode')),
-            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container_barcode")),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes without parent container barcode")),
             default=F('sample__container__barcode'),
             output_field=CharField()
         )
