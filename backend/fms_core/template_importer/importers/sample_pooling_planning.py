@@ -8,7 +8,7 @@ from fms_core.services.id_generator import get_unique_id
 
 from ._generic import GenericImporter
 from .._utils import float_to_decimal_and_none, zip_files
-from fms_core.utils import str_cast_and_normalize, unique, check_truth_like
+from fms_core.utils import str_cast_and_normalize, unique
 from fms_core.services.index import validate_indices
 from fms_core.models._constants import INDEX_READ_FORWARD
 from fms_core.template_importer._constants import INDEX_COLLISION_THRESHOLD
@@ -206,7 +206,7 @@ class SamplePoolingPlanningImporter(GenericImporter):
 
         def build_source_container_dict(src_containers: list[tuple]):
             container_dict = {}
-            for i, (_, barcode) in enumerate(src_containers, start=1):
+            for i, barcode in enumerate(src_containers, start=1):
                 container = Container.objects.get(barcode=barcode)
                 container_dict[container.barcode] = (container, ROBOT_SRC_PREFIX + str(i))
             return container_dict
@@ -244,7 +244,7 @@ class SamplePoolingPlanningImporter(GenericImporter):
             pool_row["Robot Destination Coord"] = i
             output_pool_rows_data[pool_name] = pool_row
 
-        src_containers = unique((sample_row_data["Pool Name"], sample_row_data["Source Container Barcode"]) for sample_row_data in output_sample_rows_data)
+        src_containers = unique(sample_row_data["Source Container Barcode"] for sample_row_data in output_sample_rows_data)
         container_dict = build_source_container_dict(src_containers)
 
         for output_row_data in output_sample_rows_data:
