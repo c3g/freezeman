@@ -835,7 +835,7 @@ class StepSerializer(serializers.ModelSerializer):
     step_specifications = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Step
-        fields = ["id", "name", "type", "protocol_id","needs_placement", "step_specifications"]
+        fields = ["id", "name", "type", "protocol_id","needs_placement", "needs_planning", "step_specifications"]
 
     def get_step_specifications(self, instance):
         step_specifications = instance.step_specifications.all()

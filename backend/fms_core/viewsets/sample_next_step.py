@@ -16,12 +16,14 @@ from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, Workflow
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
 from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
-                                LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE,
-                                LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE,
-                                AXIOM_PREPARATION_TEMPLATE, QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
+                                LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_PLANNING_TEMPLATE, 
+                                SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE,
+                                EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, AXIOM_PREPARATION_TEMPLATE,
+                                QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
 from fms_core.template_importer.importers import (ExtractionImporter, SampleQCImporter, NormalizationPlanningImporter, NormalizationImporter,
-                                                  LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter, LibraryCaptureImporter,
-                                                  LibraryConversionImporter, ExperimentRunImporter, AxiomPreparationImporter, QCIntegrationSparkImporter)
+                                                  LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter,
+                                                  SamplePoolingPlanningImporter, LibraryCaptureImporter, LibraryConversionImporter,
+                                                  ExperimentRunImporter, AxiomPreparationImporter, QCIntegrationSparkImporter)
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin):
     queryset = SampleNextStep.objects.all().distinct()
@@ -155,6 +157,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             "importer": LibraryQCImporter,
         },
         {
+            "name": "Perform Pooling Planning",
+            "description": "Upload the provided template with pooling information to populate pooling template and the robot file.",
+            "template": [SAMPLE_POOLING_PLANNING_TEMPLATE["identity"]],
+            "importer": SamplePoolingPlanningImporter,
+        },
+        {
             "name": "Pool Samples or Libraries",
             "description": "Upload the provided template with information to pool samples or libraries.",
             "template": [SAMPLE_POOLING_TEMPLATE["identity"]],
@@ -190,6 +198,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": SAMPLE_TRANSFER_TEMPLATE},
         {"template": LIBRARY_QC_TEMPLATE},
+        {"template": SAMPLE_POOLING_PLANNING_TEMPLATE},
         {"template": SAMPLE_POOLING_TEMPLATE},
         {"template": LIBRARY_CAPTURE_TEMPLATE},
         {"template": LIBRARY_CONVERSION_TEMPLATE},
