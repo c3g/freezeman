@@ -50,10 +50,7 @@ class PoolsRowHandler(GenericRowHandler):
                         sample_name = sample["alias"]
                         indices.append(sample["library"].index)
                         samples_name.append(sample_name)
-                    results, _, _ = validate_indices(indices=indices,
-                                                     index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
-                                                     index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
-                                                     threshold=INDEX_COLLISION_THRESHOLD)
+                    results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=INDEX_COLLISION_THRESHOLD)
 
                     if not results["is_valid"]:
                         # Verify first for direct collision (raise error in this case)
