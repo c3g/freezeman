@@ -223,7 +223,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                     sample__id__in = self.request.POST["sample__id__in"]
                     sample__id__in = [int(s.strip()) for s in sample__id__in.split(",")]
 
-            if sample__id__in is not None:
+            if sample__id__in:
                 queryset = queryset.filter(sample__id__in=sample__id__in)
 
         return queryset
