@@ -93,12 +93,7 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         if threshold and threshold < 0:
             form_errors["threshold"].append(f"Distance threshold cannot be negative.")
         if not form_errors:
-            results, errors, warnings = validate_indices(indices,
-                                                         instrument_type.index_read_5_prime,
-                                                         instrument_type.index_read_3_prime,
-                                                         length_5prime,
-                                                         length_3prime,
-                                                         threshold)
+            results, errors, warnings = validate_indices(indices, instrument_type, length_5prime, length_3prime, threshold)
         else:
             raise ValidationError(form_errors)
         data = {"form_errors": form_errors,
