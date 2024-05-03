@@ -464,8 +464,8 @@ interface FMSResponse<T = any> extends Response {
 interface JsonResponse<T = any> extends FMSResponse<T> { isJSON: true }
 interface ArrayBufferResponse extends FMSResponse<ArrayBuffer> { isJSON: false }
 interface StringResponse extends FMSResponse<string> { isJSON: false }
-interface EmptyResponse extends FMSResponse<Record<string, never>> { isJSON: false }
-type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | EmptyResponse
+interface AttachDataErrorResponse extends FMSResponse<Record<string, never>> { isJSON: false }
+type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | AttachDataErrorResponse
 
 function attachData<R extends ResponseWithData<any>>(response: Response) {
   const contentType = response.headers.get('content-type') || '' ;
@@ -498,7 +498,7 @@ function attachData<R extends ResponseWithData<any>>(response: Response) {
   })
   .catch(() => {
     response.data = {};
-    return response as R // as EmptyResponse (ideally)
+    return response as R // as AttachDataErrorResponse (ideally)
   })
 }
 
