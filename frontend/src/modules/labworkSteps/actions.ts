@@ -49,11 +49,11 @@ export function initSamplesAtStep(stepID: FMSId) {
       // Request the list of templates for the protocol
       const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id)).then(
         (response) => {
-          let filteredResponse = { ...response }
+          const filteredResponse = { ...response }
           if (!step.needs_planning){
             filteredResponse.data = response.data.filter((template) => {return !template.description.includes("planning")})
           }
-          return response
+          return filteredResponse
         }
       )
 
