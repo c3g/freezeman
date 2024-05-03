@@ -467,7 +467,7 @@ interface StringResponse extends FMSResponse<string> { isJSON: false }
 interface AttachDataErrorResponse extends FMSResponse<Record<string, never>> { isJSON: false }
 type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | AttachDataErrorResponse
 
-function attachData<R extends ResponseWithData<any>>(response: Response) {
+function attachData<R extends ResponseWithData<any>>(response: Response & Partial<ResponseWithData>) {
   const contentType = response.headers.get('content-type') || '' ;
   const contentDispo = response.headers.get('content-disposition');
   const filename = getFilenameOrNull(contentDispo)
