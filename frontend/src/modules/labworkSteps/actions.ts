@@ -311,7 +311,7 @@ export const listTemplateActions = () => (dispatch, getState) => {
  * @returns 
  */
 export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_prefill_data: any, placement_data: any) => {
-	return async (dispatch, getState) => {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (step) {
@@ -362,7 +362,7 @@ export function showSelectionChangedMessage(stepID: FMSId, show: boolean) {
 	}
 }
 
-export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options, sampleIDs: FMSId[] = []) => async (dispatch, getState) => {
+export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options, sampleIDs: FMSId[] = []) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	const summary = selectLabworkStepSummaryState(getState())
 	if (summary && summary.isFetching) {
 		return
