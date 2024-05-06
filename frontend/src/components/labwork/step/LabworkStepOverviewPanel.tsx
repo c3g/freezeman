@@ -47,6 +47,7 @@ const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, 
 
   useEffect(() => {
     dispatch(loadSamplesAtStep(stepID, 1))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])
 
 	return (
