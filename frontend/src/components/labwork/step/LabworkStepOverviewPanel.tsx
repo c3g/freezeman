@@ -43,8 +43,12 @@ const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, 
     const value: FilterValue = grouping===GROUPING_CREATION_DATE ? {min: groupingValue, max: groupingValue} : groupingValue
     setFilterOptions && setFilterOptions(grouping.key, 'exactMatch', true, grouping)
     setFilter && setFilter(grouping.key, value, grouping)
-    dispatch(loadSamplesAtStep(stepID, 1))
 	}, [clearFilters, dispatch, grouping, groupingValue, setFilter, setFilterOptions, stepID])
+
+  useEffect(() => {
+    dispatch(loadSamplesAtStep(stepID, 1))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters])
 
 	return (
 		<>
