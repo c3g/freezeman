@@ -5,14 +5,14 @@ import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
-import { useAppDispatch } from '../../../hooks'
+import { useAppDispatch, useAppSelector, useSampleAndLibraryList } from '../../../hooks'
 import { loadSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { selectLabworkStepsState } from '../../../selectors'
 
 export interface LabworkStepPanelProps {
   refreshing: boolean
   grouping: FilterDescription
   groupingValue: string
-  samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
 	clearFilters?: (boolean?) => void,
@@ -31,17 +31,24 @@ export interface LabworkStepPanelProps {
 	stepID: FMSId
 }
 
-const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
+const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
 
   const dispatch = useAppDispatch()
+
+  const stepSamples = useAppSelector(selectLabworkStepsState)?.steps[stepID]
+  const [samples, isFetchingSamples] = useSampleAndLibraryList(stepSamples?.displayedSamples ?? [])
 
   useEffect(() => {
     clearFilters && clearFilters(false)
     const value: FilterValue = grouping===GROUPING_CREATION_DATE ? {min: groupingValue, max: groupingValue} : groupingValue
     setFilterOptions && setFilterOptions(grouping.key, 'exactMatch', true, grouping)
     setFilter && setFilter(grouping.key, value, grouping)
-    dispatch(loadSamplesAtStep(stepID, 1))
 	}, [clearFilters, dispatch, grouping, groupingValue, setFilter, setFilterOptions, stepID])
+
+  useEffect(() => {
+    dispatch(loadSamplesAtStep(stepID, 1))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters])
 
 	return (
 		<>
@@ -57,7 +64,7 @@ const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, 
 				selection={selection}
 				setSortBy={setSortBy}
 				pagination={pagination}
-				loading={refreshing}
+				loading={refreshing || isFetchingSamples}
 			/>
 		</>
 	)

@@ -1,14 +1,20 @@
+import { notification } from "antd"
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
+import { FMSContainer, FMSId, FMSPagedResultsReponse, FMSSampleNextStep, LabworkStepInfo } from "../../models/fms_api_models"
+import { Step } from "../../models/frontend_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
-import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState } from "../../selectors"
+import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState, selectContainerKindsByID } from "../../selectors"
+import { AppDispatch, RootState } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
-import { fetchLibrariesForSamples, fetchSamples } from "../cache/cache"
-import { list as listSamples} from "../samples/actions"
+import { flushContainers as flushPlacementContainers, loadContainer as loadPlacementContainer } from "../placement/reducers"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
-import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS } from "./reducers"
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES, loadSourceContainer, flushContainers as flushLabworkStepPlacementContainers } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
+import { downloadFromFile } from "../../utils/download"
+import { fetchSamples } from "../cache/cache"
+import { selectDestinationContainers, selectSourceContainers } from "./selectors"
+import { selectCell, selectContainer } from "../placement/selectors"
 
 
 // Initialize the redux state for samples at step
@@ -41,7 +47,16 @@ export function initSamplesAtStep(stepID: FMSId) {
       const templateActions = selectSampleNextStepTemplateActions(getState())
 
       // Request the list of templates for the protocol
-      const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id))
+      const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id)).then(
+        (response) => {
+          const filteredResponse = { ...response }
+          if (!step.needs_planning){
+            filteredResponse.data = response.data.filter((template) => {return !template.description.includes("planning")})
+          }
+          return filteredResponse
+        }
+      )
+
 
       // Convert templates to a list of template descriptors, which include a 'Submit Templates' url.
       const templates = templatesResponse.data.map((templateItem: LabworkPrefilledTemplateDescriptor) => {
@@ -86,35 +101,7 @@ export function initSamplesAtStep(stepID: FMSId) {
 		await dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
-export function selectAllSamplesAtStep(stepID: FMSId) {
-	return async (dispatch, getState) => {
-		const labworkState = selectLabworkStepsState(getState())
-		const stepSamples = labworkState.steps[stepID]
-		if (!stepSamples) {
-			throw new Error(`No step samples state found for step ID "${stepID}"`)
-		}
-		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
-		const ordering = serializeSortByParams(stepSamples.pagedItems.sortBy)
-		const options = {
-			ordering,
-			...serializedFilters
-		}
-		const response = await dispatch(api.sampleNextStep.listSamplesAtStep(stepID, options))
-		const results = response.data.results;
-		if (results) {
-			const selectedSampleIDs = results.map(nextStep => nextStep.sample)
-			// We have to load all of the selected samples and libraries for the selected
-			// samples table to work properly. This is pretty expensive and the table should
-			// be refactored to load pages of samples on demand.
-			await fetchSamples(selectedSampleIDs)
-			await fetchLibrariesForSamples(selectedSampleIDs)
-			
-			dispatch(updateSelectedSamplesAtStep(stepID, selectedSampleIDs))
-		}	
-		else
-			return
-	}
-}
+
 export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	return async (dispatch, getState) => {
 		const labworkState = selectLabworkStepsState(getState())
@@ -145,8 +132,7 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 		if (response.count > 0) {
 			// Load the associated samples/libraries
 			const sampleIDs = response.results.map(nextStep => nextStep.sample)
-			const options = { id__in: sampleIDs.join(',') }
-			dispatch(listSamples(options))
+			await fetchSamples(sampleIDs)
 		}
 	}
 }
@@ -158,14 +144,15 @@ export function refreshSamplesAtStep(stepID: FMSId) {
 		const step = labworkStepsState.steps[stepID]
 		if (token && step) {
 			const pageNumber = step.pagedItems.page?.pageNumber ?? 1
-			dispatch(loadSamplesAtStep(stepID, pageNumber))
+			await dispatch(loadSamplesAtStep(stepID, pageNumber))
 
-			if (step.selectedSamples.length > 0) {
-				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples, step.selectedSamplesSortDirection)
-				if (refreshedSelection.length !== step.selectedSamples.length) {
+			if (step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted && !step.selectedSamples.isFetching) {
+				dispatch(sortingSelectedSamples(stepID))
+				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples.items, step.selectedSamples.sortDirection)
+				if (refreshedSelection.length !== step.selectedSamples.items.length) {
 					dispatch(showSelectionChangedMessage(stepID, true))
 				}
-				dispatch(setSelectedSamples(stepID, refreshedSelection))
+				dispatch(receiveSortedSelectedSamples(stepID, refreshedSelection))
 			}
 		}
 	}
@@ -188,9 +175,10 @@ export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
-		if (token && step) {
-			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs, step.selectedSamplesSortDirection)
-			dispatch(setSelectedSamples(stepID, sortedSelection))
+		if (token && step && !step.selectedSamples.isSorted && !step.selectedSamples.isFetching) {
+			dispatch(sortingSelectedSamples(stepID))
+			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs, step.selectedSamples.sortDirection)
+			dispatch(receiveSortedSelectedSamples(stepID, sortedSelection))
 		}
 	}
 }
@@ -208,23 +196,37 @@ function reloadSelectedSamplesAtStep(stepID: FMSId) {
 		const token = selectAuthTokenAccess(getState())
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
-		if (token && step && step.selectedSamples.length > 0) {
-			const sortedSelection = await refreshSelectedSamplesAtStep(token, step.stepID, step.selectedSamples, step.selectedSamplesSortDirection)
-			dispatch(setSelectedSamples(stepID, sortedSelection))
+		if (token && step && step.selectedSamples.items.length > 0 && !step.selectedSamples.isSorted && !step.selectedSamples.isFetching) {
+			dispatch(sortingSelectedSamples(stepID))
+			const sortedSelection = await refreshSelectedSamplesAtStep(token, step.stepID, step.selectedSamples.items, step.selectedSamples.sortDirection)
+			dispatch(receiveSortedSelectedSamples(stepID, sortedSelection))
 		}
 	}
 }
 
-export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
+export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[], isSorted = false) {
 	return {
 		type: SET_SELECTED_SAMPLES,
 		stepID,
-		sampleIDs
+		sampleIDs,
+		isSorted
+	}
+}
+
+export function unselectSamples(stepID: FMSId, unselectedSampleIDs: FMSId[]) {
+	return (dispatch: AppDispatch, getState: () => RootState) => {
+		const labworkStepsState = selectLabworkStepsState(getState())
+		const step = labworkStepsState.steps[stepID]
+		if (step) {
+			const unselectedSampleIDSet = new Set(unselectedSampleIDs)
+			const retainedSampleIDs = step.selectedSamples.items.filter((sampleID) => !unselectedSampleIDSet.has(sampleID))
+			dispatch(setSelectedSamples(stepID, retainedSampleIDs, true))
+		}
 	}
 }
 
 export function clearSelectedSamples(stepID: FMSId) {
-	return setSelectedSamples(stepID, [])
+	return setSelectedSamples(stepID, [], true)
 }
 
 export function flushSamplesAtStep(stepID: FMSId) {
@@ -309,17 +311,16 @@ export const listTemplateActions = () => (dispatch, getState) => {
  * @returns 
  */
 export const requestPrefilledTemplate = (templateID: FMSId, stepID: FMSId, user_prefill_data: any, placement_data: any) => {
-	return async (dispatch, getState) => {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const labworkStepsState = selectLabworkStepsState(getState())
 		const step = labworkStepsState.steps[stepID]
 		if (step) {
 			const options = {
 				step__id__in: stepID,
-				sample__id__in: step.selectedSamples.join(','),
-				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
+				ordering: getCoordinateOrderingParams(step.selectedSamples.sortDirection),
 			}
 			// {"Volume Used (uL)" : "30"}
-			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data), JSON.stringify(placement_data), options))
+			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, JSON.stringify(user_prefill_data), JSON.stringify(placement_data), step.selectedSamples.items.join(','), options))
 			return fileData
 		}
 	}
@@ -338,8 +339,8 @@ export const requestAutomationExecution = (stepID: FMSId, additionalData: object
 		if (step) {
 			const options = {
 				step__id__in: stepID,
-				sample__id__in: step.selectedSamples.join(','),
-				ordering: getCoordinateOrderingParams(step.selectedSamplesSortDirection),
+				sample__id__in: step.selectedSamples.items.join(','),
+				ordering: getCoordinateOrderingParams(step.selectedSamples.sortDirection),
 			}
 			const response = await dispatch(api.sampleNextStep.executeAutomation(stepID, JSON.stringify(additionalData), options))
 			return response
@@ -361,7 +362,7 @@ export function showSelectionChangedMessage(stepID: FMSId, show: boolean) {
 	}
 }
 
-export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options) => async (dispatch, getState) => {
+export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options, sampleIDs: FMSId[] = []) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	const summary = selectLabworkStepSummaryState(getState())
 	if (summary && summary.isFetching) {
 		return
@@ -370,7 +371,7 @@ export const getLabworkStepSummary = (stepID: FMSId, groupBy: string, options) =
 	dispatch({ type: GET_LABWORK_STEP_SUMMARY.REQUEST })
 
 	try {
-		const response = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, groupBy, options))
+		const response = await dispatch(api.sampleNextStep.labworkStepSummary(stepID, groupBy, options, sampleIDs))
 		const summary = response.data.results.samples.groups
 		dispatch({
 			type: GET_LABWORK_STEP_SUMMARY.RECEIVE,
@@ -391,3 +392,124 @@ export function setSelectedSamplesInGroups(sampleIDs: FMSId[]) {
 	}
 }
 
+function sortingSelectedSamples(stepID: FMSId) {
+	return {
+		type: REFRESH_SELECTED_SAMPLES.REQUEST,
+		stepID
+	}
+}
+function receiveSortedSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
+	return {
+		type: REFRESH_SELECTED_SAMPLES.RECEIVE,
+		stepID,
+		sampleIDs
+	}
+}
+
+export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) {
+    return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const oldContainerNames = selectSourceContainers(getState()).map((c) => c.name)
+		const newContainerNames: (string | null)[] = []
+
+        const containerKinds = selectContainerKindsByID(getState())
+        const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", {}, sampleIDs))).data
+        const containerGroups = values.results.samples.groups
+		for (const containerGroup of containerGroups) {
+			// Handles containers like 'tubes without container'. It assumes there isn't a container named like that.
+			const [containerDetail] = await dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
+			if (containerDetail) {
+                const spec = containerKinds[containerDetail.kind].coordinate_spec
+				dispatch(loadPlacementContainer({
+					parentContainerName: containerDetail.name,
+					spec,
+					cells: containerGroup.sample_locators.map((locator) => {
+                        return {
+                            sample: locator.sample_id,
+                            coordinates: locator.contextual_coordinates
+                        }
+                    })
+				}))
+				dispatch(loadSourceContainer({
+					name: containerDetail.name,
+					spec,
+					barcode: containerDetail.barcode,
+					kind: containerDetail.kind
+				}))
+				newContainerNames.push(containerDetail.name)
+            } else {
+				dispatch(loadPlacementContainer({
+					parentContainerName: null,
+					cells: containerGroup.sample_locators.map((locator) => {
+                        return {
+                            sample: locator.sample_id,
+                        }
+                    })
+				}))
+				dispatch(loadSourceContainer({
+					name: null,
+					spec: []
+				}))
+				newContainerNames.push(null)
+            }
+		}
+
+		// remove outdated containers in placement
+		const toFlushContainers = oldContainerNames.filter((n) => !newContainerNames.includes(n))
+		dispatch(flushPlacementContainers(toFlushContainers))
+		dispatch(flushLabworkStepPlacementContainers(toFlushContainers))
+
+		return newContainerNames
+    }
+}
+
+export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, step: Step, prefillData: { [column: string]: any }) {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		type PlacementData = {
+			[key in FMSId]: {
+				coordinates: string,
+				container_name: string,
+				container_barcode: string,
+				container_kind: string
+			}[]
+		}
+		
+		let placementData: PlacementData = {}
+		try {
+			const destinationContainers = selectDestinationContainers(getState())
+
+			placementData = destinationContainers.reduce((placementData, destinationContainer) => {
+				const cells = selectContainer(getState())({ name: destinationContainer.name })?.cells
+				if (!cells) throw new Error(`Could not find destination container in placement for '${destinationContainer.name}'`)
+				for (const destinationCell of cells) {
+					if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
+					const sourceCell = selectCell(getState())(destinationCell.placedFrom)
+					if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+					if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+					placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
+					placementData[sourceCell.sample].push({
+						coordinates: destinationCell.coordinates,
+						container_name: destinationContainer.name,
+						container_barcode: destinationContainer.barcode as string,
+						container_kind: destinationContainer.kind as string
+					})
+				}
+				return placementData
+			}, {} as PlacementData)
+		} catch (e) {
+			notification.error({
+				message: e.message,
+				key: 'LabworkStep.Placement.Prefilling-Failed',
+				duration: 20
+			})
+		}
+
+		try {
+			const result = await dispatch(requestPrefilledTemplate(template.id, step.id, prefillData, placementData))
+			if (result) {
+				downloadFromFile(result.filename, result.data)
+			}
+		} catch (err) {
+			console.error(err)
+		}
+	}
+}

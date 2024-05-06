@@ -449,7 +449,7 @@ class SampleExportSerializer(serializers.Serializer):
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
-                  'location_barcode', 'location_coord', 'container_full_location',
+                  'location_barcode', 'location_coord', 'container_full_location', 'site',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
                   'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'derived_samples_counts', 'comment')
@@ -598,7 +598,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "project_name", "metric_report_url", "readset_count", "archived_comments")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
@@ -835,7 +835,7 @@ class StepSerializer(serializers.ModelSerializer):
     step_specifications = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Step
-        fields = ["id", "name", "type", "protocol_id","needs_placement", "step_specifications"]
+        fields = ["id", "name", "type", "protocol_id","needs_placement", "needs_planning", "step_specifications"]
 
     def get_step_specifications(self, instance):
         step_specifications = instance.step_specifications.all()

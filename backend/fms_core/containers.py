@@ -57,6 +57,7 @@ __all__ = [
     "CONTAINER_SPEC_FREEZER_4_SHELVES",
     "CONTAINER_SPEC_FREEZER_5_SHELVES",
     "CONTAINER_SPEC_ROOM",
+    "CONTAINER_SPEC_SITE",
     "CONTAINER_SPEC_BOX",
 
     "CONTAINER_KIND_SPECS",
@@ -653,6 +654,25 @@ CONTAINER_SPEC_ROOM = ContainerSpec(
         CONTAINER_SPEC_FREEZER_5_SHELVES,
         *FREEZER_RACK_SPECS,
         CONTAINER_SPEC_BOX,
+    ),
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_SITE = ContainerSpec(
+    container_kind_id="site",
+    coordinate_spec=(),
+    coordinate_overlap_allowed=True,
+    children=(
+        *RUN_CONTAINER_SPECS,
+        *COMMON_CHILDREN,
+        CONTAINER_SPEC_TUBE,
+        *TUBE_STRIP_SPECS,
+        CONTAINER_SPEC_FREEZER_3_SHELVES,
+        CONTAINER_SPEC_FREEZER_4_SHELVES,
+        CONTAINER_SPEC_FREEZER_5_SHELVES,
+        *FREEZER_RACK_SPECS,
+        CONTAINER_SPEC_BOX,
+        CONTAINER_SPEC_ROOM,
     ),
     is_run_container=False,
 )

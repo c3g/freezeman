@@ -6,7 +6,9 @@ import moment from 'moment'
 import { FilterDescription } from '../../models/paged_items'
 import { FILTER_TYPE } from '../../constants'
 import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
-import { Filter } from 'rambda/_ts-toolbelt/src/Object/Filter'
+import { Button } from 'antd'
+import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
+import { ValidationStatus } from '../../models/fms_api_models'
 
 
 export interface ObjectWithDataset {
@@ -18,6 +20,7 @@ enum DatasetColumnID {
 	RUN = 'RUN',
 	PROJECT = 'PROJECT',
 	LANE = 'LANE',
+	VALIDATION_STATUS = 'VALIDATION_STATUS',
 	READSETS_RELEASED = 'READSETS_RELEASED',
 	LATEST_UPDATE = 'LATEST_UPDATE'
 }
@@ -50,6 +53,18 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		columnID: DatasetColumnID.LANE,
 		title: 'Lane',
 		dataIndex: ['dataset', 'lane']
+	},
+	[DatasetColumnID.VALIDATION_STATUS]: {
+		columnID: DatasetColumnID.VALIDATION_STATUS,
+		title: 'Validation Status',
+		dataIndex: ['dataset', 'validation_status'],
+		render: (_, {dataset: { validation_status }}) => {
+			return (
+				(validation_status === ValidationStatus.PASSED && <Button style={{color: "#a0d911"}}><CheckOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>Passed</Button>)
+				||
+				(validation_status === ValidationStatus.FAILED && <Button style={{color: "#f5222d"}}><CloseOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>Failed</Button>)
+			)
+		}
 	},
 	[DatasetColumnID.READSETS_RELEASED]: {
 		columnID: DatasetColumnID.READSETS_RELEASED,

@@ -35,7 +35,7 @@ class StepServicesTestCase(TestCase):
     def test_get_step_from_template_batch(self):
         # extract sheets from axiom sample preparation for test
         sheet_info = templates.AXIOM_PREPARATION_TEMPLATE["sheets info"]
-        file = APP_DATA_ROOT / "Axiom_sample_preparation_v4_5_0.xlsx"
+        file = APP_DATA_ROOT / "Axiom_sample_preparation_v4_9_0.xlsx"
         sheets = {}
         for sheet in sheet_info:
             pd_sheet = pd.read_excel(file, sheet_name=sheet["name"], header=None)

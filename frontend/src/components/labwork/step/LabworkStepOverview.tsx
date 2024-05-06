@@ -2,7 +2,7 @@ import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
-import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, unselectSamples } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
 import LabworkStepOverviewPanel, { LabworkStepPanelProps } from './LabworkStepOverviewPanel'
 import { selectLabworkStepSummaryState } from '../../../selectors'
@@ -21,9 +21,7 @@ const { Title } = Typography
 interface LabworkStepCollapseProps {
   step: Step,
   refreshing: boolean
-  setIsSorted: (sorted: boolean) => void
   stepSamples: LabworkStepSamples
-  samples: SampleAndLibrary[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
 	clearFilters?: (refresh?: boolean) => void,
@@ -41,7 +39,7 @@ interface LabworkStepCollapseProps {
 	}
 }
 
-const MAX_STEP_SAMPLE_SELECTION = 572
+const MAX_STEP_SAMPLE_SELECTION = 1000
 
 // If the filters do not work as expectd, check the filtering rules for sample_next_step endpoint (e.g. /backend/fms_core/viewsets/_constants.py, /backend/fms_core/filters.py)
 export const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key: "sample__derived_samples__project__name"}
@@ -49,23 +47,18 @@ export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", 
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
+const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
   const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
-  const [FetchingSamples, setFetchingSamples] = useState<boolean>(false)
   
-  const loading = refreshing || FetchingSamples || labworkStepSummary.isFetching
+  const loading = refreshing  || labworkStepSummary.isFetching
 
   useEffect(() => {
-    // need to preserve stepSamples.selectedSamples
-    // because getLabworkStepSummary will change
-    // stepSamples.selectedSamples
-    const selectedSamples = [...stepSamples.selectedSamples]
     dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
-      dispatch(setSelectedSamplesInGroups(selectedSamples))
+        dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
     })
-  }, [activeGrouping.key, step.id])
+  }, [activeGrouping.key, dispatch, step.id, stepSamples.selectedSamples.items])
 
   const handleChangeActiveGrouping = useCallback((grouping) => {
     clearFilters && clearFilters(false)
@@ -73,7 +66,7 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
   }, [])
 
   const handleSelectGroup = useCallback(async (groupSampleIds: FMSId[]) => {
-    const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples, groupSampleIds)
+    const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples.items, groupSampleIds)
     if (mergedSelection.length > MAX_STEP_SAMPLE_SELECTION) {
       const TOO_MANY_SELECTED_NOTIFICATION_KEY = `LabworkStep.too-many-sample-selected-${step.id}`
         notification.error({
@@ -83,20 +76,13 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
         })
     }
     else {
-      setIsSorted(false)
-      setFetchingSamples(true)
-      await fetchSamples(mergedSelection)
-      await fetchLibrariesForSamples(mergedSelection)	
-      await dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
-      setFetchingSamples(false)
+      dispatch(setSelectedSamples(step.id, mergedSelection))
     }
-  }, [stepSamples.selectedSamples, step.id, dispatch])
+  }, [stepSamples.selectedSamples.items, step.id, dispatch])
 
-  const handleClearGroup = useCallback(async (groupSampleIds: FMSId[]) => {    
-    setFetchingSamples(true)
-    await dispatch(updateSelectedSamplesAtStep(step.id, stepSamples.selectedSamples.filter(id => !groupSampleIds.includes(id))))
-    setFetchingSamples(false)
-  }, [dispatch, step.id, stepSamples.selectedSamples])
+  const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {   
+    dispatch(unselectSamples(step.id, groupSampleIds))
+  }, [dispatch, step.id])
 
 	return (
 		<>
@@ -122,12 +108,11 @@ const LabworkStepOverview = ({step, refreshing, setIsSorted, stepSamples, sample
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
-                refreshing={loading}
+                refreshing={refreshing || labworkStepSummary.isFetching}
                 grouping={activeGrouping}
                 groupingValue={group.name}
                 clearFilters={clearFilters}
 							  hasFilter={true}
-                samples={samples}
                 columns={columns}
                 filterDefinitions={filterDefinitions}
                 filterKeys={filterKeys}

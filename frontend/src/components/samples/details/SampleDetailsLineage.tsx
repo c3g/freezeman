@@ -86,10 +86,10 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
   const [nodesToEdges, setNodesToEdges] = useState<{ [key: string]: SampleLineageGraphProcessMeasurement }> ({})
   
   useEffect(() => {
-    if (sample.id === undefined) {
-      return;
-    }
     (async () => {
+      if (sample.id === undefined) {
+        return;
+      }
       const result = await dispatch(api.sample_lineage.get(sample.id))
 
       // the node is a subset of Sample

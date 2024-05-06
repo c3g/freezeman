@@ -156,6 +156,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE},
         {"template": SAMPLE_POOLING_TEMPLATE},
+        {"template": AXIOM_PREPARATION_TEMPLATE},
     ]
     
     def get_queryset(self):

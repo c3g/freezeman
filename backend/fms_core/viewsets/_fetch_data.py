@@ -226,6 +226,7 @@ class FetchSampleData(FetchData):
         # full location
         sample_ids = tuple(self.queryset.values_list('id', flat=True))
         samples_with_full_location = tuple()
+        samples_with_site = tuple()
         if sample_ids: # Query crashes on empty tuple
             samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinate_id, coordinates, full_location) AS (                                                   
                                                                SELECT container.id, container.location_id, coordinate.id, coordinate.name, container.barcode::varchar || ' (' || container.kind::varchar || ') '
@@ -249,8 +250,26 @@ class FetchSampleData(FetchData):
 
                                                                SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
                                                                WHERE sample.id IN  %s;''', params=[sample_ids])
+            
+            samples_with_site = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinate_id, site_name) AS (
+                                                      SELECT container.id, container.location_id, coordinate.id, container.barcode::varchar
+                                                      FROM fms_core_container AS container
+                                                      LEFT OUTER JOIN fms_core_coordinate AS coordinate ON container.coordinate_id=coordinate.id
+                                                      WHERE (container.location_id IS null and container.kind='site')
+
+                                                      UNION ALL
+
+                                                      SELECT container.id, container.location_id, coordinate.id, container_hierarchy.site_name
+                                                      FROM container_hierarchy
+                                                      JOIN fms_core_container AS container ON container_hierarchy.id=container.location_id
+                                                      LEFT OUTER JOIN fms_core_coordinate AS coordinate ON container.coordinate_id=coordinate.id
+                                                      )
+
+                                                      SELECT sample.id AS id, site_name FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
+                                                      WHERE sample.id IN  %s;''', params=[sample_ids])
 
         location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
+        site_by_sample = {sample.id: sample.site_name for sample in samples_with_site }
 
         self.queryset = count_derived_by_sample(self.queryset)
         self.queryset = self.queryset.values(
@@ -326,6 +345,7 @@ class FetchSampleData(FetchData):
                 'location_barcode': sample["container__location__barcode"] or "",
                 'location_coord': sample["container__coordinate__name"] or "",
                 'container_full_location': location_by_sample[sample["id"]] or "",
+                'site': site_by_sample.get(sample["id"], ""),
                 'current_volume': sample["volume"],
                 'concentration': sample["concentration"],
                 'fragment_size': sample["fragment_size"],

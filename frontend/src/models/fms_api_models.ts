@@ -61,12 +61,28 @@ export interface FMSContainer extends FMSTrackedModel {
     experiment_run?: FMSId              // Experiment run associate with the container (if any)
 }
 
+export type CoordinateAxis = string[]
+export type CoordinateSpec = [] | [CoordinateAxis] | [CoordinateAxis, CoordinateAxis]
+export interface FMSContainerKind extends FMSTrackedModel {
+    id: FMSId
+    coordinate_spec: CoordinateSpec
+    coordinate_overlap_allowed: boolean
+    children_ids: FMSId[]
+    is_source: boolean
+    is_run_container: boolean
+}
+
 export interface FMSCoordinate extends FMSTrackedModel {
   name: string                       // Coordinates
   column: number                     // Column ordinal starting at 0
   row: number                        // Row ordinal starting at 0
 }
 
+export enum ValidationStatus {
+    AVAILABLE = 0,
+    PASSED = 1,
+    FAILED = 2,
+}
 export interface FMSDataset extends FMSTrackedModel {
     external_project_id : FMSId             // External (Hercules) project ID
     files: FMSId[]                          // List of dataset file ID's
@@ -74,6 +90,7 @@ export interface FMSDataset extends FMSTrackedModel {
     latest_release_update?: string          // ?
     released_status_count: number           // Number of files released
     blocked_status_count: number            // Number of files blocked
+    validation_status: ValidationStatus
     run_name: string                        // The name of the experiment run that generated this dataset
     project_name: string                    // Human readable name for the project
     metric_report_url?: string              // An external url to a report containing metrics for the dataset run
@@ -406,6 +423,7 @@ export interface FMSStep extends FMSTrackedModel {
     type: string
     protocol_id: FMSId
     needs_placement: boolean
+    needs_planning: boolean
     step_specifications: FMSStepSpecification[]
 }
 

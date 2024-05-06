@@ -39,7 +39,7 @@ import {
 import { individualDetails } from "./modules/individualDetails/reducers";
 import { individuals } from "./modules/individuals/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
-import { labworkSteps, labworkStepSummary, sampleNextStepTemplateActions } from "./modules/labworkSteps/reducers";
+import { labworkSteps, labworkStepSummary, sampleNextStepTemplateActions, labworkStepPlacement } from "./modules/labworkSteps/reducers";
 import {
   libraries,
   librariesSummary,
@@ -105,6 +105,7 @@ import { usersTable } from "./modules/usersTable/reducers"
 import { indicesTable } from './modules/indicesTable/reducers'
 import { datasetsTable } from './modules/datasetsTable/reducers'
 import { experimentRunsTable } from "./modules/experimentRunsTable/reducers"
+import placement from "./modules/placement/reducers";
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -183,11 +184,13 @@ const allReducers = combineReducers({
   studySamples,
   individualDetails,
   coordinates,
+  labworkStepPlacement,
   labworkSteps,
   labworkStepSummary,
   sampleNextStepTemplateActions,
   steps,
   notifications,
+  placement,
 });
 
 export default function rootReducer(state, action) {

@@ -1,5 +1,6 @@
+import json
 from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Value
-from django.http import HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponseBadRequest, QueryDict
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,12 +16,14 @@ from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, Workflow
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
 from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
-                                LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE,
-                                LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE,
-                                AXIOM_PREPARATION_TEMPLATE, QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
+                                LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_PLANNING_TEMPLATE, 
+                                SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE,
+                                EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, AXIOM_PREPARATION_TEMPLATE,
+                                QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
 from fms_core.template_importer.importers import (ExtractionImporter, SampleQCImporter, NormalizationPlanningImporter, NormalizationImporter,
-                                                  LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter, LibraryCaptureImporter,
-                                                  LibraryConversionImporter, ExperimentRunImporter, AxiomPreparationImporter, QCIntegrationSparkImporter)
+                                                  LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter,
+                                                  SamplePoolingPlanningImporter, LibraryCaptureImporter, LibraryConversionImporter,
+                                                  ExperimentRunImporter, AxiomPreparationImporter, QCIntegrationSparkImporter)
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin):
     queryset = SampleNextStep.objects.all().distinct()
@@ -41,7 +44,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     queryset = queryset.annotate(
         ordering_container_name=Case(
             When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__name')),
-            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container")),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes without parent container")),
             default=F('sample__container__name'),
             output_field=CharField()
         )
@@ -50,7 +53,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     queryset = queryset.annotate(
         ordering_container_barcode=Case(
             When(Q(sample__coordinate__isnull=True) and Q(sample__container__location__isnull=False), then=F('sample__container__location__barcode')),
-            When(Q(sample__coordinate__isnull=True), then=Value("tubes_without_parent_container_barcode")),
+            When(Q(sample__coordinate__isnull=True), then=Value("tubes without parent container barcode")),
             default=F('sample__container__barcode'),
             output_field=CharField()
         )
@@ -154,6 +157,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             "importer": LibraryQCImporter,
         },
         {
+            "name": "Perform Pooling Planning",
+            "description": "Upload the provided template with pooling information to populate pooling template and the robot file.",
+            "template": [SAMPLE_POOLING_PLANNING_TEMPLATE["identity"]],
+            "importer": SamplePoolingPlanningImporter,
+        },
+        {
             "name": "Pool Samples or Libraries",
             "description": "Upload the provided template with information to pool samples or libraries.",
             "template": [SAMPLE_POOLING_TEMPLATE["identity"]],
@@ -181,6 +190,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     # Template prefills will need to be filtered by the frontend on the basis of the template -> identity -> protocol which contains the protocol name.
     template_prefill_list = [
+        {"template": AXIOM_PREPARATION_TEMPLATE},
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_QC_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
@@ -188,6 +198,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": SAMPLE_TRANSFER_TEMPLATE},
         {"template": LIBRARY_QC_TEMPLATE},
+        {"template": SAMPLE_POOLING_PLANNING_TEMPLATE},
         {"template": SAMPLE_POOLING_TEMPLATE},
         {"template": LIBRARY_CAPTURE_TEMPLATE},
         {"template": LIBRARY_CONVERSION_TEMPLATE},
@@ -196,6 +207,38 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": EXPERIMENT_AXIOM_TEMPLATE},
     ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        if self.request.method == 'POST':
+            sample__id__in = None
+            content_type = self.request.META.get('CONTENT_TYPE', '')
+            if content_type == 'application/json':
+                jsonQueryParams = json.loads(self.request.body.decode())
+                if 'sample__id__in' in jsonQueryParams:
+                    sample__id__in = jsonQueryParams['sample__id__in']
+            elif content_type.startswith('multipart/form-data'):
+                if self.request.POST.get("sample__id__in"):
+                    sample__id__in = self.request.POST["sample__id__in"]
+                    sample__id__in = [int(s.strip()) for s in sample__id__in.split(",")]
+
+            if sample__id__in:
+                queryset = queryset.filter(sample__id__in=sample__id__in)
+
+        return queryset
+
+    @action(detail=False, methods=['post'])
+    def list_post(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def labwork_info(self, request, *args, **kwargs):
@@ -302,8 +345,8 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         return Response({"results": sample_next_step_summary})
 
-    @action(detail=False, methods=["get"])
-    def labwork_step_info(self, request, *args, **kwargs):
+    @action(detail=False, methods=["post"])
+    def labwork_step_info(self, request: HttpRequest, *args, **kwargs):
         """
         API call to retrieve the lab work information for a step about the number samples waiting for a grouping column provided.
 
@@ -344,8 +387,9 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             }
           }
         """
-        step_id = request.GET.get('step__id__in')
-        grouping_column = request.GET.get('group_by')
+        params = QueryDict(request.META.get('QUERY_STRING'))
+        step_id = params.get('step__id__in')
+        grouping_column = params.get('group_by')
 
         if step_id is None or grouping_column is None:
             return HttpResponseBadRequest(f"Step ID and a grouping column must be provided.")

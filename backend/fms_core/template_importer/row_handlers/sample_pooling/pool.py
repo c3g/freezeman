@@ -58,7 +58,7 @@ class PoolsRowHandler(GenericRowHandler):
                             self.warnings["concentration"] = [("Source sample {0} in pool {1} have concentration that is more than "
                                                               "{2} ng/uL away from the average concentration of the other samples in the pool. "
                                                               "This is likely normal if the sample is a negative control.", [sample_tested['Source Sample'].name, pool['name'], TOLERANCE])]
-            
+
             # Validate indices from the samples being pooled
             if pool_is_library and seq_instrument_type is not None:
                 instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
@@ -70,7 +70,10 @@ class PoolsRowHandler(GenericRowHandler):
                         for derived_sample in sample["Source Sample"].derived_samples.all():
                             indices.append(derived_sample.library.index)
                             samples_name.append(sample_name)
-                    results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
+                    results, _, _ = validate_indices(indices=indices,
+                                                     index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
+                                                     index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
+                                                     threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
 
                     if not results["is_valid"]:
                         index_errors = []
