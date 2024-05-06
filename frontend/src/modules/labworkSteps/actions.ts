@@ -47,7 +47,16 @@ export function initSamplesAtStep(stepID: FMSId) {
       const templateActions = selectSampleNextStepTemplateActions(getState())
 
       // Request the list of templates for the protocol
-      const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id))
+      const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id)).then(
+        (response) => {
+          const filteredResponse = { ...response }
+          if (!step.needs_planning){
+            filteredResponse.data = response.data.filter((template) => {return !template.description.includes("planning")})
+          }
+          return filteredResponse
+        }
+      )
+
 
       // Convert templates to a list of template descriptors, which include a 'Submit Templates' url.
       const templates = templatesResponse.data.map((templateItem: LabworkPrefilledTemplateDescriptor) => {
