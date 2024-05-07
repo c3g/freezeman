@@ -94,6 +94,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         'ordering_container_name',
         'ordering_container_coordinate_column',
         'ordering_container_coordinate_row',
+        "qc_flag"
     }
 
     ordering = ["id"]
