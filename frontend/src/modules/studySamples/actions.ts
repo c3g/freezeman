@@ -20,8 +20,9 @@ export function getStudySamples(studyID: FMSId) {
 			if (study) {
 				const workflow = workflowsById[study.workflow_id]
 				if (workflow) {
-					dispatch(initStudySamplesSettingsAndTables(studyID, workflow.steps_order.map((x) => x.id)))
-					studySamples = await Promise.all(workflow.steps_order.map(async (stepOrder) => {
+          			const studyStepOrders = workflow.steps_order.filter((x) => (x.order >= study.start) && (x.order <= study.end))
+					dispatch(initStudySamplesSettingsAndTables(studyID, studyStepOrders.map((x) => x.id)))
+					studySamples = await Promise.all(studyStepOrders.map(async (stepOrder) => {
 						dispatch(setStudyStepFetching(studyID, stepOrder.id, true))
 						// it's called after initStudySamplesSettingsAndTables so it shouldn't be undefined
 						const pageSize = studySettings?.stepSettings[stepOrder.id]?.pageSize ?? DEFAULT_SMALL_PAGINATION_LIMIT
