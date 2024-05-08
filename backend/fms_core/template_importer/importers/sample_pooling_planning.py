@@ -283,4 +283,21 @@ class SamplePoolingPlanningImporter(GenericImporter):
              "content": pooling_io.getvalue(),},
         ]
 
+        # Create the robot container mapping file
+        mapping_io = BytesIO()
+        mapping_lines = []
+        mapping_lines.append((",".join(["Robot Position", "Barcode"]) + "\n").encode())
+
+        for barcode, (_, position) in container_dict.items():
+            mapping_lines.append((",".join([position, barcode]) + "\n").encode()) # Encode to store a bytes-like object
+        
+        mapping_lines.append((",".join(["", ""]) + "\n").encode()) # separator csv line
+
+        for i, (_, barcode) in enumerate(dst_containers, start=1):
+            mapping_lines.append((",".join([ROBOT_DST_PREFIX + str(i), barcode]) + "\n").encode()) # Encode to store a bytes-like object
+
+        mapping_io.writelines(mapping_lines)
+        robot_files.append({"name": f"Container_Mapping_{timestamp}.csv",
+                            "content": mapping_io.getvalue(),})
+
         return robot_files, output_sample_rows_data, list(output_pool_rows_data.values())
