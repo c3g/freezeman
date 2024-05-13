@@ -166,7 +166,7 @@ RUN_PROCESSING_SCHEMA = {
                             "average_aligned_insert_size": {"type": ["number", "null"]},
                             "pf_read_alignment_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
                             "inferred_sex": {"type": ["string", "null"]},
-                            "adapter_dimers": {"type": ["integer", "null"]},
+                            "adapter_dimers": {"type": ["number", "null"]},
                             "mean_coverage": {"type": ["number", "null"]},
                             "aligned_dup_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
                         },
