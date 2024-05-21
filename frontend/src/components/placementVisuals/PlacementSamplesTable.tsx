@@ -10,6 +10,7 @@ import { fetchSamples } from "../../modules/cache/cache";
 import { selectCell, selectContainer } from "../../modules/placement/selectors";
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
 import store from "../../store";
+import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions";
 export interface PlacementSamplesTableProps {
     container: string | null
 }
@@ -45,7 +46,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         sample: FMSId,
         selected: boolean
         name: string
-        coordinates: string | undefined
+        offsets: number[]
     }[]
     const [samples, setSamples] = useState<Samples>([])
     useEffect(() => {
@@ -80,7 +81,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                         sample,
                         selected: cell.selected,
                         name,
-                        coordinates: cell.coordinates
+                        offsets: cell.coordinates ? coordinatesToOffsets(container.spec, cell.coordinates) : [],
                     })
                     return samples
                 }, [] as Samples)
@@ -132,17 +133,19 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         const sortedSamples = [...samples]
         sortedSamples.sort((a, b) => {
 	    const MAX = 100
-            const HALF = MAX/2
-	    const QUARTER = HALF/2
 
             let orderA = MAX
             let orderB = MAX
-            if (a.selected) orderA -= HALF
-            if (b.selected) orderB -= HALF
-            if (a.sample && b.sample) {
-                if (a.sample > b.sample) orderB -= QUARTER
-                if (a.sample < b.sample) orderA -= QUARTER
-            }
+
+            if (a.selected) orderA -= MAX/2
+            if (b.selected) orderB -= MAX/2
+
+            const arrayComparison = compareArray([...a.offsets].reverse(), [...b.offsets].reverse())
+            if (arrayComparison > 0) orderB -= MAX/4
+            if (arrayComparison < 0) orderA -= MAX/4
+
+            if (a.sample > b.sample) orderB -= MAX/8
+            if (a.sample < b.sample) orderA -= MAX/8
             return orderA - orderB
         })
         return sortedSamples.reduce((sortedSamples, s) => {
@@ -151,7 +154,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                 sortedSamples.push({
                     name: s.name,
                     id: s.sample,
-                    coordinates: s.coordinates
+                    coordinates: container ? offsetsToCoordinates(s.offsets, container?.spec) : undefined
                 })
             }
             return sortedSamples

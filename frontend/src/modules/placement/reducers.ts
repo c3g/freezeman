@@ -2,6 +2,7 @@ import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
+import { coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellWithParentIdentifier {
@@ -361,42 +362,6 @@ function placeCell(sourceCell: Draft<CellState>, destCell: Draft<CellWithParentS
 
     sourceCell.placedAt = destCell
     destCell.placedFrom = sourceCell
-}
-
-function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
-    const offsets: number[] = []
-    const originalCoordinates = coordinates
-    for (const axis of spec) {
-        if (coordinates.length === 0) {
-            throw new Error(`Cannot convert coordinates ${originalCoordinates} with spec ${JSON.stringify(spec)} to offsets at axis ${axis}`)
-        }
-        const offset = axis.findIndex((coordinate) => coordinates.startsWith(coordinate))
-        if (offset < 0) {
-            throw new Error(`Cannot convert coordinates ${originalCoordinates} with spec ${JSON.stringify(spec)} to offsets at axis ${axis}`)
-        }
-        offsets.push(offset)
-        coordinates = coordinates.slice(axis[offset].length)
-    }
-
-    return offsets
-}
-
-function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) {
-    if (spec.length !== offsets.length) {
-        throw new Error(`Cannot convert offsets ${JSON.stringify(offsets)} to coordinates with spec ${JSON.stringify(spec)}`)
-    }
-
-    const coordinates: string[] = []
-    for (let i = 0; i < spec.length; i++) {
-        if (offsets[i] < 0) {
-            throw new Error('Numbers in offsets argument cannot be negative')
-        }
-        if (offsets[i] >= spec[i].length) {
-            throw new Error(`Cannot convert offset ${JSON.stringify(offsets)} to coordinates with spec ${JSON.stringify(spec)} at axis ${i}`)
-        }
-        coordinates.push(spec[i][offsets[i]])
-    }
-    return coordinates.join('')
 }
 
 function placementDestinationLocations(state: PlacementState, sources: Draft<CellState>[], destination: Draft<CellWithParentState>, placementOptions: PlacementOptions): Draft<CellWithParentState>[] {
