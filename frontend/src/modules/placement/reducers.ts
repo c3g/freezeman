@@ -2,7 +2,7 @@ import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
-import { coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
+import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellWithParentIdentifier {
@@ -38,7 +38,7 @@ export interface PlaceAllSourcePayload {
 
 const initialState: PlacementState = {
     containers: [] as PlacementState['containers'],
-    placementType: PlacementType.PATTERN,
+    placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.ROW,
 } as const
 
@@ -377,13 +377,13 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
     const destinationContainer = getParentContainer(state, destination)
     const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, destination.coordinates)
 
+    const sourceContainerNames = new Set(sources.map((s) => s.parentContainerName))
+    if (sourceContainerNames.size > 1) {
+        throw new Error('Cannot use pattern placement type with more than one source container')
+    }
+
     switch (placementOptions.type) {
         case PlacementType.PATTERN: {
-            const sourceContainerNames = new Set(sources.map((s) => s.parentContainerName))
-            if (sourceContainerNames.size > 1) {
-                throw new Error('Cannot use pattern placement type with more than one source container')
-            }
-
             const sourceOffsetsList = sources.map((source) => {
                 const parentContainer = getParentContainer(state, source)
                 if (!source.coordinates)
@@ -410,24 +410,24 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
             // it is possible to place samples from multiple containers in one shot
 
             // sort source location indices by sample id
-            const sourceIndices = [...sources.keys()].sort((indexA, indexB) => {
+            const sortedIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
                 const b = sources[indexB]
-                const sampleA = a.sample
-                const sampleB = b.sample
-                if (sampleA === null) {
-                    throw new Error(`Cell at coordinates ${atCellLocations(a)} has no sample`)
-                }
-                if (sampleB === null) {
-                    throw new Error(`Cell at coordinates ${atCellLocations(b)} has no sample`)
-                }
-                return sampleA - sampleB
-            })
+                const offsetsA = a.coordinates ? coordinatesToOffsets(getContainer(state, a).spec, a.coordinates) : []
+                const offsetsB = b.coordinates ? coordinatesToOffsets(getContainer(state, b).spec, b.coordinates) : []
+                const comparison = placementOptions.direction === PlacementDirections.COLUMN
+                    ? compareArray(offsetsA, offsetsB)
+                    : compareArray(offsetsA.reverse(), offsetsB.reverse())
+                return comparison
+            }).reduce<Record<number, number>>((sortedIndices, sortedIndex, index) => {
+                sortedIndices[sortedIndex] = index
+                return sortedIndices
+            }, {})
 
             newOffsetsList.push(
-                ...sourceIndices.map(
-                    (index) => destinationStartingOffsets.map(
-                        (offset, axis) => offset + (placementOptions.direction === PlacementDirections.ROW && axis == 1 ? index : 0) + (placementOptions.direction === PlacementDirections.COLUMN && axis == 0 ? index : 0)
+                ...sources.map(
+                    (_, sourceIndex) => destinationStartingOffsets.map(
+                        (offset, axis) => offset + (placementOptions.direction === PlacementDirections.ROW && axis == 1 ? sortedIndices[sourceIndex] : 0) + (placementOptions.direction === PlacementDirections.COLUMN && axis == 0 ? sortedIndices[sourceIndex] : 0)
                     )
                 )
             )
