@@ -46,7 +46,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         sample: FMSId,
         selected: boolean
         name: string
-        offsets: number[]
+        coordinates: string | undefined
     }[]
     const [samples, setSamples] = useState<Samples>([])
     useEffect(() => {
@@ -81,7 +81,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                         sample,
                         selected: cell.selected,
                         name,
-                        offsets: cell.coordinates ? coordinatesToOffsets(container.spec, cell.coordinates) : [],
+                        coordinates: cell.coordinates,
                     })
                     return samples
                 }, [] as Samples)
@@ -140,12 +140,17 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
             if (a.selected) orderA -= MAX/2
             if (b.selected) orderB -= MAX/2
 
-            const arrayComparison = compareArray([...a.offsets].reverse(), [...b.offsets].reverse())
-            if (arrayComparison > 0) orderB -= MAX/4
-            if (arrayComparison < 0) orderA -= MAX/4
+            if (container) {
+                const aOffsets = a.coordinates ? coordinatesToOffsets(container.spec, a.coordinates) : []
+                const bOffsets = b.coordinates ? coordinatesToOffsets(container.spec, b.coordinates) : []
+                const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
+                if (arrayComparison > 0) orderB -= MAX/4
+                if (arrayComparison < 0) orderA -= MAX/4
+            }
 
             if (a.sample > b.sample) orderB -= MAX/8
             if (a.sample < b.sample) orderA -= MAX/8
+
             return orderA - orderB
         })
         return sortedSamples.reduce((sortedSamples, s) => {
@@ -154,12 +159,12 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                 sortedSamples.push({
                     name: s.name,
                     id: s.sample,
-                    coordinates: container ? offsetsToCoordinates(s.offsets, container?.spec) : undefined
+                    coordinates: s.coordinates
                 })
             }
             return sortedSamples
         }, [] as SortedSample[])
-    }, [samples])
+    }, [samples, container])
 
     const selectionProps: TableRowSelection<SortedSample> = {
         selectedRowKeys: placementSelectedSamples,
