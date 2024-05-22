@@ -407,7 +407,6 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
             break
         }
         case PlacementType.GROUP: {
-            // sort source location indices by sample id
             const sortedIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
                 const b = sources[indexB]
