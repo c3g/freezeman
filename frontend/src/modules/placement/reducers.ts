@@ -407,8 +407,6 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
             break
         }
         case PlacementType.GROUP: {
-            // it is possible to place samples from multiple containers in one shot
-
             // sort source location indices by sample id
             const sortedIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
@@ -416,8 +414,8 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
                 const offsetsA = a.coordinates ? coordinatesToOffsets(getContainer(state, a).spec, a.coordinates) : []
                 const offsetsB = b.coordinates ? coordinatesToOffsets(getContainer(state, b).spec, b.coordinates) : []
                 const comparison = placementOptions.direction === PlacementDirections.COLUMN
-                    ? compareArray(offsetsA, offsetsB)
-                    : compareArray(offsetsA.reverse(), offsetsB.reverse())
+                    ? compareArray(offsetsA.reverse(), offsetsB.reverse())
+                    : compareArray(offsetsA, offsetsB)
                 return comparison
             }).reduce<Record<number, number>>((sortedIndices, sortedIndex, index) => {
                 sortedIndices[sortedIndex] = index
