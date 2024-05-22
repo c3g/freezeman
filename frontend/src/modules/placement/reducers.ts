@@ -377,6 +377,10 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
     const destinationContainer = getParentContainer(state, destination)
     const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, destination.coordinates)
 
+    const [ axisRow, axisCol ] = destinationContainer.spec
+    const height = axisRow?.length ?? 1
+    const width = axisCol?.length ?? 1
+
     const sourceContainerNames = new Set(sources.map((s) => s.parentContainerName))
     if (sourceContainerNames.size > 1) {
         throw new Error('Cannot use pattern placement type with more than one source container')
@@ -407,7 +411,7 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
             break
         }
         case PlacementType.GROUP: {
-            const sortedIndices = [...sources.keys()].sort((indexA, indexB) => {
+            const relativeOffsetByIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
                 const b = sources[indexB]
                 const offsetsA = a.coordinates ? coordinatesToOffsets(getContainer(state, a).spec, a.coordinates) : []
@@ -416,18 +420,35 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
                     ? compareArray(offsetsA.reverse(), offsetsB.reverse())
                     : compareArray(offsetsA, offsetsB)
                 return comparison
-            }).reduce<Record<number, number>>((sortedIndices, sortedIndex, index) => {
-                sortedIndices[sortedIndex] = index
-                return sortedIndices
+            }).reduce<Record<number, number>>((relativeOffsetByIndices, sortedIndex, index) => {
+                relativeOffsetByIndices[sortedIndex] = index
+                return relativeOffsetByIndices
             }, {})
 
-            newOffsetsList.push(
-                ...sources.map(
-                    (_, sourceIndex) => destinationStartingOffsets.map(
-                        (offset, axis) => offset + (placementOptions.direction === PlacementDirections.ROW && axis == 1 ? sortedIndices[sourceIndex] : 0) + (placementOptions.direction === PlacementDirections.COLUMN && axis == 0 ? sortedIndices[sourceIndex] : 0)
-                    )
-                )
-            )
+            for (const sourceIndex in sources) {
+                const relativeOffset = relativeOffsetByIndices[sourceIndex]
+                const [startingRow, startingCol] = destinationStartingOffsets                
+
+                const finalOffsets = [startingRow, startingCol]
+
+                if (placementOptions.direction === PlacementDirections.ROW) {
+                    finalOffsets[1] += relativeOffset
+                    const finalColBeforeWrap = finalOffsets[1]
+                    if (finalColBeforeWrap >= width) {
+                        finalOffsets[1] = finalColBeforeWrap % width
+                        finalOffsets[0] += Math.floor(finalColBeforeWrap / width)
+                    }
+                } else if (placementOptions.direction === PlacementDirections.COLUMN) {
+                    finalOffsets[0] += relativeOffset
+                    const finalRowBeforeWrap = finalOffsets[0]
+                    if (finalRowBeforeWrap >= height) {
+                        finalOffsets[0] = finalRowBeforeWrap % height
+                        finalOffsets[1] += Math.floor(finalRowBeforeWrap / height)
+                    }
+                }
+
+                newOffsetsList.push(finalOffsets)
+            }
         }
     }
 
