@@ -416,9 +416,7 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
                 const b = sources[indexB]
                 const offsetsA = a.coordinates ? coordinatesToOffsets(getContainer(state, a).spec, a.coordinates) : []
                 const offsetsB = b.coordinates ? coordinatesToOffsets(getContainer(state, b).spec, b.coordinates) : []
-                const comparison = placementOptions.direction === PlacementDirections.COLUMN
-                    ? compareArray(offsetsA.reverse(), offsetsB.reverse())
-                    : compareArray(offsetsA, offsetsB)
+                const comparison = compareArray(offsetsA.reverse(), offsetsB.reverse())
                 return comparison
             }).reduce<Record<number, number>>((relativeOffsetByIndices, sortedIndex, index) => {
                 relativeOffsetByIndices[sortedIndex] = index
