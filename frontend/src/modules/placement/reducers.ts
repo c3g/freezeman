@@ -39,7 +39,7 @@ export interface PlaceAllSourcePayload {
 const initialState: PlacementState = {
     containers: [] as PlacementState['containers'],
     placementType: PlacementType.GROUP,
-    placementDirection: PlacementDirections.ROW,
+    placementDirection: PlacementDirections.COLUMN,
 } as const
 
 const slice = createSlice({
