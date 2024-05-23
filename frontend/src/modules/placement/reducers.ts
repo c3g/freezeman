@@ -425,27 +425,31 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
 
             for (const sourceIndex in sources) {
                 const relativeOffset = relativeOffsetByIndices[sourceIndex]
-                const [startingRow, startingCol] = destinationStartingOffsets                
-
-                const finalOffsets = [startingRow, startingCol]
+                const [startingRow, startingCol] = destinationStartingOffsets
+                
+                const { ROW, COLUMN } = PlacementDirections
+                const finalOffsets = {
+                    [ROW]: startingRow,
+                    [COLUMN]: startingCol
+                }
 
                 if (placementOptions.direction === PlacementDirections.ROW) {
-                    finalOffsets[1] += relativeOffset
+                    finalOffsets[COLUMN] += relativeOffset
                     const finalColBeforeWrap = finalOffsets[1]
                     if (finalColBeforeWrap >= width) {
-                        finalOffsets[1] = finalColBeforeWrap % width
-                        finalOffsets[0] += Math.floor(finalColBeforeWrap / width)
+                        finalOffsets[COLUMN] = finalColBeforeWrap % width
+                        finalOffsets[ROW] += Math.floor(finalColBeforeWrap / width)
                     }
                 } else if (placementOptions.direction === PlacementDirections.COLUMN) {
-                    finalOffsets[0] += relativeOffset
+                    finalOffsets[ROW] += relativeOffset
                     const finalRowBeforeWrap = finalOffsets[0]
                     if (finalRowBeforeWrap >= height) {
-                        finalOffsets[0] = finalRowBeforeWrap % height
-                        finalOffsets[1] += Math.floor(finalRowBeforeWrap / height)
+                        finalOffsets[ROW] = finalRowBeforeWrap % height
+                        finalOffsets[COLUMN] += Math.floor(finalRowBeforeWrap / height)
                     }
                 }
 
-                newOffsetsList.push(finalOffsets)
+                newOffsetsList.push([ finalOffsets[ROW], finalOffsets[COLUMN] ])
             }
         }
     }
