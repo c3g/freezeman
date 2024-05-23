@@ -24,7 +24,7 @@ METRICS = {
     "alignment": [("chimeras", VALUE_TYPE_NUMERIC),
                   ("average_aligned_insert_size", VALUE_TYPE_NUMERIC),
                   ("inferred_sex", VALUE_TYPE_STRING),
-                  ("sex_concordance", VALUE_TYPE_NUMERIC),
+                  ("sex_concordance", VALUE_TYPE_STRING), # Stored as string but received as boolean
                   ("pf_read_alignment_rate", VALUE_TYPE_NUMERIC),
                   ("freemix", VALUE_TYPE_NUMERIC),
                   ("adapter_dimers", VALUE_TYPE_NUMERIC),
