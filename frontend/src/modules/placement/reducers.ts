@@ -2,6 +2,7 @@ import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
+import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellWithParentIdentifier {
@@ -38,7 +39,7 @@ export interface PlaceAllSourcePayload {
 const initialState: PlacementState = {
     containers: [] as PlacementState['containers'],
     placementType: PlacementType.GROUP,
-    placementDirection: PlacementDirections.ROW,
+    placementDirection: PlacementDirections.COLUMN,
 } as const
 
 const slice = createSlice({
@@ -363,42 +364,6 @@ function placeCell(sourceCell: Draft<CellState>, destCell: Draft<CellWithParentS
     destCell.placedFrom = sourceCell
 }
 
-function coordinatesToOffsets(spec: CoordinateSpec, coordinates: string) {
-    const offsets: number[] = []
-    const originalCoordinates = coordinates
-    for (const axis of spec) {
-        if (coordinates.length === 0) {
-            throw new Error(`Cannot convert coordinates ${originalCoordinates} with spec ${JSON.stringify(spec)} to offsets at axis ${axis}`)
-        }
-        const offset = axis.findIndex((coordinate) => coordinates.startsWith(coordinate))
-        if (offset < 0) {
-            throw new Error(`Cannot convert coordinates ${originalCoordinates} with spec ${JSON.stringify(spec)} to offsets at axis ${axis}`)
-        }
-        offsets.push(offset)
-        coordinates = coordinates.slice(axis[offset].length)
-    }
-
-    return offsets
-}
-
-function offsetsToCoordinates(offsets: readonly number[], spec: CoordinateSpec) {
-    if (spec.length !== offsets.length) {
-        throw new Error(`Cannot convert offsets ${JSON.stringify(offsets)} to coordinates with spec ${JSON.stringify(spec)}`)
-    }
-
-    const coordinates: string[] = []
-    for (let i = 0; i < spec.length; i++) {
-        if (offsets[i] < 0) {
-            throw new Error('Numbers in offsets argument cannot be negative')
-        }
-        if (offsets[i] >= spec[i].length) {
-            throw new Error(`Cannot convert offset ${JSON.stringify(offsets)} to coordinates with spec ${JSON.stringify(spec)} at axis ${i}`)
-        }
-        coordinates.push(spec[i][offsets[i]])
-    }
-    return coordinates.join('')
-}
-
 function placementDestinationLocations(state: PlacementState, sources: Draft<CellState>[], destination: Draft<CellWithParentState>, placementOptions: PlacementOptions): Draft<CellWithParentState>[] {
     /**
      * If this function encounters an error, it will set state.error and return an array that might be less than the length of sources arguments
@@ -412,13 +377,17 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
     const destinationContainer = getParentContainer(state, destination)
     const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, destination.coordinates)
 
+    const [ axisRow, axisCol ] = destinationContainer.spec
+    const height = axisRow?.length ?? 1
+    const width = axisCol?.length ?? 1
+
+    const sourceContainerNames = new Set(sources.map((s) => s.parentContainerName))
+    if (sourceContainerNames.size > 1) {
+        throw new Error('Cannot use pattern placement type with more than one source container')
+    }
+
     switch (placementOptions.type) {
         case PlacementType.PATTERN: {
-            const sourceContainerNames = new Set(sources.map((s) => s.parentContainerName))
-            if (sourceContainerNames.size > 1) {
-                throw new Error('Cannot use pattern placement type with more than one source container')
-            }
-
             const sourceOffsetsList = sources.map((source) => {
                 const parentContainer = getParentContainer(state, source)
                 if (!source.coordinates)
@@ -442,30 +411,46 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
             break
         }
         case PlacementType.GROUP: {
-            // it is possible to place samples from multiple containers in one shot
-
-            // sort source location indices by sample id
-            const sourceIndices = [...sources.keys()].sort((indexA, indexB) => {
+            const relativeOffsetByIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
                 const b = sources[indexB]
-                const sampleA = a.sample
-                const sampleB = b.sample
-                if (sampleA === null) {
-                    throw new Error(`Cell at coordinates ${atCellLocations(a)} has no sample`)
-                }
-                if (sampleB === null) {
-                    throw new Error(`Cell at coordinates ${atCellLocations(b)} has no sample`)
-                }
-                return sampleA - sampleB
-            })
+                const offsetsA = a.coordinates ? coordinatesToOffsets(getContainer(state, a).spec, a.coordinates) : []
+                const offsetsB = b.coordinates ? coordinatesToOffsets(getContainer(state, b).spec, b.coordinates) : []
+                const comparison = compareArray(offsetsA.reverse(), offsetsB.reverse())
+                return comparison
+            }).reduce<Record<number, number>>((relativeOffsetByIndices, sortedIndex, index) => {
+                relativeOffsetByIndices[sortedIndex] = index
+                return relativeOffsetByIndices
+            }, {})
 
-            newOffsetsList.push(
-                ...sourceIndices.map(
-                    (index) => destinationStartingOffsets.map(
-                        (offset, axis) => offset + (placementOptions.direction === PlacementDirections.ROW && axis == 1 ? index : 0) + (placementOptions.direction === PlacementDirections.COLUMN && axis == 0 ? index : 0)
-                    )
-                )
-            )
+            for (const sourceIndex in sources) {
+                const relativeOffset = relativeOffsetByIndices[sourceIndex]
+                const [startingRow, startingCol] = destinationStartingOffsets
+                
+                const { ROW, COLUMN } = PlacementDirections
+                const finalOffsets = {
+                    [ROW]: startingRow,
+                    [COLUMN]: startingCol
+                }
+
+                if (placementOptions.direction === PlacementDirections.ROW) {
+                    finalOffsets[COLUMN] += relativeOffset
+                    const finalColBeforeWrap = finalOffsets[1]
+                    if (finalColBeforeWrap >= width) {
+                        finalOffsets[COLUMN] = finalColBeforeWrap % width
+                        finalOffsets[ROW] += Math.floor(finalColBeforeWrap / width)
+                    }
+                } else if (placementOptions.direction === PlacementDirections.COLUMN) {
+                    finalOffsets[ROW] += relativeOffset
+                    const finalRowBeforeWrap = finalOffsets[0]
+                    if (finalRowBeforeWrap >= height) {
+                        finalOffsets[ROW] = finalRowBeforeWrap % height
+                        finalOffsets[COLUMN] += Math.floor(finalRowBeforeWrap / height)
+                    }
+                }
+
+                newOffsetsList.push([ finalOffsets[ROW], finalOffsets[COLUMN] ])
+            }
         }
     }
 
