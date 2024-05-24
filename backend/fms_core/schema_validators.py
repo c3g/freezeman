@@ -169,6 +169,7 @@ RUN_PROCESSING_SCHEMA = {
                             "adapter_dimers": {"type": ["number", "null"]},
                             "mean_coverage": {"type": ["number", "null"]},
                             "aligned_dup_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "sex_concordance": {"type": ["boolean", "null"]},
                         },
                     },
                 },
