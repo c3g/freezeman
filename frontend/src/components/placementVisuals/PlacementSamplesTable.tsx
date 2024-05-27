@@ -10,7 +10,7 @@ import { fetchSamples } from "../../modules/cache/cache";
 import { selectCell, selectContainer } from "../../modules/placement/selectors";
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
 import store from "../../store";
-import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions";
+import { compareArray, coordinatesToOffsets } from "../../utils/functions";
 export interface PlacementSamplesTableProps {
     container: string | null
 }
@@ -132,7 +132,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         // const reverse = labworkSelectedSamples.reverse()
         const sortedSamples = [...samples]
         sortedSamples.sort((a, b) => {
-	    const MAX = 100
+            const MAX = 128
 
             let orderA = MAX
             let orderB = MAX
@@ -140,16 +140,16 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
             if (a.selected) orderA -= MAX/2
             if (b.selected) orderB -= MAX/2
 
-            if (container) {
-                const aOffsets = a.coordinates ? coordinatesToOffsets(container.spec, a.coordinates) : []
-                const bOffsets = b.coordinates ? coordinatesToOffsets(container.spec, b.coordinates) : []
+            if (container && a.coordinates && b.coordinates) {
+                const aOffsets = coordinatesToOffsets(container.spec, a.coordinates)
+                const bOffsets = coordinatesToOffsets(container.spec, b.coordinates)
                 const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
                 if (arrayComparison > 0) orderB -= MAX/4
                 if (arrayComparison < 0) orderA -= MAX/4
             }
 
-            if (a.sample > b.sample) orderB -= MAX/8
-            if (a.sample < b.sample) orderA -= MAX/8
+            if (a.name > b.name) orderB -= MAX/8
+            if (a.name < b.name) orderA -= MAX/8
 
             return orderA - orderB
         })
@@ -177,7 +177,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
             columns={columns}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}
-	    pagination={{ showSizeChanger: true }}
+	        pagination={{ showSizeChanger: true }}
         />
     )
 }
