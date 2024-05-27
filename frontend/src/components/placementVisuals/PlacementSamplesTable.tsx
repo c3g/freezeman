@@ -1,11 +1,10 @@
-import React, { Key, useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { Table } from "antd";
-import { TableRowSelection } from "antd/lib/table/interface";
+import { SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
 import { FMSId } from "../../models/fms_api_models";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { multiSelect } from "../../modules/placement/reducers";
 import { selectSamplesByID } from "../../selectors";
-import { batch } from "react-redux";
 import { fetchSamples } from "../../modules/cache/cache";
 import { selectCell, selectContainer } from "../../modules/placement/selectors";
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
@@ -101,26 +100,28 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
         [container, samples]
     )
 
-    const onChange = useCallback((keys: Key[]) => {
-        batch(() => {
+    const onChange: NonNullable<TableRowSelection<SortedSample>['onChange']> = useCallback((keys, selectedRows, info) => {
+        if (info.type === 'all') {
             dispatch(multiSelect({
                 type: 'all',
                 parentContainer: containerName,
-                forcedSelectedValue: false,
                 context: {
                     source: activeSourceContainer?.name
                 }
             }))
-            dispatch(multiSelect({
-                type: 'sample-ids',
-                parentContainer: containerName,
-                sampleIDs: keys.map((k) => Number(k)),
-                forcedSelectedValue: true,
-                context: {
-                    source: activeSourceContainer?.name
-                }
-            }))
-        })
+        }
+    }, [activeSourceContainer?.name, containerName, dispatch])
+
+    const onSelect: SelectionSelectFn<SortedSample> = useCallback((record, selected) => {
+        dispatch(multiSelect({
+            type: 'sample-ids',
+            parentContainer: containerName,
+            sampleIDs: [record.id],
+            forcedSelectedValue: selected,
+            context: {
+                source: activeSourceContainer?.name
+            }
+        }))
     }, [activeSourceContainer?.name, containerName, dispatch])
 
     type SortedSample = {
@@ -169,6 +170,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
     const selectionProps: TableRowSelection<SortedSample> = {
         selectedRowKeys: placementSelectedSamples,
         onChange,
+        onSelect,
     }
 
     return (
