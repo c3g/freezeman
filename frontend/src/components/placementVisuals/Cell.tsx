@@ -78,7 +78,8 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
         <Popover
             content={<>
                 <div>{`Sample: ${sample?.name ?? 'None'}`}</div>
-                {cell.placedFrom && <div>{`From: ${cell.placedFrom.parentContainerName}@${cell.placedFrom.coordinates}`}</div>}
+                {cell.placedFrom && cell.placedFrom.parentContainerName && cell.placedFrom.coordinates &&
+                    <div>{`From: ${cell.placedFrom.parentContainerName}@${cell.placedFrom.coordinates}`}</div>}
                 {cell.placedAt && <div>{`To: ${cell.placedAt.parentContainerName}@${cell.placedAt.coordinates}`}</div>}
             </>}
             destroyTooltipOnHide={{ keepParent: false }}
