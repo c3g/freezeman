@@ -1,4 +1,4 @@
-import { CoordinateSpec } from "../models/fms_api_models"
+import { CoordinateSpec, FMSId } from "../models/fms_api_models"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -56,4 +56,28 @@ export function compareArray(a: readonly number[], b: readonly number[]): number
         if (a[i] > b[i]) return 1
     }
     return 0
+}
+
+export function comparePlacementSamples<S extends { coordinates?: string, sample: FMSId | null }>(a: S, b: S, spec?: CoordinateSpec): number {
+    const MAX = 128
+
+    let orderA = MAX
+    let orderB = MAX
+
+    if (spec && a.coordinates && b.coordinates) {
+        // if both have coordinates, both have a parent container
+        const aOffsets = coordinatesToOffsets(spec, a.coordinates)
+        const bOffsets = coordinatesToOffsets(spec, b.coordinates)
+        const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
+        if (arrayComparison > 0) orderB -= MAX/4
+        if (arrayComparison < 0) orderA -= MAX/4
+    }
+
+    if (a.sample !== null && b.sample !== null) {
+        if (a.sample > b.sample) orderB -= MAX/8
+        if (a.sample < b.sample) orderA -= MAX/8
+    }
+
+    return orderA - orderB
+
 }

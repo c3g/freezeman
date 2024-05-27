@@ -2,7 +2,7 @@ import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
-import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
+import { compareArray, comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellWithParentIdentifier {
@@ -414,10 +414,7 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
             const relativeOffsetByIndices = [...sources.keys()].sort((indexA, indexB) => {
                 const a = sources[indexA]
                 const b = sources[indexB]
-                const offsetsA = a.coordinates ? coordinatesToOffsets(getContainer(state, a).spec, a.coordinates) : []
-                const offsetsB = b.coordinates ? coordinatesToOffsets(getContainer(state, b).spec, b.coordinates) : []
-                const comparison = compareArray(offsetsA.reverse(), offsetsB.reverse())
-                return comparison
+                return comparePlacementSamples(a, b, getContainer(state, a).spec)
             }).reduce<Record<number, number>>((relativeOffsetByIndices, sortedIndex, index) => {
                 relativeOffsetByIndices[sortedIndex] = index
                 return relativeOffsetByIndices
