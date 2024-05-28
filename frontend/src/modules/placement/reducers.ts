@@ -2,7 +2,7 @@ import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
-import { compareArray, comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
+import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellWithParentIdentifier {
@@ -73,6 +73,7 @@ const slice = createSlice({
                         parentContainerName: payloadContainerState.name,
                         coordinates: payloadCell.coordinates,
                         sample: payloadCell.sample,
+                        name: payloadCell.name,
                         selected: false,
                         preview: false,
                         placedAt: null,
@@ -82,7 +83,7 @@ const slice = createSlice({
                 } else if (payloadContainerState.name === null) {
                     // without parent container
                     payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = payloadContainerState.cells.length
-                    payloadContainerState.cells.push({ parentContainerName: null, sample: payloadCell.sample, selected: false, placedAt: null })
+                    payloadContainerState.cells.push({ parentContainerName: null, sample: payloadCell.sample, name: payloadCell.name, selected: false, placedAt: null })
                 }
             }
 
@@ -264,6 +265,7 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
                     parentContainerName,
                     coordinates,
                     sample: null,
+                    name: '',
                     preview: false,
                     selected: false,
                     placedAt: null,
@@ -285,11 +287,11 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
 interface LoadParentContainerPayload {
     parentContainerName: string
     spec: CoordinateSpec
-    cells: { coordinates: string, sample: Sample['id'] }[]
+    cells: { coordinates: string, sample: Sample['id'], name: string }[]
 }
 interface LoadTubesWithoutParentPayload {
     parentContainerName: null
-    cells: { coordinates?: undefined, sample: Sample['id'] }[]
+    cells: { coordinates?: undefined, sample: Sample['id'], name: string }[]
 }
 
 function atCellLocations(...ids: CellIdentifier[]) {
