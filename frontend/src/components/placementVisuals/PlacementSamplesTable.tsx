@@ -158,7 +158,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
             columns={columns}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}
-	        pagination={{ showSizeChanger: true }}
+            pagination={{ showSizeChanger: true }}
         />
     )
 }
