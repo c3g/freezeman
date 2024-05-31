@@ -74,6 +74,7 @@ const slice = createSlice({
                         coordinates: payloadCell.coordinates,
                         sample: payloadCell.sample,
                         name: payloadCell.name,
+                        projectName: payloadCell.projectName,
                         selected: false,
                         preview: false,
                         placedAt: null,
@@ -83,7 +84,14 @@ const slice = createSlice({
                 } else if (payloadContainerState.name === null) {
                     // without parent container
                     payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = payloadContainerState.cells.length
-                    payloadContainerState.cells.push({ parentContainerName: null, sample: payloadCell.sample, name: payloadCell.name, selected: false, placedAt: null })
+                    payloadContainerState.cells.push({
+                        parentContainerName: null,
+                        sample: payloadCell.sample,
+                        name: payloadCell.name,
+                        projectName: payloadCell.projectName,
+                        selected: false,
+                        placedAt: null
+                    })
                 }
             }
 
@@ -266,6 +274,7 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
                     coordinates,
                     sample: null,
                     name: '',
+                    projectName: '',
                     preview: false,
                     selected: false,
                     placedAt: null,
@@ -287,11 +296,11 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
 interface LoadParentContainerPayload {
     parentContainerName: string
     spec: CoordinateSpec
-    cells: { coordinates: string, sample: Sample['id'], name: string }[]
+    cells: { coordinates: string, sample: Sample['id'], name: string, projectName: string }[]
 }
 interface LoadTubesWithoutParentPayload {
     parentContainerName: null
-    cells: { coordinates?: undefined, sample: Sample['id'], name: string }[]
+    cells: { coordinates?: undefined, sample: Sample['id'], name: string, projectName: string }[]
 }
 
 function atCellLocations(...ids: CellIdentifier[]) {

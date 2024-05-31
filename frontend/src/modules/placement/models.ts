@@ -31,6 +31,7 @@ interface CellStateBase {
     selected: boolean
     sample: Sample['id'] | null
     name: string
+    projectName: string
     placedAt: null | CellWithParentIdentifier
 }
 export interface CellWithParentState extends CellStateBase {

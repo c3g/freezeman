@@ -14,10 +14,15 @@ export interface PlacementSamplesTableProps {
     container: string | null
 }
 const columns = [
+    // {
+    //     title: 'ID',
+    //     dataIndex: 'id',
+    //     key: 'id',
+    // },
     {
-        title: 'ID',
-        dataIndex: 'id',
-        key: 'id',
+        title: 'Project',
+        dataIndex: 'projectName',
+        key: 'projectName',
     },
     {
         title: 'Name',
@@ -41,23 +46,26 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
     const isSource = containerName === activeSourceContainer?.name
     const isDestination = containerName === activeDestinationContainer?.name
 
-    type Samples = {
-        sample: FMSId,
+    type PlacementSample = {
+        id: FMSId
         selected: boolean
         name: string
+        projectName: string
         coordinates: string | undefined
-    }[]
-    const [samples, setSamples] = useState<Samples>([])
+        placed: boolean
+    }
+
+    const [samples, setSamples] = useState<PlacementSample[]>([])
     useEffect(() => {
         const missingSamples: FMSId[] = []
-        setSamples(
-            container
-                ? container.cells.reduce((samples, cell) => {
+        const samples = container
+            ? container.cells.reduce<PlacementSample[]>(
+                (samples, cell) => {
                     if (!cell) return samples
 
                     let sample: null | FMSId = null
 
-                    if (isSource && cell.sample && !cell.placedAt) {
+                    if (isSource && cell.sample) {
                         sample = cell.sample
                     } else if (isDestination && cell.placedFrom) {
                         const otherCell = selectCell(store.getState())(cell.placedFrom)
@@ -77,30 +85,32 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
 
                     const name = samplesByID[sample].name
                     samples.push({
-                        sample,
+                        id: sample,
                         selected: cell.selected,
                         name,
+                        projectName: cell.projectName,
                         coordinates: cell.coordinates,
+                        placed: cell.placedAt !== null
                     })
                     return samples
-                }, [] as Samples)
-                : []
-        )
+                }, [])
+            : []
+        samples.sort((a, b) => comparePlacementSamples(a, b, container?.spec))
+        setSamples(samples)
         if (missingSamples.length > 0)
             fetchSamples(missingSamples)
     }, [container, isDestination, isSource, samplesByID])
 
-    const placementSelectedSamples = useMemo(
+    const selectedRowKeys = useMemo(
         () => container ? samples.reduce((sampleIDs, s) => {
-            if (s.selected && s.sample) {
-                sampleIDs.push(s.sample)
+            if (s.selected && s.id) {
+                sampleIDs.push(s.id)
             }
             return sampleIDs
         }, [] as FMSId[]) : [],
         [container, samples]
     )
-
-    const onChange: NonNullable<TableRowSelection<SortedSample>['onChange']> = useCallback((keys, selectedRows, info) => {
+    const onChange: NonNullable<TableRowSelection<PlacementSample>['onChange']> = useCallback((keys, selectedRows, info) => {
         if (info.type === 'all') {
             dispatch(multiSelect({
                 type: 'all',
@@ -111,50 +121,31 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
             }))
         }
     }, [activeSourceContainer?.name, containerName, dispatch])
-
-    const onSelect: SelectionSelectFn<SortedSample> = useCallback((record, selected) => {
+    const onSelect: SelectionSelectFn<PlacementSample> = useCallback((sample, selected) => {
         dispatch(multiSelect({
             type: 'sample-ids',
             parentContainer: containerName,
-            sampleIDs: [record.id],
+            sampleIDs: [sample.id],
             forcedSelectedValue: selected,
             context: {
                 source: activeSourceContainer?.name
             }
         }))
     }, [activeSourceContainer?.name, containerName, dispatch])
-
-    type SortedSample = {
-        name: string,
-        id: FMSId,
-        coordinates: string | undefined
-    }
-    const sortedSamples: SortedSample[] = useMemo(() => {
-        // const reverse = labworkSelectedSamples.reverse()
-        const sortedSamples = [...samples]
-        sortedSamples.sort((a, b) => comparePlacementSamples(a, b, container?.spec))
-        return sortedSamples.reduce((sortedSamples, s) => {
-            // s.sample also represents a sample from another container
-            if (s.sample) {
-                sortedSamples.push({
-                    name: s.name,
-                    id: s.sample,
-                    coordinates: s.coordinates
-                })
-            }
-            return sortedSamples
-        }, [] as SortedSample[])
-    }, [samples, container])
-
-    const selectionProps: TableRowSelection<SortedSample> = {
-        selectedRowKeys: placementSelectedSamples,
+    const selectionProps: TableRowSelection<PlacementSample> = useMemo(() =>  ({
+        selectedRowKeys,
         onChange,
         onSelect,
-    }
+        getCheckboxProps(sample) {
+            return {
+                disabled: sample.placed
+            }
+        },
+    }), [selectedRowKeys, onChange, onSelect])
 
     return (
-        <Table<SortedSample>
-            dataSource={sortedSamples}
+        <Table<PlacementSample>
+            dataSource={samples}
             columns={columns}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}

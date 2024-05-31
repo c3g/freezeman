@@ -1,4 +1,5 @@
 import { CoordinateSpec } from "../models/fms_api_models"
+import { CellState } from "../modules/placement/models"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -58,11 +59,14 @@ export function compareArray(a: readonly number[], b: readonly number[]): number
     return 0
 }
 
-export function comparePlacementSamples<S extends { coordinates?: string, name: string }>(a: S, b: S, spec?: CoordinateSpec): number {
+export function comparePlacementSamples<S extends Pick<CellState, 'coordinates' | 'name' | 'projectName' | 'selected'>>(a: S, b: S, spec?: CoordinateSpec): number {
     const MAX = 128
 
     let orderA = MAX
     let orderB = MAX
+
+    if (a.selected) orderA -= MAX/2
+    if (b.selected) orderB -= MAX/2
 
     if (spec && a.coordinates && b.coordinates) {
         // if both have coordinates, both have a parent container
@@ -75,6 +79,9 @@ export function comparePlacementSamples<S extends { coordinates?: string, name: 
 
     if (a.name > b.name) orderB -= MAX/8
     if (a.name < b.name) orderA -= MAX/8
+
+    if (a.projectName > b.projectName) orderB -= MAX/16
+    if (a.projectName < b.projectName) orderA -= MAX/16
 
     return orderA - orderB
 
