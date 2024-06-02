@@ -30,7 +30,7 @@ const columns = [
         key: 'name',
     },
     {
-        title: 'coordinates',
+        title: 'Coordinates',
         dataIndex: 'coordinates',
         key: 'coordinates',
     },
@@ -63,17 +63,17 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                 (samples, cell) => {
                     if (!cell) return samples
 
-                    let sample: null | FMSId = null
+                    let sample = cell.sample
+                    let project = cell.projectName
 
-                    if (isSource && cell.sample) {
-                        sample = cell.sample
-                    } else if (isDestination && cell.placedFrom) {
+                    if (isDestination && cell.placedFrom) {
                         const otherCell = selectCell(store.getState())(cell.placedFrom)
                         if (!otherCell) {
                             console.error(`Cell at location '${cell.placedFrom.parentContainerName}@${cell.placedFrom.coordinates}' is not loaded`)
                             return samples
                         }
                         sample = otherCell.sample
+                        project = otherCell.projectName
                     }
 
                     if (!sample) return samples
@@ -88,7 +88,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                         id: sample,
                         selected: cell.selected,
                         name,
-                        projectName: cell.projectName,
+                        projectName: project,
                         coordinates: cell.coordinates,
                         placed: cell.placedAt !== null
                     })

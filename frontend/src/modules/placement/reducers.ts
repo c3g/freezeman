@@ -49,7 +49,7 @@ const slice = createSlice({
         loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) => {
             const foundContainer = state.containers.find((container) => container.name === payload.parentContainerName)
 
-            // initialize container state
+            // reuse or initialize container state
             const containerState = foundContainer ?? (
                 payload.parentContainerName !== null
                     ? initialParentContainerState(payload)
@@ -108,7 +108,9 @@ const slice = createSlice({
                         if (currentCell.sample)
                             delete containerState.cellsIndexBySampleID[currentCell.sample]
                         currentCell.sample = payloadCell.sample
-                        if (payloadCell.sample)
+			currentCell.name = payloadCell.name
+			currentCell.projectName = payloadCell.projectName
+                      if (payloadCell.sample)
                             containerState.cellsIndexBySampleID[payloadCell.sample] = Number(index)
                     }
                 }

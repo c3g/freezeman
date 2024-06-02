@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { useCallback } from "react"
 import './Placement.scss'
 import { clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
@@ -19,6 +19,19 @@ export interface CellProps {
 const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) => {
     const dispatch = useAppDispatch()
     const cell = useAppSelector((state) => selectCell(state)({ parentContainerName: containerName, coordinates }))
+    if (!cell) {
+        throw new Error(`Cell not found for ${containerName}@${coordinates}`)
+    }
+    const placedFrom = useAppSelector((state) => cell.placedFrom && selectCell(state)(cell.placedFrom))
+    if (placedFrom === undefined) {
+        throw new Error(`Cell not find where it was placed from for ${containerName}@${coordinates}`)
+    }
+    const placedAt = useAppSelector((state) => cell.placedAt && selectCell(state)(cell.placedAt))
+    if (placedAt === undefined) {
+        throw new Error(`Cell not find where it was placed at for ${containerName}@${coordinates}`)
+    }
+
+    const sampleName = placedFrom?.name ?? cell.name
 
     const isSource = useAppSelector((state) => {
         const activeSourceContainer = selectActiveSourceContainer(state)
@@ -49,8 +62,8 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 source: selectActiveSourceContainer(store.getState())?.name
             }
         }))
-        setPopOverOpen(true)
-    }, [containerName, coordinates, dispatch])
+        setPopOverOpen(sampleName !== '')
+    }, [containerName, coordinates, dispatch, sampleName])
 
     const onMouseLeave = useCallback(() => {
         dispatch(onCellExit({
@@ -68,10 +81,10 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
         cell &&
         <Popover
             content={<>
-                <div>{`Sample: ${cell.name ?? 'None'}`}</div>
-                {cell.placedFrom && cell.placedFrom.parentContainerName && cell.placedFrom.coordinates &&
-                    <div>{`From: ${cell.placedFrom.parentContainerName}@${cell.placedFrom.coordinates}`}</div>}
-                {cell.placedAt && <div>{`To: ${cell.placedAt.parentContainerName}@${cell.placedAt.coordinates}`}</div>}
+                <div>{`Sample: ${sampleName}`}</div>
+                <div>{`Coordinates: ${cell.coordinates}`}</div>
+                {placedFrom && <div>{`From: ${placedFrom.parentContainerName}@${placedFrom.coordinates}`}</div>}
+                {placedAt && <div>{`At: ${placedAt.parentContainerName}@${placedAt.coordinates}`}</div>}
             </>}
             destroyTooltipOnHide={{ keepParent: false }}
             open={popOverOpen}
