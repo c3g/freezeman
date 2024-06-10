@@ -26,12 +26,12 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
     const placedFrom = useAppSelector((state) => cell.placedFrom && selectCell(state)(cell.placedFrom))
     // null for missing placedFrom, undefined shouldn't happen at this point
     if (placedFrom === undefined) {
-        throw new Error(`Cell not find where it was placed from for ${containerName}@${coordinates}`)
+        throw new Error(`Cell not found where it was placed from for ${containerName}@${coordinates}`)
     }
     // null for missing placedFrom, undefined shouldn't happen at this point
     const placedAt = useAppSelector((state) => cell.placedAt && selectCell(state)(cell.placedAt))
     if (placedAt === undefined) {
-        throw new Error(`Cell not find where it was placed at for ${containerName}@${coordinates}`)
+        throw new Error(`Cell not found where it was placed at for ${containerName}@${coordinates}`)
     }
 
     const sampleName = placedFrom?.name ?? cell.name
