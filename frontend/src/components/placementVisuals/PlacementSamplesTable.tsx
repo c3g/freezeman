@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { Table } from "antd";
-import { SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
+import { ColumnsType, SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
 import { FMSId } from "../../models/fms_api_models";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { multiSelect } from "../../modules/placement/reducers";
@@ -10,10 +10,23 @@ import { selectCell, selectContainer } from "../../modules/placement/selectors";
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
 import store from "../../store";
 import { comparePlacementSamples } from "../../utils/functions";
+
 export interface PlacementSamplesTableProps {
     container: string | null
+    showContainerColumn?: boolean
 }
-const columns = [
+
+interface PlacementSample {
+    id: FMSId
+    selected: boolean
+    name: string
+    projectName: string
+    parentContainerName: string | null
+    coordinates: string | undefined
+    placed: boolean
+}
+
+const columns: ColumnsType<PlacementSample> = [
     // {
     //     title: 'ID',
     //     dataIndex: 'id',
@@ -23,6 +36,14 @@ const columns = [
         title: 'Project',
         dataIndex: 'projectName',
         key: 'projectName',
+        width: '',
+        ellipsis: true,
+    },
+    {
+        title: 'Container',
+        dataIndex: 'parentContainerName',
+        key: 'parentContainerName',
+        ellipsis: true,
     },
     {
         title: 'Name',
@@ -36,7 +57,7 @@ const columns = [
     },
 ];
 //component used to display and select samples in a table format for plate visualization placement
-const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTableProps) => {
+const PlacementSamplesTable = ({ container: containerName, showContainerColumn }: PlacementSamplesTableProps) => {
     const dispatch = useAppDispatch()
     // TODO: use sorted selected items instead when the field is defined in the labwork-refactor
     const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
@@ -45,15 +66,6 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
     const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
     const isSource = containerName === activeSourceContainer?.name
     const isDestination = containerName === activeDestinationContainer?.name
-
-    type PlacementSample = {
-        id: FMSId
-        selected: boolean
-        name: string
-        projectName: string
-        coordinates: string | undefined
-        placed: boolean
-    }
 
     const [samples, setSamples] = useState<PlacementSample[]>([])
     useEffect(() => {
@@ -65,6 +77,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
 
                     let sample = cell.sample
                     let project = cell.projectName
+                    let originalContainer = cell.parentContainerName
 
                     if (isDestination && cell.placedFrom) {
                         const otherCell = selectCell(store.getState())(cell.placedFrom)
@@ -74,6 +87,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                         }
                         sample = otherCell.sample
                         project = otherCell.projectName
+                        originalContainer = otherCell.parentContainerName
                     }
 
                     if (!sample) return samples
@@ -89,6 +103,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
                         selected: cell.selected,
                         name,
                         projectName: project,
+                        parentContainerName: originalContainer,
                         coordinates: cell.coordinates,
                         placed: cell.placedAt !== null
                     })
@@ -146,7 +161,7 @@ const PlacementSamplesTable = ({ container: containerName }: PlacementSamplesTab
     return (
         <Table<PlacementSample>
             dataSource={samples}
-            columns={columns}
+            columns={columns.filter(column => column.key !== 'parentContainerName' || showContainerColumn)}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}
             pagination={{ showSizeChanger: true }}
