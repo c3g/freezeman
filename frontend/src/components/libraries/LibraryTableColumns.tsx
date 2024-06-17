@@ -352,7 +352,7 @@ export const LIBARY_TABLE_FILTER_KEYS : {[key in LibraryColumnID] : string} = {
 	[LibraryColumnID.SELECTION_TARGET]: 'derived_samples__library__library_selection__target',
 	[LibraryColumnID.INDEX_NAME]: 'derived_samples__library__index__name',
 	[LibraryColumnID.PLATFORM_NAME]: 'derived_samples__library__platform__name',
-	[LibraryColumnID.PROJECT_NAME]: 'derived_samples__project__name',
+	[LibraryColumnID.PROJECT_NAME]: 'derived_by_samples__project__name',
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',
 	[LibraryColumnID.LIBRARY_SIZE]: 'sample__fragment_size',
 	[LibraryColumnID.CONCENTRATION_NM]: '', // unused
@@ -374,7 +374,7 @@ export const SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS = {
 	[LibraryColumnID.SELECTION_TARGET]: 'sample__derived_samples__library__library_selection__target',
 	[LibraryColumnID.INDEX_NAME]: 'sample__derived_samples__library__index__name',
 	[LibraryColumnID.PLATFORM_NAME]: 'sample__derived_samples__library__platform__name',
-	[LibraryColumnID.PROJECT_NAME]: 'sample__derived_samples__project__name',
+	[LibraryColumnID.PROJECT_NAME]: 'sample__derived_by_samples__project__name',
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',	// annotated property of viewset
 	[LibraryColumnID.LIBRARY_SIZE]: 'sample__fragment_size',
 }
@@ -384,7 +384,7 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS = {
 	[LibraryColumnID.SELECTION_TARGET]: 'sample_next_step__sample__derived_samples__library__library_selection__target',
 	[LibraryColumnID.INDEX_NAME]: 'sample_next_step__sample__derived_samples__library__index__name',
 	[LibraryColumnID.PLATFORM_NAME]: 'sample_next_step__sample__derived_samples__library__platform__name',
-	[LibraryColumnID.PROJECT_NAME]: 'sample_next_step__sample__derived_samples__project__name',
+	[LibraryColumnID.PROJECT_NAME]: 'sample_next_step__sample__derived_by_samples__project__name',
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',	// TODO annotated property of viewset 
 	[LibraryColumnID.LIBRARY_SIZE]: 'sample_next_step__sample__fragment_size',
 }
