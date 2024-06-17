@@ -108,9 +108,9 @@ const slice = createSlice({
                         if (currentCell.sample)
                             delete containerState.cellsIndexBySampleID[currentCell.sample]
                         currentCell.sample = payloadCell.sample
-			currentCell.name = payloadCell.name
-			currentCell.projectName = payloadCell.projectName
-                      if (payloadCell.sample)
+                        currentCell.name = payloadCell.name
+                        currentCell.projectName = payloadCell.projectName
+                        if (payloadCell.sample)
                             containerState.cellsIndexBySampleID[payloadCell.sample] = Number(index)
                     }
                 }
@@ -185,7 +185,7 @@ const slice = createSlice({
             const container = getContainer(state, { name: parentContainer })
             let cells = container.cells.filter((c) => c.selected)
             if (cells.length === 0) {
-	        // 0 cells have been selected, so undo placement for all cells
+                // 0 cells have been selected, so undo placement for all cells
                 cells = container.cells
             }
 
@@ -207,11 +207,11 @@ const slice = createSlice({
                     }
                 }
             }
-	    state.containers = state.containers.filter((c) => !deletedContainerNames.has(c.name))
+            state.containers = state.containers.filter((c) => !deletedContainerNames.has(c.name))
         },
-	flushPlacement(state) {
-	    Object.assign(state, initialState)
-	}
+        flushPlacement(state) {
+            Object.assign(state, initialState)
+        }
     }
 })
 
@@ -390,7 +390,7 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
     const destinationContainer = getParentContainer(state, destination)
     const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, destination.coordinates)
 
-    const [ axisRow, axisCol ] = destinationContainer.spec
+    const [axisRow, axisCol] = destinationContainer.spec
     const height = axisRow?.length ?? 1
     const width = axisCol?.length ?? 1
 
@@ -436,7 +436,7 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
             for (const sourceIndex in sources) {
                 const relativeOffset = relativeOffsetByIndices[sourceIndex]
                 const [startingRow, startingCol] = destinationStartingOffsets
-                
+
                 const { ROW, COLUMN } = PlacementDirections
                 const finalOffsets = {
                     [ROW]: startingRow,
@@ -459,7 +459,7 @@ function placementDestinationLocations(state: PlacementState, sources: Draft<Cel
                     }
                 }
 
-                newOffsetsList.push([ finalOffsets[ROW], finalOffsets[COLUMN] ])
+                newOffsetsList.push([finalOffsets[ROW], finalOffsets[COLUMN]])
             }
         }
     }
@@ -494,7 +494,7 @@ function placeCellsHelper(state: Draft<PlacementState>, sources: Draft<CellState
         sources.forEach((_, index) => {
             placeCell(sources[index], destinations[index])
             sources[index].selected = false
-	    destinations[index].preview = false
+            destinations[index].preview = false
         })
     }
 }
@@ -523,7 +523,7 @@ function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnC
 
 function setPreviews(state: Draft<PlacementState>, onMouseLocation: MouseOnCellPayload, preview: boolean) {
     if (onMouseLocation.context.source !== undefined) {
-        const activeSelections = getContainer(state, { name: onMouseLocation.context.source}).cells.filter((c) => c.selected)
+        const activeSelections = getContainer(state, { name: onMouseLocation.context.source }).cells.filter((c) => c.selected)
         const destCell = getCellWithParent(state, onMouseLocation)
         const destinationLocations = placementDestinationLocations(state, activeSelections, destCell, getPlacementOption(state))
         destinationLocations.forEach((location) => {
