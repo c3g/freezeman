@@ -240,7 +240,7 @@ class SamplePoolingPlanningImporter(GenericImporter):
             pool_row = {}
             pool_row["Pool Name"] = pool_name
             pool_row["Destination Container Barcode"] = barcode
-            pool_row["Robot Destination Container"] = ROBOT_DST_PREFIX + str(i)
+            pool_row["Robot Destination Container"] = ROBOT_DST_PREFIX
             pool_row["Robot Destination Coord"] = i
             output_pool_rows_data[pool_name] = pool_row
 
