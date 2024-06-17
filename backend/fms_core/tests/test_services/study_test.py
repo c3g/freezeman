@@ -43,9 +43,9 @@ class StudyServicesTestCase(TestCase):
         step_order = StepOrder.objects.get(order=2, workflow=workflow, step=step_valid)
         self.step_order_before = StepOrder.objects.get(order=1, workflow=workflow, step=step_before)
         step_order_after = StepOrder.objects.get(order=4, workflow=workflow, step=step_after)
-        for derived_sample in self.sample_BLOOD.derived_samples.all():
-            derived_sample.project_id = self.project.id
-            derived_sample.save()
+        for derived_by_sample in self.sample_BLOOD.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
     
     def setup_stephistory(self):
         update_protocol, _ = Protocol.objects.get_or_create(name="Update")

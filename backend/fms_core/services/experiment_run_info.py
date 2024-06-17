@@ -155,11 +155,7 @@ def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSam
     samples = Sample.objects.filter(container=experiment_run.container)
 
     for sample in samples:
-        if (sample.is_pool):
-            generated_rows += _generate_pooled_samples(experiment_run, sample)
-        else:
-            run_info_sample = _generate_sample(experiment_run, sample, sample.derived_sample_not_pool)
-            generated_rows += [run_info_sample]
+        generated_rows += _generate_pooled_samples(experiment_run, sample)
 
     return generated_rows
 
@@ -185,6 +181,15 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
         derived_by_sample: DerivedBySample = DerivedBySample.objects.get(derived_sample=derived_sample, sample=pool)
         run_info_sample.pool_volume_ratio = float(derived_by_sample.volume_ratio)
 
+        project: Optional[Project] = derived_by_sample.project
+        if project is None:
+            raise Exception(f'Sample {derived_by_sample.sample} has no project.')
+        else:
+            run_info_sample.project_obj_id = project.id
+            run_info_sample.project_name = project.name
+            run_info_sample.external_project_id = project.external_id
+            run_info_sample.external_project_name = project.external_name
+            
         run_info_samples.append(run_info_sample)
 
     return run_info_samples    
@@ -213,15 +218,6 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     row.derived_sample_obj_id = derived_sample.pk
     row.biosample_obj_id = biosample.pk
-
-    project: Optional[Project] = derived_sample.project
-    if project is None:
-        raise Exception(f'Sample {sample.pk} has no project.')
-
-    row.project_obj_id = project.id
-    row.project_name = project.name
-    row.external_project_id = project.external_id
-    row.external_project_name = project.external_name
 
     row.container_coordinates = sample.coordinates
 

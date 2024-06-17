@@ -31,16 +31,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='derivedbysample',
             name='project',
-            field=models.ForeignKey(help_text='Project linked to the derived sample - sample pair.', on_delete=django.db.models.deletion.PROTECT, related_name='project_derived_by_samples', to='fms_core.project'),
+            field=models.ForeignKey(null=True, blank=True, help_text='Project linked to the derived sample - sample pair.', on_delete=django.db.models.deletion.PROTECT, related_name='project_derived_by_samples', to='fms_core.project'),
         ),
         migrations.RunPython(
             move_project_fk_to_derivedbysample,
             reverse_code=migrations.RunPython.noop,
-        ),
-        migrations.AlterField(
-            model_name='derivedbysample',
-            name='project',
-            field=models.ForeignKey(null=True, blank=True, help_text='Project linked to the derived sample - sample pair.', on_delete=django.db.models.deletion.PROTECT, related_name='project_derived_by_samples', to='fms_core.project'),
         ),
         migrations.RemoveField(
             model_name='derivedsample',

@@ -59,7 +59,7 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
             elif action['name'] == ADD_STUDY_ACTION:
                 # Make sure the sample is already associated to the project of the given study. In case of pool one of the samples has to be associated to the project
                 if sample_obj.is_pool:
-                    if not any([derived_sample.project == project_obj for derived_sample in sample_obj.derived_samples.all()]):
+                    if not any([derived_by_sample.project == project_obj for derived_by_sample in sample_obj.derived_by_samples.all()]):
                             self.errors['add_to_study'] = (f"One of the samples in pool [{sample_obj.name}] has to be associated to project [{project_obj.name}].")
                 else: 
                     if sample_obj.derived_sample_not_pool.project != project_obj:

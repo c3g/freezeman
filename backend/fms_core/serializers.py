@@ -687,8 +687,8 @@ class PooledSampleSerializer(serializers.Serializer):
     volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
     # Associated project info
-    project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
-    project_name = serializers.CharField(read_only=True, source='derived_sample.project.name')
+    project_id = serializers.IntegerField(read_only=True, source='project.id')
+    project_name = serializers.CharField(read_only=True, source='project.name')
     
     # Sample info
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
