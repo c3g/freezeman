@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from ..coordinates import alphas, ints
-from ..containers import CONTAINER_SPEC_96_WELL_PLATE, CONTAINER_SPEC_ROOM
+from ..containers import CONTAINER_SPEC_96_WELL_PLATE, CONTAINER_SPEC_SITE
 
 
 class AdminUtilsTestCase(TestCase):
@@ -19,4 +19,4 @@ class AdminUtilsTestCase(TestCase):
             "is_run_container": False,
         })
 
-        self.assertTrue(CONTAINER_SPEC_ROOM.is_source)
+        self.assertTrue(CONTAINER_SPEC_SITE.is_source)
