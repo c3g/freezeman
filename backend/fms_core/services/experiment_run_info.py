@@ -189,8 +189,7 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
             run_info_sample.project_name = project.name
             run_info_sample.external_project_id = project.external_id
             run_info_sample.external_project_name = project.external_name
-            
-        run_info_samples.append(run_info_sample)
+            run_info_samples.append(run_info_sample)
 
     return run_info_samples    
 

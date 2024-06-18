@@ -157,7 +157,7 @@ def update_sample(sample_to_update, volume=None, concentration=None, depleted=No
     return (sample_to_update, errors, warnings)
 
 
-def inherit_sample(sample_source, new_sample_data, derived_samples_destination, volume_ratios):
+def inherit_sample(sample_source, new_sample_data, derived_samples_destination, volume_ratios, projects):
     """
     Copy an original sample and replace attributes with values provided by new_sample_data.
     Links the new samples to the provided derived samples with the given ratios.
@@ -167,6 +167,7 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
         `new_sample_data`: Dictionary of sample attributes to replace the matching ones on the inherited sample.
         `derived_samples_destination`: List of derived sample object instances to be tied to the new sample.
         `volume_ratios`: Dictionary of volume ratios for each derived sample id received in derived_samples_destination.
+        `projects`: Dictionary of projects for each derived sample id received in derived_samples_destination.
 
     Returns:
         Tuple with the created sample if successfully created otherwise None, errors and warnings
@@ -184,7 +185,8 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
         for derived_sample_destination in derived_samples_destination:
             DerivedBySample.objects.create(sample=new_sample,
                                            derived_sample=derived_sample_destination,
-                                           volume_ratio=volume_ratios[derived_sample_destination.id])
+                                           volume_ratio=volume_ratios[derived_sample_destination.id],
+                                           project=projects[derived_sample_destination.id])
 
     except Error as e:
             errors.append(';'.join(e.messages))
@@ -243,14 +245,18 @@ def transfer_sample(process: Process,
 
             derived_samples_destination = sample_source.derived_samples.all()
             volume_ratios = {}
+            projects = {}
             for derived_sample in derived_samples_destination:
-                volume_ratios[derived_sample.id] = DerivedBySample.objects.get(sample=sample_source, derived_sample=derived_sample).volume_ratio
+                source_derived_by_sample = DerivedBySample.objects.get(sample=sample_source, derived_sample=derived_sample)
+                volume_ratios[derived_sample.id] = source_derived_by_sample.volume_ratio
+                projects[derived_sample.id] = source_derived_by_sample.project
 
             sample_destination, errors_process, warnings_process = _process_sample(process,
                                                                                    sample_source,
                                                                                    sample_destination_data,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
+                                                                                   projects,
                                                                                    execution_date,
                                                                                    volume_used,
                                                                                    comment,
@@ -326,19 +332,23 @@ def extract_sample(process: Process,
 
             derived_samples_destination = []
             volume_ratios = {}
+            projects = {}
             for derived_sample in sample_source.derived_samples.all():
                 new_derived_sample_data["tissue_source_id"] = derived_sample.sample_kind.id
                 inherited_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample, new_derived_sample_data)
                 errors.extend(errors_inherit)
                 warnings.extend(warnings_inherit)
                 derived_samples_destination.append(inherited_derived_sample)
-                volume_ratios[inherited_derived_sample.id] = DerivedBySample.objects.get(sample=sample_source, derived_sample=derived_sample).volume_ratio
+                source_derived_by_sample = DerivedBySample.objects.get(sample=sample_source, derived_sample=derived_sample)
+                volume_ratios[inherited_derived_sample.id] = source_derived_by_sample.volume_ratio
+                projects[inherited_derived_sample.id] = source_derived_by_sample.project
 
             sample_destination, errors_process, warnings_process = _process_sample(process,
                                                                                    sample_source,
                                                                                    sample_destination_data,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
+                                                                                   projects,
                                                                                    execution_date,
                                                                                    volume_used,
                                                                                    comment,
@@ -457,8 +467,10 @@ def pool_samples(process: Process,
                 
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
                 for derived_sample in source_sample.derived_samples.all():
-                    parent_volume_ratio = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample).volume_ratio
+                    parent_derived_by_sample = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample)
+                    parent_volume_ratio = parent_derived_by_sample.volume_ratio
                     final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio, 15)
+                    parent_project = parent_derived_by_sample.project
 
                     # In case samples with common derived samples (transfer, normalization, pooling) are pooled together
                     if DerivedBySample.objects.filter(sample=sample_destination, derived_sample=derived_sample).exists():
@@ -469,7 +481,8 @@ def pool_samples(process: Process,
                         try:  # catch duplicates integrity errors
                             DerivedBySample.objects.create(sample=sample_destination,
                                                            derived_sample=derived_sample,
-                                                           volume_ratio=final_volume_ratio)
+                                                           volume_ratio=final_volume_ratio,
+                                                           project=parent_project)
                         except Exception as e:
                             errors.append(e)
 
@@ -709,6 +722,7 @@ def prepare_library(process: Process,
 
             derived_samples_destination = []
             volume_ratios = {}
+            projects = {}
             # For pools of samples (a library for each derived sample)
             for derived_sample_source in sample_source.derived_samples.all():
                 library_obj = libraries_by_derived_sample[derived_sample_source.id]
@@ -721,14 +735,16 @@ def prepare_library(process: Process,
                 warnings.extend(warnings_inherit)
 
                 derived_samples_destination.append(new_derived_sample)
-                volume_ratios[new_derived_sample.id] = DerivedBySample.objects.get(sample=sample_source,
-                                                                                   derived_sample=derived_sample_source).volume_ratio
+                source_derived_by_sample = DerivedBySample.objects.get(sample=sample_source, derived_sample=derived_sample_source)
+                volume_ratios[new_derived_sample.id] = source_derived_by_sample.volume_ratio
+                projects[new_derived_sample.id] = source_derived_by_sample.project
 
             sample_destination, errors_process, warnings_process = _process_sample(process,
                                                                                    sample_source,
                                                                                    sample_destination_data,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
+                                                                                   projects,
                                                                                    execution_date,
                                                                                    volume_used,
                                                                                    comment,
@@ -748,10 +764,29 @@ def _process_sample(process,
                     sample_destination_data,
                     derived_samples_destination,
                     volume_ratios,
+                    projects,
                     execution_date,
                     volume_used,
                     comment=None,
                     workflow=None):
+    """
+    Apply a process to a sample by creating the underlying structure.
+
+    Args:
+        `process`: Process associated to the protocol.
+        `sample_source`: The source sample to be processed.
+        `sample_destination_data`: The new values of sample attributes that are to be applied to the destination sample.
+        `derived_samples_destination`: A list of inherited destination derived samples for the sample once processed.
+        `volume_ratios`: Dictionary of volume ratios for each derived sample id received in derived_samples_destination.
+        `projects`: Dictionary of projects for each derived sample id received in derived_samples_destination.
+        `execution_date`: The date of the process measurement.
+        `volume_used`: The source sample's volume ued for the process (uL).
+        `comment`: Extra comments to attach to the process.
+        `workflow`: Information about the workflow step and action. Default to None when no action related to workflow is needed.
+
+    Returns:
+        The resulting sample or None if errors were encountered. Errors and warnings.
+    """
     sample_destination = None
     errors = []
     warnings = []
@@ -759,7 +794,8 @@ def _process_sample(process,
     sample_destination, errors_derive, warnings_derive = inherit_sample(sample_source,
                                                                         sample_destination_data,
                                                                         derived_samples_destination,
-                                                                        volume_ratios)
+                                                                        volume_ratios,
+                                                                        projects)
     errors.extend(errors_derive)
     warnings.extend(warnings_derive)
 

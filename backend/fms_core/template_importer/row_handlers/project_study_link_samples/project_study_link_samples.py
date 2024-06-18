@@ -62,7 +62,7 @@ class ProjectStudyLinkSamplesHandler(GenericRowHandler):
                     if not any([derived_by_sample.project == project_obj for derived_by_sample in sample_obj.derived_by_samples.all()]):
                             self.errors['add_to_study'] = (f"One of the samples in pool [{sample_obj.name}] has to be associated to project [{project_obj.name}].")
                 else: 
-                    if sample_obj.derived_sample_not_pool.project != project_obj:
+                    if sample_obj.derived_by_samples.first().project != project_obj:
                         self.errors['add_to_study'] = (f"Sample [{sample_obj.name}] is not associated to project [{project_obj.name}].")
 
                 # Queue sample to study if specified
