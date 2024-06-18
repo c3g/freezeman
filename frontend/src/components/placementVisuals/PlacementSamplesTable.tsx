@@ -161,7 +161,11 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
     return (
         <Table<PlacementSample>
             dataSource={samples}
-            columns={columns.filter(column => column.key !== 'parentContainerName' || showContainerColumn)}
+            columns={columns.filter(column => (
+                column.key !== 'parentContainerName' || showContainerColumn
+            ) && (
+                column.key !== 'coordinates' || containerName !== null
+            ))}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}
             pagination={{ showSizeChanger: true }}
