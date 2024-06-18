@@ -270,7 +270,6 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
         for (const row of axisRow) {
             for (const col of axisColumn) {
                 const coordinates = row + col
-                cellsIndexByCoordinates[coordinates] = cells.length
                 cells.push({
                     parentContainerName,
                     coordinates,
@@ -285,6 +284,10 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
             }
         }
     }
+    cells.sort((a, b) => comparePlacementSamples(a, b, spec))
+    cells.forEach((cell, index) => {
+        cellsIndexByCoordinates[cell.coordinates] = index
+    })
 
     return {
         name: parentContainerName,
