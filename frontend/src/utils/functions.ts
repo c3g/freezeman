@@ -80,11 +80,6 @@ export function comparePlacementSamples<S extends Pick<CellState, 'coordinates' 
     if (a.name > b.name) orderB -= MAX/8
     else if (a.name < b.name) orderA -= MAX/8
 
-    // if (!a.parentContainerName) orderA -= MAX/16
-    // else if (!b.parentContainerName) orderB -= MAX/16
-    // else if (a.parentContainerName > b.parentContainerName) orderB -= MAX/16
-    // else if (a.parentContainerName < b.parentContainerName) orderA -= MAX/16
-
     if (a.projectName > b.projectName) orderB -= MAX/32
     else if (a.projectName < b.projectName) orderA -= MAX/32
 
