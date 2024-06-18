@@ -19,22 +19,10 @@ export interface CellProps {
 const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) => {
     const dispatch = useAppDispatch()
     const cell = useAppSelector((state) => selectCell(state)({ parentContainerName: containerName, coordinates }))
-    // cell is expected to be loaded before rendering cell component
-    if (!cell) {
-        throw new Error(`Cell not found for ${containerName}@${coordinates}`)
-    }
-    const placedFrom = useAppSelector((state) => cell.placedFrom && selectCell(state)(cell.placedFrom))
-    // null for missing placedFrom, undefined shouldn't happen at this point
-    if (placedFrom === undefined) {
-        throw new Error(`Cell not found where it was placed from for ${containerName}@${coordinates}`)
-    }
-    // null for missing placedFrom, undefined shouldn't happen at this point
-    const placedAt = useAppSelector((state) => cell.placedAt && selectCell(state)(cell.placedAt))
-    if (placedAt === undefined) {
-        throw new Error(`Cell not found where it was placed at for ${containerName}@${coordinates}`)
-    }
+    const placedFrom = useAppSelector((state) => cell?.placedFrom && selectCell(state)(cell.placedFrom))
+    const placedAt = useAppSelector((state) => cell?.placedAt && selectCell(state)(cell.placedAt))
 
-    const sampleName = placedFrom?.name ?? cell.name
+    const sampleName = placedFrom?.name ?? cell?.name
 
     const isSource = useAppSelector((state) => {
         const activeSourceContainer = selectActiveSourceContainer(state)
