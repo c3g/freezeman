@@ -29,7 +29,7 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
 
   useEffect(() => {
     datasets && setCurrentDataset(datasets[datasetIndex])
-  }, [datasets])
+  }, [datasets, datasetIndex])
 
   const handlePreviousDataset = useCallback(() => {
     setDatasetIndex(datasetIndex - 1)
