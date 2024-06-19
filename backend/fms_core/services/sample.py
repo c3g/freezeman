@@ -49,7 +49,6 @@ def create_full_sample(name, volume, creation_date, container, sample_kind,
                 biosample_id=biosample.id,
                 sample_kind=sample_kind,
                 **(dict(library=library) if library is not None else dict()),
-                **(dict(project=project) if project is not None else dict()),
                 **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
             )
             if experimental_group:
@@ -77,7 +76,8 @@ def create_full_sample(name, volume, creation_date, container, sample_kind,
 
             DerivedBySample.objects.create(derived_sample_id=derived_sample.id,
                                            sample_id=sample.id,
-                                           volume_ratio=1)
+                                           volume_ratio=1,
+                                           **(dict(project=project) if project is not None else dict()))
         except Coordinate.DoesNotExist as err:
             errors.append(f"Provided coordinates {coordinates} are not valid (Coordinates format example: A01).")
         except ValidationError as e:
@@ -620,7 +620,6 @@ def pool_submitted_samples(samples_info,
                         sample_kind=sample['sample_kind'],
                         **(dict(library=sample['library']) if sample['library'] is not None else dict()),
                         **(dict(tissue_source=sample['tissue_source']) if sample['tissue_source'] is not None else dict()),
-                        **(dict(project=sample['project']) if sample['project'] is not None else dict()),
                     )
                     if sample['experimental_group']:
                         derived_sample_data['experimental_group'] = ([
@@ -634,7 +633,8 @@ def pool_submitted_samples(samples_info,
                     # Create the DerivedToSample entries for the pool
                     DerivedBySample.objects.create(sample=pool_sample_obj,
                                                    derived_sample=derived_sample,
-                                                   volume_ratio=volume_ratio)
+                                                   volume_ratio=volume_ratio,
+                                                   **(dict(project=sample['project']) if sample['project'] is not None else dict()),)
 
                 except Exception as e:
                     errors.append(e)
