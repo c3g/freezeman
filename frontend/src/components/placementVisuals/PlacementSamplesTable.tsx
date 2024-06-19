@@ -26,36 +26,6 @@ interface PlacementSample {
     placed: boolean
 }
 
-const columns: ColumnsType<PlacementSample> = [
-    // {
-    //     title: 'ID',
-    //     dataIndex: 'id',
-    //     key: 'id',
-    // },
-    {
-        title: 'Project',
-        dataIndex: 'projectName',
-        key: 'projectName',
-        width: '',
-        ellipsis: true,
-    },
-    {
-        title: 'Container',
-        dataIndex: 'parentContainerName',
-        key: 'parentContainerName',
-        ellipsis: true,
-    },
-    {
-        title: 'Name',
-        dataIndex: 'name',
-        key: 'name',
-    },
-    {
-        title: 'Coordinates',
-        dataIndex: 'coordinates',
-        key: 'coordinates',
-    },
-];
 //component used to display and select samples in a table format for plate visualization placement
 const PlacementSamplesTable = ({ container: containerName, showContainerColumn }: PlacementSamplesTableProps) => {
     const dispatch = useAppDispatch()
@@ -151,19 +121,43 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         selectedRowKeys,
         onChange,
         onSelect,
-        getCheckboxProps(sample) {
-            return {
-                disabled: sample.placed
-            }
-        },
     }), [selectedRowKeys, onChange, onSelect])
+
+    const columns: ColumnsType<PlacementSample> = useMemo(() => {
+        return [
+            {
+                title: 'Project',
+                dataIndex: 'projectName',
+                key: 'projectName',
+                ellipsis: true,
+            },
+            {
+                title: 'Src Container',
+                dataIndex: 'parentContainerName',
+                key: 'parentContainerName',
+            },
+            {
+                title: 'Sample',
+                dataIndex: 'name',
+                key: 'name',
+            },
+            {
+                title: 'Coords',
+                dataIndex: 'coordinates',
+                key: 'coordinates',
+                width: `5rem`,
+            },
+        ]
+    }, [])
 
     return (
         <Table<PlacementSample>
-            dataSource={samples}
+            dataSource={samples.filter(sample => !sample.placed)}
             columns={columns.filter(column => (
+                // normally for destination side only
                 column.key !== 'parentContainerName' || showContainerColumn
             ) && (
+                // only show coordinates if in a parent container
                 column.key !== 'coordinates' || containerName !== null
             ))}
             rowKey={obj => obj.id}
