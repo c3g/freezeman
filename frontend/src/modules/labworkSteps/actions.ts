@@ -425,6 +425,8 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 					cells: containerGroup.sample_locators.map((locator) => {
                         return {
                             sample: locator.sample_id,
+							name: locator.sample_name,
+							projectName: locator.project_name,
                             coordinates: locator.contextual_coordinates
                         }
                     })
@@ -442,6 +444,8 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 					cells: containerGroup.sample_locators.map((locator) => {
                         return {
                             sample: locator.sample_id,
+							name: locator.sample_name,
+							projectName: locator.project_name,
                         }
                     })
 				}))

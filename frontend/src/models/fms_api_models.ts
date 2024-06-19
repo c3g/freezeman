@@ -505,6 +505,8 @@ export interface WorkflowStepOrder {    // Not a tracked model - just a simple s
 
 export interface SampleLocator {
   sample_id: FMSId
+  sample_name: string
+  project_name: string
   contextual_container_barcode: string
   contextual_coordinates: string
 }

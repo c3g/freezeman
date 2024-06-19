@@ -89,7 +89,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             spec: containerKinds[container.container_kind].coordinate_spec,
             cells: Object.values(container.samples).map((sample) => ({
                 coordinates: sample.coordinates,
-                sample: sample.id
+                sample: sample.id,
+                name: sample.name,
+                projectName: '', // should this be defined?
             }))
         }))
         const nextContainer = {
@@ -242,7 +244,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             {activeSourceContainer !== undefined && <PlacementSamplesTable container={activeSourceContainer.name} />}
                         </Col>
                         <Col span={10}>
-                            {activeDestinationContainer !== undefined && <PlacementSamplesTable container={activeDestinationContainer.name} />}
+                            {activeDestinationContainer !== undefined && <PlacementSamplesTable container={activeDestinationContainer.name} showContainerColumn />}
                         </Col>
                     </Row>
                 </PageContent>
