@@ -129,7 +129,6 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                 title: 'Project',
                 dataIndex: 'projectName',
                 key: 'projectName',
-                ellipsis: true,
             },
             {
                 title: 'Src Container',
