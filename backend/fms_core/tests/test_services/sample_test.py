@@ -161,7 +161,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(new_sample.derived_samples.first().biosample.individual, self.TEST_SAMPLES[0]["individual"])
         self.assertEqual(new_sample.derived_samples.first().sample_kind, self.TEST_SAMPLES[0]["sample_kind"])
         self.assertEqual(new_sample.derived_samples.first().library, self.TEST_SAMPLES[0]["library"])
-        self.assertEqual(new_sample.derived_samples.first().project, self.TEST_SAMPLES[0]["project"])
+        self.assertEqual(new_sample.derived_by_samples.first().project, self.TEST_SAMPLES[0]["project"])
         self.assertEqual(new_sample.fragment_size, self.TEST_SAMPLES[0]["fragment_size"])
         self.assertFalse(errors)
         self.assertFalse(warnings)
@@ -189,7 +189,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(new_sample.derived_samples.first().biosample.individual, self.TEST_SAMPLES[0]["individual"])
         self.assertEqual(new_sample.derived_samples.first().sample_kind, self.TEST_SAMPLES[0]["sample_kind"])
         self.assertEqual(new_sample.derived_samples.first().library, self.TEST_SAMPLES[0]["library"])
-        self.assertEqual(new_sample.derived_samples.first().project, self.TEST_SAMPLES[0]["project"])
+        self.assertEqual(new_sample.derived_by_samples.first().project, self.TEST_SAMPLES[0]["project"])
         self.assertEqual(new_sample.fragment_size, self.TEST_SAMPLES[0]["fragment_size"])
         self.assertFalse(errors)
         self.assertFalse(warnings)
@@ -229,14 +229,17 @@ class SampleServicesTestCase(TestCase):
                            "coordinate_id": self.coord_A04.id}
         derived_samples_destination = []
         volume_ratios = {}
+        projects = {}
         for derived_sample in self.samples[0].derived_samples.all():
             derived_samples_destination.append(derived_sample)
-            volume_ratios[derived_sample.id] = DerivedBySample.objects.get(sample=self.samples[0],
-                                                                           derived_sample=derived_sample).volume_ratio
+            source_derived_by_sample = DerivedBySample.objects.get(sample=self.samples[0], derived_sample=derived_sample)
+            volume_ratios[derived_sample.id] = source_derived_by_sample.volume_ratio
+            projects[derived_sample.id] = source_derived_by_sample.project
         new_sample, errors, warnings = inherit_sample(sample_source=self.samples[0],
                                                       new_sample_data=new_sample_data,
                                                       derived_samples_destination=derived_samples_destination,
-                                                      volume_ratios=volume_ratios)
+                                                      volume_ratios=volume_ratios,
+                                                      projects=projects)
         self.assertEqual(new_sample.volume, new_sample_data["volume"])
         self.assertEqual(new_sample.container, new_sample_data["container"])
         self.assertEqual(new_sample.coordinates, self.coord_A04.name)
@@ -245,6 +248,7 @@ class SampleServicesTestCase(TestCase):
         for derived_sample in new_sample.derived_samples.all():
             self.assertIn(derived_sample, self.samples[0].derived_samples.all())
             self.assertEqual(volume_ratios[derived_sample.id], DerivedBySample.objects.get(sample=new_sample, derived_sample=derived_sample).volume_ratio)
+            self.assertEqual(projects[derived_sample.id], DerivedBySample.objects.get(sample=new_sample, derived_sample=derived_sample).project)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -379,19 +383,21 @@ class SampleServicesTestCase(TestCase):
 
         self.assertEqual(derived_by_sample_parent_1.volume_ratio, Decimal("1"))
         self.assertEqual(derived_by_sample_pool_1.volume_ratio, Decimal("0.5"))
+        self.assertEqual(derived_by_sample_parent_1.project.name, "Testouille")
+        self.assertEqual(derived_by_sample_pool_1.project.name, "Testouille")
         self.assertEqual(derived_sample_1.biosample.individual, self.test_individuals[0])
         self.assertEqual(derived_sample_1.library, self.test_libraries[0])
-        self.assertEqual(derived_sample_1.project.name, "Testouille")
-        
+
         derived_sample_2 = DerivedSample.objects.get(derived_by_samples__sample__id=self.samples[1].id)
         derived_by_sample_parent_2 = DerivedBySample.objects.get(derived_sample=derived_sample_2, sample=self.samples[1])
         derived_by_sample_pool_2 = DerivedBySample.objects.get(derived_sample=derived_sample_2, sample=pool)
 
         self.assertEqual(derived_by_sample_parent_2.volume_ratio, Decimal("1"))
         self.assertEqual(derived_by_sample_pool_2.volume_ratio, Decimal("0.5"))
+        self.assertEqual(derived_by_sample_parent_2.project.name, "Projecto")
+        self.assertEqual(derived_by_sample_pool_2.project.name, "Projecto")
         self.assertEqual(derived_sample_2.biosample.individual, self.test_individuals[1])
         self.assertEqual(derived_sample_2.library, self.test_libraries[1])
-        self.assertEqual(derived_sample_2.project.name, "Projecto")
         
     def test_prepare_library(self):
         source_sample, _, _ = create_full_sample(name=self.TEST_SAMPLES[2]["name"],
@@ -467,6 +473,7 @@ class SampleServicesTestCase(TestCase):
         )
         derived_samples_destination = []
         volume_ratios = {}
+        projects = {}
         for derived_sample in source_sample.derived_samples.all():
             new_derived_sample_data = {
                 "library_id": self.test_libraries[3].id
@@ -474,13 +481,16 @@ class SampleServicesTestCase(TestCase):
             new_derived_sample, _, _ = inherit_derived_sample(derived_sample,
                                                               new_derived_sample_data)
             derived_samples_destination.append(new_derived_sample)
-            volume_ratios[new_derived_sample.id] = DerivedBySample.objects.get(sample=source_sample,
-                                                                               derived_sample=derived_sample).volume_ratio
+            source_derived_by_sample = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample)
+            volume_ratios[new_derived_sample.id] = source_derived_by_sample.volume_ratio
+            projects[new_derived_sample.id] = source_derived_by_sample.project
+
         processed_sample, errors, warnings = _process_sample(process=process_by_protocol[protocol_obj.id],
                                                              sample_source=source_sample,
                                                              sample_destination_data=sample_destination_data,
                                                              derived_samples_destination=derived_samples_destination,
                                                              volume_ratios=volume_ratios,
+                                                             projects=projects,
                                                              execution_date=EXECUTION_DATE,
                                                              volume_used=100,
                                                              comment="Internal function test")

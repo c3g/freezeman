@@ -46,13 +46,13 @@ class SampleNextStepServicesTestCase(TestCase):
             self.step_order = StepOrder.objects.get(order=1, workflow=self.workflow_pcr_free, step=self.step)
             self.project = Project.objects.create(name="TestSampleNextStep")
 
-            for derived_sample in self.sample_BLOOD.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+            for derived_by_sample in self.sample_BLOOD.derived_by_samples.all():
+                derived_by_sample.project_id = self.project.id
+                derived_by_sample.save()
 
-            for derived_sample in self.sample_DNA.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+            for derived_by_sample in self.sample_DNA.derived_by_samples.all():
+                derived_by_sample.project_id = self.project.id
+                derived_by_sample.save()
                 
             self.letter_valid = "A"
             self.start = 1
@@ -171,9 +171,9 @@ class SampleNextStepServicesTestCase(TestCase):
                                       individual=self.valid_individual,
                                       sample_kind=self.sample_kind_DNA,
                                       container=container1)
-        for derived_sample in sample_in.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_in.derived_by_samples.all():
+                derived_by_sample.project_id = self.project.id
+                derived_by_sample.save()
 
         step = Step.objects.get(name="Sample QC")
         sample_next_step = SampleNextStep.objects.create(sample=sample_in, step=step)
@@ -209,9 +209,9 @@ class SampleNextStepServicesTestCase(TestCase):
                                       individual=self.valid_individual,
                                       sample_kind=self.sample_kind_DNA,
                                       container=container1)
-        for derived_sample in sample_in.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_in.derived_by_samples.all():
+                derived_by_sample.project_id = self.project.id
+                derived_by_sample.save()
 
         step = Step.objects.get(name="Sample QC")
         sample_next_step = SampleNextStep.objects.create(sample=sample_in, step=step)
@@ -248,9 +248,9 @@ class SampleNextStepServicesTestCase(TestCase):
                                       container=container1)
         
         step = Step.objects.get(name="Normalization (Sample)")
-        for derived_sample in sample_in.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_in.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
                 
         letter_B = "B"
         start = 3
@@ -303,9 +303,9 @@ class SampleNextStepServicesTestCase(TestCase):
                                       container=container1)
         
         step = Step.objects.get(name="Library Preparation (WGBS, Illumina)")
-        for derived_sample in sample_in.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_in.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
                 
         letter_B = "B"
         start = 4
@@ -370,9 +370,9 @@ class SampleNextStepServicesTestCase(TestCase):
                                       container=container1)
         
         step = Step.objects.get(name="Normalization (Sample)")
-        for derived_sample in sample_in.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_in.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
                 
         letter_B = "B"
         start = 3
@@ -444,13 +444,13 @@ class SampleNextStepServicesTestCase(TestCase):
                                       container=container2)
         
         step_1 = Step.objects.get(name="Extraction (DNA)")
-        for derived_sample in sample_in.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_in.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
 
-        for derived_sample in sample_out.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_out.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
                 
         letter_B = "B"
         start = 1
@@ -521,13 +521,13 @@ class SampleNextStepServicesTestCase(TestCase):
                                       tissue_source=self.sample_kind_BLOOD)
         
         step_1 = Step.objects.get(name="Extraction (DNA)")
-        for derived_sample in sample_in.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_in.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
 
-        for derived_sample in sample_out.derived_samples.all():
-                derived_sample.project_id = self.project.id
-                derived_sample.save()
+        for derived_by_sample in sample_out.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
                 
         letter_B = "B"
         start = 1

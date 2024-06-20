@@ -63,7 +63,7 @@ const IndividualAssociatedSamples = ({ samples, individual }: IndividualAssociat
             [SampleColumnID.CREATION_DATE]: 'creation_date',
             [SampleColumnID.DEPLETED]: 'depleted',
             [SampleColumnID.QC_FLAG]: 'qc_flag',
-            [SampleColumnID.PROJECT]: 'derived_samples__project__name',
+            [SampleColumnID.PROJECT]: 'derived_by_samples__project__name',
         }
     }, [])
 

@@ -140,8 +140,8 @@ class Sample(TrackedModel):
     # Computed property for project relation
     @property
     def projects(self) -> List["Project"]:
-        #return [derived_sample.project_id for derived_sample in self.derived_samples] if self.id else []
-        queryset = self.derived_samples.filter(project__isnull=False).distinct("project")
+        #return [derived_by_sample.project_id for derived_by_sample in self.derived_by_samples] if self.id else []
+        queryset = self.derived_by_samples.filter(project__isnull=False).distinct("project")
         return [queryset.value_list("project", flat=True)] if queryset else []
 
     @property

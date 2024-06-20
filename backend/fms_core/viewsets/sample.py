@@ -27,6 +27,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
      # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
     derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
     queryset = queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
+    queryset = queryset.prefetch_related(Prefetch('derived_by_samples', queryset=derived_samples))
 
     queryset = queryset.annotate(
         qc_flag=Case(
@@ -42,6 +43,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             DerivedBySample.objects
             .filter(sample=OuterRef("pk"))
             .values_list("volume_ratio", flat=True)[:1]
+        )
+    )
+    queryset = queryset.annotate(
+        first_project_id=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("project_id", flat=True)[:1]
         )
     )
     queryset = queryset.annotate(

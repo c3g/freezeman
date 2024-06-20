@@ -37,7 +37,7 @@ const SamplesAssociatedProjects = ({
 
   useEffect(() => {
     if (sampleID) {
-      const filterKey = 'project_derived_samples__samples__id'
+      const filterKey = 'project_derived_by_samples__sample__id'
 		  const filter: FilterSetting = createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, filterKey, sampleID)
       setSampleIDFilter(filter)
     }

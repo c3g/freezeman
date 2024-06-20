@@ -43,7 +43,7 @@ class SampleNextStepByStudy(TrackedModel):
             add_error("step_order", f"Step order for the sample in the workflow is invalid. The order must be between {self.study.start} and {self.study.end}.")
 
         if self.sample_next_step is not None and self.sample_next_step.sample is not None and \
-        not self.sample_next_step.sample.is_pool and self.study.project != self.sample_next_step.sample.derived_sample_not_pool.project:
+        not self.sample_next_step.sample.is_pool and self.study.project != self.sample_next_step.sample.derived_by_samples.first().project:
             add_error("project", f"Samples and libraries in studies must be associated to the same project unless they are pools.")
 
         if errors:

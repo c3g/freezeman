@@ -5,7 +5,7 @@ from collections import defaultdict
 from django.db.models import Q, ExpressionWrapper, BooleanField, QuerySet, Subquery, OuterRef, Func, F
 
 from fms.settings import REST_FRAMEWORK
-from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement, SampleMetadata, DerivedBySample
+from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement, SampleMetadata, DerivedBySample, Project
 from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
 from ..utils import decimal_rounded_to_precision
@@ -107,6 +107,7 @@ class FetchSampleData(FetchData):
             'comment',
             'count_derived_samples',
             'first_derived_sample',
+            'first_project_id',
             'created_by',
             'created_at',
             'updated_by',
@@ -133,7 +134,6 @@ class FetchSampleData(FetchData):
                 .values(
                     "id",
                     "is_library",
-                    "project_id",
                     "biosample_id",
                     "biosample__alias",
                     "sample_kind__id",
@@ -189,7 +189,7 @@ class FetchSampleData(FetchData):
                     'sample_kind': derived_sample["sample_kind__id"] if not is_pool or not is_library else None,
                     'is_library': is_library,
                     'is_pool': is_pool,
-                    'project': derived_sample["project_id"] if not is_pool or not is_library else None,
+                    'project': sample["first_project_id"] if not is_pool or not is_library else None,
                     'process_measurements': process_measurements,
                     'tissue_source': derived_sample["tissue_source__id"] if not is_pool else None,
                     'creation_date': sample["creation_date"],
@@ -292,6 +292,7 @@ class FetchSampleData(FetchData):
             'comment',
             'count_derived_samples',
             'first_derived_sample',
+            'first_project_id',
             'count_derived_by_sample',
         )
         samples = {s["id"]: s for s in self.queryset}
@@ -318,10 +319,13 @@ class FetchSampleData(FetchData):
                 'biosample__individual__father__name',
                 'biosample__individual__mother__name',
                 'biosample__individual__pedigree',
-                'project__name',
             )
         )
         derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
+
+        projects_ids = list(set([sample["first_project_id"] for sample in samples.values()]))
+        projects_values_queryset = Project.objects.filter(id__in=projects_ids).values("id", "name")
+        projects = {prj["id"]: prj["name"] for prj in projects_values_queryset}
 
         serialized_data = []
         if not samples:
@@ -362,7 +366,7 @@ class FetchSampleData(FetchData):
                 'pedigree': derived_sample["biosample__individual__pedigree"] if not is_pool or not is_library else None,
                 'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
                 'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,
-                'projects': derived_sample["project__name"] if not is_pool else None,
+                'project': projects[sample["first_project_id"]] if not is_pool else None,
                 'depleted': ["No", "Yes"][sample["depleted"]],
                 'is_library': is_library,
                 'comment': sample["comment"],
@@ -403,7 +407,7 @@ class FetchSampleData(FetchData):
                 'id',
                 'biosample__id',
                 'biosample__alias',
-                'project__name',
+                'derived_by_sample__project__name',
             )
         )
 
@@ -439,7 +443,7 @@ class FetchSampleData(FetchData):
                 'container_name': sample["container__name"],
                 'container_barcode': sample["container__barcode"],
                 'coordinates': sample["coordinate__name"], 
-                'project': derived_sample["project__name"],
+                'project': derived_sample["derived_by_sample__project__name"],
                 **(dict((item["name"], item["value"]) for item in metadata) if metadata else dict())
             }
             
@@ -491,6 +495,7 @@ class FetchLibraryData(FetchData):
             'depleted',
             'count_derived_samples',
             'first_derived_sample',
+            'first_project_id',
             'count_derived_by_sample',
         )
 
@@ -509,7 +514,6 @@ class FetchLibraryData(FetchData):
                 .filter(id__in=first_derived_sample_ids)
                 .values(
                     "id",
-                    "project_id",
                     "biosample_id",
                     "library__library_type__name",
                     "library__platform__name",
@@ -540,7 +544,7 @@ class FetchLibraryData(FetchData):
                     'container': sample["container_id"],
                     'coordinate': sample["coordinate_id"],
                     'is_pool': is_pool,
-                    'project': derived_sample["project_id"] if not is_pool else None,
+                    'project': sample["first_project_id"] if not is_pool else None,
                     'creation_date': sample["creation_date"],
                     'quality_flag': sample["quality_flag"],
                     'quantity_flag': sample["quantity_flag"],
@@ -586,6 +590,7 @@ class FetchLibraryData(FetchData):
             'depleted',
             'count_derived_samples',
             'first_derived_sample',
+            'first_project_id',
             'count_derived_by_sample',
         )
 
@@ -599,7 +604,6 @@ class FetchLibraryData(FetchData):
                 .filter(id__in=first_derived_sample_ids)
                 .values(
                     "id",
-                    "project__name",
                     "biosample_id",
                     "library__library_type__name",
                     "library__platform__name",
@@ -609,6 +613,10 @@ class FetchLibraryData(FetchData):
                 )
             )
             derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
+
+            projects_ids = list(set([sample["first_project_id"] for sample in samples.values()]))
+            projects_values_queryset = Project.objects.filter(id__in=projects_ids).values("id", "name")
+            projects = {prj["id"]: prj["name"] for prj in projects_values_queryset}
 
             serialized_data = []
             for sample in samples.values():
@@ -630,7 +638,7 @@ class FetchLibraryData(FetchData):
                     'container': sample["container__barcode"],
                     'coordinates': sample["coordinate__name"],
                     'is_pool': is_pool,
-                    'project': derived_sample["project__name"] if not is_pool else None,
+                    'project': projects[sample["first_project_id"]] if not is_pool else None,
                     'creation_date': sample["creation_date"],
                     'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
                     'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,

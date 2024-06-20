@@ -21,7 +21,7 @@ const setProject: (projectID: Project['id']) => FreezemanAsyncThunk<void> = (pro
 
     dispatch(pagedItemsActions.setFixedFilter(createFixedFilter(
         FILTER_TYPE.INPUT_OBJECT_ID,
-        'derived_samples__project__id',
+        'derived_by_samples__project__id',
         projectID.toString()
     )))
 

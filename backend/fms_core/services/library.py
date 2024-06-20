@@ -272,6 +272,7 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
 
             derived_samples_destination = []
             volume_ratios = {}
+            projects = {}
             for derived_sample_source in sample_source.derived_samples.all():
                 library_destination = None
                 library_source_obj = derived_sample_source.library
@@ -305,14 +306,16 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
                 warnings.extend(warnings_inherit)
 
                 derived_samples_destination.append(new_derived_sample)
-                volume_ratios[new_derived_sample.id] = DerivedBySample.objects.get(sample=sample_source,
-                                                                                   derived_sample=derived_sample_source).volume_ratio
+                source_derived_by_sample = DerivedBySample.objects.get(sample=sample_source, derived_sample=derived_sample_source)
+                volume_ratios[new_derived_sample.id] = source_derived_by_sample.volume_ratio
+                projects[new_derived_sample.id] = source_derived_by_sample.project
 
             sample_destination, errors_process, warnings_process = _process_sample(process,
                                                                                    sample_source,
                                                                                    sample_destination_data,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
+                                                                                   projects,
                                                                                    execution_date,
                                                                                    volume_used,
                                                                                    comment,

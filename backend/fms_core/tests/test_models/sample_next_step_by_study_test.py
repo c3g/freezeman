@@ -34,12 +34,12 @@ class SampleNextStepByStudyTest(TestCase):
         self.step_order_after = StepOrder.objects.get(order=4, workflow=self.workflow, step=self.step_after)
         self.project = Project.objects.create(name="TestSampleNextStep")
         self.project_other = Project.objects.create(name="ProjectOther")
-        for derived_sample in self.sample_BLOOD.derived_samples.all():
-            derived_sample.project_id = self.project.id
-            derived_sample.save()
-        for derived_sample in self.sample_DNA.derived_samples.all():
-            derived_sample.project_id = self.project.id
-            derived_sample.save()
+        for derived_by_sample in self.sample_BLOOD.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
+        for derived_by_sample in self.sample_DNA.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
         self.letter_valid = "A"
         self.start = 2
         self.end = 3
@@ -131,9 +131,9 @@ class SampleNextStepByStudyTest(TestCase):
                 raise e
 
     def test_wrong_project(self):
-        for derived_sample in self.sample_DNA.derived_samples.all():
-            derived_sample.project_id = self.project_other.id
-            derived_sample.save()
+        for derived_by_sample in self.sample_DNA.derived_by_samples.all():
+            derived_by_sample.project_id = self.project_other.id
+            derived_by_sample.save()
         sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
                                                          sample=self.sample_DNA)                                                         
         self.assertEqual(sample_next_step.step, self.step_valid)
