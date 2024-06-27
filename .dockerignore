@@ -1,3 +1,5 @@
+Dockerfile*
+
 env/
 node_modules/
 .env
