@@ -9,3 +9,36 @@ fms.log
 .coverage
 TODO.txt
 
+uwsgi.ini
+nginx.confenv/
+
+# Byte-compiled
+__pycache__/
+*.pyc
+
+# IDE related (intelliJ, vim files)
+.idea/*
+
+# static files
+staticfiles/
+
+# local media uploads
+media/uploads/*
+
+# coverage-related
+.coverage
+htmlcov/
+
+# Office temporary files
+~$*
+.DS_Store
+venv
+
+# Default run info output folder. Ignore json run info files.
+lims-run-info/*.json
+dist/
+node_modules/
+cypress/videos
+cypress/screenshots
+.DS_Store
+.env
