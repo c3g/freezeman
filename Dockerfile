@@ -1,3 +1,13 @@
+FROM docker.io/library/node:12.18.3-buster-slim as frontend-build
+
+COPY frontend/package.json /data/freezeman/frontend/
+COPY frontend/package-lock.json /data/freezeman/frontend/
+WORKDIR /data/freezeman/frontend/
+RUN npm ci
+
+COPY frontend/ /data/freezeman/frontend/
+RUN npm run build
+
 FROM docker.io/library/debian:bookworm-20240612-slim
 
 RUN apt-get update && \
@@ -18,4 +28,4 @@ COPY --chown=django . /data/freezeman
 # For uwsgi.log
 RUN mkdir /data/freezeman/instance
 
-CMD ["uwsgi", "--ini", "-"]
+COPY nginx.conf /etc/nginx/nginx.conf

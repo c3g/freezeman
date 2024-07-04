@@ -9,5 +9,4 @@ fms.log
 .coverage
 TODO.txt
 
-uwsgi.ini
-nginx.conf
+*uwsgi.ini
