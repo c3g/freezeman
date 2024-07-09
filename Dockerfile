@@ -23,9 +23,10 @@ RUN python3.11 -m venv env && \
 . env/bin/activate && \
 pip install --no-cache-dir -r requirements.txt
 
-COPY --chown=django . /data/freezeman
+COPY --chown=django backend/ /data/freezeman/backend
+COPY --chown=django --from=frontend-build /data/freezeman/frontend/dist /data/freezeman/frontend/dist
 
 # For uwsgi.log
 RUN mkdir /data/freezeman/instance
 
-COPY nginx.conf /etc/nginx/nginx.conf
+CMD [ "bash", "./run.sh" ]
