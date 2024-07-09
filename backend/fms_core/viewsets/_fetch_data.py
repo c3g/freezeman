@@ -398,7 +398,13 @@ class FetchSampleData(FetchData):
             'coordinate__name',
             'derived_samples'
         )
-        samples_by_derived = {s["derived_samples"]: s for s in self.queryset}
+        samples_by_derived = defaultdict(list)
+        for s in self.queryset:
+            if s["derived_samples"] is list:
+                for derived_sample in s["derived_samples"]:
+                    samples_by_derived[derived_sample].append(s)
+            else:
+                samples_by_derived[s["derived_samples"]].append(s)
 
         derived_sample_values_queryset = (
             DerivedSample.objects
@@ -407,11 +413,22 @@ class FetchSampleData(FetchData):
                 'id',
                 'biosample__id',
                 'biosample__alias',
-                'derived_by_sample__project__name',
             )
         )
-
         derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
+
+        derived_by_sample_values_queryset = DerivedBySample.objects.all()
+        cumulative_query = Q()
+        for derived_sample_id, samples in samples_by_derived.items():
+            for sample in samples:
+                current_query = Q(derived_sample_id=derived_sample_id)
+                current_query.add(Q(sample_id=sample["id"]), Q.AND)
+                cumulative_query.add(current_query, Q.OR)
+        derived_by_sample_values = derived_by_sample_values_queryset.filter(cumulative_query).values('id', 'derived_sample_id', 'sample_id', 'project__name').distinct()
+
+        derived_by_samples = defaultdict(list)
+        for derived_by_sample in derived_by_sample_values:
+            derived_by_samples[derived_by_sample["derived_sample_id"]].append(derived_by_sample["project__name"])
 
         biosample_ids = derived_sample_values_queryset.values_list('biosample__id', flat=True)
         metadata_queryset = SampleMetadata.objects.filter(biosample_id__in=biosample_ids)
@@ -423,32 +440,32 @@ class FetchSampleData(FetchData):
             if biosample in metadata_per_biosample.keys():
                 metadata_per_biosample[biosample].append(metadata)
             else:
-                metadata_per_biosample[biosample] = [metadata] 
+                metadata_per_biosample[biosample] = [metadata]
 
         serialized_data = []
         if not samples_by_derived:
             serialized_data.append({}) # Allow the returned csv file to be named instead of random name.
         # For the renderer context
         metadata_names = []
-        for sample in samples_by_derived.values():
-            derived_sample = derived_samples[sample['derived_samples']]
-            # Prevents crashing if sample has no metadata
-            biosample_id = derived_sample["biosample__id"]
-            metadata = metadata_per_biosample[biosample_id] if biosample_id in metadata_per_biosample else None
-                
-            data = {
-                'alias': derived_sample["biosample__alias"],
-                'biosample_id': biosample_id ,  
-                'sample_name': sample["name"],   
-                'container_name': sample["container__name"],
-                'container_barcode': sample["container__barcode"],
-                'coordinates': sample["coordinate__name"], 
-                'project': derived_sample["derived_by_sample__project__name"],
-                **(dict((item["name"], item["value"]) for item in metadata) if metadata else dict())
-            }
-            
-            metadata_names.extend([data_key for data_key in data.keys() if data_key not in metadata_names])
-            serialized_data.append(data)
+        for derived_sample_id, samples in samples_by_derived.items():
+            for sample in samples:
+                derived_sample = derived_samples[derived_sample_id]
+                # Prevents crashing if sample has no metadata
+                biosample_id = derived_sample["biosample__id"]
+                metadata = metadata_per_biosample[biosample_id] if biosample_id in metadata_per_biosample else None
+                data = {
+                    'alias': derived_sample["biosample__alias"],
+                    'biosample_id': biosample_id ,
+                    'sample_name': sample["name"],
+                    'container_name': sample["container__name"],
+                    'container_barcode': sample["container__barcode"],
+                    'coordinates': sample["coordinate__name"],
+                    'project': ", ".join(derived_by_samples[derived_sample_id]),
+                    **(dict((item["name"], item["value"]) for item in metadata) if metadata else dict())
+                }
+
+                metadata_names.extend([data_key for data_key in data.keys() if data_key not in metadata_names])
+                serialized_data.append(data)
 
         return (metadata_names, serialized_data)
 

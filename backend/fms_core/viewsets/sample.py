@@ -27,7 +27,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
      # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
     derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
     queryset = queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
-    queryset = queryset.prefetch_related(Prefetch('derived_by_samples', queryset=derived_samples))
 
     queryset = queryset.annotate(
         qc_flag=Case(
