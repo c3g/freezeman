@@ -29,4 +29,7 @@ COPY --chown=django --from=frontend-build /data/freezeman/frontend/dist /data/fr
 # For uwsgi.log
 RUN mkdir /data/freezeman/instance
 
+# For nginx
+RUN cp docker.nginx.conf /etc/nginx/nginx.conf
+
 CMD [ "bash", "./run.sh" ]
