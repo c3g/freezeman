@@ -426,9 +426,9 @@ class FetchSampleData(FetchData):
                 cumulative_query.add(current_query, Q.OR)
         derived_by_sample_values = derived_by_sample_values_queryset.filter(cumulative_query).values('id', 'derived_sample_id', 'sample_id', 'project__name').distinct()
 
-        derived_by_samples = defaultdict(list)
+        derived_by_samples = defaultdict(dict)
         for derived_by_sample in derived_by_sample_values:
-            derived_by_samples[derived_by_sample["derived_sample_id"]].append(derived_by_sample["project__name"])
+            derived_by_samples[derived_by_sample["derived_sample_id"]][derived_by_sample["sample_id"]] = derived_by_sample["project__name"]
 
         biosample_ids = derived_sample_values_queryset.values_list('biosample__id', flat=True)
         metadata_queryset = SampleMetadata.objects.filter(biosample_id__in=biosample_ids)
@@ -460,7 +460,7 @@ class FetchSampleData(FetchData):
                     'container_name': sample["container__name"],
                     'container_barcode': sample["container__barcode"],
                     'coordinates': sample["coordinate__name"],
-                    'project': ", ".join(derived_by_samples[derived_sample_id]),
+                    'project': derived_by_samples[derived_sample_id][sample["id"]],
                     **(dict((item["name"], item["value"]) for item in metadata) if metadata else dict())
                 }
 
