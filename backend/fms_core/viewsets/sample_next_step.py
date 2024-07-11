@@ -399,14 +399,34 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         grouped_step_samples = self.filter_queryset(self.get_queryset())
         # Get all samples on the steps with the grouping field
-        grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id).values_list("sample_id", grouping_column, "ordering_container_barcode", "ordering_container_coordinates")
+        grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id) \
+            .annotate(project_name=F("sample_next_step_by_study__study__project__name")) \
+            .annotate(sample_name=F("sample__name")) \
+            .values_list(
+                "sample_id",
+                "sample_name",
+                "project_name",
+                grouping_column,
+                "ordering_container_barcode",
+                "ordering_container_coordinates"
+            )
 
         groups = defaultdict(list)
         # Extract the locators from the entries
-        for sample_id, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
-            groups[group_column].append({"sample_id": sample_id, "contextual_container_barcode": container_barcode, "contextual_coordinates": container_coordinates})
+        for sample_id, sample_name, project_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
+            groups[group_column].append({
+                "sample_id": sample_id,
+                "sample_name": sample_name,
+                "project_name": project_name,
+                "contextual_container_barcode": container_barcode,
+                "contextual_coordinates": container_coordinates
+            })
         # Build the summary using locators
         for grouping in sorted(groups.keys()):
-            grouped_step_summary["samples"]["groups"].append({"name": grouping, "count": len(groups[grouping]), "sample_locators": groups[grouping]})
+            grouped_step_summary["samples"]["groups"].append({
+                "name": grouping,
+                "count": len(groups[grouping]),
+                "sample_locators": groups[grouping]
+            })
 
         return Response({"results": grouped_step_summary})
