@@ -123,42 +123,45 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         onSelect,
     }), [selectedRowKeys, onChange, onSelect])
 
-    const columns: ColumnsType<PlacementSample> = useMemo(() => {
-        return [
-            {
+    const columns = useMemo(() => {
+        const columns: ColumnsType<PlacementSample> = []
+
+        columns.push({
                 title: 'Project',
                 dataIndex: 'projectName',
                 key: 'projectName',
-            },
-            {
+        })
+
+        if (showContainerColumn) {
+            columns.push({
                 title: 'Src Container',
                 dataIndex: 'parentContainerName',
                 key: 'parentContainerName',
-            },
-            {
-                title: 'Sample',
-                dataIndex: 'name',
-                key: 'name',
-            },
-            {
+            })
+        }
+
+        columns.push({
+            title: 'Sample',
+            dataIndex: 'name',
+            key: 'name',
+        })
+
+        if (containerName !== null) {
+            columns.push({
                 title: 'Coords',
                 dataIndex: 'coordinates',
                 key: 'coordinates',
                 width: `5rem`,
-            },
-        ]
-    }, [])
+            })
+        }
+
+        return columns
+    }, [containerName, showContainerColumn])
 
     return (
         <Table<PlacementSample>
             dataSource={samples.filter(sample => !sample.placed)}
-            columns={columns.filter(column => (
-                // normally for destination side only
-                column.key !== 'parentContainerName' || showContainerColumn
-            ) && (
-                // only show coordinates if in a parent container
-                column.key !== 'coordinates' || containerName !== null
-            ))}
+            columns={columns}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}
             pagination={{ showSizeChanger: true }}
