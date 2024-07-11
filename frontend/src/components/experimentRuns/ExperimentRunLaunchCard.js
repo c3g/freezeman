@@ -4,6 +4,7 @@ import moment from 'moment'
 import { Button, Col, Row, Space, Spin, Typography } from 'antd'
 import { CheckOutlined, CloseOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons"
 
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers"
 import {launchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
 
@@ -22,7 +23,9 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     */
   
     const dispatch = useDispatch()
-
+    const currentUser = useCurrentUser()
+    const isUserStaff = currentUser?.is_staff ?? false
+  
     // Controls whether launch button and launch state is displayed
     const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
 
@@ -79,7 +82,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         const isFirstLaunch = !experimentRun.run_processing_launch_time
 
         const launchButton = <Button type="primary" onClick={launchRunProcessing}>Launch Run</Button>
-        const relaunchButton = <Button style={{background: 'orange'}} onClick={launchRunProcessing}>Relaunch Run</Button>
+        const relaunchButton = <Button style={{background: 'orange'}} onClick={launchRunProcessing} disabled={!isUserStaff}>Relaunch Run</Button>
 
         return (
           <Space align='end'>
