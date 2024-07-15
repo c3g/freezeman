@@ -12,7 +12,7 @@ def move_project_fk_to_derivedbysample(apps, schema_editor):
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment("Copy to derived_by_sample model from derived_sample the project foreign key.")
+        reversion.set_comment("Move the project foreign key from derived_sample to derived_by_sample model.")
         reversion.set_user(admin_user)
 
         for derived_by_sample in DerivedBySample.objects.select_related("derived_sample__project").all():
