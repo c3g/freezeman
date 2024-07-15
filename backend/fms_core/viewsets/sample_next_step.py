@@ -354,7 +354,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         Args:
             `request`: The request object received then whe API call was made.
                        The request must include the query arguments 'step__id__in' and 'group_by'.
-                       Valid 'group_by' include : - sample__derived_samples__project__name
+                       Valid 'group_by' include : - sample__derived_by_samples__project__name
                                                   - ordering_container_name
                                                   - sample__creation_date
                                                   - sample__created_by__username

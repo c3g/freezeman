@@ -23,7 +23,12 @@ class SampleSubmissionImporter(GenericImporter):
         pools_sheet = self.sheets['PoolSubmission']
         pool_set = set(row_data["Pool Name"] for row_data in pools_sheet.rows)
         pools_dict = defaultdict(list)
+        defined_pools = {}
         result_list = []
+
+        # Make list of pools to validate they were defined
+        for row_id, row_data in enumerate(pools_sheet.rows):
+            defined_pools[str_cast_and_normalize(row_data["Pool Name"])] = row_id
 
         for row_id, row_data in enumerate(samples_sheet.rows):
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
@@ -90,6 +95,8 @@ class SampleSubmissionImporter(GenericImporter):
                 individual_father=individual_father,
                 # Preloaded data
                 sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
+                # Validation
+                defined_pools=defined_pools,
             )
 
             (result, row_object) = self.handle_row(

@@ -39,7 +39,7 @@ class SamplesToPoolRowHandler(GenericRowHandler):
             self.errors["source_sample"].append(f"Sample must be extracted before being pooled.")
 
         # Prevent pooling of samples that are not assigned to a project
-        if sample and any(derived_sample.project_id is None for derived_sample in sample.derived_samples.all()):
+        if sample and any(derived_by_sample.project_id is None for derived_by_sample in sample.derived_by_samples.all()):
             self.errors["project"].append(f"Samples must be assigned to a project before being pooled.")
 
         if pool["pool_name"] is None:

@@ -6,7 +6,7 @@ import datetime
 from fms_core.template_importer.importers import ProjectStudyLinkSamples
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import SampleKind, Taxon, DerivedSample, Workflow, Study, SampleNextStep, StepOrder
+from fms_core.models import SampleKind, Taxon, DerivedSample, DerivedBySample, Workflow, Study, SampleNextStep, StepOrder
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -102,11 +102,11 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
-        self.assertEqual(len(DerivedSample.objects.filter(project__isnull=False).all()), 3)
-        self.assertFalse(DerivedSample.objects.filter(samples=self.sample1, project=self.project3).exists())
-        self.assertTrue(DerivedSample.objects.filter(samples=self.sample1, project=self.project1).exists())
-        self.assertTrue(DerivedSample.objects.filter(samples=self.sample2, project=self.project2).exists())
-        self.assertFalse(DerivedSample.objects.filter(samples=self.sample3, project=self.project3).exists())
+        self.assertEqual(len(DerivedBySample.objects.filter(project__isnull=False).all()), 3)
+        self.assertFalse(DerivedBySample.objects.filter(sample=self.sample1, project=self.project3).exists())
+        self.assertTrue(DerivedBySample.objects.filter(sample=self.sample1, project=self.project1).exists())
+        self.assertTrue(DerivedBySample.objects.filter(sample=self.sample2, project=self.project2).exists())
+        self.assertFalse(DerivedBySample.objects.filter(sample=self.sample3, project=self.project3).exists())
 
         # Test that sample 1 is queued twice in the same workflow but different steps
         self.assertEqual(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1).count(), 2)
