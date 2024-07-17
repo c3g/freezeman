@@ -250,7 +250,7 @@ def transfer_sample(process: Process,
             # Prepare and validate for destination sample new project
             new_project_obj = None
             new_study_obj = None
-            if project.get("destination_project", None) is not None:
+            if project is not None and project.get("destination_project", None) is not None:
                 if project.get("destination_study", None) is None:
                     errors.append(f"To set destination project, you need a destination study within that project.")
                 else:
@@ -291,11 +291,11 @@ def transfer_sample(process: Process,
             errors.extend(errors_process)
             warnings.extend(warnings_process)
 
-            if new_project_obj is None and new_study_obj is not None:
+            if new_project_obj is not None and new_study_obj is not None:
                 # Assign sample destination to given study...
                 _, errors_queue, warnings_queue = queue_sample_to_study_workflow(sample_destination, new_study_obj)
-                errors.extend(errors_process)
-                warnings.extend(warnings_process)
+                errors.extend(errors_queue)
+                warnings.extend(warnings_queue)
 
         except Coordinate.DoesNotExist as err:
             errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
