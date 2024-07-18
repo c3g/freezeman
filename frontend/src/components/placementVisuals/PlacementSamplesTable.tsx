@@ -160,7 +160,13 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
 
     return (
         <Table<PlacementSample>
-            dataSource={samples.filter(sample => !sample.placed)}
+            dataSource={samples.filter(sample => !sample.placed).map(
+            (sample) => 
+                ({
+                    ...sample,
+                    parentContainerName: sample.parentContainerName ?? 'Tube without parent' 
+                })
+            )}
             columns={columns}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}
