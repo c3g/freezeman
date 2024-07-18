@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Container, Individual, SampleKind, Sample
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Container, Individual, SampleKind, Sample, Project
 from fms_core.tests.constants import create_biosample, create_individual, create_derivedsample, create_sample_container, create_sample
 
 
@@ -16,14 +16,19 @@ class DerivedBySampleTest(TestCase):
                                                                                        sample_kind=self.sample_kind_DNA))
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
         self.valid_sample = Sample.objects.create(**create_sample(container=self.valid_container, concentration=20.5))
+        self.valid_project = Project.objects.create(name="TestProject")
 
     def test_derivedbysample(self):
         # Test basic 1 to 1 relation
-        derivedbysample = DerivedBySample.objects.create(sample=self.valid_sample, derived_sample=self.valid_derivedsample, volume_ratio=1)
+        derivedbysample = DerivedBySample.objects.create(sample=self.valid_sample,
+                                                         derived_sample=self.valid_derivedsample,
+                                                         volume_ratio=1,
+                                                         project=self.valid_project)
         self.assertEqual(DerivedBySample.objects.count(), 1)
         self.assertEqual(derivedbysample.sample, self.valid_sample)
         self.assertEqual(derivedbysample.derived_sample, self.valid_derivedsample)
         self.assertEqual(derivedbysample.volume_ratio, 1)
+        self.assertEqual(derivedbysample.project, self.valid_project)
 
     def test_missing_concentration_with_DNA(self):
         with self.assertRaises(ValidationError):
