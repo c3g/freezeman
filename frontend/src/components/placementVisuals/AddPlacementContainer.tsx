@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react"
 import { Button, Select, Tabs, notification, Row } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { selectCoordinatesByID, selectContainerKindsByID } from "../../selectors"
+import { selectCoordinatesByID, selectContainerKindsByID, selectProjectsByID } from "../../selectors"
 import Modal from "antd/lib/modal/Modal"
 import SearchContainer from "../SearchContainer"
 import Input from "antd/lib/input/Input"
@@ -13,7 +13,7 @@ export interface DestinationContainer {
     container_barcode: string
     container_name: string
     container_kind: string
-    samples: { [key in FMSId]: { id: FMSId, coordinates: string, name: string } }
+    samples: { [key in FMSId]: { id: FMSId, coordinates: string, name: string, project: string } }
 }
 
 export interface AddPlacementContainerProps {
@@ -33,6 +33,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
     const [newContainer, setNewContainer] = useState<Pick<DestinationContainer, 'samples'> & Partial<DestinationContainer>>({ samples: {} })
 
     const coordinates = useAppSelector(selectCoordinatesByID)
+    const projects = useAppSelector(selectProjectsByID)
     const containerKinds = useAppSelector(selectContainerKindsByID)
 
     const getContainerKindOptions = useCallback(() => {
@@ -57,13 +58,19 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
         const newDestination: DestinationContainer['samples']  = {}
         if (container.samples.length > 0) {
             const loadedSamples: FMSSample[] = (await dispatch(api.samples.list({ id__in: container.samples.join(','), limit: 100000 }))).data.results
-
+            const projectIDs = new Set(loadedSamples.map(sample => sample.project))
+            await dispatch(api.projects.list({ id__in: Array.from(projectIDs).join(',') }))
             loadedSamples.forEach(sample => {
-                newDestination[sample.id] = { id: sample.id, coordinates: (sample.coordinate && coordinates[sample.coordinate].name) as string, name: sample.name }
+                newDestination[sample.id] = {
+                    id: sample.id,
+                    coordinates: sample.coordinate ? coordinates[sample.coordinate].name : '...',
+                    name: sample.name,
+                    project: sample.project ? projects[sample.project].name : '...'
+                }
             })
         }
         setLoadedContainer({ container_barcode: containerBarcode, container_name: containerName, container_kind: container.kind, samples: { ...newDestination }, })
-    }, [coordinates, dispatch])
+    }, [coordinates, dispatch, projects])
 
     //calls addDestination prop with 'New Destination' container
     const handleConfirm = useCallback(() => {

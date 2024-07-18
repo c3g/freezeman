@@ -91,7 +91,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                 coordinates: sample.coordinates,
                 sample: sample.id,
                 name: sample.name,
-                projectName: '', // should this be defined?
+                projectName: sample.project,
             }))
         }))
         const nextContainer = {
