@@ -9,6 +9,7 @@ import api from "../../utils/api"
 import { MAX_CONTAINER_BARCODE_LENGTH, MAX_CONTAINER_NAME_LENGTH, barcodeRules, nameRules } from "../../constants"
 import { FMSContainer, FMSId, FMSSample } from "../../models/fms_api_models"
 import { get as getProject } from "../../modules/projects/actions"
+import store from "../../store"
 
 export interface DestinationContainer {
     container_barcode: string
@@ -33,8 +34,6 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
     // make at least empty samples required for newly created container
     const [newContainer, setNewContainer] = useState<Pick<DestinationContainer, 'samples'> & Partial<DestinationContainer>>({ samples: {} })
 
-    const coordinates = useAppSelector(selectCoordinatesByID)
-    const projects = useAppSelector(selectProjectsByID)
     const containerKinds = useAppSelector(selectContainerKindsByID)
 
     const getContainerKindOptions = useCallback(() => {
@@ -69,17 +68,20 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
             }
             await Promise.all(promises)
 
+            const coordinates = selectCoordinatesByID(store.getState())
+            const projects = selectProjectsByID(store.getState())
+
             loadedSamples.forEach(sample => {
                 newDestination[sample.id] = {
                     id: sample.id,
-                    coordinates: sample.coordinate ? coordinates[sample.coordinate]?.name ?? '...' : '',
+                    coordinates: sample.coordinate ? coordinates[sample.coordinate]?.name ?? '...' : 'N/A',
                     name: sample.name,
-                    project: sample.project ? projects[sample.project]?.name ?? '...' : ''
+                    project: sample.project ? projects[sample.project]?.name ?? '...' : 'N/A'
                 }
             })
         }
         setLoadedContainer({ container_barcode: containerBarcode, container_name: containerName, container_kind: container.kind, samples: { ...newDestination }, })
-    }, [coordinates, dispatch, projects])
+    }, [dispatch])
 
     //calls addDestination prop with 'New Destination' container
     const handleConfirm = useCallback(() => {
