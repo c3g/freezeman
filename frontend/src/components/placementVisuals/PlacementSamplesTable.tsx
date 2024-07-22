@@ -121,7 +121,10 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         selectedRowKeys,
         onChange,
         onSelect,
-    }), [selectedRowKeys, onChange, onSelect])
+        getCheckboxProps: (sample) => ({
+            disabled: isDestination && sample.parentContainerName === containerName
+        })
+    }), [selectedRowKeys, onChange, onSelect, isDestination, containerName])
 
     const columns = useMemo(() => {
         const columns: ColumnsType<PlacementSample> = []
@@ -164,7 +167,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
             (sample) => 
                 ({
                     ...sample,
-                    parentContainerName: sample.parentContainerName ?? 'Tube without parent' 
+                    parentContainerName: sample.parentContainerName ?? 'Tubes without parent' 
                 })
             )}
             columns={columns}
