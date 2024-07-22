@@ -31,6 +31,16 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const destinationContainers = labworkStepPlacement.destinationContainers
     const activeSourceContainer = labworkStepPlacement.activeSourceContainer
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
+    const isDestinationFull: boolean = useMemo(() => {
+      const [axisRow = [] as const, axisColumn = [] as const] = activeDestinationContainer?.spec ?? [[], []] as const
+      if (!activeDestinationContainer || !axisRow?.length || !axisColumn?.length) return false
+
+      console.log(activeDestinationContainer)
+      console.log(destinationContainers)
+      return true
+      //return axisRow.length * axisColumn.length === activeDestinationContainer
+    }, [activeDestinationContainer])
+    
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
@@ -166,6 +176,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     <Row justify="end" style={{ padding: "10px" }}>
                         <Col span={3}>
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
+                        </Col>
+                        <Col span={3}>
+                            <Button disabled={!isDestinationFull}>Get Samplesheet</Button>
                         </Col>
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
