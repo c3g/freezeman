@@ -59,12 +59,16 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
         const newDestination: DestinationContainer['samples']  = {}
         if (container.samples.length > 0) {
             const loadedSamples: FMSSample[] = (await dispatch(api.samples.list({ id__in: container.samples.join(','), limit: 100000 }))).data.results
+
             const projectIDs = new Set(loadedSamples.map(sample => sample.project))
+            const promises: Promise<any>[] = []
             for (const projectID of projectIDs) {
                 if (projectID) {
-                    dispatch(getProject(projectID))
+                    promises.push(dispatch(getProject(projectID)))
                 }
             }
+            await Promise.all(promises)
+
             loadedSamples.forEach(sample => {
                 newDestination[sample.id] = {
                     id: sample.id,
