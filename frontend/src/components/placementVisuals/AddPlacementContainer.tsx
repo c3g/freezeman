@@ -8,6 +8,7 @@ import Input from "antd/lib/input/Input"
 import api from "../../utils/api"
 import { MAX_CONTAINER_BARCODE_LENGTH, MAX_CONTAINER_NAME_LENGTH, barcodeRules, nameRules } from "../../constants"
 import { FMSContainer, FMSId, FMSSample } from "../../models/fms_api_models"
+import { get as getProject } from "../../modules/projects/actions"
 
 export interface DestinationContainer {
     container_barcode: string
@@ -59,13 +60,17 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
         if (container.samples.length > 0) {
             const loadedSamples: FMSSample[] = (await dispatch(api.samples.list({ id__in: container.samples.join(','), limit: 100000 }))).data.results
             const projectIDs = new Set(loadedSamples.map(sample => sample.project))
-            await dispatch(api.projects.list({ id__in: Array.from(projectIDs).join(',') }))
+            for (const projectID of projectIDs) {
+                if (projectID) {
+                    dispatch(getProject(projectID))
+                }
+            }
             loadedSamples.forEach(sample => {
                 newDestination[sample.id] = {
                     id: sample.id,
-                    coordinates: sample.coordinate ? coordinates[sample.coordinate].name : '...',
+                    coordinates: sample.coordinate ? coordinates[sample.coordinate]?.name ?? '...' : '',
                     name: sample.name,
-                    project: sample.project ? projects[sample.project].name : '...'
+                    project: sample.project ? projects[sample.project]?.name ?? '...' : ''
                 }
             })
         }
