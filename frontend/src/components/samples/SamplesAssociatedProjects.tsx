@@ -44,7 +44,7 @@ const SamplesAssociatedProjects = ({
       setSampleIDFilter({...filter})
       dispatch(ProjectsOfSamplesActions.setStale(true))
     }
-  }, [sampleID])
+  }, [sampleID, dispatch])
 
   const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, project => {return { project }})
 
