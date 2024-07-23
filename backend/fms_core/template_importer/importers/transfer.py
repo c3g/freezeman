@@ -71,11 +71,17 @@ class TransferImporter(GenericImporter):
                 'step': step_by_row_id[row_id]
             }
 
+            project = {
+                'destination_project': str_cast_and_normalize(row_data['Destination Project']),
+                'destination_study': str_cast_and_normalize(row_data['Destination Study']),
+            }
+
             transfer_kwargs = dict(
                 source_sample=source_sample,
                 resulting_sample=resulting_sample,
                 process_measurement=process_measurement,
                 workflow=workflow,
+                project=project,
             )
 
             (result, _) = self.handle_row(

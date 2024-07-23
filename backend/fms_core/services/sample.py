@@ -8,9 +8,12 @@ from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, 
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
+from .project import get_project
+from .study import get_study
 from .sample_next_step import execute_workflow_action, queue_sample_to_study_workflow
 from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
 from fms_core.containers import CONTAINER_SPEC_TUBE
+from fms_core._constants import WorkflowAction
 
 def create_full_sample(name, volume, creation_date, container, sample_kind,
                        collection_site=None, library=None, project=None, individual=None,
@@ -203,7 +206,8 @@ def transfer_sample(process: Process,
                     volume_destination=None,
                     source_depleted: bool=None,
                     comment=None,
-                    workflow=None):
+                    workflow=None,
+                    project=None):
     sample_destination=None
     errors = []
     warnings = []
@@ -243,13 +247,36 @@ def transfer_sample(process: Process,
                 depleted=False
             )
 
+            # Prepare and validate for destination sample new project
+            new_project_obj = None
+            new_study_obj = None
+            if project is not None and project.get("destination_project", None) is not None:
+                if project.get("destination_study", None) is None:
+                    errors.append(f"To set destination project, you need a destination study within that project.")
+                else:
+                    if workflow.get("step_action") is None:
+                        warnings.append(("Assigning a new project and study prevent the transfer from following workflow. Setting workflow action to [{0}].", [WorkflowAction.IGNORE_WORKFLOW.label]))
+                        workflow["step_action"] = WorkflowAction.IGNORE_WORKFLOW.label
+                    elif workflow.get("step_action") != WorkflowAction.IGNORE_WORKFLOW.label:
+                        errors.append(f"Assigning a new project and study is not allowed while following workflow. Set workflow action to [{WorkflowAction.IGNORE_WORKFLOW.label}] if you want to proceed.")
+                    if sample_source.is_pool:
+                        errors.append(f"Pools cannot be assigned to a new project.")
+                    if len(errors) == 0:
+                        new_project_obj, errors_project, warnings_project = get_project(project["destination_project"])
+                        errors.extend(errors_project)
+                        warnings.extend(warnings_project)
+                        if new_project_obj is not None:
+                            new_study_obj, errors_study, warnings_study = get_study(new_project_obj, project["destination_study"])
+                            errors.extend(errors_study)
+                            warnings.extend(warnings_study)
+
             derived_samples_destination = sample_source.derived_samples.all()
             volume_ratios = {}
             projects = {}
             for derived_sample in derived_samples_destination:
                 source_derived_by_sample = DerivedBySample.objects.get(sample=sample_source, derived_sample=derived_sample)
                 volume_ratios[derived_sample.id] = source_derived_by_sample.volume_ratio
-                projects[derived_sample.id] = source_derived_by_sample.project
+                projects[derived_sample.id] = new_project_obj or source_derived_by_sample.project # new_project_obj is not None if we change destination project
 
             sample_destination, errors_process, warnings_process = _process_sample(process,
                                                                                    sample_source,
@@ -263,6 +290,13 @@ def transfer_sample(process: Process,
                                                                                    workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
+
+            if new_project_obj is not None and new_study_obj is not None:
+                # Assign sample destination to given study...
+                _, errors_queue, warnings_queue = queue_sample_to_study_workflow(sample_destination, new_study_obj)
+                errors.extend(errors_queue)
+                warnings.extend(warnings_queue)
+
         except Coordinate.DoesNotExist as err:
             errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
         except Exception as e:

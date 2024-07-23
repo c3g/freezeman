@@ -4,18 +4,25 @@ from django.test import TestCase
 from datetime import datetime
 
 from fms_core.template_importer.importers import TransferImporter
-from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import Sample, Container, SampleKind, ProcessMeasurement, SampleLineage, Protocol, Process, Coordinate
+from fms_core.models import (Sample, Container, SampleKind, ProcessMeasurement, SampleLineage, Protocol,
+                             Process, Coordinate, SampleNextStep, SampleNextStepByStudy, Workflow)
 
 from fms_core.services.container import get_or_create_container
 from fms_core.services.sample import create_full_sample, pool_samples
+from fms_core.services.project import create_project
+from fms_core.services.study import create_study
 
 
 class TransferTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = TransferImporter()
-        self.file = APP_DATA_ROOT / "Sample_transfer_v4_6_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_transfer_v4_10_0.xlsx"
+
+        self.invalid_template_tests = [TEST_DATA_ROOT / "Sample_transfer_v4_10_0_Missing_Study.xlsx",
+                                       TEST_DATA_ROOT / "Sample_transfer_v4_10_0_With_Workflow_Progression.xlsx",
+                                      ]
 
         self.prefill_data()
 
@@ -26,14 +33,22 @@ class TransferTestCase(TestCase):
         self.coord_A01 = Coordinate.objects.get(name="A01")
         self.coord_A02 = Coordinate.objects.get(name="A02")
         self.coord_A03 = Coordinate.objects.get(name="A03")
+        self.coord_A04 = Coordinate.objects.get(name="A04")
         self.coord_H08 = Coordinate.objects.get(name="H08")
 
+        self.project_from, _, _ = create_project("TestTransferFrom")
+        self.project_to, _, _ = create_project("TestTransferTo")
+        workflow = Workflow.objects.get(name="PCR-free Illumina")
+        self.study, _, _ = create_study(self.project_to, workflow, 2, 7)
+
         samples_info = [
-            {'name': 'sample1transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A01'},
-            {'name': 'sample2transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A02'},
-            {'name': 'sample3transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A03'},
-            {'name': 'sample1pool', 'volume': 150, 'container_barcode': 'Pool_container_source_1', 'coordinates': 'A01'},
-            {'name': 'sample2pool', 'volume': 50,  'container_barcode': 'Pool_container_source_1', 'coordinates': 'A02'},
+            {'name': 'sample1transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A01', 'project': None},
+            {'name': 'sample2transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A02', 'project': None},
+            {'name': 'sample3transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A03', 'project': None},
+            {'name': 'sample1pool', 'volume': 150, 'container_barcode': 'Pool_container_source_1', 'coordinates': 'A01', 'project': None},
+            {'name': 'sample2pool', 'volume': 50,  'container_barcode': 'Pool_container_source_1', 'coordinates': 'A02', 'project': None},
+            {'name': 'sample4transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A04', 'project': self.project_from},
+            {'name': 'sample5transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A05', 'project': self.project_from},
         ]
 
         for info in samples_info:
@@ -44,7 +59,8 @@ class TransferTestCase(TestCase):
                                                             creation_date=datetime(2020, 5, 21, 0, 0),
                                                             concentration=10,
                                                             container=container, coordinates=info['coordinates'],
-                                                            sample_kind=sample_kind_DNA)
+                                                            sample_kind=sample_kind_DNA,
+                                                            project=info["project"])
 
         (container_rack, _, errors, warnings) = get_or_create_container(barcode='RackTransfer', name='RackTransfer', kind='tube rack 8x12')
         (container_freezer, _, errors, warnings) = get_or_create_container(barcode='FreezerTransfer', name='FreezerTransfer', kind='freezer 5 shelves')
@@ -160,6 +176,30 @@ class TransferTestCase(TestCase):
         self.assertEqual(cs3.creation_date, pm3.execution_date)
         self.assertEqual(cs3.creation_date, datetime.strptime("2021-09-22", "%Y-%m-%d").date())
 
+        ss4 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinate=self.coord_A04)
+        self.assertEqual(ss4.volume, 300)
+        self.assertFalse(ss4.depleted)
+        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A04).exists())
+        self.assertTrue(SampleLineage.objects.filter(parent=ss4).exists())
+        self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss4).exists())
+        cs4 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A04)
+        sl4 = SampleLineage.objects.get(parent=ss4)
+        pm4 = ProcessMeasurement.objects.get(source_sample=ss4)
+        process1 = pm4.process
+        self.assertEqual(sl4.child, cs4)
+        self.assertEqual(sl4.process_measurement, pm4)
+        self.assertEqual(pm4.source_sample, ss4)
+        self.assertEqual(pm4.volume_used, 100)
+        self.assertEqual(pm4.protocol_name, "Transfer")
+        self.assertEqual(pm4.comment, "Project Transfer One")
+        self.assertEqual(cs4.volume, 100)
+        self.assertEqual(cs4.creation_date, pm4.execution_date)
+        self.assertEqual(cs4.creation_date, datetime.strptime("2024-07-16", "%Y-%m-%d").date())
+        self.assertEqual(ss4.derived_by_samples.first().project, self.project_from)
+        self.assertEqual(cs4.derived_by_samples.first().project, self.project_to)
+        self.assertTrue(SampleNextStep.objects.filter(sample=cs4).exists())
+        self.assertTrue(SampleNextStepByStudy.objects.filter(study=self.study).exists())
+
         # Pool test
         pool = Sample.objects.get(container__barcode="PoolContainerSource")
         self.assertEqual(pool.volume, 15)
@@ -183,3 +223,15 @@ class TransferTestCase(TestCase):
         self.assertEqual(process4, process3)
         self.assertEqual(pool_transferred.creation_date, pm4.execution_date)
         self.assertEqual(pool_transferred.creation_date, datetime.strptime("2022-01-01", "%Y-%m-%d").date())
+
+    def test_missing_study_for_project_transfer(self):
+        result = {}
+        result = load_template(importer=self.importer, file=self.invalid_template_tests[0])
+        self.assertEqual(result['valid'], False)
+        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["transfered_sample"][0].messages[0], "To set destination project, you need a destination study within that project.")
+
+    def test_workflow_progression_for_project_transfer(self):
+        result = {}
+        result = load_template(importer=self.importer, file=self.invalid_template_tests[1])
+        self.assertEqual(result['valid'], False)
+        self.assertEqual(result["result_previews"][0]["rows"][0]["validation_error"].error_dict["transfered_sample"][0].messages[0], "Assigning a new project and study is not allowed while following workflow. Set workflow action to [Ignore workflow - Do not register as part of a workflow] if you want to proceed.")
