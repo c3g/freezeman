@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -12,9 +12,13 @@ import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
+import { selectContainer, selectCell } from "../../modules/placement/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
+import store from '../../store'
+import { downloadFromFile } from "../../utils/download"
+import api from "../../utils/api"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -31,16 +35,42 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const destinationContainers = labworkStepPlacement.destinationContainers
     const activeSourceContainer = labworkStepPlacement.activeSourceContainer
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
-    const isDestinationFull: boolean = useMemo(() => {
-      const [axisRow = [] as const, axisColumn = [] as const] = activeDestinationContainer?.spec ?? [[], []] as const
-      if (!activeDestinationContainer || !axisRow?.length || !axisColumn?.length) return false
 
-      console.log(activeDestinationContainer)
-      console.log(destinationContainers)
-      return true
-      //return axisRow.length * axisColumn.length === activeDestinationContainer
-    }, [activeDestinationContainer])
-    
+    const handleGetSamplesheet = useCallback(async () => {
+      type PlacementData = {
+         placement: {
+          coordinates: string,
+          sample_id: FMSId,
+        }[]
+      }
+      if (!activeDestinationContainer) return
+      const placementData: PlacementData = { placement: [] }
+      try {
+        const cells = selectContainer(store.getState())({ name: activeDestinationContainer.name })?.cells
+        if (!cells) throw new Error(`Could not find active destination container in placement for '${activeDestinationContainer.name}'`)
+        for (const destinationCell of cells) {
+          if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
+          const sourceCell = selectCell(store.getState())(destinationCell.placedFrom)
+          if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+          if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+          placementData["placement"].push({
+            coordinates: destinationCell.coordinates,
+            sample_id: sourceCell.sample,
+          })
+        }
+      } catch (e) {
+        notification.error({
+          message: e.message,
+          key: 'LabworkStep.Placement.GetSamplesheet',
+          duration: 20
+        })
+      }
+  
+      const fileData = await dispatch(api.samplesheets.getSamplesheet(JSON.stringify(placementData)))
+        if (fileData) {
+          downloadFromFile(fileData.filename, fileData.data)
+        }
+    }, [dispatch, activeDestinationContainer])
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
@@ -178,7 +208,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
                         </Col>
                         <Col span={3}>
-                            <Button disabled={!isDestinationFull}>Get Samplesheet</Button>
+                            <Button onClick={handleGetSamplesheet}>Get Samplesheet</Button>
                         </Col>
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>

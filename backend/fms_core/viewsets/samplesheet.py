@@ -18,8 +18,8 @@ class SamplesheetViewSet(viewsets.GenericViewSet):
         Generates a samplesheet with the placement information received in the request.
 
         request contains placement object structure as follows:
-            {"placement": [{"coordinates": "A01", "sample": "140123"},
-                           {"coordinates": "B01", "sample": "404123"},
+            {"placement": [{"coordinates": "A01", "sample_id": 140123},
+                           {"coordinates": "B01", "sample_id": 404123},
                            ...]
             }
         
@@ -28,10 +28,10 @@ class SamplesheetViewSet(viewsets.GenericViewSet):
 
         Returns:
             On success:
-            {'ok': True, 'data': <the run info>}
+            {'ok': True, 'data': samplesheet}
 
             On error:
-            {'ok': False, 'message': <the error message>}
+            {'ok': False, 'message': error message}
         """
 
         info = json.loads(_request.GET.get("placement"))
