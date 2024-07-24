@@ -356,6 +356,7 @@ _metric_filterset_fields: FiltersetFields = {
     "value_string": CATEGORICAL_FILTERS_LOOSE,
     "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
     "readset__derived_sample_id": PK_FILTERS,
+    "readset__dataset__id": PK_FILTERS,
     "readset__dataset__experiment_run_id": PK_FILTERS,
     "readset__dataset__run_name": CATEGORICAL_FILTERS_LOOSE,
     "readset__dataset__lane": CATEGORICAL_FILTERS,
