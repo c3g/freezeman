@@ -261,7 +261,7 @@ const api = {
   },
 
   samplesheets: {
-    getSamplesheet: (placement) => get('/samplesheets/', { placement }),
+    getSamplesheet: (barcode, placementData) => post('/samplesheets/get_samplesheet/', { flowcell: barcode, placement: placementData }),
   },
 
   sequences: {

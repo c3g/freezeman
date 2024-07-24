@@ -12,8 +12,8 @@ import datetime
 class SamplesheetViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
 
-    @action(detail=True, methods=["get"])
-    def get_samplesheet(self, _request, pk=None):
+    @action(detail=False, methods=["post"])
+    def get_samplesheet(self, _request):
         """
         Generates a samplesheet with the placement information received in the request.
 
@@ -33,16 +33,15 @@ class SamplesheetViewSet(viewsets.GenericViewSet):
             On error:
             {'ok': False, 'message': error message}
         """
-
-        info = json.loads(_request.GET.get("placement"))
-        samplesheet, errors, _ = get_samplesheet(info["placement"])
+        body = json.loads(_request.body)
+        samplesheet, errors, _ = get_samplesheet(body["placement"])
         if errors:
             response = HttpResponseServerError("\n".join(errors))
         else:
             try:
                 response = HttpResponse(content=samplesheet)
                 response["Content-Type"] = "application/ms-excel"
-                response["Content-Disposition"] = "attachment; filename=Samplesheet_v2_" + datetime.datetime.now() + ".xlsx"
+                response["Content-Disposition"] = "attachment; filename=Samplesheet_v2_" + body["flowcell"] + "_" + datetime.datetime.now().strftime("%Y-%m-%d") + ".xlsx"
             except Exception as err:
                 return HttpResponseServerError(json.dumps({"detail": f"Failure to attach the samplesheet to the response."}), content_type="application/json")
         return response

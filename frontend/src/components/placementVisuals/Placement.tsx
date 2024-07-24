@@ -38,13 +38,13 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const handleGetSamplesheet = useCallback(async () => {
       type PlacementData = {
-         placement: {
           coordinates: string,
           sample_id: FMSId,
         }[]
-      }
+
+      console.log("Moo")
       if (!activeDestinationContainer) return
-      const placementData: PlacementData = { placement: [] }
+      const placementData: PlacementData = []
       try {
         const cells = selectContainer(store.getState())({ name: activeDestinationContainer.name })?.cells
         if (!cells) throw new Error(`Could not find active destination container in placement for '${activeDestinationContainer.name}'`)
@@ -53,7 +53,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
           const sourceCell = selectCell(store.getState())(destinationCell.placedFrom)
           if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
           if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-          placementData["placement"].push({
+          placementData.push({
             coordinates: destinationCell.coordinates,
             sample_id: sourceCell.sample,
           })
@@ -66,10 +66,10 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         })
       }
   
-      const fileData = await dispatch(api.samplesheets.getSamplesheet(JSON.stringify(placementData)))
-        if (fileData) {
-          downloadFromFile(fileData.filename, fileData.data)
-        }
+      const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, JSON.stringify(placementData)))
+      if (fileData) {
+        downloadFromFile(fileData.filename, fileData.data)
+      }
     }, [dispatch, activeDestinationContainer])
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
