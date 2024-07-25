@@ -1,5 +1,6 @@
-from django.db.models import Q
-
+from django.db.models import Q, Max
+from django.utils import timezone
+import  datetime
 from .models import (Container,
                      DerivedBySample,
                      Index,
@@ -175,9 +176,16 @@ class IndexFilter(GenericFilter):
 
 class DatasetFilter(GenericFilter):
     release_flag = django_filters.NumberFilter(method="release_flag_filter")
+    latest_release_update = django_filters.CharFilter(method="latest_release_update_filter")
 
     def release_flag_filter(self, queryset, name, value):
         return queryset.filter(release_flag=value)
+
+    def latest_release_update_filter(self,queryset, name, value):
+        pastHour = timezone.now() - datetime.timedelta(hours=0, minutes=60)
+        return queryset.annotate(
+            latest_release_update=Max("readsets__release_status_timestamp")
+        ).filter(latest_release_update__gte=pastHour)
 
     class Meta:
         model = Dataset
