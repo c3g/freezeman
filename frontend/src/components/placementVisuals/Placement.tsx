@@ -42,7 +42,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
           sample_id: FMSId,
         }[]
 
-      console.log("Moo")
       if (!activeDestinationContainer) return
       const placementData: PlacementData = []
       try {
@@ -66,7 +65,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         })
       }
   
-      const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, JSON.stringify(placementData)))
+      const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
       if (fileData) {
         downloadFromFile(fileData.filename, fileData.data)
       }
