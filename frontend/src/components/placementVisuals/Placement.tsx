@@ -7,7 +7,7 @@ import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import PlacementContainer from "./PlacementContainer"
-import { selectContainerKindsByID } from "../../selectors"
+import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
@@ -19,6 +19,8 @@ import { PlacementDirections, PlacementType } from "../../modules/placement/mode
 import store from '../../store'
 import { downloadFromFile } from "../../utils/download"
 import api from "../../utils/api"
+
+const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -35,6 +37,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const destinationContainers = labworkStepPlacement.destinationContainers
     const activeSourceContainer = labworkStepPlacement.activeSourceContainer
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
+    const step = selectStepsByID(store.getState())[stepID]
+    const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
+    const cells = useAppSelector((state) =>  activeDestinationContainer?.name && selectContainer(state)({ name: activeDestinationContainer.name })?.cells)
 
     const handleGetSamplesheet = useCallback(async () => {
       type PlacementData = {
@@ -45,7 +50,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
       if (!activeDestinationContainer) return
       const placementData: PlacementData = []
       try {
-        const cells = selectContainer(store.getState())({ name: activeDestinationContainer.name })?.cells
         if (!cells) throw new Error(`Could not find active destination container in placement for '${activeDestinationContainer.name}'`)
         for (const destinationCell of cells) {
           if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
@@ -69,7 +73,21 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
       if (fileData) {
         downloadFromFile(fileData.filename, fileData.data)
       }
-    }, [dispatch, activeDestinationContainer])
+    }, [dispatch, activeDestinationContainer, cells])
+
+    const isPlacementComplete = useMemo(() => {
+      if (!activeDestinationContainer) return false
+      if (!cells) return false
+      const [Rows = [] as const, Columns = [] as const] = activeDestinationContainer.spec
+      const containerSize = Rows.length * Columns.length
+      let placedCells = 0
+      for (const destinationCell of cells) {
+        if (destinationCell.placedFrom) {
+          placedCells++
+        }
+      }
+      return placedCells === containerSize
+    }, [dispatch, activeDestinationContainer, cells])
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
@@ -206,9 +224,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         <Col span={3}>
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
                         </Col>
-                        <Col span={3}>
-                            <Button onClick={handleGetSamplesheet}>Get Samplesheet</Button>
-                        </Col>
+                        {usesSamplesheet && <Col span={3} >
+                            <Button onClick={handleGetSamplesheet} disabled={!isPlacementComplete}>Get Samplesheet</Button>
+                        </Col>}
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
                         <Col span={12}>
