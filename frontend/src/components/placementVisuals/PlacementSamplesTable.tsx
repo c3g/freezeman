@@ -132,7 +132,8 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
             return <>
                 <>{`${range[0]}-${range[1]} of ${total} items.`}</>
                 <>{' '}</>
-                <>{`${selectedRowKeys.length} selected.`}</>
+                <b style={{ color: '#1890ff' }}>{`${selectedRowKeys.length} selected`}</b>
+                .
             </>
         }
     }), [selectedRowKeys.length])
