@@ -185,7 +185,7 @@ class DatasetFilter(GenericFilter):
     def latest_release_update_filter(self, queryset, name, value):
         return queryset.annotate(
             latest_release_update=Max("readsets__release_status_timestamp")
-        ).filter(latest_release_update__gte=timezone.now() - datetime.timedelta(hours=0, minutes=60))
+        ).filter(latest_release_update__gte=value)
 
     class Meta:
         model = Dataset
