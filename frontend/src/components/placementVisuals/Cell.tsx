@@ -73,8 +73,9 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
         <Popover
             content={<>
                 <div>{`Sample: ${sampleName}`}</div>
-                <div>{`Coordinates: ${cell.coordinates}`}</div>
-                {placedFrom && placedFrom.parentContainerName && <div>{`From: ${placedFrom.parentContainerName}@${placedFrom.coordinates}`}</div>}
+                <div>{`Coords: ${cell.coordinates}`}</div>
+                {placedFrom &&
+                    (placedFrom.parentContainerName ? <div>{`From: ${placedFrom.parentContainerName}@${placedFrom.coordinates}`}</div> : <div>From: Tubes without parent</div>)}
                 {placedAt && <div>{`At: ${placedAt.parentContainerName}@${placedAt.coordinates}`}</div>}
             </>}
             destroyTooltipOnHide={{ keepParent: false }}

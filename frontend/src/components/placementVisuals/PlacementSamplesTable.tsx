@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
-import { Table } from "antd";
+import { Table, TableProps } from "antd";
 import { ColumnsType, SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
 import { FMSId } from "../../models/fms_api_models";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -121,7 +121,22 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         selectedRowKeys,
         onChange,
         onSelect,
-    }), [selectedRowKeys, onChange, onSelect])
+        getCheckboxProps: (sample) => ({
+            disabled: isDestination && sample.parentContainerName === containerName
+        })
+    }), [selectedRowKeys, onChange, onSelect, isDestination, containerName])
+
+    const paginationProps: NonNullable<TableProps<PlacementSample>['pagination']> = useMemo(() => ({
+        showSizeChanger: true,
+        showTotal(total, range) {
+            return <>
+                <>{`${range[0]}-${range[1]} of ${total} items.`}</>
+                <>{' '}</>
+                <b style={{ color: '#1890ff' }}>{`${selectedRowKeys.length} selected`}</b>
+                .
+            </>
+        }
+    }), [selectedRowKeys.length])
 
     const columns = useMemo(() => {
         const columns: ColumnsType<PlacementSample> = []
@@ -160,11 +175,17 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
 
     return (
         <Table<PlacementSample>
-            dataSource={samples.filter(sample => !sample.placed)}
+            dataSource={samples.filter(sample => !sample.placed).map(
+            (sample) => 
+                ({
+                    ...sample,
+                    parentContainerName: sample.parentContainerName ?? 'Tubes without parent' 
+                })
+            )}
             columns={columns}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}
-            pagination={{ showSizeChanger: true }}
+            pagination={paginationProps}
         />
     )
 }
