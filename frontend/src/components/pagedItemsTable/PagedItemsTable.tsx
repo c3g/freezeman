@@ -1,4 +1,4 @@
-import { Pagination, Table, TableProps } from 'antd'
+import { Pagination, Space, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
@@ -49,6 +49,8 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 	selection?: PagedItemTableSelection<T>
 	expandable?: TableProps<any>['expandable']
 	initialLoad?: boolean
+
+	topBarExtra?: React.ReactNode[]
 }
 
 interface TableDataState<T> {
@@ -71,7 +73,8 @@ function PagedItemsTable<T extends object>({
 	usingFilters,
 	selection,
 	initialLoad = true,
-	expandable
+	expandable,
+	topBarExtra,
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -145,6 +148,7 @@ function PagedItemsTable<T extends object>({
 			selectedRowKeys: [...selection.selectedItemIDs],
 		}
 	}
+	console.info(rowSelection?.selectedRowKeys)
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.
 	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.
@@ -186,9 +190,12 @@ function PagedItemsTable<T extends object>({
 		<>
 			{columns && (
 				<>
-					{usingFilters && pagedItems.filters && (
-						<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback}></FiltersBar>
-					)}
+					<div>
+						{topBarExtra}
+						{usingFilters && pagedItems.filters && (
+							<FiltersBar style={{ float: 'right' }} filters={pagedItems.filters} clearFilters={clearFiltersCallback}></FiltersBar>
+						)}
+					</div>
 					<Table
 						expandable={expandable}
 						rowSelection={rowSelection}
