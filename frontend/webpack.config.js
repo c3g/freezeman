@@ -60,7 +60,7 @@ module.exports = (env, argv) => ({
     new webpack.DefinePlugin({
       GIT_COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
       GIT_BRANCH: JSON.stringify(gitRevisionPlugin.branch()),
-      GIT_LASTUPDATE: JSON.stringify(child_process.execSync('git log -1 --format=%cI').toString().trim()),
+      GIT_LASTUPDATE: JSON.stringify(child_process.execSync('git log -1 --format=%cD').toString().trim()),
       FMS_VERSION: JSON.stringify(fs.readFileSync('../backend/VERSION', 'utf8')),
       FMS_ENV: JSON.stringify(process.env.FMS_ENV || "LOCAL")
     }),
