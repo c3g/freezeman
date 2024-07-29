@@ -74,9 +74,9 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
             loadedSamples.forEach(sample => {
                 newDestination[sample.id] = {
                     id: sample.id,
-                    coordinates: sample.coordinate ? coordinates[sample.coordinate]?.name ?? '...' : 'undefined',
+                    coordinates: sample.coordinate ? coordinates[sample.coordinate]?.name ?? '...' : '-',
                     name: sample.name,
-                    project: sample.project ? projects[sample.project]?.name ?? '...' : 'undefined'
+                    project: sample.project ? projects[sample.project]?.name ?? '...' : '-'
                 }
             })
         }
