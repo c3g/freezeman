@@ -3,15 +3,15 @@ import FiltersWarning from "./FiltersWarningTS";
 import { Button } from "antd";
 import { FilterSet } from "../../../models/paged_items";
 import getNFilters from "../getNFilters";
-export interface FiltersBarProps {
+export interface FiltersBarProps extends React.HTMLAttributes<HTMLDivElement> {
     filters: FilterSet,
     clearFilters: () => void
 }
-const FiltersBar = ({ filters, clearFilters }: FiltersBarProps) => {
+const FiltersBar = ({ filters, clearFilters, ...props }: FiltersBarProps) => {
 
     const nFilters = getNFilters(filters ?? {})
     return (
-        <div className='filters-warning-bar'>
+        <div {...props} className='filters-warning-bar'>
             <FiltersWarning
                 filters={filters ?? {}}
                 nFilters={nFilters}
