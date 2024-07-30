@@ -518,46 +518,48 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 	}
 }
 
-export const fetchSamplesheet = async (dispatch, state, activeDestinationContainer, cells) => {
-  type PlacementData = {
-      coordinates: string,
-      sample_id: FMSId,
-    }[]
+export function fetchSamplesheet (activeDestinationContainer, cells){
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+    type PlacementData = {
+        coordinates: string,
+        sample_id: FMSId,
+      }[]
 
-  if (!activeDestinationContainer) return
-  const placementData: PlacementData = []
-  try {
-    if (!cells) throw new Error(`Could not find active destination container in placement for '${activeDestinationContainer.name}'`)
-    for (const destinationCell of cells) {
-      if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
-      const sourceCell = selectCell(state)(destinationCell.placedFrom)
-      if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-      if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-      placementData.push({
-        coordinates: destinationCell.coordinates,
-        sample_id: sourceCell.sample,
+    if (!activeDestinationContainer) return
+    const placementData: PlacementData = []
+    try {
+      if (!cells) throw new Error(`Could not find active destination container in placement for '${activeDestinationContainer.name}'`)
+      for (const destinationCell of cells) {
+        if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
+        const sourceCell = selectCell(getState())(destinationCell.placedFrom)
+        if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+        if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+        placementData.push({
+          coordinates: destinationCell.coordinates,
+          sample_id: sourceCell.sample,
+        })
+      }
+    } catch (e) {
+      notification.error({
+        message: e.message,
+        key: 'LabworkStep.Placement.GetSamplesheet',
+        duration: 20
       })
     }
-  } catch (e) {
-    notification.error({
-      message: e.message,
-      key: 'LabworkStep.Placement.GetSamplesheet',
-      duration: 20
-    })
-  }
 
-  try{
-    const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
+    try{
+      const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
 
-    if (fileData && fileData.ok) {
-      downloadFromFile(fileData.filename, fileData.data)
+      if (fileData && fileData.ok) {
+        downloadFromFile(fileData.filename, fileData.data)
+      }
     }
-  }
-  catch (e){
-    notification.error({
-      message: e.data,
-      key: 'LabworkStep.Placement.GetSamplesheet',
-      duration: 20
-    })
+    catch (e){
+      notification.error({
+        message: e.data,
+        key: 'LabworkStep.Placement.GetSamplesheet',
+        duration: 20
+      })
+    }
   }
 }

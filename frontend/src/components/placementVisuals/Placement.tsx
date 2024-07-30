@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, notification } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch} from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -16,7 +16,6 @@ import { selectContainer} from "../../modules/placement/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
-import store from '../../store'
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -40,7 +39,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const cells = useAppSelector((state) =>  activeDestinationContainer?.name !== undefined ? selectContainer(state)({ name: activeDestinationContainer.name })?.cells : undefined)
 
     const handleGetSamplesheet = useCallback(async () => {
-      fetchSamplesheet(dispatch, store.getState(), activeDestinationContainer, cells)
+      await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
     }, [dispatch, activeDestinationContainer, cells])
 
     const isPlacementComplete = useMemo(() => {

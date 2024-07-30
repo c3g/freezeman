@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 
 from django.http import HttpResponseServerError, HttpResponseBadRequest, HttpResponse
 
-from fms_core.services.samplesheet import get_samplesheet, SAMPLESHEET_FILE_PATH
+from fms_core.services.samplesheet import get_samplesheet
 
 import json
 import datetime

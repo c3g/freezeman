@@ -46,31 +46,34 @@ def get_samplesheet(container_kind, placement):
         workbook = load_workbook(filename=template_path)
         sheet = workbook[SAMPLESHEET_SHEET_NAME]
         container_spec = CONTAINER_KIND_SPECS[container_kind]
-        if container_spec is None:
-            raise Exception(f'Cannot convert coord to lane number. No ContainerSpec found for container kind "{container_kind}".')
-        for lane_info in placement:
-            coordinates = lane_info["coordinates"]
-            sample_id = lane_info["sample_id"]
-            lane = convert_alpha_digit_coord_to_ordinal(coordinates, container_spec.coordinate_spec)
-            derived_by_samples = DerivedBySample.objects.filter(sample_id=sample_id)
-            values = derived_by_samples.values_list("derived_sample__biosample__alias", "derived_sample__library__index_id")
-            for sample_alias, index_id in values:
-                if index_id is not None:
-                    index = Index.objects.get(id=index_id)
-                    sequences_3prime = ", ".join(index.list_3prime_sequences)
-                    sequences_5prime = ", ".join(index.list_5prime_sequences)
-                    row_data_by_lane[lane].append({COLUMN_LANE: lane, COLUMN_SAMPLE_ALIAS: sample_alias, COLUMN_INDEX_3PRIME: sequences_3prime, COLUMN_INDEX_5PRIME: sequences_5prime})
-                else:
-                    errors.append(f'Cannot find index associated to sample {sample_alias}.')
-        ordered_lanes = sorted(row_data_by_lane.keys())
-        i = 1
-        for lane in ordered_lanes:
-            for row_data in row_data_by_lane[lane]:
-                sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_LANE).value = str(row_data[COLUMN_LANE])
-                sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_SAMPLE_ALIAS).value = row_data[COLUMN_SAMPLE_ALIAS]
-                sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_INDEX_3PRIME).value = row_data[COLUMN_INDEX_3PRIME]
-                sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_INDEX_5PRIME).value = row_data[COLUMN_INDEX_5PRIME]
-                i = i + 1
+        if container_spec.is_run_container:
+            if container_spec is None:
+                raise Exception(f'Cannot convert coord to lane number. No ContainerSpec found for container kind "{container_kind}".')
+            for lane_info in placement:
+                coordinates = lane_info["coordinates"]
+                sample_id = lane_info["sample_id"]
+                lane = convert_alpha_digit_coord_to_ordinal(coordinates, container_spec.coordinate_spec)
+                derived_by_samples = DerivedBySample.objects.filter(sample_id=sample_id)
+                values = derived_by_samples.values_list("derived_sample__biosample__alias", "derived_sample__library__index_id")
+                for sample_alias, index_id in values:
+                    if index_id is not None:
+                        index = Index.objects.get(id=index_id)
+                        sequences_3prime = ", ".join(index.list_3prime_sequences)
+                        sequences_5prime = ", ".join(index.list_5prime_sequences)
+                        row_data_by_lane[lane].append({COLUMN_LANE: lane, COLUMN_SAMPLE_ALIAS: sample_alias, COLUMN_INDEX_3PRIME: sequences_3prime, COLUMN_INDEX_5PRIME: sequences_5prime})
+                    else:
+                        errors.append(f'Cannot find index associated to sample {sample_alias}.')
+            ordered_lanes = sorted(row_data_by_lane.keys())
+            i = 1
+            for lane in ordered_lanes:
+                for row_data in row_data_by_lane[lane]:
+                    sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_LANE).value = str(row_data[COLUMN_LANE])
+                    sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_SAMPLE_ALIAS).value = row_data[COLUMN_SAMPLE_ALIAS]
+                    sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_INDEX_3PRIME).value = row_data[COLUMN_INDEX_3PRIME]
+                    sheet.cell(row=SAMPLESHEET_FIRST_INPUT_ROW + i, column=COLUMN_INDEX_5PRIME).value = row_data[COLUMN_INDEX_5PRIME]
+                    i = i + 1
+        else:
+            errors.append(f"Container of kind {container_kind} cannot be used for an experiment run.")
     except Exception as err:
         errors.append(err)
 
