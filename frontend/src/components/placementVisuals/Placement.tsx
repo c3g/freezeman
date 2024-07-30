@@ -8,17 +8,15 @@ import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer
 import ContainerNameScroller from "./ContainerNameScroller"
 import PlacementContainer from "./PlacementContainer"
 import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
-import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
+import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { selectContainer, selectCell } from "../../modules/placement/selectors"
+import { selectContainer} from "../../modules/placement/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 import store from '../../store'
-import { downloadFromFile } from "../../utils/download"
-import api from "../../utils/api"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -42,47 +40,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const cells = useAppSelector((state) =>  activeDestinationContainer?.name !== undefined ? selectContainer(state)({ name: activeDestinationContainer.name })?.cells : undefined)
 
     const handleGetSamplesheet = useCallback(async () => {
-      type PlacementData = {
-          coordinates: string,
-          sample_id: FMSId,
-        }[]
-
-      if (!activeDestinationContainer) return
-      const placementData: PlacementData = []
-      try {
-        if (!cells) throw new Error(`Could not find active destination container in placement for '${activeDestinationContainer.name}'`)
-        for (const destinationCell of cells) {
-          if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
-          const sourceCell = selectCell(store.getState())(destinationCell.placedFrom)
-          if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-          if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-          placementData.push({
-            coordinates: destinationCell.coordinates,
-            sample_id: sourceCell.sample,
-          })
-        }
-      } catch (e) {
-        notification.error({
-          message: e.message,
-          key: 'LabworkStep.Placement.GetSamplesheet',
-          duration: 20
-        })
-      }
-  
-      try{
-        const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
-
-        if (fileData && fileData.ok) {
-          downloadFromFile(fileData.filename, fileData.data)
-        }
-      }
-      catch (e){
-        notification.error({
-          message: e.data,
-          key: 'LabworkStep.Placement.GetSamplesheet',
-          duration: 20
-        })
-      }
+      fetchSamplesheet(dispatch, store.getState(), activeDestinationContainer, cells)
     }, [dispatch, activeDestinationContainer, cells])
 
     const isPlacementComplete = useMemo(() => {
