@@ -76,7 +76,10 @@ module.exports = (env, argv) => ({
       "/api": {
         target: "http://localhost:8000",
       },
-       "/static/submission_templates": {
+      "/static/submission_templates": {
+        target: "http://localhost:8000"
+      },
+      "/static/samplesheet_templates": {
         target: "http://localhost:8000"
       }
     },

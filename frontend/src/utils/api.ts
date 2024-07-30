@@ -243,7 +243,7 @@ const api = {
     listSamplesAtStep: (stepId: FMSId, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
-      request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string,  options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID, sample__id__in }))
+      request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string,  options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID.toString(), sample__id__in }))
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),
@@ -258,6 +258,10 @@ const api = {
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
     list: (options, abort?) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
+  },
+
+  samplesheets: {
+    getSamplesheet: (barcode, kind, placementData) => post('/samplesheets/get_samplesheet/', { container_barcode: barcode, container_kind: kind, placement: placementData }),
   },
 
   sequences: {

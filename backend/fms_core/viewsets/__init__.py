@@ -39,6 +39,7 @@ from .step_history import StepHistoryViewSet
 from .readset import ReadsetViewSet
 from .coordinate import CoordinateViewSet
 from .metric import MetricViewSet
+from .samplesheet import SamplesheetViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -81,5 +82,6 @@ __all__ = [
     "StepHistoryViewSet",
     "ReadsetViewSet",
     "CoordinateViewSet",
-    "MetricViewset"
+    "MetricViewSet",
+    "SamplesheetViewSet",
 ]
