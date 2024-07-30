@@ -37,9 +37,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const destinationContainers = labworkStepPlacement.destinationContainers
     const activeSourceContainer = labworkStepPlacement.activeSourceContainer
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
-    const step = selectStepsByID(store.getState())[stepID]
+    const step = useAppSelector((state) => selectStepsByID(state)[stepID])
     const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
-    const cells = useAppSelector((state) =>  activeDestinationContainer?.name && selectContainer(state)({ name: activeDestinationContainer.name })?.cells)
+    const cells = useAppSelector((state) =>  activeDestinationContainer?.name !== undefined ? selectContainer(state)({ name: activeDestinationContainer.name })?.cells : undefined)
 
     const handleGetSamplesheet = useCallback(async () => {
       type PlacementData = {
@@ -90,14 +90,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
       if (!cells) return false
       const [Rows = [] as const, Columns = [] as const] = activeDestinationContainer.spec
       const containerSize = Rows.length * Columns.length
-      let placedCells = 0
-      for (const destinationCell of cells) {
-        if (destinationCell.placedFrom) {
-          placedCells++
-        }
-      }
+      const placedCells = cells.reduce((acc, cur) => {return cur.placedFrom ? ++acc : acc}, 0)
       return placedCells === containerSize
-    }, [dispatch, activeDestinationContainer, cells])
+    }, [activeDestinationContainer, cells])
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
