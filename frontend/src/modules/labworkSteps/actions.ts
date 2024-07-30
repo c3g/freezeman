@@ -9,7 +9,8 @@ import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { flushContainers as flushPlacementContainers, loadContainer as loadPlacementContainer } from "../placement/reducers"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
-import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES, loadSourceContainer, flushContainers as flushLabworkStepPlacementContainers } from "./reducers"
+import { CellWithParentState } from "../placement/models"
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES, loadSourceContainer, flushContainers as flushLabworkStepPlacementContainers, LabworkStepPlacementParentContainer } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
 import { downloadFromFile } from "../../utils/download"
 import { fetchSamples } from "../cache/cache"
@@ -518,7 +519,7 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 	}
 }
 
-export function fetchSamplesheet (activeDestinationContainer, cells){
+export function fetchSamplesheet (activeDestinationContainer: LabworkStepPlacementParentContainer, cells: CellWithParentState[]){
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
     type PlacementData = {
         coordinates: string,
