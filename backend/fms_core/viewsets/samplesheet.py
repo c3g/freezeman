@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 
-from django.http import HttpResponseServerError, HttpResponse
+from django.http import HttpResponseServerError, HttpResponseBadRequest, HttpResponse
 
 from fms_core.services.samplesheet import get_samplesheet, SAMPLESHEET_FILE_PATH
 
@@ -34,7 +34,7 @@ class SamplesheetViewSet(viewsets.GenericViewSet):
         body = json.loads(_request.body)
         samplesheet, errors, _ = get_samplesheet(body["container_kind"], body["placement"])
         if errors:
-            response = HttpResponseServerError("\n".join(errors))
+            response = HttpResponseBadRequest("\n".join(errors))
         else:
             try:
                 response = HttpResponse(content=samplesheet)

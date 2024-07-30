@@ -69,9 +69,19 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         })
       }
   
-      const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
-      if (fileData) {
-        downloadFromFile(fileData.filename, fileData.data)
+      try{
+        const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
+
+        if (fileData && fileData.ok) {
+          downloadFromFile(fileData.filename, fileData.data)
+        }
+      }
+      catch (e){
+        notification.error({
+          message: e.data,
+          key: 'LabworkStep.Placement.GetSamplesheet',
+          duration: 20
+        })
       }
     }, [dispatch, activeDestinationContainer, cells])
 

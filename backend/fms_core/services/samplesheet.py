@@ -61,7 +61,7 @@ def get_samplesheet(container_kind, placement):
                     sequences_5prime = ", ".join(index.list_5prime_sequences)
                     row_data_by_lane[lane].append({COLUMN_LANE: lane, COLUMN_SAMPLE_ALIAS: sample_alias, COLUMN_INDEX_3PRIME: sequences_3prime, COLUMN_INDEX_5PRIME: sequences_5prime})
                 else:
-                    raise Exception(f'Cannot find index associated to the given samples.')
+                    errors.append(f'Cannot find index associated to sample {sample_alias}.')
         ordered_lanes = sorted(row_data_by_lane.keys())
         i = 1
         for lane in ordered_lanes:
