@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep, FMSStepHistory, LabworkStepInfo } from "../models/fms_api_models";
+import { FMSId, FMSPagedResultsReponse, FMSProtocol, FMSSample, FMSSampleNextStep, FMSStepHistory, LabworkStepInfo } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -193,7 +193,7 @@ const api = {
 
   protocols: {
     list:  (options, abort?) => get("/protocols/", options, { abort }),
-    lastProtocols: (options, abort?) => get("/protocols/last_protocols/", options, { abort }),
+    lastProtocols: (options, abort?) => get<JsonResponse<{sample_result: FMSSample['id'], protocol: FMSProtocol['name']}[]>>("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {

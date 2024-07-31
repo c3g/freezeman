@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks";
+import { useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
@@ -18,16 +18,14 @@ function useLastProtocols(sampleIDs: readonly Sample['id'][]) {
     const [lastProtocolBySampleID, setLastProtocolBySampleID] = useState<Record<Sample['id'], Protocol['name']>>({})
 
     useEffect(() => {
-        (async () => {
-            const response: { sample_result: Sample['id'], protocol: Protocol['name']}[] =
-                sampleIDs.length > 0
-                    ? (await store.dispatch(lastProtocols({ samples: sampleIDs.join(",")}))).data
-                    : []
-            setLastProtocolBySampleID(response.reduce((acc, { sample_result, protocol }) => {
-                acc[sample_result] = protocol
-                return acc
-            }, {} as typeof lastProtocolBySampleID))
-        })()
+        if (sampleIDs.length > 0) {
+            store.dispatch(lastProtocols({ samples: sampleIDs.join(",") })).then(response => {
+                setLastProtocolBySampleID(response.data.reduce((acc, { sample_result, protocol }) => {
+                    acc[sample_result] = protocol
+                    return acc
+                }, {} as typeof lastProtocolBySampleID))
+            })
+        }
     }, [sampleIDs])
 
     const LastProtocol = useCallback(({ sampleID }: { sampleID: Sample['id'] }) => {
