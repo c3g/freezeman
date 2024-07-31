@@ -12,7 +12,8 @@ from .models import (Container,
                      Biosample,
                      Readset,
                      SampleNextStep,
-                     SampleNextStepByStudy)
+                     SampleNextStepByStudy,
+                     StepHistory)
 
 import django_filters
 
@@ -28,6 +29,7 @@ from .viewsets._constants import (
     _sample_next_step_filterset_fields,
     _sample_next_step_by_study_filterset_fields,
     _readset_filterset_fields,
+    _stephistory_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -263,7 +265,6 @@ class SampleNextStepByStudyFilter(GenericFilter):
         fields = _sample_next_step_by_study_filterset_fields
 
 class ReadsetFilter(GenericFilter):
-
     number_reads__lte = django_filters.NumberFilter(method="number_reads_lte_filter")
     number_reads__gte = django_filters.NumberFilter(method="number_reads_gte_filter")
 
@@ -278,3 +279,10 @@ class ReadsetFilter(GenericFilter):
     class Meta:
         model = Readset
         fields = _readset_filterset_fields
+
+class StepHistoryFilter(GenericFilter):
+    workflow_action = django_filters.CharFilter(field_name="workflow_action", method="batch_filter")
+
+    class Meta:
+        model = StepHistory
+        fields = _stephistory_filterset_fields
