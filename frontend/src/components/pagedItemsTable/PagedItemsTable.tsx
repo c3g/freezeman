@@ -145,7 +145,6 @@ function PagedItemsTable<T extends object>({
 			onChange: (selectedRowKeys: React.Key[], selectedRows: T[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},
-			selectedRowKeys: [...selection.selectedItemIDs],
 		}
 	}
 	console.info(rowSelection?.selectedRowKeys)
