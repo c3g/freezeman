@@ -44,7 +44,8 @@ export function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: F
 		},
 		completed: async (offset: number, limit: number) => {
 			const { result: completedSamples, count: completedCount } = await fetchCompletedSamples(studyID, stepOrderID, 'NEXT_STEP', limit, offset)
-			return { samples: completedSamples, count: completedCount ?? 0 }
+      const { result: repeatedSamples, count: repeatedCount } = await fetchCompletedSamples(studyID, stepOrderID, 'REPEAT_STEP', limit, offset)
+			return { samples: completedSamples.concat(repeatedSamples), count: completedCount + repeatedCount }
 		},
 		removed: async (offset: number, limit: number) => {
 			const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, 'DEQUEUE_SAMPLE', limit, offset)
