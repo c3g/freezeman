@@ -20,7 +20,7 @@ class SampleRowHandler(GenericRowHandler):
         super().__init__()
 
 
-    def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
+    def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name, defined_pools):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Individual related section
@@ -192,6 +192,8 @@ class SampleRowHandler(GenericRowHandler):
             sample['alias'] = sample['alias'] or sample['name']
             if not sample['alias']:
                 self.errors['alias'].append([f"A pooled library must have a valid alias."])
+            if defined_pools.get(library['pool_name'], None) is None:
+                self.errors['pooling'] = [f"Pool {library['pool_name']} for the library in pool {sample['name']} is not defined on the PoolSubmission sheet."]
 
         # For pooling purposes
         self.row_object = {

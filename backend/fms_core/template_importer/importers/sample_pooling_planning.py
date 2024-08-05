@@ -49,7 +49,6 @@ class SamplePoolingPlanningImporter(GenericImporter):
         destination_containers_barcodes = set()
 
         pooling_mapping_rows = []
-        container_unique_id = get_unique_id()
         base_error_rows = []
         # For each row initialize the object that is going to be prefilled in the pooling template
         for row_id, row_data in enumerate(sheet.rows):
@@ -67,8 +66,8 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 "name": pool_name,
                 "coordinates": None, # No coordinate in tube
                 "container": {
-                    "barcode": pool_name + "_" + str(container_unique_id), # Artificial barcode built from the pool name and a sequential number
-                    "name": pool_name + "_" + str(container_unique_id), # Same as barcode
+                    "barcode": pool_name, # Use the pool name as barcode. User will have to correct if already existing.
+                    "name": pool_name,
                     "kind": TUBE, # tube
                     "coordinates": None, # Do not place into a parent
                     "parent_barcode": None, # Do not place into a parent
@@ -240,7 +239,7 @@ class SamplePoolingPlanningImporter(GenericImporter):
             pool_row = {}
             pool_row["Pool Name"] = pool_name
             pool_row["Destination Container Barcode"] = barcode
-            pool_row["Robot Destination Container"] = ROBOT_DST_PREFIX + str(i)
+            pool_row["Robot Destination Container"] = ROBOT_DST_PREFIX
             pool_row["Robot Destination Coord"] = i
             output_pool_rows_data[pool_name] = pool_row
 
@@ -282,5 +281,22 @@ class SamplePoolingPlanningImporter(GenericImporter):
             {"name": f"Pooling_{pooling_type.lower()}_Janus_{timestamp}.csv",
              "content": pooling_io.getvalue(),},
         ]
+
+        # Create the robot container mapping file
+        mapping_io = BytesIO()
+        mapping_lines = []
+        mapping_lines.append((",".join(["Robot Position", "Barcode"]) + "\n").encode())
+
+        for barcode, (_, position) in container_dict.items():
+            mapping_lines.append((",".join([position, barcode]) + "\n").encode()) # Encode to store a bytes-like object
+        
+        mapping_lines.append((",".join(["", ""]) + "\n").encode()) # separator csv line
+
+        for i, (_, barcode) in enumerate(dst_containers, start=1):
+            mapping_lines.append((",".join([ROBOT_DST_PREFIX + str(i), barcode]) + "\n").encode()) # Encode to store a bytes-like object
+
+        mapping_io.writelines(mapping_lines)
+        robot_files.append({"name": f"Container_Mapping_{timestamp}.csv",
+                            "content": mapping_io.getvalue(),})
 
         return robot_files, output_sample_rows_data, list(output_pool_rows_data.values())

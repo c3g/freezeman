@@ -18,9 +18,9 @@ class SampleNextStepTest(TestCase):
         self.workflow = Workflow.objects.get(name="PCR-free Illumina")
         self.step = Step.objects.get(name="Extraction (DNA)")
         self.project = Project.objects.create(name="TestSampleNextStep")
-        for derived_sample in self.sample.derived_samples.all():
-            derived_sample.project_id = self.project.id
-            derived_sample.save()
+        for derived_by_sample in self.sample.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
 
     def test_sample_next_step(self):
         sample_next_step = SampleNextStep.objects.create(step=self.step,

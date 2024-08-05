@@ -99,7 +99,7 @@ export const samples = (
             return { ...state, isFetching: false, error: action.error, };
 
         case SAMPLES.LIST_VERSIONS.REQUEST:
-            return set(state, ['itemsByID', action.meta.id, 'isFetching'], true);
+            return set(state, ['itemsByID', action.meta.id, 'isFetching'], false);
         case SAMPLES.LIST_VERSIONS.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], {
                 isFetching: false,

@@ -1,10 +1,9 @@
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { useCallback } from "react"
 import './Placement.scss'
 import { clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Popover } from "antd"
-import { selectSamplesByID } from "../../selectors"
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
 import { selectCell } from "../../modules/placement/selectors"
 import store from "../../store"
@@ -20,14 +19,11 @@ export interface CellProps {
 const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) => {
     const dispatch = useAppDispatch()
     const cell = useAppSelector((state) => selectCell(state)({ parentContainerName: containerName, coordinates }))
-    const sampleID = useAppSelector((state) => {
-        if (cell?.sample) {
-            return cell.sample
-        }
-        if (cell?.placedFrom) {
-            return selectCell(state)(cell.placedFrom)?.sample
-        }
-    })
+    const placedFrom = useAppSelector((state) => cell?.placedFrom && selectCell(state)(cell.placedFrom))
+    const placedAt = useAppSelector((state) => cell?.placedAt && selectCell(state)(cell.placedAt))
+
+    const sampleName = placedFrom?.name ?? cell?.name
+
     const isSource = useAppSelector((state) => {
         const activeSourceContainer = selectActiveSourceContainer(state)
         return activeSourceContainer?.name === containerName
@@ -36,7 +32,6 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
         const activeDestinationContainer = selectActiveDestinationContainer(state)
         return activeDestinationContainer?.name === containerName
     })
-    const sample = useAppSelector((state) => sampleID ? selectSamplesByID(state)[sampleID] : undefined)
     const [popOverOpen, setPopOverOpen] = useState(false)
     const thereIsError = !!useAppSelector((state) => state.placement.error)
 
@@ -58,8 +53,8 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 source: selectActiveSourceContainer(store.getState())?.name
             }
         }))
-        setPopOverOpen(true)
-    }, [containerName, coordinates, dispatch])
+        setPopOverOpen(sampleName !== '')
+    }, [containerName, coordinates, dispatch, sampleName])
 
     const onMouseLeave = useCallback(() => {
         dispatch(onCellExit({
@@ -77,9 +72,11 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
         cell &&
         <Popover
             content={<>
-                <div>{`Sample: ${sample?.name ?? 'None'}`}</div>
-                {cell.placedFrom && <div>{`From: ${cell.placedFrom.parentContainerName}@${cell.placedFrom.coordinates}`}</div>}
-                {cell.placedAt && <div>{`To: ${cell.placedAt.parentContainerName}@${cell.placedAt.coordinates}`}</div>}
+                <div>{`Sample: ${sampleName}`}</div>
+                <div>{`Coords: ${cell.coordinates}`}</div>
+                {placedFrom &&
+                    (placedFrom.parentContainerName ? <div>{`From: ${placedFrom.parentContainerName}@${placedFrom.coordinates}`}</div> : <div>From: Tubes without parent</div>)}
+                {placedAt && <div>{`At: ${placedAt.parentContainerName}@${placedAt.coordinates}`}</div>}
             </>}
             destroyTooltipOnHide={{ keepParent: false }}
             open={popOverOpen}
@@ -91,10 +88,7 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 style={{ backgroundColor: getColor(cell, isSource, isDestination, thereIsError) }}
-            >
-                
-
-            </div>
+            />
         </Popover>
     )
 }

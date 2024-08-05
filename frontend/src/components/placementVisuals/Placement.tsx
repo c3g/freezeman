@@ -1,20 +1,23 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch} from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
 import ContainerNameScroller from "./ContainerNameScroller"
 import PlacementContainer from "./PlacementContainer"
-import { selectContainerKindsByID } from "../../selectors"
-import { fetchAndLoadSourceContainers } from "../../modules/labworkSteps/actions"
+import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
+import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
+import { selectContainer} from "../../modules/placement/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
+
+const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
 interface PlacementProps {
     sampleIDs: number[],
@@ -31,6 +34,22 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const destinationContainers = labworkStepPlacement.destinationContainers
     const activeSourceContainer = labworkStepPlacement.activeSourceContainer
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
+    const step = useAppSelector((state) => selectStepsByID(state)[stepID])
+    const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
+    const cells = useAppSelector((state) =>  activeDestinationContainer?.name !== undefined ? selectContainer(state)({ name: activeDestinationContainer.name })?.cells : undefined)
+
+    const handleGetSamplesheet = useCallback(async () => {
+      await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
+    }, [dispatch, activeDestinationContainer, cells])
+
+    const isPlacementComplete = useMemo(() => {
+      if (!activeDestinationContainer) return false
+      if (!cells) return false
+      const [Rows = [] as const, Columns = [] as const] = activeDestinationContainer.spec
+      const containerSize = Rows.length * Columns.length
+      const placedCells = cells.reduce((acc, cur) => {return cur.placedFrom ? ++acc : acc}, 0)
+      return placedCells === containerSize
+    }, [activeDestinationContainer, cells])
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
@@ -89,7 +108,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             spec: containerKinds[container.container_kind].coordinate_spec,
             cells: Object.values(container.samples).map((sample) => ({
                 coordinates: sample.coordinates,
-                sample: sample.id
+                sample: sample.id,
+                name: sample.name,
+                projectName: sample.project,
             }))
         }))
         const nextContainer = {
@@ -165,6 +186,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         <Col span={3}>
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
                         </Col>
+                        {usesSamplesheet && <Col span={3} >
+                            <Button onClick={handleGetSamplesheet} disabled={!isPlacementComplete}>Get Samplesheet</Button>
+                        </Col>}
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
                         <Col span={12}>
@@ -242,7 +266,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             {activeSourceContainer !== undefined && <PlacementSamplesTable container={activeSourceContainer.name} />}
                         </Col>
                         <Col span={10}>
-                            {activeDestinationContainer !== undefined && <PlacementSamplesTable container={activeDestinationContainer.name} />}
+                            {activeDestinationContainer !== undefined && <PlacementSamplesTable container={activeDestinationContainer.name} showContainerColumn />}
                         </Col>
                     </Row>
                 </PageContent>

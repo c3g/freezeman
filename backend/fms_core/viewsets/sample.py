@@ -45,6 +45,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         )
     )
     queryset = queryset.annotate(
+        first_project_id=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("project_id", flat=True)[:1]
+        )
+    )
+    queryset = queryset.annotate(
         is_pooled=Case(
             When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
             default=False,

@@ -111,80 +111,96 @@ class SamplePoolingplanningTestCase(TestCase):
                             for i, line in enumerate(zfile):
                                 csv_content[i] = line.decode().strip().split(",") # Extract file into dictionary
 
-                        # 0: robot_src_barcode
-                        # 1: robot_src_coord
-                        # 2: robot_dst_barcode
-                        # 3: robot_dst_coord
-                        # 4: volume_diluent
-                        # 5: volume_sample
+                        if filename.find("Container_Mapping_") != -1:
+                            # 0: robot position
+                            # 1: barcode
+                            
+                            # skip first line (header)
+                            # first source container
+                            self.assertEqual(csv_content[1][0], "Src1")
+                            self.assertEqual(csv_content[1][1], "SRC_PLATE_POOL")
+                            # skip separator line
+                            # first destination container
+                            self.assertEqual(csv_content[3][0], "TubeDst1")
+                            self.assertEqual(csv_content[3][1].split("_")[0], "Poolette")
+                            # first destination container
+                            self.assertEqual(csv_content[4][0], "TubeDst2")
+                            self.assertEqual(csv_content[4][1].split("_")[0], "Pooliche")
+                        else:
+                            ROBOT_SRC_BARCODE = 0
+                            ROBOT_SRC_COORD = 1
+                            ROBOT_DST_BARCODE = 2
+                            ROBOT_DST_COORD = 3
+                            VOLUME_DILUENT = 4
+                            VOLUME_SAMPLE = 5
 
-                        # First sample
-                        self.assertEqual(csv_content[1][0], "Src1")
-                        self.assertEqual(csv_content[1][1], "1")
-                        self.assertEqual(csv_content[1][2], "TubeDst1")
-                        self.assertEqual(csv_content[1][3], "1")
-                        self.assertEqual(csv_content[1][4], "0")
-                        self.assertEqual(csv_content[1][5], "33.333")
-                        # Second sample
-                        self.assertEqual(csv_content[2][0], "Src1")
-                        self.assertEqual(csv_content[2][1], "2")
-                        self.assertEqual(csv_content[2][2], "TubeDst1")
-                        self.assertEqual(csv_content[2][3], "1")
-                        self.assertEqual(csv_content[2][4], "0")
-                        self.assertEqual(csv_content[2][5], "80.000")
-                        # Third sample
-                        self.assertEqual(csv_content[3][0], "Src1")
-                        self.assertEqual(csv_content[3][1], "3")
-                        self.assertEqual(csv_content[3][2], "TubeDst1")
-                        self.assertEqual(csv_content[3][3], "1")
-                        self.assertEqual(csv_content[3][4], "0")
-                        self.assertEqual(csv_content[3][5], "100.000")
-                        # Fourth sample
-                        self.assertEqual(csv_content[4][0], "Src1")
-                        self.assertEqual(csv_content[4][1], "9")
-                        self.assertEqual(csv_content[4][2], "TubeDst1")
-                        self.assertEqual(csv_content[4][3], "1")
-                        self.assertEqual(csv_content[4][4], "0")
-                        self.assertEqual(csv_content[4][5], "50.000")
-                        # Fifth sample
-                        self.assertEqual(csv_content[5][0], "Src1")
-                        self.assertEqual(csv_content[5][1], "10")
-                        self.assertEqual(csv_content[5][2], "TubeDst1")
-                        self.assertEqual(csv_content[5][3], "1")
-                        self.assertEqual(csv_content[5][4], "0")
-                        self.assertEqual(csv_content[5][5], "40.000")
-                        # Sixth sample
-                        self.assertEqual(csv_content[6][0], "Src1")
-                        self.assertEqual(csv_content[6][1], "4")
-                        self.assertEqual(csv_content[6][2], "TubeDst2")
-                        self.assertEqual(csv_content[6][3], "2")
-                        self.assertEqual(csv_content[6][4], "0")
-                        self.assertEqual(csv_content[6][5], "80.000")
-                        # Seventh sample
-                        self.assertEqual(csv_content[7][0], "Src1")
-                        self.assertEqual(csv_content[7][1], "5")
-                        self.assertEqual(csv_content[7][2], "TubeDst2")
-                        self.assertEqual(csv_content[7][3], "2")
-                        self.assertEqual(csv_content[7][4], "0")
-                        self.assertEqual(csv_content[7][5], "80.000")
-                        # Eighth sample
-                        self.assertEqual(csv_content[8][0], "Src1")
-                        self.assertEqual(csv_content[8][1], "17")
-                        self.assertEqual(csv_content[8][2], "TubeDst2")
-                        self.assertEqual(csv_content[8][3], "2")
-                        self.assertEqual(csv_content[8][4], "0")
-                        self.assertEqual(csv_content[8][5], "25.000")
-                        # ninth sample
-                        self.assertEqual(csv_content[9][0], "Src1")
-                        self.assertEqual(csv_content[9][1], "61")
-                        self.assertEqual(csv_content[9][2], "TubeDst2")
-                        self.assertEqual(csv_content[9][3], "2")
-                        self.assertEqual(csv_content[9][4], "0")
-                        self.assertEqual(csv_content[9][5], "40.000")
-                        # tenth sample
-                        self.assertEqual(csv_content[10][0], "Src1")
-                        self.assertEqual(csv_content[10][1], "93")
-                        self.assertEqual(csv_content[10][2], "TubeDst2")
-                        self.assertEqual(csv_content[10][3], "2")
-                        self.assertEqual(csv_content[10][4], "0")
-                        self.assertEqual(csv_content[10][5], "100.000")
+                            # First sample
+                            self.assertEqual(csv_content[1][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[1][ROBOT_SRC_COORD], "1")
+                            self.assertEqual(csv_content[1][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[1][ROBOT_DST_COORD], "1")
+                            self.assertEqual(csv_content[1][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[1][VOLUME_SAMPLE], "33.333")
+                            # Second sample
+                            self.assertEqual(csv_content[2][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[2][ROBOT_SRC_COORD], "2")
+                            self.assertEqual(csv_content[2][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[2][ROBOT_DST_COORD], "1")
+                            self.assertEqual(csv_content[2][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[2][VOLUME_SAMPLE], "80.000")
+                            # Third sample
+                            self.assertEqual(csv_content[3][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[3][ROBOT_SRC_COORD], "3")
+                            self.assertEqual(csv_content[3][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[3][ROBOT_DST_COORD], "1")
+                            self.assertEqual(csv_content[3][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[3][VOLUME_SAMPLE], "100.000")
+                            # Fourth sample
+                            self.assertEqual(csv_content[4][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[4][ROBOT_SRC_COORD], "9")
+                            self.assertEqual(csv_content[4][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[4][ROBOT_DST_COORD], "1")
+                            self.assertEqual(csv_content[4][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[4][VOLUME_SAMPLE], "50.000")
+                            # Fifth sample
+                            self.assertEqual(csv_content[5][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[5][ROBOT_SRC_COORD], "10")
+                            self.assertEqual(csv_content[5][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[5][ROBOT_DST_COORD], "1")
+                            self.assertEqual(csv_content[5][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[5][VOLUME_SAMPLE], "40.000")
+                            # Sixth sample
+                            self.assertEqual(csv_content[6][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[6][ROBOT_SRC_COORD], "4")
+                            self.assertEqual(csv_content[6][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[6][ROBOT_DST_COORD], "2")
+                            self.assertEqual(csv_content[6][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[6][VOLUME_SAMPLE], "80.000")
+                            # Seventh sample
+                            self.assertEqual(csv_content[7][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[7][ROBOT_SRC_COORD], "5")
+                            self.assertEqual(csv_content[7][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[7][ROBOT_DST_COORD], "2")
+                            self.assertEqual(csv_content[7][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[7][VOLUME_SAMPLE], "80.000")
+                            # Eighth sample
+                            self.assertEqual(csv_content[8][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[8][ROBOT_SRC_COORD], "17")
+                            self.assertEqual(csv_content[8][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[8][ROBOT_DST_COORD], "2")
+                            self.assertEqual(csv_content[8][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[8][VOLUME_SAMPLE], "25.000")
+                            # ninth sample
+                            self.assertEqual(csv_content[9][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[9][ROBOT_SRC_COORD], "61")
+                            self.assertEqual(csv_content[9][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[9][ROBOT_DST_COORD], "2")
+                            self.assertEqual(csv_content[9][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[9][VOLUME_SAMPLE], "40.000")
+                            # tenth sample
+                            self.assertEqual(csv_content[10][ROBOT_SRC_BARCODE], "Src1")
+                            self.assertEqual(csv_content[10][ROBOT_SRC_COORD], "93")
+                            self.assertEqual(csv_content[10][ROBOT_DST_BARCODE], "TubeDst")
+                            self.assertEqual(csv_content[10][ROBOT_DST_COORD], "2")
+                            self.assertEqual(csv_content[10][VOLUME_DILUENT], "0")
+                            self.assertEqual(csv_content[10][VOLUME_SAMPLE], "100.000")

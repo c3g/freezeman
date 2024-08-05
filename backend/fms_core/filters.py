@@ -1,5 +1,7 @@
-from django.db.models import Q
+from django.db.models import Q, Max
 
+from django.utils import timezone
+import datetime
 from .models import (Container,
                      DerivedBySample,
                      Index,
@@ -62,7 +64,7 @@ class SampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
-    derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
+    derived_by_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     is_pooled = django_filters.CharFilter(method="is_pooled_filter")
     metadata = django_filters.CharFilter(method="metadata_filter")
@@ -126,7 +128,7 @@ class SampleFilter(GenericFilter):
 class LibraryFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
-    derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
+    derived_by_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
     quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
@@ -145,7 +147,7 @@ class LibraryFilter(GenericFilter):
     def quantity_ng_lte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__lte=value)
         return queryset.filter(condition)
-    
+
     def quantity_ng_gte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__gte=value)
         return queryset.filter(condition)
@@ -175,9 +177,15 @@ class IndexFilter(GenericFilter):
 
 class DatasetFilter(GenericFilter):
     release_flag = django_filters.NumberFilter(method="release_flag_filter")
+    latest_release_update = django_filters.CharFilter(method="latest_release_update_filter")
 
     def release_flag_filter(self, queryset, name, value):
         return queryset.filter(release_flag=value)
+
+    def latest_release_update_filter(self, queryset, name, value):
+        return queryset.annotate(
+            latest_release_update=Max("readsets__release_status_timestamp")
+        ).filter(latest_release_update__gte=value)
 
     class Meta:
         model = Dataset
@@ -216,11 +224,11 @@ class SampleNextStepFilter(GenericFilter):
                 bool_value = (value == 'true')
             condition |= Q(qc_flag=bool_value)
         return queryset.filter(condition)
-    
+
     def quantity_ng_lte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__lte=value)
         return queryset.filter(condition)
-    
+
     def quantity_ng_gte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__gte=value)
         return queryset.filter(condition)
@@ -258,15 +266,15 @@ class ReadsetFilter(GenericFilter):
 
     number_reads__lte = django_filters.NumberFilter(method="number_reads_lte_filter")
     number_reads__gte = django_filters.NumberFilter(method="number_reads_gte_filter")
-    
+
     def number_reads_lte_filter(self, queryset, name, value):
         condition = Q(number_reads__lte=value)
         return queryset.filter(condition)
-    
+
     def number_reads_gte_filter(self, queryset, name, value):
         condition = Q(number_reads__gte=value)
         return queryset.filter(condition)
-    
+
     class Meta:
         model = Readset
         fields = _readset_filterset_fields

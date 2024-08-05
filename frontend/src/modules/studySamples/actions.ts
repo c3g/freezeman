@@ -20,7 +20,7 @@ export function getStudySamples(studyID: FMSId) {
 			if (study) {
 				const workflow = workflowsById[study.workflow_id]
 				if (workflow) {
-          const studyStepOrders = workflow.steps_order.filter((x) => (x.order >= study.start) && (x.order <= study.end))
+          			const studyStepOrders = workflow.steps_order.filter((x) => (x.order >= study.start) && (x.order <= study.end))
 					dispatch(initStudySamplesSettingsAndTables(studyID, studyStepOrders.map((x) => x.id)))
 					studySamples = await Promise.all(studyStepOrders.map(async (stepOrder) => {
 						dispatch(setStudyStepFetching(studyID, stepOrder.id, true))

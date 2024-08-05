@@ -393,7 +393,7 @@ export const sampleNextStepTemplateActions = templateActionsReducerFactory({LIST
 
 // undefined is for tubes without parent
 
-interface LabworkStepPlacementParentContainer {
+export interface LabworkStepPlacementParentContainer {
 	name: Container['name']
 	barcode: Container['barcode']
 	kind: Container['kind']

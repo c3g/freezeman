@@ -60,7 +60,7 @@ module.exports = (env, argv) => ({
     new webpack.DefinePlugin({
       GIT_COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
       GIT_BRANCH: JSON.stringify(gitRevisionPlugin.branch()),
-      GIT_LASTUPDATE: JSON.stringify(child_process.execSync('git log -1 --format=%cI').toString().trim()),
+      GIT_LASTUPDATE: JSON.stringify(child_process.execSync('git log -1 --format=%ci').toString().trim().split(' ').slice(0, 2).join(' ')),
       FMS_VERSION: JSON.stringify(fs.readFileSync('../backend/VERSION', 'utf8')),
       FMS_ENV: JSON.stringify(process.env.FMS_ENV || "LOCAL")
     }),
@@ -76,7 +76,10 @@ module.exports = (env, argv) => ({
       "/api": {
         target: "http://localhost:8000",
       },
-       "/static/submission_templates": {
+      "/static/submission_templates": {
+        target: "http://localhost:8000"
+      },
+      "/static/samplesheet_templates": {
         target: "http://localhost:8000"
       }
     },

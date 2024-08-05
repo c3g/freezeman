@@ -452,7 +452,7 @@ class SampleExportSerializer(serializers.Serializer):
                   'location_barcode', 'location_coord', 'container_full_location', 'site',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
-                  'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'derived_samples_counts', 'comment')
+                  'quality_flag', 'quantity_flag', 'project', 'depleted', 'is_library', 'derived_samples_counts', 'comment')
 
 
 class LibrarySerializer(serializers.Serializer):
@@ -473,7 +473,7 @@ class LibraryExportSerializer(serializers.Serializer):
     class Meta:
         fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool', 'derived_samples_counts',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
-                  'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
+                  'quantity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
 
 class VersionSerializer(serializers.ModelSerializer):
@@ -687,8 +687,8 @@ class PooledSampleSerializer(serializers.Serializer):
     volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
     # Associated project info
-    project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
-    project_name = serializers.CharField(read_only=True, source='derived_sample.project.name')
+    project_id = serializers.IntegerField(read_only=True, source='project.id')
+    project_name = serializers.CharField(read_only=True, source='project.name')
     
     # Sample info
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
@@ -742,8 +742,8 @@ class PooledSampleExportSerializer(serializers.Serializer):
     volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
     # Associated project info
-    project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
-    project_name = serializers.CharField(read_only=True, source='derived_sample.project.name')
+    project_id = serializers.IntegerField(read_only=True, source='project.id')
+    project_name = serializers.CharField(read_only=True, source='project.name')
     
     # Sample info
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
