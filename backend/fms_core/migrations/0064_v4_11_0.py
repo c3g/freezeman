@@ -1,5 +1,6 @@
 import reversion
 from django.db import migrations, models
+import django.db.models.deletion
 from django.contrib.auth.models import User
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -33,5 +34,10 @@ class Migration(migrations.Migration):
             model_name='stephistory',
             name='workflow_action',
             field=models.CharField(choices=[('NEXT_STEP', 'Step complete - Move to next step'), ('DEQUEUE_SAMPLE', 'Sample failed - Remove sample from study workflow'), ('REPEAT_STEP', 'Repeat step - Move to next step and repeat current step'), ('IGNORE_WORKFLOW', 'Ignore workflow - Do not register as part of a workflow')], default='NEXT_STEP', help_text='Workflow action that was performed on the sample after step completion.', max_length=30),
+        ),
+        migrations.AddField(
+            model_name='taxon',
+            name='default_reference_genome',
+            field=models.ForeignKey(blank=True, help_text='Default reference genome for the taxon when creating individuals.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='default_for_taxons', to='fms_core.referencegenome'),
         ),
     ]
