@@ -3,8 +3,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from fms_core.models import StepHistory, Study, StepOrder
+from fms_core.models import StepHistory
 from fms_core.serializers import StepHistorySerializer
+from fms_core.filters import StepHistoryFilter
 
 from django.db.models import Count
 
@@ -20,6 +21,8 @@ class StepHistoryViewSet(viewsets.ModelViewSet):
     }
 
     ordering = ["id"]
+
+    filterset_class = StepHistoryFilter
    
     @action(detail=False, methods=["get"])    
     def summary_by_study(self, request):

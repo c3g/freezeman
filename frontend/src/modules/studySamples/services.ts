@@ -43,11 +43,11 @@ export function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: F
 			}
 		},
 		completed: async (offset: number, limit: number) => {
-			const { result: completedSamples, count: completedCount } = await fetchCompletedSamples(studyID, stepOrderID, 'NEXT_STEP', limit, offset)
-			return { samples: completedSamples, count: completedCount ?? 0 }
+			const { result: completedSamples, count: completedCount } = await fetchCompletedSamples(studyID, stepOrderID, ['NEXT_STEP',  'REPEAT_STEP'], limit, offset)
+			return { samples: completedSamples, count: completedCount }
 		},
 		removed: async (offset: number, limit: number) => {
-			const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, 'DEQUEUE_SAMPLE', limit, offset)
+			const { result: dequeuedSamples, count: dequeuedCount} = await fetchCompletedSamples(studyID, stepOrderID, ['DEQUEUE_SAMPLE'], limit, offset)
 			return { samples: dequeuedSamples, count: dequeuedCount ?? 0 }
 		}
 	}
@@ -109,8 +109,9 @@ export async function fetchSamplesAndLibraries(sampleList: number[]) {
 	return availableSamples
 }
 
-export async function fetchCompletedSamples(studyID: FMSId, stepOrderID: FMSId, workflow_action: WorkflowActionType, limit: number, offset: number) {
-	const stepHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID, {step_order__id__in: stepOrderID, limit, offset, workflow_action}))
+export async function fetchCompletedSamples(studyID: FMSId, stepOrderID: FMSId, workflow_actions: WorkflowActionType[], limit: number, offset: number) {
+  const qsWorkflowActions = workflow_actions.join(" ")
+	const stepHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID, {step_order__id__in: stepOrderID, limit, offset, workflow_action: qsWorkflowActions}))
 	if (!stepHistoryResponse.data) {
 		throw new Error(`Failed to fetch completed samples for study #${studyID} and step_order #${stepOrderID}`)
 	}

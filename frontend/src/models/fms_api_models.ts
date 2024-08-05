@@ -427,7 +427,7 @@ export interface FMSStep extends FMSTrackedModel {
     step_specifications: FMSStepSpecification[]
 }
 
-export type WorkflowActionType = 'NEXT_STEP' | 'DEQUEUE_SAMPLE' | 'IGNORE_WORKFLOW'
+export type WorkflowActionType = 'NEXT_STEP' | 'DEQUEUE_SAMPLE' | 'REPEAT_STEP' | 'IGNORE_WORKFLOW'
 
 export interface FMSStepHistory extends FMSTrackedModel {
     study: FMSId

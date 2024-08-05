@@ -292,6 +292,61 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(StepHistory.objects.filter(study=study_B, process_measurement__source_sample=sample_in, step_order__step=step).count(), 1)
         self.assertEqual(StepHistory.objects.filter(study=study_C, process_measurement__source_sample=sample_in, step_order__step=step).count(), 1)
 
+    def test_move_sample_to_next_step_repeat_step(self):
+        container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
+        sample_in = create_fullsample(name="TestSampleNextStep_in",
+                                      alias="TestSampleNextStep_in",
+                                      volume=5000,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_DNA,
+                                      container=container1,
+                                      project=self.project)
+        
+        step = Step.objects.get(name="Normalization (Sample)")
+        for derived_by_sample in sample_in.derived_by_samples.all():
+            derived_by_sample.project_id = self.project.id
+            derived_by_sample.save()
+                
+        letter_B = "B"
+        start = 3
+        end = 7
+        study_B = Study.objects.create(letter=letter_B,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_free,
+                                       start=start,
+                                       end=end)
+
+        letter_C = "C"
+        start = 3
+        end = 7
+        study_C = Study.objects.create(letter=letter_C,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_enriched,
+                                       start=start,
+                                       end=end)
+
+        protocol = Protocol.objects.get(name="Normalization")
+        process = Process.objects.create(protocol=protocol)
+        process_measurement = ProcessMeasurement.objects.create(process=process,
+                                                                source_sample=sample_in,
+                                                                execution_date=datetime.date(2021, 1, 10),
+                                                                volume_used=10)
+
+        old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
+        old_sample_to_study_workflow_2, _, _ = queue_sample_to_study_workflow(sample_in, study_C)
+        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in, process_measurement, WorkflowAction.REPEAT_STEP, keep_current=True)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertIsNotNone(new_sample_next_steps)
+        self.assertEqual(new_sample_next_steps[0].step.name, "Library Preparation (PCR-free, Illumina)")
+        self.assertEqual(new_sample_next_steps[0].sample, sample_in)
+        self.assertTrue(SampleNextStep.objects.filter(id=old_sample_to_study_workflow_1.id).exists())
+        self.assertEqual(new_sample_next_steps[1].step.name, "Library Preparation (PCR-enriched, Illumina)")
+        self.assertEqual(new_sample_next_steps[1].sample, sample_in)
+        self.assertTrue(SampleNextStep.objects.filter(id=old_sample_to_study_workflow_2.id).exists())
+        self.assertEqual(SampleNextStepByStudy.objects.filter(sample_next_step_id=old_sample_to_study_workflow_2.id).count(), 2)
+        self.assertEqual(StepHistory.objects.filter(study=study_B, process_measurement__source_sample=sample_in, step_order__step=step, workflow_action="REPEAT_STEP").count(), 1)
+        self.assertEqual(StepHistory.objects.filter(study=study_C, process_measurement__source_sample=sample_in, step_order__step=step, workflow_action="REPEAT_STEP").count(), 1)
 
     def test_move_sample_to_next_step_not_queued(self):
         container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
@@ -428,11 +483,13 @@ class SampleNextStepServicesTestCase(TestCase):
     def test_execute_workflow_action(self):
         container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
         container2 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_2', barcode='T123456_2'))
+        container3 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_3', barcode='T123456_3'))
         sample_in = create_fullsample(name="TestSampleNextStep_in",
                                       alias="TestSampleNextStep_in",
                                       volume=5000,
                                       individual=self.valid_individual,
                                       sample_kind=self.sample_kind_BLOOD,
+                                      project=self.project,
                                       container=container1)
 
         sample_out = create_fullsample(name="TestSampleNextStep_out",
@@ -441,7 +498,17 @@ class SampleNextStepServicesTestCase(TestCase):
                                       concentration=10,
                                       individual=self.valid_individual,
                                       sample_kind=self.sample_kind_DNA,
+                                      project=self.project,
                                       container=container2)
+        
+        sample_out_prime = create_fullsample(name="TestSampleNextStep_out_out",
+                                             alias="TestSampleNextStep_out_out",
+                                             volume=1000,
+                                             concentration=10,
+                                             individual=self.valid_individual,
+                                             sample_kind=self.sample_kind_DNA,
+                                             project=self.project,
+                                             container=container3)
         
         step_1 = Step.objects.get(name="Extraction (DNA)")
         for derived_by_sample in sample_in.derived_by_samples.all():
@@ -469,7 +536,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                                                   volume_used=5000)
 
         old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
-        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.REPEAT_STEP.label,
                                                    step=step_1,
                                                    current_sample=sample_in,
                                                    process_measurement=process_measurement_1,
@@ -480,19 +547,38 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(StepHistory.objects.filter(study=study_B,
                                                     process_measurement__source_sample=sample_in,
                                                     step_order__step=step_1,
+                                                    workflow_action=WorkflowAction.REPEAT_STEP).count(), 1)
+
+        process_2 = Process.objects.create(protocol=protocol_1)
+        process_measurement_2 = ProcessMeasurement.objects.create(process=process_2,
+                                                                  source_sample=sample_in,
+                                                                  execution_date=datetime.date(2021, 1, 10),
+                                                                  volume_used=5000)
+
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
+                                                   step=step_1,
+                                                   current_sample=sample_in,
+                                                   process_measurement=process_measurement_2,
+                                                   next_sample=sample_out_prime)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(StepHistory.objects.filter(study=study_B,
+                                                    process_measurement__source_sample=sample_in,
+                                                    step_order__step=step_1,
                                                     workflow_action=WorkflowAction.NEXT_STEP).count(), 1)
 
         step_2 = Step.objects.get(name="Sample QC")
-        protocol_2 = Protocol.objects.get(name="Sample Quality Control")
-        process_2 = Process.objects.create(protocol=protocol_2)
-        process_measurement_2 = ProcessMeasurement.objects.create(process=process_2,
+        protocol_3 = Protocol.objects.get(name="Sample Quality Control")
+        process_3 = Process.objects.create(protocol=protocol_3)
+        process_measurement_3 = ProcessMeasurement.objects.create(process=process_3,
                                                                   source_sample=sample_out,
                                                                   execution_date=datetime.date(2021, 1, 10),
                                                                   volume_used=2)
         errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.DEQUEUE_SAMPLE.label,
                                                    step=step_2,
                                                    current_sample=sample_out,
-                                                   process_measurement=process_measurement_2)
+                                                   process_measurement=process_measurement_3)
         
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])

@@ -255,17 +255,20 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
         except StepOrder.DoesNotExist:
             errors.append(f"No step found for the given order.")
 
+        qs_sample_generated_from_step_with_child = StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
+                                                                              study=study_obj, 
+                                                                              step_order=step_order)
+        qs_sample_on_step_without_child = StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
+                                                                     process_measurement__source_sample=sample_obj,
+                                                                     study=study_obj,
+                                                                     step_order=step_order)
+
         # If the sample has completed the workflow, the StepHistory for the last step order in the study should
-        # have a workflow action of NEXT_STEP
-        if StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
-                                      study=study_obj, 
-                                      step_order=step_order,
-                                      workflow_action=WorkflowAction.NEXT_STEP).exists() \
-        or StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
-                                      process_measurement__source_sample=sample_obj,
-                                      study=study_obj,
-                                      step_order=step_order,
-                                      workflow_action=WorkflowAction.NEXT_STEP).exists():
+        # have a workflow action of NEXT_STEP or REPEAT_STEP
+        if qs_sample_generated_from_step_with_child.filter(workflow_action=WorkflowAction.NEXT_STEP).exists() \
+        or qs_sample_generated_from_step_with_child.filter(workflow_action=WorkflowAction.REPEAT_STEP).exists() \
+        or qs_sample_on_step_without_child.filter(workflow_action=WorkflowAction.NEXT_STEP).exists() \
+        or qs_sample_on_step_without_child.filter(workflow_action=WorkflowAction.REPEAT_STEP).exists():
             samples_has_completed = True
         else:
             samples_has_completed = False
@@ -490,6 +493,13 @@ def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sa
                                                    current_sample=current_sample,
                                                    process_measurement=process_measurement,
                                                    workflow_action=WorkflowAction.DEQUEUE_SAMPLE)
+    elif workflow_action == WorkflowAction.REPEAT_STEP.label:
+        _, errors, _ = move_sample_to_next_step(current_step=step,
+                                                current_sample=current_sample,
+                                                process_measurement=process_measurement,
+                                                workflow_action=WorkflowAction.REPEAT_STEP,
+                                                next_sample=next_sample,
+                                                keep_current=True)
     elif workflow_action == WorkflowAction.IGNORE_WORKFLOW.label:
         warnings.append(("Sample {0} current process will not be recorded as part of a workflow.", [current_sample.name]))
     else:
