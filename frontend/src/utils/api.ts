@@ -1,6 +1,7 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSProtocol, FMSSample, FMSSampleNextStep, FMSStepHistory, LabworkStepInfo } from "../models/fms_api_models";
+import { FMSId, FMSPagedResultsReponse, FMSProtocol, FMSSample, FMSSampleNextStep, FMSStepHistory, FMSStudy, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
+import { Sample } from "../models/frontend_models";
 
 const api = {
   auth: {
@@ -174,6 +175,8 @@ const api = {
   },
 
   projects: {
+    addSampleToStudy: (sampleId: Sample['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order']) =>
+        post<JsonResponse<{ status: string, warnings: Record<string, string[]> }>>(`/projects/add_sample_to_study/`, { sample_id: sampleId, study_letter: studyLetter, step_order: stepOrder }),
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),

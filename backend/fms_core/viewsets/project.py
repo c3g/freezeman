@@ -2,9 +2,10 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from django.db.models import F
+from django.core.exceptions import ValidationError
 
-from fms_core.models import Project
+from fms_core.services.project import add_sample_to_study
+from fms_core.models import Project, Sample
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
 from fms_core.template_importer.importers import ProjectStudyLinkSamples
 from fms_core.templates import PROJECT_STUDY_LINK_SAMPLES_TEMPLATE
@@ -59,4 +60,18 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "total_count": Project.objects.count(),
             "open_count": Project.objects.filter(status="Open").count(),
             "closed_count": Project.objects.filter(status="Closed").count(),
+        })
+    
+    @action(detail=True, methods=["post"])
+    def add_sample_to_study(self, request, pk=None):
+        sample_id = request.data.get("sample_id")
+        study_letter = request.data.get("study_letter")
+        step_order = request.data.get("step_order", None)
+        sample = Sample.objects.get(id=sample_id)
+        errors, warnings = add_sample_to_study(sample, study_letter, step_order)
+        if errors:
+            raise ValidationError(errors)
+        return Response({
+            "status": f"Sample #{sample_id} added to study {study_letter} at step order {step_order}.",
+            "warnings": warnings
         })
