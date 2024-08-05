@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep, LabworkStepInfo } from "../models/fms_api_models";
+import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep, FMSStepHistory, LabworkStepInfo } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -270,7 +270,7 @@ const api = {
   },
 
   stepHistory: {
-    getCompletedSamplesForStudy: (studyId, options) => get('/step-histories/', {...options, study__id__in: studyId}),
+    getCompletedSamplesForStudy: (studyId, options) => get<JsonResponse<FMSPagedResultsReponse<FMSStepHistory>>>('/step-histories/', {...options, study__id__in: studyId}),
     countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, {study__id__in: studyId})
   },
 

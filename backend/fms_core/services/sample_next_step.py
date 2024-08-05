@@ -265,7 +265,16 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
                                       process_measurement__source_sample=sample_obj,
                                       study=study_obj,
                                       step_order=step_order,
-                                      workflow_action=WorkflowAction.NEXT_STEP).exists():
+                                      workflow_action=WorkflowAction.NEXT_STEP).exists() \
+        or StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
+                                      study=study_obj, 
+                                      step_order=step_order,
+                                      workflow_action=WorkflowAction.REPEAT_STEP).exists() \
+        or StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
+                                      process_measurement__source_sample=sample_obj,
+                                      study=study_obj,
+                                      step_order=step_order,
+                                      workflow_action=WorkflowAction.REPEAT_STEP).exists():
             samples_has_completed = True
         else:
             samples_has_completed = False
