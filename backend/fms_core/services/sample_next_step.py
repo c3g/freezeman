@@ -255,26 +255,31 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
         except StepOrder.DoesNotExist:
             errors.append(f"No step found for the given order.")
 
+        qs_sample_generated_from_completed_step_with_child = StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
+                                                                                        study=study_obj, 
+                                                                                        step_order=step_order,
+                                                                                        workflow_action=WorkflowAction.NEXT_STEP)
+        qs_sample_generated_from_completed_step_without_child = StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
+                                                                                           process_measurement__source_sample=sample_obj,
+                                                                                           study=study_obj,
+                                                                                           step_order=step_order,
+                                                                                           workflow_action=WorkflowAction.NEXT_STEP)
+        qs_sample_generated_from_repeated_step_with_child = StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
+                                                                                       study=study_obj, 
+                                                                                       step_order=step_order,
+                                                                                       workflow_action=WorkflowAction.REPEAT_STEP)
+        qs_sample_generated_from_repeated_step_without_child = StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
+                                                                                          process_measurement__source_sample=sample_obj,
+                                                                                          study=study_obj,
+                                                                                          step_order=step_order,
+                                                                                          workflow_action=WorkflowAction.REPEAT_STEP)
+
         # If the sample has completed the workflow, the StepHistory for the last step order in the study should
         # have a workflow action of NEXT_STEP or REPEAT_STEP
-        if StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
-                                      study=study_obj, 
-                                      step_order=step_order,
-                                      workflow_action=WorkflowAction.NEXT_STEP).exists() \
-        or StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
-                                      process_measurement__source_sample=sample_obj,
-                                      study=study_obj,
-                                      step_order=step_order,
-                                      workflow_action=WorkflowAction.NEXT_STEP).exists() \
-        or StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
-                                      study=study_obj, 
-                                      step_order=step_order,
-                                      workflow_action=WorkflowAction.REPEAT_STEP).exists() \
-        or StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
-                                      process_measurement__source_sample=sample_obj,
-                                      study=study_obj,
-                                      step_order=step_order,
-                                      workflow_action=WorkflowAction.REPEAT_STEP).exists():
+        if qs_sample_generated_from_completed_step_with_child.exists() \
+        or qs_sample_generated_from_completed_step_without_child.exists() \
+        or qs_sample_generated_from_repeated_step_with_child.exists() \
+        or qs_sample_generated_from_repeated_step_without_child.exists():
             samples_has_completed = True
         else:
             samples_has_completed = False
