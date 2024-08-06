@@ -90,6 +90,10 @@ class SampleRowHandler(GenericRowHandler):
                                          reference_genome=reference_genome_obj,
                                          mother=mother_obj,
                                          father=father_obj)
+            
+            if individual_obj.is_generic:
+                self.errors['individual'].append(f"Individual {individual_obj.name} uses prefix '{Individual.GENERIC_INDIVIDUAL_PREFIX}' which is reserved for internal usage.")
+
             if not created:
                 self.warnings['individual'].append(('Individual already exists and was not created.', []))
         else:

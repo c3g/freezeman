@@ -20,6 +20,8 @@ class Individual(TrackedModel):
     Class to store information about an Individual.
     """
 
+    GENERIC_INDIVIDUAL_PREFIX = "GENERIC_"
+
     SEX_MALE = "M"
     SEX_FEMALE = "F"
     SEX_UNKNOWN = "Unknown"
@@ -48,6 +50,10 @@ class Individual(TrackedModel):
             models.Index(fields=['name'], name='individual_name_idx'),
         ]
     
+    @property
+    def is_generic(self) -> bool:
+        return self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] == self.GENERIC_INDIVIDUAL_PREFIX
+
     def __str__(self):
         return self.name
 
