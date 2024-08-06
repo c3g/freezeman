@@ -1,10 +1,12 @@
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
 
 from fms_core.models import Individual
 from fms_core.serializers import IndividualSerializer, IndividualExportSerializer
@@ -24,6 +26,18 @@ class IndividualViewSet(viewsets.ModelViewSet):
 
     ordering = ["-id"]
 
+    def create(self, _request):
+        user_id = _request.user.id
+        requesting_user = User.objects.get(id=user_id) # Prevent creation of Generic individuals by non staff users
+        if _request.data["name"][:len(Individual.GENERIC_INDIVIDUAL_PREFIX)] == Individual.GENERIC_INDIVIDUAL_PREFIX:
+            if requesting_user.is_staff:
+                _request.data["generic"] = True
+                return super().create(_request)
+            else:
+                raise ValidationError({"name": f"Cannot use the prefix '{Individual.GENERIC_INDIVIDUAL_PREFIX}'. It is reserved for internal use."})
+        else:
+            return super().create(_request)
+    
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):

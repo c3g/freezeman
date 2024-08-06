@@ -87,4 +87,9 @@ class Migration(migrations.Migration):
             initialize_default_reference_genome,
             reverse_code=migrations.RunPython.noop,
         ),
+        migrations.AddField(
+            model_name='individual',
+            name='generic',
+            field=models.BooleanField(default=False, help_text='Generic individual used to replace undefined individuals that share characteristics.'),
+        ),
     ]
