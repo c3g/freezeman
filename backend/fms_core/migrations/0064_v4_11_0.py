@@ -19,6 +19,26 @@ def set_blank_project_external_id_to_null(apps, schema_editor):
             project.save()
             reversion.add_to_revision(project)
 
+def initialize_default_reference_genome(apps, schema_editor):
+    DEFAULT_REFERENCE_GENOME = {9606: "GRCh38.p14", # Human
+                                10090: "GRCm39", # Mouse
+                               }  
+    Taxon = apps.get_model("fms_core", "Taxon")
+    ReferenceGenome = apps.get_model("fms_core", "ReferenceGenome")
+ 
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Set default reference genome for human and mouse.")
+        reversion.set_user(admin_user)
+
+        for ncbi_taxon_id, default_assembly_name in DEFAULT_REFERENCE_GENOME.items():
+            taxon_obj  = Taxon.objects.get(ncbi_id=ncbi_taxon_id)
+            reference_genome_obj = ReferenceGenome.objects.get(assembly_name=default_assembly_name)
+            taxon_obj.default_reference_genome = reference_genome_obj
+            taxon_obj.save()
+            reversion.add_to_revision(taxon_obj)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -39,5 +59,9 @@ class Migration(migrations.Migration):
             model_name='taxon',
             name='default_reference_genome',
             field=models.ForeignKey(blank=True, help_text='Default reference genome for the taxon when creating individuals.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='default_for_taxons', to='fms_core.referencegenome'),
+        ),
+        migrations.RunPython(
+            initialize_default_reference_genome,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

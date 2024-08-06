@@ -4,10 +4,12 @@ from fms_core.models import Individual
 from fms_core.tests.constants import create_individual
 
 class IndividualTest(TestCase):
+    def setUp(self) -> None:
+        self.generic_individual_count = Individual.objects.count()
 
     def test_individual(self):
         individual = Individual.objects.create(**create_individual(individual_name="jdoe"))
-        self.assertEqual(Individual.objects.count(), 1)
+        self.assertEqual(Individual.objects.count(), self.generic_individual_count + 1)
         self.assertEqual(str(individual), "jdoe")
 
     def test_mother_father(self):
@@ -55,3 +57,13 @@ class IndividualTest(TestCase):
             except ValidationError as e:
                 self.assertIn("pedigree", e.message_dict)
                 raise e
+
+    def test_generic_individual(self):
+        generic_individual = Individual.objects.create(**create_individual(individual_name="GENERIC_joeblo"))
+        self.assertEqual(Individual.objects.count(), self.generic_individual_count + 1)
+        self.assertEqual(str(generic_individual), "GENERIC_joeblo")
+        self.assertTrue(generic_individual.is_generic)
+        individual = Individual.objects.create(**create_individual(individual_name="GEN_joeblo"))
+        self.assertEqual(Individual.objects.count(), self.generic_individual_count + 2)
+        self.assertEqual(str(individual), "GEN_joeblo")
+        self.assertFalse(individual.is_generic)
