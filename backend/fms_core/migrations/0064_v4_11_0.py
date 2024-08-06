@@ -19,6 +19,25 @@ def set_blank_project_external_id_to_null(apps, schema_editor):
             project.save()
             reversion.add_to_revision(project)
 
+def rename_existing_generic_individuals(apps, schema_editor):
+    GENERIC_PREFIX = "GENERIC_"
+    REPLACEMENT_PREFIX = "GEN_"
+    Individual = apps.get_model("fms_core", "Individual")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Modify name of existing individuals that conflict with generic naming convention.")
+        reversion.set_user(admin_user)
+
+        individuals = Individual.objects.filter(name__startswith=GENERIC_PREFIX).all()
+        for individual in individuals:
+            if individual.alias is None:
+                individual.alias = individual.name
+            individual.name = individual.name.replace(GENERIC_PREFIX, REPLACEMENT_PREFIX, 1)
+            individual.save()
+            reversion.add_to_revision(individual)
+
 def initialize_default_reference_genome(apps, schema_editor):
     DEFAULT_REFERENCE_GENOME = {9606: "GRCh38.p14", # Human
                                 10090: "GRCm39", # Mouse
@@ -48,6 +67,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             set_blank_project_external_id_to_null,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            rename_existing_generic_individuals,
             reverse_code=migrations.RunPython.noop,
         ),
         migrations.AlterField(
