@@ -88,7 +88,7 @@ def create_generic_individuals(apps, schema_editor):
                                                        sex=individual_data["sex"],
                                                        taxon=taxon_obj,
                                                        reference_genome=reference_genome_obj,
-                                                       generic=True,
+                                                       is_generic=True,
                                                        created_by_id=admin_user_id,
                                                        updated_by_id=admin_user_id)
             reversion.add_to_revision(individual_obj)
@@ -120,8 +120,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='individual',
-            name='generic',
-            field=models.BooleanField(default=False, help_text='Generic individual used to replace undefined individuals that share characteristics.'),
+            name='is_generic',
+            field=models.BooleanField(default=False, help_text='Flag indicating a generic individual used to replace undefined individuals that share characteristics.'),
         ),
         migrations.RunPython(
             create_generic_individuals,

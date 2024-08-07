@@ -99,7 +99,7 @@ class SampleRowHandler(GenericRowHandler):
             if individual["sex"] is None:
                 individual["sex"] = Individual.SEX_UNKNOWN
             try:
-                individual_obj = Individual.objects.get(taxon=taxon_obj, reference_genome=reference_genome_obj, sex=individual['sex'], generic=True)
+                individual_obj = Individual.objects.get(taxon=taxon_obj, reference_genome=reference_genome_obj, sex=individual['sex'], is_generic=True)
             except Individual.MultipleObjectsReturned as err:
                 self.errors['individual'].append(f"More than one generic individual matches the submitted sample.")
             except Individual.DoesNotExist as err:
@@ -116,9 +116,6 @@ class SampleRowHandler(GenericRowHandler):
                                          mother=mother_obj,
                                          father=father_obj)
             
-            if individual_obj is not None and individual_obj.is_generic:
-                self.errors['individual'].append(f"Individual {individual_obj.name} uses prefix '{Individual.GENERIC_INDIVIDUAL_PREFIX}' which is reserved for internal usage.")
-
             if not created and not self.errors['individual']:
                 self.warnings['individual'].append(('Individual already exists and was not created.', []))
         else:
