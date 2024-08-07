@@ -62,14 +62,14 @@ class SampleRowHandler(GenericRowHandler):
                                individual["reference_genome"],
                                mother_obj,
                                father_obj])
-        can_use_generic_individual = (any(taxon_obj is not None and taxon_obj.ncbi_id == self.HUMAN_TAXON_ID,
-                                          taxon_obj is not None and taxon_obj.ncbi_id == self.MOUSE_TAXON_ID,
-                                          reference_genome_obj is not None and reference_genome_obj.taxon.ncbi_id == self.HUMAN_TAXON_ID,
-                                          reference_genome_obj is not None and reference_genome_obj.taxon.ncbi_id == self.MOUSE_TAXON_ID)
-                                      and not any(individual["pedigree"],
-                                                  individual["cohort"],
-                                                  mother_obj,
-                                                  father_obj))
+        can_use_generic_individual = (any([taxon_obj is not None and taxon_obj.ncbi_id == self.HUMAN_TAXON_ID,
+                                           taxon_obj is not None and taxon_obj.ncbi_id == self.MOUSE_TAXON_ID,
+                                           reference_genome_obj is not None and reference_genome_obj.taxon.ncbi_id == self.HUMAN_TAXON_ID,
+                                           reference_genome_obj is not None and reference_genome_obj.taxon.ncbi_id == self.MOUSE_TAXON_ID])
+                                      and not any([individual["pedigree"],
+                                                   individual["cohort"],
+                                                   mother_obj,
+                                                   father_obj]))
         # When the individual name is not provided any field that is stored on the individual need to raise an error.
         self.errors['individual'] = []
         self.warnings['individual'] = []
@@ -116,10 +116,10 @@ class SampleRowHandler(GenericRowHandler):
                                          mother=mother_obj,
                                          father=father_obj)
             
-            if individual_obj.is_generic:
+            if individual_obj is not None and individual_obj.is_generic:
                 self.errors['individual'].append(f"Individual {individual_obj.name} uses prefix '{Individual.GENERIC_INDIVIDUAL_PREFIX}' which is reserved for internal usage.")
 
-            if not created:
+            if not created and not self.errors['individual']:
                 self.warnings['individual'].append(('Individual already exists and was not created.', []))
         else:
             self.warnings['individual'].append(('Sample is not tied to any individual.', []))
