@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='individual',
-            name='generic',
-            field=models.BooleanField(default=False, help_text='Generic individual used to replace undefined individuals that share characteristics.'),
+            name='is_generic',
+            field=models.BooleanField(default=False, help_text='Flag indicating a generic individual used to replace undefined individuals that share characteristics.'),
         ),
     ]

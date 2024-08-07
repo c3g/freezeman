@@ -58,7 +58,7 @@ _individual_filterset_fields: FiltersetFields = {
     "father": NULLABLE_FK_FILTERS,
     **_prefix_keys("taxon__", _taxon_filterset_fields),
     **_prefix_keys("reference_genome__", _reference_genome_filterset_fields),
-    "generic": ["exact"],
+    "is_generic": ["exact"],
 }
 
 _user_filterset_fields: FiltersetFields = {

@@ -59,11 +59,19 @@ class IndividualTest(TestCase):
                 raise e
 
     def test_generic_individual(self):
-        generic_individual = Individual.objects.create(**create_individual(individual_name="GENERIC_joeblo"))
+        generic_individual = Individual.objects.create(**create_individual(individual_name="GENERIC_joeblo", is_generic=True))
         self.assertEqual(Individual.objects.count(), self.generic_individual_count + 1)
         self.assertEqual(str(generic_individual), "GENERIC_joeblo")
         self.assertTrue(generic_individual.is_generic)
-        individual = Individual.objects.create(**create_individual(individual_name="GEN_joeblo"))
+        individual = Individual.objects.create(**create_individual(individual_name="GEN_joeblo", is_generic=False))
         self.assertEqual(Individual.objects.count(), self.generic_individual_count + 2)
         self.assertEqual(str(individual), "GEN_joeblo")
         self.assertFalse(individual.is_generic)
+
+    def test_creating_generic_individual_without_flag(self):
+        with self.assertRaises(ValidationError):
+            try:
+                generic_individual = Individual.objects.create(**create_individual(individual_name="GENERIC_joeblo"))
+            except ValidationError as e:
+                self.assertIn("is_generic", e.message_dict)
+                raise e

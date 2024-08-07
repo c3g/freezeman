@@ -44,17 +44,13 @@ class Individual(TrackedModel):
     cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in a specific study.")
     alias = models.CharField(blank=True, null=True, max_length=200, help_text="Original individual name used by external client.")
     reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="individuals", help_text="Reference genome used to analyze samples.")
-    generic = models.BooleanField(default=False, help_text="Generic individual used to replace undefined individuals that share characteristics.")
+    is_generic = models.BooleanField(default=False, help_text="Generic individual used to replace undefined individuals that share characteristics.")
 
     class Meta:
         indexes = [
             models.Index(fields=['name'], name='individual_name_idx'),
         ]
     
-    @property
-    def is_generic(self) -> bool:
-        return self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] == self.GENERIC_INDIVIDUAL_PREFIX
-
     def __str__(self):
         return self.name
 
@@ -99,11 +95,11 @@ class Individual(TrackedModel):
         if self.mother_id is not None and self.mother.sex == self.SEX_MALE:
             add_error("mother", "Mother cannot be of male sex.")
 
-        if self.generic and self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] != self.GENERIC_INDIVIDUAL_PREFIX:
-            add_error("generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix not used for generic individual.")
+        if self.is_generic and self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] != self.GENERIC_INDIVIDUAL_PREFIX:
+            add_error("is_generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix not used for generic individual.")
 
-        if not self.generic and self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] == self.GENERIC_INDIVIDUAL_PREFIX:
-            add_error("generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix cannot be used for non generic individuals.")
+        if not self.is_generic and self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] == self.GENERIC_INDIVIDUAL_PREFIX:
+            add_error("is_generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix cannot be used for non generic individuals.")
 
         if errors:
             raise ValidationError(errors)

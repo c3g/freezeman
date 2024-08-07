@@ -56,7 +56,7 @@ const IndividualOverview = ({ individual }) => {
                         />
                     }</Descriptions.Item>
                     <Descriptions.Item label="Generic individual">
-                        {individual.generic ? "True" : "False"}
+                        {individual.is_generic ? "True" : "False"}
                     </Descriptions.Item>
                 </Descriptions>
                 <TrackingFieldsContent entity={individual} />

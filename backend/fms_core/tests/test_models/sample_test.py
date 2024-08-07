@@ -65,7 +65,7 @@ class SampleTest(TestCase):
     def test_sample_with_negative_fragment_size(self):
         with self.assertRaises(ValidationError):
             try:
-                sample_with_negative_fragment_size = sample = Sample.objects.create(**create_sample(container=self.valid_container, comment="This is a sample.", fragment_size=-1))
+                sample_with_negative_fragment_size = Sample.objects.create(**create_sample(container=self.valid_container, comment="This is a sample.", fragment_size=-1))
             except ValidationError as e:
                 self.assertTrue("fragment_size" in e.message_dict)
                 raise e
