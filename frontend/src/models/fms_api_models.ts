@@ -169,6 +169,7 @@ export interface FMSIndividual extends FMSTrackedModel {
     reference_genome?: FMSId            // Reference Genome ID
     mother?: FMSId                      // Individual ID of mother
     father?: FMSId                      // Individual ID of father
+    is_generic: boolean                    // Generic individual flag
 }
 
 export interface FMSInstrument extends FMSTrackedModel {
