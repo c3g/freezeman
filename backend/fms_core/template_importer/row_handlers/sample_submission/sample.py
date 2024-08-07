@@ -16,6 +16,9 @@ from fms_core.services.platform import get_platform
 from fms_core.services.index import get_index
 
 class SampleRowHandler(GenericRowHandler):
+    HUMAN_TAXON_ID = 9606
+    MOUSE_TAXON_ID = 10090
+
     def __init__(self):
         super().__init__()
 
@@ -59,10 +62,18 @@ class SampleRowHandler(GenericRowHandler):
                                individual["reference_genome"],
                                mother_obj,
                                father_obj])
+        can_use_generic_individual = (any(taxon_obj is not None and taxon_obj.ncbi_id == self.HUMAN_TAXON_ID,
+                                          taxon_obj is not None and taxon_obj.ncbi_id == self.MOUSE_TAXON_ID,
+                                          reference_genome_obj is not None and reference_genome_obj.taxon.ncbi_id == self.HUMAN_TAXON_ID,
+                                          reference_genome_obj is not None and reference_genome_obj.taxon.ncbi_id == self.MOUSE_TAXON_ID)
+                                      and not any(individual["pedigree"],
+                                                  individual["cohort"],
+                                                  mother_obj,
+                                                  father_obj))
         # When the individual name is not provided any field that is stored on the individual need to raise an error.
         self.errors['individual'] = []
         self.warnings['individual'] = []
-        if not individual["name"] and need_individual:
+        if not individual["name"] and need_individual and not can_use_generic_individual:
             if individual["taxon"]:
                 self.errors['individual'].append(f"Individual taxon requires an individual name to be provided to be saved.")
             if individual["sex"]:
@@ -79,6 +90,20 @@ class SampleRowHandler(GenericRowHandler):
                 self.errors['individual'].append(f"Individual mother requires an individual name to be provided to be saved.")
             if father_obj:
                 self.errors['individual'].append(f"Individual father requires an individual name to be provided to be saved.")
+        elif not individual["name"] and can_use_generic_individual:
+            # We need taxon, reference_genome and sex
+            if taxon_obj is None and reference_genome_obj is not None:
+                taxon_obj = reference_genome_obj.taxon
+            if reference_genome_obj is None and taxon_obj is not None:
+                reference_genome_obj = taxon_obj.default_reference_genome
+            if individual["sex"] is None:
+                individual["sex"] = Individual.SEX_UNKNOWN
+            try:
+                individual_obj = Individual.objects.get(taxon=taxon_obj, reference_genome=reference_genome_obj, sex=individual['sex'], generic=True)
+            except Individual.MultipleObjectsReturned as err:
+                self.errors['individual'].append(f"More than one generic individual matches the submitted sample.")
+            except Individual.DoesNotExist as err:
+                self.errors['individual'].append(f"No generic individual matches the submitted sample.")
         elif individual["name"]:
             individual_obj, created, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
