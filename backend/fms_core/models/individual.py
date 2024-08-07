@@ -99,6 +99,12 @@ class Individual(TrackedModel):
         if self.mother_id is not None and self.mother.sex == self.SEX_MALE:
             add_error("mother", "Mother cannot be of male sex.")
 
+        if self.generic and self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] != self.GENERIC_INDIVIDUAL_PREFIX:
+            add_error("generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix not used for generic individual.")
+
+        if not self.generic and self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] == self.GENERIC_INDIVIDUAL_PREFIX:
+            add_error("generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix cannot be used for non generic individuals.")
+
         if errors:
             raise ValidationError(errors)
 
