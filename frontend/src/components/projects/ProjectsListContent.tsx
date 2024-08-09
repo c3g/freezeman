@@ -23,6 +23,7 @@ import { sort } from 'rambda'
 const projectsListContentColumns = [
 	PROJECT_COLUMN_DEFINITIONS.ID,
 	PROJECT_COLUMN_DEFINITIONS.NAME,
+    PROJECT_COLUMN_DEFINITIONS.EXTERNAL_ID,
 	PROJECT_COLUMN_DEFINITIONS.PRINCIPAL_INVESTIGATOR,
 	PROJECT_COLUMN_DEFINITIONS.REQUESTOR_NAME,
 	PROJECT_COLUMN_DEFINITIONS.REQUESTOR_EMAIL,
@@ -38,7 +39,7 @@ const ProjectsListContent = () => {
 	const projectsTableState  = useAppSelector(selectProjectsTable)
 	const { filters, sortBy, totalCount } = projectsTableState
 	const templateActions = useAppSelector(selectProjectTemplateActions)
-	
+
 	const listExport = useListExportCallback(api.projects.listExport, filters, sortBy)
 
 	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
@@ -53,7 +54,7 @@ const ProjectsListContent = () => {
 	)
 
 	const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, wrapProject)
-	
+
 	return (
 		<>
 			<AppPageHeader
