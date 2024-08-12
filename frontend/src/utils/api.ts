@@ -1,7 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSProtocol, FMSSample, FMSSampleNextStep, FMSStepHistory, FMSStudy, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
-import { Sample } from "../models/frontend_models";
+import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSSample, FMSSampleNextStep, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -175,8 +174,8 @@ const api = {
   },
 
   projects: {
-    addSampleToStudy: (sampleId: Sample['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order']) =>
-        post<JsonResponse<{ status: string, warnings: Record<string, string[]> }>>(`/projects/add_sample_to_study/`, { sample_id: sampleId, study_letter: studyLetter, step_order: stepOrder }),
+    addSamplesToStudy: (sampleIds: Array<FMSSample['id']>, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order']) =>
+        post<JsonResponse<{ warnings: Record<string, string[]> }>>(`/projects/add_samples_to_study/`, { sample_ids: sampleIds, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
@@ -278,11 +277,11 @@ const api = {
   },
 
   steps: {
-    list: (options, abort?) => get('/steps/', options, { abort} ),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStep>>>('/steps/', options, { abort} ),
   },
 
   studies: {
-    get: studyId => get(`/studies/${studyId}/`),
+    get: studyId => get<JsonResponse<FMSStudy>>(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
     list: (options, abort?) => get('/studies', options, {abort}),
@@ -309,7 +308,7 @@ const api = {
   },
 
   workflows: {
-    get: workflowId => get(`/workflows/${workflowId}/`),
+    get: (workflowId: FMSWorkflow['id']) => get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
     list: (options, abort?) => get('/workflows/', options, { abort })
   },
 

@@ -11,6 +11,8 @@ import { Project, Protocol, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
 import store from "../../store";
 import { Button } from "antd";
+import linkSamplesToStudy from "./LinkSamplesToStudy";
+import LinkSamplesToStudy from "./LinkSamplesToStudy";
 
 const lastProtocols = api.protocols.lastProtocols;
 
@@ -92,20 +94,30 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
 
     const mapSamplesID = useItemsByIDToDataObjects(selectSamplesByID, (sample: Sample) => ({ sample }))
 
+    const [linkSamplesToStudyOpen, setLinkSamplesToStudyOpen] = useState(false)
+
     return (
-        // Don't render until the sample fixed filter is set, or you will get all of the projects.
-        <PagedItemsTable<ObjectWithSample>
-            getDataObjectsByID={mapSamplesID}
-            pagedItems={pagedItems}
-            columns={columns}
-            usingFilters={true}
-            {...projectSamplesTableCallbacks}
-            initialLoad={false}
-            selection={selection}
-            topBarExtra={[
-                <Button disabled={selectedItemIDs.length === 0} key={0}>Link to Study</Button>,
-            ]}
-        />
+        <>
+            <LinkSamplesToStudy
+                open={linkSamplesToStudyOpen}
+                selectedItemIDs={selectedItemIDs}
+                projectID={currentProjectID}
+                handleOk={() => setLinkSamplesToStudyOpen(false)}
+                handleCancel={() => setLinkSamplesToStudyOpen(false)}
+            />
+            <PagedItemsTable<ObjectWithSample>
+                getDataObjectsByID={mapSamplesID}
+                pagedItems={pagedItems}
+                columns={columns}
+                usingFilters={true}
+                {...projectSamplesTableCallbacks}
+                initialLoad={false}
+                selection={selection}
+                topBarExtra={[
+                    <Button disabled={selectedItemIDs.length === 0} key={0} onClick={() => setLinkSamplesToStudyOpen(true)}>Link to Study</Button>,
+                ]}
+            />
+        </>
     )
 }
 

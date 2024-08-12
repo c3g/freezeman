@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from django.core.exceptions import ValidationError
 
+from fms_core.utils import make_generator
 from fms_core.services.project import add_sample_to_study
 from fms_core.models import Project, Sample
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
@@ -62,16 +63,20 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "closed_count": Project.objects.filter(status="Closed").count(),
         })
     
-    @action(detail=True, methods=["post"])
-    def add_sample_to_study(self, request, pk=None):
-        sample_id = request.data.get("sample_id")
+    @action(detail=False, methods=["post"])
+    def add_samples_to_study(self, request, pk=None):
+        sample_ids = request.data.get("sample_ids")
+        project_id = request.data.get("project_id")
         study_letter = request.data.get("study_letter")
         step_order = request.data.get("step_order", None)
-        sample = Sample.objects.get(id=sample_id)
-        errors, warnings = add_sample_to_study(sample, study_letter, step_order)
-        if errors:
-            raise ValidationError(errors)
+        samples =  make_generator(Sample.objects.filter(id__in=sample_ids))
+        project = Project.objects.get(id=project_id)
+        errors = {}
+        warnings = {}
+        for sample in samples:
+            errors, warnings = add_sample_to_study(sample, project, study_letter, step_order)
+            if errors:
+                raise ValidationError(errors)
         return Response({
-            "status": f"Sample #{sample_id} added to study {study_letter} at step order {step_order}.",
             "warnings": warnings
         })
