@@ -147,7 +147,6 @@ function PagedItemsTable<T extends object>({
 			},
 		}
 	}
-	console.info(rowSelection?.selectedRowKeys)
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.
 	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.
