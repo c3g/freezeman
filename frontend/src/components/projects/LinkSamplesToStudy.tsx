@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Form, Modal, Select } from "antd";
-import { Provider } from "react-redux";
 import store from "../../store";
 import api from "../../utils/api";
 import { useAppSelector } from "../../hooks";
 import { selectStudiesByID } from "../../selectors";
 import { getAllItems, Study } from "../../models/frontend_models";
-import { FMSId, WorkflowStepOrder } from "../../models/fms_api_models";
+import { WorkflowStepOrder } from "../../models/fms_api_models";
 import { notifyError, notifySuccess } from "../../modules/notification/actions";
 
 const NOTIFICATION_ID = "samples-linked-to-study"
@@ -29,7 +28,7 @@ export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, h
                 else if (a.letter < b.letter) return -1
                 else return 0
             })
-    , [projectID, studiesByID])
+        , [projectID, studiesByID])
     const [study, setStudy] = useState<Study>()
 
     const [stepsOrder, setStepsOrder] = useState<WorkflowStepOrder[]>([])
