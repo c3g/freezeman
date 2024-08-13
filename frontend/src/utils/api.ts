@@ -175,7 +175,7 @@ const api = {
 
   projects: {
     addSamplesToStudy: (sampleIds: Array<FMSSample['id']>, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order']) =>
-        post<JsonResponse<{ warnings: Record<string, string[]> }>>(`/projects/add_samples_to_study/`, { sample_ids: sampleIds, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
+        post<StringResponse>(`/projects/add_samples_to_study/`, { sample_ids: sampleIds, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),

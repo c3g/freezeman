@@ -1,3 +1,4 @@
+from collections import defaultdict
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -69,14 +70,18 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         project_id = request.data.get("project_id")
         study_letter = request.data.get("study_letter")
         step_order = request.data.get("step_order", None)
+
         samples =  make_generator(Sample.objects.filter(id__in=sample_ids))
         project = Project.objects.get(id=project_id)
-        errors = {}
-        warnings = {}
+
+        errors = defaultdict(list)
         for sample in samples:
-            errors, warnings = add_sample_to_study(sample, project, study_letter, step_order)
-            if errors:
-                raise ValidationError(errors)
-        return Response({
-            "warnings": warnings
-        })
+            _errors, _ = add_sample_to_study(sample, project, study_letter, step_order)
+            for key, error in _errors.items():
+                if error:
+                    errors[key].extend([error] if isinstance(error, str) else error)
+        
+        if errors:
+            raise ValidationError(errors)
+        else:
+            return Response(status=204)

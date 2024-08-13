@@ -1,3 +1,4 @@
+from collections import defaultdict
 from fms_core.services.sample_next_step import is_sample_queued_in_study, queue_sample_to_study_workflow
 from fms_core.services.study import get_study
 from fms_core.models.sample import Sample
@@ -45,8 +46,8 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
     return (project, errors, warnings)
 
 def add_sample_to_study(sample: Sample, project: Project, study_letter: str, step_order: int | None = None):
-    errors = {}
-    warnings = {}
+    errors = defaultdict(list)
+    warnings = defaultdict(list)
 
     # Make sure the sample is already associated to the project of the given study. In case of pool one of the samples has to be associated to the project
     if sample.is_pool:
