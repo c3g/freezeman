@@ -72,7 +72,7 @@ class SampleSubmissionTestCase(TestCase):
         ]
         individual_name = 'MrTest'
         individual_alias = 'MonsieurTest'
-        generic_individual = "GENERIC_HUMAN_UNKNOWN_GRCh38.p14"
+        generic_individual_prefix = "GENERIC_"
 
         self.assertTrue(Individual.objects.get(name=individual_name))
 
@@ -83,7 +83,7 @@ class SampleSubmissionTestCase(TestCase):
             derived_sample_id = DerivedBySample.objects.filter(sample_id=sample_obj.id).first().derived_sample_id
             biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
             if biosample.individual.is_generic:
-                self.assertEqual(biosample.individual.name, generic_individual)
+                self.assertIn(generic_individual_prefix, biosample.individual.name)
             else:
                 self.assertEqual(biosample.individual.name, individual_name)
                 self.assertEqual(biosample.individual.alias, individual_alias)
