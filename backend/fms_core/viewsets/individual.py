@@ -30,11 +30,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
         user_id = _request.user.id
         requesting_user = User.objects.get(id=user_id) # Prevent creation of Generic individuals by non staff users
         if _request.data["name"][:len(Individual.GENERIC_INDIVIDUAL_PREFIX)] == Individual.GENERIC_INDIVIDUAL_PREFIX:
-            if requesting_user.is_staff:
-                _request.data["is_generic"] = True
-                return super().create(_request)
-            else:
-                raise ValidationError({"name": f"Cannot use the prefix '{Individual.GENERIC_INDIVIDUAL_PREFIX}'. It is reserved for internal use."})
+            raise ValidationError({"name": f"Cannot use the prefix '{Individual.GENERIC_INDIVIDUAL_PREFIX}' for individual name. It is reserved for generic individuals."})
         else:
             return super().create(_request)
     

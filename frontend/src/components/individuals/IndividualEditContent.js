@@ -155,7 +155,7 @@ const IndividualEditContent = () => {
           </Form.Item>
           <Form.Item label="Alias" {...props("alias")}
             extra="Individual name given by the client. Use if client name duplicates an existing individual name in Freezeman." >
-            <Input disabled={individual && individual.is_generic}/>
+            <Input/>
           </Form.Item>
           <Form.Item label="Taxon" {...props("taxon")} rules={requiredRules}
             extra="Taxon identifying the individual. Add taxon to Freezeman if missing from the list." >
@@ -166,7 +166,6 @@ const IndividualEditContent = () => {
               options={taxonOptions}
               onSearch={onSearchTaxon}
               onFocus={onFocusTaxon}
-              disabled={individual && individual.is_generic}
             />
           </Form.Item>
           <Form.Item name="referenceGenome" label="Refererence Genome" {...props('reference_genome')}
@@ -178,7 +177,6 @@ const IndividualEditContent = () => {
               options={referenceGenomeOptions}
               onSearch={onSearchReferenceGenome}
               onFocus={onFocusReferenceGenome}
-              disabled={individual && individual.is_generic}
             />
           </Form.Item>
           <Form.Item label="Sex" {...props("sex")} rules={requiredRules}
@@ -186,16 +184,15 @@ const IndividualEditContent = () => {
             <Radio.Group
               optionType="button"
               options={toOptions(SEX)}
-              disabled={individual && individual.is_generic}
             />
           </Form.Item>
           <Form.Item label="Pedigree" {...props("pedigree")}
-            extra="Pedigree of the individual." >
-            <Input disabled={individual && individual.is_generic}/>
+            extra="Pedigree of the individual.">
+            <Input/>
           </Form.Item>
           <Form.Item label="Cohort" {...props("cohort")}
             extra="Cohort of the individual.">
-            <Input disabled={individual && individual.is_generic}/>
+            <Input/>
           </Form.Item>
           <Form.Item label="Mother" {...props("mother")}
             extra="Mother of the individual. Must be an existing female individual in Freezeman." >
@@ -206,7 +203,6 @@ const IndividualEditContent = () => {
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
-              disabled={individual && individual.is_generic}
             />
           </Form.Item>
           <Form.Item label="Father" {...props("father")}
@@ -218,7 +214,6 @@ const IndividualEditContent = () => {
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
-              disabled={individual && individual.is_generic}
             />
           </Form.Item>
           {formErrors?.non_field_errors &&
@@ -240,7 +235,7 @@ const IndividualEditContent = () => {
           }
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit" disabled={individual && individual.is_generic}>
+              <Button type="primary" htmlType="submit">
                 Submit
               </Button>
               <Button onClick={onCancel}>Cancel</Button>

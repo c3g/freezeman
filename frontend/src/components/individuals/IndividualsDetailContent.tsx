@@ -56,7 +56,7 @@ const IndividualsDetailContent = () => {
         `Individual ${[id, (individual && individual.individual) ? individual.individual.name : undefined].filter(Boolean).join(' - ')}`;
 
     return <>
-        <AppPageHeader title={title} extra={individual && !individual.individual.is_generic && <EditButton url={`/individuals/${id}/update`} />} />
+        <AppPageHeader title={title} extra={<EditButton url={`/individuals/${id}/update`} />} />
         <PageContent loading={(individual && individual.individual?.isFetching)}>
             <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
                 <Tabs.TabPane tab="Overview" key="overview">
