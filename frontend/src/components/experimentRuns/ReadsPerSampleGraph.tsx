@@ -17,7 +17,7 @@ interface ReadsPerSampleGraphProps {
 function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 	const DEFAULT_GRAPH_WIDTH = 800
 	const MIN_BAR_WIDTH = 6 // Make bars wide enough that the user can click them
-	const MAX_BAR_WIDTH = 64 // Don't let bars get too fat or the graph looks silly
+	const MAX_BAR_WIDTH = 400 // Leave some space to have the tooltip not be clipped off for low sample count lanes
 
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
