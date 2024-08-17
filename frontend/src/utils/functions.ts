@@ -50,9 +50,7 @@ export function offsetsToCoordinates(offsets: readonly number[], spec: Coordinat
 }
 
 export function compareArray(a: readonly number[], b: readonly number[]): number {
-    if (a.length > b.length) return 1
-    if (a.length < b.length) return -1
-    for (let i = 0; i < a.length; i++) {
+    for (let i = 0; i < a.length && i < b.length; i++) {
         if (a[i] < b[i]) return -1
         if (a[i] > b[i]) return 1
     }
