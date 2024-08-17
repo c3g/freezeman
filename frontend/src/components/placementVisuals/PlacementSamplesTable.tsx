@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { Table, TableProps } from "antd";
 import { ColumnsType, SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
 import { FMSId } from "../../models/fms_api_models";
-import { useAppDispatch, useAppSelector } from "../../hooks";
+import { useAppSelector } from "../../hooks";
 import { multiSelect } from "../../modules/placement/reducers";
 import { selectSamplesByID } from "../../selectors";
 import { fetchSamples } from "../../modules/cache/cache";
@@ -21,14 +21,12 @@ interface PlacementSample {
     selected: boolean
     name: string
     projectName: string
-    parentContainerName: string | null
+    parentContainerName: string
     coordinates: string | undefined
-    placed: boolean
 }
 
 //component used to display and select samples in a table format for plate visualization placement
 const PlacementSamplesTable = ({ container: containerName, showContainerColumn }: PlacementSamplesTableProps) => {
-    const dispatch = useAppDispatch()
     // TODO: use sorted selected items instead when the field is defined in the labwork-refactor
     const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
     const samplesByID = useAppSelector(selectSamplesByID)
@@ -43,12 +41,14 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         const samples = container
             ? container.cells.reduce<PlacementSample[]>(
                 (samples, cell) => {
-                    if (!cell) return samples
+                    // don't show cells that are not loaded or already placed
+                    if (!cell || cell.placedAt) return samples
 
                     let sample = cell.sample
                     let project = cell.projectName
                     let originalContainer = cell.parentContainerName
 
+                    // if the cell is a destination, show the source sample
                     if (isDestination && cell.placedFrom) {
                         const otherCell = selectCell(store.getState())(cell.placedFrom)
                         if (!otherCell) {
@@ -60,8 +60,10 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                         originalContainer = otherCell.parentContainerName
                     }
 
+                    // if the cell has no sample, don't show it
                     if (!sample) return samples
 
+                    // if the sample is not loaded, fetch it and later show it
                     if (!samplesByID[sample]) {
                         missingSamples.push(sample)
                         return samples
@@ -73,9 +75,8 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                         selected: cell.selected,
                         name,
                         projectName: project,
-                        parentContainerName: originalContainer,
+                        parentContainerName: originalContainer ?? 'Tubes without parent',
                         coordinates: cell.coordinates,
-                        placed: cell.placedAt !== null
                     })
                     return samples
                 }, [])
@@ -97,7 +98,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
     )
     const onChange: NonNullable<TableRowSelection<PlacementSample>['onChange']> = useCallback((keys, selectedRows, info) => {
         if (info.type === 'all') {
-            dispatch(multiSelect({
+            store.dispatch(multiSelect({
                 type: 'all',
                 parentContainer: containerName,
                 context: {
@@ -105,9 +106,9 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                 }
             }))
         }
-    }, [activeSourceContainer?.name, containerName, dispatch])
+    }, [activeSourceContainer?.name, containerName])
     const onSelect: SelectionSelectFn<PlacementSample> = useCallback((sample, selected) => {
-        dispatch(multiSelect({
+        store.dispatch(multiSelect({
             type: 'sample-ids',
             parentContainer: containerName,
             sampleIDs: [sample.id],
@@ -116,12 +117,13 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                 source: activeSourceContainer?.name
             }
         }))
-    }, [activeSourceContainer?.name, containerName, dispatch])
+    }, [activeSourceContainer?.name, containerName,])
     const selectionProps: TableRowSelection<PlacementSample> = useMemo(() =>  ({
         selectedRowKeys,
         onChange,
         onSelect,
         getCheckboxProps: (sample) => ({
+            // disable checkbox if the sample is already placed in the destination container
             disabled: isDestination && sample.parentContainerName === containerName
         })
     }), [selectedRowKeys, onChange, onSelect, isDestination, containerName])
@@ -175,13 +177,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
 
     return (
         <Table<PlacementSample>
-            dataSource={samples.filter(sample => !sample.placed).map(
-            (sample) => 
-                ({
-                    ...sample,
-                    parentContainerName: sample.parentContainerName ?? 'Tubes without parent' 
-                })
-            )}
+            dataSource={samples}
             columns={columns}
             rowKey={obj => obj.id}
             rowSelection={selectionProps}

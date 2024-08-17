@@ -57,7 +57,9 @@ export function compareArray(a: readonly number[], b: readonly number[]): number
     return 0
 }
 
-export function comparePlacementSamples<S extends Pick<CellState, 'coordinates' | 'parentContainerName' | 'name' | 'projectName' | 'selected'>>(a: S, b: S, spec?: CoordinateSpec): number {
+export function comparePlacementSamples<
+    S extends Pick<CellState, 'coordinates' | 'parentContainerName' | 'name' | 'projectName' | 'selected'>
+>(a: S, b: S, spec?: CoordinateSpec): number {
     const MAX = 128
 
     let orderA = MAX
