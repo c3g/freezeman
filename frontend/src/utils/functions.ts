@@ -50,38 +50,40 @@ export function offsetsToCoordinates(offsets: readonly number[], spec: Coordinat
 }
 
 export function compareArray(a: readonly number[], b: readonly number[]): number {
-    if (a.length > b.length) return 1
-    if (a.length < b.length) return -1
-    for (let i = 0; i < a.length; i++) {
+    for (let i = 0; i < a.length && i < b.length; i++) {
         if (a[i] < b[i]) return -1
         if (a[i] > b[i]) return 1
     }
+    if (a.length < b.length) return -1
+    if (a.length > b.length) return 1
     return 0
 }
 
-export function comparePlacementSamples<S extends Pick<CellState, 'coordinates' | 'parentContainerName' | 'name' | 'projectName' | 'selected'>>(a: S, b: S, spec?: CoordinateSpec): number {
+export function comparePlacementSamples<
+    S extends Pick<CellState, 'coordinates' | 'parentContainerName' | 'name' | 'projectName' | 'selected'>
+>(a: S, b: S, spec?: CoordinateSpec): number {
     const MAX = 128
 
     let orderA = MAX
     let orderB = MAX
 
     if (a.selected) orderA -= MAX/2
-    else if (b.selected) orderB -= MAX/2
+    if (b.selected) orderB -= MAX/2
 
     if (spec && a.coordinates && b.coordinates) {
         // if both have coordinates, both have a parent container
         const aOffsets = coordinatesToOffsets(spec, a.coordinates)
         const bOffsets = coordinatesToOffsets(spec, b.coordinates)
         const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
+        if (arrayComparison < 0) orderA -= MAX/4
         if (arrayComparison > 0) orderB -= MAX/4
-        else if (arrayComparison < 0) orderA -= MAX/4
     }
 
+    if (a.name < b.name) orderA -= MAX/8
     if (a.name > b.name) orderB -= MAX/8
-    else if (a.name < b.name) orderA -= MAX/8
 
-    if (a.projectName > b.projectName) orderB -= MAX/32
-    else if (a.projectName < b.projectName) orderA -= MAX/32
+    if (a.projectName < b.projectName) orderA -= MAX/16
+    if (a.projectName > b.projectName) orderB -= MAX/16
 
     return orderA - orderB
 
