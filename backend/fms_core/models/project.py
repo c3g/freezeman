@@ -40,6 +40,9 @@ class Project(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
+        if self.external_id == "":
+            add_error("external_id", "Project External ID cannot be empty text.")
+
         project_similar_name = Project.objects.filter(name__iexact=self.name).first()
         if project_similar_name and project_similar_name.id != self.id:
             add_error("name", f"Another project with a similar name ({project_similar_name.name}) exists. Two project names cannot be distinguished only by letter case.")
