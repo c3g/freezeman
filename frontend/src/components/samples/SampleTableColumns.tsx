@@ -454,7 +454,7 @@ export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.DEPLETED]: 'depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'derived_by_samples__project__name',
-	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.COHORT]: 'derived_samples__biosample__individual__cohort',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
