@@ -90,3 +90,19 @@ class ProjectTest(TestCase):
             except ValidationError as e:
                 self.assertTrue("name" in e.message_dict)
                 raise e
+
+    def test_empty_project_external_id(self):
+        my_project = Project.objects.create(name=self.name,
+                                            principal_investigator=self.principal_investigator,
+                                            requestor_name=self.requestor_name,
+                                            requestor_email=self.requestor_email,
+                                            targeted_end_date=self.targeted_end_date,
+                                            comment=self.comment)
+        self.assertEqual(my_project.external_id, None)
+        with self.assertRaises(ValidationError):
+            try:
+                my_project.external_id = ""
+                my_project.save()
+            except ValidationError as e:
+                self.assertTrue("external_id" in e.message_dict)
+                raise e

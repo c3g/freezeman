@@ -214,6 +214,9 @@ function serialize(values) {
   else
     newValues.targeted_end_date = null
 
+  if (!newValues.external_id || newValues.external_id.length == 0)
+    newValues.external_id = null
+
   return newValues
 }
 
