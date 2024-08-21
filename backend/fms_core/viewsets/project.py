@@ -71,7 +71,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         study_letter = request.data.get("study_letter")
         step_order = request.data.get("step_order", None)
 
-        samples =  make_generator(Sample.objects.filter(id__in=sample_ids))
+        samples =  Sample.objects.filter(id__in=sample_ids).all()
         project = Project.objects.get(id=project_id)
 
         errors = defaultdict(list)
