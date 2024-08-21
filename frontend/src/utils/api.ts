@@ -174,8 +174,8 @@ const api = {
   },
 
   projects: {
-    addSamplesToStudy: (sampleIds: Array<FMSSample['id']>, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order']) =>
-        post<StringResponse>(`/projects/add_samples_to_study/`, { sample_ids: sampleIds, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
+    addSamplesToStudy: (samples: AddSamplesToStudySamples, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order']) =>
+        post<StringResponse>(`/projects/add_samples_to_study/`, { samples, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
@@ -537,4 +537,9 @@ function isFormData(object: any): object is FormData {
 
 function getPathname(route: string) {
   return route.replace(/\?.*$/, '')
+}
+
+export interface AddSamplesToStudySamples {
+  sample_ids: Array<FMSSample['id']> | null
+  project_id: FMSProject['id'] | null
 }

@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Form, Modal, Select } from "antd";
 import store from "../../store";
-import api from "../../utils/api";
-import { useAppSelector } from "../../hooks";
+import api, { AddSamplesToStudySamples } from "../../utils/api";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectStudiesByID } from "../../selectors";
 import { getAllItems, Study } from "../../models/frontend_models";
 import { WorkflowStepOrder } from "../../models/fms_api_models";
@@ -12,13 +12,14 @@ const NOTIFICATION_ID = "samples-linked-to-study"
 
 export interface LinkSamplesToStudyProps {
     open?: boolean
-    selectedItemIDs: number[]
+    selectedItems: AddSamplesToStudySamples
     projectID: number
     handleOk?: () => void
     handleCancel?: () => void
 }
 
-export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, handleOk, handleCancel }: LinkSamplesToStudyProps) {
+export default function LinkSamplesToStudy({ open, selectedItems, projectID, handleOk, handleCancel }: LinkSamplesToStudyProps) {
+    const dispatch = useAppDispatch()
     const studiesByID = useAppSelector(selectStudiesByID)
     const studies = useMemo(() =>
         getAllItems(studiesByID)
@@ -35,26 +36,28 @@ export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, h
     const [stepOrder, setStepOrder] = useState<WorkflowStepOrder>()
     useEffect(() => {
         if (study) {
-            store.dispatch(api.workflows.get(study.workflow_id)).then(response => {
+            dispatch(api.workflows.get(study.workflow_id)).then(response => {
                 setStepsOrder(response.data.steps_order.filter((stepOrder) => stepOrder.order >= study.start && stepOrder.order <= study.end))
-            }).catch(() => store.dispatch(notifyError({
+            }).catch(() => dispatch(notifyError({
                 id: NOTIFICATION_ID,
                 title: "Failed to get study",
                 description: `Failed to get study ${study}`
             })))
         }
-    }, [study])
+    }, [study, dispatch])
+
+    const enabled = ((selectedItems.sample_ids?.length ?? 0) > 0 || (selectedItems.project_id ?? 0 > 0)) && study && stepOrder
 
     return (
         <Modal
             title={"Link Samples to Study"}
             open={open}
             okButtonProps={{
-                disabled: !(selectedItemIDs.length > 0 && study && stepOrder)
+                disabled: !enabled
             }}
             onOk={() => {
-                if (selectedItemIDs.length > 0 && study && stepOrder) {
-                    store.dispatch(api.projects.addSamplesToStudy(selectedItemIDs, projectID, study.letter, stepOrder.order)).then(
+                if (enabled) {
+                    store.dispatch(api.projects.addSamplesToStudy(selectedItems, projectID, study.letter, stepOrder.order)).then(
                         () => {
                             store.dispatch(notifySuccess({
                                 id: NOTIFICATION_ID,
