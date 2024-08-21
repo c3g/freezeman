@@ -65,9 +65,9 @@ class SampleRowHandler(GenericRowHandler):
                                       and not any([individual["pedigree"],
                                                    mother_obj,
                                                    father_obj]))
-        # When the individual name is not provided any field that is stored on the individual need to raise an error.
         self.errors['individual'] = []
         self.warnings['individual'] = []
+        # When the individual name is not provided any field that is stored on the individual need to raise an error.
         if not individual["name"] and need_individual and not can_use_generic_individual:
             if individual["sex"]:
                 self.errors['individual'].append(f"Individual sex requires an individual name or taxon to be provided to be saved.")
