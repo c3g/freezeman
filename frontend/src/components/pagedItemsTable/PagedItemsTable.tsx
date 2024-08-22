@@ -10,8 +10,10 @@ import { useRefreshWhenStale } from './useRefreshWhenStale'
 
 
 export interface PagedItemTableSelection<T extends PageableData> {
-	selectedItemIDs: DataID[]
-	onSelectionChanged: (selectedItems: T[]) => void
+	selectedRowKeys?: NonNullable<TableProps<T>['rowSelection']>['selectedRowKeys']
+	onSelectionChanged?: (selectedItems: T[]) => void
+	onSelectionSingle?: (selectedItem: T) => void
+	onSelectionAll?: (selectedItems: T[]) => void
 }
 
 // This is the set of possible callbacks for the paged items table.
@@ -142,8 +144,20 @@ function PagedItemsTable<T extends object>({
 	if (selection) {
 		rowSelection = {
 			type: 'checkbox',
-			onChange: (selectedRowKeys: React.Key[], selectedRows: T[]) => {
-				selection.onSelectionChanged(selectedRows)
+			selectedRowKeys: selection.selectedRowKeys,
+			onChange(selectedRowKeys: React.Key[], selectedRows: T[], info) {
+				if (info.type === 'all' && selection.onSelectionAll) {
+					selection.onSelectionAll(selectedRows)
+				} else {
+					if (selection?.onSelectionChanged) {
+						selection.onSelectionChanged(selectedRows)
+					}
+				}
+			},
+			onSelect(record) {
+				if (selection?.onSelectionSingle) {
+					selection.onSelectionSingle(record)
+				}
 			},
 		}
 	}
@@ -194,7 +208,7 @@ function PagedItemsTable<T extends object>({
 							<FiltersBar style={{ float: 'right' }} filters={pagedItems.filters} clearFilters={clearFiltersCallback}></FiltersBar>
 						)}
 					</div>
-					<Table
+					<Table<T>
 						expandable={expandable}
 						rowSelection={rowSelection}
 						dataSource={tableDataState.tableData}

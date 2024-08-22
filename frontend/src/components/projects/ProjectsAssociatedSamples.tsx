@@ -53,16 +53,36 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
     const { pagedItems } = projectSamplesTable
 
-    const [selectedItemIDs, setSelectedItemIDs] = useState<PagedItemTableSelection<ObjectWithSample>['selectedItemIDs']>([])
+    const [sampleIDs, setSampleIDs] = useState<Array<Sample['id']>>([])
+    const [selectAll, setSelectAll] = useState(false)
     const selection = useMemo(() =>
         ({
-            selectedItemIDs,
-            onSelectionChanged(items) {
-                setSelectedItemIDs(items.map(({ sample }) => sample?.id as number)) // sample id should never be undefined when selected
+            selectedRowKeys: (selectAll
+                ? pagedItems.items.filter((sampleID) => !sampleIDs.includes(sampleID))
+                : sampleIDs).map(String),
+            onSelectionAll() {
+                setSampleIDs([])
+                if (sampleIDs.length === pagedItems.totalCount || selectAll) {
+                    setSelectAll(false)
+                } else {
+                    setSelectAll(true)
+                }
+            },
+            onSelectionSingle({ sample }) {
+                if (sample) {
+                    setSampleIDs((sampleIDs) => {
+                        if (sampleIDs.includes(sample.id)) {
+                            return sampleIDs.filter(id => id !== sample.id)
+                        } else {
+                            return [...sampleIDs, sample.id]
+                        }
+                    })
+                }
             }
         } as PagedItemTableSelection<ObjectWithSample>),
-        [selectedItemIDs]
+        [pagedItems.items, pagedItems.totalCount, sampleIDs, selectAll]
     )
+    console.info(sampleIDs, selectAll, selection.selectedRowKeys)
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
@@ -100,7 +120,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
         <>
             <LinkSamplesToStudy
                 open={linkSamplesToStudyOpen}
-                selectedItemIDs={selectedItemIDs}
+                selectedItemIDs={sampleIDs}
                 projectID={currentProjectID}
                 handleOk={() => setLinkSamplesToStudyOpen(false)}
                 handleCancel={() => setLinkSamplesToStudyOpen(false)}
@@ -114,7 +134,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
                 initialLoad={false}
                 selection={selection}
                 topBarExtra={[
-                    <Button disabled={selectedItemIDs.length === 0} key={0} onClick={() => setLinkSamplesToStudyOpen(true)}>Link to Study</Button>,
+                    <Button disabled={sampleIDs.length === 0} key={0} onClick={() => setLinkSamplesToStudyOpen(true)}>Link to Study</Button>,
                 ]}
             />
         </>
