@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks";
+import { useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
@@ -9,26 +9,26 @@ import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsA
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import { Project, Protocol, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
+import store from "../../store";
 import { Button } from "antd";
-import LinkSamplesToStudy, { LinkSamplesToStudyProps } from "./LinkSamplesToStudy";
-import { TableRowSelection } from "antd/lib/table/interface";
+import linkSamplesToStudy from "./LinkSamplesToStudy";
+import LinkSamplesToStudy from "./LinkSamplesToStudy";
 
 const lastProtocols = api.protocols.lastProtocols;
 
 function useLastProtocols(sampleIDs: readonly Sample['id'][]) {
     const [lastProtocolBySampleID, setLastProtocolBySampleID] = useState<Record<Sample['id'], Protocol['name']>>({})
-    const dispatch = useAppDispatch()
 
     useEffect(() => {
         if (sampleIDs.length > 0) {
-            dispatch(lastProtocols({ samples: sampleIDs.join(",") })).then(response => {
+            store.dispatch(lastProtocols({ samples: sampleIDs.join(",") })).then(response => {
                 setLastProtocolBySampleID(response.data.reduce((acc, { sample_result, protocol }) => {
                     acc[sample_result] = protocol
                     return acc
                 }, {} as typeof lastProtocolBySampleID))
             })
         }
-    }, [sampleIDs, dispatch])
+    }, [sampleIDs])
 
     const LastProtocol = useCallback(({ sampleID }: { sampleID: Sample['id'] }) => {
         if (sampleID in lastProtocolBySampleID) {
@@ -46,19 +46,23 @@ export interface ProjectsAssociatedSamplesProps {
 }
 
 export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : ProjectsAssociatedSamplesProps) => {
-    const dispatch = useAppDispatch()
-
     useEffect(() => {
-        dispatch(projectSamplesTableActions.setProject(currentProjectID))
-    }, [currentProjectID, dispatch])
+        store.dispatch(projectSamplesTableActions.setProject(currentProjectID))
+    }, [currentProjectID])
     
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
     const { pagedItems } = projectSamplesTable
 
-    const [selectedItems, setSelectedItems] = useState<LinkSamplesToStudyProps['selectedItems']>({
-        sample_ids: [],
-        project_id: currentProjectID
-    })
+    const [selectedItemIDs, setSelectedItemIDs] = useState<PagedItemTableSelection<ObjectWithSample>['selectedItemIDs']>([])
+    const selection = useMemo(() =>
+        ({
+            selectedItemIDs,
+            onSelectionChanged(items) {
+                setSelectedItemIDs(items.map(({ sample }) => sample?.id as number)) // sample id should never be undefined when selected
+            }
+        } as PagedItemTableSelection<ObjectWithSample>),
+        [selectedItemIDs]
+    )
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
@@ -92,17 +96,11 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
 
     const [linkSamplesToStudyOpen, setLinkSamplesToStudyOpen] = useState(false)
 
-    const onChange: NonNullable<TableRowSelection<ObjectWithSample>['onChange']> = useCallback((selectedRowKeys, selectedRows, info) => {
-        if (info.type === 'all') {
-
-        }
-    }, [])
-
     return (
         <>
             <LinkSamplesToStudy
                 open={linkSamplesToStudyOpen}
-                selectedItemIDs={selectedItems}
+                selectedItemIDs={selectedItemIDs}
                 projectID={currentProjectID}
                 handleOk={() => setLinkSamplesToStudyOpen(false)}
                 handleCancel={() => setLinkSamplesToStudyOpen(false)}
@@ -116,7 +114,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
                 initialLoad={false}
                 selection={selection}
                 topBarExtra={[
-                    <Button disabled={selectedItems.length === 0} key={0} onClick={() => setLinkSamplesToStudyOpen(true)}>Link to Study</Button>,
+                    <Button disabled={selectedItemIDs.length === 0} key={0} onClick={() => setLinkSamplesToStudyOpen(true)}>Link to Study</Button>,
                 ]}
             />
         </>
