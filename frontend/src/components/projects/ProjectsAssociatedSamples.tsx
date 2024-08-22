@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppSelector } from "../../hooks";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
@@ -9,26 +9,25 @@ import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsA
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import { Project, Protocol, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
-import store from "../../store";
 import { Button } from "antd";
-import linkSamplesToStudy from "./LinkSamplesToStudy";
 import LinkSamplesToStudy from "./LinkSamplesToStudy";
 
 const lastProtocols = api.protocols.lastProtocols;
 
 function useLastProtocols(sampleIDs: readonly Sample['id'][]) {
+    const dispatch = useAppDispatch()
     const [lastProtocolBySampleID, setLastProtocolBySampleID] = useState<Record<Sample['id'], Protocol['name']>>({})
 
     useEffect(() => {
         if (sampleIDs.length > 0) {
-            store.dispatch(lastProtocols({ samples: sampleIDs.join(",") })).then(response => {
+            dispatch(lastProtocols({ samples: sampleIDs.join(",") })).then(response => {
                 setLastProtocolBySampleID(response.data.reduce((acc, { sample_result, protocol }) => {
                     acc[sample_result] = protocol
                     return acc
                 }, {} as typeof lastProtocolBySampleID))
             })
         }
-    }, [sampleIDs])
+    }, [sampleIDs, dispatch])
 
     const LastProtocol = useCallback(({ sampleID }: { sampleID: Sample['id'] }) => {
         if (sampleID in lastProtocolBySampleID) {
@@ -46,9 +45,10 @@ export interface ProjectsAssociatedSamplesProps {
 }
 
 export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : ProjectsAssociatedSamplesProps) => {
+    const dispatch = useAppDispatch()
     useEffect(() => {
-        store.dispatch(projectSamplesTableActions.setProject(currentProjectID))
-    }, [currentProjectID])
+        dispatch(projectSamplesTableActions.setProject(currentProjectID))
+    }, [currentProjectID, dispatch])
     
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
     const { pagedItems } = projectSamplesTable

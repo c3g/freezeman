@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Form, Modal, Select } from "antd";
-import store from "../../store";
 import api from "../../utils/api";
-import { useAppSelector } from "../../hooks";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectStudiesByID } from "../../selectors";
 import { getAllItems, Study } from "../../models/frontend_models";
 import { WorkflowStepOrder } from "../../models/fms_api_models";
@@ -19,6 +18,7 @@ export interface LinkSamplesToStudyProps {
 }
 
 export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, handleOk, handleCancel }: LinkSamplesToStudyProps) {
+    const dispatch = useAppDispatch()
     const studiesByID = useAppSelector(selectStudiesByID)
     const studies = useMemo(() =>
         getAllItems(studiesByID)
@@ -35,15 +35,15 @@ export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, h
     const [stepOrder, setStepOrder] = useState<WorkflowStepOrder>()
     useEffect(() => {
         if (study) {
-            store.dispatch(api.workflows.get(study.workflow_id)).then(response => {
+            dispatch(api.workflows.get(study.workflow_id)).then(response => {
                 setStepsOrder(response.data.steps_order.filter((stepOrder) => stepOrder.order >= study.start && stepOrder.order <= study.end))
-            }).catch(() => store.dispatch(notifyError({
+            }).catch(() => dispatch(notifyError({
                 id: NOTIFICATION_ID,
                 title: "Failed to get study",
                 description: `Failed to get study ${study}`
             })))
         }
-    }, [study])
+    }, [study, dispatch])
 
     return (
         <Modal
@@ -54,16 +54,16 @@ export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, h
             }}
             onOk={() => {
                 if (selectedItemIDs.length > 0 && study && stepOrder) {
-                    store.dispatch(api.projects.addSamplesToStudy(selectedItemIDs, projectID, study.letter, stepOrder.order)).then(
+                    dispatch(api.projects.addSamplesToStudy(selectedItemIDs, projectID, study.letter, stepOrder.order)).then(
                         () => {
-                            store.dispatch(notifySuccess({
+                            dispatch(notifySuccess({
                                 id: NOTIFICATION_ID,
                                 title: "Samples linked to study",
                                 description: `Successfully linked samples to study ${study.letter} at step "${stepOrder.step_name}"`
                             }))
                         },
                         () => {
-                            store.dispatch(notifyError({
+                            dispatch(notifyError({
                                 id: NOTIFICATION_ID,
                                 title: "Failed to link samples to study",
                                 description: `Failed to link samples to study ${study.letter} at step "${stepOrder.step_name}"`
