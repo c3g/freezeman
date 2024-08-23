@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Form, Modal, Select } from "antd";
+import { Form, Modal, Select, Typography } from "antd";
 import api from "../../utils/api";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectStudiesByID } from "../../selectors";
@@ -11,13 +11,15 @@ const NOTIFICATION_ID = "samples-linked-to-study"
 
 export interface LinkSamplesToStudyProps {
     open?: boolean
+    selectAll: boolean,
     selectedItemIDs: number[]
+    totalCount: number
     projectID: number
     handleOk?: () => void
     handleCancel?: () => void
 }
 
-export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, handleOk, handleCancel }: LinkSamplesToStudyProps) {
+export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, totalCount, projectID, handleOk, handleCancel }: LinkSamplesToStudyProps) {
     const dispatch = useAppDispatch()
     const studiesByID = useAppSelector(selectStudiesByID)
     const studies = useMemo(() =>
@@ -45,16 +47,18 @@ export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, h
         }
     }, [study, dispatch])
 
+    const sampleCount = selectAll ? totalCount - selectedItemIDs.length : selectedItemIDs.length
+
     return (
         <Modal
-            title={"Link Samples to Study"}
+            title={`Move ${sampleCount} Sample${sampleCount > 1 ? 's' : ''} to Study`}
             open={open}
             okButtonProps={{
-                disabled: !(selectedItemIDs.length > 0 && study && stepOrder)
+                disabled: !(sampleCount > 0 && study && stepOrder)
             }}
             onOk={() => {
                 if (selectedItemIDs.length > 0 && study && stepOrder) {
-                    dispatch(api.projects.addSamplesToStudy(selectedItemIDs, projectID, study.letter, stepOrder.order)).then(
+                    dispatch(api.projects.addSamplesToStudy(selectedItemIDs, selectAll, projectID, study.letter, stepOrder.order)).then(
                         () => {
                             dispatch(notifySuccess({
                                 id: NOTIFICATION_ID,
@@ -81,7 +85,7 @@ export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, h
             }}
         >
             <Form>
-                <Form.Item label={"Study Letter"}>
+                <Form.Item label={"Study : "}>
                     <Select
                         onChange={(value) => setStudy(studies.find(study => study.letter === value))}
                     >
@@ -94,6 +98,8 @@ export default function LinkSamplesToStudy({ open, selectedItemIDs, projectID, h
                             </Select.Option>)
                         }
                     </Select>
+                </Form.Item>
+                <Form.Item label={"Step: "}>
                     <Select
                         disabled={!study}
                         onChange={(value) => setStepOrder(stepsOrder.find(stepOrder => stepOrder.order === value))}

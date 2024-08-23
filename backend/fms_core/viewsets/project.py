@@ -5,7 +5,6 @@ from rest_framework.response import Response
 
 from django.core.exceptions import ValidationError
 
-from fms_core.utils import make_generator
 from fms_core.services.project import add_sample_to_study
 from fms_core.models import Project, Sample
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
@@ -67,11 +66,13 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     @action(detail=False, methods=["post"])
     def add_samples_to_study(self, request, pk=None):
         sample_ids = request.data.get("sample_ids")
+        select_all = request.data.get("select_all", False)
         project_id = request.data.get("project_id")
         study_letter = request.data.get("study_letter")
         step_order = request.data.get("step_order", None)
 
-        samples =  Sample.objects.filter(id__in=sample_ids).all()
+        samples = (Sample.objects.filter(derived_by_samples__project=project_id, id__in=sample_ids) if not select_all
+                   else Sample.objects.filter(derived_by_samples__project                   =project_id).exclude(id__in=sample_ids)).all()
         project = Project.objects.get(id=project_id)
 
         errors = defaultdict(list)

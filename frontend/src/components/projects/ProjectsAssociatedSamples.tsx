@@ -120,7 +120,9 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
         <>
             <LinkSamplesToStudy
                 open={linkSamplesToStudyOpen}
+                selectAll={selectAll}
                 selectedItemIDs={sampleIDs}
+                totalCount={pagedItems.totalCount}
                 projectID={currentProjectID}
                 handleOk={() => setLinkSamplesToStudyOpen(false)}
                 handleCancel={() => setLinkSamplesToStudyOpen(false)}
@@ -134,7 +136,13 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
                 initialLoad={false}
                 selection={selection}
                 topBarExtra={[
-                    <Button disabled={sampleIDs.length === 0} key={0} onClick={() => setLinkSamplesToStudyOpen(true)}>Link to Study</Button>,
+                    <Button
+                        disabled={(selectAll ? pagedItems.totalCount - sampleIDs.length : sampleIDs.length) === 0}
+                        key={0}
+                        onClick={() => setLinkSamplesToStudyOpen(true)}
+                    >
+                        Link to Study
+                    </Button>,
                 ]}
             />
         </>
