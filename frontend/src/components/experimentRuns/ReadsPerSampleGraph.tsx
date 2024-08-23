@@ -92,6 +92,9 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 				backgroundBlendMode: 'difference',
 				borderRadius: '6px',
 				padding: '0.5em',
+				borderStyle: 'solid',
+				borderColor: 'black',
+				borderWidth: '1px',
 			}
 			return (
 				<div style={style}>
