@@ -85,7 +85,7 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
             }}
         >
             <Form>
-                <Form.Item label={"Study : "}>
+                <Form.Item label={"Study: "}>
                     <Select
                         onChange={(value) => setStudy(studies.find(study => study.letter === value))}
                     >
@@ -99,6 +99,7 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
                         }
                     </Select>
                 </Form.Item>
+
                 <Form.Item label={"Step: "}>
                     <Select
                         disabled={!study}
