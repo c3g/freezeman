@@ -153,6 +153,7 @@ _instrument_type_filterset_fields: FiltersetFields = {
 _run_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("platform__", _platform_filterset_fields),
 }
 
 _experiment_run_filterset_fields: FiltersetFields = {
