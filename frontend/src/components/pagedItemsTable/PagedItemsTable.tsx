@@ -9,12 +9,8 @@ import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
 
 
-export interface PagedItemTableSelection<T extends PageableData> {
-	selectedRowKeys?: NonNullable<TableProps<T>['rowSelection']>['selectedRowKeys']
-	onSelectionChanged?: (selectedItems: T[]) => void
-	onSelectionSingle?: (selectedItem: T) => void
-	onSelectionAll?: (selectedItems: T[]) => void
-	selectAllIndeterminate?: boolean
+export interface PagedItemTableSelection {
+	onSelectionChanged: (selectedItems: React.Key[], selectAll: boolean) => void
 }
 
 // This is the set of possible callbacks for the paged items table.
@@ -49,7 +45,7 @@ interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActions
 	// If true, a FiltersBar component is rendered with the table.
 	usingFilters: boolean
 
-	selection?: PagedItemTableSelection<T>
+	selection?: PagedItemTableSelection
 	expandable?: TableProps<any>['expandable']
 	initialLoad?: boolean
 
@@ -139,50 +135,76 @@ function PagedItemsTable<T extends object>({
 		[sortBy, setSortByCallback]
 	)
 
-	// If a selection listener is passed to the table then the listener is informed
-	// every time the row selection is changed by the user.
+	// Return the ID that corresponds to the object displayed in a row of the table.
+	// We just find the object in the dataObjects map and return its corresponding
+	// key. This allows us to use data objects that don't have an explicit 'id' property.
+	const UNKOWN_DATA_ROW_KEY = 'unknown-data-row-key'
+	const getRowKeyForDataObject = useCallback((data: T) => {
+		for (const key in tableDataState.objectMap) {
+			if (tableDataState.objectMap[key] === data) {
+				return key
+			}
+		}
+		return UNKOWN_DATA_ROW_KEY
+	}, [tableDataState.objectMap])
+
+	const [selectAll, setSelectAll] = useState(false)
+	const [selectedItems, setSelectedItems] = useState<React.Key[]>([])
+	const allIsSelected = (!selectAll && selectedItems.length === pagedItems.totalCount) || (selectAll && selectedItems.length === 0)
+	const noneIsSelected = (!selectAll && selectedItems.length === 0) || (selectAll && selectedItems.length === pagedItems.totalCount)
+
+	const onSelectAll = useCallback(() => {
+		const newSelectedItems = []
+		const newSelectAll = !allIsSelected
+
+		setSelectedItems(newSelectedItems)
+		setSelectAll(newSelectAll)
+		if (selection)
+			selection.onSelectionChanged(newSelectedItems, newSelectAll)
+	}, [allIsSelected, selection])
+	const onSelectSingle = useCallback((record: T) => {
+		const key = getRowKeyForDataObject(record)
+		if (key !== UNKOWN_DATA_ROW_KEY) {
+			let newSelectedItems = selectedItems
+			if (selectedItems.includes(key)) {
+				newSelectedItems = selectedItems.filter((id) => id !== key)
+			} else {
+				newSelectedItems = [...selectedItems, key]
+			}
+			setSelectedItems(newSelectedItems)
+			if (selection) {
+				selection.onSelectionChanged(newSelectedItems, selectAll)
+			}
+		}
+	}, [getRowKeyForDataObject, selectAll, selectedItems, selection])
+	const selectedRowKeys = useMemo(() =>
+		selectAll
+			? pagedItems.items.map((id) => id.toString()).filter((key) => !selectedItems.includes(key))
+			: selectedItems,
+	[pagedItems.items, selectAll, selectedItems])
 	const rowSelection: TableRowSelection<T> | undefined = useMemo(() => {
 		if (selection) {
+			const indeterminate = !allIsSelected && !noneIsSelected
 			return {
 				type: 'checkbox',
-				selectedRowKeys: selection.selectedRowKeys,
-				onChange(selectedRowKeys: React.Key[], selectedRows: T[], info) {
-					if (info.type === 'all' && selection.onSelectionAll) {
-						selection.onSelectionAll(selectedRows)
-					} else {
-						if (selection?.onSelectionChanged) {
-							selection.onSelectionChanged(selectedRows)
-						}
+				selectedRowKeys,
+				onChange(selectedRowKeys, selectedRows, info) {
+					if (info.type === 'all') {
+						onSelectAll()
 					}
 				},
-				onSelect(record) {
-					if (selection?.onSelectionSingle) {
-						selection.onSelectionSingle(record)
-					}
-				},
+				onSelect: onSelectSingle,
 				columnTitle: (
 					<Checkbox
-						checked={(selection.selectedRowKeys?.length ?? 0) > 0}
-						indeterminate={
-							selection.selectAllIndeterminate === undefined
-								? (selection.selectedRowKeys?.length ?? 0) < items.length
-								: selection.selectAllIndeterminate
-						}
-						onChange={() => {
-							if (selection.onSelectionAll) {
-								if (selection.selectedRowKeys?.length === items.length) {
-									selection.onSelectionAll([])
-								} else {
-									selection.onSelectionAll(tableDataState.tableData)
-								}
-							}
-						}}
+						checked={!noneIsSelected}
+						indeterminate={indeterminate}
+						onChange={onSelectAll}
 					/>
 				)
 			}
 		}
 		return undefined
-	}, [items.length, selection, tableDataState.tableData])
+	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, selectedRowKeys, selection])
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.
 	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.
@@ -206,19 +228,6 @@ function PagedItemsTable<T extends object>({
 		}
 		retrieveItems([...items])
 	}, [getDataObjectsByID, items])
-
-
-	// Return the ID that corresponds to the object displayed in a row of the table.
-	// We just find the object in the dataObjects map and return its corresponding
-	// key. This allows us to use data objects that don't have an explicit 'id' property.
-	function getRowKeyForDataObject(data: T) {
-		for (const key in tableDataState.objectMap) {
-			if (tableDataState.objectMap[key] === data) {
-				return key
-			}
-		}
-		return 'unknown-data-row-key'
-	}
 
 	return (
 		<>

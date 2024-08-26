@@ -53,38 +53,6 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
     const { pagedItems } = projectSamplesTable
 
-    const [sampleIDs, setSampleIDs] = useState<Array<Sample['id']>>([])
-    const [selectAll, setSelectAll] = useState(false)
-    const selection = useMemo(() => {
-        const allIsSelected = (sampleIDs.length === pagedItems.totalCount) || (selectAll && sampleIDs.length === 0)
-        const noneIsSelected = sampleIDs.length === 0 || (selectAll && sampleIDs.length === pagedItems.totalCount)
-        return {
-            selectedRowKeys: (selectAll
-                ? pagedItems.items.filter((sampleID) => !sampleIDs.includes(sampleID))
-                : sampleIDs).map(String),
-            onSelectionAll() {
-                setSampleIDs([])
-                if (allIsSelected) {
-                    setSelectAll(false)
-                } else {
-                    setSelectAll(true)
-                }
-            },
-            onSelectionSingle({ sample }) {
-                if (sample) {
-                    setSampleIDs((sampleIDs) => {
-                        if (sampleIDs.includes(sample.id)) {
-                            return sampleIDs.filter(id => id !== sample.id)
-                        } else {
-                            return [...sampleIDs, sample.id]
-                        }
-                    })
-                }
-            },
-            selectAllIndeterminate: !(allIsSelected || noneIsSelected),
-        } as PagedItemTableSelection<ObjectWithSample>
-    }, [pagedItems.items, pagedItems.totalCount, sampleIDs, selectAll])
-
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
     const LastProtocol = useLastProtocols(pagedItems.items)
@@ -115,6 +83,8 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
 
     const mapSamplesID = useItemsByIDToDataObjects(selectSamplesByID, (sample: Sample) => ({ sample }))
 
+    const [selectAll, setSelectAll] = useState(false)
+    const [sampleIDs, setSampleIDs] = useState<Sample['id'][]>([])
     const [linkSamplesToStudyOpen, setLinkSamplesToStudyOpen] = useState(false)
 
     return (
@@ -135,7 +105,12 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
                 usingFilters={true}
                 {...projectSamplesTableCallbacks}
                 initialLoad={false}
-                selection={selection}
+                selection={{
+                    onSelectionChanged: (selectedItems, selectAll) => {
+                        setSampleIDs(selectedItems.map(id => parseInt(id as string)))
+                        setSelectAll(selectAll)
+                    }
+                }}
                 topBarExtra={[
                     <Button
                         disabled={(selectAll ? pagedItems.totalCount - sampleIDs.length : sampleIDs.length) === 0}
