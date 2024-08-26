@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSSample, FMSSampleNextStep, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
+import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -255,7 +255,7 @@ const api = {
   },
 
   sampleNextStepByStudy: {
-    getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
+    getStudySamples: (options: any) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStepByStudy>>>('/sample-next-step-by-study/', {...options}),
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),

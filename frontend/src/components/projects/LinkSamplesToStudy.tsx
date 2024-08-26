@@ -110,7 +110,7 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
                                 key={stepOrder.order}
                                 value={stepOrder.order}
                             >
-                                {stepOrder.step_name}
+                                {`${stepOrder.order} - ${stepOrder.step_name}`}
                             </Select.Option>)
                         }
                     </Select>
