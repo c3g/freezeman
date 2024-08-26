@@ -5,17 +5,16 @@ import ExperimentRunsTableActions from "../../modules/experimentRunsTable/action
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { EXPERIMENT_RUN_FILTER_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ObjectWithExperimentRun, getColumnsForExperimentRun } from "./ExperimentRunTableColumns";
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects";
-import React, { useEffect } from "react";
+import React from "react";
+import FiltersBar from "../filters/filtersBar/FiltersBar";
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
-import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER, EXPERIMENT_RUN_PROCESS_FILTER, RUN_TYPES, PROGRESS_FLAGS } from "./ExperimentRunsDetachedFilters"
+import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER } from "./ExperimentRunsDetachedFilters"
 import FilterPanel from "../filters/filterPanel/FilterPanel";
 import Flexbar from "../shared/Flexbar";
-import FiltersBar from "../filters/filtersBar/FiltersBar";
 
 
 const detachedFilters = [
-	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
-    EXPERIMENT_RUN_PROCESS_FILTER
+	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER
 ]
 
 function ExperimentRunListContent() {
@@ -36,20 +35,13 @@ function ExperimentRunListContent() {
         callbacks.setFilterOptionsCallback
     )
 
-    useEffect(()=>{
-        // default setting set at the redux level
-        callbacks.setFilterCallback([RUN_TYPES.ILLUMINA], EXPERIMENT_RUNS_PLATFORM_NAME_FILTER)
-        callbacks.setFilterCallback([PROGRESS_FLAGS.PROCESSED], EXPERIMENT_RUN_PROCESS_FILTER)
-    },[])
-
     return (
         <>
-            <Flexbar style={{alignItems: 'center', paddingBottom: "10px"}}>
-                <FilterPanel descriptions={detachedFilters}
-                    filters={experimentRunsTableState.filters}
-                    setFilter={callbacks.setFilterCallback}
-                    setFilterOption={callbacks.setFilterOptionsCallback}
-                    withCollapsible={false}/>
+            <FilterPanel descriptions={detachedFilters}
+                filters={experimentRunsTableState.filters}
+                setFilter={callbacks.setFilterCallback}
+                setFilterOption={callbacks.setFilterOptionsCallback}/>
+            <Flexbar style={{alignItems: 'center'}}>
                 <FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
             </Flexbar>
             <PagedItemsTable<ObjectWithExperimentRun>
