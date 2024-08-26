@@ -28,21 +28,22 @@ const tabStyle = {
 	padding: "0 24px 24px 24px",
 	overflow: "auto",
 	height: "100%",
-  }
+}
+
+export enum ExperimentRunsTabsName  {
+    FREEZEMAN = 'freezeman',
+	EXTERNAL = 'external',
+}
 
 function ExperimentRunsTabs() {
-
-	const FREEZEMAN_TAB_KEY = 'freezeman'
-	const EXTERNAL_TAB_KEY = 'external'
-
-	const [activeKey, setActiveKey] = useHashURL(FREEZEMAN_TAB_KEY)
+	const [activeKey, setActiveKey] = useHashURL(ExperimentRunsTabsName.FREEZEMAN)
 	const token = useAppSelector(selectAuthTokenAccess)
 	const experimentRunsTableState = useAppSelector(selectExperimentRunsTable)
 	const actions = useAppSelector(selectExperimentRunsTemplateActions)
 
 
 	function getPageHeaderExtra() {
-		if (activeKey === FREEZEMAN_TAB_KEY) {
+		if (activeKey === ExperimentRunsTabsName.FREEZEMAN) {
 
 			const listExport = () =>
 				withToken(token, api.experimentRuns.listExport)(
@@ -59,21 +60,21 @@ function ExperimentRunsTabs() {
 			return []
 		}
 	}
-	
+
 	return (<>
-			
+
 		<AppPageHeader title='Experiment Runs'  extra={getPageHeaderExtra()}></AppPageHeader>
 		<PageContent style={pageStyle}>
 			<Tabs onChange={setActiveKey} type='card' style={tabsStyle}>
-				<TabPane tab='FreezeMan' key={FREEZEMAN_TAB_KEY} style={tabStyle}>
-					<ExperimentRunListContent/>
+				<TabPane tab='FreezeMan' key={ExperimentRunsTabsName.FREEZEMAN} style={tabStyle}>
+					<ExperimentRunListContent selectedTab={activeKey}/>
 				</TabPane>
-				<TabPane tab='External' key={EXTERNAL_TAB_KEY}  style={tabStyle}>
+ 				<TabPane tab='External' key={ExperimentRunsTabsName.EXTERNAL}  style={tabStyle}>
 					<ExternalExperimentRunsListContent/>
 				</TabPane>
 			</Tabs>
 		</PageContent>
-	
+
 	</>)
 }
 
