@@ -1,6 +1,6 @@
-import { Pagination, Space, Table, TableProps } from 'antd'
+import { Checkbox, Pagination, Space, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { DataID, FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
@@ -14,6 +14,7 @@ export interface PagedItemTableSelection<T extends PageableData> {
 	onSelectionChanged?: (selectedItems: T[]) => void
 	onSelectionSingle?: (selectedItem: T) => void
 	onSelectionAll?: (selectedItems: T[]) => void
+	selectAllIndeterminate?: boolean
 }
 
 // This is the set of possible callbacks for the paged items table.
@@ -140,27 +141,48 @@ function PagedItemsTable<T extends object>({
 
 	// If a selection listener is passed to the table then the listener is informed
 	// every time the row selection is changed by the user.
-	let rowSelection: TableRowSelection<T> | undefined = undefined
-	if (selection) {
-		rowSelection = {
-			type: 'checkbox',
-			selectedRowKeys: selection.selectedRowKeys,
-			onChange(selectedRowKeys: React.Key[], selectedRows: T[], info) {
-				if (info.type === 'all' && selection.onSelectionAll) {
-					selection.onSelectionAll(selectedRows)
-				} else {
-					if (selection?.onSelectionChanged) {
-						selection.onSelectionChanged(selectedRows)
+	const rowSelection: TableRowSelection<T> | undefined = useMemo(() => {
+		if (selection) {
+			return {
+				type: 'checkbox',
+				selectedRowKeys: selection.selectedRowKeys,
+				onChange(selectedRowKeys: React.Key[], selectedRows: T[], info) {
+					if (info.type === 'all' && selection.onSelectionAll) {
+						selection.onSelectionAll(selectedRows)
+					} else {
+						if (selection?.onSelectionChanged) {
+							selection.onSelectionChanged(selectedRows)
+						}
 					}
-				}
-			},
-			onSelect(record) {
-				if (selection?.onSelectionSingle) {
-					selection.onSelectionSingle(record)
-				}
-			},
+				},
+				onSelect(record) {
+					if (selection?.onSelectionSingle) {
+						selection.onSelectionSingle(record)
+					}
+				},
+				columnTitle: (
+					<Checkbox
+						checked={(selection.selectedRowKeys?.length ?? 0) > 0}
+						indeterminate={
+							selection.selectAllIndeterminate === undefined
+								? (selection.selectedRowKeys?.length ?? 0) < items.length
+								: selection.selectAllIndeterminate
+						}
+						onChange={() => {
+							if (selection.onSelectionAll) {
+								if (selection.selectedRowKeys?.length === items.length) {
+									selection.onSelectionAll([])
+								} else {
+									selection.onSelectionAll(tableDataState.tableData)
+								}
+							}
+						}}
+					/>
+				)
+			}
 		}
-	}
+		return undefined
+	}, [items.length, selection, tableDataState.tableData])
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.
 	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.

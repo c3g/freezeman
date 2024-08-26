@@ -44,25 +44,27 @@ export interface ProjectsAssociatedSamplesProps {
     projectID: Project['id']
 }
 
-export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : ProjectsAssociatedSamplesProps) => {
+export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: ProjectsAssociatedSamplesProps) => {
     const dispatch = useAppDispatch()
     useEffect(() => {
         dispatch(projectSamplesTableActions.setProject(currentProjectID))
     }, [currentProjectID, dispatch])
-    
+
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
     const { pagedItems } = projectSamplesTable
 
     const [sampleIDs, setSampleIDs] = useState<Array<Sample['id']>>([])
     const [selectAll, setSelectAll] = useState(false)
-    const selection = useMemo(() =>
-        ({
+    const selection = useMemo(() => {
+        const allIsSelected = (sampleIDs.length === pagedItems.totalCount) || (selectAll && sampleIDs.length === 0)
+        const noneIsSelected = sampleIDs.length === 0 || (selectAll && sampleIDs.length === pagedItems.totalCount)
+        return {
             selectedRowKeys: (selectAll
                 ? pagedItems.items.filter((sampleID) => !sampleIDs.includes(sampleID))
                 : sampleIDs).map(String),
             onSelectionAll() {
                 setSampleIDs([])
-                if (sampleIDs.length === pagedItems.totalCount || selectAll) {
+                if (allIsSelected) {
                     setSelectAll(false)
                 } else {
                     setSelectAll(true)
@@ -78,11 +80,10 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID } : Proj
                         }
                     })
                 }
-            }
-        } as PagedItemTableSelection<ObjectWithSample>),
-        [pagedItems.items, pagedItems.totalCount, sampleIDs, selectAll]
-    )
-    console.info(sampleIDs, selectAll, selection.selectedRowKeys)
+            },
+            selectAllIndeterminate: !(allIsSelected || noneIsSelected),
+        } as PagedItemTableSelection<ObjectWithSample>
+    }, [pagedItems.items, pagedItems.totalCount, sampleIDs, selectAll])
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
