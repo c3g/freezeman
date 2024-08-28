@@ -5,20 +5,27 @@ import ExperimentRunsTableActions from "../../modules/experimentRunsTable/action
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { EXPERIMENT_RUN_FILTER_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ObjectWithExperimentRun, getColumnsForExperimentRun } from "./ExperimentRunTableColumns";
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects";
-import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
 import React from "react";
 import FiltersBar from "../filters/filtersBar/FiltersBar";
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
+import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER } from "./ExperimentRunsDetachedFilters"
+import FilterPanel from "../filters/filterPanel/FilterPanel";
+import Flexbar from "../shared/Flexbar";
+
+
+const detachedFilters = [
+	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER
+]
 
 function ExperimentRunListContent() {
-    const pagedItems = useAppSelector(selectExperimentRunsTable)
+    const experimentRunsTableState = useAppSelector(selectExperimentRunsTable)
     const launches = useAppSelector(selectExperimentRunLaunches)
     const runTypesById = useAppSelector(selectRunTypesByID)
     const instrumentsById = useAppSelector(selectInstrumentsByID)
     const tableColumns = getColumnsForExperimentRun(launches.launchesById, runTypesById, instrumentsById)
-    const { filters } = pagedItems
+    const { filters } = experimentRunsTableState
     const callbacks = usePagedItemsActionsCallbacks(ExperimentRunsTableActions)
+    const getDataObjectsByID = useItemsByIDToDataObjects(selectExperimentRunsByID, experimentRun => { return { experimentRun } })
     const columns = useFilteredColumns(
         tableColumns,
         EXPERIMENT_RUN_FILTER_DEFINITIONS,
@@ -26,19 +33,23 @@ function ExperimentRunListContent() {
         filters,
         callbacks.setFilterCallback,
         callbacks.setFilterOptionsCallback
-
     )
-    const getDataObjectsByID = useItemsByIDToDataObjects(selectExperimentRunsByID, experimentRun => {return {experimentRun}})
 
     return (
         <>
-				<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
-				<PagedItemsTable<ObjectWithExperimentRun> 
-					columns={columns}
-					getDataObjectsByID={getDataObjectsByID}
-					pagedItems={pagedItems}
-					usingFilters={false}
-					{...callbacks}/>
+            <FilterPanel descriptions={detachedFilters}
+                filters={experimentRunsTableState.filters}
+                setFilter={callbacks.setFilterCallback}
+                setFilterOption={callbacks.setFilterOptionsCallback}/>
+            <Flexbar style={{alignItems: 'center'}}>
+                <FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
+            </Flexbar>
+            <PagedItemsTable<ObjectWithExperimentRun>
+                columns={columns}
+                getDataObjectsByID={getDataObjectsByID}
+                pagedItems={experimentRunsTableState}
+                usingFilters={false}
+                {...callbacks}/>
 		</>
     )
 }

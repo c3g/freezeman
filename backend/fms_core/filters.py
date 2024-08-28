@@ -188,7 +188,7 @@ class DatasetFilter(GenericFilter):
     def latest_release_update_filter(self, queryset, name, value):
         return queryset.annotate(
             latest_release_update=Max("readsets__release_status_timestamp")
-        ).filter(latest_release_update__gte=value)
+        ).filter(latest_release_update__gt=value)
 
     def latest_validation_status_update_filter(self, queryset, name, value):
         return queryset.annotate(

@@ -1,5 +1,22 @@
+import reversion
 from django.db import migrations, models
+from django.contrib.auth.models import User
 
+ADMIN_USERNAME = 'biobankadmin'
+
+def set_blank_project_external_id_to_null(apps, schema_editor):
+    Project = apps.get_model("fms_core", "Project")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Replace blank by null external id for projects.")
+        reversion.set_user(admin_user)
+
+        for project in Project.objects.filter(external_id="").all():
+            project.external_id = None
+            project.save()
+            reversion.add_to_revision(project)
 
 class Migration(migrations.Migration):
 
@@ -8,6 +25,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            set_blank_project_external_id_to_null,
+            reverse_code=migrations.RunPython.noop,
+        ),
         migrations.AlterField(
             model_name='stephistory',
             name='workflow_action',
