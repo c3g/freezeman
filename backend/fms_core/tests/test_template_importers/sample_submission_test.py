@@ -83,7 +83,7 @@ class SampleSubmissionTestCase(TestCase):
             derived_sample_id = DerivedBySample.objects.filter(sample_id=sample_obj.id).first().derived_sample_id
             biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
             if biosample.individual.is_generic:
-                self.assertIn(generic_individual_prefix, biosample.individual.name)
+                self.assertEqual(generic_individual_prefix, biosample.individual.name[:len(generic_individual_prefix)])
             else:
                 self.assertEqual(biosample.individual.name, individual_name)
                 self.assertEqual(biosample.individual.alias, individual_alias)

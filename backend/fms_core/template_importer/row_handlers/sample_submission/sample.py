@@ -60,6 +60,9 @@ class SampleRowHandler(GenericRowHandler):
                                individual["reference_genome"],
                                mother_obj,
                                father_obj])
+        # can_use_generic_individual tests conditions that need to be met for a generic individual to be created successfully if no individual name is provided.
+        # Taxon is the basic of the individual. It is required. reference_genome_obj could replace it since it is tied to a taxon.
+        # Pedigree, mother_obj and father_obj all point to a known ancestry of a specific individual. It is unlikely someone would use a generic individual with those set.
         can_use_generic_individual = (any([taxon_obj is not None,
                                            reference_genome_obj is not None])
                                       and not any([individual["pedigree"],
@@ -67,7 +70,7 @@ class SampleRowHandler(GenericRowHandler):
                                                    father_obj]))
         self.errors['individual'] = []
         self.warnings['individual'] = []
-        # When the individual name is not provided any field that is stored on the individual need to raise an error.
+        # When the individual name is not provided any field that is stored on the individual need to raise an error if no generic individual can be created.
         if not individual["name"] and need_individual and not can_use_generic_individual:
             if individual["sex"]:
                 self.errors['individual'].append(f"Individual sex requires an individual name or taxon to be provided to be saved.")
