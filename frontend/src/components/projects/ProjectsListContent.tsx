@@ -1,11 +1,10 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 
 import { useAppSelector } from '../../hooks'
 import { Project } from '../../models/frontend_models'
 import ProjectsTableActions from '../../modules/projectsTable/actions'
-import { selectAuthTokenAccess, selectProjectTemplateActions, selectProjectsByID, selectProjectsTable } from '../../selectors'
-import api, { withToken } from '../../utils/api'
-import mergedListQueryParams from '../../utils/mergedListQueryParams'
+import { selectProjectTemplateActions, selectProjectsByID, selectProjectsTable } from '../../selectors'
+import api from '../../utils/api'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
@@ -17,13 +16,12 @@ import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsA
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
 import useListExportCallback from '../pagedItemsTable/useListExportCallback'
-import { sort } from 'rambda'
 
 
 const projectsListContentColumns = [
 	PROJECT_COLUMN_DEFINITIONS.ID,
 	PROJECT_COLUMN_DEFINITIONS.NAME,
-    PROJECT_COLUMN_DEFINITIONS.EXTERNAL_ID,
+  PROJECT_COLUMN_DEFINITIONS.EXTERNAL_ID,
 	PROJECT_COLUMN_DEFINITIONS.PRINCIPAL_INVESTIGATOR,
 	PROJECT_COLUMN_DEFINITIONS.REQUESTOR_NAME,
 	PROJECT_COLUMN_DEFINITIONS.REQUESTOR_EMAIL,
