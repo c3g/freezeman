@@ -66,10 +66,13 @@ class SampleSubmissionTestCase(TestCase):
             {'name': 'Sample_gargle1', 'alias': ''},
             {'name': 'Sample_plasma1', 'alias': ''},
             {'name': 'Sample_saliva1', 'alias': ''},
-            {'name': 'Library_pcr_free', 'alias': ''}
+            {'name': 'Library_pcr_free', 'alias': ''},
+            {'name': 'Gen_eric_1', 'alias': ''},
+            {'name': 'Gen_eric_2', 'alias': ''}
         ]
         individual_name = 'MrTest'
         individual_alias = 'MonsieurTest'
+        generic_individual_prefix = "GENERIC_"
 
         self.assertTrue(Individual.objects.get(name=individual_name))
 
@@ -79,8 +82,11 @@ class SampleSubmissionTestCase(TestCase):
             sample_obj = Sample.objects.get(name=sample['name'])
             derived_sample_id = DerivedBySample.objects.filter(sample_id=sample_obj.id).first().derived_sample_id
             biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
-            self.assertEqual(biosample.individual.name, individual_name)
-            self.assertEqual(biosample.individual.alias, individual_alias)
+            if biosample.individual.is_generic:
+                self.assertEqual(generic_individual_prefix, biosample.individual.name[:len(generic_individual_prefix)])
+            else:
+                self.assertEqual(biosample.individual.name, individual_name)
+                self.assertEqual(biosample.individual.alias, individual_alias)
             if sample['alias']:
                 self.assertEqual(biosample.alias, sample['alias'])
             else:

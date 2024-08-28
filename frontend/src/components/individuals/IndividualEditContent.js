@@ -55,6 +55,8 @@ const IndividualEditContent = () => {
     const newData = deserialize(individualValue)
     onSearchIndividual(newData.mother)
     onSearchIndividual(newData.father)
+    onSearchTaxon(newData.taxon)
+    onSearchReferenceGenome(newData.reference_genome)
   }, [individualValue])
 
   const onValuesChange = (values) => {
@@ -149,11 +151,11 @@ const IndividualEditContent = () => {
           <Form.Item label="Name" {...props("name")} rules={nameRules.concat(requiredRules)}
             tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
             extra="Anonymized unique individual ID." >
-            <Input />
+            <Input disabled={individual && individual.is_generic}/>
           </Form.Item>
           <Form.Item label="Alias" {...props("alias")}
             extra="Individual name given by the client. Use if client name duplicates an existing individual name in Freezeman." >
-            <Input />
+            <Input/>
           </Form.Item>
           <Form.Item label="Taxon" {...props("taxon")} rules={requiredRules}
             extra="Taxon identifying the individual. Add taxon to Freezeman if missing from the list." >
@@ -185,12 +187,12 @@ const IndividualEditContent = () => {
             />
           </Form.Item>
           <Form.Item label="Pedigree" {...props("pedigree")}
-            extra="Pedigree of the individual." >
-            <Input />
+            extra="Pedigree of the individual.">
+            <Input/>
           </Form.Item>
           <Form.Item label="Cohort" {...props("cohort")}
             extra="Cohort of the individual.">
-            <Input />
+            <Input/>
           </Form.Item>
           <Form.Item label="Mother" {...props("mother")}
             extra="Mother of the individual. Must be an existing female individual in Freezeman." >

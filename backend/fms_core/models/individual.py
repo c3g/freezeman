@@ -20,6 +20,8 @@ class Individual(TrackedModel):
     Class to store information about an Individual.
     """
 
+    GENERIC_INDIVIDUAL_PREFIX = "GENERIC_"
+
     SEX_MALE = "M"
     SEX_FEMALE = "F"
     SEX_UNKNOWN = "Unknown"
@@ -42,6 +44,7 @@ class Individual(TrackedModel):
     cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in a specific study.")
     alias = models.CharField(blank=True, null=True, max_length=200, help_text="Original individual name used by external client.")
     reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="individuals", help_text="Reference genome used to analyze samples.")
+    is_generic = models.BooleanField(default=False, help_text="Generic individual used to replace undefined individuals that share characteristics.")
 
     class Meta:
         indexes = [
@@ -91,6 +94,14 @@ class Individual(TrackedModel):
 
         if self.mother_id is not None and self.mother.sex == self.SEX_MALE:
             add_error("mother", "Mother cannot be of male sex.")
+
+        has_generic_individual_prefix = self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] == self.GENERIC_INDIVIDUAL_PREFIX
+
+        if self.is_generic and not has_generic_individual_prefix:
+            add_error("is_generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix not used for generic individual.")
+
+        if not self.is_generic and has_generic_individual_prefix:
+            add_error("is_generic", f"'{self.GENERIC_INDIVIDUAL_PREFIX}' name prefix cannot be used for non generic individuals.")
 
         if errors:
             raise ValidationError(errors)
