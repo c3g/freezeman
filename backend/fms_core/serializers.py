@@ -623,7 +623,7 @@ class ReadsetSerializer(serializers.ModelSerializer):
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "library_type", "index")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
@@ -647,7 +647,7 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "metrics", "library_type", "index")
     def get_metrics(self, instance):
         metrics = instance.metrics.all()
         serialized_metrics = MetricSerializer(metrics, many=True)

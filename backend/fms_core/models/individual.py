@@ -44,7 +44,7 @@ class Individual(TrackedModel):
     cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in a specific study.")
     alias = models.CharField(blank=True, null=True, max_length=200, help_text="Original individual name used by external client.")
     reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="individuals", help_text="Reference genome used to analyze samples.")
-    is_generic = models.BooleanField(default=False, help_text="Generic individual used to replace undefined individuals that share characteristics.")
+    is_generic = models.BooleanField(default=False, help_text="Flag indicating a generic individual used to replace undefined individuals that share characteristics.")
 
     class Meta:
         indexes = [

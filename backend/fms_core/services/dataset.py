@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 from typing import List, Tuple, Union, TypedDict, NotRequired
 
@@ -142,14 +143,15 @@ def create_dataset_file(readset: Readset,
 
     return dataset_file, errors, warnings
 
-def set_experiment_run_lane_validation_status(run_name: str, lane: int, validation_status: ValidationStatus):
+def set_experiment_run_lane_validation_status(run_name: str, lane: int, validation_status: ValidationStatus, validated_by: User):
     """
-    Set validation_status for dataset_files of the given run and lane.
+    Set validation_status for readsets of the given run and lane.
 
     Args:
         `run_name`: The unique experiment run name.
         `lane`: The integer that describe the lane being validated.
-        `validation_status`: The validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
+        `validation_status`: The validation status of the readset (choices : Available - 0 (default), Passed - 1, Failed - 2).
+        `validated_by`: The user that set the validation status of the readset.
     
     Returns:
         A tuple of the count of validation status set, errors and warnings
@@ -166,12 +168,15 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
         errors.append(f"Missing lane.")
     if validation_status not in [value for value, _ in ValidationStatus.choices]:
         errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
+    if validated_by is None or not isinstance(validated_by, User):
+        errors.append(f"Missing validated_by.")
 
     if not errors:
         for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
             for readset in Readset.objects.filter(dataset=dataset).all():
                 readset.validation_status = validation_status
                 readset.validation_status_timestamp = timestamp
+                readset.validated_by = validated_by
                 readset.save()
                 count_status += 1
     else: # Error returns None, while a non-existant run name or lane will return 0.

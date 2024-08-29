@@ -1,4 +1,5 @@
 import reversion
+from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 from django.contrib.auth.models import User
@@ -91,5 +92,15 @@ class Migration(migrations.Migration):
             model_name='individual',
             name='is_generic',
             field=models.BooleanField(default=False, help_text='Flag indicating a generic individual used to replace undefined individuals that share characteristics.'),
+        ),
+        migrations.AddField(
+            model_name='readset',
+            name='released_by',
+            field=models.ForeignKey(blank=True, help_text='User that released the readset data to the client.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='released_readsets', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='readset',
+            name='validated_by',
+            field=models.ForeignKey(blank=True, help_text='User that validated the readset data.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='validated_readsets', to=settings.AUTH_USER_MODEL),
         ),
     ]
