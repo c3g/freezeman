@@ -17,9 +17,10 @@ export interface LinkSamplesToStudyProps {
     projectID: number
     handleOk?: () => void
     handleCancel?: () => void
+    handleSuccess?: () => void
 }
 
-export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, totalCount, projectID, handleOk, handleCancel }: LinkSamplesToStudyProps) {
+export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, totalCount, projectID, handleOk, handleCancel, handleSuccess }: LinkSamplesToStudyProps) {
     const dispatch = useAppDispatch()
     const studiesByID = useAppSelector(selectStudiesByID)
     const studies = useMemo(() =>
@@ -65,6 +66,9 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
                                 title: "Samples linked to study",
                                 description: `Successfully linked samples to study ${study.letter} at step "${stepOrder.step_name}"`
                             }))
+                            if (handleSuccess) {
+                                handleSuccess()
+                            }
                         },
                         () => {
                             dispatch(notifyError({

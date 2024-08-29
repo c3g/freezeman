@@ -1,5 +1,6 @@
-import { AnyAction, ThunkAction } from '@reduxjs/toolkit';
-import { AppDispatch } from '../store';
+import { AnyAction } from '@reduxjs/toolkit';
+import { AppDispatch, RootState } from '../store';
+import { FMSResponse } from './api';
 
 export interface NetworkActionTypes<Prefix extends string> {
     REQUEST: `${Prefix}.REQUEST`
@@ -25,7 +26,7 @@ export interface NetworkActionOptions {
 }
 
 
-export type NetworkActionThunk<T> = ThunkAction<T, any, any, any>
+export type NetworkActionThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<FMSResponse<T>>
 export interface NetworkActionListReceive extends AnyAction {
     type: string,
     data: any,
@@ -39,7 +40,7 @@ export interface NetworkActionListReceive extends AnyAction {
  * @param {object} [options.meta] - Additional data for actions
  * @param {boolean} [options.meta.ignoreError] - Don't show error notification on error
  */
-export const networkAction = <Prefix extends string>(types : NetworkActionTypes<Prefix>, apiAction: NetworkActionThunk<any>, options : NetworkActionOptions = {}) => (dispatch : AppDispatch) => {
+export const networkAction = <Prefix extends string, T>(types : NetworkActionTypes<Prefix>, apiAction: NetworkActionThunk<T>, options : NetworkActionOptions = {}) => (dispatch : AppDispatch) => {
     const { meta, transform } = options
 
     dispatch({type: types.REQUEST, meta});

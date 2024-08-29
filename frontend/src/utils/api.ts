@@ -284,7 +284,7 @@ const api = {
     get: studyId => get<JsonResponse<FMSStudy>>(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
-    list: (options, abort?) => get('/studies', options, {abort}),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies', options, {abort}),
     listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
@@ -462,7 +462,7 @@ function createAPIError<R extends ResponseWithData<any>>(response: R): ApiError 
   return error;
 }
 
-interface FMSResponse<T = any> extends Response {
+export interface FMSResponse<T = any> extends Response {
   isJSON: boolean
   data: T
   filename?: string

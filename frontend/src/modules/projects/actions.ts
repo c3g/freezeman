@@ -37,7 +37,7 @@ export const list = (options: object) : NetworkActionThunk<any> => async (dispat
 export const summary = () => (dispatch: AppDispatch) => dispatch(networkAction(SUMMARY, api.projects.summary()))
 
 export const listTemplateActions = (): NetworkActionThunk<any> => (dispatch, getState) => {
-	if (getState().projectTemplateActions.isFetching) return
+	if (getState().projectTemplateActions.isFetching) return Promise.resolve(undefined)
 	return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.projects.template.actions()))
 }
 
