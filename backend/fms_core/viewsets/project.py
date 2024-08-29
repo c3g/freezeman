@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from fms_core.services.project import add_sample_to_study
 from fms_core.models import Project, Sample
@@ -76,11 +77,13 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         project = Project.objects.get(id=project_id)
 
         errors = defaultdict(list)
-        for sample in samples:
-            _errors, _ = add_sample_to_study(sample, project, study_letter, step_order)
-            for key, error in _errors.items():
-                if error:
-                    errors[key].extend([error] if isinstance(error, str) else error)
+        with transaction.atomic():
+            for sample in samples:
+                _errors, _ = add_sample_to_study(sample, project, study_letter, step_order)
+                for key, error in _errors.items():
+                    if error:
+                        errors[key].extend([error] if isinstance(error, str) else error)
+                        transaction.set_rollback(True)
         
         if errors:
             raise ValidationError(errors)
