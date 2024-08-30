@@ -45,7 +45,20 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
 
     return (project, errors, warnings)
 
-def add_sample_to_study(sample: Sample, project: Project, study_letter: str, step_order: int | None = None):
+def add_sample_to_study(sample: Sample, project: Project, study_letter: str, step_order: int | None = None) -> tuple[dict[str, list | str], dict[str, list | str]]:
+    """Add a sample to a study of a project.
+    If `step_order` it is not specified, the sample will be queued at the start of the study.
+
+    Args:
+        sample: Sample instance
+        project: Project instance
+        study_letter: Letter of an existing study
+        step_order: Step order of a step in the study. Defaults to None.
+
+    Returns:
+        Tuple of errors and warnings
+    """
+
     errors = defaultdict(list)
     warnings = defaultdict(list)
 
