@@ -72,8 +72,9 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         study_letter = request.data.get("study_letter")
         step_order = request.data.get("step_order", None)
 
-        samples = (Sample.objects.filter(derived_by_samples__project=project_id, id__in=sample_ids) if not select_all
-                   else Sample.objects.filter(derived_by_samples__project                   =project_id).exclude(id__in=sample_ids)).all()
+        samples = (Sample.objects.filter(derived_by_samples__project=project_id, id__in=sample_ids)
+                   if not select_all
+                   else Sample.objects.filter(derived_by_samples__project=project_id).exclude(id__in=sample_ids)).all()
         project = Project.objects.get(id=project_id)
 
         errors = defaultdict(list)
