@@ -70,21 +70,13 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
         self.assertEqual(dict(errors), {})
         self.assertEqual(dict(warnings), {})
 
+        errors, warnings = add_sample_to_study(self.sample_project1, self.project1, self.study_project1_A.letter, self.normalization_step)
+        self.assertEqual(dict(errors), {})
+        self.assertEqual(dict(warnings), {})
+
         errors, warnings = add_sample_to_study(self.sample_project1, self.project1, self.study_project1_B.letter)
         self.assertEqual(dict(errors), {})
         self.assertEqual(dict(warnings), {})
-
-
-    def test_cannot_add_sample_to_same_study_twice(self):
-        errors, warnings = add_sample_to_study(self.sample_project1, self.project1, self.study_project1_A.letter, self.qc_step)
-        self.assertEqual(dict(errors), {})
-        self.assertEqual(dict(warnings), {})
-
-        errors, warnings = add_sample_to_study(self.sample_project1, self.project1, self.study_project1_A.letter, self.normalization_step)
-        self.assertEqual(errors.get("add_sample_to_study"), [f"Sample [{self.sample_project1.name}] is already queued in study [{self.study_project1_A.letter}] \
-                         of project [{self.project1.name}] at step [{self.qc_step}]."])
-        self.assertEqual(dict(warnings), {})
-
 
     def test_sample_must_be_linked_to_the_same_project(self):
         errors, warnings = add_sample_to_study(self.sample_no_project, self.project1, self.study_project1_A.letter)
