@@ -2,6 +2,8 @@ from django.db.models import Q, Max
 
 from django.utils import timezone
 import datetime
+
+from fms_core.models._constants import ValidationStatus
 from .models import (Container,
                      DerivedBySample,
                      Index,
@@ -192,8 +194,8 @@ class DatasetFilter(GenericFilter):
 
     def latest_validation_status_update_filter(self, queryset, name, value):
         return queryset.annotate(
-            latest_validation_update=Max("readsets__validation_status_timestamp")
-        ).filter(latest_validation_update__gte=value)
+            latest_validation_update=Max("readsets__validation_status_timestamp"),
+        ).filter(latest_validation_update__gt=value)
 
     class Meta:
         model = Dataset
