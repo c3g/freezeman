@@ -211,3 +211,8 @@ def has_errors(error_dict):
     for error in error_dict.values():
         has_errors = has_errors or bool(error)
     return has_errors
+
+def dict_remove_falsy_entries(dict: dict):
+    for key in list(dict.keys()):
+        if not dict[key]:
+            del dict[key]
