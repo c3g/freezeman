@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { ReactElement, useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable, selectStudiesByID } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
@@ -9,7 +9,7 @@ import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsA
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import { Project, Protocol, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
-import { Button } from "antd";
+import { Button, Popover, Tag } from "antd";
 import LinkSamplesToStudy from "./LinkSamplesToStudy";
 import { FMSSampleNextStepByStudy, FMSStudy, WorkflowStepOrder } from "../../models/fms_api_models";
 import { fetchStudies } from "../../modules/cache/cache";
@@ -46,7 +46,7 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
     const dispatch = useAppDispatch()
     const [studiesByID, setStudiesByID] = useState<Record<FMSStudy['id'], FMSStudy['letter'] | undefined>>({})
     const [studyStepsBySampleID, setStudyStepsBySampleID] = useState<Record<Sample['id'], FMSSampleNextStepByStudy[] | undefined>>({})
-    const [orderByStepOrder, setOrderByStepOrder] = useState<Record<WorkflowStepOrder['id'], WorkflowStepOrder['order'] | undefined>>({})
+    const [stepOrderByStepOrderID, setStepOrderByStepOrderID] = useState<Record<WorkflowStepOrder['id'], WorkflowStepOrder | undefined>>({})
 
     const refresh = useCallback(async (sampleIDs: readonly Sample['id'][]) => {
         const sampleNextStepByStudies = (await dispatch(api.sampleNextStepByStudy.getStudySamples({ sample_next_step__sample__id__in: sampleIDs.join(",") }))).data.results
@@ -80,16 +80,16 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
         }
         setStudiesByID((old) => ({ ...old, ...studiesByID }) )
 
-        const orderByStepOrder: Record<number, number | undefined> = {}
+        const orderByStepOrder: Record<number, WorkflowStepOrder | undefined> = {}
         for (const study of studies) {
             if (study) {
                 const workflow = (await dispatch(api.workflows.get(study.workflow_id))).data
                 for (const stepOrder of workflow.steps_order) {
-                    orderByStepOrder[stepOrder.id] = stepOrder.order
+                    orderByStepOrder[stepOrder.id] = stepOrder
                 }
             }
         }
-        setOrderByStepOrder((old) => ({ ...old, ...orderByStepOrder }))
+        setStepOrderByStepOrderID((old) => ({ ...old, ...orderByStepOrder }))
     }, [dispatch])
 
     useEffect(() => {
@@ -100,16 +100,37 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
 
     const StudySteps = useCallback(({ sampleID }: { sampleID: Sample['id'] }) => {
         if (sampleID in studyStepsBySampleID) {
-            return <>{
-                studyStepsBySampleID[sampleID]?.map((studyStep) =>
-                    studiesByID[studyStep.study] && orderByStepOrder[studyStep.step_order]
-                        ? `${studiesByID[studyStep.study]}-${orderByStepOrder[studyStep.step_order]}`
-                        : '').join(", ") ?? ''
-            }</>
+            const tags = studyStepsBySampleID[sampleID]?.reduce<ReactElement[]>((tags, studyStep) => {
+                const studyLetter = studiesByID[studyStep.study]
+                const stepOrder = stepOrderByStepOrderID[studyStep.step_order]
+                if (studyLetter && stepOrder) {
+                    tags.push(
+                        <Popover
+                            content={
+                                <>
+                                    <div>
+                                        Study: {studyLetter}
+                                    </div>
+                                    <div>
+                                        Step: {stepOrder.step_name}
+                                    </div>
+                                </>
+                            }
+                            destroyTooltipOnHide={{ keepParent: false }}
+                        >
+                            <Tag>{studyLetter}-{stepOrder.order}</Tag>
+                        </Popover>
+                    )
+                } else {
+                    tags.push(<>...</>)
+                }
+                return tags
+            }, []) ?? [<></>]
+            return tags
         } else {
-            return <></>
+            return [<></>]
         }
-    }, [orderByStepOrder, studiesByID, studyStepsBySampleID])
+    }, [stepOrderByStepOrderID, studiesByID, studyStepsBySampleID])
 
     return [StudySteps, refresh] as const
 }
@@ -140,8 +161,8 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
         SAMPLE_COLUMN_DEFINITIONS.CREATION_DATE,
         SAMPLE_COLUMN_DEFINITIONS.DEPLETED,
         {
-            columnID: 'STUDY-STEP',
-            title: 'Study - Step',
+            columnID: 'CURRENT_STUDY_STEP',
+            title: 'Current Study-Step',
             dataIndex: ['sample', 'id'],
             render : (_, { sample }) =>
                 sample && <StudySteps sampleID={sample.id} />,
