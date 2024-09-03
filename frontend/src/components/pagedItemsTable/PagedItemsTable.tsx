@@ -28,7 +28,7 @@ export interface PagedItemsActionsCallbacks {
 }
 
 export interface DataObjectsByID<T> {
-	[key: string] : T | undefined
+	[key: string] : T
 }
 export type GetDataObjectsByIDCallback<T> = (ids: number[]) => Promise<DataObjectsByID<T>>
 
@@ -138,14 +138,14 @@ function PagedItemsTable<T extends object>({
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
 	// key. This allows us to use data objects that don't have an explicit 'id' property.
-	const UNKOWN_DATA_ROW_KEY = 'unknown-data-row-key'
 	const getRowKeyForDataObject = useCallback((data: T) => {
+		let foundKey = ''
 		for (const key in tableDataState.objectMap) {
 			if (tableDataState.objectMap[key] === data) {
-				return key
+				 foundKey = key
 			}
 		}
-		return UNKOWN_DATA_ROW_KEY
+		return foundKey
 	}, [tableDataState.objectMap])
 
 	const [selectAll, setSelectAll] = useState(false)
@@ -164,17 +164,15 @@ function PagedItemsTable<T extends object>({
 	}, [allIsSelected, selection])
 	const onSelectSingle = useCallback((record: T) => {
 		const key = getRowKeyForDataObject(record)
-		if (key !== UNKOWN_DATA_ROW_KEY) {
-			let newSelectedItems = selectedItems
-			if (selectedItems.includes(key)) {
-				newSelectedItems = selectedItems.filter((id) => id !== key)
-			} else {
-				newSelectedItems = [...selectedItems, key]
-			}
-			setSelectedItems(newSelectedItems)
-			if (selection) {
-				selection.onSelectionChanged(newSelectedItems, selectAll)
-			}
+		let newSelectedItems = selectedItems
+		if (selectedItems.includes(key)) {
+			newSelectedItems = selectedItems.filter((id) => id !== key)
+		} else {
+			newSelectedItems = [...selectedItems, key]
+		}
+		setSelectedItems(newSelectedItems)
+		if (selection) {
+			selection.onSelectionChanged(newSelectedItems, selectAll)
 		}
 	}, [getRowKeyForDataObject, selectAll, selectedItems, selection])
 	const selectedRowKeys = useMemo(() =>
