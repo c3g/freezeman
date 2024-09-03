@@ -64,9 +64,9 @@ def initialize_validated_by_and_released_by(apps, schema_editor):
     Readset = apps.get_model("fms_core", "Readset")
     Version = apps.get_model("reversion", "Version")
 
-    readsets_validated_ids = Readset.objects.exclude(validation_status_timestamp__isnull=True).value_list("id", flat=True)
-    readsets_released_ids = Readset.objects.exclude(release_status_timestamp__isnull=True).value_list("id", flat=True)
-    readsets_to_update_ids = set(readsets_validated_ids.extend(readsets_released_ids))
+    readsets_validated_ids = list(Readset.objects.exclude(validation_status_timestamp__isnull=True).values_list("id", flat=True) or [])
+    readsets_released_ids = list(Readset.objects.exclude(release_status_timestamp__isnull=True).values_list("id", flat=True) or [])
+    readsets_to_update_ids = set(readsets_validated_ids + readsets_released_ids)
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -75,6 +75,7 @@ def initialize_validated_by_and_released_by(apps, schema_editor):
         reversion.set_user(admin_user)
 
         for readset_id in readsets_to_update_ids:
+            readset_obj = Readset.objects.get(id=readset_id)
             validated_by_id = None
             released_by_id = None
             for readset_validated_version in Version.objects.filter(content_type__model="readset", object_id=readset_id).order_by('-id'):
@@ -82,9 +83,16 @@ def initialize_validated_by_and_released_by(apps, schema_editor):
                 validation_status_timestamp = data[0]["fields"].get("validation_status_timestamp", None)
                 release_status_timestamp = data[0]["fields"].get("release_status_timestamp", None)
                 if validated_by_id is None and validation_status_timestamp is not None:
-                    validated_by_id = data[0]["fields"]["modified_by"]
+                    validated_by_id = data[0]["fields"]["updated_by"]
                 if released_by_id is None and release_status_timestamp is not None:
-                    released_by_id = data[0]["fields"]["modified_by"]
+                    released_by_id = data[0]["fields"]["updated_by"]
+                    
+            if readset_id in readsets_validated_ids:
+                readset_obj.validated_by_id = validated_by_id
+            if readset_id in readsets_released_ids:
+                readset_obj.released_by_id = released_by_id
+            readset_obj.save()
+            reversion.add_to_revision(readset_obj)
 
 class Migration(migrations.Migration):
 
