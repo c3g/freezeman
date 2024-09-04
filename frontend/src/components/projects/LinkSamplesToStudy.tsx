@@ -50,15 +50,18 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
 
     const sampleCount = selectAll ? totalCount - selectedItemIDs.length : selectedItemIDs.length
 
+    const [loading, setLoading] = useState(false)
+
     return (
         <Modal
-            title={`Move ${sampleCount} Sample${sampleCount > 1 ? 's' : ''} to Study`}
+            title={`Link ${sampleCount} Sample${sampleCount > 1 ? 's' : ''} to Study`}
             open={open}
             okButtonProps={{
                 disabled: !(sampleCount > 0 && study && stepOrder)
             }}
             onOk={() => {
-                if (selectedItemIDs.length > 0 && study && stepOrder) {
+                if (sampleCount > 0 && study && stepOrder) {
+                    setLoading(true)
                     dispatch(api.projects.addSamplesToStudy(selectedItemIDs, selectAll, projectID, study.letter, stepOrder.order)).then(
                         () => {
                             dispatch(notifySuccess({
@@ -85,10 +88,12 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
                                 title: "Failed to link samples to study",
                                 description
                             }))
+                        }).then(() => {
+                            setLoading(false)
+                            if (handleOk) {
+                                handleOk()
+                            }
                         })
-                    if (handleOk) {
-                        handleOk()
-                    }
                 }
             }}
             onCancel={() => {
@@ -96,6 +101,7 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
                     handleCancel()
                 }
             }}
+            confirmLoading={loading}
         >
             <Form>
                 <Form.Item label={"Study: "}>
