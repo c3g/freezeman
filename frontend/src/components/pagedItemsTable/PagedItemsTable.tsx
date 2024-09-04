@@ -231,10 +231,10 @@ function PagedItemsTable<T extends object>({
 		<>
 			{columns && (
 				<>
-					<div>
-						{topBarExtra}
+					<div style={{ display: 'flex', justifyContent: 'space-between', margin: '0 0 0.5em 0' }}>
+						<div>{topBarExtra}</div>
 						{usingFilters && pagedItems.filters && (
-							<FiltersBar style={{ float: 'right' }} filters={pagedItems.filters} clearFilters={clearFiltersCallback}></FiltersBar>
+							<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback} buttonStyle={{ margin: 0 }}/>
 						)}
 					</div>
 					<Table<T>

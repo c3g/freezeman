@@ -6,8 +6,9 @@ import getNFilters from "../getNFilters";
 export interface FiltersBarProps extends React.HTMLAttributes<HTMLDivElement> {
     filters: FilterSet,
     clearFilters: () => void
+    buttonStyle?: React.CSSProperties
 }
-const FiltersBar = ({ filters, clearFilters, ...props }: FiltersBarProps) => {
+const FiltersBar = ({ filters, clearFilters, buttonStyle, ...props }: FiltersBarProps) => {
 
     const nFilters = getNFilters(filters ?? {})
     return (
@@ -17,7 +18,7 @@ const FiltersBar = ({ filters, clearFilters, ...props }: FiltersBarProps) => {
                 nFilters={nFilters}
             />
             <Button
-                style={{ margin: 6 }}
+                style={{ margin: 6, ...buttonStyle }}
                 disabled={nFilters === 0}
                 onClick={() => clearFilters()}
             >
