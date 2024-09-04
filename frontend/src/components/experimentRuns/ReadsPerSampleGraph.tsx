@@ -17,11 +17,12 @@ interface ReadsPerSampleGraphProps {
 function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 	const DEFAULT_GRAPH_WIDTH = 800
 	const MIN_BAR_WIDTH = 6 // Make bars wide enough that the user can click them
-	const MAX_BAR_WIDTH = 400 // Leave some space to have the tooltip not be clipped off for low sample count lanes
+	const MAX_BAR_WIDTH = 64 // Leave some space to have the tooltip not be clipped off for low sample count lanes
+  const TOOLTIP_SPACE = 200
 
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
-	const { ref: resizeRef, size: componentSize } = useResizeObserver(800, 0)
+	const { ref: resizeRef, size: componentSize } = useResizeObserver(DEFAULT_GRAPH_WIDTH, 0)
 	const [graphWidth, setGraphWidth] = useState<number>(DEFAULT_GRAPH_WIDTH)
 
 	useEffect(() => {
@@ -107,9 +108,11 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 	}
 
 	const data = lane.readsPerSample?.sampleReads ?? []
+  const propsAllowEscapeViewBox = {x: true,	y: true}
+
 
 	return (
-		<div style={{ display: 'block', overflowX: 'scroll', overflowY: 'hidden', maxWidth: '100%' }} ref={resizeRef}>
+		<div ref={resizeRef}>
 			<BarChart
 				width={graphWidth}
 				height={500}
@@ -120,7 +123,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 			>
 				<XAxis tick={false} />
 				<YAxis type="number" width={100} tickFormatter={(value: any, index: number) => value.toLocaleString('fr')}/>
-				<Tooltip content={<SampleTooltip/>} />
+				<Tooltip allowEscapeViewBox={(graphWidth < TOOLTIP_SPACE) ?  propsAllowEscapeViewBox : {}} content={<SampleTooltip/>} />
 				<Bar dataKey="nbReads" fill="#8884d8" isAnimationActive={false} onClick={handleBarClick} />
 			</BarChart>
 		</div>
