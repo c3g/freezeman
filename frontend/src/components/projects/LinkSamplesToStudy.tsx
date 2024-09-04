@@ -70,11 +70,20 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
                                 handleSuccess()
                             }
                         },
-                        () => {
+                        ({ data: { add_sample_to_study: errors } }: { data: { add_sample_to_study?: string[] } }) => {
+                            let description = `Failed to link samples to study ${study.letter} at step "${stepOrder.step_name}": `
+                            if (errors) {
+                                description += `\n- ${errors.slice(0, Math.min(3, errors.length)).join("\n- ")}`
+                                if (errors.length > 3) {
+                                    description += `\n- and ${errors.length - 3} more`
+                                }
+                            } else {
+                                description += "Unknown error"
+                            }
                             dispatch(notifyError({
                                 id: NOTIFICATION_ID,
                                 title: "Failed to link samples to study",
-                                description: `Failed to link samples to study ${study.letter} at step "${stepOrder.step_name}"`
+                                description
                             }))
                         })
                     if (handleOk) {
