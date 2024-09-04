@@ -44,11 +44,6 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
 
     return (project, errors, warnings)
 
-class AddSampleToStudyException(Exception):
-    def __init__(self, message: str) -> None:
-        super().__init__()
-        self.message = message
-
 def add_sample_to_study(sample: Sample, project: Project, study_letter: str, step_order: int | None = None) -> tuple[dict[str, list | str], dict[str, list | str]]:
     """Add a sample to a study of a project.
     If `step_order` it is not specified, the sample will be queued at the start of the study.
@@ -66,21 +61,21 @@ def add_sample_to_study(sample: Sample, project: Project, study_letter: str, ste
     errors = defaultdict(list)
     warnings = defaultdict(list)
 
-    try:
+    def add_sample_to_study_(sample: Sample, project: Project, study_letter: str, step_order: int | None = None):
         # Make sure the sample is already associated to the project of the given study.
         # In case of pool one of the samples has to be associated to the project
         if sample.is_pool:
             if not any([derived_by_sample.project == project for derived_by_sample in sample.derived_by_samples.all()]):
-                raise AddSampleToStudyException(f"There are no samples in pool [{sample.name}] that is linked to project [{project.name}].")
+                return f"There are no samples in pool [{sample.name}] that is linked to project [{project.name}]."
         elif sample.derived_by_samples.first().project != project:
-            raise AddSampleToStudyException(f"Sample [{sample.name}] is not linked to project [{project.name}].")
+            return f"Sample [{sample.name}] is not linked to project [{project.name}]."
 
         if not study_letter:
-            raise AddSampleToStudyException(f"Study letter is required to add the sample to a study.")
+            return f"Study letter is required to add the sample to a study."
 
         study_obj, errors['get_study'], warnings['get_study'] = get_study(project, study_letter)
         if not study_obj:
-            raise AddSampleToStudyException(f"Specified study [{study_letter}] doesn't exist for project [{project.name}].")
+            return f"Specified study [{study_letter}] doesn't exist for project [{project.name}]."
 
         # To avoid empty step orders
         step_order = step_order if step_order else study_obj.start
@@ -90,9 +85,12 @@ def add_sample_to_study(sample: Sample, project: Project, study_letter: str, ste
         if not is_sample_queued:
             _, errors['queue_sample_to_study_workflow'], warnings['queue_sample_to_study_workflow'] = queue_sample_to_study_workflow(sample, study_obj, step_order)
         else:
-            raise AddSampleToStudyException(f"Sample [{sample.name}] is already queued in study [{study_letter}] of project [{project.name}] at step [{step_order}].")
-    except AddSampleToStudyException as e:
-        errors['add_sample_to_study'].append(e.message)
+            return f"Sample [{sample.name}] is already queued in study [{study_letter}] of project [{project.name}] at step [{step_order}]."
+
+
+    error = add_sample_to_study_(sample, project, study_letter, step_order)
+    if error:
+        errors['add_sample_to_study'].append(error)
 
     dict_remove_falsy_entries(errors)
     dict_remove_falsy_entries(warnings)
