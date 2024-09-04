@@ -311,7 +311,7 @@ export interface FMSProject extends FMSTrackedModel {
     requestor_email: string             // The email of the requestor of the project
     targeted_end_date?: string          // Targeted date to conclude the project (YYYY-MM-DD)
     status: 'Open' | 'Closed'           // The status of the project (open or closed)
-    external_id?: FMSId                 // Identifier to connect to an external system (eg. Hercules)
+    external_id?: string                // Identifier to connect to an external system (eg. Hercules)
     external_name?: string              // Original project name used by external client
     comment: string                     // Other relevant information about the project
 }
