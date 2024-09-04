@@ -73,12 +73,15 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
                                 handleSuccess()
                             }
                         },
-                        ({ data: { add_sample_to_study: errors } }: { data: { add_sample_to_study?: string[] } }) => {
+                        ({ data }: { data: Record<string, string[]> }) => {
                             let description = `Failed to link samples to study ${study.letter} at step "${stepOrder.step_name}": `
-                            if (errors) {
-                                description += `\n- ${errors.slice(0, Math.min(3, errors.length)).join("\n- ")}`
-                                if (errors.length > 3) {
-                                    description += `\n- and ${errors.length - 3} more`
+                            if (data) {
+                                for (const key in data) {
+                                    const errors = data[key]
+                                    description += `\n- ${errors.slice(0, Math.min(2, errors.length)).join("\n- ")}`
+                                    if (errors.length > 2) {
+                                        description += `\n- and ${errors.length - 2} more`
+                                    }
                                 }
                             } else {
                                 description += "Unknown error"
