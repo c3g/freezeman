@@ -112,7 +112,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 
 
 	return (
-		<div ref={resizeRef}>
+		<div style={{ maxWidth: '100%' }} ref={resizeRef}>
 			<BarChart
 				width={graphWidth}
 				height={500}
