@@ -79,12 +79,15 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         errors = defaultdict(list)
         with transaction.atomic():
+            rollback = False
             for sample in samples:
                 _errors, _ = add_sample_to_study(sample, project, study_letter, step_order)
                 for key, error in _errors.items():
                     if error:
                         errors[key].extend([error] if isinstance(error, str) else error)
-                        transaction.set_rollback(True)
+                        rollback = True
+            if rollback:
+                transaction.set_rollback(True)
         
         if errors:
             raise ValidationError(errors)
