@@ -190,6 +190,8 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
     const [sampleIDs, setSampleIDs] = useState<Sample['id'][]>([])
     const [linkSamplesToStudyOpen, setLinkSamplesToStudyOpen] = useState(false)
 
+    const sampleCount = selectAll ? pagedItems.totalCount - sampleIDs.length : sampleIDs.length
+
     return (
         <>
             <LinkSamplesToStudy
@@ -217,7 +219,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
                 }}
                 topBarExtra={[
                     <Button
-                        disabled={(selectAll ? pagedItems.totalCount - sampleIDs.length : sampleIDs.length) === 0}
+                        disabled={sampleCount === 0}
                         key={0}
                         onClick={() => setLinkSamplesToStudyOpen(true)}
                     >
