@@ -100,32 +100,51 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
 
     const StudySteps = useCallback(({ sampleID }: { sampleID: Sample['id'] }) => {
         if (sampleID in studyStepsBySampleID) {
-            const tags = studyStepsBySampleID[sampleID]?.reduce<ReactElement[]>((tags, studyStep) => {
-                const studyLetter = studiesByID[studyStep.study]
-                const stepOrder = stepOrderByStepOrderID[studyStep.step_order]
-                if (studyLetter && stepOrder) {
-                    tags.push(
-                        <Popover
-                            content={
-                                <>
-                                    <div>
-                                        Study: {studyLetter}
-                                    </div>
-                                    <div>
-                                        Step: {stepOrder.step_name}
-                                    </div>
-                                </>
-                            }
-                            destroyTooltipOnHide={{ keepParent: false }}
-                        >
-                            <Tag>{studyLetter}-{stepOrder.order}</Tag>
-                        </Popover>
-                    )
-                } else {
-                    tags.push(<>...</>)
-                }
-                return tags
-            }, []) ?? [<></>]
+            const tags = studyStepsBySampleID[sampleID]
+                ?.sort((a, b) => {
+                    const ALetter = studiesByID[a.study]
+                    const AStepOrder = stepOrderByStepOrderID[a.step_order]
+
+                    const BLetter = studiesByID[b.study]
+                    const BStepOrder = stepOrderByStepOrderID[b.step_order]
+
+                    if (ALetter && AStepOrder && BLetter && BStepOrder) {
+                        if (ALetter === BLetter) {
+                            return AStepOrder.order - BStepOrder.order
+                        } else {
+                            return ALetter.localeCompare(BLetter)
+                        }
+                    } else {
+                        return 0
+                    }
+                })
+                ?.reduce<ReactElement[]>((tags, studyStep) => {
+                    const studyLetter = studiesByID[studyStep.study]
+                    const stepOrder = stepOrderByStepOrderID[studyStep.step_order]
+                    if (studyLetter && stepOrder) {
+                        tags.push(
+                            <Popover
+                                content={
+                                    <>
+                                        <div>
+                                            Study: {studyLetter}
+                                        </div>
+                                        <div>
+                                            Step: {stepOrder.step_name}
+                                        </div>
+                                    </>
+                                }
+                                destroyTooltipOnHide={{ keepParent: false }}
+                            >
+                                <Tag>{studyLetter}-{stepOrder.order}</Tag>
+                            </Popover>
+                        )
+                    } else {
+                        tags.push(<>...</>)
+                    }
+                    return tags
+                }, [])
+                ?? [<></>]
             return tags
         } else {
             return [<></>]
@@ -164,6 +183,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
             columnID: 'CURRENT_STUDY_STEP',
             title: 'Current Study-Step',
             dataIndex: ['sample', 'id'],
+            width: 160,
             render : (_, { sample }) =>
                 sample && <StudySteps sampleID={sample.id} />,
         },
