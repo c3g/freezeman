@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable, selectStudiesByID } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
-import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
+import PagedItemsTable, { PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
@@ -206,23 +206,34 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
 
     const mapSamplesID = useItemsByIDToDataObjects(selectSamplesByID, (sample: Sample) => ({ sample }))
 
-    const [selectAll, setSelectAll] = useState(false)
-    const [sampleIDs, setSampleIDs] = useState<Sample['id'][]>([])
+    const [defaultSelection, setDefaultSelection] = useState(false)
+    const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
     const [linkSamplesToStudyOpen, setLinkSamplesToStudyOpen] = useState(false)
 
-    const sampleCount = selectAll ? pagedItems.totalCount - sampleIDs.length : sampleIDs.length
+    const sampleCount = defaultSelection ? pagedItems.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
 
+    const filters = useMemo(() => ({ ...pagedItems.fixedFilters, ...pagedItems.filters }), [pagedItems.filters, pagedItems.fixedFilters])
+
+    const selection: NonNullable<PagedItemsTableProps<ObjectWithSample>['selection']> = useMemo(() => ({
+        onSelectionChanged: (selectedItems, selectAll) => {
+            setExceptedSampleIDs(selectedItems.map(id => parseInt(id as string)))
+            setDefaultSelection(selectAll)
+        }
+    }), [])
+
+    console.info({ defaultSelection, exceptedSampleIDs, filters })
     return (
         <>
             <LinkSamplesToStudy
                 open={linkSamplesToStudyOpen}
-                selectAll={selectAll}
-                selectedItemIDs={sampleIDs}
+                defaultSelection={defaultSelection}
+                exceptedSampleIDs={exceptedSampleIDs}
                 totalCount={pagedItems.totalCount}
                 projectID={currentProjectID}
+                filters={filters}
                 handleOk={() => setLinkSamplesToStudyOpen(false)}
                 handleCancel={() => setLinkSamplesToStudyOpen(false)}
-                handleSuccess={() => refreshStudySteps(sampleIDs)}
+                handleSuccess={() => refreshStudySteps(exceptedSampleIDs)}
             />
             <PagedItemsTable<ObjectWithSample>
                 getDataObjectsByID={mapSamplesID}
@@ -231,12 +242,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
                 usingFilters={true}
                 {...projectSamplesTableCallbacks}
                 initialLoad={false}
-                selection={{
-                    onSelectionChanged: (selectedItems, selectAll) => {
-                        setSampleIDs(selectedItems.map(id => parseInt(id as string)))
-                        setSelectAll(selectAll)
-                    }
-                }}
+                selection={selection}
                 topBarExtra={[
                     <Button
                         disabled={sampleCount === 0}

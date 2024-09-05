@@ -66,15 +66,19 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     
     @action(detail=False, methods=["post"])
     def add_samples_to_study(self, request, pk=None):
-        sample_ids = request.data.get("sample_ids")
-        select_all = request.data.get("select_all", False)
+        excepted_sample_ids = request.data.get("excepted_sample_ids")
+        default_selection = request.data.get("default_selection", False)
         project_id = request.data.get("project_id")
         study_letter = request.data.get("study_letter")
         step_order = request.data.get("step_order", None)
+        filters = request.data.get("filters", None)
 
-        samples = (Sample.objects.filter(derived_by_samples__project=project_id, id__in=sample_ids)
-                   if not select_all
-                   else Sample.objects.filter(derived_by_samples__project=project_id).exclude(id__in=sample_ids)).all()
+        samples = (Sample.objects.filter(derived_by_samples__project=project_id, id__in=excepted_sample_ids)
+                   if not default_selection
+                   else Sample.objects.filter(derived_by_samples__project=project_id).exclude(id__in=excepted_sample_ids))
+        if filters:
+            samples = samples.filter(**filters)
+        samples = samples.all()
         project = Project.objects.get(id=project_id)
 
         errors = defaultdict(list)

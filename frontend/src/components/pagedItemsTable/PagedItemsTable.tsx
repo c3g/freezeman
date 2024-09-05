@@ -10,7 +10,7 @@ import { useRefreshWhenStale } from './useRefreshWhenStale'
 
 
 export interface PagedItemTableSelection {
-	onSelectionChanged: (selectedItems: React.Key[], selectAll: boolean) => void
+	onSelectionChanged: (exceptedItems: React.Key[], defaultSelection: boolean) => void
 }
 
 // This is the set of possible callbacks for the paged items table.
@@ -33,7 +33,7 @@ export interface DataObjectsByID<T> {
 export type GetDataObjectsByIDCallback<T> = (ids: number[]) => Promise<DataObjectsByID<T>>
 
 
-interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActionsCallbacks {
+export interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActionsCallbacks {
 	// The paged items table only has a list of item ID's. You have provide a function
 	// that maps those ID's to data objects which get rendered by the table.
 	getDataObjectsByID: GetDataObjectsByIDCallback<T>
@@ -148,38 +148,38 @@ function PagedItemsTable<T extends object>({
 		return foundKey
 	}, [tableDataState.objectMap])
 
-	const [selectAll, setSelectAll] = useState(false)
-	const [selectedItems, setSelectedItems] = useState<React.Key[]>([])
-	const allIsSelected = (!selectAll && selectedItems.length === pagedItems.totalCount) || (selectAll && selectedItems.length === 0)
-	const noneIsSelected = (!selectAll && selectedItems.length === 0) || (selectAll && selectedItems.length === pagedItems.totalCount)
+	const [defaultSelection, setDefaultSelection] = useState(false)
+	const [exceptedItems, setExceptedItems] = useState<React.Key[]>([])
+	const allIsSelected = (!defaultSelection && exceptedItems.length === pagedItems.totalCount) || (defaultSelection && exceptedItems.length === 0)
+	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
 	const onSelectAll = useCallback(() => {
 		const newSelectedItems = []
 		const newSelectAll = !allIsSelected
 
-		setSelectedItems(newSelectedItems)
-		setSelectAll(newSelectAll)
+		setExceptedItems(newSelectedItems)
+		setDefaultSelection(newSelectAll)
 		if (selection)
 			selection.onSelectionChanged(newSelectedItems, newSelectAll)
 	}, [allIsSelected, selection])
 	const onSelectSingle = useCallback((record: T) => {
 		const key = getRowKeyForDataObject(record)
-		let newSelectedItems = selectedItems
-		if (selectedItems.includes(key)) {
-			newSelectedItems = selectedItems.filter((id) => id !== key)
+		let newSelectedItems = exceptedItems
+		if (exceptedItems.includes(key)) {
+			newSelectedItems = exceptedItems.filter((id) => id !== key)
 		} else {
-			newSelectedItems = [...selectedItems, key]
+			newSelectedItems = [...exceptedItems, key]
 		}
-		setSelectedItems(newSelectedItems)
+		setExceptedItems(newSelectedItems)
 		if (selection) {
-			selection.onSelectionChanged(newSelectedItems, selectAll)
+			selection.onSelectionChanged(newSelectedItems, defaultSelection)
 		}
-	}, [getRowKeyForDataObject, selectAll, selectedItems, selection])
+	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
 	const selectedRowKeys = useMemo(() =>
-		selectAll
-			? pagedItems.items.map((id) => id.toString()).filter((key) => !selectedItems.includes(key))
-			: selectedItems,
-	[pagedItems.items, selectAll, selectedItems])
+		defaultSelection
+			? pagedItems.items.map((id) => id.toString()).filter((key) => !exceptedItems.includes(key))
+			: exceptedItems,
+	[pagedItems.items, defaultSelection, exceptedItems])
 	const rowSelection: TableRowSelection<T> | undefined = useMemo(() => {
 		if (selection) {
 			const indeterminate = !allIsSelected && !noneIsSelected
@@ -203,6 +203,13 @@ function PagedItemsTable<T extends object>({
 		}
 		return undefined
 	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, selectedRowKeys, selection])
+
+	// avoid dilema selectAll and selectedItems logic
+	useEffect(() => {
+		setDefaultSelection(false)
+		setExceptedItems([])
+		selection?.onSelectionChanged([], false)
+	}, [pagedItems.filters, pagedItems.fixedFilters, selection])
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.
 	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.

@@ -6,21 +6,23 @@ import { selectStudiesByID } from "../../selectors";
 import { getAllItems, Study } from "../../models/frontend_models";
 import { WorkflowStepOrder } from "../../models/fms_api_models";
 import { notifyError, notifySuccess } from "../../modules/notification/actions";
+import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeFilterParamsTS";
 
 const NOTIFICATION_ID = "samples-linked-to-study"
 
 export interface LinkSamplesToStudyProps {
     open?: boolean
-    selectAll: boolean,
-    selectedItemIDs: number[]
+    defaultSelection: boolean,
+    exceptedSampleIDs: number[]
     totalCount: number
     projectID: number
+    filters: Record<string, any>
     handleOk?: () => void
     handleCancel?: () => void
     handleSuccess?: () => void
 }
 
-export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, totalCount, projectID, handleOk, handleCancel, handleSuccess }: LinkSamplesToStudyProps) {
+export default function LinkSamplesToStudy({ open, defaultSelection, exceptedSampleIDs, totalCount, projectID, filters, handleOk, handleCancel, handleSuccess }: LinkSamplesToStudyProps) {
     const dispatch = useAppDispatch()
     const studiesByID = useAppSelector(selectStudiesByID)
     const studies = useMemo(() =>
@@ -48,7 +50,7 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
         }
     }, [study, dispatch])
 
-    const sampleCount = selectAll ? totalCount - selectedItemIDs.length : selectedItemIDs.length
+    const sampleCount = defaultSelection ? totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
 
     const [loading, setLoading] = useState(false)
 
@@ -62,7 +64,7 @@ export default function LinkSamplesToStudy({ open, selectAll, selectedItemIDs, t
             onOk={() => {
                 if (sampleCount > 0 && study && stepOrder) {
                     setLoading(true)
-                    dispatch(api.projects.addSamplesToStudy(selectedItemIDs, selectAll, projectID, study.letter, stepOrder.order)).then(
+                    dispatch(api.projects.addSamplesToStudy(exceptedSampleIDs, defaultSelection, projectID, study.letter, stepOrder.order, serializeFilterParamsWithDescriptions(filters))).then(
                         () => {
                             dispatch(notifySuccess({
                                 id: NOTIFICATION_ID,

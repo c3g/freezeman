@@ -174,8 +174,8 @@ const api = {
   },
 
   projects: {
-    addSamplesToStudy: (sampleIds: Array<FMSSample['id']>, selectAll: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order']) =>
-        post<StringResponse>(`/projects/add_samples_to_study/`, { sample_ids: sampleIds, select_all: selectAll, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
+    addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], filters?: any) =>
+        post<StringResponse>(`/projects/add_samples_to_study/`, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder, filters }),
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
