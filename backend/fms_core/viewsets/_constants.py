@@ -244,6 +244,7 @@ _experiment_run_filterset_fields: FiltersetFields = {
     **_prefix_keys("run_type__", _run_type_filterset_fields),
     **_prefix_keys("instrument__", _instrument_filterset_fields),
     **_prefix_keys("container__", _container_filterset_fields),
+    **_prefix_keys("datasets__", _dataset_filterset_fields),
 }
 
 _readset_filterset_fields: FiltersetFields = {

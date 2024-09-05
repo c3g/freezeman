@@ -55,7 +55,7 @@ function ExperimentRunListContent() {
                 columns={columns}
                 getDataObjectsByID={getDataObjectsByID}
                 pagedItems={experimentRunsTableState}
-                usingFilters={false}
+                usingFilters={true}
                 {...callbacks}/>
 		</>
     )
