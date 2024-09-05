@@ -12,6 +12,7 @@ from ._utils import add_error as _add_error
 class Taxon(TrackedModel):
     name = models.CharField(max_length=200, unique=True, help_text="Taxon scientific name.")
     ncbi_id = models.PositiveBigIntegerField(unique=True, help_text="Numerical identifier used by the NCBI taxonomy catalog.")
+    default_reference_genome = models.ForeignKey("ReferenceGenome", null=True, blank=True, on_delete=models.PROTECT, related_name="default_for_taxons",  help_text="Default reference genome for the taxon when creating individuals.")
     
     def __str__(self):
         return self.name + " (NCBI:txid" + str(self.ncbi_id) + ")"

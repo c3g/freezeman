@@ -9,6 +9,7 @@ import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
 export enum ProjectColumnID {
 	ID = 'ID',
 	NAME = 'NAME',
+    EXTERNAL_ID = 'EXTERNAL_ID',
 	PRINCIPAL_INVESTIGATOR = 'PRINCIPAL_INVESTIGATOR',
 	REQUESTOR_NAME = 'REQUESTOR_NAME',
 	REQUESTOR_EMAIL = 'REQUESTOR_EMAIL',
@@ -47,6 +48,13 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 				<div>{name}</div>
 			</Link>
 		),
+	},
+    	[ProjectColumnID.EXTERNAL_ID]: {
+		columnID: ProjectColumnID.EXTERNAL_ID,
+		title: 'External ID',
+		dataIndex: ['project', 'external_id'],
+		sorter: true,
+		width: 70,
 	},
 	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: {
 		columnID: ProjectColumnID.PRINCIPAL_INVESTIGATOR,
@@ -95,6 +103,11 @@ export const PROJECT_FILTERS: { [key in ProjectColumnID]: FilterDescription } = 
 		key: 'name',
 		label: 'Name',
 	},
+    	[ProjectColumnID.EXTERNAL_ID]: {
+		type: FILTER_TYPE.INPUT,
+		key: 'external_id',
+		label: 'External ID',
+	},
 	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: {
 		type: FILTER_TYPE.INPUT,
 		key: 'principal_investigator',
@@ -128,6 +141,7 @@ export const PROJECT_FILTERS: { [key in ProjectColumnID]: FilterDescription } = 
 export const PROJECT_FILTER_KEYS: { [key in ProjectColumnID]: string } = {
 	[ProjectColumnID.ID]: 'id',
 	[ProjectColumnID.NAME]: 'name',
+    [ProjectColumnID.EXTERNAL_ID]: 'external_id',
 	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: 'principal_investigator',
 	[ProjectColumnID.REQUESTOR_NAME]: 'requestor_name',
 	[ProjectColumnID.REQUESTOR_EMAIL]: 'requestor_email',

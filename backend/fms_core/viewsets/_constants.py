@@ -58,6 +58,7 @@ _individual_filterset_fields: FiltersetFields = {
     "father": NULLABLE_FK_FILTERS,
     **_prefix_keys("taxon__", _taxon_filterset_fields),
     **_prefix_keys("reference_genome__", _reference_genome_filterset_fields),
+    "is_generic": ["exact"],
 }
 
 _user_filterset_fields: FiltersetFields = {
@@ -161,8 +162,8 @@ _project_filterset_fields: FiltersetFields = {
     "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
     "requestor_name": CATEGORICAL_FILTERS_LOOSE,
     "status": CATEGORICAL_FILTERS,
-    "external_id": CATEGORICAL_FILTERS,
-    "external_name": CATEGORICAL_FILTERS,
+    "external_id": CATEGORICAL_FILTERS_LOOSE,
+    "external_name": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("project_derived_by_samples__sample__", _sample_minimal_filterset_fields),
 }
 

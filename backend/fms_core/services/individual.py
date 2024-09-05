@@ -48,7 +48,7 @@ def get_reference_genome(assembly_name):
 
     return (reference_genome, errors, warnings)
 
-def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=None, cohort=None, mother=None, father=None, reference_genome=None):
+def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=None, cohort=None, mother=None, father=None, reference_genome=None, is_generic=None):
     """
     Create or return an individual defined using the input parameters. If the sample exists using the name to get it, the given parameters are
     validated against the instance found. Difference would result in errors. 
@@ -63,6 +63,7 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
         `mother`: Parent individual instance of F sex.
         `father`: Parent individual instance of M sex.
         `reference_genome`: Reference genome instance for that individual analysis.
+        `is_generic`: Boolean flag indicating if the individual was created automatically by Freezeman.
 
     Returns:
         Tuple including the individual instance if found otherwise None, a boolean flag indicating if the individual was created,
@@ -103,7 +104,8 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
             if reference_genome and reference_genome != individual.reference_genome:
                 errors.append(
                     f"Provided reference genome {reference_genome.assembly_name} does not match the individual reference genome {individual.reference_genome.assembly_name if individual.reference_genome else ''} of the individual retrieved using the name {name}.")
-
+            if is_generic is not None and is_generic != individual.is_generic:
+                errors.append(f"Provided generic indicator '{is_generic}' does not match the individual generic indicator '{individual.is_generic}' of the individual retrieved using the name {name}.")
         except Individual.DoesNotExist:
             if taxon is not None:
                 individual_data = dict(
@@ -117,6 +119,7 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
                     **(dict(mother=mother) if mother is not None else dict()),
                     **(dict(father=father) if father is not None else dict()),
                     **(dict(reference_genome=reference_genome) if reference_genome is not None else dict()),
+                    **(dict(is_generic=is_generic) if is_generic is not None else dict()),
                 )
                 try:
                     individual = Individual.objects.create(**individual_data)

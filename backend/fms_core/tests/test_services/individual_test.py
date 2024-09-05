@@ -65,6 +65,25 @@ class IndividualServicesTestCase(TestCase):
         self.assertEqual(individual.reference_genome.assembly_name, TEST_GENOME)
         self.assertEqual(individual.taxon.name, HOMO_SAPIENS_NAME)
 
+    def test_get_or_create_individual_generic_creation(self):
+        HOMO_SAPIENS_NAME = 'Homo sapiens'
+        TEST_GENOME = "GRCh38.p14"
+        
+        taxon, _, _ = get_taxon(name=HOMO_SAPIENS_NAME)
+        reference_genome, _, _ = get_reference_genome(assembly_name=TEST_GENOME)
+        individual, created, errors, warnings = get_or_create_individual(name="GENERIC_BOB",
+                                                                         sex="M",
+                                                                         taxon=taxon,
+                                                                         reference_genome=reference_genome,
+                                                                         is_generic=True)
+        self.assertIsNotNone(individual)
+        self.assertTrue(created)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(individual.reference_genome.assembly_name, TEST_GENOME)
+        self.assertEqual(individual.taxon.name, HOMO_SAPIENS_NAME)
+        self.assertTrue(individual.is_generic)
+
     def test_get_or_create_individual_get(self):
         HOMO_SAPIENS_NAME = 'Homo sapiens'
         TEST_GENOME = "GRCh38.p14"

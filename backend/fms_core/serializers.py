@@ -271,8 +271,9 @@ class IndividualExportSerializer(serializers.ModelSerializer):
                   "cohort",
                   "taxon_name",
                   "taxon_ncbi_id",
-                  "reference_genome_assembly_name",)
-
+                  "reference_genome_assembly_name",
+                  "generic")
+    
     def get_father_name(self, obj):
         father = '' if obj.father is None else obj.father.name
         return father
