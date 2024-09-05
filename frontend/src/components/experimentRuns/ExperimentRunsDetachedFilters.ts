@@ -4,11 +4,34 @@ import { FILTER_TYPE } from '../../constants'
 export const EXPERIMENT_RUNS_PLATFORM_NAME_FILTER: FilterDescription = {
     type: FILTER_TYPE.SELECT,
     key: 'run_type__platform__name',
-    label: 'Platfor Name',
+    label: 'Platform Name',
     mode: 'multiple',
     placeholder: 'All',
     options: [
         { label: 'Axiom - Genotyping', value: 'AXIOM_ARRAY' },
         { label: 'Illumina - Sequencing', value: 'ILLUMINA' },
+    ],
+}
+
+export const EXPERIMENT_RUNS_VALIDATION_STATUS_FILTER: FilterDescription = {
+    type: FILTER_TYPE.SELECT,
+    key: 'datasets__readsets__validation_status',
+    label: 'Has validated lanes',
+    placeholder: 'All',
+    options: [
+        { label: 'Has Validated lanes', value: '1' },
+        { label: 'Has Failed lanes', value: '2' },
+    ],
+}
+
+export const EXPERIMENT_RUNS_RELEASED_FILTER: FilterDescription = {
+    type: FILTER_TYPE.SELECT,
+    key: 'datasets__readsets__release_status',
+    label: 'Released lanes',
+    placeholder: 'All',
+    options: [
+        { label: 'Available', value: '0' },
+        { label: 'Released', value: '1' },
+        { label: 'Blocked', value: '2' },
     ],
 }

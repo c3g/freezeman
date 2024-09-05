@@ -5,16 +5,16 @@ import ExperimentRunsTableActions from "../../modules/experimentRunsTable/action
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { EXPERIMENT_RUN_FILTER_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ObjectWithExperimentRun, getColumnsForExperimentRun } from "./ExperimentRunTableColumns";
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects";
-import React from "react";
-import FiltersBar from "../filters/filtersBar/FiltersBar";
+import React, { useEffect } from "react";
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
-import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER } from "./ExperimentRunsDetachedFilters"
+import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER, EXPERIMENT_RUNS_RELEASED_FILTER, EXPERIMENT_RUNS_VALIDATION_STATUS_FILTER } from "./ExperimentRunsDetachedFilters"
 import FilterPanel from "../filters/filterPanel/FilterPanel";
-import Flexbar from "../shared/Flexbar";
 
 
 const detachedFilters = [
-	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER
+	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
+    EXPERIMENT_RUNS_VALIDATION_STATUS_FILTER,
+    EXPERIMENT_RUNS_RELEASED_FILTER
 ]
 
 function ExperimentRunListContent() {
@@ -35,20 +35,24 @@ function ExperimentRunListContent() {
         callbacks.setFilterOptionsCallback
     )
 
+    useEffect(()=>{
+        // default setting set at the redux level
+        callbacks.setFilterCallback(["ILLUMINA"],EXPERIMENT_RUNS_PLATFORM_NAME_FILTER)
+    },[])
+
     return (
         <>
             <FilterPanel descriptions={detachedFilters}
                 filters={experimentRunsTableState.filters}
                 setFilter={callbacks.setFilterCallback}
-                setFilterOption={callbacks.setFilterOptionsCallback}/>
-            <Flexbar style={{alignItems: 'center'}}>
-                <FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
-            </Flexbar>
+                setFilterOption={callbacks.setFilterOptionsCallback}
+                withCollapsible={false}
+                />
             <PagedItemsTable<ObjectWithExperimentRun>
                 columns={columns}
                 getDataObjectsByID={getDataObjectsByID}
                 pagedItems={experimentRunsTableState}
-                usingFilters={false}
+                usingFilters={true}
                 {...callbacks}/>
 		</>
     )

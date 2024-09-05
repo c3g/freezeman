@@ -20,7 +20,7 @@ from ._constants import _experiment_run_filterset_fields
 
 
 class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = ExperimentRun.objects.select_related("run_type", "container", "instrument")
+    queryset = ExperimentRun.objects.select_related("run_type", "container", "instrument").distinct()
     serializer_class = ExperimentRunSerializer
     serializer_export_class = ExperimentRunExportSerializer
 
@@ -67,7 +67,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         else:
             response = Response("Time set successfully.")
         return response
-    
+
     @action(detail=True, methods=["post"])
     def set_run_processing_end_time(self, _request, pk=None):
         _, errors, _ = set_run_processing_end_time(pk)
@@ -84,7 +84,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         validation_status = _request.data.get("validation_status", None)
         validation_status = int(validation_status) if validation_status is not None else None
         count, errors, _ = set_experiment_run_lane_validation_status(run_name=run_name, lane=lane, validation_status=validation_status)
-        
+
         if errors:
             response = HttpResponseServerError(errors)
         elif count == 0:
@@ -98,7 +98,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         run_name = _request.GET.get("run_name", None)
         lane = _request.GET.get("lane", None)
         validation_status, errors, _ = get_experiment_run_lane_validation_status(run_name=run_name, lane=lane)
-        
+
         if errors:
             response = HttpResponseNotFound(errors)
         else:
@@ -130,7 +130,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         else:
             response = Response('Launched successfully')
         return response
-        
+
     @action(detail=True, methods=["get"])
     def run_info(self, _request, pk):
         '''

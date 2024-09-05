@@ -14,11 +14,14 @@ interface FilterPanelProps {
 	setFilter: SetFilterCallback
 	setFilterOption: SetFilterOptionCallback
 	filters: FilterSet
+    withCollapsible?: boolean
 }
 
 function useLegacySetFilterCallback(setFilter: SetFilterCallback) {
 	return useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
+            console.log(value)
+            console.log(description)
 			setFilter(value, description)
 		},
 		[setFilter]
@@ -39,7 +42,7 @@ function useLegacySetFilterOptionCallback(setFilterOption: SetFilterOptionCallba
  * @param props
  * @returns FilterPanel
  */
-const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption }: FilterPanelProps) => {
+const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption, withCollapsible = true}: FilterPanelProps) => {
 
 	// TODO is this necessary anymore?
 	const legacySetFilter = useLegacySetFilterCallback(setFilter)
@@ -58,23 +61,40 @@ const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption }: Filt
 		return null
 	}
 
-	return (
-		<div className="FiltersPanel">
-			<Collapse defaultActiveKey={[]} ghost collapsible={'header'}>
-				<Collapse.Panel header="Show advanced filters" key={'detached-filters'}>
-					<div style={{
-						display: 'flex',
-						gap: '0.5em',
-						flexWrap: 'wrap',
-					}}>
-						{descriptions.map((description) => {
-							return createFilterContainer(description)
-						})}
-					</div>
-				</Collapse.Panel>
-			</Collapse>
-		</div>
-	)
+    if (withCollapsible) {
+        return (
+            <div className="FiltersPanel">
+                <Collapse defaultActiveKey={[]} ghost collapsible={"header"}>
+                    <Collapse.Panel header="Show advanced filters" key={'detached-filters'}>
+                        <div style={{
+                            display: 'flex',
+                            gap: '0.5em',
+                            flexWrap: 'wrap',
+                        }}>
+                            {descriptions.map((description) => {
+                                return createFilterContainer(description)
+                            })}
+                        </div>
+                    </Collapse.Panel>
+                </Collapse>
+            </div>
+            )
+    } else {
+        return (
+            <div className="FiltersPanel">
+                <div style={{
+                    display: 'flex',
+                    gap: '0.5em',
+                    flexWrap: 'wrap',
+                    justifyContent:"flex-end"
+                }}>
+                    {descriptions.map((description) => {
+                        return createFilterContainer(description)
+                    })}
+                </div>
+            </div>
+        )
+    }
 }
 
 export default FilterPanel
