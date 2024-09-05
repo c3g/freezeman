@@ -110,8 +110,10 @@ export interface FMSReadset extends FMSTrackedModel {
     sample_source: FMSId               // Last non pool sample (if any, else last pool) before experiment
     release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
     release_status_timestamp: Date
+    released_by?: FMSId                // User that released the run data
     validation_status: number
     validation_status_timestamp: Date
+    validated_by?: FMSId               // User that validated the run data
     library_type: string
     index: string
     metrics?: FMSMetric[] | {[key:string]: FMSMetric}
