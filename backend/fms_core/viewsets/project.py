@@ -1,11 +1,10 @@
-from collections import defaultdict
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from django.core.exceptions import ValidationError
+from django.db.models import F
 
-from fms_core.models import Project, Sample
+from fms_core.models import Project
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
 from fms_core.template_importer.importers import ProjectStudyLinkSamples
 from fms_core.templates import PROJECT_STUDY_LINK_SAMPLES_TEMPLATE
