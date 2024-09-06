@@ -221,7 +221,6 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
         }
     }), [])
 
-    console.info({ defaultSelection, exceptedSampleIDs, filters })
     return (
         <>
             <LinkSamplesToStudy
@@ -233,7 +232,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
                 filters={filters}
                 handleOk={() => setLinkSamplesToStudyOpen(false)}
                 handleCancel={() => setLinkSamplesToStudyOpen(false)}
-                handleSuccess={() => refreshStudySteps(exceptedSampleIDs)}
+                handleSuccess={() => refreshStudySteps(pagedItems.items)}
             />
             <PagedItemsTable<ObjectWithSample>
                 getDataObjectsByID={mapSamplesID}

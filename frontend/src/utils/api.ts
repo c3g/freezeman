@@ -174,8 +174,6 @@ const api = {
   },
 
   projects: {
-    addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], filters?: any) =>
-        post<StringResponse>(`/projects/add_samples_to_study/`, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder, filters }),
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
@@ -209,8 +207,10 @@ const api = {
   samples: {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
+    addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], queryParams?: QueryParams) =>
+      filteredpost<StringResponse>(`/samples/add_samples_to_study/`, queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
     update: sample => patch(`/samples/${sample.id}/`, sample),
-    list: (options, abort?) => get("/samples/", options, { abort }),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSSample>>>("/samples/", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
@@ -396,7 +396,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
   };
 }
 
-type QueryParams = Parameters<typeof qs>[0]
+export type QueryParams = Parameters<typeof qs>[0]
 
 function get<R extends ResponseWithData<any>>(route: string, queryParams?: QueryParams, options?: APIFetchOptions) {
   const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')

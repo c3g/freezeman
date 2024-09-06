@@ -4,9 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
-from fms_core.services.project import add_sample_to_study
 from fms_core.models import Project, Sample
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
 from fms_core.template_importer.importers import ProjectStudyLinkSamples
@@ -63,37 +61,3 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "open_count": Project.objects.filter(status="Open").count(),
             "closed_count": Project.objects.filter(status="Closed").count(),
         })
-    
-    @action(detail=False, methods=["post"])
-    def add_samples_to_study(self, request, pk=None):
-        excepted_sample_ids = request.data.get("excepted_sample_ids")
-        default_selection = request.data.get("default_selection", False)
-        project_id = request.data.get("project_id")
-        study_letter = request.data.get("study_letter")
-        step_order = request.data.get("step_order", None)
-        filters = request.data.get("filters", None)
-
-        samples = (Sample.objects.filter(derived_by_samples__project=project_id, id__in=excepted_sample_ids)
-                   if not default_selection
-                   else Sample.objects.filter(derived_by_samples__project=project_id).exclude(id__in=excepted_sample_ids))
-        if filters:
-            samples = samples.filter(**filters)
-        samples = samples.all()
-        project = Project.objects.get(id=project_id)
-
-        errors = defaultdict(list)
-        with transaction.atomic():
-            rollback = False
-            for sample in samples:
-                _errors, _ = add_sample_to_study(sample, project, study_letter, step_order)
-                for key, error in _errors.items():
-                    if error:
-                        errors[key].extend([error] if isinstance(error, str) else error)
-                        rollback = True
-            if rollback:
-                transaction.set_rollback(True)
-        
-        if errors:
-            raise ValidationError(errors)
-        else:
-            return Response(status=204)

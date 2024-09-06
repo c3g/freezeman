@@ -64,7 +64,7 @@ export default function LinkSamplesToStudy({ open, defaultSelection, exceptedSam
             onOk={() => {
                 if (sampleCount > 0 && study && stepOrder) {
                     setLoading(true)
-                    dispatch(api.projects.addSamplesToStudy(exceptedSampleIDs, defaultSelection, projectID, study.letter, stepOrder.order, serializeFilterParamsWithDescriptions(filters))).then(
+                    dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, projectID, study.letter, stepOrder.order, serializeFilterParamsWithDescriptions(filters))).then(
                         () => {
                             dispatch(notifySuccess({
                                 id: NOTIFICATION_ID,
