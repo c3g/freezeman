@@ -20,8 +20,6 @@ interface FilterPanelProps {
 function useLegacySetFilterCallback(setFilter: SetFilterCallback) {
 	return useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
-            console.log(value)
-            console.log(description)
 			setFilter(value, description)
 		},
 		[setFilter]
@@ -86,7 +84,7 @@ const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption, withCo
                     display: 'flex',
                     gap: '0.5em',
                     flexWrap: 'wrap',
-                    justifyContent:"flex-end"
+                    justifyContent:"flex-start"
                 }}>
                     {descriptions.map((description) => {
                         return createFilterContainer(description)

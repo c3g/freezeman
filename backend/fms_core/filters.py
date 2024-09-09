@@ -2,6 +2,7 @@ from django.db.models import Q, Max
 
 from django.utils import timezone
 import datetime
+
 from .models import (Container,
                      DerivedBySample,
                      Index,
@@ -10,6 +11,7 @@ from .models import (Container,
                      PropertyValue,
                      Dataset,
                      Biosample,
+                     ExperimentRun,
                      Readset,
                      SampleNextStep,
                      SampleNextStepByStudy,
@@ -30,6 +32,7 @@ from .viewsets._constants import (
     _sample_next_step_by_study_filterset_fields,
     _readset_filterset_fields,
     _stephistory_filterset_fields,
+    _experiment_run_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -192,6 +195,24 @@ class DatasetFilter(GenericFilter):
     class Meta:
         model = Dataset
         fields = _dataset_filterset_fields
+
+class ExperimentRunFilter(GenericFilter):
+    experiment_run_process = django_filters.CharFilter(method="experiment_run_process_filter")
+
+    def experiment_run_process_filter(self, queryset, name, value):
+        condition = Q(quantity_ng__gte=value)
+        if value == "processed":
+            # if there is at least 1 readset with the validation status set to AVAILABLE, return the experiment run
+            return queryset.filter(datasets__readsets__validation_status__in=[1,2])
+        if value == "validated":
+            # if there is at least 1 readset with the released status set to AVAILABLE, return the experiment run
+            return queryset.filter(datasets__readsets__release_status__in=[1,2])
+        if value == "released":
+            return queryset.filter(datasets__readsets__release_status=1)
+
+    class Meta:
+        model = ExperimentRun
+        fields = _experiment_run_filterset_fields
 
 class PooledSamplesFilter(GenericFilter):
     parent_sample_name__icontains = django_filters.CharFilter(method="parent_sample_name_filter")

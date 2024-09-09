@@ -7,14 +7,15 @@ import { EXPERIMENT_RUN_FILTER_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ObjectWi
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects";
 import React, { useEffect } from "react";
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
-import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER, EXPERIMENT_RUNS_RELEASED_FILTER, EXPERIMENT_RUNS_VALIDATION_STATUS_FILTER } from "./ExperimentRunsDetachedFilters"
+import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER, EXPERIMENT_RUN_PROCESS_FILTER } from "./ExperimentRunsDetachedFilters"
 import FilterPanel from "../filters/filterPanel/FilterPanel";
+import Flexbar from "../shared/Flexbar";
+import FiltersBar from "../filters/filtersBar/FiltersBar";
 
 
 const detachedFilters = [
 	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
-    EXPERIMENT_RUNS_VALIDATION_STATUS_FILTER,
-    EXPERIMENT_RUNS_RELEASED_FILTER
+    EXPERIMENT_RUN_PROCESS_FILTER
 ]
 
 function ExperimentRunListContent() {
@@ -42,17 +43,19 @@ function ExperimentRunListContent() {
 
     return (
         <>
-            <FilterPanel descriptions={detachedFilters}
-                filters={experimentRunsTableState.filters}
-                setFilter={callbacks.setFilterCallback}
-                setFilterOption={callbacks.setFilterOptionsCallback}
-                withCollapsible={false}
-                />
+            <Flexbar style={{alignItems: 'center', paddingBottom: "10px"}}>
+                <FilterPanel descriptions={detachedFilters}
+                    filters={experimentRunsTableState.filters}
+                    setFilter={callbacks.setFilterCallback}
+                    setFilterOption={callbacks.setFilterOptionsCallback}
+                    withCollapsible={false}/>
+                <FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
+            </Flexbar>
             <PagedItemsTable<ObjectWithExperimentRun>
                 columns={columns}
                 getDataObjectsByID={getDataObjectsByID}
                 pagedItems={experimentRunsTableState}
-                usingFilters={true}
+                usingFilters={false}
                 {...callbacks}/>
 		</>
     )

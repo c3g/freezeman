@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.http import HttpResponseServerError, HttpResponseNotFound
 from django.db.models import OuterRef, Subquery
 
+from fms_core.filters import ExperimentRunFilter
 from fms_core.models import ExperimentRun, Dataset
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer, ExternalExperimentRunSerializer
 from fms_core.services.experiment_run import (start_experiment_run_processing,
@@ -19,7 +20,7 @@ from ._constants import _experiment_run_filterset_fields
 
 
 
-class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
+class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin): # the distinct is to be removed
     queryset = ExperimentRun.objects.select_related("run_type", "container", "instrument").distinct()
     serializer_class = ExperimentRunSerializer
     serializer_export_class = ExperimentRunExportSerializer
@@ -39,6 +40,8 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ordering = ["-id"]
 
     template_action_list = []
+
+    filterset_class = ExperimentRunFilter
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
