@@ -59,9 +59,6 @@ export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowSte
 	if(! study) {
 		throw new Error(`Study "${studyID}" not found.`)
 	}
-	if (study.isFetching) {
-		throw new Error('Cannot load study samples - study is still fetching.')
-	}
 
 	const workflow = (await fetchWorkflows([study.workflow_id])).find(wf => wf.id === study.workflow_id)
 	if(! workflow) {

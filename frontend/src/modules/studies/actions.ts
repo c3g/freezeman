@@ -12,7 +12,7 @@ export const get = (id: number) => async (dispatch: AppDispatch, getState: () =>
 	return await dispatch(networkAction(GET, api.studies.get(id), { meta: { id } }))
 }
 
-export const list = (options) => async (dispatch) => {
+export const list = (options: any) => async (dispatch: AppDispatch) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
         api.studies.list(params),

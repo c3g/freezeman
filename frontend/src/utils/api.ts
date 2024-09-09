@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep, FMSStepHistory, LabworkStepInfo } from "../models/fms_api_models";
+import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -193,7 +193,7 @@ const api = {
 
   protocols: {
     list:  (options, abort?) => get("/protocols/", options, { abort }),
-    lastProtocols: (options, abort?) => get("/protocols/last_protocols/", options, { abort }),
+    lastProtocols: (options, abort?) => get<JsonResponse<{sample_result: FMSSample['id'], protocol: FMSProtocol['name']}[]>>("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {
@@ -207,8 +207,10 @@ const api = {
   samples: {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
+    addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], queryParams?: QueryParams) =>
+      filteredpost<StringResponse>(`/samples/add_samples_to_study/`, queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
     update: sample => patch(`/samples/${sample.id}/`, sample),
-    list: (options, abort?) => get("/samples/", options, { abort }),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSSample>>>("/samples/", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
@@ -253,7 +255,7 @@ const api = {
   },
 
   sampleNextStepByStudy: {
-    getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
+    getStudySamples: (options: any) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStepByStudy>>>('/sample-next-step-by-study/', {...options}),
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
@@ -275,14 +277,14 @@ const api = {
   },
 
   steps: {
-    list: (options, abort?) => get('/steps/', options, { abort} ),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStep>>>('/steps/', options, { abort} ),
   },
 
   studies: {
-    get: studyId => get(`/studies/${studyId}/`),
+    get: studyId => get<JsonResponse<FMSStudy>>(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
-    list: (options, abort?) => get('/studies', options, {abort}),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies', options, {abort}),
     listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
@@ -306,7 +308,7 @@ const api = {
   },
 
   workflows: {
-    get: workflowId => get(`/workflows/${workflowId}/`),
+    get: (workflowId: FMSWorkflow['id']) => get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
     list: (options, abort?) => get('/workflows/', options, { abort })
   },
 
@@ -394,7 +396,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
   };
 }
 
-type QueryParams = Parameters<typeof qs>[0]
+export type QueryParams = Parameters<typeof qs>[0]
 
 function get<R extends ResponseWithData<any>>(route: string, queryParams?: QueryParams, options?: APIFetchOptions) {
   const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
@@ -460,7 +462,7 @@ function createAPIError<R extends ResponseWithData<any>>(response: R): ApiError 
   return error;
 }
 
-interface FMSResponse<T = any> extends Response {
+export interface FMSResponse<T = any> extends Response {
   isJSON: boolean
   data: T
   filename?: string
