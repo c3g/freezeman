@@ -13,29 +13,6 @@ export const EXPERIMENT_RUNS_PLATFORM_NAME_FILTER: FilterDescription = {
     ],
 }
 
-export const EXPERIMENT_RUNS_VALIDATION_STATUS_FILTER: FilterDescription = {
-    type: FILTER_TYPE.SELECT,
-    key: 'datasets__readsets__validation_status',
-    label: 'Has validated lanes',
-    placeholder: 'All',
-    options: [
-        { label: 'Has Validated lanes', value: '1' },
-        { label: 'Has Failed lanes', value: '2' },
-    ],
-}
-
-export const EXPERIMENT_RUNS_RELEASED_FILTER: FilterDescription = {
-    type: FILTER_TYPE.SELECT,
-    key: 'datasets__readsets__release_status',
-    label: 'Released lanes',
-    placeholder: 'All',
-    options: [
-        { label: 'Available', value: '0' },
-        { label: 'Released', value: '1' },
-        { label: 'Blocked', value: '2' },
-    ],
-}
-
 export const EXPERIMENT_RUN_PROCESS_FILTER: FilterDescription = {
     type: FILTER_TYPE.SELECT,
     key: 'experiment_run_progress_stage',
