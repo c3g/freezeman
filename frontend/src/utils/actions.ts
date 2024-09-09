@@ -40,7 +40,7 @@ export interface NetworkActionListReceive extends AnyAction {
  * @param {object} [options.meta] - Additional data for actions
  * @param {boolean} [options.meta.ignoreError] - Don't show error notification on error
  */
-export const networkAction = <Prefix extends string, T>(types : NetworkActionTypes<Prefix>, apiAction: NetworkActionThunk<T>, options : NetworkActionOptions = {}) => (dispatch : AppDispatch) => {
+export const networkAction = <Prefix extends string, T>(types: NetworkActionTypes<Prefix>, apiAction: NetworkActionThunk<T>, options: NetworkActionOptions = {}) => (dispatch: AppDispatch) => {
     const { meta, transform } = options
     dispatch({ type: types.REQUEST, meta });
 
