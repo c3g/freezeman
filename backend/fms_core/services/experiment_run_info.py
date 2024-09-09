@@ -125,7 +125,7 @@ def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
         version=RUN_INFO_FILE_VERSION,
         run_name=experiment_run.name or '',
         run_obj_id=experiment_run.pk,
-        run_start_date= start_date,
+        run_start_date=start_date,
         container_obj_id=experiment_run.container.pk,
         container_kind=experiment_run.container.kind,
         container_barcode=experiment_run.container.barcode,
