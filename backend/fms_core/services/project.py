@@ -61,7 +61,7 @@ def add_sample_to_study(sample: Sample, project: Project, study_letter: str, ste
     errors = defaultdict(list)
     warnings = defaultdict(list)
 
-    def add_sample_to_study_(sample: Sample, project: Project, study_letter: str, step_order: int | None = None):
+    def helper_add_sample_to_study(sample: Sample, project: Project, study_letter: str, step_order: int | None = None):
         # Make sure the sample is already associated to the project of the given study.
         # In case of pool one of the samples has to be associated to the project
         if sample.is_pool:
@@ -88,7 +88,7 @@ def add_sample_to_study(sample: Sample, project: Project, study_letter: str, ste
             return f"Sample [{sample.name}] is already queued in study [{study_letter}] of project [{project.name}] at step [{step_order}]."
 
 
-    error = add_sample_to_study_(sample, project, study_letter, step_order)
+    error = helper_add_sample_to_study(sample, project, study_letter, step_order)
     if error:
         errors['add_sample_to_study'].append(error)
 
