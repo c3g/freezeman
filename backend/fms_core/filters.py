@@ -197,9 +197,10 @@ class DatasetFilter(GenericFilter):
         fields = _dataset_filterset_fields
 
 class ExperimentRunFilter(GenericFilter):
-    experiment_run_process = django_filters.CharFilter(method="experiment_run_process_filter")
+    experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
 
-    def experiment_run_process_filter(self, queryset, name, value):
+    def experiment_run_progress_stage_filter(self, queryset, name, value):
+        # condition not finished, need to create logic for each progress stage
         condition = Q(quantity_ng__gte=value)
         if value == "processed":
             # if there is at least 1 readset with the validation status set to AVAILABLE, return the experiment run

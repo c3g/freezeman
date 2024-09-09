@@ -38,7 +38,7 @@ export const EXPERIMENT_RUNS_RELEASED_FILTER: FilterDescription = {
 
 export const EXPERIMENT_RUN_PROCESS_FILTER: FilterDescription = {
     type: FILTER_TYPE.SELECT,
-    key: 'experiment_run_process',
+    key: 'experiment_run_progress_stage',
     label: 'Experiment Run Steps',
     placeholder: 'All',
     options: [
