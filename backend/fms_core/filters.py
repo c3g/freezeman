@@ -180,6 +180,7 @@ class IndexFilter(GenericFilter):
 class DatasetFilter(GenericFilter):
     release_flag = django_filters.NumberFilter(method="release_flag_filter")
     latest_release_update = django_filters.CharFilter(method="latest_release_update_filter")
+    latest_validation_status_update = django_filters.CharFilter(method="latest_validation_status_update_filter")
 
     def release_flag_filter(self, queryset, name, value):
         return queryset.filter(release_flag=value)
@@ -188,6 +189,12 @@ class DatasetFilter(GenericFilter):
         return queryset.annotate(
             latest_release_update=Max("readsets__release_status_timestamp")
         ).filter(latest_release_update__gt=value)
+
+    def latest_validation_status_update_filter(self, queryset, name, value):
+        return queryset.annotate(
+            latest_validation_status_update=Max("readsets__validation_status_timestamp")
+        ).filter(latest_validation_status_update__gt=value)
+
 
     class Meta:
         model = Dataset
