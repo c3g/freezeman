@@ -91,6 +91,7 @@ class RunInfo:
 
     # Flowcell / container for experiment
     container_obj_id: int
+    container_kind: str
     container_barcode: str
 
     platform: str
@@ -126,6 +127,7 @@ def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
         run_obj_id=experiment_run.pk,
         run_start_date= start_date,
         container_obj_id=experiment_run.container.pk,
+        container_kind=experiment_run.container.kind,
         container_barcode=experiment_run.container.barcode,
         platform=instrument.type.platform.name,
         instrument_serial_number=experiment_run.instrument.serial_id,

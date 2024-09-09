@@ -73,6 +73,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertEqual(run_info['run_obj_id'], mgi_experiment.id)
         self.assertEqual(run_info['run_start_date'],  mgi_experiment.start_date.strftime("%Y-%m-%d"))
         self.assertEqual(run_info['container_obj_id'], mgi_experiment.container.id)
+        self.assertEqual(run_info['container_kind'], mgi_experiment.container.kind)
         self.assertEqual(run_info['container_barcode'], mgi_experiment.container.barcode)
         self.assertEqual(run_info['platform'], mgi_experiment.instrument.type.platform.name)
         self.assertEqual(run_info['instrument_serial_number'], mgi_experiment.instrument.serial_id)
