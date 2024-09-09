@@ -100,7 +100,6 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
     def test_sample_cannot_queue_to_non_existent_step(self):
         non_existent_step = 1 # extraction step
         errors, warnings = add_sample_to_study(self.sample_project1, self.project1, self.study_project1_A.letter, non_existent_step)
-        breakpoint()
         self.assertEqual(errors.get("queue_sample_to_study_workflow"), [
             f"Order must be a positive integer between {self.study_project1_A.start} and {self.study_project1_A.end}."
         ])
