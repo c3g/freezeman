@@ -72,7 +72,10 @@ export const READSET_COLUMN_DEFINITIONS = (
                     releaseStatusOption.specific[id]
                 return readset && <Button
                     disabled={!canReleaseOrBlockFiles}
-                    style={{ color: changed ? "red" : "grey", width: "6em" }}
+                    style={{
+                        color: changed ? (releaseStatus === ReleaseStatus.RELEASED ? "green" : "red") : "grey",
+                        width: "6em"
+                    }}
                     onClick={() => releaseStatus && toggleReleaseStatus({ type: "toggle", id, releaseStatus })}>{releaseStatus ? RELEASE_STATUS_STRING[releaseStatus] : RELEASE_STATUS_STRING[readset.release_status]}
                 </Button>
             }
