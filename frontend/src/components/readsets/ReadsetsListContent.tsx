@@ -40,8 +40,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const dispatch = useAppDispatch()
     const { filters, totalCount: totalReadsets } = readsetTableState
 
-    const allFilesReleased = dataset.released_status_count === totalReadsets
-    const allFilesBlocked = dataset.blocked_status_count === totalReadsets
+    const allReadsetsAlreadyReleased = dataset.released_status_count === totalReadsets
+    const allReadsetsAlreadyBlocked = dataset.blocked_status_count === totalReadsets
 
     // For this table, there is a single PagedItems redux state. We need to reset the paged items
     // state whenever a new dataset is selected by the user. This component keeps track of the
@@ -53,7 +53,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         dispatch(ReadsetTableActions.listPage(1))
     }, [dataset.id, dispatch])
 
-    const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
+    const canReleaseOrBlockReadsets = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
 
     const releaseStatusOptionReducer = useReleaseStatusOptionReducer(readsetsByID)
     const [releaseStatusOption, dispatchReleaseStatusOption] = useReducer(
@@ -63,17 +63,10 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             specific: {},
         }
     )
-    const checkIfDecimal = (str: string) => {
-        const num = parseFloat(str)
-        if (String(num).includes('.')) {
-            return num.toFixed(3)
-        } else {
-            return num
-        }
-    }
+
     const columnDefinitions = READSET_COLUMN_DEFINITIONS((action: ReleaseStatusOptionActionToggle) => {
         dispatchReleaseStatusOption(action)
-    }, releaseStatusOption, canReleaseOrBlockFiles)
+    }, releaseStatusOption, canReleaseOrBlockReadsets)
 
     let readsetTableColumns = [
         columnDefinitions.ID,
@@ -115,7 +108,12 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 dispatchReleaseStatusOption({ type: "all", releaseStatus: ReleaseStatus.RELEASED })
             }}
             disabled={
-                (!canReleaseOrBlockFiles || (releaseStatusOption.all === ReleaseStatus.RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !statusToggled)
+                (
+                    !canReleaseOrBlockReadsets ||
+                    // if release all and nothing is toggled manually
+                    (releaseStatusOption.all === ReleaseStatus.RELEASED && !statusToggled) ||
+                    (releaseStatusOption.all === undefined && allReadsetsAlreadyReleased)
+                )
             }>
             Release All
         </Button>
@@ -125,7 +123,12 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 dispatchReleaseStatusOption({ type: "all", releaseStatus: ReleaseStatus.BLOCKED })
             }}
             disabled={
-                (!canReleaseOrBlockFiles || (releaseStatusOption.all === ReleaseStatus.BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !statusToggled)
+                (
+                    !canReleaseOrBlockReadsets ||
+                    // if block all and nothing is toggled manually
+                    (releaseStatusOption.all === ReleaseStatus.BLOCKED && !statusToggled) ||
+                    (releaseStatusOption.all === undefined && allReadsetsAlreadyBlocked)
+                )
             }>
             Block All
         </Button>
@@ -134,24 +137,27 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             onClick={() => {
                 dispatchReleaseStatusOption({ type: "undo-all" })
             }}
-            disabled={!releaseStatusOption.all && !statusToggled}>
+            disabled={releaseStatusOption.all === undefined && !statusToggled}>
             Undo Changes
         </Button>
         <Button
             style={{ margin: 6 }}
             onClick={() => {
                 const { all, specific } = releaseStatusOption
+                // reset options for new readset table state
                 dispatchReleaseStatusOption({ type: "undo-all" })
                 if (all) {
                     dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, ReadsetTableActions.refreshPage()))
                 } else {
-                    Object.entries(specific).forEach(([id, release_status]) => {
-                        dispatch(setReleaseStatus(id, release_status, ReadsetTableActions.refreshPage()))
-                    })
+                    for (const [id, release_status] of Object.entries(specific)) {
+                        if (release_status) {
+                            dispatch(setReleaseStatus(id, release_status, ReadsetTableActions.refreshPage()))
+                        }
+                    }
                 }
             }}
             type={"primary"}
-            disabled={!releaseStatusOption.all && !statusToggled}>
+            disabled={releaseStatusOption.all === undefined && !statusToggled}>
             Save Changes
         </Button>
     </div>
@@ -265,8 +271,6 @@ function useReleaseStatusOptionReducer(readsetsByID: Record<Readset['id'], Reads
                     } else if (currentReleaseStatus && currentReleaseStatus !== releaseStatus) {
                         // set specific to opposite of current
                         state.specific[id] = releaseStatus
-                    } else {
-                        console.error(`Invalid state: ${all} ${currentReleaseStatus} ${releaseStatus}`)
                     }
 
                     break
@@ -279,6 +283,15 @@ function useReleaseStatusOptionReducer(readsetsByID: Record<Readset['id'], Reads
             }
         })
     }, [readsetsByID])
+}
+
+function checkIfDecimal(str: string) {
+    const num = parseFloat(str)
+    if (String(num).includes('.')) {
+        return num.toFixed(3)
+    } else {
+        return num
+    }
 }
 
 export default ReadsetsListContent

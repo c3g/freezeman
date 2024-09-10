@@ -33,7 +33,11 @@ export enum ReadsetColumnID {
     NUMBER_READS = 'NUMBER_READS',
 }
 
-export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus: (action: ReleaseStatusOptionActionToggle) => void, releaseStatusOption: ReleaseStatusOptionState, canReleaseOrBlockFiles: boolean): { [key in ReadsetColumnID]: ReadsetColumn } => {
+export const READSET_COLUMN_DEFINITIONS = (
+    toggleReleaseStatus: (action: ReleaseStatusOptionActionToggle) => void,
+    releaseStatusOption: ReleaseStatusOptionState,
+    canReleaseOrBlockFiles: boolean
+): { [key in ReadsetColumnID]: ReadsetColumn } => {
     return {
         [ReadsetColumnID.ID]: {
             columnID: ReadsetColumnID.ID,
