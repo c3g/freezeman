@@ -200,16 +200,12 @@ class ExperimentRunFilter(GenericFilter):
     experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
-        # condition not finished, need to create logic for each progress stage
-        condition = Q(quantity_ng__gte=value)
         if value == "processed":
-            # if there is at least 1 readset with the validation status set to AVAILABLE, return the experiment run
             return queryset.filter(datasets__readsets__validation_status__in=[1,2])
         if value == "validated":
-            # if there is at least 1 readset with the released status set to AVAILABLE, return the experiment run
-            return queryset.filter(datasets__readsets__release_status__in=[1,2])
+            return queryset.filter(datasets__readsets__release_status=0,datasets__readsets__validation_status__in=[1,2])
         if value == "released":
-            return queryset.filter(datasets__readsets__release_status=1)
+            return queryset.filter(datasets__readsets__release_status=1,datasets__readsets__validation_status__in=[1,2])
 
     class Meta:
         model = ExperimentRun
