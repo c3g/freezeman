@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from "react"
+import React, { useCallback, useEffect, useReducer } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import ReadsetTableActions from "../../modules/readsetsTable/actions"
@@ -7,7 +7,7 @@ import FilterPanel from "../filters/filterPanel/FilterPanel";
 import FiltersBar from "../filters/filtersBar/FiltersBar";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectReadsetsByID, selectReadsetsTable } from "../../selectors";
-import { BLOCKED, ObjectWithReadset, READSET_COLUMN_DEFINITIONS, READSET_COLUMN_FILTERS, READSET_FILTER_KEYS, RELEASED, ReadsetColumnID } from "./ReadsetsTableColumns";
+import { ObjectWithReadset, READSET_COLUMN_DEFINITIONS, READSET_COLUMN_FILTERS, READSET_FILTER_KEYS, ReadsetColumnID } from "./ReadsetsTableColumns";
 import { Dataset, Readset } from "../../models/frontend_models";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
@@ -20,68 +20,42 @@ import { FILTER_TYPE } from "../../constants";
 import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities";
 import { setReleaseStatusAll } from "../../modules/datasets/actions";
 import { setReleaseStatus } from "../../modules/readsets/actions";
+import produce, { Draft } from "immer";
+import { ReleaseStatusOptionAction, ReleaseStatusOptionActionToggle, ReleaseStatusOptionState } from "./interface";
+import { ReleaseStatus } from "../../models/fms_api_models";
 
 interface ReadsetsListContentProps {
-    dataset?: Dataset
-    laneValidationStatus?: ValidationStatus
+    dataset: Dataset
+    laneValidationStatus: ValidationStatus
 }
 
 const wrapReadset = (readset: Readset): ObjectWithReadset => {
     return { readset }
 }
+
 const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListContentProps) => {
     const readsetsByID = useAppSelector(selectReadsetsByID)
     const readsetTableState = useAppSelector(selectReadsetsTable)
     const readsetTableCallbacks = usePagedItemsActionsCallbacks(ReadsetTableActions)
     const dispatch = useAppDispatch()
-    const { filters, totalCount } = readsetTableState
+    const { filters, totalCount: totalReadsets } = readsetTableState
 
-    const allFilesReleased = dataset?.released_status_count === totalCount
-    const allFilesBlocked = dataset?.blocked_status_count === totalCount
+    const allFilesReleased = dataset.released_status_count === totalReadsets
+    const allFilesBlocked = dataset.blocked_status_count === totalReadsets
 
     // For this table, there is a single PagedItems redux state. We need to reset the paged items
     // state whenever a new dataset is selected by the user. This component keeps track of the
     // last dataset that was loaded so that it can detect when it has received a new dataset
     // and has to flush the state.
-    const currentDatasetID = dataset ? +dataset.id : undefined
     useEffect(() => {
-        if (currentDatasetID) {
-            dispatch(ReadsetTableActions.resetPagedItems())
-            dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', String(currentDatasetID))))
-            dispatch(ReadsetTableActions.listPage(1))
-        }
-    }, [dispatch, currentDatasetID])
+        dispatch(ReadsetTableActions.resetPagedItems())
+        dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', dataset.id.toString())))
+        dispatch(ReadsetTableActions.listPage(1))
+    }, [dataset.id, dispatch])
 
     const canReleaseOrBlockFiles = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
 
-    const releaseStatusOptionReducer = (state, action) => {
-        switch (action.type) {
-            case "all":
-                return { all: action.release_status, specific: {} }
-            case "toggle": {
-                const { all } = state
-                const { id, releaseStatus } = action
-                const newState = { ...state, specific: { ...state.specific } }
-
-                if (all) {
-                    if (all !== releaseStatus) {
-                        newState.specific[id] = releaseStatus
-                    } else {
-                        delete newState.specific[id]
-                    }
-                } else {
-                    if (readsetsByID[id]?.release_status !== releaseStatus) {
-                        newState.specific[id] = releaseStatus
-                    } else {
-                        delete newState.specific[id]
-                    }
-                }
-
-                return newState
-            }
-        }
-    }
-
+    const releaseStatusOptionReducer = useReleaseStatusOptionReducer(readsetsByID)
     const [releaseStatusOption, dispatchReleaseStatusOption] = useReducer(
         releaseStatusOptionReducer,
         {
@@ -89,7 +63,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             specific: {},
         }
     )
-    const checkIfDecimal = (str) => {
+    const checkIfDecimal = (str: string) => {
         const num = parseFloat(str)
         if (String(num).includes('.')) {
             return num.toFixed(3)
@@ -97,8 +71,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             return num
         }
     }
-    const columnDefinitions = READSET_COLUMN_DEFINITIONS((id, releaseStatus) => {
-        dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus, readsetsByID })
+    const columnDefinitions = READSET_COLUMN_DEFINITIONS((action: ReleaseStatusOptionActionToggle) => {
+        dispatchReleaseStatusOption(action)
     }, releaseStatusOption, canReleaseOrBlockFiles)
 
     let readsetTableColumns = [
@@ -133,35 +107,32 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
 
     const mapContainerIDs = useItemsByIDToDataObjects(selectReadsetsByID, wrapReadset)
     const statusToggled = Object.keys(releaseStatusOption.specific).length > 0
-    const dispatchReleaseStatusOptionTypeAll = (release_status) => {
-        dispatchReleaseStatusOption({ type: "all", release_status })
-    }
 
     const extraButtons = <div>
         <Button
             style={{ margin: 6 }}
             onClick={() => {
-                dispatchReleaseStatusOptionTypeAll(RELEASED)
+                dispatchReleaseStatusOption({ type: "all", releaseStatus: ReleaseStatus.RELEASED })
             }}
             disabled={
-                (!canReleaseOrBlockFiles || (releaseStatusOption.all === RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !statusToggled)
+                (!canReleaseOrBlockFiles || (releaseStatusOption.all === ReleaseStatus.RELEASED || (!releaseStatusOption.all && allFilesReleased)) && !statusToggled)
             }>
             Release All
         </Button>
         <Button
             style={{ margin: 6 }}
             onClick={() => {
-                dispatchReleaseStatusOptionTypeAll(BLOCKED)
+                dispatchReleaseStatusOption({ type: "all", releaseStatus: ReleaseStatus.BLOCKED })
             }}
             disabled={
-                (!canReleaseOrBlockFiles || (releaseStatusOption.all === BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !statusToggled)
+                (!canReleaseOrBlockFiles || (releaseStatusOption.all === ReleaseStatus.BLOCKED || (!releaseStatusOption.all && allFilesBlocked)) && !statusToggled)
             }>
             Block All
         </Button>
         <Button
             style={{ margin: 6 }}
             onClick={() => {
-                dispatchReleaseStatusOptionTypeAll(undefined)
+                dispatchReleaseStatusOption({ type: "undo-all" })
             }}
             disabled={!releaseStatusOption.all && !statusToggled}>
             Undo Changes
@@ -170,6 +141,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             style={{ margin: 6 }}
             onClick={() => {
                 const { all, specific } = releaseStatusOption
+                dispatchReleaseStatusOption({ type: "undo-all" })
                 if (all) {
                     dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, ReadsetTableActions.refreshPage()))
                 } else {
@@ -177,7 +149,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                         dispatch(setReleaseStatus(id, release_status, ReadsetTableActions.refreshPage()))
                     })
                 }
-                dispatchReleaseStatusOptionTypeAll(undefined)
             }}
             type={"primary"}
             disabled={!releaseStatusOption.all && !statusToggled}>
@@ -206,7 +177,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             <PagedItemsTable<ObjectWithReadset>
                 columns={columns}
                 expandable={{
-                    columnTitle: () => <div>View Metrics</div>,
+                    columnTitle: <div>View Metrics</div>,
                     expandIcon: ({ expanded, onExpand, record }) =>
                         expanded ? (
                             <Tooltip title="Hide Metrics">
@@ -268,4 +239,46 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         </PageContent>
     </div>;
 }
+
+function useReleaseStatusOptionReducer(readsetsByID: Record<Readset['id'], Readset | undefined>) {
+    return useCallback((state: ReleaseStatusOptionState, action: ReleaseStatusOptionAction) => {
+        return produce(state, (state: Draft<ReleaseStatusOptionState>) => {
+            switch (action.type) {
+                case "all": {
+                    state.all = action.releaseStatus
+                    state.specific = {}
+                    break
+                }
+                case "toggle": {
+                    const { all } = state
+                    const { id, releaseStatus } = action
+                    const currentReleaseStatus = readsetsByID[id]?.release_status
+
+                    if (all) {
+                        if (all !== releaseStatus) {
+                            // set specific to opposite of all
+                            state.specific[id] = releaseStatus
+                        } else {
+                            // merge with all
+                            delete state.specific[id]
+                        }
+                    } else if (currentReleaseStatus && currentReleaseStatus !== releaseStatus) {
+                        // set specific to opposite of current
+                        state.specific[id] = releaseStatus
+                    } else {
+                        console.error(`Invalid state: ${all} ${currentReleaseStatus} ${releaseStatus}`)
+                    }
+
+                    break
+                }
+                case "undo-all": {
+                    state.all = undefined
+                    state.specific = {}
+                    break
+                }
+            }
+        })
+    }, [readsetsByID])
+}
+
 export default ReadsetsListContent

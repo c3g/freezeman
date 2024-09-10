@@ -5,14 +5,23 @@ import { FilterDescription } from "../../models/paged_items";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
 import { FILTER_TYPE } from "../../constants";
 import { Button } from "antd";
+import { ReleaseStatusOptionActionToggle, ReleaseStatusOptionState } from "./interface";
+import { ReleaseStatus } from "../../models/fms_api_models";
 
 export interface ObjectWithReadset {
     readset: Readset
 }
-export const RELEASED = 1
-export const BLOCKED = 2
-export const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
-export const OPPOSITE_STATUS = [RELEASED, BLOCKED, RELEASED]
+
+export const RELEASE_STATUS_STRING = {
+    [ReleaseStatus.RELEASED]: 'Released',
+    [ReleaseStatus.BLOCKED]: 'Blocked',
+    [ReleaseStatus.AVAILABLE]: 'Available',
+} as const
+export const OPPOSITE_STATUS = {
+    [ReleaseStatus.RELEASED]: ReleaseStatus.BLOCKED,
+    [ReleaseStatus.BLOCKED]: ReleaseStatus.RELEASED,
+    [ReleaseStatus.AVAILABLE]: ReleaseStatus.AVAILABLE,
+} as const
 export type ReadsetColumn = IdentifiedTableColumnType<ObjectWithReadset>
 
 export enum ReadsetColumnID {
@@ -24,7 +33,7 @@ export enum ReadsetColumnID {
     NUMBER_READS = 'NUMBER_READS',
 }
 
-export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOption, canReleaseOrBlockFiles): { [key in ReadsetColumnID]: ReadsetColumn } => {
+export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus: (action: ReleaseStatusOptionActionToggle) => void, releaseStatusOption: ReleaseStatusOptionState, canReleaseOrBlockFiles: boolean): { [key in ReadsetColumnID]: ReadsetColumn } => {
     return {
         [ReadsetColumnID.ID]: {
             columnID: ReadsetColumnID.ID,
@@ -51,12 +60,17 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             sorter: true,
             render: (_, { readset }) => {
                 const { id } = readset;
-                const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? readset.release_status
-                const changed = (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
+                const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all
+                const changed =
+                    // If the release status is not the same as the global release status
+                    (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status) ||
+                    // If the release status is exempt from the global release status
+                    !releaseStatusOption.specific[id] ||
+                    (!releaseStatusOption.all && releaseStatusOption.specific[id])
                 return readset && <Button
                     disabled={!canReleaseOrBlockFiles}
                     style={{ color: changed ? "red" : "grey", width: "6em" }}
-                    onClick={() => toggleReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}
+                    onClick={() => releaseStatus && toggleReleaseStatus({ type: "toggle", id, releaseStatus })}>{releaseStatus ? RELEASE_STATUS_STRING[releaseStatus] : RELEASE_STATUS_STRING[readset.release_status]}
                 </Button>
             }
         },

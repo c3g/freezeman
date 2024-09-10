@@ -1,4 +1,4 @@
-import { Descriptions } from "antd"
+import { Descriptions, Spin } from "antd"
 import React, { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from '../../hooks'
@@ -71,7 +71,9 @@ const DatasetDetailContent = () => {
                     <Descriptions.Item label={"Total Readsets"} span={1}>{loading(dataset?.readset_count)}</Descriptions.Item>
                     <Descriptions.Item label={"Readsets Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
                 </Descriptions>
-                <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} />
+                {dataset && laneValidationStatus
+                    ? <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} />
+                    : <Spin />}
             </div>
         </PageContent>
     </>
