@@ -2,6 +2,7 @@ from django.db.models import Q, Max
 
 from django.utils import timezone
 import datetime
+from models._constants import ReleaseStatus, ValidationStatus
 
 from .models import (Container,
                      DerivedBySample,
@@ -201,11 +202,11 @@ class ExperimentRunFilter(GenericFilter):
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
         if value == "processed":
-            return queryset.filter(datasets__readsets__validation_status__in=[1,2])
+            return queryset.filter(datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
         if value == "validated":
-            return queryset.filter(datasets__readsets__release_status=0,datasets__readsets__validation_status__in=[1,2])
+            return queryset.filter(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value,datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
         if value == "released":
-            return queryset.filter(datasets__readsets__release_status=1,datasets__readsets__validation_status__in=[1,2])
+            return queryset.filter(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value,datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
 
     class Meta:
         model = ExperimentRun
