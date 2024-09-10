@@ -6,6 +6,16 @@ from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none, input_to_integer_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
+
+def split_taxon(taxon: str | None):
+    if taxon is None:
+        return None, None
+    else:
+        taxon_name, taxon_id = taxon.split("#")
+        taxon_name = taxon_name.strip()
+        taxon_id = taxon_id.strip()
+        return taxon_name, int(taxon_id)
+
 class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_SUBMISSION_TEMPLATE["sheets info"]
     def __init__(self):
@@ -47,7 +57,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'alias': str_cast_and_normalize(row_data['Individual Alias']),
                 'sex': str_cast_and_normalize(row_data['Sex']),
                 'pedigree': str_cast_and_normalize(row_data['Pedigree']),
-                'taxon': input_to_integer_and_none(row_data['NCBI Taxon ID #']),
+                'taxon': split_taxon(row_data['NCBI Taxon ID #'])[1],
                 'reference_genome': str_cast_and_normalize(row_data['Reference Genome']),
                 'cohort': str_cast_and_normalize(row_data['Cohort']),
             }
