@@ -68,9 +68,8 @@ export const READSET_COLUMN_DEFINITIONS = (
                 const changed =
                     // If the release status is not the same as the global release status
                     (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status) ||
-                    // If the release status is exempt from the global release status
-                    !releaseStatusOption.specific[id] ||
-                    (!releaseStatusOption.all && releaseStatusOption.specific[id])
+                    // If the release status is specifically set
+                    releaseStatusOption.specific[id]
                 return readset && <Button
                     disabled={!canReleaseOrBlockFiles}
                     style={{ color: changed ? "red" : "grey", width: "6em" }}
