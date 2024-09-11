@@ -98,7 +98,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                         // if release all and nothing is toggled manually
                         (releaseStatusOption.all === ReleaseStatus.RELEASED && !statusToggled) ||
                         // if not all set and all readsets are already released
-                        (releaseStatusOption.all === undefined && allReadsetsAlreadyReleased)
+                        (releaseStatusOption.all === undefined && allReadsetsAlreadyReleased && !statusToggled)
                     )
                 }>
                 Release All
@@ -114,7 +114,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                         // if block all and nothing is toggled manually
                         (releaseStatusOption.all === ReleaseStatus.BLOCKED && !statusToggled) ||
                         // if not all set and all readsets are already blocked
-                        (releaseStatusOption.all === undefined && allReadsetsAlreadyBlocked)
+                        (releaseStatusOption.all === undefined  && allReadsetsAlreadyBlocked && !statusToggled)
                     )
                 }>
                 Block All
