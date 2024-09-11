@@ -83,6 +83,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         const allReadsetsAlreadyReleased = dataset.released_status_count === totalReadsets
         const allReadsetsAlreadyBlocked = dataset.blocked_status_count === totalReadsets
         const statusToggled = Object.keys(releaseStatusOption.specific).length > 0
+
+        const saveChangesEnabled = releaseStatusOption.all !== undefined || Object.keys(releaseStatusOption.specific).length === totalReadsets
     
         return <div>
             <Button
@@ -145,9 +147,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                     }
                 }}
                 type={"primary"}
-                disabled={
-                    releaseStatusOption.all === undefined && Object.keys(releaseStatusOption.specific).length < totalReadsets
-                }>
+                disabled={!saveChangesEnabled}>
                 Save Changes
             </Button>
         </div>
