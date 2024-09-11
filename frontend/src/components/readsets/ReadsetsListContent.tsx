@@ -252,6 +252,27 @@ function useReleaseStatusOptionReducer(totalReadsets: number) {
     }, [readsetsByID, totalReadsets])
 }
 
+interface ReleaseStatusState {
+    all: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined
+    specific: Record<Readset['id'], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined>
+}
+
+interface ReleaseStatusActionAll {
+    type: "all"
+    releaseStatus: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED
+}
+interface ReleaseStatusActionToggle {
+    type: "toggle"
+    id: Readset["id"]
+}
+interface ReleaseStatusActionUndoChanges {
+    type: "undo-changes"
+}
+type ReleaseStatusOptionAction =
+    | ReleaseStatusActionAll
+    | ReleaseStatusActionToggle
+    | ReleaseStatusActionUndoChanges
+
 function useColumns(filters: FilterSet, readsetTableCallbacks: PagedItemsActionsCallbacks, renderReleaseStatus: (value: any, record: ObjectWithReadset, index: number) => React.JSX.Element) {
     const columnDefinitions = useReadsetColumnDefinitions({
         renderReleaseStatus
@@ -381,24 +402,3 @@ function checkIfDecimal(str: string) {
 function wrapReadset(readset: Readset): ObjectWithReadset {
     return { readset }
 }
-
-interface ReleaseStatusState {
-    all: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined
-    specific: Record<Readset['id'], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined>
-}
-
-interface ReleaseStatusActionAll {
-    type: "all"
-    releaseStatus: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED
-}
-interface ReleaseStatusActionToggle {
-    type: "toggle"
-    id: Readset['id']
-}
-interface ReleaseStatusActionUndoChanges {
-    type: "undo-changes"
-}
-type ReleaseStatusOptionAction =
-    | ReleaseStatusActionAll
-    | ReleaseStatusActionToggle
-    | ReleaseStatusActionUndoChanges
