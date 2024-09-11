@@ -208,11 +208,15 @@ class ExperimentRunFilter(GenericFilter):
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
         if value == "processed":
-            return queryset.filter(datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
+            if queryset.filter(datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value]).exists():
+                return queryset.filter(datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
         if value == "validated":
-            return queryset.filter(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value,datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
+            condition = Q(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value,datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
+            if queryset.filter(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value).exists():
+                return queryset.filter(condition)
         if value == "released":
-            return queryset.filter(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value,datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
+            if queryset.exclude(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value).exists():
+                return queryset.exclude(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value)
 
     class Meta:
         model = ExperimentRun
