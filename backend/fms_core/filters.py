@@ -2,7 +2,7 @@ from django.db.models import Q, Max
 
 from django.utils import timezone
 import datetime
-from models._constants import ReleaseStatus, ValidationStatus
+from .models._constants import ReleaseStatus, ValidationStatus
 
 from .models import (Container,
                      DerivedBySample,

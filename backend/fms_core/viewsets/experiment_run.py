@@ -20,7 +20,7 @@ from ._constants import _experiment_run_filterset_fields
 
 
 
-class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin): # the distinct is to be removed
+class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = ExperimentRun.objects.select_related("run_type", "container", "instrument").distinct()
     serializer_class = ExperimentRunSerializer
     serializer_export_class = ExperimentRunExportSerializer

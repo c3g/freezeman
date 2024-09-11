@@ -16,7 +16,7 @@ export const EXPERIMENT_RUNS_PLATFORM_NAME_FILTER: FilterDescription = {
 export const EXPERIMENT_RUN_PROCESS_FILTER: FilterDescription = {
     type: FILTER_TYPE.SELECT,
     key: 'experiment_run_progress_stage',
-    label: 'Experiment Run Steps',
+    label: 'Experiment Run Stages',
     placeholder: 'All',
     options: [
         { label: 'Processed', value: 'processed' },
