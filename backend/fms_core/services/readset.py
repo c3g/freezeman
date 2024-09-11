@@ -2,9 +2,11 @@ from typing import List, Tuple
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 from fms_core.models import Dataset
 from fms_core.models import Readset
+from fms_core.models.tracked_model import ADMIN_USERNAME
 from fms_core.models._constants import ReleaseStatus, ValidationStatus
 
 
@@ -24,6 +26,7 @@ def create_readset(dataset: Dataset, name: str, sample_name: str, derived_sample
     readset = None
     errors = []
     warnings = []
+    default_user = User.objects.get(username=ADMIN_USERNAME)
 
     if not isinstance(dataset, Dataset):
         errors.append(f"Creating a readset requires a valid instance of dataset.")
@@ -44,8 +47,10 @@ def create_readset(dataset: Dataset, name: str, sample_name: str, derived_sample
                                          derived_sample_id=derived_sample_id,
                                          release_status=release_status,
                                          **(dict(release_status_timestamp=timezone.now()) if release_status != ReleaseStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
+                                         **(dict(released_by=default_user) if release_status != ReleaseStatus.AVAILABLE else dict()), # Set released_by to admin user if setting Status to non-default
                                          validation_status=validation_status,
-                                         **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict())) # Set timestamp if setting Status to non-default
+                                         **(dict(validation_status_timestamp=timezone.now()) if validation_status != ValidationStatus.AVAILABLE else dict()), # Set timestamp if setting Status to non-default
+                                         **(dict(validated_by=default_user) if validation_status != ValidationStatus.AVAILABLE else dict())) # Set validated_by to admin user if setting Status to non-default
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 

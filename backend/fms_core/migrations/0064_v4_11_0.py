@@ -1,4 +1,6 @@
 import reversion
+import json
+from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 from django.contrib.auth.models import User
@@ -58,6 +60,40 @@ def initialize_default_reference_genome(apps, schema_editor):
             taxon_obj.save()
             reversion.add_to_revision(taxon_obj)
 
+def initialize_validated_by_and_released_by(apps, schema_editor):
+    Readset = apps.get_model("fms_core", "Readset")
+    Version = apps.get_model("reversion", "Version")
+
+    readsets_validated_ids = list(Readset.objects.exclude(validation_status_timestamp__isnull=True).values_list("id", flat=True) or [])
+    readsets_released_ids = list(Readset.objects.exclude(release_status_timestamp__isnull=True).values_list("id", flat=True) or [])
+    readsets_to_update_ids = set(readsets_validated_ids + readsets_released_ids)
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Initialize the validated_by and released_by for readset validated and released before the fields were added.")
+        reversion.set_user(admin_user)
+
+        for readset_id in readsets_to_update_ids:
+            readset_obj = Readset.objects.get(id=readset_id)
+            validated_by_id = None
+            released_by_id = None
+            for readset_validated_version in Version.objects.filter(content_type__model="readset", object_id=readset_id).order_by('-id'):
+                data = json.loads(readset_validated_version.serialized_data)
+                validation_status_timestamp = data[0]["fields"].get("validation_status_timestamp", None)
+                release_status_timestamp = data[0]["fields"].get("release_status_timestamp", None)
+                if validated_by_id is None and validation_status_timestamp is not None:
+                    validated_by_id = data[0]["fields"]["updated_by"]
+                if released_by_id is None and release_status_timestamp is not None:
+                    released_by_id = data[0]["fields"]["updated_by"]
+                    
+            if readset_id in readsets_validated_ids:
+                readset_obj.validated_by_id = validated_by_id
+            if readset_id in readsets_released_ids:
+                readset_obj.released_by_id = released_by_id
+            readset_obj.save()
+            reversion.add_to_revision(readset_obj)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -91,5 +127,19 @@ class Migration(migrations.Migration):
             model_name='individual',
             name='is_generic',
             field=models.BooleanField(default=False, help_text='Flag indicating a generic individual used to replace undefined individuals that share characteristics.'),
+        ),
+        migrations.AddField(
+            model_name='readset',
+            name='released_by',
+            field=models.ForeignKey(blank=True, help_text='User that released the readset data to the client.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='released_readsets', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='readset',
+            name='validated_by',
+            field=models.ForeignKey(blank=True, help_text='User that validated the readset data.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='validated_readsets', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.RunPython(
+            initialize_validated_by_and_released_by,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

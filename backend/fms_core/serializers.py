@@ -142,7 +142,7 @@ class ContainerExportSerializer(serializers.ModelSerializer):
 
     def get_children_containers_count(self, obj):
         return obj.children.all().count()
-    
+
     def get_samples_contained_count(self, obj):
         return obj.samples.all().count()
 
@@ -215,10 +215,10 @@ class ExternalExperimentRunSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = ("run_name", "lanes", "latest_submission_timestamp")
-    
+
     def get_lanes(self, obj):
         return Dataset.objects.filter(run_name=obj.run_name).values_list("lane", flat=True).distinct()
-    
+
     def get_latest_submission_timestamp(self, obj):
         return Dataset.objects.filter(run_name=obj.run_name).values_list("updated_at", flat=True).order_by("-updated_at")[:1]
 
@@ -268,7 +268,7 @@ class IndividualExportSerializer(serializers.ModelSerializer):
                   "taxon_ncbi_id",
                   "reference_genome_assembly_name",
                   "generic")
-    
+
     def get_father_name(self, obj):
         father = '' if obj.father is None else obj.father.name
         return father
@@ -314,7 +314,7 @@ class ProtocolSerializer(serializers.ModelSerializer):
         model = Protocol
         fields = "__all__"
         extra_fields = ('property_types')
-    
+
     def get_property_types(self, obj):
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
         return PropertyTypeSerializer(
@@ -399,7 +399,7 @@ class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializ
     def list_property_types(self, obj):
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
         return PropertyType.objects.filter(object_id=obj[0].process.protocol.id, content_type=protocol_content_type)
-    
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         for property_type in self.property_types:
@@ -416,7 +416,7 @@ class PropertyTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyType
         fields = ('id', 'name', 'model')
-    
+
     def get_model(self, obj):
         return PropertyValue.objects.filter(property_type=obj).values_list('content_type__model', flat=True).first()
 
@@ -504,7 +504,6 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
@@ -516,7 +515,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
-        
+
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -545,7 +544,7 @@ class IndexExportSerializer(serializers.ModelSerializer):
     def get_sequences_3prime(self, obj):
         sequences = obj.list_3prime_sequences
         return ", ".join(sequences)
-    
+
     def get_sequences_5prime(self, obj):
         sequences = obj.list_5prime_sequences
         return ", ".join(sequences)
@@ -593,28 +592,44 @@ class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
     blocked_status_count = serializers.SerializerMethodField()
-    latest_release_update = serializers.SerializerMethodField()
     readset_count = serializers.SerializerMethodField()
     archived_comments = ArchivedCommentSerializer("archived_comments", many=True)
+    latest_release_update = serializers.SerializerMethodField()
+    released_by = serializers.SerializerMethodField()
+    validation_status = serializers.SerializerMethodField()
+    latest_validation_update = serializers.SerializerMethodField()
+    validated_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
+        fields = ("id", "external_project_id", "released_by", "validated_by", "latest_validation_update", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
 
     def get_released_status_count(self, obj):
         return Readset.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
-    
+
     def get_blocked_status_count(self, obj):
         return Readset.objects.filter(dataset=obj.id, release_status=ReleaseStatus.BLOCKED).count()
-    
+
     def get_latest_release_update(self, obj):
         return Readset.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
-    
+
     def get_readset_count(self, obj):
         return Readset.objects.filter(dataset=obj.id).count()
+
+    def get_validation_status(self, obj):
+        return obj.validation_status
+
+    def get_latest_validation_update(self, obj):
+        return Readset.objects.filter(dataset=obj.id).aggregate(Max("validation_status_timestamp"))["validation_status_timestamp__max"]
+
+    def get_validated_by(self, obj):
+        return obj.validated_by
+
+    def get_released_by(self, obj):
+        return obj.released_by
 
 class ReadsetSerializer(serializers.ModelSerializer):
     sample_source = serializers.SerializerMethodField()
@@ -623,11 +638,11 @@ class ReadsetSerializer(serializers.ModelSerializer):
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "library_type", "index")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
-    
+
     def get_sample_source(self, obj: Readset):
         experiment_container = obj.dataset.experiment_run.container if obj.dataset.experiment_run else None
         if experiment_container is None:
@@ -647,12 +662,12 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "metrics", "library_type", "index")
     def get_metrics(self, instance):
         metrics = instance.metrics.all()
         serialized_metrics = MetricSerializer(metrics, many=True)
         return serialized_metrics.data
-    
+
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
 
@@ -675,7 +690,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
         fields = ("id", "readset", "file_path", "size")
 
 class PooledSampleSerializer(serializers.Serializer):
-    ''' Serializes a DerivedBySample object, representing a pooled sample. 
+    ''' Serializes a DerivedBySample object, representing a pooled sample.
     '''
     # Since DerivedBySample doesn't have its own id field, we use the derived_sample id
     # as a top level id in the returned data structure. The UX needs this for 'objectsById' stuff.
@@ -690,7 +705,7 @@ class PooledSampleSerializer(serializers.Serializer):
     # Associated project info
     project_id = serializers.IntegerField(read_only=True, source='project.id')
     project_name = serializers.CharField(read_only=True, source='project.name')
-    
+
     # Sample info
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
     collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
@@ -717,7 +732,7 @@ class PooledSampleSerializer(serializers.Serializer):
             'alias',
             'collection_site',
             'experimental_groups',
-            'id', 
+            'id',
             'index_id',
             'index_set',
             'index',
@@ -726,15 +741,15 @@ class PooledSampleSerializer(serializers.Serializer):
             'library_type',
             'library_selection',
             'library_selection_target',
-            'parent_sample_id', 
-            'parent_sample_name', 
+            'parent_sample_id',
+            'parent_sample_name',
             'platform',
             'pool_id',
-            'project_id', 
-            'project_name', 
+            'project_id',
+            'project_name',
             'sample_kind',
             'strandedness',
-            'volume_ratio', 
+            'volume_ratio',
             ]
 
 class PooledSampleExportSerializer(serializers.Serializer):
@@ -745,7 +760,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
     # Associated project info
     project_id = serializers.IntegerField(read_only=True, source='project.id')
     project_name = serializers.CharField(read_only=True, source='project.name')
-    
+
     # Sample info
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
     collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
@@ -781,11 +796,11 @@ class PooledSampleExportSerializer(serializers.Serializer):
         library = derived_by_sample.derived_sample.library
         if (library):
             sequences = library.index.list_3prime_sequences
-            return ", ".join(sequences) 
+            return ", ".join(sequences)
         else:
             return ""
-        
-    
+
+
     def get_index_sequences_5prime(self, derived_by_sample):
         library = derived_by_sample.derived_sample.library
         if (library):
@@ -798,10 +813,10 @@ class PooledSampleExportSerializer(serializers.Serializer):
         model = DerivedBySample
         fields = [
             'alias',
-            'parent_sample_id', 
-            'parent_sample_name', 
-            'volume_ratio', 
-            'project_id', 
+            'parent_sample_id',
+            'parent_sample_name',
+            'volume_ratio',
+            'project_id',
             'project_name',
             'library_size',
             'library_type',
@@ -856,7 +871,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workflow
         fields = ("id", "name", "structure", "steps_order")
-    
+
     def get_steps_order(self, instance):
         steps_order = instance.steps_order.all().order_by("order")
         serialized_data = StepOrderSerializer(steps_order, many=True)

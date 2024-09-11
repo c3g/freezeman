@@ -1,5 +1,5 @@
 from django.utils import timezone
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseServerError
 from django.db import transaction
 from django.db.models import Q, F, Max, Count
 from django.contrib.contenttypes.models import ContentType
@@ -57,7 +57,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
             return HttpResponseBadRequest("\n".join(errors))
         else:
             return Response(self.get_serializer(datasets.values(), many=True).data)
-        
+
+    @transaction.atomic
     @action(detail=True, methods=["patch"])
     def set_release_status(self, request, pk):
         data = request.data
@@ -67,24 +68,30 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
         filtered_readsets = Readset.objects.filter(dataset=pk).exclude(validation_status=ValidationStatus.AVAILABLE)
         if not filtered_readsets.exists():
+            transaction.set_rollback(True)
             return HttpResponseBadRequest(f"Run must first be validated before release status can be changed.")
         if filters:
             filtered_readsets = filtered_readsets.filter(**filters)
+        try:
+            # set release flag of all files except exceptions
+            included_readsets = filtered_readsets.filter(~Q(id__in=exceptions))
+            for included_readset in included_readsets:
+                included_readset.release_status = release_status
+                included_readset.release_status_timestamp = timezone.now()
+                included_readset.released_by = request.user
+                included_readset.save()
 
-        # set release flag of all files except exceptions
-        included_readsets = filtered_readsets.filter(~Q(id__in=exceptions))
-        for included_readset in included_readsets:
-            included_readset.release_status = release_status
-            included_readset.release_status_timestamp = timezone.now()
-            included_readset.save()
-
-        # set release flag of exceptions to the opposite flag
-        excluded_readsets = Readset.objects.filter(id__in=exceptions)
-        opposite_status = [ReleaseStatus.AVAILABLE, ReleaseStatus.BLOCKED, ReleaseStatus.RELEASED][release_status]
-        for excluded_readset in excluded_readsets:
-            excluded_readset.release_status = opposite_status
-            excluded_readset.release_status_timestamp=timezone.now()
-            excluded_readset.save()
+            # set release flag of exceptions to the opposite flag
+            excluded_readsets = Readset.objects.filter(id__in=exceptions)
+            opposite_status = [ReleaseStatus.AVAILABLE, ReleaseStatus.BLOCKED, ReleaseStatus.RELEASED][release_status]
+            for excluded_readset in excluded_readsets:
+                excluded_readset.release_status = opposite_status
+                excluded_readset.release_status_timestamp = timezone.now()
+                excluded_readset.released_by = request.user
+                excluded_readset.save()
+        except Exception as err:
+            transaction.set_rollback(True)
+            return HttpResponseServerError(err)
 
         return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)
     
