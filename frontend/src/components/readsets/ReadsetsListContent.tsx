@@ -191,8 +191,8 @@ export default ReadsetsListContent
 
 function useReleaseStatusOptionReducer(totalReadsets: number) {
     const readsetsByID = useAppSelector((state) => selectReadsetsByID(state))
-    return useCallback((state: ReleaseStatusOptionState, action: ReleaseStatusOptionAction) => {
-        return produce(state, (state: Draft<ReleaseStatusOptionState>) => {
+    return useCallback((state: ReleaseStatusState, action: ReleaseStatusOptionAction) => {
+        return produce(state, (state: Draft<ReleaseStatusState>) => {
             switch (action.type) {
                 case "all": {
                     state.all = action.releaseStatus
@@ -347,7 +347,7 @@ function useExpandableMetricConfig(): ExpandableConfig<ObjectWithReadset> {
 
 interface ReleaseStatusButtonProps {
     readset: Readset
-    releaseStatusOption: ReleaseStatusOptionState
+    releaseStatusOption: ReleaseStatusState
     disabled: boolean
     onClick: React.MouseEventHandler<HTMLElement>
 }
@@ -382,23 +382,23 @@ function wrapReadset(readset: Readset): ObjectWithReadset {
     return { readset }
 }
 
-interface ReleaseStatusOptionState {
-    all: ReleaseStatus | undefined
-    specific: Record<Readset['id'], ReleaseStatus | undefined>
+interface ReleaseStatusState {
+    all: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined
+    specific: Record<Readset['id'], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined>
 }
 
-interface ReleaseStatusOptionActionAll {
+interface ReleaseStatusActionAll {
     type: "all"
     releaseStatus: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED
 }
-interface ReleaseStatusOptionActionToggle {
+interface ReleaseStatusActionToggle {
     type: "toggle"
     id: Readset['id']
 }
-interface ReleaseStatusOptionActionUndoAll {
+interface ReleaseStatusActionUndoChanges {
     type: "undo-changes"
 }
 type ReleaseStatusOptionAction =
-    | ReleaseStatusOptionActionAll
-    | ReleaseStatusOptionActionToggle
-    | ReleaseStatusOptionActionUndoAll
+    | ReleaseStatusActionAll
+    | ReleaseStatusActionToggle
+    | ReleaseStatusActionUndoChanges
