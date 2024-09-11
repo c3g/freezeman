@@ -58,7 +58,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
 
     const canReleaseOrBlockReadsets = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
 
-    const releaseStatusOptionReducer = useReleaseStatusOptionReducer()
+    const releaseStatusOptionReducer = useReleaseStatusOptionReducer(totalReadsets)
     const [releaseStatusOption, dispatchReleaseStatusOption] = useReducer(
         releaseStatusOptionReducer,
         {
@@ -189,7 +189,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
 
 export default ReadsetsListContent
 
-function useReleaseStatusOptionReducer() {
+function useReleaseStatusOptionReducer(totalReadsets: number) {
     const readsetsByID = useAppSelector((state) => selectReadsetsByID(state))
     return useCallback((state: ReleaseStatusOptionState, action: ReleaseStatusOptionAction) => {
         return produce(state, (state: Draft<ReleaseStatusOptionState>) => {
@@ -230,8 +230,26 @@ function useReleaseStatusOptionReducer() {
                     break
                 }
             }
+
+            let totalReleasedReadsets = 0
+            let totalBlockedReadsets = 0
+            for (const readsetID in state.specific) {
+                const releaseStatus = state.specific[readsetID]
+                if (releaseStatus === ReleaseStatus.RELEASED) {
+                    totalReleasedReadsets++
+                } else if (releaseStatus === ReleaseStatus.BLOCKED) {
+                    totalBlockedReadsets++
+                }
+            }
+            if (totalReleasedReadsets === totalReadsets) {
+                state.all = ReleaseStatus.RELEASED
+                state.specific = {}
+            } else if (totalBlockedReadsets === totalReadsets) {
+                state.all = ReleaseStatus.BLOCKED
+                state.specific = {}
+            }
         })
-    }, [readsetsByID])
+    }, [readsetsByID, totalReadsets])
 }
 
 function useColumns(filters: FilterSet, readsetTableCallbacks: PagedItemsActionsCallbacks, renderReleaseStatus: (value: any, record: ObjectWithReadset, index: number) => React.JSX.Element) {
