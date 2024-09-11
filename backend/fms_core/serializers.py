@@ -273,7 +273,7 @@ class IndividualExportSerializer(serializers.ModelSerializer):
                   "taxon_ncbi_id",
                   "reference_genome_assembly_name",
                   "generic")
-    
+
     def get_father_name(self, obj):
         father = '' if obj.father is None else obj.father.name
         return father
@@ -509,7 +509,6 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
@@ -598,13 +597,17 @@ class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
     blocked_status_count = serializers.SerializerMethodField()
-    latest_release_update = serializers.SerializerMethodField()
     readset_count = serializers.SerializerMethodField()
     archived_comments = ArchivedCommentSerializer("archived_comments", many=True)
+    latest_release_update = serializers.SerializerMethodField()
+    released_by = serializers.SerializerMethodField()
+    validation_status = serializers.SerializerMethodField()
+    latest_validation_update = serializers.SerializerMethodField()
+    validated_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
+        fields = ("id", "external_project_id", "released_by", "validated_by", "latest_validation_update", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
@@ -621,6 +624,18 @@ class DatasetSerializer(serializers.ModelSerializer):
     def get_readset_count(self, obj):
         return Readset.objects.filter(dataset=obj.id).count()
 
+    def get_validation_status(self, obj):
+        return obj.validation_status
+
+    def get_latest_validation_update(self, obj):
+        return Readset.objects.filter(dataset=obj.id).aggregate(Max("validation_status_timestamp"))["validation_status_timestamp__max"]
+
+    def get_validated_by(self, obj):
+        return obj.validated_by
+
+    def get_released_by(self, obj):
+        return obj.released_by
+
 class ReadsetSerializer(serializers.ModelSerializer):
     sample_source = serializers.SerializerMethodField()
     total_size = serializers.SerializerMethodField()
@@ -628,7 +643,7 @@ class ReadsetSerializer(serializers.ModelSerializer):
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "library_type", "index")
 
     def get_total_size(self, obj: Readset):
         return DatasetFile.objects.filter(readset=obj.pk).aggregate(total_size=Sum("size"))["total_size"]
@@ -652,7 +667,7 @@ class ReadsetWithMetricsSerializer(serializers.ModelSerializer):
     index = serializers.CharField(read_only=True, source="derived_sample.library.index.name")
     class Meta:
         model = Readset
-        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "total_size", "validation_status", "validation_status_timestamp", "metrics", "library_type", "index")
+        fields = ("id", "name", "dataset", "sample_name", "sample_source", "derived_sample", "release_status", "release_status_timestamp", "released_by", "total_size", "validation_status", "validation_status_timestamp", "validated_by", "metrics", "library_type", "index")
     def get_metrics(self, instance):
         metrics = instance.metrics.all()
         serialized_metrics = MetricSerializer(metrics, many=True)

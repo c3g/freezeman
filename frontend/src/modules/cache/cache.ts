@@ -1,5 +1,5 @@
 import { Dispatch } from "redux"
-import { FMSId, FMSTrackedModel } from "../../models/fms_api_models"
+import { FMSId, FMSStudy, FMSTrackedModel } from "../../models/fms_api_models"
 import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Readset, Sample, Study, User, Workflow } from "../../models/frontend_models"
 import { selectContainersByID, selectLibrariesByID, selectProcessMeasurementsByID, selectProcessesByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
@@ -95,6 +95,6 @@ export const fetchProcesses = createFetchItemsByID<Process>(selectProcessesByID,
 export const fetchProcessMeasurements = createFetchItemsByID<ProcessMeasurement>(selectProcessMeasurementsByID, listProcessMeasurements)
 export const fetchPropertyValues = createFetchItemsByID<PropertyValue>(selectPropertyValuesByID, listPropertyValues)
 export const fetchSamples = createFetchItemsByID<Sample>(selectSamplesByID, listSamples)
-export const fetchStudies = createFetchItemsByID<Study>(selectStudiesByID, listStudies)
+export const fetchStudies = createFetchItemsByID<FMSStudy>(selectStudiesByID, listStudies)
 export const fetchUsers = createFetchItemsByID<User>(selectUsersByID, listUsers)
 export const fetchWorkflows = createFetchItemsByID<Workflow>(selectWorkflowsByID, listWorkflows)

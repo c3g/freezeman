@@ -2,7 +2,7 @@ import { AnyAction, Reducer } from "redux"
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../components/pagedItemsTable/serializeFilterParamsTS"
 import { selectPageSize } from "../selectors"
 import { AppDispatch, RootState } from "../store"
-import { NetworkActionThunk, NetworkActionTypes, createNetworkActionTypes } from "../utils/actions"
+import { NetworkActionTypes, createNetworkActionTypes } from "../utils/actions"
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
 import {
 	ReduceListReceiveType,
@@ -19,6 +19,8 @@ import {
 	reduceSetSortBy,
     reduceSetStale,
 } from './paged_items_reducers'
+import { FMSResponse } from "../utils/api"
+import { FMSPagedResultsReponse, FMSTrackedModel } from "./fms_api_models"
 
 export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
 
@@ -45,7 +47,7 @@ export type SetFilterActionType = PagedItemsActions['setFilter']
 export type SetFilterOptionsActionType = PagedItemsActions['setFilterOptions']
 
 // Define a type alias for the list function signature
-type ListType = (option: any) => NetworkActionThunk<any>;
+type ListType<T> = (option: any) => (dispatch: AppDispatch, getState: () => RootState) => Promise<FMSResponse<FMSPagedResultsReponse<T>>['data']>;
 
 
 interface PagedItemsActionTypes<Prefix extends string> {
@@ -83,7 +85,7 @@ export function createPagedItemsActionTypes<Prefix extends string>(prefix: Prefi
 // then a custom function will need to be implemented by the component that uses the state.
 export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
-export function createPagedItemsActions<Prefix extends string>(actionTypes: PagedItemsActionTypes<Prefix>, selectPagedItems: SelectPagedItemsFunc, list: ListType, extra?: object): PagedItemsActions {
+export function createPagedItemsActions<Prefix extends string, M extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes<Prefix>, selectPagedItems: SelectPagedItemsFunc, list: ListType<M>, extra?: object): PagedItemsActions {
 
     const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } =
 		actionTypes

@@ -18,8 +18,10 @@ class Readset(TrackedModel):
     derived_sample = models.ForeignKey(blank=True, null=True, help_text='Derived sample matching the readset.', on_delete=models.PROTECT, related_name='readsets', to='fms_core.derivedsample')
     release_status = models.IntegerField(choices=ReleaseStatus.choices, default=ReleaseStatus.AVAILABLE, help_text="The release status of the file.")
     release_status_timestamp = models.DateTimeField(null=True, blank=True, help_text='The last time the release status of the file was changed.')
+    released_by = models.ForeignKey(null=True, blank=True, help_text='User that released the readset data to the client.', on_delete=models.PROTECT, related_name='released_readsets', to='auth.user')
     validation_status = models.IntegerField(choices=ValidationStatus.choices, default=ValidationStatus.AVAILABLE, help_text="The run validation status of the file.")
     validation_status_timestamp = models.DateTimeField(null=True, blank=True, help_text='The last time the run validation status of the file was changed.')
+    validated_by = models.ForeignKey(null=True, blank=True, help_text='User that validated the readset data.', on_delete=models.PROTECT, related_name='validated_readsets', to='auth.user')
 
     def __str__(self):
         return self.name
@@ -40,6 +42,15 @@ class Readset(TrackedModel):
             add_error("release_status_timestamp", f"Release status timestamp required if status is not {ReleaseStatus.AVAILABLE.label}.")
         if self.validation_status != ValidationStatus.AVAILABLE and self.validation_status_timestamp is None:
             add_error("validation_status_timestamp", f"Validation status timestamp required if status is not {ValidationStatus.AVAILABLE.label}.")
+
+        if self.release_status_timestamp is not None and self.released_by is None:
+            add_error("released_by", f"The user that changed the release_status need to be recorded.")
+        if self.release_status_timestamp is None and self.released_by is not None:
+            add_error("released_by", f"Readset release status was never set. Cannot set released_by.")
+        if self.validation_status_timestamp is not None and self.validated_by is None:
+            add_error("validated_by", f"The user that changed the validation_status need to be recorded.")
+        if self.validation_status_timestamp is None and self.validated_by is not None:
+            add_error("validated_by", f"Readset validation status was never set. Cannot set validated_by.")
 
         self.normalize()
 

@@ -5,7 +5,7 @@ import time
 from django.conf import settings
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Iterable, List, Union
+from typing import Any, Generator, Iterable, List, TypeVar, Union
 
 
 __all__ = [
@@ -144,7 +144,8 @@ def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, 
 
     return concentration
 
-def make_generator(obj: Union[Any, None, Iterable[Any]]) -> Generator[Any, None, None]:
+T = TypeVar('T')
+def make_generator(obj: Union[T, None, Iterable[T]]) -> Generator[T, None, None]:
     """
     Ensures that ManyToMany fields such as the `obj` passed are iterable.
     None is turned into an empty iterable,
@@ -153,13 +154,13 @@ def make_generator(obj: Union[Any, None, Iterable[Any]]) -> Generator[Any, None,
     It's meant to handle the fact that a ManyToMany field is not a list if it has less than two elements.
 
     Args:
-        obj: Any
+        obj: T
 
     Returns:
-        `Generator[Any, None, None]`
+        `Generator[T, None, None]`
 
     Yields:
-        `Any`
+        `T`
     """
 
     if obj is None:
@@ -210,3 +211,8 @@ def has_errors(error_dict):
     for error in error_dict.values():
         has_errors = has_errors or bool(error)
     return has_errors
+
+def dict_remove_falsy_entries(dict: dict):
+    for key in list(dict.keys()):
+        if not dict[key]:
+            del dict[key]
