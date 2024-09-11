@@ -4,7 +4,7 @@ from django.test import TestCase
 import datetime
 from decimal import Decimal
 
-from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure,
+from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure, IndexBySet,
                              Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage,
                              SampleMetadata, Coordinate)
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
@@ -77,7 +77,8 @@ class SampleServicesTestCase(TestCase):
 
         test_indices = []
         for index in TEST_INDEX:
-            new_index = Index.objects.create(name=index["name"], index_set=index["index_set"], index_structure=index["index_structure"])
+            new_index = Index.objects.create(name=index["name"], index_structure=index["index_structure"])
+            IndexBySet.objects.create(index=new_index, index_set=index["index_set"])
             create_indices_3prime_by_sequence(new_index, [index["sequence_3_prime"]])
             create_indices_5prime_by_sequence(new_index, [index["sequence_5_prime"]])
             test_indices.append(new_index)

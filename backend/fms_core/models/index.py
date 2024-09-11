@@ -17,18 +17,19 @@ class Index(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="The name of the index.")
 
-    index_set = models.ForeignKey("IndexSet", blank=True, null=True, on_delete=models.PROTECT, related_name="indices",
-                                  help_text="The set which this index belongs to")
-
     index_structure = models.ForeignKey("IndexStructure", on_delete=models.PROTECT,
                                         related_name="indices",
                                         help_text="The index structure of the index")
 
     sequences_3prime = models.ManyToManyField("Sequence", through="SequenceByIndex3Prime",
                                               symmetrical=False, related_name="indices_3prime")
+    
     sequences_5prime = models.ManyToManyField("Sequence", through="SequenceByIndex5Prime",
                                               symmetrical=False, related_name="indices_5prime")
-    
+
+    index_sets = models.ManyToManyField("IndexSet", through="IndexBySet",
+                                        symmetrical=False, related_name="set_indices")
+
     @property
     def list_3prime_sequences(self) -> List["str"]:
         list_sequences = [sequence.value for sequence in self.sequences_3prime.all()]
@@ -38,6 +39,11 @@ class Index(TrackedModel):
     def list_5prime_sequences(self) -> List["str"]:
         list_sequences = [sequence.value for sequence in self.sequences_5prime.all()]
         return list_sequences or [""]
+    
+    @property
+    def list_index_sets(self) -> List["str"]:
+        list_index_sets = [index_set.name for index_set in self.index_sets.all()]
+        return list_index_sets
 
     def clean(self):
         super().clean()

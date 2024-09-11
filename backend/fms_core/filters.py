@@ -174,7 +174,7 @@ class IndividualFilter(GenericFilter):
         fields = _individual_filterset_fields
 
 class IndexFilter(GenericFilter):
-    index_set__name = django_filters.CharFilter(field_name="index_set__name", method="batch_filter")
+    index_sets__name = django_filters.CharFilter(field_name="index_sets__name", method="batch_filter")
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
 
     class Meta:
