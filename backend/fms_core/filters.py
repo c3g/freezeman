@@ -191,6 +191,7 @@ class DatasetFilter(GenericFilter):
         ).filter(latest_release_update__gt=value)
 
     def latest_validation_update_filter(self, queryset, name, value):
+        print('GET IN THERE YOU!!')
         return queryset.annotate(
             latest_validation_update=Max("readsets__validation_status_timestamp")
         ).filter(latest_validation_update__gt=value)

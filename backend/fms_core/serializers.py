@@ -589,7 +589,7 @@ class ArchivedCommentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class DatasetSerializer(serializers.ModelSerializer):
-    # files = serializers.SerializerMethodField()
+    files = serializers.SerializerMethodField()
     released_status_count = serializers.SerializerMethodField()
     blocked_status_count = serializers.SerializerMethodField()
     readset_count = serializers.SerializerMethodField()
@@ -597,12 +597,12 @@ class DatasetSerializer(serializers.ModelSerializer):
     latest_release_update = serializers.SerializerMethodField()
     released_by = serializers.SerializerMethodField()
     validation_status = serializers.SerializerMethodField()
-    validation_status_update_timestamp = serializers.SerializerMethodField()
+    latest_validation_update = serializers.SerializerMethodField()
     validated_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = "__all__"
+        fields = ("id", "external_project_id", "released_by", "validated_by", "latest_validation_update", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
@@ -619,7 +619,10 @@ class DatasetSerializer(serializers.ModelSerializer):
     def get_readset_count(self, obj):
         return Readset.objects.filter(dataset=obj.id).count()
 
-    def get_validation_status_update_timestamp(self, obj):
+    def get_validation_status(self, obj):
+        return obj.validation_status
+
+    def get_latest_validation_update(self, obj):
         return Readset.objects.filter(dataset=obj.id).aggregate(Max("validation_status_timestamp"))["validation_status_timestamp__max"]
 
     def get_validated_by(self, obj):
@@ -627,9 +630,6 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     def get_released_by(self, obj):
         return obj.released_by
-
-    def get_validation_status(self, obj):
-        return obj.validation_status
 
 class ReadsetSerializer(serializers.ModelSerializer):
     sample_source = serializers.SerializerMethodField()
