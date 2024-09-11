@@ -94,6 +94,7 @@ def initialize_validated_by_and_released_by(apps, schema_editor):
             readset_obj.save()
             reversion.add_to_revision(readset_obj)
 
+
 class Migration(migrations.Migration):
 
     dependencies = [

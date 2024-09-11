@@ -43,7 +43,10 @@ const IndicesDetailedContent = ({ indicesByID, sequencesByID, isFetching, get })
       <Title level={2}>Overview</Title>
       <Descriptions bordered={true} size="small" column={4}>
         <Descriptions.Item label="Index name" span={4}>{index.name}</Descriptions.Item>
-        <Descriptions.Item label="Index Set" span={4}>{index.index_set}</Descriptions.Item>
+        <Descriptions.Item label="Index Sets" span={4}>{index && index.index_sets &&
+          <DropdownListItems listItems={index.index_sets}
+          />}
+        </Descriptions.Item>
         <Descriptions.Item label="Index Structure" span={4}>{index.index_structure}</Descriptions.Item>
         <Descriptions.Item label="Sequence 3 prime (i7)" span={4}>{index && index.sequences_3prime &&
           <DropdownListItems listItems={index.sequences_3prime.map(sequence =>
