@@ -1,4 +1,4 @@
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Count, Exists, OuterRef
 
 from django.utils import timezone
 import datetime
@@ -207,13 +207,25 @@ class ExperimentRunFilter(GenericFilter):
     experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
-        if value == "processed":
-            return queryset.filter(datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
-        if value == "validated":
-            return queryset.filter(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value,datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
-        if value == "released":
-            return queryset.filter(datasets__readsets__release_status=ReleaseStatus.AVAILABLE.value,datasets__readsets__validation_status__in=[ValidationStatus.PASSED.value,ValidationStatus.FAILED.value])
+        queryset = queryset.annotate(
+            has_readsets=Exists(Readset.objects.filter(dataset__experiment_run=OuterRef("pk")))
+        )
+        queryset = queryset.annotate(
+            unvalidated_count=Count("datasets__readsets", filter=Q(datasets__readsets__validation_status=ValidationStatus.AVAILABLE), distinct=True)
+        )
+        queryset = queryset.annotate(
+            unreleased_count=Count("datasets__readsets", filter=Q(datasets__readsets__release_status=ReleaseStatus.AVAILABLE), distinct=True)
+        )
 
+        match value:
+            case "processed":
+                filtered_queryset = queryset.filter(unvalidated_count__gt=0)
+            case "validated":
+                filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count__gt=0)
+            case "released":
+                filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count=0, has_readsets=True)
+
+        return filtered_queryset
     class Meta:
         model = ExperimentRun
         fields = _experiment_run_filterset_fields
