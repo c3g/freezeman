@@ -128,10 +128,6 @@ export interface FMSDatasetFile extends FMSTrackedModel {
     readset: FMSReadset                 // The readset of the dataset file
 }
 
-export interface DatasetValidationStatus extends FMSTrackedModel {
-    validation_status: ValidationStatus
-}
-
 export interface FMSExperimentRun extends FMSTrackedModel {
     children_processes: FMSId[]         //Child process ID's
     container: FMSId                    // Experiment run container (flowcell)
@@ -144,7 +140,6 @@ export interface FMSExperimentRun extends FMSTrackedModel {
     run_type: FMSId                     // RunType ID
     start_date: string                  // Date when user started run
     end_time?: string                    // Time at which the experiment run completed (set by API call)
-    datasets?: DatasetValidationStatus[] // Simple Dataset information to allow filtering by validation status at the experiment run list level
     run_processing_launch_time?: string  // Last time the run processing was launched, if it has been launched for the experiment run
     run_processing_start_time?: string   // Last time the run processing actually started for the experiment run
     run_processing_end_time?: string     // Last time the run processing completed for the experiment run

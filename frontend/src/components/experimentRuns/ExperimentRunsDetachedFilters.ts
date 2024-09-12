@@ -1,16 +1,27 @@
 import { FilterDescription } from "../../models/paged_items";
 import { FILTER_TYPE } from '../../constants'
+import { capitalize } from "../../utils/capitalize";
+
+export enum RUN_TYPES { 
+    ILLUMINA = "Illumina",
+    AXIOM = "Axiom",
+    DNBSEQ = "DNBSEQ",
+    INFINIUM =  "Infinium Global Screening Array-24",
+}
+
+export enum PROGRESS_FLAGS {
+    PROCESSED = "processed",
+    VALIDATED = "validated",
+    RELEASED = "released",
+}
 
 export const EXPERIMENT_RUNS_PLATFORM_NAME_FILTER: FilterDescription = {
     type: FILTER_TYPE.SELECT,
-    key: 'run_type__platform__name',
-    label: 'Platform Name',
+    key: 'run_type__name',
+    label: 'Run Type',
     mode: 'multiple',
     placeholder: 'All',
-    options: [
-        { label: 'Axiom', value: 'AXIOM_ARRAY' },
-        { label: 'Illumina', value: 'ILLUMINA' },
-    ],
+    options: Object.values(RUN_TYPES).map((runType) => ({label: runType, value: runType})),
 }
 
 export const EXPERIMENT_RUN_PROCESS_FILTER: FilterDescription = {
@@ -18,32 +29,5 @@ export const EXPERIMENT_RUN_PROCESS_FILTER: FilterDescription = {
     key: 'experiment_run_progress_stage',
     label: 'Experiment Run Stages',
     placeholder: 'All',
-    options: [
-        { label: 'Processed', value: 'processed' },
-        { label: 'Validated ', value: 'validated' },
-        { label: 'Released', value: 'released' },
-    ],
-}
-
-export const EXPERIMENT_RUNS_VALIDATION_STATUS_FILTER: FilterDescription = {
-    type: FILTER_TYPE.SELECT,
-    key: 'datasets__readsets__validation_status',
-    label: 'Has validated lanes',
-    placeholder: 'All',
-    options: [
-        { label: 'Has Validated lanes', value: '1' },
-        { label: 'Has Failed lanes', value: '2' },
-    ],
-}
-
-export const EXPERIMENT_RUNS_RELEASED_FILTER: FilterDescription = {
-    type: FILTER_TYPE.SELECT,
-    key: 'datasets__readsets__release_status',
-    label: 'Released lanes',
-    placeholder: 'All',
-    options: [
-        { label: 'Available', value: '0' },
-        { label: 'Released', value: '1' },
-        { label: 'Blocked', value: '2' },
-    ],
+    options: Object.values(PROGRESS_FLAGS).map((flag) => ({label: capitalize(flag), value: flag})),
 }

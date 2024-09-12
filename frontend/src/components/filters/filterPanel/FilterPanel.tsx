@@ -14,14 +14,12 @@ interface FilterPanelProps {
 	setFilter: SetFilterCallback
 	setFilterOption: SetFilterOptionCallback
 	filters: FilterSet
-    withCollapsible?: boolean
+  withCollapsible?: boolean
 }
 
 function useLegacySetFilterCallback(setFilter: SetFilterCallback) {
 	return useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
-            console.log(value)
-            console.log(description)
 			setFilter(value, description)
 		},
 		[setFilter]

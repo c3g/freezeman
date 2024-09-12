@@ -146,22 +146,16 @@ class ContainerExportSerializer(serializers.ModelSerializer):
     def get_samples_contained_count(self, obj):
         return obj.samples.all().count()
 
-class SimpleDatasetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Dataset
-        fields = ("id","validation_status")
-
 class ExperimentRunSerializer(serializers.ModelSerializer):
     children_processes = serializers.SerializerMethodField()
     instrument_type = serializers.SerializerMethodField()
     platform = serializers.SerializerMethodField()
     lanes = serializers.SerializerMethodField()
-    datasets = SimpleDatasetSerializer("datasets", many=True)
 
     class Meta:
         model = ExperimentRun
         fields = "__all__"
-        extra_fields = ('children_processes', 'instrument_type', 'platform', 'lanes', 'datasets')
+        extra_fields = ('children_processes', 'instrument_type', 'platform', 'lanes')
 
     def get_children_processes(self, obj):
         return Process.objects.filter(parent_process=obj.process).values_list('id', flat=True)
