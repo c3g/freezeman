@@ -132,16 +132,19 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             </Button>
             <Button
                 style={{ margin: 6 }}
-                onClick={() => {
+                onClick={async () => {
                     const { all, specific } = releaseStatusOption
                     if (all) {
-                        dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, ReadsetTableActions.refreshPage()))
+                        await dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, ReadsetTableActions.refreshPage()))
                     } else {
-                        for (const [id, release_status] of Object.entries(specific)) {
-                            if (release_status) {
-                                dispatch(setReleaseStatus(id, release_status, ReadsetTableActions.refreshPage()))
-                            }
-                        }
+                        await Promise.allSettled(
+                            Object.entries(specific).map(async ([id, release_status]) => {
+                                if (release_status) {
+                                    await dispatch(setReleaseStatus(Number(id), release_status))
+                                }    
+                            })
+                        )
+                        await dispatch(ReadsetTableActions.refreshPage())
                     }
                     // reset options for new readset table state
                     dispatchReleaseStatusOption({ type: "undo-changes" })

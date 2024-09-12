@@ -1,6 +1,7 @@
-import { stringify as qs } from "querystring";
-import { API_BASE_PATH } from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
+import {stringify as qs} from "querystring";
+import {API_BASE_PATH} from "../config";
+import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, WorkflowStepOrder } from "../models/fms_api_models";
+import { Readset } from "../models/frontend_models";
 
 const api = {
   auth: {
@@ -53,7 +54,7 @@ const api = {
   readsets: {
     get: id => get(`/readsets/${id}/`),
     list: (options, abort?) => get(`/readsets/`, options, { abort }),
-    setReleaseStatus: (id, release_status) => post(`/readsets/set_release_status/`, {id, release_status}),
+    setReleaseStatus: (id: Readset["id"], release_status: ReleaseStatus) => post<JsonResponse<FMSReadset[]>>(`/readsets/set_release_status/`, {id, release_status}),
   },
 
   datasetFiles: {
