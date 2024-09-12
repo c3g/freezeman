@@ -23,6 +23,7 @@ import { setReleaseStatus } from "../../modules/readsets/actions";
 import produce, { Draft } from "immer";
 import { ReleaseStatus } from "../../models/fms_api_models";
 import { ExpandableConfig } from "antd/lib/table/interface";
+import { notifyError } from "../../modules/notification/actions";
 
 const RELEASE_STATUS_STRING = {
     [ReleaseStatus.RELEASED]: 'Released',
@@ -137,13 +138,22 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                     if (all) {
                         await dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, ReadsetTableActions.refreshPage()))
                     } else {
-                        await Promise.allSettled(
+                        const results = await Promise.allSettled(
                             Object.entries(specific).map(async ([id, release_status]) => {
                                 if (release_status) {
                                     await dispatch(setReleaseStatus(Number(id), release_status))
                                 }    
                             })
                         )
+                        results.forEach(result => {
+                            if (result.status === 'rejected') {
+                                dispatch(notifyError({
+                                    id: 'readset-release-block-failed',
+                                    title: "Failed to release/block a readset",
+                                    description: result.reason,
+                                }))
+                            }
+                        })
                         await dispatch(ReadsetTableActions.refreshPage())
                     }
                     // reset options for new readset table state
