@@ -134,8 +134,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 style={{ margin: 6 }}
                 onClick={() => {
                     const { all, specific } = releaseStatusOption
-                    // reset options for new readset table state
-                    dispatchReleaseStatusOption({ type: "undo-changes" })
                     if (all) {
                         dispatch(setReleaseStatusAll(dataset?.id, all, Object.keys(specific), filters, ReadsetTableActions.refreshPage()))
                     } else {
@@ -145,6 +143,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                             }
                         }
                     }
+                    // reset options for new readset table state
+                    dispatchReleaseStatusOption({ type: "undo-changes" })
                 }}
                 type={"primary"}
                 disabled={!saveChangesEnabled}>
