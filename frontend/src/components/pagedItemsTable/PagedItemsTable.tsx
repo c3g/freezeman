@@ -7,6 +7,7 @@ import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
+import { useDebounce } from '../filters/filterComponents/DebouncedInput'
 
 
 export interface PagedItemTableSelection {
@@ -100,7 +101,7 @@ function PagedItemsTable<T extends object>({
 		]
 	)
 
-	// Refresh the page if the paged items are marked as stale, if using 
+	// Refresh the page if the paged items are marked as stale, if using
 	// the refresh mechanism.
 	const refreshWhenStale = useRefreshWhenStale(refreshPageCallback, setStaleCallback)
 	useEffect(() => {
@@ -251,25 +252,23 @@ function PagedItemsTable<T extends object>({
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
 						scroll={{x: 300}}
-						onChange={sortByCallback}
+						onChange={useDebounce(sortByCallback)}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
 
 					/>
-					{true && (
-						<Pagination
-							className="ant-table-pagination ant-table-pagination-right"
-							showSizeChanger={true}
-							showQuickJumper={true}
-							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-							current={pagedItems.page?.pageNumber ?? 0}
-							pageSize={pagedItems.page?.limit ?? 0}
-							total={pagedItems.totalCount}
-							onChange={listPageCallback}
-							onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
-						/>
-					)}
+                    <Pagination
+                        className="ant-table-pagination ant-table-pagination-right"
+                        showSizeChanger={true}
+                        showQuickJumper={true}
+                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                        current={pagedItems.page?.pageNumber ?? 0}
+                        pageSize={pagedItems.page?.limit ?? 0}
+                        total={pagedItems.totalCount}
+                        onChange={listPageCallback}
+                        onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
+                    />
 				</>
 			)}
 		</>
