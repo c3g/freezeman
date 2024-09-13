@@ -62,38 +62,19 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["patch"])
     def set_release_status(self, request, pk):
         data = request.data
-        release_status = data.get("release_status")
-        exceptions = data.get("exceptions")
-        filters = data.get("filters")
+        readset_updates: dict[int, ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED] = data.get("updates", {})
+        filters = data.get("filters", {})
 
-        filtered_readsets = Readset.objects.filter(dataset=pk).exclude(validation_status=ValidationStatus.AVAILABLE)
-        if not filtered_readsets.exists():
-            transaction.set_rollback(True)
-            return HttpResponseBadRequest(f"Run must first be validated before release status can be changed.")
-        if filters:
-            filtered_readsets = filtered_readsets.filter(**filters)
-        try:
-            # set release flag of all files except exceptions
-            included_readsets = filtered_readsets.filter(~Q(id__in=exceptions))
-            for included_readset in included_readsets:
-                included_readset.release_status = release_status
-                included_readset.release_status_timestamp = timezone.now()
-                included_readset.released_by = request.user
-                included_readset.save()
+        readset_ids = list(readset_updates.keys())
+        readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids, **filters)
 
-            # set release flag of exceptions to the opposite flag
-            excluded_readsets = Readset.objects.filter(id__in=exceptions)
-            opposite_status = [ReleaseStatus.AVAILABLE, ReleaseStatus.BLOCKED, ReleaseStatus.RELEASED][release_status]
-            for excluded_readset in excluded_readsets:
-                excluded_readset.release_status = opposite_status
-                excluded_readset.release_status_timestamp = timezone.now()
-                excluded_readset.released_by = request.user
-                excluded_readset.save()
-        except Exception as err:
-            transaction.set_rollback(True)
-            return HttpResponseServerError(err)
+        releease_status_timestamp = timezone.now()
+        for readset in readsets:
+            readset.release_status = readset_updates[readset.pk]
+            readset.release_status_timestamp = releease_status_timestamp
+            readset.save()
 
-        return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)
+        return Response(status=204)
     
     @action(detail=True, methods=["post"])
     def add_archived_comment(self, request, pk):

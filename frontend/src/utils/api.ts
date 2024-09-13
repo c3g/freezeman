@@ -1,7 +1,7 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, WorkflowStepOrder } from "../models/fms_api_models";
-import { Readset } from "../models/frontend_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, WorkflowStepOrder } from "../models/fms_api_models";
+import { Dataset, Readset } from "../models/frontend_models";
 
 const api = {
   auth: {
@@ -47,13 +47,18 @@ const api = {
   datasets: {
     get: id => get(`/datasets/${id}/`),
     list: (options, abort?) => get("/datasets/", options, { abort }),
-    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters }),
+    setReleaseStatus: (
+      id: Dataset["id"],
+      updates: Record<Readset["id"],
+      ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED>,
+      filters = {}
+    ) => patch<JsonResponse<FMSDataset>>(`/datasets/${id}/set_release_status/`, { updates, filters }),
     addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
   },
 
   readsets: {
     get: id => get(`/readsets/${id}/`),
-    list: (options, abort?) => get(`/readsets/`, options, { abort }),
+    list: (options: QueryParams, abort?: any) => get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
     setReleaseStatus: (id: Readset["id"], release_status: ReleaseStatus) => post<JsonResponse<FMSReadset[]>>(`/readsets/set_release_status/`, {id, release_status}),
   },
 
