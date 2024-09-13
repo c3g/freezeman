@@ -7,6 +7,7 @@ import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
+import { useDebounce } from '../filters/filterComponents/DebouncedInput'
 
 
 export interface PagedItemTableSelection {
@@ -100,7 +101,7 @@ function PagedItemsTable<T extends object>({
 		]
 	)
 
-	// Refresh the page if the paged items are marked as stale, if using 
+	// Refresh the page if the paged items are marked as stale, if using
 	// the refresh mechanism.
 	const refreshWhenStale = useRefreshWhenStale(refreshPageCallback, setStaleCallback)
 	useEffect(() => {
@@ -251,7 +252,7 @@ function PagedItemsTable<T extends object>({
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
 						scroll={{x: 300}}
-						onChange={sortByCallback}
+						onChange={useDebounce(sortByCallback)}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
