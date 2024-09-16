@@ -51,7 +51,7 @@ const api = {
       id: Dataset["id"],
       updates: Record<Readset["id"], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED>,
       filters = {}
-    ) => patch<JsonResponse<FMSDataset>>(`/datasets/${id}/set_release_status/`, { updates, filters }),
+    ) => patch<StringResponse>(`/datasets/${id}/set_release_status/`, { updates, filters }),
     addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
   },
 
