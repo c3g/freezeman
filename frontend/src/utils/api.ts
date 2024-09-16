@@ -72,7 +72,7 @@ const api = {
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
-    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}), 
+    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}),
     fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info/`, {}),
     setLaneValidationStatus: (run_name, lane, validation_status) => post(`/experiment-runs/set_experiment_run_lane_validation_status/`, {run_name, lane, validation_status}),
     getLaneValidationStatus: (run_name, lane) => get(`/experiment-runs/get_experiment_run_lane_validation_status/`, {run_name, lane})
@@ -362,7 +362,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
             const controller = new AbortController()
             signal = controller.signal
             if (ongoingRequests[baseRoute]) {
-                ongoingRequests[baseRoute].abort()
+                ongoingRequests[baseRoute].abort("")
             }
             ongoingRequests[baseRoute] = controller
         }
