@@ -72,13 +72,21 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
     const expandableMetricConfig = useExpandableMetricConfig()
 
     const extraButtons = useMemo(() => {
-        const allReadsetsReleased = Object.values(releaseStatusManager.readsetReleaseStates).every(status =>
-            status?.new ? status.new === ReleaseStatus.RELEASED : status?.old === ReleaseStatus.RELEASED
-        )
-        const allReadsetsBlocked = Object.values(releaseStatusManager.readsetReleaseStates).every(status =>
-            status?.new ? status.new === ReleaseStatus.BLOCKED : status?.old === ReleaseStatus.BLOCKED
-        )
-        const saveChangesEnabled = Object.values(releaseStatusManager.readsetReleaseStates).some(status => status?.new !== undefined)
+        let someReadsetsAvailable = false
+        let someReadsetsReleased = false
+        let someReadsetsBlocked = false
+        let undoChangesEnabled = false
+
+        for (const readsetState of Object.values(releaseStatusManager.readsetReleaseStates)) {
+            someReadsetsAvailable ||= readsetState?.new === undefined && readsetState?.old === ReleaseStatus.AVAILABLE
+            someReadsetsReleased  ||= readsetState?.new !== undefined ? readsetState.new === ReleaseStatus.RELEASED : readsetState?.old === ReleaseStatus.RELEASED
+            someReadsetsBlocked   ||= readsetState?.new !== undefined ? readsetState.new === ReleaseStatus.BLOCKED : readsetState?.old === ReleaseStatus.BLOCKED
+            undoChangesEnabled    ||= readsetState?.new !== undefined
+        }
+
+        const allReadsetsReleased = !someReadsetsAvailable && !someReadsetsBlocked
+        const allReadsetsBlocked = !someReadsetsAvailable && !someReadsetsReleased
+        const allReadsetsReleasedOrBlocked = !someReadsetsAvailable
     
         return <div>
             <Button
@@ -102,7 +110,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 onClick={() => {
                     releaseStatusManager.undoChanges()
                 }}
-                disabled={saveChangesEnabled}>
+                disabled={!undoChangesEnabled}>
                 Undo Changes
             </Button>
             <Button
@@ -111,7 +119,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                     releaseStatusManager.updateReleaseStatus(filters)
                 }}
                 type={"primary"}
-                disabled={!saveChangesEnabled}>
+                disabled={!allReadsetsReleasedOrBlocked}>
                 Save Changes
             </Button>
         </div>
@@ -175,15 +183,22 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
     const setAllReleaseStatus = useCallback((releaseStatus: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED) => {
         setReadsetReleaseStates(produce((prev) => {
             for (const key in prev) {
-                prev[key] = { old: prev[key]?.old ?? ReleaseStatus.AVAILABLE, new: releaseStatus }
+                const readsetStatus = prev[key]
+                if (readsetStatus) {
+                    readsetStatus.new = readsetStatus.old !== releaseStatus
+                        ? releaseStatus
+                        : undefined
+                }
             }
         }))
     }, [])
 
     const toggleReleaseStatus = useCallback((id: Readset["id"]) => {
         setReadsetReleaseStates(produce((prev) => {
-            const currentStatus = prev[id]?.new ?? prev[id]?.old ?? ReleaseStatus.AVAILABLE
-            prev[id] = { old: currentStatus, new: OPPOSITE_STATUS[currentStatus] }
+            const readsetStatus = prev[id]
+            if (readsetStatus) {
+                readsetStatus.new = OPPOSITE_STATUS[readsetStatus.new ?? readsetStatus.old]
+            }
         }))
     }, [])
 
@@ -199,24 +214,21 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
     }, [])
 
     const updateReleaseStatus = useCallback(async (filters: any) => {
-        const finalReleaseStates: Record<Readset["id"], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED> = {}
+        const finalNewReleaseStates: Record<Readset["id"], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED> = {}
         for (const key in readsetReleaseStates) {
-            const newReleaseStatus = readsetReleaseStates[key]?.new
-            const oldReleaseStatus = readsetReleaseStates[key]?.old
+            const readsetStatus = readsetReleaseStates[key]
             if (
-                newReleaseStatus !== undefined &&
-                oldReleaseStatus !== undefined &&
-                newReleaseStatus !== oldReleaseStatus
+                readsetStatus && readsetStatus.new !== undefined
             ) {
-                finalReleaseStates[key] = newReleaseStatus
+                finalNewReleaseStates[key] = readsetStatus.new
             }
         }
-        await dispatch(api.datasets.setReleaseStatus(datasetID, finalReleaseStates, filters))
+        await dispatch(api.datasets.setReleaseStatus(datasetID, finalNewReleaseStates, filters))
         await dispatch(ReadsetTableActions.refreshPage())
-        for (const key in finalReleaseStates) {
+        for (const key in finalNewReleaseStates) {
             setReadsetReleaseStates(produce((prev) => {
                 prev[key] = {
-                    old: finalReleaseStates[key],
+                    old: finalNewReleaseStates[key],
                     new: undefined
                 }
             }))
@@ -345,7 +357,9 @@ function ReleaseStatusButton({ releaseStatus, disabled, onClick }: ReleaseStatus
             }}
             onClick={onClick}
         >
-            {newReleaseStatus ? RELEASE_STATUS_STRING[newReleaseStatus] : RELEASE_STATUS_STRING[oldReleaseStatus]}
+            {newReleaseStatus !== undefined
+                ? RELEASE_STATUS_STRING[newReleaseStatus]
+                : RELEASE_STATUS_STRING[oldReleaseStatus]}
         </Button> : <Spin />)
 }
 
