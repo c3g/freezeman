@@ -41,6 +41,8 @@ const DatasetDetailContent = () => {
     const loading = (value: string | number | undefined) => {
         return value ?? "Loading..."
     }
+    
+    console.info(dataset, laneValidationStatus)
 
     return <>
         <AppPageHeader
@@ -71,7 +73,7 @@ const DatasetDetailContent = () => {
                     <Descriptions.Item label={"Total Readsets"} span={1}>{loading(dataset?.readset_count)}</Descriptions.Item>
                     <Descriptions.Item label={"Readsets Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
                 </Descriptions>
-                {dataset && laneValidationStatus
+                {dataset && laneValidationStatus !== undefined
                     ? <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} />
                     : <Spin />}
             </div>
