@@ -146,7 +146,6 @@ class ContainerExportSerializer(serializers.ModelSerializer):
     def get_samples_contained_count(self, obj):
         return obj.samples.all().count()
 
-
 class ExperimentRunSerializer(serializers.ModelSerializer):
     children_processes = serializers.SerializerMethodField()
     instrument_type = serializers.SerializerMethodField()

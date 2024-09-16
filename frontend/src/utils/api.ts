@@ -1,5 +1,5 @@
-import {stringify as qs} from "querystring";
-import {API_BASE_PATH} from "../config";
+import { stringify as qs } from "querystring";
+import { API_BASE_PATH } from "../config";
 import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
 
 const api = {
@@ -330,142 +330,142 @@ export default api;
 
 type WithTokenFn<R extends ResponseWithData<any>> = (...args: any[]) => (_: undefined, getState: () => AuthTokensAccess) => Promise<R>
 export function withToken<R extends ResponseWithData<any>>(token: string | undefined, fn: WithTokenFn<R>) {
-  return (...args: Parameters<typeof fn>) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
+    return (...args: Parameters<typeof fn>) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
 }
 
 const ongoingRequests: Record<string, AbortController> = {}
 
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
-  abort: boolean
+    abort: boolean
 }
 interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
 
 function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
-  const baseRoute = getPathname(route)
+    const baseRoute = getPathname(route)
 
-  return (_: any, getState: () => AuthTokensAccess) => {
+    return (_: any, getState: () => AuthTokensAccess) => {
 
-    const accessToken = getState().auth.tokens.access;
+        const accessToken = getState().auth.tokens.access;
 
-    const headers = {}
+        const headers = {}
 
-    if (accessToken)
-      headers["authorization"] = `Bearer ${accessToken}`
+        if (accessToken)
+            headers["authorization"] = `Bearer ${accessToken}`
 
-    if (!isFormData(body) && isObject(body))
-      headers["content-type"] = "application/json"
+        if (!isFormData(body) && isObject(body))
+            headers["content-type"] = "application/json"
 
-    // For abortable requests
-    let signal: AbortSignal | undefined
-    if (options.abort) {
-      const controller = new AbortController()
-      signal = controller.signal
-      if (ongoingRequests[baseRoute]) {
-        ongoingRequests[baseRoute].abort()
-      }
-      ongoingRequests[baseRoute] = controller
-    }
+        // For abortable requests
+        let signal: AbortSignal | undefined
+        if (options.abort) {
+            const controller = new AbortController()
+            signal = controller.signal
+            if (ongoingRequests[baseRoute]) {
+                ongoingRequests[baseRoute].abort()
+            }
+            ongoingRequests[baseRoute] = controller
+        }
 
-    const request = fetch(`${API_BASE_PATH}${route}`, {
-      method,
-      headers,
-      credentials: 'omit',
-      signal,
-      body:
-        isFormData(body) ?
-          body :
-        isObject(body) ?
-          JSON.stringify(body) :
-          undefined,
-    })
+        const request = fetch(`${API_BASE_PATH}${route}`, {
+            method,
+            headers,
+            credentials: 'omit',
+            signal,
+            body:
+                isFormData(body) ?
+                    body :
+                    isObject(body) ?
+                        JSON.stringify(body) :
+                        undefined,
+        })
 
-    return request.then(res => {
-      if (options.abort) {
-        delete ongoingRequests[baseRoute]
-      }
-      return res
-    })
-    .then((response) => attachData<R>(response))
-    .then(response => {
-      if (response.ok) {
-        return response;
-      }
-      return Promise.reject(createAPIError(response));
-    })
-  };
+        return request.then(res => {
+            if (options.abort) {
+                delete ongoingRequests[baseRoute]
+            }
+            return res
+        })
+            .then((response) => attachData<R>(response))
+            .then(response => {
+                if (response.ok) {
+                    return response;
+                }
+                return Promise.reject(createAPIError(response));
+            })
+    };
 }
 
 export type QueryParams = Parameters<typeof qs>[0]
 
 function get<R extends ResponseWithData<any>>(route: string, queryParams?: QueryParams, options?: APIFetchOptions) {
-  const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
-  return apiFetch<R>('GET', fullRoute, undefined, options);
+    const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
+    return apiFetch<R>('GET', fullRoute, undefined, options);
 }
 
 function filteredpost<R extends ResponseWithData<any>>(route: string, queryParams: QueryParams, body: any, options?: APIFetchOptions) {
-  const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
-  return apiFetch<R>('POST', fullRoute, body, options);
+    const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
+    return apiFetch<R>('POST', fullRoute, body, options);
 }
 
 function post<R extends ResponseWithData<any>>(route: string, body: any, options?: APIFetchOptions) {
-  return apiFetch<R>('POST', route, body, options);
+    return apiFetch<R>('POST', route, body, options);
 }
 
 function patch<R extends ResponseWithData<any>>(route: string, body: any, options?: APIFetchOptions) {
-  return apiFetch<R>('PATCH', route, body, options);
+    return apiFetch<R>('PATCH', route, body, options);
 }
 
 function remove<R extends ResponseWithData<any>>(route: string) {
-  return apiFetch<R>('DELETE', route);
+    return apiFetch<R>('DELETE', route);
 }
 
 interface ApiError extends Omit<Error, 'stack'> {
-	name: 'APIError'
-	message: string
-  stack: string[]
-	data: Record<string, string[]>
-	fromAPI: boolean
-	status: number
-	statusText: string
-  url: string
+    name: 'APIError'
+    message: string
+    stack: string[]
+    data: Record<string, string[]>
+    fromAPI: boolean
+    status: number
+    statusText: string
+    url: string
 }
 function createAPIError<R extends ResponseWithData<any>>(response: R): ApiError {
-  const data = response.data;
-  let detail: any;
+    const data = response.data;
+    let detail: any;
 
-  // Server errors
-  if (response.isJSON && response.status === 400) {
-    detail = JSON.stringify(data, null, 2)
-  }
-  else {
-    // API error as { ok: false, detail: ... }
-    try {
-      detail = data.detail ||
-        (data.revision__user && ('User: ' + data.revision__user.join(', ')));
-    } catch (_) {}
-  }
+    // Server errors
+    if (response.isJSON && response.status === 400) {
+        detail = JSON.stringify(data, null, 2)
+    }
+    else {
+        // API error as { ok: false, detail: ... }
+        try {
+            detail = data.detail ||
+                (data.revision__user && ('User: ' + data.revision__user.join(', ')));
+        } catch (_) { }
+    }
 
-  const message = detail ?
-    ('API error: ' + detail) :
-    (`HTTP error ${response.status}: ` + response.statusText + ': ' + response.url)
+    const message = detail ?
+        ('API error: ' + detail) :
+        (`HTTP error ${response.status}: ` + response.statusText + ': ' + response.url)
 
-  const error = new Error(message) as unknown as ApiError;
-  error.name = 'APIError';
-  error.fromAPI = Boolean(detail);
-  error.data = data || {};
-  error.url = response.url;
-  error.status = response.status;
-  error.statusText = response.statusText;
-  error.stack = []
+    const error = new Error(message) as unknown as ApiError;
+    error.name = 'APIError';
+    error.fromAPI = Boolean(detail);
+    error.data = data || {};
+    error.url = response.url;
+    error.status = response.status;
+    error.statusText = response.statusText;
+    error.stack = []
 
-  return error;
+    return error;
 }
 
 export interface FMSResponse<T = any> extends Response {
-  isJSON: boolean
-  data: T
-  filename?: string
+    isJSON: boolean
+    data: T
+    filename?: string
 }
 interface JsonResponse<T = any> extends FMSResponse<T> { isJSON: true }
 interface ArrayBufferResponse extends FMSResponse<ArrayBuffer> { isJSON: false }
@@ -474,67 +474,67 @@ interface AttachDataErrorResponse extends FMSResponse<Record<string, never>> { i
 type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | AttachDataErrorResponse
 
 function attachData<R extends ResponseWithData<any>>(response: Response & Partial<ResponseWithData>) {
-  const contentType = response.headers.get('content-type') || '' ;
-  const contentDispo = response.headers.get('content-disposition');
-  const filename = getFilenameOrNull(contentDispo)
-  if (filename)
-    response.filename = filename
+    const contentType = response.headers.get('content-type') || '';
+    const contentDispo = response.headers.get('content-disposition');
+    const filename = getFilenameOrNull(contentDispo)
+    if (filename)
+        response.filename = filename
 
-  /*
-    TODO: This code was causing downloaded excel templates to become corrupted because
-    the backend was sending "None" as a Content-Type, due to a problem with mime types.
-    We tried to fix that by hard-coding the content-type as 'application/octet-stream' but
-    the files were still corrupt.
+    /*
+      TODO: This code was causing downloaded excel templates to become corrupted because
+      the backend was sending "None" as a Content-Type, due to a problem with mime types.
+      We tried to fix that by hard-coding the content-type as 'application/octet-stream' but
+      the files were still corrupt.
 
-    The problem was traced to this code. By default, the response is converted to text unless
-    the content-type correctly identifies the file as an excel sheet.
+      The problem was traced to this code. By default, the response is converted to text unless
+      the content-type correctly identifies the file as an excel sheet.
 
-    This was a difficult problem to figure out. This code needs to be improved to avoid
-    the same problem in the future if we transer other binary data types.
-  */
-  const isJSON = contentType.includes('/json')
-  const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-  const isZip = contentType.includes('/zip')
+      This was a difficult problem to figure out. This code needs to be improved to avoid
+      the same problem in the future if we transer other binary data types.
+    */
+    const isJSON = contentType.includes('/json')
+    const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    const isZip = contentType.includes('/zip')
 
-  response.isJSON = isJSON
-  return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
-  .then(data => {
-    response.data = data;
-    return response as R
-  })
-  .catch(() => {
-    response.data = {};
-    return response as R // as AttachDataErrorResponse (ideally)
-  })
+    response.isJSON = isJSON
+    return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
+        .then(data => {
+            response.data = data;
+            return response as R
+        })
+        .catch(() => {
+            response.data = {};
+            return response as R // as AttachDataErrorResponse (ideally)
+        })
 }
 
 function getFilenameOrNull(contentDispo: string | null) {
-  if(contentDispo)
-    return contentDispo.split('filename=').length > 1
-      // eslint-disable-next-line no-useless-escape
-      ? contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
-      : null
-  else
-    return null
+    if (contentDispo)
+        return contentDispo.split('filename=').length > 1
+            // eslint-disable-next-line no-useless-escape
+            ? contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
+            : null
+    else
+        return null
 }
 
 function form(params: Record<string, string | Blob>) {
-  const formData = new FormData()
-  for (const key in params) {
-    const value = params[key]
-    formData.append(key, value)
-  }
-  return formData
+    const formData = new FormData()
+    for (const key in params) {
+        const value = params[key]
+        formData.append(key, value)
+    }
+    return formData
 }
 
 function isObject(object: any): object is object {
-  return object !== null && typeof object === 'object'
+    return object !== null && typeof object === 'object'
 }
 
 function isFormData(object: any): object is FormData {
-  return object instanceof FormData
+    return object instanceof FormData
 }
 
 function getPathname(route: string) {
-  return route.replace(/\?.*$/, '')
+    return route.replace(/\?.*$/, '')
 }

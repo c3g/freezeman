@@ -1,7 +1,9 @@
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Count, Exists, OuterRef
 
 from django.utils import timezone
 import datetime
+from .models._constants import ReleaseStatus, ValidationStatus
+
 from .models import (Container,
                      DerivedBySample,
                      Index,
@@ -10,6 +12,7 @@ from .models import (Container,
                      PropertyValue,
                      Dataset,
                      Biosample,
+                     ExperimentRun,
                      Readset,
                      SampleNextStep,
                      SampleNextStepByStudy,
@@ -30,6 +33,7 @@ from .viewsets._constants import (
     _sample_next_step_by_study_filterset_fields,
     _readset_filterset_fields,
     _stephistory_filterset_fields,
+    _experiment_run_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -198,6 +202,33 @@ class DatasetFilter(GenericFilter):
     class Meta:
         model = Dataset
         fields = _dataset_filterset_fields
+
+class ExperimentRunFilter(GenericFilter):
+    experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
+
+    def experiment_run_progress_stage_filter(self, queryset, name, value):
+        queryset = queryset.annotate(
+            has_readsets=Exists(Readset.objects.filter(dataset__experiment_run=OuterRef("pk")))
+        )
+        queryset = queryset.annotate(
+            unvalidated_count=Count("datasets__readsets", filter=Q(datasets__readsets__validation_status=ValidationStatus.AVAILABLE), distinct=True)
+        )
+        queryset = queryset.annotate(
+            unreleased_count=Count("datasets__readsets", filter=Q(datasets__readsets__release_status=ReleaseStatus.AVAILABLE), distinct=True)
+        )
+
+        match value:
+            case "processed":
+                filtered_queryset = queryset.filter(unvalidated_count__gt=0)
+            case "validated":
+                filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count__gt=0)
+            case "released":
+                filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count=0, has_readsets=True)
+
+        return filtered_queryset
+    class Meta:
+        model = ExperimentRun
+        fields = _experiment_run_filterset_fields
 
 class PooledSamplesFilter(GenericFilter):
     parent_sample_name__icontains = django_filters.CharFilter(method="parent_sample_name_filter")

@@ -155,20 +155,6 @@ _run_type_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_experiment_run_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "name": CATEGORICAL_FILTERS_LOOSE,
-    "start_date": DATE_FILTERS,
-    "run_type": FK_FILTERS,
-    "instrument": FK_FILTERS,
-    "container": FK_FILTERS,
-    "run_processing_launch_time": DATE_FILTERS,
-
-    **_prefix_keys("run_type__", _run_type_filterset_fields),
-    **_prefix_keys("instrument__", _instrument_filterset_fields),
-    **_prefix_keys("container__", _container_filterset_fields),
-}
-
 _project_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -242,6 +228,21 @@ _dataset_filterset_fields: FiltersetFields = {
     "project_name": CATEGORICAL_FILTERS_LOOSE,
     "metric_report_url": CATEGORICAL_FILTERS_LOOSE,
     "experiment_run": FK_FILTERS,
+}
+
+_experiment_run_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "start_date": DATE_FILTERS,
+    "run_type": FK_FILTERS,
+    "instrument": FK_FILTERS,
+    "container": FK_FILTERS,
+    "run_processing_launch_time": DATE_FILTERS,
+
+    **_prefix_keys("run_type__", _run_type_filterset_fields),
+    **_prefix_keys("instrument__", _instrument_filterset_fields),
+    **_prefix_keys("container__", _container_filterset_fields),
+    **_prefix_keys("datasets__", _dataset_filterset_fields),
 }
 
 _readset_filterset_fields: FiltersetFields = {

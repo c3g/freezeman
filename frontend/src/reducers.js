@@ -5,84 +5,84 @@ import storage from "redux-persist/lib/storage";
 import { app } from "./modules/app/reducers";
 import { auth } from "./modules/auth/reducers";
 import {
-  containerKinds,
-  containerPrefillTemplates,
-  containerTemplateActions,
-  containers,
-  containersSummary,
+    containerKinds,
+    containerPrefillTemplates,
+    containerTemplateActions,
+    containers,
+    containersSummary,
 } from "./modules/containers/reducers";
 import { coordinates } from "./modules/coordinates/reducers";
 import { datasetFiles } from "./modules/datasetFiles/reducers";
 import { datasets } from "./modules/datasets/reducers";
 import { readsets } from "./modules/readsets/reducers";
 import {
-  experimentRunLanes
+    experimentRunLanes
 } from './modules/experimentRunLanes/reducers';
 import {
-  externalExperimentRuns
+    externalExperimentRuns
 } from "./modules/experimentRuns/externalExperimentsReducers";
 import {
-  experimentRunLaunches,
-  experimentRunTemplateActions,
-  experimentRuns,
-  instruments,
-  instrumentTypes,
-  propertyValues,
-  runTypes
+    experimentRunLaunches,
+    experimentRunTemplateActions,
+    experimentRuns,
+    instruments,
+    instrumentTypes,
+    propertyValues,
+    runTypes
 } from "./modules/experimentRuns/reducers";
 import { reducer as groups } from "./modules/groups";
 import {
-  indices,
-  indicesSummary,
-  indicesTemplateActions
+    indices,
+    indicesSummary,
+    indicesTemplateActions
 } from "./modules/indices/reducers";
 import { individualDetails } from "./modules/individualDetails/reducers";
 import { individuals } from "./modules/individuals/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
 import { labworkSteps, labworkStepSummary, sampleNextStepTemplateActions, labworkStepPlacement } from "./modules/labworkSteps/reducers";
 import {
-  libraries,
-  librariesSummary,
-  libraryPrefillTemplates,
-  libraryTemplateActions
+    libraries,
+    librariesSummary,
+    libraryPrefillTemplates,
+    libraryTemplateActions
 } from "./modules/libraries/reducers";
 import {
-  libraryTypes,
+    libraryTypes,
 } from "./modules/libraryTypes/reducers";
 import { notifications } from './modules/notification/reducers';
 import { reducer as pagination } from "./modules/pagination";
 import {
-  platforms,
+    platforms,
 } from "./modules/platforms/reducers";
 import {
-  pooledSamples
+    pooledSamples
 } from "./modules/pooledSamples/reducers";
 import {
-  processMeasurementTemplateActions,
-  processMeasurements,
-  processMeasurementsSummary,
+    processMeasurementTemplateActions,
+    processMeasurements,
+    processMeasurementsSummary,
 } from "./modules/processMeasurements/reducers";
 import {
-  processes
+    processes
 } from "./modules/processes/reducers";
 import {
-  projectTemplateActions,
-  projects,
-  projectsSummary
+    projectTemplateActions,
+    projects,
+    projectsSummary
 } from "./modules/projects/reducers";
 import {
-  protocols,
+    protocols,
 } from "./modules/protocols/reducers";
 import { referenceGenomes } from './modules/referenceGenomes/reducers';
 import {
-  sampleKinds,
-  samplePrefillTemplates,
-  sampleTemplateActions,
-  samples,
-  samplesSummary,
+    sampleKinds,
+    samplePrefillTemplates,
+    sampleTemplateActions,
+    samples,
+    samplesSummary,
 } from "./modules/samples/reducers";
 import {
-  sequences,
+    sequences,
 } from "./modules/sequences/reducers";
 import { steps } from './modules/steps/reducers';
 import { studies } from "./modules/studies/reducers";
@@ -93,7 +93,7 @@ import { users } from "./modules/users/reducers";
 import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
 import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
-import { projectsTable} from './modules/projectsTable/reducers'
+import { projectsTable } from './modules/projectsTable/reducers'
 import { projectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { samplesTable } from './modules/samplesTable/reducers'
 import { containersTable } from './modules/containersTable/reducers'
@@ -108,92 +108,92 @@ import { experimentRunsTable } from "./modules/experimentRunsTable/reducers"
 import placement from "./modules/placement/reducers";
 
 const AUTH_PERSIST_CONFIG = {
-  key: "auth",
-  blacklist: ["isFetching"],
-  storage,
+    key: "auth",
+    blacklist: ["isFetching"],
+    storage,
 };
 
 const allReducers = combineReducers({
-  auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
-  app,
-  containerKinds,
-  containersSummary,
-  containerTemplateActions,
-  containerPrefillTemplates,
-  containers,
-  containersTable,
-  instrumentsTable,
-  datasets,
-  datasetFiles,
-  datasetsTable,
-  experimentRunsTable,
-  readsets,
-  experimentRuns,
-  experimentRunLanes,
-  externalExperimentRuns,
-  experimentRunLaunches,
-  experimentRunTemplateActions,
-  runTypes,
-  individuals,
-  individualsTable,
-  taxons,
-  taxonsTable,
-  referenceGenomes,
-  instruments,
-  instrumentTypes,
-  sampleKinds,
-  samplesSummary,
-  sampleTemplateActions,
-  samplePrefillTemplates,
-  samples,
-  projectSamplesTable,
-  pooledSamples,
-  samplesTable,
-  readsetsTable,
-  protocols,
-  processes,
-  processMeasurementsSummary,
-  processMeasurementTemplateActions,
-  processMeasurements,
-  projectsSummary,
-  projects,
-  projectsOfSamples,
-  projectsTable,
-  projectTemplateActions,
-  studies,
-  indicesSummary,
-  indices,
-  indicesTemplateActions,
-  indicesTable,
-  propertyValues,
-  sequences,
-  librariesSummary,
-  libraries,
-  librariesTable,
-  libraryTemplateActions,
-  libraryPrefillTemplates,
-  libraryTypes,
-  platforms,
-  users,
-  usersTable,
-  groups,
-  pagination,
-  versions,
-  workflows,
-  labworkSummary,
-  studySamples,
-  individualDetails,
-  coordinates,
-  labworkStepPlacement,
-  labworkSteps,
-  labworkStepSummary,
-  sampleNextStepTemplateActions,
-  steps,
-  notifications,
-  placement,
+    auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
+    app,
+    containerKinds,
+    containersSummary,
+    containerTemplateActions,
+    containerPrefillTemplates,
+    containers,
+    containersTable,
+    instrumentsTable,
+    datasets,
+    datasetFiles,
+    datasetsTable,
+    experimentRunsTable,
+    readsets,
+    experimentRuns,
+    experimentRunLanes,
+    externalExperimentRuns,
+    experimentRunLaunches,
+    experimentRunTemplateActions,
+    runTypes,
+    individuals,
+    individualsTable,
+    taxons,
+    taxonsTable,
+    referenceGenomes,
+    instruments,
+    instrumentTypes,
+    sampleKinds,
+    samplesSummary,
+    sampleTemplateActions,
+    samplePrefillTemplates,
+    samples,
+    projectSamplesTable,
+    pooledSamples,
+    samplesTable,
+    readsetsTable,
+    protocols,
+    processes,
+    processMeasurementsSummary,
+    processMeasurementTemplateActions,
+    processMeasurements,
+    projectsSummary,
+    projects,
+    projectsOfSamples,
+    projectsTable,
+    projectTemplateActions,
+    studies,
+    indicesSummary,
+    indices,
+    indicesTemplateActions,
+    indicesTable,
+    propertyValues,
+    sequences,
+    librariesSummary,
+    libraries,
+    librariesTable,
+    libraryTemplateActions,
+    libraryPrefillTemplates,
+    libraryTypes,
+    platforms,
+    users,
+    usersTable,
+    groups,
+    pagination,
+    versions,
+    workflows,
+    labworkSummary,
+    studySamples,
+    individualDetails,
+    coordinates,
+    labworkStepPlacement,
+    labworkSteps,
+    labworkStepSummary,
+    sampleNextStepTemplateActions,
+    steps,
+    notifications,
+    placement,
 });
 
 export default function rootReducer(state, action) {
-  const newState = allReducers(state, action);
-  return newState;
+    const newState = allReducers(state, action);
+    return newState;
 }
