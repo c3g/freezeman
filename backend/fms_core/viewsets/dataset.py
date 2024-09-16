@@ -70,7 +70,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
         releease_status_timestamp = timezone.now()
         for readset in readsets:
-            readset.release_status = readset_updates[readset.pk]
+            readset.release_status = readset_updates[str(readset.id)]
             readset.release_status_timestamp = releease_status_timestamp
             readset.save()
 
