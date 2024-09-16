@@ -58,7 +58,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
         else:
             return Response(self.get_serializer(datasets.values(), many=True).data)
 
-    @transaction.atomic
     @action(detail=True, methods=["patch"])
     def set_release_status(self, request, pk):
         data = request.data
