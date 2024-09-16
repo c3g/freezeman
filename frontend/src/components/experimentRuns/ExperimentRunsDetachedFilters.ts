@@ -1,8 +1,7 @@
 import { FilterDescription } from "../../models/paged_items";
 import { FILTER_TYPE } from '../../constants'
-import { capitalize } from "../../utils/capitalize";
 
-export enum RUN_TYPES { 
+export enum RUN_TYPES {
     ILLUMINA = "Illumina",
     AXIOM = "Axiom",
     DNBSEQ = "DNBSEQ",
@@ -29,5 +28,5 @@ export const EXPERIMENT_RUN_PROCESS_FILTER: FilterDescription = {
     key: 'experiment_run_progress_stage',
     label: 'Experiment Run Stages',
     placeholder: 'All',
-    options: Object.values(PROGRESS_FLAGS).map((flag) => ({label: capitalize(flag), value: flag})),
+    options: Object.values(PROGRESS_FLAGS).map((flag) => ({label: flag.toUpperCase(), value: flag})),
 }

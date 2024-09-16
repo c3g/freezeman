@@ -14,7 +14,7 @@ import FiltersBar from "../filters/filtersBar/FiltersBar";
 
 
 const detachedFilters = [
-	  EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
+	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
     EXPERIMENT_RUN_PROCESS_FILTER
 ]
 
