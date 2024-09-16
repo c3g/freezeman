@@ -45,12 +45,11 @@ const api = {
   },
 
   datasets: {
-    get: id => get(`/datasets/${id}/`),
+    get: (id: FMSDataset["id"]) => get<JsonResponse<FMSDataset>>(`/datasets/${id}/`),
     list: (options, abort?) => get("/datasets/", options, { abort }),
     setReleaseStatus: (
       id: Dataset["id"],
-      updates: Record<Readset["id"],
-      ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED>,
+      updates: Record<Readset["id"], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED>,
       filters = {}
     ) => patch<JsonResponse<FMSDataset>>(`/datasets/${id}/set_release_status/`, { updates, filters }),
     addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })

@@ -22,6 +22,7 @@ import { ReleaseStatus } from "../../models/fms_api_models";
 import { ExpandableConfig } from "antd/lib/table/interface";
 import api from "../../utils/api";
 import produce from "immer";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 
 const RELEASE_STATUS_STRING = {
     [ReleaseStatus.RELEASED]: 'Released',
@@ -37,9 +38,13 @@ const OPPOSITE_STATUS = {
 interface ReadsetsListContentProps {
     dataset: Dataset
     laneValidationStatus: ValidationStatus
+    refreshDataset: () => Promise<void>
 }
 
-const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListContentProps) => {
+const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: ReadsetsListContentProps) => {
+    const user = useCurrentUser()
+    const isAdmin = user ? user.is_staff : false
+
     const readsetTableState = useAppSelector(selectReadsetsTable)
     const readsetTableCallbacks = usePagedItemsActionsCallbacks(ReadsetTableActions)
     const dispatch = useAppDispatch()
@@ -55,12 +60,16 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         dispatch(ReadsetTableActions.listPage(1))
     }, [dataset.id, dispatch])
 
-    const canReleaseOrBlockReadsets = (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)
+    const canReleaseOrBlockReadsets =
+        (!dataset.latest_release_update && (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)) ||
+        ( dataset.latest_release_update && isAdmin)
 
     const releaseStatusManager = useReleaseStatusManager(dataset.id)
 
     const renderReleaseStatus = useCallback((_: any, { readset }: ObjectWithReadset) => (
-        <ReleaseStatusButton releaseStatus={releaseStatusManager.readsetReleaseStates[readset.id]} disabled={!canReleaseOrBlockReadsets}
+        <ReleaseStatusButton 
+            releaseStatus={releaseStatusManager.readsetReleaseStates[readset.id]}
+            disabled={!canReleaseOrBlockReadsets}
             onClick={() => {
                 const { id } = readset
                 releaseStatusManager.toggleReleaseStatus(id)
@@ -91,9 +100,13 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
         }
 
         const allReadsetsReleased = !someReadsetsAvailable && !someReadsetsBlocked
+        const releaseAllEnabled = !allReadsetsReleased && canReleaseOrBlockReadsets
+
         const allReadsetsBlocked = !someReadsetsAvailable && !someReadsetsReleased
-        const undoChangesEnabled = someReadsetsChangedStatus
-        const saveChangesEnabled = someReadsetsChangedStatus && allReadsetsReleasedOrBlocked
+        const blockAllEnabled = !allReadsetsBlocked && canReleaseOrBlockReadsets
+
+        const undoChangesEnabled = someReadsetsChangedStatus && canReleaseOrBlockReadsets
+        const saveChangesEnabled = someReadsetsChangedStatus && allReadsetsReleasedOrBlocked && canReleaseOrBlockReadsets
     
         return <div>
             <Button
@@ -101,7 +114,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 onClick={() => {
                     releaseStatusManager.setAllReleaseStatus(ReleaseStatus.RELEASED)
                 }}
-                disabled={allReadsetsReleased}>
+                disabled={!releaseAllEnabled}>
                 Release All
             </Button>
             <Button
@@ -109,7 +122,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
                 onClick={() => {
                     releaseStatusManager.setAllReleaseStatus(ReleaseStatus.BLOCKED)
                 }}
-                disabled={allReadsetsBlocked}>
+                disabled={!blockAllEnabled}>
                 Block All
             </Button>
             <Button
@@ -122,8 +135,9 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             </Button>
             <Button
                 style={{ margin: 6 }}
-                onClick={() => {
-                    releaseStatusManager.updateReleaseStatus(filters)
+                onClick={async () => {
+                    await releaseStatusManager.updateReleaseStatus(filters)
+                    await refreshDataset()
                 }}
                 type={"primary"}
                 disabled={!saveChangesEnabled}>
@@ -131,7 +145,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus }: ReadsetsListCont
             </Button>
         </div>
     },
-    [filters, releaseStatusManager])
+    [canReleaseOrBlockReadsets, filters, refreshDataset, releaseStatusManager])
 
     const mapContainerIDs = useItemsByIDToDataObjects(selectReadsetsByID, wrapReadset)
 
@@ -236,7 +250,7 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
             }
         }
         await dispatch(api.datasets.setReleaseStatus(datasetID, finalNewReleaseStates, filters))
-        await dispatch(ReadsetTableActions.refreshPage())
+        // await dispatch(ReadsetTableActions.refreshPage()) // already updated implicitly by refreshDataset
         for (const key in finalNewReleaseStates) {
             setReadsetReleaseStates(produce((prev) => {
                 prev[key] = {
@@ -357,7 +371,8 @@ interface ReleaseStatusButtonProps {
 function ReleaseStatusButton({ releaseStatus, disabled, onClick }: ReleaseStatusButtonProps) {
     const newReleaseStatus = releaseStatus?.new
     const oldReleaseStatus = releaseStatus?.old
-    return (oldReleaseStatus !== undefined ? <Button
+    return (oldReleaseStatus !== undefined
+        ? <Button
             disabled={disabled}
             style={{
                 color: newReleaseStatus != oldReleaseStatus && newReleaseStatus !== undefined
@@ -368,11 +383,12 @@ function ReleaseStatusButton({ releaseStatus, disabled, onClick }: ReleaseStatus
                 width: "6em"
             }}
             onClick={onClick}
-        >
-            {newReleaseStatus !== undefined
-                ? RELEASE_STATUS_STRING[newReleaseStatus]
-                : RELEASE_STATUS_STRING[oldReleaseStatus]}
-        </Button> : <Spin />)
+            >
+                {newReleaseStatus !== undefined
+                    ? RELEASE_STATUS_STRING[newReleaseStatus]
+                    : RELEASE_STATUS_STRING[oldReleaseStatus]}
+            </Button>
+        : <Spin />)
 }
 
 function checkIfDecimal(str: string) {
