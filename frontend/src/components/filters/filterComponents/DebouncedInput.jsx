@@ -5,11 +5,11 @@ import { Input } from 'antd'
  * A hook to debounce function calls until after the specified time.
  * This is used to avoid triggering calls to the backend while the user
  * is typing in a filter.
- * @param {*} debouncedFunction 
- * @param {*} debounceTime 
- * @returns 
+ * @param {*} debouncedFunction
+ * @param {*} debounceTime
+ * @returns
  */
-const useDebounce = (debouncedFunction, debounceTime = 500) => {
+export const useDebounce = (debouncedFunction, debounceTime = 500) => {
     let timer
     function caller(...args) {
         const context = this
