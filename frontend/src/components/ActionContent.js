@@ -41,16 +41,12 @@ const submitRequests = {
 }
 
 const ActionContent = ({token, templateType, templateActions}) => {
-  const history = useNavigate();
   const { action: actionId } = useParams()
 
   const actionIndex = parseInt(actionId, 10) || 0;
   const actions = templateActions[templateType];
   const checkRequest = withToken(token, checkRequests[templateType]);
   const submitRequest = withToken(token, submitRequests[templateType]);
-  const goBack = () => {
-    history(-1)
-  }
 
   const action = actions.items[actionIndex] || LOADING_ACTION;
 
@@ -88,7 +84,6 @@ const ActionContent = ({token, templateType, templateActions}) => {
         templateType={templateType}
         checkRequest={checkRequest}
         submitRequest={submitRequest}
-        goBack={goBack}
       />
     </PageContent>
   </>;
