@@ -44,7 +44,7 @@ class LibraryQCRowHandler(GenericRowHandler):
         if initial_volume is None:
             self.errors['initial_volume'] = 'Initial volume must be specified'
         if measured_volume is None:
-            measured_volume = source_sample_obj.volume
+            self.errors['measured_volume'] = 'Measured volume must be specified'
         if volume_used is None:
             self.errors['volume_used'] = 'Volume used must be specified'
         if sample_volume is None:
