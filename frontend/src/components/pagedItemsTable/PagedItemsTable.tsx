@@ -80,7 +80,6 @@ function PagedItemsTable<T extends object>({
 
 	const { items, sortBy, stale } = pagedItems
 	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
-
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
 		() => {
@@ -130,6 +129,7 @@ function PagedItemsTable<T extends object>({
 		},
 		[sortBy, setSortByCallback]
 	)
+    const debouncedSortByCallback = useDebounce(sortByCallback)
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
@@ -247,7 +247,7 @@ function PagedItemsTable<T extends object>({
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
 						scroll={{x: 300}}
-						onChange={useDebounce(sortByCallback)}
+						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
