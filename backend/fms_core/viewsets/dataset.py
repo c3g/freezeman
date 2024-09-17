@@ -58,6 +58,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         else:
             return Response(self.get_serializer(datasets.values(), many=True).data)
 
+    @transaction.atomic
     @action(detail=True, methods=["patch"])
     def set_release_status(self, request, pk):
         data = request.data
@@ -67,11 +68,15 @@ class DatasetViewSet(viewsets.ModelViewSet):
         readset_ids = list(readset_updates.keys())
         readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids, **filters)
 
-        releease_status_timestamp = timezone.now()
-        for readset in readsets:
-            readset.release_status = readset_updates[str(readset.id)]
-            readset.release_status_timestamp = releease_status_timestamp
-            readset.save()
+        try:
+            releease_status_timestamp = timezone.now()
+            for readset in readsets:
+                readset.release_status = readset_updates[str(readset.id)]
+                readset.release_status_timestamp = releease_status_timestamp
+                readset.save()
+        except Exception as e:
+            transaction.set_rollback(True)
+            return HttpResponseServerError(f"Error updating release status: {e}")
 
         return Response(status=204)
     
