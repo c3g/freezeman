@@ -31,9 +31,21 @@ class Dataset(TrackedModel):
         if readset:
             return readset.validation_status
 
+    @property
+    def validated_by(self):
+        readset = self.readsets.first()
+        if readset.validated_by:
+            return readset.validated_by.username
+
+    @property
+    def released_by(self):
+        readset = self.readsets.first()
+        if readset.released_by:
+            return readset.released_by.username
+
     def clean(self):
         super().clean()
-        
+
         errors = {}
 
         try:
@@ -41,7 +53,7 @@ class Dataset(TrackedModel):
                 raise Exception
         except Exception:
             errors["LaneError"] = f"Lane must be a positive integer, and yet it was given {self.lane}."
-      
+
         if errors:
             raise ValidationError(errors)
 

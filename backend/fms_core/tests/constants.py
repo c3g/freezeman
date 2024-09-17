@@ -51,7 +51,7 @@ def create_sample(container, coordinates=None, **kwargs):
         **kwargs
     }
 
-def create_fullsample(name, alias, volume, individual, sample_kind, container, coordinates=None, tissue_source=None, concentration=None):
+def create_fullsample(name, alias, volume, individual, sample_kind, container, coordinates=None, tissue_source=None, concentration=None, project=None):
     biosample = Biosample.objects.create(individual=individual, alias=alias if alias else name, collection_site="Site1")
     derivedsample = DerivedSample.objects.create(biosample=biosample,
                                                  sample_kind=sample_kind,
@@ -64,7 +64,7 @@ def create_fullsample(name, alias, volume, individual, sample_kind, container, c
                                    container=container,
                                    coordinate=coordinate,
                                    creation_date=datetime.datetime.today())
-    derivedbysample = DerivedBySample.objects.create(derived_sample=derivedsample, sample=sample, volume_ratio=1)
+    derivedbysample = DerivedBySample.objects.create(derived_sample=derivedsample, sample=sample, volume_ratio=1, project=project)
     return sample
 
 

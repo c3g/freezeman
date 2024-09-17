@@ -21,8 +21,8 @@ import MetadataFilter from './filterComponents/MetadataFilter'
 export function getFilterComponent(
 	description: FilterDescription,
 	filterSetting: FilterSetting | undefined,
-	setFilter: SetFilterFunc,
-	setFilterOption: SetFilterOptionFunc,
+	setFilter?: SetFilterFunc,
+	setFilterOption?: SetFilterOptionFunc,
 	confirm = () => true, // Used by column filters
 	visible = true // Used by column filters
 ) {

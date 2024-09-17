@@ -27,4 +27,5 @@ class ReadsetServicesTestCase(TestCase):
         self.assertEqual(readset.validation_status, ValidationStatus.PASSED)
         self.assertIsNotNone(readset.validation_status_timestamp)
         self.assertIsNone(readset.derived_sample)
+        self.assertEqual(readset.validated_by.username, "biobankadmin")
         

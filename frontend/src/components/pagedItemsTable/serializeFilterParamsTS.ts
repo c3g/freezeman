@@ -12,9 +12,10 @@ import {
 	MetadataFilterValue,
 	SortBy,
 } from '../../models/paged_items'
+import { QueryParams } from '../../utils/api'
 
 export default function serializeFilterParamsWithDescriptions(filters: FilterSet) {
-	const params = {}
+	const params: NonNullable<QueryParams> = {}
 
 	function hasSpaces(string) {
 		return string.indexOf(' ') >= 1

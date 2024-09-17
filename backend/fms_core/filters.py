@@ -1,7 +1,9 @@
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Count, Exists, OuterRef
 
 from django.utils import timezone
 import datetime
+from .models._constants import ReleaseStatus, ValidationStatus
+
 from .models import (Container,
                      DerivedBySample,
                      Index,
@@ -10,9 +12,11 @@ from .models import (Container,
                      PropertyValue,
                      Dataset,
                      Biosample,
+                     ExperimentRun,
                      Readset,
                      SampleNextStep,
-                     SampleNextStepByStudy)
+                     SampleNextStepByStudy,
+                     StepHistory)
 
 import django_filters
 
@@ -28,6 +32,8 @@ from .viewsets._constants import (
     _sample_next_step_filterset_fields,
     _sample_next_step_by_study_filterset_fields,
     _readset_filterset_fields,
+    _stephistory_filterset_fields,
+    _experiment_run_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -178,6 +184,7 @@ class IndexFilter(GenericFilter):
 class DatasetFilter(GenericFilter):
     release_flag = django_filters.NumberFilter(method="release_flag_filter")
     latest_release_update = django_filters.CharFilter(method="latest_release_update_filter")
+    latest_validation_update = django_filters.CharFilter(method="latest_validation_update_filter")
 
     def release_flag_filter(self, queryset, name, value):
         return queryset.filter(release_flag=value)
@@ -185,11 +192,43 @@ class DatasetFilter(GenericFilter):
     def latest_release_update_filter(self, queryset, name, value):
         return queryset.annotate(
             latest_release_update=Max("readsets__release_status_timestamp")
-        ).filter(latest_release_update__gte=value)
+        ).filter(latest_release_update__gt=value)
+
+    def latest_validation_update_filter(self, queryset, name, value):
+        return queryset.annotate(
+            latest_validation_update=Max("readsets__validation_status_timestamp")
+        ).filter(latest_validation_update__gt=value)
 
     class Meta:
         model = Dataset
         fields = _dataset_filterset_fields
+
+class ExperimentRunFilter(GenericFilter):
+    experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
+
+    def experiment_run_progress_stage_filter(self, queryset, name, value):
+        queryset = queryset.annotate(
+            has_readsets=Exists(Readset.objects.filter(dataset__experiment_run=OuterRef("pk")))
+        )
+        queryset = queryset.annotate(
+            unvalidated_count=Count("datasets__readsets", filter=Q(datasets__readsets__validation_status=ValidationStatus.AVAILABLE), distinct=True)
+        )
+        queryset = queryset.annotate(
+            unreleased_count=Count("datasets__readsets", filter=Q(datasets__readsets__release_status=ReleaseStatus.AVAILABLE), distinct=True)
+        )
+
+        match value:
+            case "processed":
+                filtered_queryset = queryset.filter(unvalidated_count__gt=0)
+            case "validated":
+                filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count__gt=0)
+            case "released":
+                filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count=0, has_readsets=True)
+
+        return filtered_queryset
+    class Meta:
+        model = ExperimentRun
+        fields = _experiment_run_filterset_fields
 
 class PooledSamplesFilter(GenericFilter):
     parent_sample_name__icontains = django_filters.CharFilter(method="parent_sample_name_filter")
@@ -263,7 +302,6 @@ class SampleNextStepByStudyFilter(GenericFilter):
         fields = _sample_next_step_by_study_filterset_fields
 
 class ReadsetFilter(GenericFilter):
-
     number_reads__lte = django_filters.NumberFilter(method="number_reads_lte_filter")
     number_reads__gte = django_filters.NumberFilter(method="number_reads_gte_filter")
 
@@ -278,3 +316,10 @@ class ReadsetFilter(GenericFilter):
     class Meta:
         model = Readset
         fields = _readset_filterset_fields
+
+class StepHistoryFilter(GenericFilter):
+    workflow_action = django_filters.CharFilter(field_name="workflow_action", method="batch_filter")
+
+    class Meta:
+        model = StepHistory
+        fields = _stephistory_filterset_fields

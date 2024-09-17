@@ -14,6 +14,7 @@ from fms_core.services.sample import create_full_sample
 from fms_core.services.library import get_library_type, get_library_selection, create_library
 from fms_core.services.platform import get_platform
 from fms_core.services.index import get_index
+from fms_core.services.id_generator import get_unique_id
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
@@ -59,27 +60,44 @@ class SampleRowHandler(GenericRowHandler):
                                individual["reference_genome"],
                                mother_obj,
                                father_obj])
-        # When the individual name is not provided any field that is stored on the individual need to raise an error.
+        # can_use_generic_individual tests conditions that need to be met for a generic individual to be created successfully if no individual name is provided.
+        # Taxon is the basic of the individual. It is required. reference_genome_obj could replace it since it is tied to a taxon.
+        # Pedigree, mother_obj and father_obj all point to a known ancestry of a specific individual. It is unlikely someone would use a generic individual with those set.
+        can_use_generic_individual = (any([taxon_obj is not None,
+                                           reference_genome_obj is not None])
+                                      and not any([individual["pedigree"],
+                                                   mother_obj,
+                                                   father_obj]))
         self.errors['individual'] = []
         self.warnings['individual'] = []
-        if not individual["name"] and need_individual:
-            if individual["taxon"]:
-                self.errors['individual'].append(f"Individual taxon requires an individual name to be provided to be saved.")
+        # When the individual name is not provided any field that is stored on the individual need to raise an error if no generic individual can be created.
+        if not individual["name"] and need_individual and not can_use_generic_individual:
             if individual["sex"]:
-                self.errors['individual'].append(f"Individual sex requires an individual name to be provided to be saved.")
+                self.errors['individual'].append(f"Individual sex requires an individual name or taxon to be provided to be saved.")
             if individual["pedigree"]:
                 self.errors['individual'].append(f"Individual pedigree requires an individual name to be provided to be saved.")
             if individual["cohort"]:
-                self.errors['individual'].append(f"Individual cohort requires an individual name to be provided to be saved.")
+                self.errors['individual'].append(f"Individual cohort requires an individual name or taxon to be provided to be saved.")
             if individual["alias"]:
-                self.errors['individual'].append(f"Individual alias requires an individual name to be provided to be saved.")
-            if individual["reference_genome"]:
-                self.errors['individual'].append(f"Individual reference genome requires an individual name to be provided to be saved.")
+                self.errors['individual'].append(f"Individual alias requires an individual name or taxon to be provided to be saved.")
             if mother_obj:
                 self.errors['individual'].append(f"Individual mother requires an individual name to be provided to be saved.")
             if father_obj:
                 self.errors['individual'].append(f"Individual father requires an individual name to be provided to be saved.")
-        elif individual["name"]:
+        elif individual["name"] or (need_individual and can_use_generic_individual):
+            # We need taxon, reference_genome and sex
+            if taxon_obj is None and reference_genome_obj is not None:
+                taxon_obj = reference_genome_obj.taxon
+            if reference_genome_obj is None and taxon_obj is not None:
+                reference_genome_obj = taxon_obj.default_reference_genome
+            if individual["sex"] is None:
+                individual["sex"] = Individual.SEX_UNKNOWN
+            if not individual["name"]:
+                individual["name"] = Individual.GENERIC_INDIVIDUAL_PREFIX + str(get_unique_id())
+                is_generic = True
+            else:
+                is_generic = None # Not False because someone might want to reference a preexisting generic individual
+
             individual_obj, created, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
                                          alias=individual['alias'],
@@ -89,8 +107,10 @@ class SampleRowHandler(GenericRowHandler):
                                          cohort=individual['cohort'],
                                          reference_genome=reference_genome_obj,
                                          mother=mother_obj,
-                                         father=father_obj)
-            if not created:
+                                         father=father_obj,
+                                         is_generic=is_generic)
+            
+            if not created and not self.errors['individual']:
                 self.warnings['individual'].append(('Individual already exists and was not created.', []))
         else:
             self.warnings['individual'].append(('Sample is not tied to any individual.', []))

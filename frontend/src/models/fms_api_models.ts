@@ -1,6 +1,6 @@
 /**
  * Type definitions for the objects returned by the freezeman API.
- * 
+ *
  * These are the types we receive in response to api calls. The frontend
  * then tacks on some extra properties before storing the objects in
  * the redux state (isFetching and isLoaded). The actual types stored in redux
@@ -9,21 +9,21 @@
 
 /* Error type returned by the API when the frontend sends a bad request (error 400) */
 export interface ApiError {
-	data: {[key: string]: string[]} // Key-value pair, where the value is an array of error messages
-	fromAPI: boolean
-	name: string
-	status: number
-	statusText: string
+    data: { [key: string]: string[] } // Key-value pair, where the value is an array of error messages
+    fromAPI: boolean
+    name: string
+    status: number
+    statusText: string
     url: string
-	message: string
+    message: string
 }
 
-export function isApiError(err : any): boolean {
-    return (err && err.fromAPI === true && err.name === 'APIError' && err.status === 400) 
+export function isApiError(err: any): boolean {
+    return (err && err.fromAPI === true && err.name === 'APIError' && err.status === 400)
 }
 
 export function mapToFMSId(value: string | number) {
-    if (typeof(value) === 'string') {
+    if (typeof (value) === 'string') {
         value = parseInt(value)
     }
     return value
@@ -73,9 +73,9 @@ export interface FMSContainerKind extends FMSTrackedModel {
 }
 
 export interface FMSCoordinate extends FMSTrackedModel {
-  name: string                       // Coordinates
-  column: number                     // Column ordinal starting at 0
-  row: number                        // Row ordinal starting at 0
+    name: string                       // Coordinates
+    column: number                     // Column ordinal starting at 0
+    row: number                        // Row ordinal starting at 0
 }
 
 export enum ValidationStatus {
@@ -84,13 +84,16 @@ export enum ValidationStatus {
     FAILED = 2,
 }
 export interface FMSDataset extends FMSTrackedModel {
-    external_project_id : FMSId             // External (Hercules) project ID
+    external_project_id: FMSId             // External (Hercules) project ID
     files: FMSId[]                          // List of dataset file ID's
     lane: number                            // Flowcell lane number of dataset
     latest_release_update?: string          // ?
+    released_by?: string                    // Released_by returns a username if there is
     released_status_count: number           // Number of files released
     blocked_status_count: number            // Number of files blocked
     validation_status: ValidationStatus
+    latest_validation_update?: string       // Retrieves the latest validation status update timestamp from the readset level
+    validated_by?: string                   // Validated_by returns a username if there is
     run_name: string                        // The name of the experiment run that generated this dataset
     project_name: string                    // Human readable name for the project
     metric_report_url?: string              // An external url to a report containing metrics for the dataset run
@@ -99,7 +102,7 @@ export interface FMSDataset extends FMSTrackedModel {
 }
 
 export interface FMSArchivedComment extends FMSTrackedModel {
-    comment: string 
+    comment: string
 }
 
 export interface FMSReadset extends FMSTrackedModel {
@@ -110,11 +113,13 @@ export interface FMSReadset extends FMSTrackedModel {
     sample_source: FMSId               // Last non pool sample (if any, else last pool) before experiment
     release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
     release_status_timestamp: Date
+    released_by?: FMSId                // User that released the run data
     validation_status: number
     validation_status_timestamp: Date
+    validated_by?: FMSId               // User that validated the run data
     library_type: string
     index: string
-    metrics?: FMSMetric[] | {[key:string]: FMSMetric}
+    metrics?: FMSMetric[] | { [key: string]: FMSMetric }
 }
 
 export interface FMSDatasetFile extends FMSTrackedModel {
@@ -133,7 +138,7 @@ export interface FMSExperimentRun extends FMSTrackedModel {
     platform: string                    // Platform (ILLUMINA, DBNSEQ, etc.)
     process: FMSId                      // Process ID
     run_type: FMSId                     // RunType ID
-    start_date: string                  // Date when user started run 
+    start_date: string                  // Date when user started run
     end_time?: string                    // Time at which the experiment run completed (set by API call)
     run_processing_launch_time?: string  // Last time the run processing was launched, if it has been launched for the experiment run
     run_processing_start_time?: string   // Last time the run processing actually started for the experiment run
@@ -147,9 +152,9 @@ export interface FMSExternalExperimentRun {
 }
 
 export interface FMSImportedFile {
-    filename: string,                   // Name of file 
+    filename: string,                   // Name of file
     location: string,                   // Path to file (including file name)
-  }
+}
 
 export interface FMSIndex extends FMSTrackedModel {
     name: string                        // eg "Index_1"
@@ -169,6 +174,7 @@ export interface FMSIndividual extends FMSTrackedModel {
     reference_genome?: FMSId            // Reference Genome ID
     mother?: FMSId                      // Individual ID of mother
     father?: FMSId                      // Individual ID of father
+    is_generic: boolean                    // Generic individual flag
 }
 
 export interface FMSInstrument extends FMSTrackedModel {
@@ -185,10 +191,10 @@ export interface FMSInstrumentType extends FMSTrackedModel {
 }
 
 export interface FMSLabworkSummary {
-    protocols: {[key: string] : FMSLabworkProtocol}  // key: protocol object ID
+    protocols: { [key: string]: FMSLabworkProtocol }  // key: protocol object ID
     automations: {
-      count: number                                  // total samples on automations steps
-      steps: FMSLabworkStep[]                        // automations steps
+        count: number                                  // total samples on automations steps
+        steps: FMSLabworkStep[]                        // automations steps
     }
 }
 
@@ -255,10 +261,10 @@ export interface FMSPooledSample extends FMSTrackedModel {
     // The id is the ID of the pool's derived sample.
     pooled_sample_id: number,           // The id of the parent sample pool containing this derived sample
     volume_ratio: number,               // Derived sample volume as a ratio of the total pool volume
-  
+
     project_id: FMSId,                  // Project associated with the derived sample
     project_name: string,               // Project associated with the derived sample
-  
+
     // Sample info
     alias: string,                      // The alias (from the biosample)
     collection_site: string,            // Collection site, eg MUHC
@@ -268,7 +274,7 @@ export interface FMSPooledSample extends FMSTrackedModel {
     parent_sample_id: FMSId,            // The id of the sample that was added to this pool
     parent_sample_name: string,         // The name of the sample that was added to this pool
     sample_kind: string,                // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
-  
+
     // Library fields                   // Library fields are only defined if pool contains libraries
     index?: string,                     // Name of index
     index_id?: FMSId,                   // ID of index
@@ -294,7 +300,7 @@ export interface FMSProcessMeasurement extends FMSTrackedModel {
     protocol: FMSId                     // Protocol ID
     process: FMSId                      // Parent process ID
     properties: FMSId[]                 // ID's of any property values recorded for the sample
-    
+
     volume_used?: number                // Volume of sample consumed by process
     execution_date: string              // Date that sample was processed
     comment?: string                    // User comment
@@ -310,14 +316,14 @@ export interface FMSProject extends FMSTrackedModel {
     requestor_email: string             // The email of the requestor of the project
     targeted_end_date?: string          // Targeted date to conclude the project (YYYY-MM-DD)
     status: 'Open' | 'Closed'           // The status of the project (open or closed)
-    external_id?: FMSId                 // Identifier to connect to an external system (eg. Hercules)
+    external_id?: string                // Identifier to connect to an external system (eg. Hercules)
     external_name?: string              // Original project name used by external client
     comment: string                     // Other relevant information about the project
 }
 
 /**
  * PropertyValue
- * 
+ *
  * Both Processes and ProcessMeasurements can have properties, and the same model
  * is shared for both cases.
  */
@@ -353,13 +359,13 @@ export interface FMSReferenceGenome extends FMSTrackedModel {
 
 export interface FMSRunType extends FMSTrackedModel {
     name: string                        // Name of run type
-    needs_run_processing : boolean      // True if this run type requires run processing
+    needs_run_processing: boolean      // True if this run type requires run processing
     platform: FMSId                     // Platform ID
     protocol: FMSId                     // Experiment run protocol ID
 }
 
 export interface FMSSample extends FMSTrackedModel {
-    biosample_id : FMSId                // Biosample ID
+    biosample_id: FMSId                // Biosample ID
     name: string                        // Sample name
     alias: string                       // Alternate name
     volume: number                      // Volume in uL
@@ -413,9 +419,9 @@ export interface FMSStudySamplesCounts {
 }
 
 export interface FMSSampleNextStep extends FMSTrackedModel {
-  sample: FMSId,
-  studies: FMSId[],
-  step: FMSStep
+    sample: FMSId,
+    studies: FMSId[],
+    step: FMSStep
 }
 
 export interface FMSStep extends FMSTrackedModel {
@@ -427,7 +433,7 @@ export interface FMSStep extends FMSTrackedModel {
     step_specifications: FMSStepSpecification[]
 }
 
-export type WorkflowActionType = 'NEXT_STEP' | 'DEQUEUE_SAMPLE' | 'IGNORE_WORKFLOW'
+export type WorkflowActionType = 'NEXT_STEP' | 'DEQUEUE_SAMPLE' | 'REPEAT_STEP' | 'IGNORE_WORKFLOW'
 
 export interface FMSStepHistory extends FMSTrackedModel {
     study: FMSId
@@ -466,14 +472,14 @@ export interface FMSTaxon extends FMSTrackedModel {
 
 // Template action description
 export interface FMSTemplateAction {
-	id: number                          // Action ID (not an FMSId, just a number)
-	name: string                        // Action name
-	description: string                 // Action description
-	template: {                         // List of templates
-		description: string             // Template description
-		file: string                    // Template file path
-		protocol?: string               // Protocol associated with template (if any)
-	}[]
+    id: number                          // Action ID (not an FMSId, just a number)
+    name: string                        // Action name
+    description: string                 // Action description
+    template: {                         // List of templates
+        description: string             // Template description
+        file: string                    // Template file path
+        protocol?: string               // Protocol associated with template (if any)
+    }[]
 }
 
 export interface FMSUser extends FMSTrackedModel {
@@ -500,15 +506,15 @@ export interface WorkflowStepOrder {    // Not a tracked model - just a simple s
     order: number                       // Step order value
     step_id: FMSId                      // Step ID
     step_name: string                   // Step name
-    protocol_id:    FMSId               // ID of protocol associated with step
+    protocol_id: FMSId               // ID of protocol associated with step
 }
 
 export interface SampleLocator {
-  sample_id: FMSId
-  sample_name: string
-  project_name: string
-  contextual_container_barcode: string
-  contextual_coordinates: string
+    sample_id: FMSId
+    sample_name: string
+    project_name: string
+    contextual_container_barcode: string
+    contextual_coordinates: string
 }
 
 export interface LabworkStepInfo {

@@ -55,6 +55,9 @@ const IndividualOverview = ({ individual }) => {
                             render={(ref) => <span>{ref.assembly_name}</span>}
                         />
                     }</Descriptions.Item>
+                    <Descriptions.Item label="Generic individual">
+                        {individual.is_generic ? "True" : "False"}
+                    </Descriptions.Item>
                 </Descriptions>
                 <TrackingFieldsContent entity={individual} />
             </>
