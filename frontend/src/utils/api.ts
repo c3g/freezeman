@@ -362,7 +362,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
             const controller = new AbortController()
             signal = controller.signal
             if (ongoingRequests[baseRoute]) {
-                ongoingRequests[baseRoute].abort("")
+                ongoingRequests[baseRoute].abort("Aborting previous unfinished api call.")
             }
             ongoingRequests[baseRoute] = controller
         }
