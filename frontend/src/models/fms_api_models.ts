@@ -116,7 +116,7 @@ export interface FMSReadset extends FMSTrackedModel {
     sample_name: string                // Name that identifies the sample if the run did not come from Freezeman
     derived_sample: FMSId              // Derived sample matching the readset
     sample_source: FMSId               // Last non pool sample (if any, else last pool) before experiment
-    release_status: ReleaseStatus      // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
+    release_status: ReleaseStatus
     release_status_timestamp: Date
     released_by?: FMSId                // User that released the run data
     validation_status: number

@@ -69,10 +69,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
         readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids, **filters)
 
         try:
-            releease_status_timestamp = timezone.now()
+            release_status_timestamp = timezone.now()
             for readset in readsets:
                 readset.release_status = readset_updates[str(readset.id)]
-                readset.release_status_timestamp = releease_status_timestamp
+                readset.release_status_timestamp = release_status_timestamp
+                readset.released_by = request.user
                 readset.save()
         except Exception as e:
             transaction.set_rollback(True)
