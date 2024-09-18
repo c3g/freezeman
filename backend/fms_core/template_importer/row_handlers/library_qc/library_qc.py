@@ -40,34 +40,43 @@ class LibraryQCRowHandler(GenericRowHandler):
         volume_used = process_measurement['volume_used']
         sample_volume = source_sample_obj.volume
         final_volume = None
-        
-        if initial_volume is None:
-            self.errors['initial_volume'] = 'Initial volume must be specified'
-        if measured_volume is None:
-            self.errors['measured_volume'] = 'Measured volume must be specified'
+
         if volume_used is None:
             self.errors['volume_used'] = 'Volume used must be specified'
         if sample_volume is None:
             self.errors['library volume'] = 'Library volume is missing'
 
         if not any(self.errors.values()):
-            if initial_volume < 0:
+            if initial_volume is not None and initial_volume < 0:
                 self.errors['initial_volume'] = f"Initial volume ({initial_volume}) must be a positive value."
 
-            if measured_volume < 0:
+            if measured_volume is not None and measured_volume < 0:
                 self.errors['measured_volume'] = f'Measured volume ({measured_volume}) must be a positive value.'
-            elif measured_volume > initial_volume:
+            elif measured_volume is not None and initial_volume is not None and measured_volume > initial_volume:
                 self.warnings['measured_volume'] = ("Measured volume {0} is greater than initial volume {1}", [measured_volume, initial_volume])
 
             if volume_used < 0:
                 self.errors['volume_used'] = f'Volume used ({volume_used}) must be a positive value.'
-            if volume_used > measured_volume:
+            if measured_volume is not None and volume_used > measured_volume:
                 self.errors['volume_used'] = f'Volume used ({volume_used}) is greater than measured volume ({measured_volume})'
 
-            delta_volume = measured_volume - initial_volume
+            delta_volume = 0
+            if measured_volume is not None:
+                delta_volume += measured_volume
+            else:
+                delta_volume += sample_volume
+            if initial_volume is not None:
+                delta_volume -= initial_volume
+            else:
+                delta_volume -= sample_volume
+
             final_volume = sample_volume + delta_volume - volume_used
 
-            change_in_initial_volume = abs(initial_volume - sample_volume)
+            if initial_volume is not None:
+                change_in_initial_volume = abs(initial_volume - sample_volume)
+            else:
+                change_in_initial_volume = 0.0
+
             if (change_in_initial_volume) > 0.0:
                 self.warnings['initial_volume'] = ("The current library volume ({0}uL) differs from the initial volume ({1}uL) in the template. The library volume will be set to {2}uL.", [sample_volume, initial_volume, final_volume])
 
