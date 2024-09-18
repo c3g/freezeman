@@ -204,9 +204,9 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
     }, [datasetID, dispatch])
 
     const setAllReleaseStatus = useCallback((newReleaseStatus: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED) => {
-        setReadsetReleaseStates(produce((prev) => {
-            for (const key in prev) {
-                const readsetStatus = prev[key]
+        setReadsetReleaseStates(produce((readsetReleaseStates) => {
+            for (const key in readsetReleaseStates) {
+                const readsetStatus = readsetReleaseStates[key]
                 if (readsetStatus) {
                     readsetStatus.new = readsetStatus.old !== newReleaseStatus
                         ? newReleaseStatus
@@ -217,8 +217,8 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
     }, [])
 
     const toggleReleaseStatus = useCallback((id: Readset["id"]) => {
-        setReadsetReleaseStates(produce((prev) => {
-            const readsetStatus = prev[id]
+        setReadsetReleaseStates(produce((readsetReleaseStates) => {
+            const readsetStatus = readsetReleaseStates[id]
             if (readsetStatus) {
                 const newReleaseStatus = OPPOSITE_STATUS[readsetStatus.new ?? readsetStatus.old]
                 readsetStatus.new = readsetStatus.old !== newReleaseStatus
@@ -229,9 +229,9 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
     }, [])
 
     const undoChanges = useCallback(() => {
-        setReadsetReleaseStates(produce((prev) => {
-            for (const key in prev) {
-                const releaseStatus = prev[key]
+        setReadsetReleaseStates(produce((readsetReleaseStates) => {
+            for (const key in readsetReleaseStates) {
+                const releaseStatus = readsetReleaseStates[key]
                 if (releaseStatus) {
                     releaseStatus.new = undefined
                 }
@@ -252,8 +252,8 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
         await dispatch(api.datasets.setReleaseStatus(datasetID, finalNewReleaseStates, filters))
         // await dispatch(ReadsetTableActions.refreshPage()) // already updated implicitly by refreshDataset
         for (const key in finalNewReleaseStates) {
-            setReadsetReleaseStates(produce((prev) => {
-                prev[key] = {
+            setReadsetReleaseStates(produce((readsetReleaseStates) => {
+                readsetReleaseStates[key] = {
                     old: finalNewReleaseStates[key],
                     new: undefined
                 }
