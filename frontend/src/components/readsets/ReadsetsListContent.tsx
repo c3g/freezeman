@@ -182,16 +182,17 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
 
 export default ReadsetsListContent
 
-
-
+type ReleaseStatusManagerState = Record<
+    Readset["id"],
+    {
+        // the release status before the user has changed the status
+        old: ReleaseStatus,
+        // the potential new release status that the user has selected
+        new: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined
+    } | undefined
+>
 function useReleaseStatusManager(datasetID: Dataset["id"]) {
-    const [readsetReleaseStates, setReadsetReleaseStates] = useState<
-        Record<Readset["id"],
-        {
-            old: ReleaseStatus,
-            new: ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED | undefined
-        } | undefined
-    >>({})
+    const [readsetReleaseStates, setReadsetReleaseStates] = useState<ReleaseStatusManagerState>({})
     const dispatch = useAppDispatch()
     useEffect(() => {
         dispatch(api.readsets.list({ dataset__id__in: datasetID, limit: 10000 })).then((readsets) => {
