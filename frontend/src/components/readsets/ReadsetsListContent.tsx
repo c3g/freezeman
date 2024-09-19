@@ -81,7 +81,13 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
     const expandableMetricConfig = useExpandableMetricConfig()
 
     const extraButtons = useMemo(() => {
-        let someReadsetsAvailable = false
+        const readsetStates = Object.values(releaseStatusManager.readsetReleaseStates).reduce<NonNullable<ReleaseStatusManagerState[Readset["id"]]>[]>((readsetStates, readsetState) =>  {
+            if (readsetState) {
+                readsetStates.push(readsetState)
+            }
+            return readsetStates
+        }, [])
+        let someReadsetsAvailable = readsetStates.some((readsetState) => readsetState.new === undefined && readsetState.old === ReleaseStatus.AVAILABLE)
         let someReadsetsReleased = false
         let someReadsetsBlocked = false
         let someReadsetsChangedStatus = false
@@ -366,7 +372,7 @@ function useExpandableMetricConfig(): ExpandableConfig<ObjectWithReadset> {
 }
 
 interface ReleaseStatusButtonProps {
-    releaseStatus: ReturnType<typeof useReleaseStatusManager>["readsetReleaseStates"][Readset["id"]]
+    releaseStatus: ReleaseStatusManagerState[Readset["id"]]
     disabled: boolean
     onClick: React.MouseEventHandler<HTMLElement>
 }
