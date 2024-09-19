@@ -36,10 +36,10 @@ const getTableColumns = () => [
     },
     {
       title: "Index Set",
-      dataIndex: "index_set__name",
-      sorter: true,
+      dataIndex: "index_sets__name",
+      sorter: false,
       width: 80,
-      render: (_, index) => <FixedLengthText text={index.index_set} fixedLength={40} />,
+      render: (_, index) => <FixedLengthText text={index.index_sets} fixedLength={40} />,
     },
     {
       title: "Index Name",

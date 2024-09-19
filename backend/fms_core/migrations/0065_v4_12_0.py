@@ -1,5 +1,8 @@
 import reversion
-from django.db import migrations
+
+from django.conf import settings
+from django.db import migrations, models
+import django.db.models.deletion
 from django.contrib.auth.models import User
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -23,7 +26,26 @@ def add_library_types(apps, schema_editor):
                                                       updated_by_id=admin_user.id)
             reversion.add_to_revision(library_type)
 
-def create_new_index_sets(apps, schema_editor):
+def import_old_sets(apps, schema_editor):    
+    Index = apps.get_model("fms_core", "Index")
+    IndexBySet = apps.get_model("fms_core", "IndexBySet")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Move the currents sets from the index model to the through table IndexBySet.")
+        reversion.set_user(admin_user)
+    
+        for index in Index.objects.all():
+            if index.index_set is not None:
+                index_by_set = IndexBySet.objects.create(index=index,
+                                                         index_set=index.index_set,
+                                                         created_by_id=admin_user.id,
+                                                         updated_by_id=admin_user.id)
+                reversion.add_to_revision(index_by_set)
+
+
+"""def create_new_index_sets(apps, schema_editor):
     NEW_INDEX_SETS = {
         "10x_Genomics-Dual_Index_Kit_NN_Set_A": ["SI_NN7_A01-SI_NN5_A01",
                                                  "SI_NN7_A02-SI_NN5_A02",
@@ -3002,7 +3024,7 @@ def rename_existing_index_sets(apps, schema_editor):
             index_set.name = new_set_name
             index_set.save()
             reversion.add_to_revision(index_set)
-
+"""
 
 class Migration(migrations.Migration):
 
@@ -3015,12 +3037,46 @@ class Migration(migrations.Migration):
             add_library_types,
             reverse_code=migrations.RunPython.noop,
         ),
-        migrations.RunPython(
-            create_new_index_sets,
-            reverse_code=migrations.RunPython.noop,
+        migrations.CreateModel(
+            name='IndexBySet',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
+                ('index', models.ForeignKey(help_text='Index associated', on_delete=django.db.models.deletion.PROTECT, related_name='index_set_association', to='fms_core.index')),
+                ('index_set', models.ForeignKey(help_text='Index Set associated', on_delete=django.db.models.deletion.PROTECT, related_name='index_association', to='fms_core.indexset')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.AddField(
+            model_name='index',
+            name='index_sets',
+            field=models.ManyToManyField(related_name='set_indices', through='fms_core.IndexBySet', to='fms_core.indexset'),
         ),
         migrations.RunPython(
-            rename_existing_index_sets,
+            import_old_sets,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RemoveField(
+            model_name='index',
+            name='index_set',
         ),
     ]
+
+    """migrations.RunPython(
+        add_library_types,
+        reverse_code=migrations.RunPython.noop,
+    ),
+    migrations.RunPython(
+        create_new_index_sets,
+        reverse_code=migrations.RunPython.noop,
+    ),
+    migrations.RunPython(
+        rename_existing_index_sets,
+        reverse_code=migrations.RunPython.noop,
+    ),"""

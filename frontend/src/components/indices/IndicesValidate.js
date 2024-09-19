@@ -84,7 +84,7 @@ const IndicesValidate = () => {
     const targetSet = setOptions[setOptions.length - 1]
     const setID = targetSet.value
     const numIndicesInSet = targetSet.numChildren
-    const query = { "index_set__id__in": setID }
+    const query = { "index_sets__id__in": setID }
     targetSet.loading = true
     setIndexCount(prevIndexCount => prevIndexCount + numIndicesInSet)
 

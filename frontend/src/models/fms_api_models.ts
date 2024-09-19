@@ -158,7 +158,7 @@ export interface FMSImportedFile {
 
 export interface FMSIndex extends FMSTrackedModel {
     name: string                        // eg "Index_1"
-    index_set: string                   // IndexSet name
+    index_sets: string                   // IndexSet name
     index_structure: string             // IndexStructure name
     sequences_3prime: FMSId[]           // Sequence ID's
     sequences_5prime: FMSId[]           // Sequence ID's
@@ -278,7 +278,7 @@ export interface FMSPooledSample extends FMSTrackedModel {
     // Library fields                   // Library fields are only defined if pool contains libraries
     index?: string,                     // Name of index
     index_id?: FMSId,                   // ID of index
-    index_set?: string,                 // Name of index set containing library index
+    index_sets?: FMSId[],              // ID of index sets containing library index
     library_type?: string,              // Library Type (eg. PCR-free) (pre-defined)
     platform?: string,                  // Platform name (eg. ILLUMINA)
     strandedness?: string,              // "Double stranded" (for DNA) or "Single stranded" (for RNA)
