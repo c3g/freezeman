@@ -87,16 +87,17 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         let someReadsetsChangedStatus = false
         let allReadsetsReleasedOrBlocked = true
 
-        for (const readsetState of Object.values(releaseStatusManager.readsetReleaseStates)) {
-            someReadsetsAvailable ||= readsetState?.new === undefined && readsetState?.old === ReleaseStatus.AVAILABLE
-            someReadsetsReleased  ||= readsetState?.new !== undefined ? readsetState.new === ReleaseStatus.RELEASED : readsetState?.old === ReleaseStatus.RELEASED
-            someReadsetsBlocked   ||= readsetState?.new !== undefined ? readsetState.new === ReleaseStatus.BLOCKED : readsetState?.old === ReleaseStatus.BLOCKED
-            someReadsetsChangedStatus    ||= readsetState?.new !== undefined
-            allReadsetsReleasedOrBlocked &&=
-                readsetState?.old === ReleaseStatus.RELEASED ||
-                readsetState?.new === ReleaseStatus.RELEASED ||
-                readsetState?.old === ReleaseStatus.BLOCKED  ||
-                readsetState?.new === ReleaseStatus.BLOCKED
+        for (const readsetID in releaseStatusManager.readsetReleaseStates) {
+            const readsetState = releaseStatusManager.readsetReleaseStates[readsetID]
+            if (readsetState) {
+                const currentReleaseStatus = readsetState.new ?? readsetState.old
+                
+                someReadsetsAvailable        ||= readsetState.new === undefined && currentReleaseStatus === ReleaseStatus.AVAILABLE
+                someReadsetsReleased         ||= currentReleaseStatus === ReleaseStatus.RELEASED
+                someReadsetsBlocked          ||= currentReleaseStatus === ReleaseStatus.BLOCKED
+                someReadsetsChangedStatus    ||= readsetState.new !== undefined
+                allReadsetsReleasedOrBlocked &&= currentReleaseStatus === ReleaseStatus.RELEASED || currentReleaseStatus === ReleaseStatus.BLOCKED
+            }
         }
 
         const allReadsetsReleased = !someReadsetsAvailable && !someReadsetsBlocked
