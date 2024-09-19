@@ -30,11 +30,9 @@ class SampleQCRowHandler(GenericRowHandler):
                 self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
 
             if sample_information['initial_volume'] is None:
-                self.warnings['initial_volume'] = 'Initial volume is missing. Assuming the initial volume is the current sample volume.'
                 sample_information['initial_volume'] = sample_obj.volume
 
             if sample_information['measured_volume'] is None:
-                self.warnings['measured_volume'] = 'Measured volume is missing. Assuming the measured volume is the initial volume (which might be the current sample volume).'
                 sample_information['measured_volume'] = sample_information['initial_volume']
 
             # Update sample with sample_information
