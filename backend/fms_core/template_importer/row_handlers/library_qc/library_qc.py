@@ -45,7 +45,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             self.warnings['initial_volume'].append('Initial volume is missing. Assuming the initial volume is the current library volume.')
             initial_volume = sample_volume
         if measured_volume is None:
-            self.warnings['measured_volume'].append('Measured volume is missing. Assuming the measured volume is the current initial volume.')
+            self.warnings['measured_volume'].append('Measured volume is missing. Assuming the measured volume is the initial volume (which might be the current library volume).')
             measured_volume = initial_volume
 
         if volume_used is None:
