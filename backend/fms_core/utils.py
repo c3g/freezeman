@@ -196,16 +196,23 @@ def serialize_warnings(warnings: WarningType):
     serialized = []
     for (k, vs) in (warnings).items():
         if isinstance(vs, tuple):
-            # should fix the row handler to ensure it's a list
+            # turn a single tuple warning into a canonical
+            # warning assuming each element is a string
+
             if len(vs) < 2:
+                # ensure that it is a tuple of length 2
                 vs = (vs[0], [])
+
+            # wrap the tuple in a list
             vs = [vs]
         elif isinstance(vs, str):
-            # this warning hasn't been converted yet
+            # turn a single string warning into a canonical warning
             vs = [(vs, [])]
+
         for v in vs:
             if isinstance(v, str):
-                # this warning hasn't been converted yet
+                # vs might be just a list of string
+                # so convert each item into a tuple
                 v = (v, [])
             serialized.append({'key': k, 'format': v[0], 'args': v[1] })
     return serialized
