@@ -33,6 +33,8 @@ class SampleQCRowHandler(GenericRowHandler):
             measured_volume = sample_information['measured_volume']
 
             if initial_volume is None:
+                if measured_volume is not None:
+                    self.errors['initial_volume'].append('Current Volume must be specified if Measured Volume is specified.')
                 initial_volume = sample_obj.volume
             if measured_volume is None:
                 measured_volume = initial_volume

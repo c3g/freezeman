@@ -42,6 +42,8 @@ class LibraryQCRowHandler(GenericRowHandler):
         final_volume = None
 
         if initial_volume is None:
+            if measured_volume is not None:
+                self.errors['initial_volume'].append('Current Volume must be specified if Measured Volume is specified')
             initial_volume = sample_volume
         if measured_volume is None:
             measured_volume = initial_volume
@@ -53,7 +55,7 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         if not any(self.errors.values()):
             if initial_volume < 0:
-                self.errors['initial_volume'] = f"Initial volume ({initial_volume}) must be a positive value."
+                self.errors['initial_volume'].append(f"Initial volume ({initial_volume}) must be a positive value.")
 
             if measured_volume < 0:
                 self.errors['measured_volume'] = f'Measured volume ({measured_volume}) must be a positive value.'
