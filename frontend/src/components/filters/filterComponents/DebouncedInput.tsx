@@ -1,32 +1,37 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Input } from 'antd'
 
 /**
  * A hook to debounce function calls until after the specified time.
  * This is used to avoid triggering calls to the backend while the user
  * is typing in a filter.
- * @param {*} debouncedFunction
- * @param {*} debounceTime
- * @returns
  */
-export const useDebounce = (debouncedFunction, debounceTime = 500) => {
-    let timer
-    function caller(...args) {
+export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction: F, debounceTime = 500) => {
+    const timer = useRef<NodeJS.Timeout | undefined>(undefined)
+    function caller(...args: Parameters<F>) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const context = this
-        if (timer) {
-            clearTimeout(timer)
+        if (timer.current) {
+            clearTimeout(timer.current)
         }
-        timer = setTimeout(() => {
-            timer = null
+        timer.current = setTimeout(
+        () => {
+            timer.current = undefined
             debouncedFunction.apply(context, args)
         }, debounceTime)
     }
-    return useCallback(caller, [])
+    return useCallback(caller, [debounceTime, debouncedFunction])
+}
+
+
+export interface DebouncedInputProps extends React.ComponentProps<typeof Input> {
+    value: string | undefined
+    onInputChange: (value: string) => void
 }
 
 // DebouncedInput uses a forwardRef. This allows a ref to created by the component
 // using DebouncedInput that gets passed down to the Input element.
-const DebouncedInput = ({ value, onInputChange, ...rest }, ref) => {
+const DebouncedInput = ({ value, onInputChange, ...rest }: DebouncedInputProps, ref: React.ForwardedRef<any>) => {
 
     // The input box keeps its current value in this state.
     // The value is initialized with the filter value received as props, but
@@ -49,7 +54,7 @@ const DebouncedInput = ({ value, onInputChange, ...rest }, ref) => {
     }, [value])
 
     // Update filterText and trigger a debounced onChange call
-    const handleChange = (event) => {
+    const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
         const text = event.target.value
         setFilterText(text)
         debouncedOnChange(text)
