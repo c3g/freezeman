@@ -45,9 +45,11 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 	},
 	[IndexColumnID.INDEX_SET]: {
 		columnID: IndexColumnID.INDEX_SET,
-		title: 'Index Set',
+		title: 'Index Sets',
 		dataIndex: ['index', 'index_sets'],
-		render: (_, {index}) => <FixedLengthText text={index.index_sets} fixedLength={40} />,
+		render: (_, {index}) => { return index && index.index_sets &&
+      <DropdownListItems listItems={index.index_sets}/>
+    }
 	},
 	[IndexColumnID.INDEX_STRUCTURE]: {
 		columnID: IndexColumnID.INDEX_STRUCTURE,

@@ -39,7 +39,9 @@ const getTableColumns = () => [
       dataIndex: "index_sets__name",
       sorter: false,
       width: 80,
-      render: (_, index) => <FixedLengthText text={index.index_sets} fixedLength={40} />,
+      render: (_, index) => { return index && index.index_sets &&
+        <DropdownListItems listItems={index.index_sets.map(index_set => <><FixedLengthText text={index_set} fixedLength={40} /></>)}/>
+      }
     },
     {
       title: "Index Name",

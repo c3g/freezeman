@@ -534,7 +534,7 @@ class IndexSetSerializer(serializers.ModelSerializer):
 
 
 class IndexSerializer(serializers.ModelSerializer):
-    index_sets = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    index_sets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
     index_structure = serializers.CharField(read_only=True, source="index_structure.name")
     class Meta:
         model = Index
