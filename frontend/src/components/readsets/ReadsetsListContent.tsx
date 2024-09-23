@@ -119,18 +119,16 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         let newBlockCount = 0
         let newAvailableCount = 0
         for (const readsetStatus of readsetStates) {
-            if (readsetStatus && readsetStatus.new !== undefined) {
-                switch (readsetStatus.new) {
-                    case ReleaseStatus.RELEASED:
-                        newReleaseCount++
-                        break
-                    case ReleaseStatus.BLOCKED:
-                        newBlockCount++
-                        break
-                    case ReleaseStatus.AVAILABLE:
-                        newAvailableCount++
-                        break
-                }
+            switch (readsetStatus.new) {
+                case ReleaseStatus.RELEASED:
+                    newReleaseCount++
+                    break
+                case ReleaseStatus.BLOCKED:
+                    newBlockCount++
+                    break
+                case ReleaseStatus.AVAILABLE:
+                    newAvailableCount++
+                    break
             }
         }
         const popconfirmTitle = [
