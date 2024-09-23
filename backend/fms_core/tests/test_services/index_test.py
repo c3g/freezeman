@@ -37,7 +37,7 @@ class IndexServicesTestCase(TestCase):
         # test
         index_1, errors, warnings = create_index(self.index_name_1, self.structure_name, index_set_1)
         self.assertEqual(index_1.index_structure, self.TruSeqLT_structure)
-        self.assertEqual(index_1.index_set, index_set_1)
+        self.assertEqual(index_1.index_sets.first(), index_set_1)
         self.assertEqual(index_1.name, self.index_name_1)
         self.assertFalse(errors)
         self.assertFalse(warnings)

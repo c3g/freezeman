@@ -34,11 +34,9 @@ class IndexTest(TestCase):
 
     def test_index(self):
         my_index = Index.objects.create(name=self.name,
-                                        index_set=self.index_set,
                                         index_structure=self.index_structure)
 
         self.assertEqual(my_index.name, self.name)
-        self.assertEqual(my_index.index_set, self.index_set)
         self.assertEqual(my_index.index_structure, self.index_structure)
         self.assertEqual(my_index.sequences_3prime.all().count(), 0)
         self.assertEqual(my_index.sequences_5prime.all().count(), 0)
@@ -55,8 +53,7 @@ class IndexTest(TestCase):
     def test_missing_name(self):
         with self.assertRaises(ValidationError):
             try:
-                index_without_name = Index.objects.create(index_set=self.index_set,
-                                                                   index_structure=self.index_structure)
+                index_without_name = Index.objects.create(index_structure=self.index_structure)
             except ValidationError as e:
                 self.assertTrue("name" in e.message_dict)
                 raise e
@@ -64,8 +61,7 @@ class IndexTest(TestCase):
     def test_missing_structure(self):
         with self.assertRaises(ValidationError):
             try:
-                index_without_structure = Index.objects.create(name=self.name,
-                                                                   index_set=self.index_set)
+                index_without_structure = Index.objects.create(name=self.name)
             except ValidationError as e:
                 self.assertTrue("index_structure" in e.message_dict)
                 raise e
@@ -74,12 +70,10 @@ class IndexTest(TestCase):
         with self.assertRaises(ValidationError):
             # First Index is valid
             Index.objects.create(name=self.name,
-                                 index_set=self.index_set,
                                  index_structure=self.index_structure)
             try:
                 # Second Index has the same name, should be invalid
                 Index.objects.create(name=self.duplicate_name,
-                                     index_set=self.index_set,
                                      index_structure=self.index_structure)
 
             except ValidationError as e:
@@ -90,13 +84,11 @@ class IndexTest(TestCase):
         with self.assertRaises(ValidationError):
             # First Index is valid
             Index.objects.create(name=self.name,
-                                 index_set=self.index_set,
                                  index_structure=self.index_structure)
 
             try:
                 # Second Index has a similar name, but different upper/lower cases, should be invalid
                 Index.objects.create(name=self.similar_name,
-                                     index_set=self.index_set,
                                      index_structure=self.index_structure)
             except ValidationError as e:
                 self.assertTrue("name" in e.message_dict)

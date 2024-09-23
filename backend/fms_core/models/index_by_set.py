@@ -15,6 +15,11 @@ class IndexBySet(TrackedModel):
     index_set = models.ForeignKey("IndexSet", help_text="Index Set associated",
                                   on_delete=models.PROTECT, related_name="index_association")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["index_id", "index_set_id"], name="indexbyset_indexid_indexsetid_key")
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
