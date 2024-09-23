@@ -87,31 +87,26 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
             }
             return readsetStates
         }, [])
-        let someReadsetsAvailable = readsetStates.some((readsetState) => readsetState.new === undefined && readsetState.old === ReleaseStatus.AVAILABLE)
-        let someReadsetsReleased = false
-        let someReadsetsBlocked = false
-        let someReadsetsChangedStatus = false
-        let allReadsetsReleasedOrBlocked = true
 
-        for (const readsetID in releaseStatusManager.readsetReleaseStates) {
-            const readsetState = releaseStatusManager.readsetReleaseStates[readsetID]
-            if (readsetState) {
-                const currentReleaseStatus = readsetState.new ?? readsetState.old
-                
-                someReadsetsAvailable        ||= readsetState.new === undefined && currentReleaseStatus === ReleaseStatus.AVAILABLE
-                someReadsetsReleased         ||= currentReleaseStatus === ReleaseStatus.RELEASED
-                someReadsetsBlocked          ||= currentReleaseStatus === ReleaseStatus.BLOCKED
-                someReadsetsChangedStatus    ||= readsetState.new !== undefined
-                allReadsetsReleasedOrBlocked &&= currentReleaseStatus === ReleaseStatus.RELEASED || currentReleaseStatus === ReleaseStatus.BLOCKED
-            }
-        }
+        const allReadsetsReleasedOrBlocked = readsetStates.every((readsetState) =>
+            readsetState.new !== undefined
+                ? readsetState.new === ReleaseStatus.RELEASED || readsetState.new === ReleaseStatus.BLOCKED
+                : readsetState.old === ReleaseStatus.RELEASED || readsetState.old === ReleaseStatus.BLOCKED)
 
-        const allReadsetsReleased = !someReadsetsAvailable && !someReadsetsBlocked
+        const allReadsetsReleased = readsetStates.every((readsetState) =>
+            readsetState.new !== undefined
+                ? readsetState.new === ReleaseStatus.RELEASED
+                : readsetState.old === ReleaseStatus.RELEASED)
+
+        const allReadsetsBlocked = readsetStates.every((readsetState) =>
+            readsetState.new !== undefined
+                ? readsetState.new === ReleaseStatus.BLOCKED
+                : readsetState.old === ReleaseStatus.BLOCKED)
+
+        const someReadsetsChangedStatus = readsetStates.some((readsetState) => readsetState.new !== undefined)
+
         const releaseAllEnabled = !allReadsetsReleased && canReleaseOrBlockReadsets
-
-        const allReadsetsBlocked = !someReadsetsAvailable && !someReadsetsReleased
         const blockAllEnabled = !allReadsetsBlocked && canReleaseOrBlockReadsets
-
         const undoChangesEnabled = someReadsetsChangedStatus && canReleaseOrBlockReadsets
         const saveChangesEnabled = someReadsetsChangedStatus && allReadsetsReleasedOrBlocked && canReleaseOrBlockReadsets
     
