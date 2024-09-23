@@ -7,6 +7,7 @@ import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
+import { useDebounce } from '../filters/filterComponents/DebouncedInput'
 
 
 export interface PagedItemTableSelection {
@@ -79,7 +80,6 @@ function PagedItemsTable<T extends object>({
 
 	const { items, sortBy, stale } = pagedItems
 	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
-
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
 		() => {
@@ -89,18 +89,13 @@ function PagedItemsTable<T extends object>({
 			if (fixedFilter && fixedFilter.description) {
 				setFixedFilterCallback(fixedFilter)
 			}
-
-			// If a page isn't already loaded in redux then request page 1
-			if (!pagedItems.page?.pageNumber) {
-				listPageCallback(1)
-			}
 		},
 		[
 			/* Only call once when the component is mounted*/
 		]
 	)
 
-	// Refresh the page if the paged items are marked as stale, if using 
+	// Refresh the page if the paged items are marked as stale, if using
 	// the refresh mechanism.
 	const refreshWhenStale = useRefreshWhenStale(refreshPageCallback, setStaleCallback)
 	useEffect(() => {
@@ -134,6 +129,7 @@ function PagedItemsTable<T extends object>({
 		},
 		[sortBy, setSortByCallback]
 	)
+    const debouncedSortByCallback = useDebounce(sortByCallback)
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
@@ -251,7 +247,7 @@ function PagedItemsTable<T extends object>({
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
 						scroll={{x: 300}}
-						onChange={sortByCallback}
+						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
