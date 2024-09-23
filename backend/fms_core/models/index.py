@@ -43,7 +43,7 @@ class Index(TrackedModel):
     @property
     def list_index_sets(self) -> List["str"]:
         list_index_sets = [index_set.name for index_set in self.index_sets.all()]
-        return list_index_sets or [""]
+        return list_index_sets
 
     def clean(self):
         super().clean()

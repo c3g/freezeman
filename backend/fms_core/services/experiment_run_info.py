@@ -26,6 +26,12 @@ from fms_core.services.derived_sample import get_library_size_for_derived_sample
 # Obj_Id = Optional[int]
 Obj_Id = Optional[int]
 
+# index_set data class
+@dataclass
+class index_set:
+  obj_id: int
+  name: str
+
 @dataclass
 class RunInfoSample:
     '''
@@ -59,8 +65,7 @@ class RunInfoSample:
     # library fields
     library_type: Optional[str] = None
     library_size: Optional[float] = None
-    index_set_obj_id: Optional[str] = None
-    index_set_name: Optional[str] = None
+    index_sets: Optional[List[index_set]] = None
     index_obj_id: Obj_Id = None
     index_name: Optional[str] = None
     index_sequence_3_prime: Optional[List[str]] = None
@@ -101,7 +106,7 @@ class RunInfo:
     samples: List[RunInfoSample]
 
 
-RUN_INFO_FILE_VERSION = "1.0.0"
+RUN_INFO_FILE_VERSION = "1.1.0"
 
 
 def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
@@ -255,9 +260,8 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         row.index_sequence_3_prime = index.list_3prime_sequences
         row.index_sequence_5_prime = index.list_5prime_sequences
 
-        if index.index_set is not None:
-            row.index_set_obj_id = index.index_set.pk
-            row.index_set_name = index.index_set.name
+        if index.index_sets is not None:
+            row.index_sets = [{"obj_id": index_set_id, "name": index_set_name} for index_set_id, index_set_name in index.index_sets.values_list("id", "name")]
 
         # Get the Library Preparation process that was run on the library
         # to get the Library Kit property

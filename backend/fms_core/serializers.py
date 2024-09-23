@@ -723,7 +723,6 @@ class PooledSampleSerializer(serializers.Serializer):
     # Library info
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
     index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
-    index_sets = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
     library_selection = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.name')
     library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
@@ -738,7 +737,6 @@ class PooledSampleSerializer(serializers.Serializer):
             'experimental_groups',
             'id',
             'index_id',
-            'index_sets',
             'index',
             'individual_id',
             'individual_name',
