@@ -23,7 +23,6 @@ import { ExpandableConfig } from "antd/lib/table/interface";
 import api from "../../utils/api";
 import produce from "immer";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
-import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeFilterParamsTS";
 
 const RELEASE_STATUS_STRING = {
     [ReleaseStatus.RELEASED]: 'Released',
@@ -75,7 +74,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         (!dataset.latest_release_update && (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)) ||
         ( dataset.latest_release_update && isAdmin)
 
-    const releaseStatusManager = useReleaseStatusManager(dataset.id, filters, isAdmin)
+    const releaseStatusManager = useReleaseStatusManager(dataset.id, isAdmin)
 
     const renderReleaseStatus = useCallback((_: any, { readset }: ObjectWithReadset) => {
         const readsetStatus = releaseStatusManager.readsetReleaseStates[readset.id]
@@ -211,9 +210,8 @@ type ReleaseStatusManagerState = Record<
         new: ReleaseStatus | undefined
     } | undefined
 >
-function useReleaseStatusManager(datasetID: Dataset["id"], filters: FilterSet, allowAvailable: boolean) {
+function useReleaseStatusManager(datasetID: Dataset["id"], allowAvailable: boolean) {
     const [readsetReleaseStates, setReadsetReleaseStates] = useState<ReleaseStatusManagerState>({})
-    const [readsetIDs, setReadsetIDs] = useState<Readset["id"][]>([])
     const dispatch = useAppDispatch()
 
     useEffect(() => {
@@ -226,18 +224,9 @@ function useReleaseStatusManager(datasetID: Dataset["id"], filters: FilterSet, a
         })
     }, [datasetID, dispatch])
 
-    useEffect(() => {
-        if (Object.keys(readsetReleaseStates).length > 0) {
-            const serializedFilters = serializeFilterParamsWithDescriptions({ ...filters })
-            dispatch(api.readsets.list({ dataset__id__in: datasetID, ...serializedFilters, limit: 10000 })).then((readsets) => {
-                setReadsetIDs(readsets.data.results.map((readset) => readset.id))
-            })
-        }
-    }, [datasetID, filters, dispatch, readsetReleaseStates])
-
     const setAllReleaseStatus = useCallback((newReleaseStatus: ReleaseStatus) => {
         setReadsetReleaseStates(produce((readsetReleaseStates) => {
-            for (const key of readsetIDs) {
+            for (const key in readsetReleaseStates) {
                 const readsetStatus = readsetReleaseStates[key]
                 if (readsetStatus) {
                     readsetStatus.new = readsetStatus.old !== newReleaseStatus
@@ -246,7 +235,7 @@ function useReleaseStatusManager(datasetID: Dataset["id"], filters: FilterSet, a
                 }
             }
         }))
-    }, [readsetIDs])
+    }, [])
 
     const toggleReleaseStatus = useCallback((id: Readset["id"]) => {
         setReadsetReleaseStates(produce((readsetReleaseStates) => {
