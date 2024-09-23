@@ -10,7 +10,6 @@ import RefreshButton from '../RefreshButton'
 import CompletedSamplesTable from './CompletedSamplesTable'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 import { WarningOutlined } from '@ant-design/icons'
-import { PaginationParameters } from '../WorkflowSamplesTable/WorkflowSamplesTable'
 
 const { Text, Title } = Typography
 
@@ -96,9 +95,9 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 			</div>
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
 				{renderedSteps.map((step) => {
-					const countString = `${step.completed.count} / ${step.ready.count + step.completed.count + step.removed.count}`
-					const countTitle = `${step.completed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`					
-					const removedTitle = step.removed.count === 1 ? `1 sample was removed from study at this step` : `${step.removed.count} samples were removed from study at this step`
+					const countString = `${step.completed.count + step.removed.count} / ${step.ready.count + step.completed.count + step.removed.count}`
+					const countTitle = `${step.completed.count + step.removed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`					
+					const removedTitle = step.removed.count === 1 ? `1 sample was removed from study after completing this step` : `${step.removed.count} samples were removed from study after completing this step`
 
 					// Call StepPanel as a function because the child of Collapse must be a CollapsePanel, not a StepPanel
 					return (
@@ -148,7 +147,7 @@ function StepTabs({step, studyID, uxSettings, removedTitle} : StepPanelProps) {
 	const completedTab = <Text>{`Completed (${step.completed.count})`}</Text>
 	const removedTab = 
 		<Space size={'small'}>
-			<Text>{`Removed (${step.removed.count})`}</Text>
+			<Text>{`Completed and removed (${step.removed.count})`}</Text>
 			<WarningOutlined style={{color: 'red'}} title={removedTitle}/>
 		</Space>
 		
