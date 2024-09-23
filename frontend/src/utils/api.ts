@@ -341,6 +341,8 @@ interface APIFetchOptions {
 }
 interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
 
+export const ABORT_ERROR_NAME = 'AbortError'
+
 function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
     const baseRoute = getPathname(route)
 
@@ -362,7 +364,10 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
             const controller = new AbortController()
             signal = controller.signal
             if (ongoingRequests[baseRoute]) {
-                ongoingRequests[baseRoute].abort("Aborting previous unfinished api call: " + baseRoute)
+                ongoingRequests[baseRoute].abort({
+                    name: ABORT_ERROR_NAME,
+                    message: `Request aborted for request to ${baseRoute}`,
+                })
             }
             ongoingRequests[baseRoute] = controller
         }
