@@ -62,11 +62,10 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["patch"])
     def set_release_status(self, request, pk):
         data = request.data
-        readset_updates: dict[int, ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED] = data.get("updates", {})
-        filters = data.get("filters", {})
+        readset_updates: dict[int, ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED] = data
 
         readset_ids = list(readset_updates.keys())
-        readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids, **filters)
+        readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids)
 
         try:
             release_status_timestamp = timezone.now()

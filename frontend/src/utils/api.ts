@@ -48,9 +48,8 @@ const api = {
     list: (options, abort?) => get("/datasets/", options, { abort }),
     setReleaseStatus: (
       id: FMSDataset["id"],
-      updates: Record<FMSReadset["id"], ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED>,
-      filters = {}
-    ) => patch<StringResponse>(`/datasets/${id}/set_release_status/`, { updates, filters }),
+      updates: Record<FMSReadset["id"], ReleaseStatus>,
+    ) => patch<StringResponse>(`/datasets/${id}/set_release_status/`, updates),
     addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
   },
 
