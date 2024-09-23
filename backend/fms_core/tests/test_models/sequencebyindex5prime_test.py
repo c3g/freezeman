@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import Index, IndexSet, IndexStructure, Sequence, SequenceByIndex5Prime
+from fms_core.models import Index, IndexSet, IndexBySet, IndexStructure, Sequence, SequenceByIndex5Prime
 
 
 class SequenceByIndex5PrimeTest(TestCase):
@@ -24,8 +24,8 @@ class SequenceByIndex5PrimeTest(TestCase):
         self.name = "ThisIsValidIndexName"
 
         self.index = Index.objects.create(name=self.name,
-                                          index_set=self.index_set,
                                           index_structure=self.index_structure)
+        self.index_by_set = IndexBySet.objects.create(index=self.index, index_set=self.index_set)
 
     def test_sequence_by_index_5_prime(self):
         SequenceByIndex5Prime.objects.create(index=self.index, sequence=self.sequence_5prime_1)

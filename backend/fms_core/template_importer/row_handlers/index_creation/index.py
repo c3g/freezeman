@@ -4,7 +4,7 @@ from fms_core.models import Index
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence,  create_indices_5prime_by_sequence
+from fms_core.services.index import get_or_create_index_set, get_or_create_index, create_indices_3prime_by_sequence,  create_indices_5prime_by_sequence
 
 
 class IndexCreationHandler(GenericRowHandler):
@@ -13,19 +13,19 @@ class IndexCreationHandler(GenericRowHandler):
 
     def process_row_inner(self, set_name, index):
         #get or create set
-        index_set_obj, created, self.errors['index_set'], self.warnings['index_set'] = get_or_create_index_set(set_name)
+        index_set_obj, set_created, self.errors['index_set'], self.warnings['index_set'] = get_or_create_index_set(set_name)
 
         if not index_set_obj:
             self.warnings['index_set'] = ('Index will not be associated to a set.', [])
-        elif not created:
+        elif not set_created:
             self.warnings['index_set'] = ('Using existing set {0}.', [index_set_obj.name])
 
         #create index
-        index_obj, self.errors['index'], self.warnings['index'] = create_index(index_name=index['name'],
-                                                                               index_structure=index['index_structure'],
-                                                                               index_set=index_set_obj)
+        index_obj, index_created, self.errors['index'], self.warnings['index'] = get_or_create_index(index_name=index['name'],
+                                                                                                     index_structure=index['index_structure'],
+                                                                                                     index_set=index_set_obj)
 
-        if index_obj:
+        if index_obj and index_created:
             if any([index['index_3prime'], index['index_5prime']]):
                 indices_3prime_by_sequence, self.errors['index_3prime'], self.warnings['index_3prime'] = \
                     create_indices_3prime_by_sequence(index=index_obj,

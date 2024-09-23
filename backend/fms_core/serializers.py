@@ -48,7 +48,8 @@ from .models import (
     StepHistory,
     Coordinate,
     Metric,
-    ArchivedComment
+    ArchivedComment,
+    IndexBySet
 )
 
 from .models._constants import ReleaseStatus
@@ -521,34 +522,6 @@ class ProjectExportSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
 
 
-class IndexSerializer(serializers.ModelSerializer):
-    index_set = serializers.CharField(read_only=True, source="index_set.name")
-    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
-    class Meta:
-        model = Index
-        fields = "__all__"
-
-
-class IndexExportSerializer(serializers.ModelSerializer):
-    index_set = serializers.CharField(read_only=True, source="index_set.name")
-    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
-
-    sequences_3prime = serializers.SerializerMethodField()
-    sequences_5prime = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Index
-        fields = ("id", "name", "index_set", "index_structure", "sequences_3prime", "sequences_5prime")
-
-    def get_sequences_3prime(self, obj):
-        sequences = obj.list_3prime_sequences
-        return ", ".join(sequences)
-
-    def get_sequences_5prime(self, obj):
-        sequences = obj.list_5prime_sequences
-        return ", ".join(sequences)
-
-
 class IndexSetSerializer(serializers.ModelSerializer):
     index_count = serializers.SerializerMethodField()
 
@@ -557,7 +530,39 @@ class IndexSetSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_index_count(self, obj):
-        return Index.objects.filter(index_set=obj.id).count()
+        return IndexBySet.objects.filter(index_set=obj).count()
+
+
+class IndexSerializer(serializers.ModelSerializer):
+    index_sets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
+    class Meta:
+        model = Index
+        fields = "__all__"
+
+
+class IndexExportSerializer(serializers.ModelSerializer):
+    index_sets = serializers.SerializerMethodField()
+    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
+
+    sequences_3prime = serializers.SerializerMethodField()
+    sequences_5prime = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Index
+        fields = ("id", "name", "index_sets", "index_structure", "sequences_3prime", "sequences_5prime")
+
+    def get_index_sets(self, obj):
+        index_sets = obj.list_index_sets
+        return ", ".join(index_sets)
+
+    def get_sequences_3prime(self, obj):
+        sequences = obj.list_3prime_sequences
+        return ", ".join(sequences)
+
+    def get_sequences_5prime(self, obj):
+        sequences = obj.list_5prime_sequences
+        return ", ".join(sequences)
 
 
 class SequenceSerializer(serializers.ModelSerializer):
@@ -718,7 +723,6 @@ class PooledSampleSerializer(serializers.Serializer):
     # Library info
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
     index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
-    index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
     library_selection = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.name')
     library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
@@ -733,7 +737,6 @@ class PooledSampleSerializer(serializers.Serializer):
             'experimental_groups',
             'id',
             'index_id',
-            'index_set',
             'index',
             'individual_id',
             'individual_name',
@@ -781,7 +784,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
     # Library info
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
     index_structure = serializers.CharField(read_only=True, source='derived_sample.library.index.index_structure.name')
-    index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
+    index_sets = serializers.SerializerMethodField()
     index_sequences_3prime = serializers.SerializerMethodField()
     index_sequences_5prime = serializers.SerializerMethodField()
     library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='sample.fragment_size')
@@ -790,6 +793,14 @@ class PooledSampleExportSerializer(serializers.Serializer):
     library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
     platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
     strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
+
+    def get_index_sets(self, derived_by_sample):
+        library = derived_by_sample.derived_sample.library
+        if (library):
+            index_sets = library.index.list_index_sets
+            return ", ".join(index_sets)
+        else:
+            return ""
 
     def get_index_sequences_3prime(self, derived_by_sample):
         library = derived_by_sample.derived_sample.library
@@ -822,7 +833,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'library_selection',
             'library_selection_target',
             'platform',
-            'index_set',
+            'index_sets',
             'index',
             'index_structure',
             'index_sequences_3prime',

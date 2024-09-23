@@ -45,9 +45,11 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 	},
 	[IndexColumnID.INDEX_SET]: {
 		columnID: IndexColumnID.INDEX_SET,
-		title: 'Index Set',
-		dataIndex: ['index', 'index_set'],
-		render: (_, {index}) => <FixedLengthText text={index.index_set} fixedLength={40} />,
+		title: 'Index Sets',
+		dataIndex: ['index', 'index_sets'],
+		render: (_, {index}) => { return index && index.index_sets &&
+      <DropdownListItems listItems={index.index_sets}/>
+    }
 	},
 	[IndexColumnID.INDEX_STRUCTURE]: {
 		columnID: IndexColumnID.INDEX_STRUCTURE,
@@ -116,7 +118,7 @@ export const INDEX_FILTER_DEFINITIONS : {[key in IndexColumnID] : FilterDescript
 export const INDEX_FILTER_KEYS : {[key in IndexColumnID] : string} = {
 	[IndexColumnID.ID]: 'id',
 	[IndexColumnID.INDEX_NAME]: 'name',
-	[IndexColumnID.INDEX_SET]: 'index_set__name',
+	[IndexColumnID.INDEX_SET]: 'index_sets__name',
 	[IndexColumnID.INDEX_STRUCTURE]: 'index_structure__name',
 	[IndexColumnID.SEQUENCE_3_PRIME]: 'sequences_3prime__value',
 	[IndexColumnID.SEQUENCE_5_PRIME]: 'sequences_5prime__value',
