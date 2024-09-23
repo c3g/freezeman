@@ -12,7 +12,7 @@ import { Dataset, Readset } from "../../models/frontend_models";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
-import { Button, Spin, Tooltip } from "antd";
+import { Button, Popconfirm, Spin, Tooltip } from "antd";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import { createFixedFilter, FilterSet } from "../../models/paged_items";
@@ -32,7 +32,7 @@ const RELEASE_STATUS_STRING = {
 const NEW_RELEASE_STATUS_COLOR = {
     [ReleaseStatus.RELEASED]: 'green',
     [ReleaseStatus.BLOCKED]: 'red',
-    [ReleaseStatus.AVAILABLE]: 'lightsalmon',
+    [ReleaseStatus.AVAILABLE]: 'saddlebrown',
 } as const
 const OPPOSITE_STATUS = {
     [ReleaseStatus.AVAILABLE]: ReleaseStatus.RELEASED,
@@ -114,6 +114,32 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         const undoAllReleaseAndBlockEnabled = canUpdateReleaseStatus && !allReadsetsAvailable && isAdmin
         const undoChangesEnabled =            canUpdateReleaseStatus && someReadsetsChangedStatus 
         const saveChangesEnabled =            canUpdateReleaseStatus && someReadsetsChangedStatus && (allReadsetsReleasedOrBlocked || isAdmin)
+
+        let newReleaseCount = 0
+        let newBlockCount = 0
+        let newAvailableCount = 0
+        for (const readsetStatus of readsetStates) {
+            if (readsetStatus && readsetStatus.new !== undefined) {
+                switch (readsetStatus.new) {
+                    case ReleaseStatus.RELEASED:
+                        newReleaseCount++
+                        break
+                    case ReleaseStatus.BLOCKED:
+                        newBlockCount++
+                        break
+                    case ReleaseStatus.AVAILABLE:
+                        newAvailableCount++
+                        break
+                }
+            }
+        }
+        const popconfirmTitle = [
+            `From the selected dataset readsets:`,
+            newReleaseCount > 0 ? `${newReleaseCount} will be released` : '',
+            newBlockCount > 0 ? `${newBlockCount} will be blocked` : '',
+            newAvailableCount > 0 ? `${newAvailableCount} will be made available` : '',
+            `Do you want to save these changes?`
+        ].map((str, index) => <div key={index}>{str}</div>)
     
         return <div>
             <Button
@@ -132,14 +158,14 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
                 disabled={!blockAllEnabled}>
                 Block All
             </Button>
-            <Button
-                style={{ margin: 6 }}
-                onClick={() => {
-                    releaseStatusManager.setAllReleaseStatus(ReleaseStatus.AVAILABLE)
-                }}
-                disabled={!undoAllReleaseAndBlockEnabled}>
-                Undo All Release/Block
-            </Button>
+            {isAdmin && <Button
+                    style={{ margin: 6 }}
+                    onClick={() => {
+                        releaseStatusManager.setAllReleaseStatus(ReleaseStatus.AVAILABLE)
+                    }}
+                    disabled={!undoAllReleaseAndBlockEnabled}>
+                    Undo All Release/Block
+                </Button>}
             <Button
                 style={{ margin: 6 }}
                 onClick={() => {
@@ -148,16 +174,23 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
                 disabled={!undoChangesEnabled}>
                 Undo Changes
             </Button>
-            <Button
-                style={{ margin: 6 }}
-                onClick={async () => {
+            <Popconfirm
+				title={popconfirmTitle}
+				onConfirm={async () => {
                     await releaseStatusManager.updateReleaseStatus()
                     await refreshDataset()
-                }}
+				}}
+				disabled={!saveChangesEnabled}
+				placement={'topRight'}
+                icon={null}
+			>
+                <Button
+                style={{ margin: 6 }}
                 type={"primary"}
                 disabled={!saveChangesEnabled}>
-                Save Changes
-            </Button>
+                    Save Changes
+                </Button>
+			</Popconfirm>
         </div>
     },
     [canUpdateReleaseStatus, isAdmin, refreshDataset, releaseStatusManager])
@@ -398,7 +431,8 @@ function ReleaseStatusButton({ readsetStatus, disabled, onClick }: ReleaseStatus
                 color: readsetStatus.new !== undefined
                     ? NEW_RELEASE_STATUS_COLOR[readsetStatus.new]
                     : "grey",
-                width: "6em"
+                width: "6em",
+                fontWeight: "bold"
             }}
             onClick={onClick}
             >
