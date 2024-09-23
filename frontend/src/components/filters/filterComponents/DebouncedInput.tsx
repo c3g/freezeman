@@ -7,7 +7,7 @@ import { Input } from 'antd'
  * is typing in a filter.
  */
 export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction: F, debounceTime = 500) => {
-    const timer = useRef<NodeJS.Timeout | undefined>(undefined)
+    const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
     function caller(...args: Parameters<F>) {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const context = this
