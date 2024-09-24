@@ -14,34 +14,37 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
     StepSpecification = apps.get_model("fms_core", "StepSpecification")
 
     STEPS = [
-        {"name": "Sample QC (DNA)", "protocol_name": "Sample QC", "specifications": [
+        {"name": "Sample QC (DNA)", "protocol_name": "Sample Quality Control","expected_sample_type": "EXTRACTED_SAMPLE", "specifications": [
             {"display_name": "Sample QC Type", "sheet_name": "SampleQC", "column_name": "Sample Kind", "value": "DNA"}]
         },
-        {"name": "Sample QC (RNA)", "protocol_name": "Sample QC", "specifications": [
+        {"name": "Sample QC (RNA)", "protocol_name": "Sample Quality Control","expected_sample_type": "EXTRACTED_SAMPLE", "specifications": [
             {"display_name": "Sample QC Type", "sheet_name": "SampleQC", "column_name": "Sample Kind", "value": "RNA"}]
         }
     ]
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        admin_user_id = admin_user.id
         reversion.set_comment(f"Create the basic initial workflows.")
         reversion.set_user(admin_user)
         for step_info in STEPS:
             protocol = Protocol.objects.get(name=step_info["protocol_name"])
             step = Step.objects.create(name=step_info["name"],
-                                       protocol=protocol,
-                                       created_by_id=admin_user_id,
-                                       updated_by_id=admin_user_id)
+                                       protocol_id=protocol.id,
+                                       type="PROTOCOL",
+                                       needs_placement=False,
+                                       needs_planning=True,
+                                       expected_sample_type=step_info["expected_sample_type"],
+                                       created_by_id=admin_user.id,
+                                       updated_by_id=admin_user.id)
             reversion.add_to_revision(step)
             for specification in step_info["specifications"]:
-                step_specification = StepSpecification.objects.create(display_name=specification["display_name"],
+                step_specification = StepSpecification.objects.create(name=specification["display_name"],
                                                                       sheet_name=specification["sheet_name"],
                                                                       column_name=specification["column_name"],
                                                                       value=specification["value"],
                                                                       step=step,
-                                                                      created_by_id=admin_user_id,
-                                                                      updated_by_id=admin_user_id)
+                                                                      created_by_id=admin_user.id,
+                                                                      updated_by_id=admin_user.id)
                 reversion.add_to_revision(step_specification)
 
 class Migration(migrations.Migration):
