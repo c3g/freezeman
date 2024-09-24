@@ -40,8 +40,13 @@ class Readset(TrackedModel):
 
         if self.release_status != ReleaseStatus.AVAILABLE and self.release_status_timestamp is None:
             add_error("release_status_timestamp", f"Release status timestamp required if status is not {ReleaseStatus.AVAILABLE.label}.")
+        elif self.release_status == ReleaseStatus.AVAILABLE and self.release_status_timestamp is not None:
+            add_error("release_status_timestamp", f"Release status timestamp should be null if status is {ReleaseStatus.AVAILABLE.label}.")
+
         if self.validation_status != ValidationStatus.AVAILABLE and self.validation_status_timestamp is None:
             add_error("validation_status_timestamp", f"Validation status timestamp required if status is not {ValidationStatus.AVAILABLE.label}.")
+        elif self.validation_status == ValidationStatus.AVAILABLE and self.validation_status_timestamp is not None:
+            add_error("validation_status_timestamp", f"Validation status timestamp should be null if status is {ValidationStatus.AVAILABLE.label}.")
 
         if self.release_status_timestamp is not None and self.released_by is None:
             add_error("released_by", f"The user that changed the release_status need to be recorded.")

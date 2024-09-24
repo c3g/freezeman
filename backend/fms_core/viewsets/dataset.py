@@ -61,18 +61,22 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=["patch"])
     def set_release_status(self, request, pk):
-        data = request.data
-        readset_updates: dict[int, ReleaseStatus.RELEASED | ReleaseStatus.BLOCKED] = data
+        readset_updates: dict[str, ReleaseStatus] = request.data
 
-        readset_ids = list(readset_updates.keys())
+        readset_ids = [int(i) for i in readset_updates.keys()]
         readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids)
 
         try:
             release_status_timestamp = timezone.now()
             for readset in readsets:
-                readset.release_status = readset_updates[str(readset.id)]
-                readset.release_status_timestamp = release_status_timestamp
-                readset.released_by = request.user
+                release_status = readset_updates[str(readset.id)]
+                readset.release_status = release_status
+                if release_status == ReleaseStatus.AVAILABLE:
+                    readset.release_status_timestamp = None
+                    readset.released_by = None
+                else:
+                    readset.release_status_timestamp = release_status_timestamp
+                    readset.released_by = request.user
                 readset.save()
         except Exception as e:
             transaction.set_rollback(True)

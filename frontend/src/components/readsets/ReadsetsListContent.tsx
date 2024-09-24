@@ -39,11 +39,7 @@ const OPPOSITE_STATUS = {
     [ReleaseStatus.RELEASED]: ReleaseStatus.BLOCKED,
     [ReleaseStatus.BLOCKED]: ReleaseStatus.RELEASED,
 } as const
-const OPPOSITE_STATUS_WITH_AVAILABLE = {
-    [ReleaseStatus.AVAILABLE]: ReleaseStatus.RELEASED,
-    [ReleaseStatus.RELEASED]: ReleaseStatus.BLOCKED,
-    [ReleaseStatus.BLOCKED]: ReleaseStatus.AVAILABLE,
-} as const
+
 
 interface ReadsetsListContentProps {
     dataset: Dataset
@@ -70,11 +66,11 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         dispatch(ReadsetTableActions.listPage(1))
     }, [dataset.id, dispatch])
 
-    const canUpdateReleaseStatus =
-        (!dataset.latest_release_update && (laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED)) ||
-        ( dataset.latest_release_update && isAdmin)
+    const laneValidated = laneValidationStatus === ValidationStatus.PASSED || laneValidationStatus === ValidationStatus.FAILED
+    // admins can always update release status if the dataset is validated
+    const canUpdateReleaseStatus = laneValidated && (!dataset.latest_release_update || isAdmin)
 
-    const releaseStatusManager = useReleaseStatusManager(dataset.id, isAdmin)
+    const releaseStatusManager = useReleaseStatusManager(dataset.id)
 
     const renderReleaseStatus = useCallback((_: any, { readset }: ObjectWithReadset) => {
         const readsetStatus = releaseStatusManager.readsetReleaseStates[readset.id]
@@ -249,7 +245,7 @@ type ReleaseStatusManagerState = Record<
         new: ReleaseStatus | undefined
     } | undefined
 >
-function useReleaseStatusManager(datasetID: Dataset["id"], allowAvailable: boolean) {
+function useReleaseStatusManager(datasetID: Dataset["id"]) {
     const [readsetReleaseStates, setReadsetReleaseStates] = useState<ReleaseStatusManagerState>({})
     const dispatch = useAppDispatch()
 
@@ -280,15 +276,13 @@ function useReleaseStatusManager(datasetID: Dataset["id"], allowAvailable: boole
         setReadsetReleaseStates(produce((readsetReleaseStates) => {
             const readsetStatus = readsetReleaseStates[id]
             if (readsetStatus) {
-                const newReleaseStatus = allowAvailable
-                    ? OPPOSITE_STATUS_WITH_AVAILABLE[getCurrentReleaseStatus(readsetStatus)]
-                    : OPPOSITE_STATUS[getCurrentReleaseStatus(readsetStatus)]
+                const newReleaseStatus = OPPOSITE_STATUS[getCurrentReleaseStatus(readsetStatus)]
                 readsetStatus.new = readsetStatus.old !== newReleaseStatus
                     ? newReleaseStatus
                     : undefined
             }
         }))
-    }, [allowAvailable])
+    }, [])
 
     const undoChanges = useCallback(() => {
         setReadsetReleaseStates(produce((readsetReleaseStates) => {
