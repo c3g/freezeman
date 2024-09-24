@@ -56,7 +56,6 @@ const api = {
   readsets: {
     get: id => get(`/readsets/${id}/`),
     list: (options: QueryParams, abort?: any) => get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
-    setReleaseStatus: (id: FMSReadset["id"], release_status: ReleaseStatus) => post<JsonResponse<FMSReadset[]>>(`/readsets/set_release_status/`, {id, release_status}),
   },
 
   datasetFiles: {

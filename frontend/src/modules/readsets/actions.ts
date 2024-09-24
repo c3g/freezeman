@@ -33,15 +33,6 @@ export const listWithMetrics = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const setReleaseStatus = (id: Readset["id"], releaseStatus: ReleaseStatus) => async (dispatch: AppDispatch) => {
-    const results = await dispatch(networkAction(SET_RELEASE_STATUS,
-        api.readsets.setReleaseStatus(id, releaseStatus),
-        { meta: id }
-    ));
-
-    return results
-};
-
 export default {
     GET,
     LIST,
