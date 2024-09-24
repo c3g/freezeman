@@ -5,7 +5,7 @@ import time
 from django.conf import settings
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Iterable, List, TypeVar, Union
+from typing import Any, Generator, Iterable, NewType, TypeVar, Union
 
 
 __all__ = [
@@ -190,18 +190,29 @@ def make_timestamped_filename(file_name: str) -> str:
     time.tzset()
     return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
 
-def serialize_warnings(warnings):
+
+WarningType = NewType('WarningType', dict[str, tuple[str] | str | list[str] | list[tuple[str, list]]])
+def serialize_warnings(warnings: WarningType):
     serialized = []
     for (k, vs) in (warnings).items():
         if isinstance(vs, tuple):
-            # should fix the row handler to ensure it's a list
+            # turn a single tuple warning into a canonical
+            # warning assuming each element is a string
+
+            if len(vs) < 2:
+                # ensure that it is a tuple of length 2
+                vs = (vs[0], [])
+
+            # wrap the tuple in a list
             vs = [vs]
         elif isinstance(vs, str):
-            # this warning hasn't been converted yet
+            # turn a single string warning into a canonical warning
             vs = [(vs, [])]
+
         for v in vs:
             if isinstance(v, str):
-                # this warning hasn't been converted yet
+                # vs might be just a list of string
+                # so convert each item into a tuple
                 v = (v, [])
             serialized.append({'key': k, 'format': v[0], 'args': v[1] })
     return serialized
