@@ -26,6 +26,8 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         reversion.set_comment(f"Create the basic initial workflows.")
         reversion.set_user(admin_user)
+        #  existing step sample QC to be removed?
+        step = Step.objects.get(name="Sample QC").delete()
         for step_info in STEPS:
             protocol = Protocol.objects.get(name=step_info["protocol_name"])
             step = Step.objects.create(name=step_info["name"],
