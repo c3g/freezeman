@@ -17,6 +17,7 @@ export interface NotificationProps {
     title: NotificationInputType
     duration?: number
 }
+export const INFINITE_DURATION = 0
 
 export type NotificationID = string
 
