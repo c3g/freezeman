@@ -12,7 +12,7 @@ import { Dataset, Readset } from "../../models/frontend_models";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
-import { Button, Popconfirm, Spin, Tooltip } from "antd";
+import { Button, Popconfirm, Popover, Spin, Tooltip } from "antd";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import { createFixedFilter, FilterSet } from "../../models/paged_items";
@@ -172,23 +172,31 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
                 disabled={!undoChangesEnabled}>
                 Undo Changes
             </Button>
-            <Popconfirm
-				title={popconfirmTitle}
-				onConfirm={async () => {
-                    await releaseStatusManager.updateReleaseStatus()
-                    await refreshDataset()
-				}}
-				disabled={!saveChangesEnabled}
-				placement={'topRight'}
-                icon={null}
-			>
+            { !saveChangesEnabled && canUpdateReleaseStatus && !isAdmin
+            ? <Popover content={"All dataset readsets need to be released or blocked to save changes."}>
                 <Button
                 style={{ margin: 6 }}
                 type={"primary"}
                 disabled={!saveChangesEnabled}>
                     Save Changes
                 </Button>
-			</Popconfirm>
+            </Popover>
+            : <Popconfirm
+                title={popconfirmTitle}
+                onConfirm={async () => {
+                    await releaseStatusManager.updateReleaseStatus()
+                    await refreshDataset()
+                }}
+                disabled={!saveChangesEnabled}
+                icon={null}
+            >
+                <Button
+                style={{ margin: 6 }}
+                type={"primary"}
+                disabled={!saveChangesEnabled}>
+                    Save Changes
+                </Button>
+            </Popconfirm>}
         </div>
     },
     [canUpdateReleaseStatus, isAdmin, refreshDataset, releaseStatusManager])
