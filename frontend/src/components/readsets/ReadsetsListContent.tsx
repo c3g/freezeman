@@ -23,7 +23,7 @@ import { ExpandableConfig } from "antd/lib/table/interface";
 import api from "../../utils/api";
 import produce from "immer";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
-import { notifyError } from "../../modules/notification/actions";
+import { notifyError, notifySuccess } from "../../modules/notification/actions";
 import { INFINITE_DURATION } from "../../modules/notification/models";
 
 const RELEASE_STATUS_STRING = {
@@ -307,15 +307,25 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
                 finalNewReleaseStates[key] = readsetStatus.new
             }
         }
-        await dispatch(api.datasets.setReleaseStatus(datasetID, finalNewReleaseStates)).catch((error) => {
-            const id = "SET_RELEASE_STATUS_ERROR"
-            dispatch(notifyError({
-                id,
-                title: "Failed to update release status",
-                description: error.message,
-                duration: INFINITE_DURATION,
-            }))
-        })
+        await dispatch(api.datasets.setReleaseStatus(datasetID, finalNewReleaseStates)).then(
+            () => {
+                const id = "SET_RELEASE_STATUS_SUCCESS"
+                dispatch(notifySuccess({
+                    id,
+                    title: "Successfully released dataset readsets",
+                    duration: 5
+                }))
+            },
+            (error) => {
+                const id = "SET_RELEASE_STATUS_ERROR"
+                dispatch(notifyError({
+                    id,
+                    title: "Failed to release dataset readsets",
+                    description: error.message,
+                    duration: INFINITE_DURATION,
+                }))
+            }
+        )
         // await dispatch(ReadsetTableActions.refreshPage()) // already updated implicitly by refreshDataset
         for (const key in finalNewReleaseStates) {
             setReadsetReleaseStates(produce((readsetReleaseStates) => {

@@ -13,7 +13,7 @@ export enum NotificationType {
 export type NotificationInputType = string | number | boolean | null | undefined
 export interface NotificationProps {
     type: NotificationType
-    description: NotificationInputType
+    description?: NotificationInputType
     title: NotificationInputType
     duration?: number
 }
