@@ -241,7 +241,7 @@ function getCurrentReleaseStatus(readsetStatus: NonNullable<ReleaseStatusManager
 type ReleaseStatusManagerState = Record<
     Readset["id"],
     {
-        // the release status before the user has changed the status
+        // the current release status in the database
         old: ReleaseStatus,
         // the potential new release status that the user has selected
         new: ReleaseStatus | undefined
