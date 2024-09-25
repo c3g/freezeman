@@ -34,7 +34,7 @@ const RELEASE_STATUS_STRING = {
 const NEW_RELEASE_STATUS_COLOR = {
     [ReleaseStatus.RELEASED]: 'green',
     [ReleaseStatus.BLOCKED]: 'red',
-    [ReleaseStatus.AVAILABLE]: 'saddlebrown',
+    [ReleaseStatus.AVAILABLE]: '#1890ff',
 } as const
 const OPPOSITE_STATUS = {
     [ReleaseStatus.AVAILABLE]: ReleaseStatus.RELEASED,
@@ -312,7 +312,7 @@ function useReleaseStatusManager(datasetID: Dataset["id"]) {
                 const id = "SET_RELEASE_STATUS_SUCCESS"
                 dispatch(notifySuccess({
                     id,
-                    title: "Successfully released dataset readsets",
+                    title: "Successfully updated release statuses",
                     duration: 5
                 }))
             },
