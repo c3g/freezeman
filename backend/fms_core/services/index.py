@@ -88,7 +88,7 @@ def get_or_create_index(index_name: str, index_structure: str, index_set: IndexS
     Returns:
         Tuple including the created index instance, a flag to indicate if the index was created as well as a list of errors and warnings.
     """
-    index_set = None
+    index = None
     created_entity = False
     errors = []
     warnings = []
