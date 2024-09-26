@@ -3,6 +3,8 @@ from django.db import migrations
 from django.contrib.auth.models import User
 import reversion
 
+from fms_core.models import StepOrder, SampleNextStep
+
 ADMIN_USERNAME = 'biobankadmin'
 
 # adding the following steps
@@ -27,14 +29,13 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
         reversion.set_comment(f"Create the basic initial workflows.")
         reversion.set_user(admin_user)
         #  existing step sample QC to be removed?
-        step = Step.objects.get(name="Sample QC").delete()
         for step_info in STEPS:
             protocol = Protocol.objects.get(name=step_info["protocol_name"])
             step = Step.objects.create(name=step_info["name"],
                                        protocol_id=protocol.id,
                                        type="PROTOCOL",
                                        needs_placement=False,
-                                       needs_planning=True,
+                                       needs_planning=False,
                                        expected_sample_type=step_info["expected_sample_type"],
                                        created_by_id=admin_user.id,
                                        updated_by_id=admin_user.id)
@@ -48,6 +49,16 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
                                                                       created_by_id=admin_user.id,
                                                                       updated_by_id=admin_user.id)
                 reversion.add_to_revision(step_specification)
+        step = Step.objects.get(name="Sample QC")
+        dnaStep = Step.objects.get(name="Sample QC (DNA)")
+        if step:
+            step = Step.objects.get(name="Sample QC")
+            rnaStep = Step.objects.get(name="Sample QC (RNA)")
+            sns = SampleNextStep.objects.filter(step__id=step.id).update(step=rnaStep)
+            so = StepOrder.objects.filter(step__id=step.id).update(step=rnaStep)
+            if sns > 0:
+              step.delete()
+
 
 class Migration(migrations.Migration):
 
