@@ -105,13 +105,13 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         const allReadsetsBlocked =           readsetStates.every((readsetState) => getCurrentReleaseStatus(readsetState) === ReleaseStatus.BLOCKED)
         const allReadsetsAvailable =         readsetStates.every((readsetState) => getCurrentReleaseStatus(readsetState) === ReleaseStatus.AVAILABLE)
         const allReadsetsReleasedOrBlocked = readsetStates.every((readsetState) => getCurrentReleaseStatus(readsetState) !== ReleaseStatus.AVAILABLE)
-        const someReadsetsChangedStatus = readsetStates.some((readsetState) => readsetState.new !== undefined)
+        const someReadsetsChangedStatus =    readsetStates.some((readsetState) => readsetState.new !== undefined)
 
-        const releaseAllEnabled =             canUpdateReleaseStatus && !allReadsetsReleased      
-        const blockAllEnabled =               canUpdateReleaseStatus && !allReadsetsBlocked       
-        const undoAllReleaseAndBlockEnabled = canUpdateReleaseStatus && !allReadsetsAvailable && isAdmin
-        const undoChangesEnabled =            canUpdateReleaseStatus && someReadsetsChangedStatus 
-        const saveChangesEnabled =            canUpdateReleaseStatus && someReadsetsChangedStatus && (
+        const releaseAllEnabled =   canUpdateReleaseStatus && !allReadsetsReleased      
+        const blockAllEnabled =     canUpdateReleaseStatus && !allReadsetsBlocked       
+        const availableAllEnabled = canUpdateReleaseStatus && !allReadsetsAvailable && isAdmin
+        const undoChangesEnabled =  canUpdateReleaseStatus && someReadsetsChangedStatus 
+        const saveChangesEnabled =  canUpdateReleaseStatus && someReadsetsChangedStatus && (
             // normal user
             (!isAdmin && allReadsetsReleasedOrBlocked)
             ||
@@ -160,14 +160,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
                 disabled={!blockAllEnabled}>
                 Block All
             </Button>
-            {isAdmin && <Button
-                    style={{ margin: 6 }}
-                    onClick={() => {
-                        releaseStatusManager.setAllReleaseStatus(ReleaseStatus.AVAILABLE)
-                    }}
-                    disabled={!undoAllReleaseAndBlockEnabled}>
-                    Undo All Release/Block
-                </Button>}
             <Button
                 style={{ margin: 6 }}
                 onClick={() => {
@@ -201,6 +193,14 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
                     Save Changes
                 </Button>
             </Popconfirm>}
+            {isAdmin && <Button
+                    style={{ margin: 6 }}
+                    onClick={() => {
+                        releaseStatusManager.setAllReleaseStatus(ReleaseStatus.AVAILABLE)
+                    }}
+                    disabled={!availableAllEnabled}>
+                    Reset All Release Status
+                </Button>}
         </div>
     },
     [canUpdateReleaseStatus, isAdmin, refreshDataset, releaseStatusManager])
