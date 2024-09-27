@@ -3,6 +3,8 @@ from django.db import migrations
 from django.contrib.auth.models import User
 import reversion
 
+from fms_core.models import StepOrder, SampleNextStep
+
 ADMIN_USERNAME = 'biobankadmin'
 
 def add_sample_qc_distinction_dna_rna(self, apps, schema_editor):
@@ -27,8 +29,8 @@ def add_sample_qc_distinction_dna_rna(self, apps, schema_editor):
             protocol = Protocol.objects.get(name=step_info["protocol_name"])
             step = Step.objects.create(name=step_info["name"],
                                        protocol=protocol,
-                                       created_by_id=admin_user_id,
-                                       updated_by_id=admin_user_id)
+                                       created_by_id=admin_user.id,
+                                       updated_by_id=admin_user.id)
             reversion.add_to_revision(step)
             for specification in step_info["specifications"]:
                 step_specification = StepSpecification.objects.create(display_name=specification["display_name"],
@@ -36,8 +38,8 @@ def add_sample_qc_distinction_dna_rna(self, apps, schema_editor):
                                                                       column_name=specification["column_name"],
                                                                       value=specification["value"],
                                                                       step=step,
-                                                                      created_by_id=admin_user_id,
-                                                                      updated_by_id=admin_user_id)
+                                                                      created_by_id=admin_user.id,
+                                                                      updated_by_id=admin_user.id)
                 reversion.add_to_revision(step_specification)
         oldStep = Step.objects.get(name="Sample QC")
         dnaStep = Step.objects.get(name="Sample QC (DNA)")

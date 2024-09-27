@@ -584,7 +584,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
       {
           "name": "PoolSubmission",
           "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Name",
-                      "Container Barcode", "Pool Coord", "Location Barcode", 
+                      "Container Barcode", "Pool Coord", "Location Barcode",
                       "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
@@ -621,7 +621,7 @@ SAMPLE_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
+          'headers': ['Sample Name', 'Sample Kind', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
                       'Sample Parent Container Coord','Current Volume (uL)', 'Measured Volume (uL)', 'Volume Used (uL)',
                       'Concentration (ng/uL)', 'NA Quantity (ng)', 'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag',
                       'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
@@ -639,6 +639,7 @@ SAMPLE_QC_TEMPLATE = {
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
       ("SampleQC", "Sample Name", "name", "name", None),
+      ("SampleQC", "Sample Kind", "kind", "kind", None),
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode", None),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates", None),
       ("SampleQC", "Sample Parent Container Barcode", "container__location__barcode", "container_location_barcode", None),
