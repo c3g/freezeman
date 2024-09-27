@@ -5,10 +5,7 @@ import reversion
 
 ADMIN_USERNAME = 'biobankadmin'
 
-# adding the following steps
-# important !! the column name will change because it doesn't exist in SAMPLE_QC_TEMPLATE
-# column sample kind to be added to template
-def add_sample_qc_distinction_dna_rna(apps, schema_editor):
+def add_sample_qc_distinction_dna_rna(self, apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     Protocol = apps.get_model("fms_core", "Protocol")
     StepSpecification = apps.get_model("fms_core", "StepSpecification")
@@ -24,8 +21,7 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        admin_user_id = admin_user.id
-        reversion.set_comment(f"Create the basic initial workflows.")
+        reversion.set_comment(f"Create Sample QC DNA and RNA step and transfer existing Sample QC data to their respective new step.")
         reversion.set_user(admin_user)
         for step_info in STEPS:
             protocol = Protocol.objects.get(name=step_info["protocol_name"])
@@ -43,6 +39,25 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
                                                                       created_by_id=admin_user_id,
                                                                       updated_by_id=admin_user_id)
                 reversion.add_to_revision(step_specification)
+        oldStep = Step.objects.get(name="Sample QC")
+        dnaStep = Step.objects.get(name="Sample QC (DNA)")
+        if oldStep:
+            rnaStep = Step.objects.get(name="Sample QC (RNA)")
+            sns = SampleNextStep.objects.filter(step__id=oldStep.id)
+            for sampleNextStep in sns:
+                sampleNextStep.update(step=rnaStep)
+                sampleNextStep.save()
+                reversion.add_to_revision(sampleNextStep)
+
+
+            so = StepOrder.objects.filter(step__id=step.id).update(step=rnaStep)
+            for stepOrder in so:
+                stepOrder.update(step=rnaStep)
+                stepOrder.save()
+                reversion.add_to_revision(stepOrder)
+            if self.assertNotEquals(sns, 0):
+              step.delete()
+
 
 class Migration(migrations.Migration):
 
