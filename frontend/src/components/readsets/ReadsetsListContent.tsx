@@ -111,7 +111,13 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         const blockAllEnabled =               canUpdateReleaseStatus && !allReadsetsBlocked       
         const undoAllReleaseAndBlockEnabled = canUpdateReleaseStatus && !allReadsetsAvailable && isAdmin
         const undoChangesEnabled =            canUpdateReleaseStatus && someReadsetsChangedStatus 
-        const saveChangesEnabled =            canUpdateReleaseStatus && someReadsetsChangedStatus && (allReadsetsReleasedOrBlocked || isAdmin)
+        const saveChangesEnabled =            canUpdateReleaseStatus && someReadsetsChangedStatus && (
+            // normal user
+            (!isAdmin && allReadsetsReleasedOrBlocked)
+            ||
+            // admin
+            (isAdmin && (allReadsetsReleasedOrBlocked || allReadsetsAvailable))
+        )
 
         let newReleaseCount = 0
         let newBlockCount = 0
