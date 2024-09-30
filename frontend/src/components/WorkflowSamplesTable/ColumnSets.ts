@@ -32,8 +32,6 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		SAMPLE_COLUMNS.QC_FLAG,
 		SAMPLE_COLUMNS.CREATION_DATE,
 		SAMPLE_COLUMNS.DEPLETED,
-		SAMPLE_COLUMNS.PARENT_CONTAINER,
-		SAMPLE_COLUMNS.PARENT_COORDINATES,
 	]
 
 	const PRE_QC_SAMPLE_COLUMNS = [
@@ -47,8 +45,6 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		SAMPLE_COLUMNS.CONCENTRATION,
 		SAMPLE_COLUMNS.CREATION_DATE,
 		SAMPLE_COLUMNS.DEPLETED,
-		SAMPLE_COLUMNS.PARENT_CONTAINER,
-		SAMPLE_COLUMNS.PARENT_COORDINATES,
 	]
 
 	const DEFAULT_LIBRARY_COLUMNS = [
@@ -65,8 +61,6 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		SAMPLE_COLUMNS.QC_FLAG,
 		SAMPLE_COLUMNS.CREATION_DATE,
 		SAMPLE_COLUMNS.DEPLETED,
-		SAMPLE_COLUMNS.PARENT_CONTAINER,
-		SAMPLE_COLUMNS.PARENT_COORDINATES,
 	]
 
 	const PRE_QC_LIBRARY_COLUMNS = [
@@ -80,8 +74,6 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		SAMPLE_COLUMNS.VOLUME,
 		SAMPLE_COLUMNS.CREATION_DATE,
 		SAMPLE_COLUMNS.DEPLETED,
-		SAMPLE_COLUMNS.PARENT_CONTAINER,
-		SAMPLE_COLUMNS.PARENT_COORDINATES,
 	]
 
 	const EXPERIMENT_COLUMNS = [
@@ -94,8 +86,6 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		SAMPLE_COLUMNS.QC_FLAG,
 		SAMPLE_COLUMNS.CREATION_DATE,
 		SAMPLE_COLUMNS.DEPLETED,
-		SAMPLE_COLUMNS.PARENT_CONTAINER,
-		SAMPLE_COLUMNS.PARENT_COORDINATES,
 	]
 
 	let columnsForStep: (SampleColumn | LibraryColumn)[] = DEFAULT_SAMPLE_COLUMNS
@@ -154,6 +144,11 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 			columnsForStep = DEFAULT_SAMPLE_COLUMNS
 		}
 	}
+
+	columnsForStep.push(
+		SAMPLE_COLUMNS.PARENT_CONTAINER,
+		SAMPLE_COLUMNS.PARENT_COORDINATES,
+	)
 
 	// Clone the columns on return
 	return columnsForStep.map(column => {return {...column}})
