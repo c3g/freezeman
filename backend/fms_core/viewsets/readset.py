@@ -39,24 +39,4 @@ class ReadsetViewSet(viewsets.ModelViewSet):
         if(with_metrics):
             return ReadsetWithMetricsSerializer
         return ReadsetSerializer
-    
-    @action(detail=False, methods=["post"])
-    def set_release_status(self, request, *args, **kwargs):
-        data = request.data
-        try:
-            release_status = data.get("release_status")            
-            validation = Readset.objects.filter(pk=data['id']).exclude(validation_status=ValidationStatus.AVAILABLE)
-            if not validation.exists():
-                return HttpResponseBadRequest(f"Run must first be validated before release status can be changed.")
-            
-            readset_to_update = Readset.objects.select_for_update().get(pk=data['id'])
-            readset_to_update.__dict__.update(release_status=release_status, release_status_timestamp=timezone.now(), released_by=request.user)
-        except Exception as err:
-            raise ValidationError(dict(non_field_errors=err))
-        try:
-            readset_to_update.save()
-            serializer = ReadsetSerializer(readset_to_update)
-        except Exception as err:
-            raise ValidationError(err)
 
-        return Response(serializer.data)

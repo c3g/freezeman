@@ -1,5 +1,5 @@
-import { Descriptions } from "antd"
-import React, { useEffect, useState } from "react"
+import { Descriptions, Spin } from "antd"
+import React, { useCallback, useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { get } from "../../modules/datasets/actions"
@@ -17,7 +17,7 @@ const DatasetDetailContent = () => {
     const datasetsById = useAppSelector(selectDatasetsByID)
     const dispatch = useAppDispatch()
     const { id: datasetId } = useParams();
-    const dataset: Dataset | undefined = datasetsById[datasetId!];
+    const dataset: Dataset | undefined = datasetId ? datasetsById[datasetId] : undefined
     const [laneValidationStatus, setLaneValidationStatus] = useState<ValidationStatus>()
     useEffect(() => {
         if (!dataset) {
@@ -41,6 +41,12 @@ const DatasetDetailContent = () => {
     const loading = (value: string | number | undefined) => {
         return value ?? "Loading..."
     }
+
+    const refreshDataset = useCallback(async () => {
+        if (datasetId) {
+            await dispatch(get(datasetId))
+        }
+    }, [datasetId, dispatch])
 
     return <>
         <AppPageHeader
@@ -71,7 +77,9 @@ const DatasetDetailContent = () => {
                     <Descriptions.Item label={"Total Readsets"} span={1}>{loading(dataset?.readset_count)}</Descriptions.Item>
                     <Descriptions.Item label={"Readsets Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
                 </Descriptions>
-                <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} />
+                {dataset && laneValidationStatus !== undefined
+                    ? <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} refreshDataset={refreshDataset} />
+                    : <Spin />}
             </div>
         </PageContent>
     </>

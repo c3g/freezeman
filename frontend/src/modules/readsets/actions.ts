@@ -1,3 +1,6 @@
+import { ReleaseStatus } from "../../models/fms_api_models";
+import { Readset } from "../../models/frontend_models";
+import { AppDispatch } from "../../store";
 import { createNetworkActionTypes, networkAction } from "../../utils/actions";
 import api from "../../utils/api";
 
@@ -28,16 +31,6 @@ export const listWithMetrics = (options) => async (dispatch, getState) => {
         api.readsets.list(params),
         { meta: params }
     ));
-};
-
-export const setReleaseStatus = (id, releaseStatus, refreshCallback) => async (dispatch, getState) => {
-    const results = await dispatch(networkAction(SET_RELEASE_STATUS,
-        api.readsets.setReleaseStatus(id, releaseStatus),
-        { meta: id }
-    ));
-    dispatch(refreshCallback)
-
-    return results
 };
 
 export default {
