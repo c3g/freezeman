@@ -310,8 +310,8 @@ def extract_sample(process: Process,
                    container_destination: Container,
                    volume_used,
                    execution_date: datetime.date,
-                   concentration_destination,
                    sample_kind_destination,
+                   concentration_destination=None,
                    coordinates_destination=None,
                    volume_destination=None,
                    source_depleted: bool=None,
@@ -359,8 +359,7 @@ def extract_sample(process: Process,
             if concentration_destination is not None:
                 sample_destination_data["concentration"] = concentration_destination
             elif sample_kind_destination.concentration_required:
-                # Force extracted sample to have a concentration if sample_kind is DNA.
-                errors.append(f"Concentration must be specified for an extracted sample if the sample_kind is DNA.")
+                sample_destination_data["concentration"] = 1
 
             new_derived_sample_data = {"sample_kind_id": sample_kind_destination.id}
 
