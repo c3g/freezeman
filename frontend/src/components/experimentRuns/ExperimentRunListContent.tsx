@@ -39,7 +39,7 @@ function ExperimentRunListContent() {
     useEffect(() => {
         // default setting set at the redux level
         callbacks.setFilterCallback([RUN_TYPES.ILLUMINA], EXPERIMENT_RUNS_PLATFORM_NAME_FILTER)
-    }, [callbacks])
+    }, [])
 
     return (
         <>
