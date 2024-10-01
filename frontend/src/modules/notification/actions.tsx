@@ -17,8 +17,12 @@ const hasNotification = (state: RootState, id: NotificationID) => {
     return state.notifications.some((notification) => notification.id === id)
 }
 
-export interface NotifyProps extends NotificationProps {
+export interface NotifyProps {
+    type: NotificationType
     id: NotificationID
+    title: string
+    description?: string
+    duration?: number
 }
 export const notify = (props: NotifyProps) => (dispatch: AppDispatch, getState: () => RootState) => {
     const { id } = props
@@ -29,7 +33,7 @@ export const notify = (props: NotifyProps) => (dispatch: AppDispatch, getState: 
 
     notification[convertToAntdNotificationAPI[props.type]]({
         message: props.title,
-        description: <pre style={{ fontSize: '0.8em', whiteSpace: 'pre-wrap' }}>{props.description}</pre>,
+        description: props.description ? <pre style={{ fontSize: '0.8em', whiteSpace: 'pre-wrap' }}>{props.description}</pre> : undefined,
         duration: props.duration,
         key: id,
         onClose: () => dispatch(closeNotification(id))

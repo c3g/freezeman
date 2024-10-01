@@ -1,18 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Readset } from "../../models/frontend_models";
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns";
 import { FilterDescription } from "../../models/paged_items";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
 import { FILTER_TYPE } from "../../constants";
-import { Button } from "antd";
 
 export interface ObjectWithReadset {
     readset: Readset
 }
-export const RELEASED = 1
-export const BLOCKED = 2
-export const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
-export const OPPOSITE_STATUS = [RELEASED, BLOCKED, RELEASED]
 export type ReadsetColumn = IdentifiedTableColumnType<ObjectWithReadset>
 
 export enum ReadsetColumnID {
@@ -24,8 +19,12 @@ export enum ReadsetColumnID {
     NUMBER_READS = 'NUMBER_READS',
 }
 
-export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOption, canReleaseOrBlockFiles): { [key in ReadsetColumnID]: ReadsetColumn } => {
-    return {
+function defaultRenderReleaseStatus(value: any, record: ObjectWithReadset, index: number) {
+    return record.readset && record.readset.release_status ? <div> {record.readset.release_status} </div> : <></>
+}
+
+export function useReadsetColumnDefinitions({ renderReleaseStatus = defaultRenderReleaseStatus }): { [key in ReadsetColumnID]: ReadsetColumn } {
+    return useMemo(() => ({
         [ReadsetColumnID.ID]: {
             columnID: ReadsetColumnID.ID,
             title: 'ID',
@@ -49,16 +48,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
             title: "Release Status",
             dataIndex: ['readset', 'release_status'],
             sorter: true,
-            render: (_, { readset }) => {
-                const { id } = readset;
-                const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? readset.release_status
-                const changed = (releaseStatusOption.all && releaseStatusOption.all !== readset.release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
-                return readset && <Button
-                    disabled={!canReleaseOrBlockFiles}
-                    style={{ color: changed ? "red" : "grey", width: "6em" }}
-                    onClick={() => toggleReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}
-                </Button>
-            }
+            render: renderReleaseStatus
         },
         [ReadsetColumnID.LIBRARY_TYPE]: {
             columnID: ReadsetColumnID.LIBRARY_TYPE,
@@ -87,7 +77,7 @@ export const READSET_COLUMN_DEFINITIONS = (toggleReleaseStatus, releaseStatusOpt
                 return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric)} </div> : ''
             }
         },
-    }
+    }), [renderReleaseStatus])
 }
 
 export enum ReadsetFilterID {

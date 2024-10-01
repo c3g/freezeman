@@ -47,7 +47,7 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	usingFilters: boolean
 
 	selection?: PagedItemTableSelection
-	expandable?: TableProps<any>['expandable']
+	expandable?: TableProps<T>['expandable']
 	initialLoad?: boolean
 
 	topBarExtra?: React.ReactNode[]
