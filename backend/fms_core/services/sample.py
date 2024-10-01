@@ -986,7 +986,7 @@ def remove_sample_metadata(sample, metadata):
     return deleted, errors, warnings
 
 
-def validate_normalization(initial_volume, initial_concentration, final_volume, desired_concentration, tolerance=0.01):
+def validate_normalization(initial_volume, initial_concentration, final_volume, desired_concentration, tolerance=0.1):
     """
          Defines whether a desired concentration is valid given the ratio (initial volume / final volume)
 
