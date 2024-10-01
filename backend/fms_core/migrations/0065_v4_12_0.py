@@ -3,14 +3,11 @@ from django.db import migrations
 from django.contrib.auth.models import User
 import reversion
 
-from fms_core.models import StepOrder, SampleNextStep
+from fms_core.models import StepOrder, SampleNextStep, Step, Protocol, StepSpecification, SampleNextStepByStudy, Workflow, Study
 
 ADMIN_USERNAME = 'biobankadmin'
 
 def add_sample_qc_distinction_dna_rna(self, apps, schema_editor):
-    Step = apps.get_model("fms_core", "Step")
-    Protocol = apps.get_model("fms_core", "Protocol")
-    StepSpecification = apps.get_model("fms_core", "StepSpecification")
 
     STEPS = [
         {"name": "Sample QC (DNA)", "protocol_name": "Sample QC", "specifications": [
@@ -42,23 +39,23 @@ def add_sample_qc_distinction_dna_rna(self, apps, schema_editor):
                                                                       updated_by_id=admin_user.id)
                 reversion.add_to_revision(step_specification)
         oldStep = Step.objects.get(name="Sample QC")
-        dnaStep = Step.objects.get(name="Sample QC (DNA)")
         if oldStep:
-            rnaStep = Step.objects.get(name="Sample QC (RNA)")
             sns = SampleNextStep.objects.filter(step__id=oldStep.id)
             for sampleNextStep in sns:
-                sampleNextStep.update(step=rnaStep)
+                sampleNextStepByStudy = SampleNextStepByStudy.objects.get(sample_next_step__id=sampleNextStep.id)
+                stepOrder = StepOrder.objects.get(id=sampleNextStepByStudy.step_order.id)
+                if sampleNextStep.sample.derived_samples.first().sample_kind.name == "RNA":
+                  newStep = Step.objects.get(name="Sample QC (RNA)")
+                if sampleNextStep.sample.derived_samples.first().sample_kind.name == "DNA":
+                  newStep = Step.objects.get(name="Sample QC (DNA)")
+                sampleNextStep.update(step=newStep)
+                stepOrder.update(step=newStep)
                 sampleNextStep.save()
                 reversion.add_to_revision(sampleNextStep)
-
-
-            so = StepOrder.objects.filter(step__id=step.id).update(step=rnaStep)
-            for stepOrder in so:
-                stepOrder.update(step=rnaStep)
                 stepOrder.save()
                 reversion.add_to_revision(stepOrder)
             if self.assertNotEquals(sns, 0):
-              step.delete()
+              oldStep.delete()
 
 
 class Migration(migrations.Migration):
