@@ -1,5 +1,5 @@
-import { stringify as qs } from "querystring";
-import { API_BASE_PATH } from "../config";
+import {stringify as qs} from "querystring";
+import {API_BASE_PATH} from "../config";
 import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, WorkflowStepOrder } from "../models/fms_api_models";
 
 const api = {
@@ -19,19 +19,19 @@ const api = {
     add: container => post("/containers/", container),
     update: container => patch(`/containers/${container.id}/`, container),
     list: (options, abort?) => get("/containers/", options, { abort }),
-    listExport: options => get("/containers/list_export/", { format: "csv", ...options }),
+    listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listChildrenRecursively: id => get(`/containers/${id}/list_children_recursively/`),
     summary: () => get("/containers/summary/"),
     template: {
       actions: () => get(`/containers/template_actions/`),
-      check: (action, template) => post(`/containers/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
     },
     prefill: {
       templates: () => get(`/containers/list_prefills/`),
-      request: (options, template) => filteredpost(`/containers/prefill_template/`, { ...options }, form({ template: template })),
+      request: (options, template) => filteredpost(`/containers/prefill_template/`, {...options}, form({ template: template })),
     },
     search: (q, { parent, sample_holding, exact_match, except_kinds }) =>
       get("/containers/search/", { q, parent, sample_holding, exact_match, except_kinds }),
@@ -66,18 +66,18 @@ const api = {
 
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}/`),
-    list: (options, abort?) => get("/experiment-runs/", options, { abort }),
-    listExport: options => get("/experiment-runs/list_export/", { format: "csv", ...options }),
-    listExternalRuns: (options, abort?) => get("/experiment-runs/list_external_experiment_run/", { limit: 100000, ...options }, { abort }),
+    list: (options, abort?) => get("/experiment-runs/", options, {abort}),
+    listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
+    listExternalRuns: (options, abort?) => get("/experiment-runs/list_external_experiment_run/", {limit: 100000, ...options}, {abort}),
     template: {
       actions: () => get(`/experiment-runs/template_actions/`),
-      check: (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
     launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}),
     fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info/`, {}),
-    setLaneValidationStatus: (run_name, lane, validation_status) => post(`/experiment-runs/set_experiment_run_lane_validation_status/`, { run_name, lane, validation_status }),
-    getLaneValidationStatus: (run_name, lane) => get(`/experiment-runs/get_experiment_run_lane_validation_status/`, { run_name, lane })
+    setLaneValidationStatus: (run_name, lane, validation_status) => post(`/experiment-runs/set_experiment_run_lane_validation_status/`, {run_name, lane, validation_status}),
+    getLaneValidationStatus: (run_name, lane) => get(`/experiment-runs/get_experiment_run_lane_validation_status/`, {run_name, lane})
   },
 
   runTypes: {
@@ -93,12 +93,12 @@ const api = {
   indices: {
     get: indexId => get(`/indices/${indexId}/`),
     list: (options, abort?) => get("/indices/", options, { abort }),
-    listExport: options => get("/indices/list_export/", { format: "csv", ...options }),
+    listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
     listSets: () => get("/indices/list_sets/"),
     summary: () => get("/indices/summary/"),
     template: {
       actions: () => get(`/indices/template_actions/`),
-      check: (action, template) => post(`/indices/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/indices/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/indices/template_submit/`, form({ action, template })),
     },
     validate: (options) => get("/indices/validate/", options),
@@ -109,7 +109,7 @@ const api = {
     add: individual => post("/individuals/", individual),
     update: individual => patch(`/individuals/${individual.id}/`, individual),
     list: (options, abort?) => get("/individuals/", options, { abort }),
-    listExport: options => get("/individuals/list_export/", { format: "csv", ...options }),
+    listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
     search: (q, options) => get("/individuals/search/", { q, ...options }),
   },
 
@@ -124,16 +124,16 @@ const api = {
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
     list: (options, abort?) => get("/libraries/", options, { abort }),
-    listExport: options => get("/libraries/list_export/", { format: "csv", ...options }),
+    listExport: options => get("/libraries/list_export/", {format: "csv", ...options}),
     summary: () => get("/libraries/summary/"),
     template: {
       actions: () => get(`/libraries/template_actions/`),
-      check: (action, template) => post(`/libraries/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/libraries/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/libraries/template_submit/`, form({ action, template })),
     },
     prefill: {
       templates: () => get(`/libraries/list_prefills/`),
-      request: (options, template) => filteredpost(`/libraries/prefill_template/`, { ...options }, form({ template: template })),
+      request: (options, template) => filteredpost(`/libraries/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/libraries/search/", { q }),
   },
@@ -144,7 +144,7 @@ const api = {
   },
 
   metrics: {
-    getReadsPerSampleForLane: (run_name, lane) => get(`/metrics/`, { limit: 100000, name: 'nb_reads', metric_group: 'qc', readset__dataset__run_name: run_name, readset__dataset__lane: lane })
+    getReadsPerSampleForLane: (run_name, lane) => get(`/metrics/`, {limit: 100000, name: 'nb_reads', metric_group: 'qc', readset__dataset__run_name: run_name, readset__dataset__lane: lane})
   },
 
   platforms: {
@@ -154,7 +154,7 @@ const api = {
 
   pooledSamples: {
     list: (options, abort?) => get("/pooled-samples/", options, { abort }),
-    listExport: options => get("/pooled-samples/list_export/", { format: "csv", ...options }),
+    listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
   },
 
   processes: {
@@ -165,12 +165,12 @@ const api = {
   processMeasurements: {
     get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
     list: (options, abort?) => get("/process-measurements/", options, { abort }),
-    listExport: options => get("/process-measurements/list_export/", { format: "csv", ...options }),
+    listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
     search: q => get("/process-measurements/search/", { q }),
     summary: () => get("/process-measurements/summary/"),
     template: {
       actions: () => get(`/process-measurements/template_actions/`),
-      check: (action, template) => post(`/process-measurements/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/process-measurements/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/process-measurements/template_submit/`, form({ action, template })),
     },
   },
@@ -180,11 +180,11 @@ const api = {
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
     list: (options, abort?) => get("/projects/", options, { abort }),
-    listExport: options => get("/projects/list_export/", { format: "csv", ...options }),
+    listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
     summary: () => get("/projects/summary/"),
     template: {
       actions: () => get(`/projects/template_actions/`),
-      check: (action, template) => post(`/projects/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/projects/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/projects/template_submit/`, form({ action, template })),
     },
   },
@@ -194,8 +194,8 @@ const api = {
   },
 
   protocols: {
-    list: (options, abort?) => get("/protocols/", options, { abort }),
-    lastProtocols: (options, abort?) => get<JsonResponse<{ sample_result: FMSSample['id'], protocol: FMSProtocol['name'] }[]>>("/protocols/last_protocols/", options, { abort }),
+    list:  (options, abort?) => get("/protocols/", options, { abort }),
+    lastProtocols: (options, abort?) => get<JsonResponse<{sample_result: FMSSample['id'], protocol: FMSProtocol['name']}[]>>("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {
@@ -213,19 +213,19 @@ const api = {
       filteredpost<StringResponse>(`/samples/add_samples_to_study/`, queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
     update: sample => patch(`/samples/${sample.id}/`, sample),
     list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSSample>>>("/samples/", options, { abort }),
-    listExport: options => get("/samples/list_export/", { format: "csv", ...options }),
-    listExportMetadata: options => get("/samples/list_export_metadata/", { format: "csv", ...options }),
+    listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
+    listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
     listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
     summary: () => get("/samples/summary/"),
     template: {
       actions: () => get(`/samples/template_actions/`),
-      check: (action, template) => post(`/samples/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
     },
     prefill: {
       templates: () => get(`/samples/list_prefills/`),
-      request: (options, template) => filteredpost(`/samples/prefill_template/`, { ...options }, form({ template: template })),
+      request: (options, template) => filteredpost(`/samples/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/samples/search/", { q }),
   },
@@ -240,26 +240,26 @@ const api = {
   },
 
   sampleNextStep: {
-    getStudySamples: (studyId) => get('/sample-next-step/', { studies__id__in: studyId }),
-    executeAutomation: (stepId, additionalData, options) => filteredpost(`/sample-next-step/execute_automation/`, { ...options }, form({ step_id: stepId, additional_data: additionalData, ...options }),),
+    getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
+    executeAutomation: (stepId, additionalData, options) => filteredpost(`/sample-next-step/execute_automation/`, {...options}, form({step_id: stepId, additional_data: additionalData, ...options}),),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
-    labworkStepSummary: (stepId: FMSId, groupBy: string, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<LabworkStepInfo>>('/sample-next-step/labwork_step_info/', { ...options, step__id__in: stepId, group_by: groupBy }, { sample__id__in }),
-    listSamplesAtStep: (stepId: FMSId, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/list_post/', { limit: 100000, ...options, step__id__in: stepId }, { sample__id__in }),
+    labworkStepSummary: (stepId: FMSId, groupBy: string, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<LabworkStepInfo>>('/sample-next-step/labwork_step_info/', {...options, step__id__in: stepId, group_by: groupBy}, { sample__id__in }),
+    listSamplesAtStep: (stepId: FMSId, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
     prefill: {
-      templates: (protocolId) => get('/sample-next-step/list_prefills/', { protocol: protocolId }),
-      request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string, options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/', { ...options }, form({ user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID.toString(), sample__id__in }))
+      templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
+      request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string,  options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID.toString(), sample__id__in }))
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),
-      check: (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
+      check:  (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/sample-next-step/template_submit/`, form({ action, template })),
     },
   },
 
   sampleNextStepByStudy: {
-    getStudySamples: (options: any) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStepByStudy>>>('/sample-next-step-by-study/', { ...options }),
-    getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, { ...options, study__id__in: studyId, step_order__id__in: stepOrderID }),
-    countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, { ...options, study__id__in: studyId }),
+    getStudySamples: (options: any) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStepByStudy>>>('/sample-next-step-by-study/', {...options}),
+    getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
+    countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
     list: (options, abort?) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },
@@ -274,20 +274,20 @@ const api = {
   },
 
   stepHistory: {
-    getCompletedSamplesForStudy: (studyId, options) => get<JsonResponse<FMSPagedResultsReponse<FMSStepHistory>>>('/step-histories/', { ...options, study__id__in: studyId }),
-    countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, { study__id__in: studyId })
+    getCompletedSamplesForStudy: (studyId, options) => get<JsonResponse<FMSPagedResultsReponse<FMSStepHistory>>>('/step-histories/', {...options, study__id__in: studyId}),
+    countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, {study__id__in: studyId})
   },
 
   steps: {
-    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStep>>>('/steps/', options, { abort }),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStep>>>('/steps/', options, { abort} ),
   },
 
   studies: {
     get: studyId => get<JsonResponse<FMSStudy>>(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
-    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies', options, { abort }),
-    listProjectStudies: projectId => get('/studies/', { project__id: projectId }),
+    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies', options, {abort}),
+    listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
 
@@ -332,147 +332,147 @@ export default api;
 
 type WithTokenFn<R extends ResponseWithData<any>> = (...args: any[]) => (_: undefined, getState: () => AuthTokensAccess) => Promise<R>
 export function withToken<R extends ResponseWithData<any>>(token: string | undefined, fn: WithTokenFn<R>) {
-  return (...args: Parameters<typeof fn>) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
+    return (...args: Parameters<typeof fn>) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
 }
 
 const ongoingRequests: Record<string, AbortController> = {}
 
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
-  abort: boolean
+    abort: boolean
 }
 interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
 
 export const ABORT_ERROR_NAME = 'AbortError'
 
 function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
-  const baseRoute = getPathname(route)
+    const baseRoute = getPathname(route)
 
-  return (_: any, getState: () => AuthTokensAccess) => {
+    return (_: any, getState: () => AuthTokensAccess) => {
 
-    const accessToken = getState().auth.tokens.access;
+        const accessToken = getState().auth.tokens.access;
 
-    const headers = {}
+        const headers = {}
 
-    if (accessToken)
-      headers["authorization"] = `Bearer ${accessToken}`
+        if (accessToken)
+            headers["authorization"] = `Bearer ${accessToken}`
 
-    if (!isFormData(body) && isObject(body))
-      headers["content-type"] = "application/json"
+        if (!isFormData(body) && isObject(body))
+            headers["content-type"] = "application/json"
 
-    // For abortable requests
-    let signal: AbortSignal | undefined
-    if (options.abort) {
-      const controller = new AbortController()
-      signal = controller.signal
-      if (ongoingRequests[baseRoute]) {
-        ongoingRequests[baseRoute].abort({
-          name: ABORT_ERROR_NAME,
-          message: `Request aborted for request to ${baseRoute}`,
-        })
-      }
-      ongoingRequests[baseRoute] = controller
-    }
-
-    const request = fetch(`${API_BASE_PATH}${route}`, {
-      method,
-      headers,
-      credentials: 'omit',
-      signal,
-      body:
-        isFormData(body) ?
-          body :
-          isObject(body) ?
-            JSON.stringify(body) :
-            undefined,
-    })
-
-    return request.then(res => {
-      if (options.abort) {
-        delete ongoingRequests[baseRoute]
-      }
-      return res
-    })
-      .then((response) => attachData<R>(response))
-      .then(response => {
-        if (response.ok) {
-          return response;
+        // For abortable requests
+        let signal: AbortSignal | undefined
+        if (options.abort) {
+            const controller = new AbortController()
+            signal = controller.signal
+            if (ongoingRequests[baseRoute]) {
+                ongoingRequests[baseRoute].abort({
+                    name: ABORT_ERROR_NAME,
+                    message: `Request aborted for request to ${baseRoute}`,
+                })
+            }
+            ongoingRequests[baseRoute] = controller
         }
-        return Promise.reject(createAPIError(response));
-      })
-  };
+
+        const request = fetch(`${API_BASE_PATH}${route}`, {
+            method,
+            headers,
+            credentials: 'omit',
+            signal,
+            body:
+                isFormData(body) ?
+                    body :
+                    isObject(body) ?
+                        JSON.stringify(body) :
+                        undefined,
+        })
+
+        return request.then(res => {
+            if (options.abort) {
+                delete ongoingRequests[baseRoute]
+            }
+            return res
+        })
+            .then((response) => attachData<R>(response))
+            .then(response => {
+                if (response.ok) {
+                    return response;
+                }
+                return Promise.reject(createAPIError(response));
+            })
+    };
 }
 
 export type QueryParams = Parameters<typeof qs>[0]
 
 function get<R extends ResponseWithData<any>>(route: string, queryParams?: QueryParams, options?: APIFetchOptions) {
-  const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
-  return apiFetch<R>('GET', fullRoute, undefined, options);
+    const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
+    return apiFetch<R>('GET', fullRoute, undefined, options);
 }
 
 function filteredpost<R extends ResponseWithData<any>>(route: string, queryParams: QueryParams, body: any, options?: APIFetchOptions) {
-  const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
-  return apiFetch<R>('POST', fullRoute, body, options);
+    const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
+    return apiFetch<R>('POST', fullRoute, body, options);
 }
 
 function post<R extends ResponseWithData<any>>(route: string, body: any, options?: APIFetchOptions) {
-  return apiFetch<R>('POST', route, body, options);
+    return apiFetch<R>('POST', route, body, options);
 }
 
 function patch<R extends ResponseWithData<any>>(route: string, body: any, options?: APIFetchOptions) {
-  return apiFetch<R>('PATCH', route, body, options);
+    return apiFetch<R>('PATCH', route, body, options);
 }
 
 function remove<R extends ResponseWithData<any>>(route: string) {
-  return apiFetch<R>('DELETE', route);
+    return apiFetch<R>('DELETE', route);
 }
 
 interface ApiError extends Omit<Error, 'stack'> {
-  name: 'APIError'
-  message: string
-  stack: string[]
-  data: Record<string, string[]>
-  fromAPI: boolean
-  status: number
-  statusText: string
-  url: string
+    name: 'APIError'
+    message: string
+    stack: string[]
+    data: Record<string, string[]>
+    fromAPI: boolean
+    status: number
+    statusText: string
+    url: string
 }
 function createAPIError<R extends ResponseWithData<any>>(response: R): ApiError {
-  const data = response.data;
-  let detail: any;
+    const data = response.data;
+    let detail: any;
 
-  // Server errors
-  if (response.isJSON && response.status === 400) {
-    detail = JSON.stringify(data, null, 2)
-  }
-  else {
-    // API error as { ok: false, detail: ... }
-    try {
-      detail = data.detail ||
-        (data.revision__user && ('User: ' + data.revision__user.join(', ')));
-    } catch (_) { }
-  }
+    // Server errors
+    if (response.isJSON && response.status === 400) {
+        detail = JSON.stringify(data, null, 2)
+    }
+    else {
+        // API error as { ok: false, detail: ... }
+        try {
+            detail = data.detail ||
+                (data.revision__user && ('User: ' + data.revision__user.join(', ')));
+        } catch (_) { }
+    }
 
-  const message = detail ?
-    ('API error: ' + detail) :
-    (`HTTP error ${response.status}: ` + response.statusText + ': ' + response.url)
+    const message = detail ?
+        ('API error: ' + detail) :
+        (`HTTP error ${response.status}: ` + response.statusText + ': ' + response.url)
 
-  const error = new Error(message) as unknown as ApiError;
-  error.name = 'APIError';
-  error.fromAPI = Boolean(detail);
-  error.data = data || {};
-  error.url = response.url;
-  error.status = response.status;
-  error.statusText = response.statusText;
-  error.stack = []
+    const error = new Error(message) as unknown as ApiError;
+    error.name = 'APIError';
+    error.fromAPI = Boolean(detail);
+    error.data = data || {};
+    error.url = response.url;
+    error.status = response.status;
+    error.statusText = response.statusText;
+    error.stack = []
 
-  return error;
+    return error;
 }
 
 export interface FMSResponse<T = any> extends Response {
-  isJSON: boolean
-  data: T
-  filename?: string
+    isJSON: boolean
+    data: T
+    filename?: string
 }
 interface JsonResponse<T = any> extends FMSResponse<T> { isJSON: true }
 interface ArrayBufferResponse extends FMSResponse<ArrayBuffer> { isJSON: false }
@@ -481,67 +481,67 @@ interface AttachDataErrorResponse extends FMSResponse<Record<string, never>> { i
 type ResponseWithData<T = any> = JsonResponse<T> | ArrayBufferResponse | StringResponse | AttachDataErrorResponse
 
 function attachData<R extends ResponseWithData<any>>(response: Response & Partial<ResponseWithData>) {
-  const contentType = response.headers.get('content-type') || '';
-  const contentDispo = response.headers.get('content-disposition');
-  const filename = getFilenameOrNull(contentDispo)
-  if (filename)
-    response.filename = filename
+    const contentType = response.headers.get('content-type') || '';
+    const contentDispo = response.headers.get('content-disposition');
+    const filename = getFilenameOrNull(contentDispo)
+    if (filename)
+        response.filename = filename
 
-  /*
-    TODO: This code was causing downloaded excel templates to become corrupted because
-    the backend was sending "None" as a Content-Type, due to a problem with mime types.
-    We tried to fix that by hard-coding the content-type as 'application/octet-stream' but
-    the files were still corrupt.
+    /*
+      TODO: This code was causing downloaded excel templates to become corrupted because
+      the backend was sending "None" as a Content-Type, due to a problem with mime types.
+      We tried to fix that by hard-coding the content-type as 'application/octet-stream' but
+      the files were still corrupt.
 
-    The problem was traced to this code. By default, the response is converted to text unless
-    the content-type correctly identifies the file as an excel sheet.
+      The problem was traced to this code. By default, the response is converted to text unless
+      the content-type correctly identifies the file as an excel sheet.
 
-    This was a difficult problem to figure out. This code needs to be improved to avoid
-    the same problem in the future if we transer other binary data types.
-  */
-  const isJSON = contentType.includes('/json')
-  const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-  const isZip = contentType.includes('/zip')
+      This was a difficult problem to figure out. This code needs to be improved to avoid
+      the same problem in the future if we transer other binary data types.
+    */
+    const isJSON = contentType.includes('/json')
+    const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    const isZip = contentType.includes('/zip')
 
-  response.isJSON = isJSON
-  return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
-    .then(data => {
-      response.data = data;
-      return response as R
-    })
-    .catch(() => {
-      response.data = {};
-      return response as R // as AttachDataErrorResponse (ideally)
-    })
+    response.isJSON = isJSON
+    return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
+        .then(data => {
+            response.data = data;
+            return response as R
+        })
+        .catch(() => {
+            response.data = {};
+            return response as R // as AttachDataErrorResponse (ideally)
+        })
 }
 
 function getFilenameOrNull(contentDispo: string | null) {
-  if (contentDispo)
-    return contentDispo.split('filename=').length > 1
-      // eslint-disable-next-line no-useless-escape
-      ? contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
-      : null
-  else
-    return null
+    if (contentDispo)
+        return contentDispo.split('filename=').length > 1
+            // eslint-disable-next-line no-useless-escape
+            ? contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
+            : null
+    else
+        return null
 }
 
 function form(params: Record<string, string | Blob>) {
-  const formData = new FormData()
-  for (const key in params) {
-    const value = params[key]
-    formData.append(key, value)
-  }
-  return formData
+    const formData = new FormData()
+    for (const key in params) {
+        const value = params[key]
+        formData.append(key, value)
+    }
+    return formData
 }
 
 function isObject(object: any): object is object {
-  return object !== null && typeof object === 'object'
+    return object !== null && typeof object === 'object'
 }
 
 function isFormData(object: any): object is FormData {
-  return object instanceof FormData
+    return object instanceof FormData
 }
 
 function getPathname(route: string) {
-  return route.replace(/\?.*$/, '')
+    return route.replace(/\?.*$/, '')
 }
