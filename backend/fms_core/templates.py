@@ -639,7 +639,6 @@ SAMPLE_QC_TEMPLATE = {
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
       ("SampleQC", "Sample Name", "name", "name", None),
-      ("SampleQC", "Sample Kind", "kind", "kind", None),
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode", None),
       ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates", None),
       ("SampleQC", "Sample Parent Container Barcode", "container__location__barcode", "container_location_barcode", None),
