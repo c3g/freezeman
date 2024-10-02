@@ -15,7 +15,7 @@ import FiltersBar from "../filters/filtersBar/FiltersBar";
 
 const detachedFilters = [
 	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
-  EXPERIMENT_RUN_PROCESS_FILTER
+   EXPERIMENT_RUN_PROCESS_FILTER
 ]
 
 function ExperimentRunListContent() {
@@ -36,7 +36,7 @@ function ExperimentRunListContent() {
         callbacks.setFilterOptionsCallback
     )
 
-    useEffect(() => {
+    useEffect(()=>{
         // default setting set at the redux level
         callbacks.setFilterCallback([RUN_TYPES.ILLUMINA], EXPERIMENT_RUNS_PLATFORM_NAME_FILTER)
     }, [])
