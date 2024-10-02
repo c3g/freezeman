@@ -1,14 +1,13 @@
 from django.conf import settings
 from django.db import migrations
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 import reversion
-
-from fms_core.models import StepOrder, SampleNextStep, Step, Protocol, StepSpecification, SampleNextStepByStudy, Workflow, Study
 
 ADMIN_USERNAME = 'biobankadmin'
 
 def add_sample_qc_distinction_dna_rna(apps, schema_editor):
-
+    # load the new sample qc steps and other necessary assets
     STEPS = [
         {"name": "Sample QC (DNA)", "protocol_name": "Sample Quality Control","expected_sample_type": "EXTRACTED_SAMPLE",
           "specifications": [
@@ -19,7 +18,14 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
             {"display_name": "SampleQcType", "sheet_name": "SampleQC", "column_name": "Sample Kind", "value": "RNA"}]
         }
     ]
-
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+    SampleNextStep = apps.get_model("fms_core", "SampleNextStep")
+    Step = apps.get_model("fms_core", "Step")
+    Protocol = apps.get_model("fms_core", "Protocol")
+    StepSpecification = apps.get_model("fms_core", "StepSpecification")
+    SampleNextStepByStudy = apps.get_model("fms_core", "SampleNextStepByStudy")
+    errors = {}
+    # create the new steps and its necessary objects
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         reversion.set_comment(f"Create Sample QC DNA and RNA step and transfer existing Sample QC data to their respective new step.")
@@ -47,35 +53,40 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
         oldStep = Step.objects.get(name="Sample QC")
         dnaStep = Step.objects.get(name="Sample QC (RNA)")
         rnaStep = Step.objects.get(name="Sample QC (DNA)")
-
-        if oldStep:
-            sns = SampleNextStep.objects.filter(step__id=oldStep.id)
-            for sampleNextStep in sns:
-                updatedSampleNextStep = SampleNextStep.objects.get(id=sampleNextStep.id)
-                sampleNextStepByStudy = SampleNextStepByStudy.objects.get(sample_next_step__id=sampleNextStep.id)
-                stepOrder = StepOrder.objects.get(id=sampleNextStepByStudy.step_order.id)
-                if sampleNextStep.sample.derived_samples.first().sample_kind.name == "DNA":
-                  updatedSampleNextStep.step = dnaStep
-                  stepOrder.step = rnaStep
-                elif sampleNextStep.sample.derived_samples.first().sample_kind.name == "RNA":
-                  updatedSampleNextStep.step = rnaStep
-                  stepOrder.step = dnaStep
-                stepOrder.save()
-                updatedSampleNextStep.save()
-                reversion.add_to_revision(sampleNextStep)
-                reversion.add_to_revision(stepOrder)
-            so = StepOrder.objects.filter(step__id=oldStep.id)
-            for order in so:
-                stepOrder = StepOrder.objects.get(id=order.id)
-                if "DNA" in order.previous_step_order.all().first().step.name:
-                    stepOrder.step = dnaStep
-                elif "RNA" in order.previous_step_order.all().first().step.name:
-                    stepOrder.step = rnaStep
-                stepOrder.save()
-            so = StepOrder.objects.filter(step__id=oldStep.id)
-            if len(so) == 0:
-              oldStep.delete()
-              reversion.add_to_revision(oldStep)
+        # Start for data transfer process
+        sns = SampleNextStep.objects.filter(step__id=oldStep.id)
+        for sampleNextStep in sns:
+            updatedSampleNextStep = SampleNextStep.objects.get(id=sampleNextStep.id)
+            sampleNextStepByStudy = SampleNextStepByStudy.objects.get(sample_next_step__id=sampleNextStep.id)
+            stepOrder = StepOrder.objects.get(id=sampleNextStepByStudy.step_order.id)
+            try:
+              if sampleNextStep.sample.derived_samples.first().sample_kind.name == "DNA":
+                updatedSampleNextStep.step = dnaStep
+                stepOrder.step = dnaStep
+              elif sampleNextStep.sample.derived_samples.first().sample_kind.name == "RNA":
+                updatedSampleNextStep.step = rnaStep
+                stepOrder.step = rnaStep
+            except Exception:
+              errors["AssigningError"] = f"There was an error while assigning the new steps to the existing sample next steps objects {sampleNextStep}."
+            if errors:
+                raise ValidationError(errors)
+            stepOrder.save()
+            updatedSampleNextStep.save()
+            reversion.add_to_revision(updatedSampleNextStep)
+            reversion.add_to_revision(stepOrder)
+        # make sure there are no loose ends before deleting oldStep
+        so = StepOrder.objects.filter(step__id=oldStep.id)
+        for order in so:
+            stepOrder = StepOrder.objects.get(id=order.id)
+            if "DNA" in order.previous_step_order.all().first().step.name:
+                stepOrder.step = dnaStep
+            elif "RNA" in order.previous_step_order.all().first().step.name:
+                stepOrder.step = rnaStep
+            stepOrder.save()
+        so = StepOrder.objects.filter(step__id=oldStep.id)
+        if len(so) == 0:
+          oldStep.delete()
+          reversion.add_to_revision(oldStep)
 
 
 class Migration(migrations.Migration):
