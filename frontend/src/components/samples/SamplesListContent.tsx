@@ -145,7 +145,7 @@ function SamplesListContent() {
 					pagedItems={samplesTableState}
 					columns={baseColumns}
 					usingFilters={false}
-          initialLoad={false}
+					initialLoad={false}
 					{...samplesTableCallbacks}
 					clearFiltersCallback={clearFiltersAndCategory}
 				/>
