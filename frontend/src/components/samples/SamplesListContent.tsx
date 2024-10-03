@@ -76,7 +76,7 @@ function SamplesListContent() {
 		samplesTableCallbacks.clearFiltersCallback()
 	}, [samplesTableCallbacks])
 
-	// Tweak the columns to customize them for this table.	
+	// Tweak the columns to customize them for this table.
 	const tweakedColumns = useMemo(() => {
 		let columns = setColumnWidths(SAMPLES_TABLE_COLUMNS, {
 			[SampleColumnID.ID]: 90,
@@ -140,12 +140,13 @@ function SamplesListContent() {
 					/>
 					<FiltersBar filters={samplesTableState.filters} clearFilters={clearFiltersAndCategory}/>
 				</Flexbar>
-				
-				<PagedItemsTable<ObjectWithSample> 
+
+				<PagedItemsTable<ObjectWithSample>
 					getDataObjectsByID={mapSampleIDs}
 					pagedItems={samplesTableState}
 					columns={baseColumns}
 					usingFilters={false}
+          initialLoad={false}
 					{...samplesTableCallbacks}
 					clearFiltersCallback={clearFiltersAndCategory}
 				/>
