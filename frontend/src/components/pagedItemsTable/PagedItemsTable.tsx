@@ -89,6 +89,10 @@ function PagedItemsTable<T extends object>({
 			if (fixedFilter && fixedFilter.description) {
 				setFixedFilterCallback(fixedFilter)
 			}
+      // If a page isn't already loaded in redux then request page 1
+			if (!pagedItems.page?.pageNumber) {
+        listPageCallback(1)
+			}
 		},
 		[
 			/* Only call once when the component is mounted*/
