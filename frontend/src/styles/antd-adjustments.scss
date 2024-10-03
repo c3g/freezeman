@@ -203,3 +203,15 @@ $table-border-color: #cccccc;
 .ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
   display: none !important;
 }
+
+div.table-bottom {
+    width: -webkit-fill-available;
+    position: fixed;
+    z-index: 1;
+    inset-block-end: 0px;
+    background-color: white;
+    padding-right: 10px;
+    border-radius: 2px;
+    border: 1px solid darkgray;
+    margin-right: 39px;
+}

@@ -7,6 +7,7 @@ import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from './ColumnSets'
 import { addFiltersToColumns } from '../pagedItemsTable/MergeColumnsAndFilters'
+import CSS from "csstype";
 
 
 export interface PaginationParameters {
@@ -77,6 +78,15 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 			}
 		}
 	}
+    const stickyTableBottom: CSS.Properties = {
+      position: 'sticky',
+      insetBlockEnd: '0px',
+      backgroundColor: 'white',
+      display: 'flow-root',
+      paddingRight: '10px',
+      borderRadius: '2px',
+      borderTop: '1px solid darkgray'
+  };
 
 	return (
 		<>
@@ -97,8 +107,8 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 						loading={loading}
 					/>
 					{pagination &&
-						<Pagination
-
+          <div className="table-bottom">
+            <Pagination
 							className="ant-table-pagination ant-table-pagination-right"
 							showSizeChanger={true}
 							showQuickJumper={true}
@@ -115,6 +125,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 							}}
 							onShowSizeChange={(current, newPageSize) => pagination.onChangePageSize(newPageSize)}
 						/>
+          </div>
 					}
 				</>
 			}

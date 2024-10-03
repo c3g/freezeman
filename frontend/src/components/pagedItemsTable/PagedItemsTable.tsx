@@ -8,6 +8,7 @@ import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
 import { useDebounce } from '../filters/filterComponents/DebouncedInput'
+import CSS from "csstype";
 
 
 export interface PagedItemTableSelection {
@@ -240,36 +241,38 @@ function PagedItemsTable<T extends object>({
 							<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback} buttonStyle={{ margin: 0 }}/>
 						)}
 					</div>
-					<Table<T>
-						expandable={expandable}
-						rowSelection={rowSelection}
-						dataSource={tableDataState.tableData}
-						columns={columns}
-						rowKey={getRowKeyForDataObject}
-						scroll={{x: 300}}
-						onChange={debouncedSortByCallback}
-						pagination={false}
-						bordered={true}
-						loading={pagedItems.isFetching}
-
-					/>
+					  <Table<T>
+              expandable={expandable}
+              rowSelection={rowSelection}
+              dataSource={tableDataState.tableData}
+              columns={columns}
+              rowKey={getRowKeyForDataObject}
+              scroll={{x: 300}}
+              onChange={debouncedSortByCallback}
+              pagination={false}
+              bordered={true}
+              loading={pagedItems.isFetching}
+					  />
 					{true && (
-						<Pagination
-							className="ant-table-pagination ant-table-pagination-right"
-							showSizeChanger={true}
-							showQuickJumper={true}
-							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-							current={pagedItems.page?.pageNumber ?? 0}
-							pageSize={pagedItems.page?.limit ?? 0}
-							total={pagedItems.totalCount}
-							onChange={listPageCallback}
-							onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
-						/>
+            <div className='table-bottom'>
+						  <Pagination
+                className="ant-table-pagination ant-table-pagination-right"
+                showSizeChanger={true}
+                showQuickJumper={true}
+                showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                current={pagedItems.page?.pageNumber ?? 0}
+                pageSize={pagedItems.page?.limit ?? 0}
+                total={pagedItems.totalCount}
+                onChange={listPageCallback}
+                onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
+              />
+            </div>
 					)}
 				</>
 			)}
 		</>
 	)
 }
+
 
 export default PagedItemsTable

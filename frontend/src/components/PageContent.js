@@ -5,6 +5,7 @@ const defaultStyle = {
   flex: "1",
   padding: "16px 24px 24px 24px",
   overflow: "auto",
+  marginBottom: '40px',
 };
 
 const PageContent = ({children, style = undefined, tabs = false, loading = false}) =>
