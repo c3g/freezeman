@@ -23,8 +23,6 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     Protocol = apps.get_model("fms_core", "Protocol")
     StepSpecification = apps.get_model("fms_core", "StepSpecification")
-    SampleNextStepByStudy = apps.get_model("fms_core", "SampleNextStepByStudy")
-    errors = {}
     # create the new steps and its necessary objects
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -57,36 +55,23 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
         sns = SampleNextStep.objects.filter(step__id=oldStep.id)
         for sampleNextStep in sns:
             updatedSampleNextStep = SampleNextStep.objects.get(id=sampleNextStep.id)
-            sampleNextStepByStudy = SampleNextStepByStudy.objects.get(sample_next_step__id=sampleNextStep.id)
-            stepOrder = StepOrder.objects.get(id=sampleNextStepByStudy.step_order.id)
-            try:
-              if sampleNextStep.sample.derived_samples.first().sample_kind.name == "DNA":
-                updatedSampleNextStep.step = dnaStep
-                stepOrder.step = dnaStep
-              elif sampleNextStep.sample.derived_samples.first().sample_kind.name == "RNA":
-                updatedSampleNextStep.step = rnaStep
-                stepOrder.step = rnaStep
-            except Exception:
-              errors["AssigningError"] = f"There was an error while assigning the new steps to the existing sample next steps objects {sampleNextStep}."
-            if errors:
-                raise ValidationError(errors)
-            stepOrder.save()
+            if sampleNextStep.sample.derived_samples.first().sample_kind.name == "DNA":
+              updatedSampleNextStep.step = dnaStep
+            elif sampleNextStep.sample.derived_samples.first().sample_kind.name == "RNA":
+              updatedSampleNextStep.step = rnaStep
             updatedSampleNextStep.save()
             reversion.add_to_revision(updatedSampleNextStep)
-            reversion.add_to_revision(stepOrder)
         # make sure there are no loose ends before deleting oldStep
         so = StepOrder.objects.filter(step__id=oldStep.id)
         for order in so:
-            stepOrder = StepOrder.objects.get(id=order.id)
-            if "DNA" in order.previous_step_order.all().first().step.name:
-                stepOrder.step = dnaStep
-            elif "RNA" in order.previous_step_order.all().first().step.name:
-                stepOrder.step = rnaStep
-            stepOrder.save()
-        so = StepOrder.objects.filter(step__id=oldStep.id)
-        if len(so) == 0:
-          oldStep.delete()
-          reversion.add_to_revision(oldStep)
+            if "Extraction (DNA)" in order.previous_step_order.all().first().step.name:
+                order.step = dnaStep
+            elif "Extraction (RNA)" in order.previous_step_order.all().first().step.name:
+                order.step = rnaStep
+            order.save()
+            reversion.add_to_revision(order)
+        oldStep.delete()
+        reversion.add_to_revision(oldStep)
 
 
 class Migration(migrations.Migration):
