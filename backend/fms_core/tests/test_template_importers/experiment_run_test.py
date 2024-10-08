@@ -388,7 +388,7 @@ class ExperimentRunIlluminaTestCase(TestCase):
 
         # Experiment Run tests
         self.assertEqual(experiment_run_obj.run_type.name, 'Illumina')
-        self.assertEqual(experiment_run_obj.instrument.name, 'Carrie Derick')
+        self.assertEqual(experiment_run_obj.instrument.name, 'A01371R-Carrie Derick')
 
         # Process Tests
         self.assertEqual(process_obj.child_process.count(), 0)
