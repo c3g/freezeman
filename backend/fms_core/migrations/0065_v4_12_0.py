@@ -30,6 +30,7 @@ def set_measured_volume_properties_optional(apps, schema_editor):
 
 def add_serial_number_to_instrument_names(apps, schema_editor):
     instrument_name_maps = {
+        # "Rosalind Franklin": "LH00375-Rosalind Franklin", already has a serial number
         "Carrie Derick": "A01371R-Carrie Derick",
         "Barbara McClintock": "A01861-Barbara McClintock",
         "Mykonos": "M03555-Mykonos",
