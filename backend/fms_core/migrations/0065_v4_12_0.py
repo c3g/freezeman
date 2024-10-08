@@ -28,13 +28,10 @@ def set_measured_volume_properties_optional(apps, schema_editor):
             property_type.save()
             reversion.add_to_revision(property_type)
 
-def add_serial_number_to_instrument_names(apps, schema_editor):
+def remove_serial_number_from_some_instruments(apps, schema_editor):
     instrument_name_maps = {
-        # "Rosalind Franklin": "LH00375-Rosalind Franklin", already has a serial number
-        "Carrie Derick": "A01371R-Carrie Derick",
-        "Barbara McClintock": "A01861-Barbara McClintock",
-        "Mykonos": "M03555-Mykonos",
-        "Maurice": "FS10000133-Maurice",
+        "Rosalind Franklin": "Decomissioned-Rosalind Franklin",
+        "LH00375-Rosalind Franklin": "Rosalind Franklin",
     }
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -65,7 +62,7 @@ class Migration(migrations.Migration):
             name='concentration_required',
         ),
         migrations.RunPython(
-            add_serial_number_to_instrument_names,
+            remove_serial_number_from_some_instruments,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
