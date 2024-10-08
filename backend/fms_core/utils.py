@@ -87,6 +87,21 @@ def str_cast_and_normalize(s) -> str:
     """
     return str_normalize(str(s) if s is not None else s)
 
+def str_remove_text_in_parenthesises(s: str, brackets: tuple[str, str] = ("(", ")")) -> str:
+    """
+    Remove characters surrounded by parenthesises
+    """
+    result = []
+    depth = 0
+    for c in s:
+        if c == brackets[0]:
+            depth += 1
+        if c == brackets[1]:
+            depth -= 1
+        if depth > 0:
+            continue
+        result.append(c)
+    return ''.join(c)
 
 def str_cast_and_normalize_lower(s) -> Union[str, None]:
     """
