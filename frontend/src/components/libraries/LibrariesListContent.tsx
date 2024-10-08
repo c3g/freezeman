@@ -69,22 +69,7 @@ export default function LibariesListContent() {
 	const tweakedColumns = useMemo(() => {
 
 		// Set the widths of selected columns in this table.
-		let columns = setColumnWidths(LIBRARY_TABLE_COLUMNS, {
-			[LibraryColumnID.ID] : 90,
-			[LibraryColumnID.COORDINATES]: 70,
-			[LibraryColumnID.VOLUME] : 100,
-			[LibraryColumnID.LIBRARY_SIZE]: 80,
-			[LibraryColumnID.CONCENTRATION_NM]: 115,
-			[LibraryColumnID.CONCENTRATION]: 115,
-			[LibraryColumnID.NA_QUANTITY]: 115,
-			[LibraryColumnID.CREATION_DATE]: 115,
-			[LibraryColumnID.DEPLETED]: 85,
-		})
-
-		// Set the sorter properties on the columns, depending on the sample category.
-		// Sorting is disabled for some columns when pools are listed because the backend
-		// doesn't handle pool sorting well.
-		columns = setDynamicSorters(columns, [
+		let columns = setDynamicSorters(LIBRARY_TABLE_COLUMNS, [
 			LibraryColumnID.PLATFORM_NAME,
 			LibraryColumnID.PROJECT_NAME,
 			LibraryColumnID.LIBRARY_TYPE,
@@ -140,7 +125,7 @@ export default function LibariesListContent() {
 					<FiltersBar filters={filters} clearFilters={clearFiltersAndCategory}/>
 				</FlexBar>
 
-				<PagedItemsTable<ObjectWithLibrary> 
+				<PagedItemsTable<ObjectWithLibrary>
 					getDataObjectsByID={mapLibaryIDs}
 					pagedItems={librariesTableState}
 					columns={baseColumns}

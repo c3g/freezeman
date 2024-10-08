@@ -203,3 +203,26 @@ $table-border-color: #cccccc;
 .ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
   display: none !important;
 }
+
+// antd v4 to v5 adjustments
+
+
+body {
+  margin:0px;
+}
+
+div.ant-collapse-header {
+  align-items: center!important;
+}
+
+div.ant-collapse-item  {
+  h4,h5{
+    margin-top: 0px;
+    margin-bottom: 0px;
+  }
+}
+
+.ant-table-pagination {
+  justify-content: flex-end;
+  margin: 12px
+}
