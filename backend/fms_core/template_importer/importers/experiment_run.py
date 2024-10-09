@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 from fms_core.services.step import get_step_from_template
 from .._utils import float_to_decimal_and_none, input_to_date_and_none, load_all_or_float_to_decimal_and_none
-from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, str_remove_parenthesis
 
 PROPERTIES_STARTING_INDEX = 6
 RUN_TYPE_INDEX = 2
@@ -139,7 +139,7 @@ class ExperimentRunImporter(GenericImporter):
             experiment_run_kwargs = dict(
                 # ExperimentRun attributes data dictionary and related objects
                 experiment_run_name=str_cast_and_normalize(experiment_run_dict['Experiment Name']),
-                instrument={'name': str_cast_and_normalize(experiment_run_dict['Instrument Name'])},
+                instrument={'name': str_cast_and_normalize(str_remove_parenthesis(experiment_run_dict['Instrument Name']))},
                 container={'barcode': str_cast_and_normalize(experiment_run_dict['Experiment Container Barcode']),
                            'kind': str_cast_and_normalize_lower(experiment_run_dict['Experiment Container Kind'])},
                 start_date=input_to_date_and_none(experiment_run_dict['Experiment Start Date (YYYY-MM-DD)']),
