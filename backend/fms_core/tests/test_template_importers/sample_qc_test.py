@@ -21,6 +21,7 @@ class SampleQCTestCase(TestCase):
 
         self.sample_name = 'SampleTestQC'
         self.sample_new_volume = 98
+        self.sample_kind = 'DNA'
         self.process_volume_used = 2
         self.sample_new_concentration = 20
         self.sample_new_depleted = False
@@ -107,6 +108,7 @@ class SampleQCTestCase(TestCase):
         # Sample information tests
         sample = Sample.objects.get(name=self.sample_name)
         self.assertEqual(sample.volume, self.sample_new_volume)
+        self.assertEqual(sample.derived_sample.first().sample_kind, self.sample_kind)
         self.assertEqual(sample.concentration, self.sample_new_concentration)
         self.assertEqual(sample.depleted, self.sample_new_depleted)
         # Sample flag tests

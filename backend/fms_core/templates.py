@@ -584,7 +584,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
       {
           "name": "PoolSubmission",
           "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Name",
-                      "Container Barcode", "Pool Coord", "Location Barcode", 
+                      "Container Barcode", "Pool Coord", "Location Barcode",
                       "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
@@ -621,7 +621,7 @@ SAMPLE_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
+          'headers': ['Sample Name', 'Sample Kind', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
                       'Sample Parent Container Coord','Current Volume (uL)', 'Measured Volume (uL)', 'Volume Used (uL)',
                       'Concentration (ng/uL)', 'NA Quantity (ng)', 'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag',
                       'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
