@@ -89,9 +89,6 @@ function PagedItemsTable<T extends object>({
 			if (fixedFilter && fixedFilter.description) {
 				setFixedFilterCallback(fixedFilter)
 			}
-      if (!pagedItems.page?.pageNumber) {
-				listPageCallback(1)
-			}
 		},
 		[
 			/* Only call once when the component is mounted*/
