@@ -93,7 +93,7 @@ function PaginatedTable ({
         loading={loading || isCurrentPageUnloaded}
         childrenColumnName={'UNEXISTENT_KEY'}
         onChange={onChangeTable}
-        scroll={{ x: 300 }}
+        scroll={{ x: 1500, y: 550 }}
         expandable={expandable}
       />
       <Pagination

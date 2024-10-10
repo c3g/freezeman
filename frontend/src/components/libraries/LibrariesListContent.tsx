@@ -69,7 +69,28 @@ export default function LibariesListContent() {
 	const tweakedColumns = useMemo(() => {
 
 		// Set the widths of selected columns in this table.
-		let columns = setDynamicSorters(LIBRARY_TABLE_COLUMNS, [
+		let columns = setColumnWidths(LIBRARY_TABLE_COLUMNS, {
+			[LibraryColumnID.ID]: 200,
+			[LibraryColumnID.PLATFORM_NAME]: 200,
+			[LibraryColumnID.PROJECT_NAME]: 200,
+			[LibraryColumnID.NAME]: 200,
+			[LibraryColumnID.CONTAINER_BARCODE]: 200,
+			[LibraryColumnID.COORDINATES]: 130,
+			[LibraryColumnID.LIBRARY_TYPE]: 130,
+      [LibraryColumnID.SELECTION_TARGET]: 130,
+      [LibraryColumnID.INDEX_NAME]: 130,
+      [LibraryColumnID.VOLUME]: 130,
+      [LibraryColumnID.LIBRARY_SIZE]: 130,
+      [LibraryColumnID.CONCENTRATION_NM]: 130,
+      [LibraryColumnID.CONCENTRATION]: 130,
+      [LibraryColumnID.NA_QUANTITY]: 130,
+      [LibraryColumnID.QC_FLAG]: 130,
+      [LibraryColumnID.CREATION_DATE]: 130,
+      [LibraryColumnID.DEPLETED]: 130
+		})
+
+
+    columns = setDynamicSorters(LIBRARY_TABLE_COLUMNS, [
 			LibraryColumnID.PLATFORM_NAME,
 			LibraryColumnID.PROJECT_NAME,
 			LibraryColumnID.LIBRARY_TYPE,

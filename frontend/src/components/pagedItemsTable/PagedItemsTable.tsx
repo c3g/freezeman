@@ -89,6 +89,9 @@ function PagedItemsTable<T extends object>({
 			if (fixedFilter && fixedFilter.description) {
 				setFixedFilterCallback(fixedFilter)
 			}
+      if (!pagedItems.page?.pageNumber) {
+				listPageCallback(1)
+			}
 		},
 		[
 			/* Only call once when the component is mounted*/
@@ -246,7 +249,7 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						scroll={{ y: 100 * 5 }}
+						scroll={{ y: 550, x: 1500 }}
 						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
