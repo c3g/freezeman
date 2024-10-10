@@ -16,7 +16,7 @@ const SOURCE_SAMPLE : CompletedSampleColumn = {
 	render: (sampleID) => {
 		return (
 			<WithSampleRenderComponent objectID={sampleID} render={
-				sample => 
+				sample =>
 					<Link to={`/samples/${sample.id}`}>{sample.name}</Link>
 			}/>
 		)
@@ -30,10 +30,10 @@ const GENERATED_SAMPLE : CompletedSampleColumn = {
 		if (sampleID) {
 			return (
 				<WithSampleRenderComponent objectID={sampleID} render={
-					sample => <Link to={`/samples/${sample.id}`}>{sample.name}</Link> 
+					sample => <Link to={`/samples/${sample.id}`}>{sample.name}</Link>
 				}/>
 			)
-		}	
+		}
 	}
 }
 
@@ -69,7 +69,7 @@ const COMMENT: CompletedSampleColumn = {
 		return comment
 	}
 }
- 
+
 interface CompletedSamplesTableProps {
 	studyID: FMSId
 	step: StudySampleStep
@@ -93,7 +93,7 @@ function CompletedSamplesTable({studyID, step, workflowAction, tableState, setti
 
 	return (
 	<>
-		<Table 
+		<Table
 			columns={[
 				SOURCE_SAMPLE,
 				GENERATED_SAMPLE,
@@ -103,6 +103,7 @@ function CompletedSamplesTable({studyID, step, workflowAction, tableState, setti
 				USER,
 				COMMENT
 			]}
+      scroll={{y:550,x:300}}
 			dataSource={dataSource}
 			rowKey={completedSample => completedSample.id}
 			pagination={false}

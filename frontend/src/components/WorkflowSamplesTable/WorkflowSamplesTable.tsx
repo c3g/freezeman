@@ -91,14 +91,13 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 						dataSource={samples ?? []}
 						columns={tableColumns}
 						rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
-						style={{ overflowX: 'auto' }}
+            scroll={{y:550, x:1500}}
 						onChange={handleTableOnChange}
 						pagination={pagination ? false : undefined}
 						loading={loading}
 					/>
 					{pagination &&
 						<Pagination
-
 							className="ant-table-pagination ant-table-pagination-right"
 							showSizeChanger={true}
 							showQuickJumper={true}

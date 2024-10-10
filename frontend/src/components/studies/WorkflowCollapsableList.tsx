@@ -88,7 +88,7 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 				},
 			}
 		}
-		
+
 		return (
 			<Table
 				dataSource={keyedWorkflows}
