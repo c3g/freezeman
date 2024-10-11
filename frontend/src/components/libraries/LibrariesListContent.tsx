@@ -77,16 +77,16 @@ export default function LibariesListContent() {
 			[LibraryColumnID.CONTAINER_BARCODE]: 200,
 			[LibraryColumnID.COORDINATES]: 130,
 			[LibraryColumnID.LIBRARY_TYPE]: 130,
-      [LibraryColumnID.SELECTION_TARGET]: 130,
-      [LibraryColumnID.INDEX_NAME]: 130,
-      [LibraryColumnID.VOLUME]: 130,
-      [LibraryColumnID.LIBRARY_SIZE]: 130,
-      [LibraryColumnID.CONCENTRATION_NM]: 130,
-      [LibraryColumnID.CONCENTRATION]: 130,
-      [LibraryColumnID.NA_QUANTITY]: 130,
-      [LibraryColumnID.QC_FLAG]: 130,
-      [LibraryColumnID.CREATION_DATE]: 130,
-      [LibraryColumnID.DEPLETED]: 130
+			[LibraryColumnID.SELECTION_TARGET]: 130,
+			[LibraryColumnID.INDEX_NAME]: 130,
+			[LibraryColumnID.VOLUME]: 130,
+			[LibraryColumnID.LIBRARY_SIZE]: 130,
+			[LibraryColumnID.CONCENTRATION_NM]: 130,
+			[LibraryColumnID.CONCENTRATION]: 130,
+			[LibraryColumnID.NA_QUANTITY]: 130,
+			[LibraryColumnID.QC_FLAG]: 130,
+			[LibraryColumnID.CREATION_DATE]: 130,
+			[LibraryColumnID.DEPLETED]: 130
 		})
 
 

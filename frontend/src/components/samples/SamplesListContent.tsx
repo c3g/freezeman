@@ -86,12 +86,12 @@ function SamplesListContent() {
 			[SampleColumnID.CONCENTRATION]: 130,
 			[SampleColumnID.CREATION_DATE]: 130,
 			[SampleColumnID.DEPLETED]: 130,
-      [SampleColumnID.NAME]: 130,
-      [SampleColumnID.PROJECT]: 130,
-      [SampleColumnID.INDIVIDUAL]: 130,
-      [SampleColumnID.CONTAINER_NAME]: 130,
-      [SampleColumnID.CONTAINER_BARCODE]: 130,
-      [SampleColumnID.QC_FLAG]: 130,
+			[SampleColumnID.NAME]: 130,
+			[SampleColumnID.PROJECT]: 130,
+			[SampleColumnID.INDIVIDUAL]: 130,
+			[SampleColumnID.CONTAINER_NAME]: 130,
+			[SampleColumnID.CONTAINER_BARCODE]: 130,
+			[SampleColumnID.QC_FLAG]: 130,
 		})
 
 		// Only allow sorting on these columns when the table is displaying only samples (and not pools).
