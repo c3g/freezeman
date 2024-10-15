@@ -35,7 +35,7 @@ def remove_serial_number_from_some_instruments(apps, schema_editor):
     }
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        reversion.set_comment("Prepend serial number to instrument names")
+        reversion.set_comment("Decomissioned Rosalind Franklin and renamed LH00375-Rosalind Franklin to Rosalind Franklin.")
         reversion.set_user(admin_user)
 
         Instrument = apps.get_model("fms_core", "Instrument")
