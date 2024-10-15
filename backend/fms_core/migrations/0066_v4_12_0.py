@@ -6948,6 +6948,8 @@ def delete_ficticious_index(apps, schema_editor):
 
     Index = apps.get_model("fms_core", "Index")
     IndexBySet = apps.get_model("fms_core", "IndexBySet")
+    SequenceByIndex3Prime = apps.get_model("fms_core", "SequenceByIndex3Prime")
+    SequenceByIndex5Prime = apps.get_model("fms_core", "SequenceByIndex5Prime")
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -6958,6 +6960,10 @@ def delete_ficticious_index(apps, schema_editor):
         for index_name in FICTICIOUS_INDEX:
             index_by_set = IndexBySet.objects.get(index__name=index_name)
             index_by_set.delete()
+            sequence_3_prime = SequenceByIndex3Prime.objects.get(index__name=index_name)
+            sequence_3_prime.delete()
+            sequence_5_prime = SequenceByIndex5Prime.objects.get(index__name=index_name)
+            sequence_5_prime.delete()
             index = Index.objects.get(name=index_name)
             index.delete()
 
