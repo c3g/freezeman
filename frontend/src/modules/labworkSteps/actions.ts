@@ -133,8 +133,9 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 		if (response.count > 0) {
 			// Load the associated samples/libraries
 			const sampleIDs = response.results.map(nextStep => nextStep.sample)
-			await fetchSamples(sampleIDs)
+			return await fetchSamples(sampleIDs)
 		}
+		return []
 	}
 }
 

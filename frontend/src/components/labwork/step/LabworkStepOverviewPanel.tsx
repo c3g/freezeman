@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FMSId } from '../../../models/fms_api_models'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
-import { useAppDispatch, useAppSelector, useSampleAndLibraryList } from '../../../hooks'
+import { useAppDispatch } from '../../../hooks'
 import { loadSamplesAtStep } from '../../../modules/labworkSteps/actions'
-import { selectLabworkStepsState } from '../../../selectors'
+import { fetchSamplesAndLibraries } from '../../../modules/studySamples/services'
 
 export interface LabworkStepPanelProps {
   refreshing: boolean
@@ -35,8 +35,8 @@ const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, 
 
   const dispatch = useAppDispatch()
 
-  const stepSamples = useAppSelector(selectLabworkStepsState)?.steps[stepID]
-  const [samples, isFetchingSamples] = useSampleAndLibraryList(stepSamples?.displayedSamples ?? [])
+  const [isFetchingSamples, setIsFetchingSamples] = useState(false)
+  const [sampleAndLibraryList, setSampleAndLibraryList] = useState<SampleAndLibrary[]>([])
 
   useEffect(() => {
     clearFilters && clearFilters(false)
@@ -46,15 +46,19 @@ const LabworkStepOverviewPanel = ({stepID, refreshing, grouping, groupingValue, 
 	}, [clearFilters, dispatch, grouping, groupingValue, setFilter, setFilterOptions, stepID])
 
   useEffect(() => {
-    dispatch(loadSamplesAtStep(stepID, 1))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters])
+	(async () => {
+		setIsFetchingSamples(true)
+		const samples = await dispatch(loadSamplesAtStep(stepID, 1))
+		setSampleAndLibraryList(await fetchSamplesAndLibraries(samples.map((sample) => sample.id)))
+		setIsFetchingSamples(false)
+	})()
+  }, [dispatch, filters, stepID])
 
 	return (
 		<>
 			<WorkflowSamplesTable
 				hasFilter={hasFilter}
-				samples={samples}
+				samples={sampleAndLibraryList}
 				columns={columns}
 				filterDefinitions={filterDefinitions}
 				filterKeys={filterKeys}
