@@ -129,12 +129,7 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 			limit
 		}
 
-		const response: FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), { meta }))
-		if (response.count > 0) {
-			// Load the associated samples/libraries
-			const sampleIDs = response.results.map(nextStep => nextStep.sample)
-			await fetchSamples(sampleIDs)
-		}
+		await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), { meta }))
 	}
 }
 
