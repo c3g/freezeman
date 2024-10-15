@@ -7,6 +7,11 @@ from django.contrib.auth.models import User
 
 ADMIN_USERNAME = 'biobankadmin'
 
+def is_test_migration(apps):
+    Index = apps.get_model("fms_core", "Index")
+
+    return not Index.objects.all().exists()
+
 def add_library_types(apps, schema_editor):
     NEW_LIBRARY_TYPE_NAMES = ["10x_Genomics_SC_ATAC_Multiome",
                               "10x_Genomics_SC_RNA_Multiome",
@@ -4050,29 +4055,29 @@ def create_new_index_sets(apps, schema_editor):
                                                                  "NEBEM7_G12-NEBEM5_G12",
                                                                  "NEBEM7_H12-NEBEM5_H12"],
     }
-    
-    Index = apps.get_model("fms_core", "Index")
-    IndexSet = apps.get_model("fms_core", "IndexSet")
-    IndexBySet = apps.get_model("fms_core", "IndexBySet")
+    if not is_test_migration(apps):
+        Index = apps.get_model("fms_core", "Index")
+        IndexSet = apps.get_model("fms_core", "IndexSet")
+        IndexBySet = apps.get_model("fms_core", "IndexBySet")
 
-    with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        with reversion.create_revision(manage_manually=True):
+            admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment("Create new index set for existing indices.")
-        reversion.set_user(admin_user)
-    
-        for index_set_name, index_name_list in NEW_INDEX_SETS.items():
-            index_set = IndexSet.objects.create(name=index_set_name,
-                                                created_by_id=admin_user.id,
-                                                updated_by_id=admin_user.id)
-            reversion.add_to_revision(index_set)
-            for index_name in index_name_list:
-                index = Index.objects.get(name=index_name)
-                index_by_set = IndexBySet.objects.create(index=index,
-                                                         index_set=index_set,
-                                                         created_by_id=admin_user.id,
-                                                         updated_by_id=admin_user.id)
-                reversion.add_to_revision(index_by_set)
+            reversion.set_comment("Create new index set for existing indices.")
+            reversion.set_user(admin_user)
+        
+            for index_set_name, index_name_list in NEW_INDEX_SETS.items():
+                index_set = IndexSet.objects.create(name=index_set_name,
+                                                    created_by_id=admin_user.id,
+                                                    updated_by_id=admin_user.id)
+                reversion.add_to_revision(index_set)
+                for index_name in index_name_list:
+                    index = Index.objects.get(name=index_name)
+                    index_by_set = IndexBySet.objects.create(index=index,
+                                                            index_set=index_set,
+                                                            created_by_id=admin_user.id,
+                                                            updated_by_id=admin_user.id)
+                    reversion.add_to_revision(index_by_set)
 
 def attach_index_to_existing_index_sets(apps, schema_editor):
     OLD_INDEX_SETS = {
@@ -6556,25 +6561,26 @@ def attach_index_to_existing_index_sets(apps, schema_editor):
                                                             "QIAUDI7384-QIAUDI5384"],
     }
     
-    Index = apps.get_model("fms_core", "Index")
-    IndexSet = apps.get_model("fms_core", "IndexSet")
-    IndexBySet = apps.get_model("fms_core", "IndexBySet")
+    if not is_test_migration(apps):
+        Index = apps.get_model("fms_core", "Index")
+        IndexSet = apps.get_model("fms_core", "IndexSet")
+        IndexBySet = apps.get_model("fms_core", "IndexBySet")
 
-    with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        with reversion.create_revision(manage_manually=True):
+            admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment("Attach existing index sets to existing indices.")
-        reversion.set_user(admin_user)
-    
-        for index_set_name, index_name_list in OLD_INDEX_SETS.items():
-            index_set = IndexSet.objects.get(name=index_set_name)
-            for index_name in index_name_list:
-                index = Index.objects.get(name=index_name)
-                index_by_set = IndexBySet.objects.create(index=index,
-                                                         index_set=index_set,
-                                                         created_by_id=admin_user.id,
-                                                         updated_by_id=admin_user.id)
-                reversion.add_to_revision(index_by_set)
+            reversion.set_comment("Attach existing index sets to existing indices.")
+            reversion.set_user(admin_user)
+        
+            for index_set_name, index_name_list in OLD_INDEX_SETS.items():
+                index_set = IndexSet.objects.get(name=index_set_name)
+                for index_name in index_name_list:
+                    index = Index.objects.get(name=index_name)
+                    index_by_set = IndexBySet.objects.create(index=index,
+                                                            index_set=index_set,
+                                                            created_by_id=admin_user.id,
+                                                            updated_by_id=admin_user.id)
+                    reversion.add_to_revision(index_by_set)
 
 def reattach_index_to_new_index_sets(apps, schema_editor):
     REPLACEMENT_INDEX_SETS = {
@@ -6591,24 +6597,25 @@ def reattach_index_to_new_index_sets(apps, schema_editor):
                                                  "SI-MGIPool-C10-11-12.24plex"],
     }
 
-    IndexSet = apps.get_model("fms_core", "IndexSet")
-    IndexBySet = apps.get_model("fms_core", "IndexBySet")
+    if not is_test_migration(apps):
+        IndexSet = apps.get_model("fms_core", "IndexSet")
+        IndexBySet = apps.get_model("fms_core", "IndexBySet")
 
-    with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        with reversion.create_revision(manage_manually=True):
+            admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment("Re-attach existing indices to new index sets.")
-        reversion.set_user(admin_user)
-    
-        for index_set_name, index_name_list in REPLACEMENT_INDEX_SETS.items():
-            index_set = IndexSet.objects.create(name=index_set_name,
-                                                created_by_id=admin_user.id,
-                                                updated_by_id=admin_user.id)
-            for index_name in index_name_list:
-                index_by_set = IndexBySet.objects.get(index__name=index_name)
-                index_by_set.index_set = index_set
-                index_by_set.save()
-                reversion.add_to_revision(index_by_set)
+            reversion.set_comment("Re-attach existing indices to new index sets.")
+            reversion.set_user(admin_user)
+        
+            for index_set_name, index_name_list in REPLACEMENT_INDEX_SETS.items():
+                index_set = IndexSet.objects.create(name=index_set_name,
+                                                    created_by_id=admin_user.id,
+                                                    updated_by_id=admin_user.id)
+                for index_name in index_name_list:
+                    index_by_set = IndexBySet.objects.get(index__name=index_name)
+                    index_by_set.index_set = index_set
+                    index_by_set.save()
+                    reversion.add_to_revision(index_by_set)
 
 def delete_ficticious_index(apps, schema_editor):
     FICTICIOUS_INDEX = ["UDP70001V3-UDP50001V3",
@@ -6946,26 +6953,27 @@ def delete_ficticious_index(apps, schema_editor):
                         "UDP70383V3-UDP50383V3",
                         "UDP70384V3-UDP50384V3"]
 
-    Index = apps.get_model("fms_core", "Index")
-    IndexBySet = apps.get_model("fms_core", "IndexBySet")
-    SequenceByIndex3Prime = apps.get_model("fms_core", "SequenceByIndex3Prime")
-    SequenceByIndex5Prime = apps.get_model("fms_core", "SequenceByIndex5Prime")
+    if not is_test_migration(apps):
+        Index = apps.get_model("fms_core", "Index")
+        IndexBySet = apps.get_model("fms_core", "IndexBySet")
+        SequenceByIndex3Prime = apps.get_model("fms_core", "SequenceByIndex3Prime")
+        SequenceByIndex5Prime = apps.get_model("fms_core", "SequenceByIndex5Prime")
 
-    with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        with reversion.create_revision(manage_manually=True):
+            admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment("Remove mistakenly created indices.")
-        reversion.set_user(admin_user)
-    
-        for index_name in FICTICIOUS_INDEX:
-            index_by_set = IndexBySet.objects.get(index__name=index_name)
-            index_by_set.delete()
-            sequence_3_prime = SequenceByIndex3Prime.objects.get(index__name=index_name)
-            sequence_3_prime.delete()
-            sequence_5_prime = SequenceByIndex5Prime.objects.get(index__name=index_name)
-            sequence_5_prime.delete()
-            index = Index.objects.get(name=index_name)
-            index.delete()
+            reversion.set_comment("Remove mistakenly created indices.")
+            reversion.set_user(admin_user)
+        
+            for index_name in FICTICIOUS_INDEX:
+                index_by_set = IndexBySet.objects.get(index__name=index_name)
+                index_by_set.delete()
+                sequence_3_prime = SequenceByIndex3Prime.objects.get(index__name=index_name)
+                sequence_3_prime.delete()
+                sequence_5_prime = SequenceByIndex5Prime.objects.get(index__name=index_name)
+                sequence_5_prime.delete()
+                index = Index.objects.get(name=index_name)
+                index.delete()
 
 def rename_existing_index_sets(apps, schema_editor):
     RENAME_INDEX_SETS = {"10x_Genomics_Dual_Index_NT_Series": "10x_Genomics-Dual_Index_Kit_NT_Set_A",
@@ -7012,19 +7020,20 @@ def rename_existing_index_sets(apps, schema_editor):
                          "GeoMx_DSP_index": "GeoMx-DSP_index",
                          }
 
-    IndexSet = apps.get_model("fms_core", "IndexSet")
+    if not is_test_migration(apps):
+        IndexSet = apps.get_model("fms_core", "IndexSet")
 
-    with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        with reversion.create_revision(manage_manually=True):
+            admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment("Rename existing sets with the updated set names.")
-        reversion.set_user(admin_user)
+            reversion.set_comment("Rename existing sets with the updated set names.")
+            reversion.set_user(admin_user)
 
-        for old_set_name, new_set_name in RENAME_INDEX_SETS.items():
-            index_set = IndexSet.objects.get(name=old_set_name)
-            index_set.name = new_set_name
-            index_set.save()
-            reversion.add_to_revision(index_set)
+            for old_set_name, new_set_name in RENAME_INDEX_SETS.items():
+                index_set = IndexSet.objects.get(name=old_set_name)
+                index_set.name = new_set_name
+                index_set.save()
+                reversion.add_to_revision(index_set)
 
 
 class Migration(migrations.Migration):
