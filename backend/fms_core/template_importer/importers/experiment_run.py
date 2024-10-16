@@ -8,8 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 from fms_core.services.step import get_step_from_template
 from .._utils import float_to_decimal_and_none, input_to_date_and_none, load_all_or_float_to_decimal_and_none
-from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, str_remove_parenthesis
-
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 PROPERTIES_STARTING_INDEX = 6
 RUN_TYPE_INDEX = 2
 
@@ -163,3 +162,11 @@ class ExperimentRunImporter(GenericImporter):
             experiment_input.append(experiment_run_kwargs)
       
         self.validation_by_run_type(self.preloaded_data['run_type'], sample_input, experiment_input)
+
+def str_remove_parenthesis(s: str | None) -> str | None:
+    if not s:
+        return s
+    for index in range(len(s)):
+        if s[index] == "(":
+            return s[:index].strip()
+    return s
