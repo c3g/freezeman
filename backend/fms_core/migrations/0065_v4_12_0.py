@@ -71,8 +71,8 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
                                                                       updated_by_id=admin_user.id)
                 reversion.add_to_revision(step_specification)
         oldStep = Step.objects.get(name="Sample QC")
-        dnaStep = Step.objects.get(name="Sample QC (RNA)")
-        rnaStep = Step.objects.get(name="Sample QC (DNA)")
+        dnaStep = Step.objects.get(name="Sample QC (DNA)")
+        rnaStep = Step.objects.get(name="Sample QC (RNA)")
         # Start for data transfer process
         sns = SampleNextStep.objects.filter(step__id=oldStep.id)
         for sampleNextStep in sns:
@@ -92,8 +92,8 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
                 order.step = rnaStep
             order.save()
             reversion.add_to_revision(order)
-        oldStep.delete()
         reversion.add_to_revision(oldStep)
+        oldStep.delete()
 
 class Migration(migrations.Migration):
 
