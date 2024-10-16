@@ -73,13 +73,6 @@ def normalize_scientific_name(name: str) -> str:
     """
     return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name or "")))
 
-def str_remove_parenthesis(s: str | None) -> str | None:
-    if not s:
-        return s
-    for index in range(len(s)):
-        if s[index] == "(":
-            return s[:index].strip()
-    return s
 
 def str_normalize(s: str) -> str:
     """
