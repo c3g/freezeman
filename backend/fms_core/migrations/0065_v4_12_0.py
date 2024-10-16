@@ -86,9 +86,9 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
         # make sure there are no loose ends before deleting oldStep
         so = StepOrder.objects.filter(step__id=oldStep.id)
         for order in so:
-            if "Extraction (DNA)" in order.previous_step_order.all().first().step.name:
+            if "Extraction (DNA)" in order.previous_step_order.first().step.name:
                 order.step = dnaStep
-            elif "Extraction (RNA)" in order.previous_step_order.all().first().step.name:
+            elif "Extraction (RNA)" in order.previous_step_order.first().step.name:
                 order.step = rnaStep
             order.save()
             reversion.add_to_revision(order)
