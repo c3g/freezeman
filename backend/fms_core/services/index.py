@@ -1,4 +1,4 @@
-from fms_core.models import Index, IndexSet, IndexStructure, Sequence, SequenceByIndex3Prime, SequenceByIndex5Prime, InstrumentType
+from fms_core.models import Index, IndexBySet, IndexSet, IndexStructure, Sequence, SequenceByIndex3Prime, SequenceByIndex5Prime, InstrumentType
 from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE, STANDARD_SEQUENCE_FIELD_LENGTH
 from django.core.exceptions import ValidationError
 
@@ -36,7 +36,18 @@ def get_or_create_index_set(set_name):
     return index_set, created_entity, errors, warnings
 
 
-def create_index(index_name, index_structure, index_set=None):
+def create_index(index_name: str, index_structure: str, index_set: IndexSet = None):
+    """
+    Create an index model with the provided index_structure and set.
+
+    Args:
+        `index_name`: Name of the index.
+        `index_structure`: Name of the index structure.
+        `index_set`: Optional Index set instance. Defaults to None.
+
+    Returns:
+        Tuple including the created index instance as well as a list of errors and warnings.
+    """
     index = None
     errors = []
     warnings = []
@@ -47,16 +58,72 @@ def create_index(index_name, index_structure, index_set=None):
             index_structure_obj = IndexStructure.objects.get(name=index_structure)
         except IndexStructure.DoesNotExist:
             errors.append(f"Invalid index structure.")
-
-        try:
-            index = Index.objects.create(index_set=index_set, name=index_name, index_structure=index_structure_obj)
-        except ValidationError as e:
-            errors.append(';'.join(e.messages))
-
     else:
         errors.append(f"Index structure is needed to create an index.")
 
+    if not errors:
+        try:
+            index = Index.objects.create(name=index_name, index_structure=index_structure_obj)
+        except ValidationError as e:
+            errors.append(';'.join(e.messages))
+
+    if index is not None and not errors and index_set is not None:
+        try:
+            IndexBySet.objects.create(index=index, index_set=index_set)
+        except ValidationError as e:
+            errors.append(';'.join(e.messages))
+
     return index, errors, warnings
+
+def get_or_create_index(index_name: str, index_structure: str, index_set: IndexSet = None):
+    """
+    Get or create an index model with the provided index_structure and set.
+    If the index exists and a new index set is provided, it will link the index to the new index set.
+
+    Args:
+        `index_name`: Name of the index.
+        `index_structure`: Name of the index structure.
+        `index_set`: Optional Index set instance. Defaults to None.
+
+    Returns:
+        Tuple including the created index instance, a flag to indicate if the index was created as well as a list of errors and warnings.
+    """
+    index = None
+    created_entity = False
+    errors = []
+    warnings = []
+    index_structure_obj = None
+
+    if not index_name:
+        errors.append(f"Index name is required.")
+    if index_structure:
+        try:
+            index_structure_obj = IndexStructure.objects.get(name=index_structure)
+        except IndexStructure.DoesNotExist:
+            errors.append(f"Invalid index structure.")
+    else:
+        errors.append(f"Index structure is required.")
+
+    if not errors:
+        try:
+            index = Index.objects.get(name=index_name)
+            # Validate that the retrieved index is the right one
+            if index_structure_obj is not None and index.index_structure != index_structure_obj:
+                errors.append(f"Provided index_structure {index_structure} does not match the index structure {index.index_structure.name} of the index retrieved using the name {index_name}.")
+        except Index.DoesNotExist:
+            try:
+                index = Index.objects.create(name=index_name, index_structure=index_structure_obj)
+                created_entity = True
+            except ValidationError as e:
+                errors.append(';'.join(e.messages))
+
+    if index is not None and not errors and index_set is not None:
+        try:
+            IndexBySet.objects.get_or_create(index=index, index_set=index_set)
+        except ValidationError as e:
+            errors.append(';'.join(e.messages))
+
+    return index, created_entity, errors, warnings
 
 
 def create_indices_3prime_by_sequence(index, index_3prime):
