@@ -356,10 +356,6 @@ def extract_sample(process: Process,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
             )
-            if concentration_destination is not None:
-                sample_destination_data["concentration"] = concentration_destination
-            elif sample_kind_destination.concentration_required:
-                sample_destination_data["concentration"] = 1
 
             new_derived_sample_data = {"sample_kind_id": sample_kind_destination.id}
 

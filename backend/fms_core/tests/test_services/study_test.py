@@ -29,7 +29,7 @@ class StudyServicesTestCase(TestCase):
     def setup_samplenextsetup(self):
         valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         valid_container_1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
-        sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
+        sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False)
         self.sample_BLOOD = create_fullsample(name="TestSampleWF",
                                          alias="sample1",
                                          volume=5000,
