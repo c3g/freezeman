@@ -7075,6 +7075,10 @@ class Migration(migrations.Migration):
             name='index_sets',
             field=models.ManyToManyField(related_name='set_indices', through='fms_core.IndexBySet', to='fms_core.indexset'),
         ),
+        migrations.AddConstraint(
+            model_name='indexbyset',
+            constraint=models.UniqueConstraint(fields=('index_id', 'index_set_id'), name='indexbyset_indexid_indexsetid_key'),
+        ),
         migrations.RunPython(
             import_old_sets,
             reverse_code=migrations.RunPython.noop,
