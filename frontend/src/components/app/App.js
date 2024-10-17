@@ -241,7 +241,7 @@ const App = ({userID, usersByID, logOut, get}) => {
                     {env !== 'PROD' && <span style={{ color: 'red', fontSize: '14px' }}>&nbsp;{env}</span>}
                   </div>
                 </Title>
-                { // Display a spinner while the initial data is being fetched at startup 
+                { // Display a spinner while the initial data is being fetched at startup
                   !isInitialized &&
                     <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}} className="App__spin">
                       <Spin size="small" indicator={loadingIcon}/>
