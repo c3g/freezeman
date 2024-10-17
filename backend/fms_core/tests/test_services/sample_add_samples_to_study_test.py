@@ -12,7 +12,7 @@ class ProjectAddSamplesToStudyTestCase(TestCase):
         principal_investigator = "PepitoPerez"
         valid_status = "Open"
         valid_target_end_date = "2030-12-21"
-        sk_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True, concentration_required=True)
+        sk_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True)
         workflow = Workflow.objects.get(name="PCR-free Illumina")
 
         self.qc_step = 2

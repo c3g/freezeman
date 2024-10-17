@@ -399,7 +399,6 @@ export interface FMSSample extends FMSTrackedModel {
 export interface FMSSampleKind extends FMSTrackedModel {
     name: string                        // Sample kind name
     is_extracted: boolean               // Indicator to identify kinds that were extracted. Sample will have tissue source.
-    concentration_required: boolean     // Sample kind requires a concentration value for sample processing
     molecule_ontology_curie?: string    // SO ontology term to describe a molecule, such as ‘SO:0000991’ (‘genomic_DNA’)
 }
 

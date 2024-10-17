@@ -26,8 +26,8 @@ class SampleNextStepServicesTestCase(TestCase):
             self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
             self.valid_container_1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
             self.valid_container_2 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube02', barcode='T1234568'))
-            self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
-            self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True, concentration_required=True)
+            self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False)
+            self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True)
             self.sample_BLOOD = create_fullsample(name="TestSampleNextStep",
                                                   alias="sample1",
                                                   volume=5000,

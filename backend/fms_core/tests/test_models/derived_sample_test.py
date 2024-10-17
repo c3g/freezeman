@@ -11,7 +11,7 @@ class DerivedSampleTest(TestCase):
     def setUp(self) -> None:
         self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         self.valid_biosample = Biosample.objects.create(**create_biosample(individual=self.valid_individual))
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False)
 
     def test_derivedsample(self):
         derivedsample = DerivedSample.objects.create(**create_derivedsample(biosample=self.valid_biosample,
