@@ -5,7 +5,6 @@ import { InstrumentType } from '../models/frontend_models'
 import store from '../store'
 import moment from 'moment'
 import { useAppDispatch } from '../hooks'
-import { FMSInstrumentType } from '../models/fms_api_models'
 
 type ColumnType = 'number' | 'text' | 'date' | 'qc-instrument' | string[]
 
@@ -47,7 +46,6 @@ interface SelectInstrumentTypeProps extends SelectProps {
 }
 function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
     const listInstrumentTypesCallback = useCallback(() => store.dispatch(api.instrumentTypes.list({ platform__name: type })), [type])
-
     const [instrumentTypes, setInstrumentTypes] = useState<InstrumentType[]>([])
 
     useEffect(() => {

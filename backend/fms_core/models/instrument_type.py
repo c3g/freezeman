@@ -24,6 +24,7 @@ class InstrumentType(TrackedModel):
     index_read_3_prime = models.CharField(choices=INDEX_READ_DIRECTIONS_CHOICES,
                                           max_length=10,
                                           help_text="Instrument specific read direction for the index part at the 3 prime end of the sequence.")
+
     def __str__(self):
         return self.type
 
