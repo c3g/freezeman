@@ -103,8 +103,8 @@ export function initSamplesAtStep(stepID: FMSId) {
 	}
 }
 
-export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
-	return async (dispatch, getState) => {
+export function loadSampleNextStepsAtStep(stepID: FMSId, pageNumber: number, pageSize?: number) {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const labworkState = selectLabworkStepsState(getState())
 		const stepSamples = labworkState.steps[stepID]
 		if (!stepSamples) {
@@ -113,7 +113,7 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 
 
 		// Get the next page of SampleNextSteps 
-		const limit = selectPageSize(getState())
+		const limit = pageSize ?? selectPageSize(getState())
 		const offset = limit * (pageNumber - 1)
 		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
 		const ordering = serializeSortByParams(stepSamples.pagedItems.sortBy)
@@ -129,7 +129,13 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 			limit
 		}
 
-		const response: FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), { meta }))
+		return await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, options), { meta }))
+	}
+}
+
+export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
+	return async (dispatch: AppDispatch) => {
+		const response = await dispatch(loadSampleNextStepsAtStep(stepID, pageNumber))
 		if (response.count > 0) {
 			// Load the associated samples/libraries
 			const sampleIDs = response.results.map(nextStep => nextStep.sample)
