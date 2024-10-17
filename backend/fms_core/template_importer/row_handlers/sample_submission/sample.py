@@ -27,7 +27,7 @@ class SampleRowHandler(GenericRowHandler):
         # Individual related section
         taxon_obj = None
         if individual['taxon']:
-            taxon_obj, self.errors['taxon'], self.warnings['taxon'] = get_taxon(ncbi_id=individual['taxon'])
+            taxon_obj, self.errors['taxon'], self.warnings['taxon'] = get_taxon(name=individual['taxon'])
 
         reference_genome_obj = None
         if individual['reference_genome']:
