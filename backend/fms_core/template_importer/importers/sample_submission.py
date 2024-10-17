@@ -46,16 +46,9 @@ class SampleSubmissionImporter(GenericImporter):
                 'name': str_cast_and_normalize(row_data['Individual Name']),
                 'alias': str_cast_and_normalize(row_data['Individual Alias']),
                 'sex': str_cast_and_normalize(row_data['Sex']),
-                'pedigree': str_cast_and_normalize(row_data['Pedigree']),
                 'taxon': str_cast_and_normalize(row_data['Taxon']),
                 'reference_genome': str_cast_and_normalize(row_data['Reference Genome']),
                 'cohort': str_cast_and_normalize(row_data['Cohort']),
-            }
-            individual_mother = {
-                'name': str_cast_and_normalize(row_data['Mother Name']),
-            }
-            individual_father = {
-                'name': str_cast_and_normalize(row_data['Father Name']),
             }
             library = {
                 'library_type': str_cast_and_normalize(row_data['Library Type']),
@@ -91,8 +84,6 @@ class SampleSubmissionImporter(GenericImporter):
                 project=project,
                 parent_container=parent_container,
                 individual=individual,
-                individual_mother=individual_mother,
-                individual_father=individual_father,
                 # Preloaded data
                 sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
                 # Validation
