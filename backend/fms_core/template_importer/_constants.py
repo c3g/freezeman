@@ -16,6 +16,7 @@ FAILED = "Failed"
 VALID_QC_FLAG_CHOICES = [PASSED, FAILED]
 # QC Instruments
 LIBRARY_QC_QUALITY_INSTRUMENTS = ["Caliper LabChip", "TapeStation"]
+SAMPLE_QC_QUALITY_INSTRUMENTS = ["Agarose Gel", "BioAnalyzer", "Caliper LabChip", "NanoDrop", "TapeStation", "Tecan Absorbance"]
 LIBRARY_QC_QUANTITY_INSTRUMENTS = ["qPCR", "Qubit"]
 # Marker for destination container barcode
 DESTINATION_CONTAINER_BARCODE_MARKER = "DESTINATION_CONTAINER_BARCODE => "

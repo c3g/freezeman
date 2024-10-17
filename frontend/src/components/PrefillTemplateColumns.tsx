@@ -52,8 +52,7 @@ function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
 
     useEffect(() => {
         listInstrumentTypesCallback().then((response) => {
-            let results = response.data.results.filter((instrument: FMSInstrumentType) => instrument.is_in_prefiller)
-            setInstrumentTypes(results)
+            setInstrumentTypes(response.data.results)
         })
     }, [listInstrumentTypesCallback, type])
 

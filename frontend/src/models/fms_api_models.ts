@@ -191,7 +191,6 @@ export interface FMSInstrument extends FMSTrackedModel {
 export interface FMSInstrumentType extends FMSTrackedModel {
     platform: FMSId                     // Platform
     type: string                        // The product make
-    is_in_prefiller: boolean
     index_read_5_prime: string          // Instrument specific read direction for the index part at the 5 prime end of the sequence
     index_read_3_prime: string          // ID Instrument specific read direction for the index part at the 3 prime end of the sequence
 }

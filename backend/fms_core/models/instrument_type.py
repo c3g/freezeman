@@ -24,8 +24,6 @@ class InstrumentType(TrackedModel):
     index_read_3_prime = models.CharField(choices=INDEX_READ_DIRECTIONS_CHOICES,
                                           max_length=10,
                                           help_text="Instrument specific read direction for the index part at the 3 prime end of the sequence.")
-    is_in_prefiller = models.BooleanField(default=True,
-                                       help_text="Not all instruments are currently in use, this can determine which instrument type is displayed to the user.")
     def __str__(self):
         return self.type
 

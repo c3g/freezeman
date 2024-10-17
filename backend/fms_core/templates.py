@@ -8,7 +8,8 @@ from django.templatetags.static import static
 from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    VALID_QC_FLAG_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
-                                                   LIBRARY_QC_QUANTITY_INSTRUMENTS)
+                                                   LIBRARY_QC_QUANTITY_INSTRUMENTS,
+                                                   SAMPLE_QC_QUALITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment
@@ -584,7 +585,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
       {
           "name": "PoolSubmission",
           "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Name",
-                      "Container Barcode", "Pool Coord", "Location Barcode", 
+                      "Container Barcode", "Pool Coord", "Location Barcode",
                       "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
@@ -631,7 +632,7 @@ SAMPLE_QC_TEMPLATE = {
   "user prefill info": {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
-      "Quality Instrument": "qc-instrument",
+      "Quality Instrument": SAMPLE_QC_QUALITY_INSTRUMENTS,
       "Quality Flag": VALID_QC_FLAG_CHOICES,
       "Quantity Instrument": "qc-instrument",
       "Quantity Flag": VALID_QC_FLAG_CHOICES,
