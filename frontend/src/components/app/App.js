@@ -249,11 +249,11 @@ const App = ({userID, usersByID, logOut, get}) => {
                 }
               </div>
             </div>
-            {/* {isLoggedIn &&
+            {isLoggedIn &&
               <div className='App__jumpBar'>
                 <JumpBar />
               </div>
-            } */}
+            }
 
             <Menu
               theme="dark"

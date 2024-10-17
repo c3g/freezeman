@@ -146,7 +146,6 @@ function SamplesListContent() {
 					/>
 					<FiltersBar filters={samplesTableState.filters} clearFilters={clearFiltersAndCategory}/>
 				</Flexbar>
-
 				<PagedItemsTable<ObjectWithSample>
 					getDataObjectsByID={mapSampleIDs}
 					pagedItems={samplesTableState}
