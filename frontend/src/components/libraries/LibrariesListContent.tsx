@@ -70,7 +70,7 @@ export default function LibariesListContent() {
 
 		// Set the widths of selected columns in this table.
 		let columns = setColumnWidths(LIBRARY_TABLE_COLUMNS, {
-			[LibraryColumnID.ID]: 200,
+			[LibraryColumnID.ID]: 100,
 			[LibraryColumnID.PLATFORM_NAME]: 200,
 			[LibraryColumnID.PROJECT_NAME]: 200,
 			[LibraryColumnID.NAME]: 200,
@@ -82,7 +82,7 @@ export default function LibariesListContent() {
 			[LibraryColumnID.VOLUME]: 130,
 			[LibraryColumnID.LIBRARY_SIZE]: 130,
 			[LibraryColumnID.CONCENTRATION_NM]: 130,
-			[LibraryColumnID.CONCENTRATION]: 130,
+			[LibraryColumnID.CONCENTRATION]: 160,
 			[LibraryColumnID.NA_QUANTITY]: 130,
 			[LibraryColumnID.QC_FLAG]: 130,
 			[LibraryColumnID.CREATION_DATE]: 130,
@@ -90,7 +90,7 @@ export default function LibariesListContent() {
 		})
 
 
-    columns = setDynamicSorters(LIBRARY_TABLE_COLUMNS, [
+    columns = setDynamicSorters(columns, [
 			LibraryColumnID.PLATFORM_NAME,
 			LibraryColumnID.PROJECT_NAME,
 			LibraryColumnID.LIBRARY_TYPE,
