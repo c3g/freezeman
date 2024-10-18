@@ -23,11 +23,11 @@ def samplesheet_format():
     header_row = samplesheet.max_row
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
-    samplesheet.append(["FileFormatVersion", "2"])
+    samplesheet.append(["FileFormatVersion", "@FileFormatVersion"])
     samplesheet.append(["RunName", "@RunName"])
-    samplesheet.append(["InstrumentPlatform", "NovaSeqXSeries"])
+    samplesheet.append(["InstrumentPlatform", "@InstrumentPlatform"])
     samplesheet.append(["InstrumentType", "@InstrumentType"])
-    samplesheet.append(["IndexOrientation", "Forward"])
+    samplesheet.append(["IndexOrientation", "@IndexOrientation"])
     section_end_row = samplesheet.max_row
     for i in range(header_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
@@ -38,13 +38,9 @@ def samplesheet_format():
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["Read1Cycles", "@Read1Cycles"])
-    samplesheet.cell(row=samplesheet.max_row, column=1).fill = fillOrange
     samplesheet.append(["Read2Cycles", "@Read2Cycles"])
-    samplesheet.cell(row=samplesheet.max_row, column=1).fill = fillOrange
     samplesheet.append(["Index1Cycles", "@Index1Cycles"])
-    samplesheet.cell(row=samplesheet.max_row, column=1).fill = fillOrange
     samplesheet.append(["Index2Cycles", "@Index2Cycles"])
-    samplesheet.cell(row=samplesheet.max_row, column=1).fill = fillOrange
     section_end_row = samplesheet.max_row
     for i in range(header_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
@@ -66,7 +62,7 @@ def samplesheet_format():
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["SoftwareVersion", "@BCLConvert_SoftwareVersion"])
     samplesheet.append(["OverrideCycles", "@OverrideCycles"])
-    samplesheet.append(["FastqCompressionFormat", "gzip"])
+    samplesheet.append(["FastqCompressionFormat", "@FastqCompressionFormat"])
     section_end_row = samplesheet.max_row
     for i in range(header_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
@@ -119,13 +115,40 @@ def samplesheet_format():
         "SoftwareVersion": [],
         "OverrideCycles": [],
     }
+    samplesheet_cells_default_values: dict[str, str] = {
+        # [Header]
+        "FileFormatVersion": "2",
+        "RunName": "",
+        "InstrumentPlatform": "NovaSeqXSeries",
+        "InstrumentType": "",
+        "IndexOrientation": "Forward",
+        # [Reads]
+        "Read1Cycles": "",
+        "Read2Cycles": "",
+        "Index1Cycles": "",
+        "Index2Cycles": "",
+        # [Sequencing_Settings]
+        "LibraryPrepKits": "",
+        # [BCLConvert_Settings]
+        "BCLConvert_SoftwareVersion": "",
+        "OverrideCycles": "",
+        "FastqCompressionFormat": "gzip",
+        # [BCLConvert_Data]
+        # [DragenGermline_Settings]
+        "DragenGermline_SoftwareVersion": "",
+        "AppVersion": "",
+        "MapAlignOutFormat": "",
+        "KeepFastq": "",
+        # [DragenGermline_Data]
+    }
     for row in samplesheet.rows:
         for cell in row:
             value = cell.value
             if value and value.startswith("@"):
-                cell.value = ""
-                if value[1:] in samplesheet_cells_validations:
-                    for validation in samplesheet_cells_validations[value[1:]]:
+                value = value[1:]
+                cell.value = samplesheet_cells_default_values.get(value, "UNKNOWN_DEFAULT_VALUE")
+                if value in samplesheet_cells_validations:
+                    for validation in samplesheet_cells_validations[value]:
                         samplesheet.add_data_validation(validation)
                         validation.add(cell)
 
