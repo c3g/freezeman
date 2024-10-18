@@ -15,7 +15,7 @@ def samplesheet_format():
 
     index_cells = {}
 
-    MAX_COLUMN = 6
+    MAX_COLUMN = 5
     fillLightGray = PatternFill(start_color="b3cac7", end_color="b3cac7", fill_type="solid")
     fillOrange = PatternFill(start_color="e8a202", end_color="e8a202", fill_type="solid")
 
@@ -98,23 +98,6 @@ def samplesheet_format():
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["Sample_ID", "ReferenceGenomeDir", "VariantCallingMode"])
     for i in range(1, 3+1):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillOrange
-
-
-    samplesheet.append([])
-    samplesheet.append(["[Cloud_Settings]"])
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
-    samplesheet.append(["GeneratedVersion", "@GeneratedVersion"])
-    samplesheet.cell(row=samplesheet.max_row, column=1).fill = fillOrange
-
-
-    samplesheet.append([])
-    samplesheet.append(["[Cloud_Data]"])
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
-    samplesheet.append(["Sample_ID", "ProjectName", "LibraryName", "LibraryPrepKitName", "IndexAdapterKitName"])
-    for i in range(1, 5+1):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillOrange
 
     samplesheet_cells_validations: dict[str, list[DataValidation]] = {
