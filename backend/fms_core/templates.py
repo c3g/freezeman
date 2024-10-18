@@ -577,7 +577,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
           'name': 'SampleSubmission',
           'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Barcode',
-                      'Container Name', 'Sample Coord', 'Location Barcode', 'Container Coord', 'Project', 'Study',
+                      'Container Name', 'Sample Coord', 'Location Kind', 'Location Barcode', 'Location Name', 'Container Coord', 'Project', 'Study',
                       'Experimental Group', 'Taxon', 'Sex', 'Reference Genome', 'Individual Name', 'Individual Alias', 'Cohort',
                       'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Selection', 'Selection Target', 'Comment'],
           'stitch_column': 'Pool Name',
@@ -586,7 +586,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
       {
           "name": "PoolSubmission",
           "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Barcode",
-                      "Container Name", "Pool Coord", "Location Barcode",
+                      "Container Name", "Pool Coord", "Location Kind", "Location Barcode", "Location Name",
                       "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
