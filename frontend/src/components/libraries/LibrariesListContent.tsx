@@ -70,21 +70,27 @@ export default function LibariesListContent() {
 
 		// Set the widths of selected columns in this table.
 		let columns = setColumnWidths(LIBRARY_TABLE_COLUMNS, {
-			[LibraryColumnID.ID] : 90,
-			[LibraryColumnID.COORDINATES]: 70,
-			[LibraryColumnID.VOLUME] : 100,
-			[LibraryColumnID.LIBRARY_SIZE]: 80,
-			[LibraryColumnID.CONCENTRATION_NM]: 115,
-			[LibraryColumnID.CONCENTRATION]: 115,
-			[LibraryColumnID.NA_QUANTITY]: 115,
-			[LibraryColumnID.CREATION_DATE]: 115,
-			[LibraryColumnID.DEPLETED]: 85,
+			[LibraryColumnID.ID]: 100,
+			[LibraryColumnID.PLATFORM_NAME]: 200,
+			[LibraryColumnID.PROJECT_NAME]: 200,
+			[LibraryColumnID.NAME]: 200,
+			[LibraryColumnID.CONTAINER_BARCODE]: 200,
+			[LibraryColumnID.COORDINATES]: 130,
+			[LibraryColumnID.LIBRARY_TYPE]: 130,
+			[LibraryColumnID.SELECTION_TARGET]: 130,
+			[LibraryColumnID.INDEX_NAME]: 130,
+			[LibraryColumnID.VOLUME]: 130,
+			[LibraryColumnID.LIBRARY_SIZE]: 130,
+			[LibraryColumnID.CONCENTRATION_NM]: 130,
+			[LibraryColumnID.CONCENTRATION]: 160,
+			[LibraryColumnID.NA_QUANTITY]: 130,
+			[LibraryColumnID.QC_FLAG]: 130,
+			[LibraryColumnID.CREATION_DATE]: 130,
+			[LibraryColumnID.DEPLETED]: 130
 		})
 
-		// Set the sorter properties on the columns, depending on the sample category.
-		// Sorting is disabled for some columns when pools are listed because the backend
-		// doesn't handle pool sorting well.
-		columns = setDynamicSorters(columns, [
+
+    columns = setDynamicSorters(columns, [
 			LibraryColumnID.PLATFORM_NAME,
 			LibraryColumnID.PROJECT_NAME,
 			LibraryColumnID.LIBRARY_TYPE,
@@ -140,7 +146,7 @@ export default function LibariesListContent() {
 					<FiltersBar filters={filters} clearFilters={clearFiltersAndCategory}/>
 				</FlexBar>
 
-				<PagedItemsTable<ObjectWithLibrary> 
+				<PagedItemsTable<ObjectWithLibrary>
 					getDataObjectsByID={mapLibaryIDs}
 					pagedItems={librariesTableState}
 					columns={baseColumns}

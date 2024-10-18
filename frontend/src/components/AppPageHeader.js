@@ -1,5 +1,5 @@
 import React from "react";
-import {PageHeader} from "antd";
+import { PageHeader } from '@ant-design/pro-layout';
 
 const style = {
   backgroundColor: "rgba(0, 0, 0, 0.03)",

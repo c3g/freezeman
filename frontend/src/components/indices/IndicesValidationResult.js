@@ -166,7 +166,7 @@ const IndicesValidationResult = ({
           loading={isFetching}
           columns={columns}
           dataSource={data}
-          scroll={{ x: 1500, y: 300 }}
+          scroll={{ x: 1500, y: 700 }}
           title={() => {
             return (
               <div>
