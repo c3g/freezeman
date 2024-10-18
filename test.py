@@ -13,8 +13,6 @@ def samplesheet_format():
     workbook.create_sheet("Info")
     workbook.create_sheet("Index")
 
-    index_cells = {}
-
     MAX_COLUMN = 5
     fillLightGray = PatternFill(start_color="b3cac7", end_color="b3cac7", fill_type="solid")
     fillOrange = PatternFill(start_color="e8a202", end_color="e8a202", fill_type="solid")
@@ -25,8 +23,10 @@ def samplesheet_format():
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["FileFormatVersion", "@FileFormatVersion"])
     samplesheet.append(["RunName", "@RunName"])
+    run_name_cell = samplesheet.cell(row=samplesheet.max_row, column=2)
+    MAX_RUN_NAME_LENGTH = 255
     samplesheet.append(["InstrumentPlatform", "@InstrumentPlatform"])
-    samplesheet.append(["InstrumentType", "@InstrumentType"])
+    # samplesheet.append(["InstrumentType", "@InstrumentType"])
     samplesheet.append(["IndexOrientation", "@IndexOrientation"])
     section_end_row = samplesheet.max_row
     for i in range(header_row+1, section_end_row+1):
@@ -61,6 +61,8 @@ def samplesheet_format():
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["SoftwareVersion", "@BCLConvert_SoftwareVersion"])
+    samplesheet.append(["AdapterRead1", "@AdapterRead1"])
+    samplesheet.append(["AdapterRead2", "@AdapterRead2"])
     samplesheet.append(["OverrideCycles", "@OverrideCycles"])
     samplesheet.append(["FastqCompressionFormat", "@FastqCompressionFormat"])
     section_end_row = samplesheet.max_row
@@ -97,8 +99,21 @@ def samplesheet_format():
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillOrange
 
     samplesheet_cells_validations: dict[str, list[DataValidation]] = {
-        "RunName": [],
-        "InstrumentType": [],
+        # [Header]
+        "FileFormatVersion": [
+            DataValidation(type="whole", operator="equal", formula1=2, allow_blank=False, showErrorMessage=True, errorTitle="Invalid FileFormatVersion Value", error="FileFormatVersion must always be 2")
+        ],
+        "RunName": [
+            DataValidation(type="textLength", operator="lessThanOrEqual", formula1=MAX_RUN_NAME_LENGTH, allow_blank=True, showErrorMessage=True, errorTitle="Invalid RunName Length", error=f"RunName must be less than or equal to {MAX_RUN_NAME_LENGTH} characters")
+        ],
+        "InstrumentPlatform": [
+            DataValidation(type="list", formula1='"NovaSeqXSeries"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid InstrumentPlatform Value", error="Only NovaSeqXSeries is supported")
+        ],
+        # "InstrumentType": [],
+        "IndexOrientation": [
+            DataValidation(type="list", formula1='"Forward"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid IndexOrientation Value", error="Only Forward is supported")
+        ],
+        # [Reads]
         "Read1Cycles": [
             DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read1Cycles Value", error="Read1Cycles must be greater than 0")
         ],
@@ -111,9 +126,27 @@ def samplesheet_format():
         "Index2Cycles": [
             DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index2Cycles Value", error="Index2Cycles must be greater than or equal to 0")
         ],
+        # [Sequencing_Settings]
         "LibraryPrepKits": [],
-        "SoftwareVersion": [],
+        # [BCLConvert_Settings]
+        "BCLConvert_SoftwareVersion": [],
+        "AdapterRead1": [],
+        "AdapterRead2": [],
         "OverrideCycles": [],
+        "FastqCompressionFormat": [
+            DataValidation(type="list", formula1='"gzip"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported")
+        ],
+        # [BCLConvert_Data]
+        # [DragenGermline_Settings]
+        "DragenGermline_SoftwareVersion": [],
+        "AppVersion": [],
+        "MapAlignOutFormat": [
+            DataValidation(type="list", formula1='"bam,cram,none"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error="Only bam, cram, none are supported")
+        ],
+        "KeepFastq": [
+            DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid KeepFastq Value", error="Only TRUE, FALSE are supported")
+        ],
+        # [DragenGermline_Data]
     }
     samplesheet_cells_default_values: dict[str, str] = {
         # [Header]
@@ -131,14 +164,16 @@ def samplesheet_format():
         "LibraryPrepKits": "",
         # [BCLConvert_Settings]
         "BCLConvert_SoftwareVersion": "",
+        "AdapterRead1": "",
+        "AdapterRead2": "",
         "OverrideCycles": "",
         "FastqCompressionFormat": "gzip",
         # [BCLConvert_Data]
         # [DragenGermline_Settings]
         "DragenGermline_SoftwareVersion": "",
         "AppVersion": "",
-        "MapAlignOutFormat": "",
-        "KeepFastq": "",
+        "MapAlignOutFormat": "none",
+        "KeepFastq": "TRUE",
         # [DragenGermline_Data]
     }
     for row in samplesheet.rows:
