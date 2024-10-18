@@ -53,7 +53,7 @@ class SampleNextStepServicesTestCase(TestCase):
             for derived_by_sample in self.sample_DNA.derived_by_samples.all():
                 derived_by_sample.project_id = self.project.id
                 derived_by_sample.save()
-                
+
             self.letter_valid = "A"
             self.start = 1
             self.end = 3
@@ -95,14 +95,14 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertTrue(isinstance(sample_next_step_by_study, SampleNextStepByStudy))
         self.assertEqual(sample_next_step_by_study.step_order.order, 1)
         self.assertEqual(sample_next_step.sample, self.sample_BLOOD)
-        
+
         # Dequeue sample
         dequeued, errors, warnings = dequeue_sample_from_specific_step_study_workflow(self.sample_BLOOD, self.study, 1)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertTrue(dequeued)
         self.assertFalse(SampleNextStep.objects.filter(sample=self.sample_BLOOD, studies=self.study).exists())
-    
+
     def test_dequeue_sample_from_invalid_step(self):
         # Queue sample first and test it
         sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, self.study)
@@ -125,19 +125,19 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertTrue(isinstance(sample_next_step_by_study_1, SampleNextStepByStudy))
         self.assertEqual(sample_next_step_by_study_1.step_order.order, 2)
         self.assertEqual(sample_next_step_1.sample, self.sample_DNA)
-        
+
         sample_next_step_2, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 3)
         self.assertTrue(isinstance(sample_next_step_2, SampleNextStep))
         sample_next_step_by_study_2 = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step_2, step_order__step=sample_next_step_2.step, study=self.study)
         self.assertTrue(isinstance(sample_next_step_by_study_2, SampleNextStepByStudy))
         self.assertEqual(sample_next_step_by_study_2.step_order.order, 3)
         self.assertEqual(sample_next_step_2.sample, self.sample_DNA)
-        
+
         num_dequeued, errors, warnings = dequeue_sample_from_all_steps_study_workflow(self.sample_DNA, self.study)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(num_dequeued, 2)
-    
+
     def test_is_sample_queued_in_study(self):
         # Test valid queueing
         sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 3)
@@ -175,7 +175,7 @@ class SampleNextStepServicesTestCase(TestCase):
                 derived_by_sample.project_id = self.project.id
                 derived_by_sample.save()
 
-        step = Step.objects.get(name="Sample QC")
+        step = Step.objects.get(name="Sample QC (DNA)")
         sample_next_step = SampleNextStep.objects.create(sample=sample_in, step=step)
         step_order = StepOrder.objects.get(order=2, workflow=self.workflow_pcr_free, step=step)
         study = Study.objects.create(letter="B",
@@ -199,7 +199,7 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertTrue(has_completed)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
-    
+
     def test_has_sample_not_completed_workflow_in_study(self):
         # Test valid completion
         container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
@@ -213,7 +213,7 @@ class SampleNextStepServicesTestCase(TestCase):
                 derived_by_sample.project_id = self.project.id
                 derived_by_sample.save()
 
-        step = Step.objects.get(name="Sample QC")
+        step = Step.objects.get(name="Sample QC (DNA)")
         sample_next_step = SampleNextStep.objects.create(sample=sample_in, step=step)
         step_order = StepOrder.objects.get(order=2, workflow=self.workflow_pcr_free, step=step)
         study = Study.objects.create(letter="B",
@@ -246,12 +246,12 @@ class SampleNextStepServicesTestCase(TestCase):
                                       individual=self.valid_individual,
                                       sample_kind=self.sample_kind_DNA,
                                       container=container1)
-        
+
         step = Step.objects.get(name="Normalization (Sample)")
         for derived_by_sample in sample_in.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
             derived_by_sample.save()
-                
+
         letter_B = "B"
         start = 3
         end = 7
@@ -301,12 +301,12 @@ class SampleNextStepServicesTestCase(TestCase):
                                       sample_kind=self.sample_kind_DNA,
                                       container=container1,
                                       project=self.project)
-        
+
         step = Step.objects.get(name="Normalization (Sample)")
         for derived_by_sample in sample_in.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
             derived_by_sample.save()
-                
+
         letter_B = "B"
         start = 3
         end = 7
@@ -356,12 +356,12 @@ class SampleNextStepServicesTestCase(TestCase):
                                       individual=self.valid_individual,
                                       sample_kind=self.sample_kind_DNA,
                                       container=container1)
-        
+
         step = Step.objects.get(name="Library Preparation (WGBS, Illumina)")
         for derived_by_sample in sample_in.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
             derived_by_sample.save()
-                
+
         letter_B = "B"
         start = 4
         end = 7
@@ -423,12 +423,12 @@ class SampleNextStepServicesTestCase(TestCase):
                                       individual=self.valid_individual,
                                       sample_kind=self.sample_kind_DNA,
                                       container=container1)
-        
+
         step = Step.objects.get(name="Normalization (Sample)")
         for derived_by_sample in sample_in.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
             derived_by_sample.save()
-                
+
         letter_B = "B"
         start = 3
         end = 7
@@ -500,7 +500,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                       sample_kind=self.sample_kind_DNA,
                                       project=self.project,
                                       container=container2)
-        
+
         sample_out_prime = create_fullsample(name="TestSampleNextStep_out_out",
                                              alias="TestSampleNextStep_out_out",
                                              volume=1000,
@@ -509,7 +509,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                              sample_kind=self.sample_kind_DNA,
                                              project=self.project,
                                              container=container3)
-        
+
         step_1 = Step.objects.get(name="Extraction (DNA)")
         for derived_by_sample in sample_in.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
@@ -518,7 +518,7 @@ class SampleNextStepServicesTestCase(TestCase):
         for derived_by_sample in sample_out.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
             derived_by_sample.save()
-                
+
         letter_B = "B"
         start = 1
         end = 7
@@ -568,7 +568,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                                     step_order__step=step_1,
                                                     workflow_action=WorkflowAction.NEXT_STEP).count(), 1)
 
-        step_2 = Step.objects.get(name="Sample QC")
+        step_2 = Step.objects.get(name="Sample QC (DNA)")
         protocol_3 = Protocol.objects.get(name="Sample Quality Control")
         process_3 = Process.objects.create(protocol=protocol_3)
         process_measurement_3 = ProcessMeasurement.objects.create(process=process_3,
@@ -579,7 +579,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                                    step=step_2,
                                                    current_sample=sample_out,
                                                    process_measurement=process_measurement_3)
-        
+
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(StepHistory.objects.filter(study=study_B,
@@ -605,7 +605,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                       sample_kind=self.sample_kind_DNA,
                                       container=container2,
                                       tissue_source=self.sample_kind_BLOOD)
-        
+
         step_1 = Step.objects.get(name="Extraction (DNA)")
         for derived_by_sample in sample_in.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
@@ -614,7 +614,7 @@ class SampleNextStepServicesTestCase(TestCase):
         for derived_by_sample in sample_out.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
             derived_by_sample.save()
-                
+
         letter_B = "B"
         start = 1
         end = 7
@@ -644,17 +644,17 @@ class SampleNextStepServicesTestCase(TestCase):
                                                    next_sample=sample_out)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
-        
+
         if order == 1:
              return study_B, step_1, sample_in, process_measurement_1, sample_out
 
-        step_2 = Step.objects.get(name="Sample QC")
+        step_2 = Step.objects.get(name="Sample QC (DNA)")
         protocol_2 = Protocol.objects.get(name="Sample Quality Control")
         process_2 = Process.objects.create(protocol=protocol_2)
         process_measurement_2 = ProcessMeasurement.objects.create(process=process_2,
                                                                   source_sample=sample_out,
                                                                   execution_date=datetime.date(2021, 1, 10),
-                                                                  volume_used=2) 
+                                                                  volume_used=2)
 
         errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
                                                    step=step_2,
@@ -695,6 +695,6 @@ class SampleNextStepServicesTestCase(TestCase):
                     # QC step completed but it has been dequeued after that
                     self.assertFalse(SampleNextStepByStudy.objects.filter(sample_next_step__sample=sample_in.pk, step_order=3).exists())
                     self.assertEqual(list(StepHistory.objects.filter(process_measurement__source_sample=sample_out.pk, step_order__order=2).values_list('workflow_action', flat=True)), [WorkflowAction.DEQUEUE_SAMPLE])
-                    
+
                     # Leave earlier step history alone
                     self.assertEqual(list(StepHistory.objects.filter(process_measurement__lineage__child=sample_out.pk, step_order__order=1).values_list('workflow_action', flat=True)), [WorkflowAction.NEXT_STEP])
