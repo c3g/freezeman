@@ -8,7 +8,7 @@ class SampleNextStepTest(TestCase):
     def setUp(self):
         self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False)
         self.sample = create_fullsample(name="TestSampleWF",
                                         alias="sample1",
                                         volume=5000,

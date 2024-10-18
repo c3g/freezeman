@@ -25,7 +25,7 @@ class FullSampleTest(TestCase):
         self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
         self.wrong_container = Container.objects.create(**create_container(barcode='R123456'))
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False)
 
     def test_fullsample(self):
         sample = create_fullsample(name="TestFullSample",
@@ -55,9 +55,9 @@ class FullSampleTest(TestCase):
 class ExtractedSampleTest(TestCase):
 
     def setUp(self) -> None:
-        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True, concentration_required=True)
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
-        self.sample_kind_PLASMA, _ = SampleKind.objects.get_or_create(name="PLASMA", is_extracted=False, concentration_required=False)
+        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True)
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False)
+        self.sample_kind_PLASMA, _ = SampleKind.objects.get_or_create(name="PLASMA", is_extracted=False)
         self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
         # tube rack 8x12
         self.parent_tube_rack = Container.objects.create(**create_container(barcode='R123456'))
