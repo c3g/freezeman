@@ -40,4 +40,8 @@ class Migration(migrations.Migration):
             set_measured_volume_properties_optional,
             reverse_code=migrations.RunPython.noop,
         ),
+        migrations.RemoveField(
+            model_name='samplekind',
+            name='concentration_required',
+        ),
     ]
