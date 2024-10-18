@@ -76,33 +76,46 @@ def samplesheet_format():
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["Lane", "Sample_ID", "Index", "Index2"])
+    for i in range(1, 4+1):
+        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillOrange
 
     samplesheet.append([])
     samplesheet.append(["[DragenGermline_Settings]"])
+    header_row = samplesheet.max_row
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["SoftwareVersion", "@DragenGermline_SoftwareVersion"])
     samplesheet.append(["AppVersion", "@AppVersion"])
     samplesheet.append(["MapAlignOutFormat", "@MapAlignOutFormat"])
     samplesheet.append(["KeepFastq", "@KeepFastq"])
+    section_end_row = samplesheet.max_row
+    for i in range(header_row+1, section_end_row+1):
+        samplesheet.cell(row=i, column=1).fill = fillOrange
 
     samplesheet.append([])
     samplesheet.append(["[DragenGermline_Data]"])
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["Sample_ID", "ReferenceGenomeDir", "VariantCallingMode"])
+    for i in range(1, 3+1):
+        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillOrange
+
 
     samplesheet.append([])
     samplesheet.append(["[Cloud_Settings]"])
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["GeneratedVersion", "@GeneratedVersion"])
+    samplesheet.cell(row=samplesheet.max_row, column=1).fill = fillOrange
+
 
     samplesheet.append([])
     samplesheet.append(["[Cloud_Data]"])
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["Sample_ID", "ProjectName", "LibraryName", "LibraryPrepKitName", "IndexAdapterKitName"])
+    for i in range(1, 5+1):
+        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillOrange
 
     samplesheet_cells_validations: dict[str, list[DataValidation]] = {
         "RunName": [],
