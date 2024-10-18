@@ -634,7 +634,7 @@ SAMPLE_QC_TEMPLATE = {
       "Volume Used (uL)": "number",
       "Quality Instrument": SAMPLE_QC_QUALITY_INSTRUMENTS,
       "Quality Flag": VALID_QC_FLAG_CHOICES,
-      "Quantity Instrument": "qc-instrument",
+      "Quantity Instrument": SAMPLE_QC_QUALITY_INSTRUMENTS,
       "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
