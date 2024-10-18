@@ -67,6 +67,8 @@ def samplesheet_format(BCLConvert_Data: list[BCLConvert_Datum], DragenGermline_D
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
     samplesheet.append(["LibraryPrepKits", "@LibraryPrepKits"])
+    library_kit_cell = samplesheet.cell(row=samplesheet.max_row, column=2)
+    IlluminaDNAPCRFree = "IlluminaDNAPCRFree"
     section_end_row = samplesheet.max_row
     for i in range(section_start_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillKey
@@ -194,8 +196,8 @@ def samplesheet_format(BCLConvert_Data: list[BCLConvert_Datum], DragenGermline_D
         "LibraryPrepKits": "IlluminaDNAPCRFree",
         # [BCLConvert_Settings]
         "BCLConvert_SoftwareVersion": "",
-        "AdapterRead1": "",
-        "AdapterRead2": "",
+        "AdapterRead1": f'=IF({library_kit_cell.coordinate}="{IlluminaDNAPCRFree}","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
+        "AdapterRead2": f'=IF({library_kit_cell.coordinate}="{IlluminaDNAPCRFree}","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
         "OverrideCycles": "",
         "FastqCompressionFormat": "gzip",
         # [BCLConvert_Data]
