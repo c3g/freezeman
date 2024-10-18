@@ -18,7 +18,7 @@ def samplesheet_format():
     fillOrange = PatternFill(start_color="e8a202", end_color="e8a202", fill_type="solid")
 
     samplesheet.append(["[Header]"])
-    header_row = samplesheet.max_row
+    section_start_row = samplesheet.max_row
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["FileFormatVersion", "@FileFormatVersion"])
@@ -29,12 +29,12 @@ def samplesheet_format():
     # samplesheet.append(["InstrumentType", "@InstrumentType"])
     samplesheet.append(["IndexOrientation", "@IndexOrientation"])
     section_end_row = samplesheet.max_row
-    for i in range(header_row+1, section_end_row+1):
+    for i in range(section_start_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
 
     samplesheet.append([])
     samplesheet.append(["[Reads]"])
-    header_row = samplesheet.max_row
+    section_start_row = samplesheet.max_row
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["Read1Cycles", "@Read1Cycles"])
@@ -42,22 +42,22 @@ def samplesheet_format():
     samplesheet.append(["Index1Cycles", "@Index1Cycles"])
     samplesheet.append(["Index2Cycles", "@Index2Cycles"])
     section_end_row = samplesheet.max_row
-    for i in range(header_row+1, section_end_row+1):
+    for i in range(section_start_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
 
     samplesheet.append([])
     samplesheet.append(["[Sequencing_Settings]"])
-    header_row = samplesheet.max_row
+    section_start_row = samplesheet.max_row
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["LibraryPrepKits", "@LibraryPrepKits"])
     section_end_row = samplesheet.max_row
-    for i in range(header_row+1, section_end_row+1):
+    for i in range(section_start_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
 
     samplesheet.append([])
     samplesheet.append(["[BCLConvert_Settings]"])
-    header_row = samplesheet.max_row
+    section_start_row = samplesheet.max_row
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["SoftwareVersion", "@BCLConvert_SoftwareVersion"])
@@ -66,7 +66,7 @@ def samplesheet_format():
     samplesheet.append(["OverrideCycles", "@OverrideCycles"])
     samplesheet.append(["FastqCompressionFormat", "@FastqCompressionFormat"])
     section_end_row = samplesheet.max_row
-    for i in range(header_row+1, section_end_row+1):
+    for i in range(section_start_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
 
     samplesheet.append([])
@@ -79,7 +79,7 @@ def samplesheet_format():
 
     samplesheet.append([])
     samplesheet.append(["[DragenGermline_Settings]"])
-    header_row = samplesheet.max_row
+    section_start_row = samplesheet.max_row
     for i in range(1, MAX_COLUMN):
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillLightGray
     samplesheet.append(["SoftwareVersion", "@DragenGermline_SoftwareVersion"])
@@ -87,7 +87,7 @@ def samplesheet_format():
     samplesheet.append(["MapAlignOutFormat", "@MapAlignOutFormat"])
     samplesheet.append(["KeepFastq", "@KeepFastq"])
     section_end_row = samplesheet.max_row
-    for i in range(header_row+1, section_end_row+1):
+    for i in range(section_start_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillOrange
 
     samplesheet.append([])
