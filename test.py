@@ -18,7 +18,7 @@ class DragenGermline_Datum:
     ReferenceGenomeDir: str
     VariantCallingMode: str
 
-def samplesheet_format(BCLConvert_Data: list[BCLConvert_Datum], DragenGermline_Data: list[DragenGermline_Datum]) -> Workbook:
+def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], DragenGermline_Data: list[DragenGermline_Datum]) -> Workbook:
     workbook = Workbook()
 
     workbook.create_sheet("Samplesheet")
@@ -258,5 +258,5 @@ DragenGermline_Data = [
     DragenGermline_Datum(Sample_ID="1414432", ReferenceGenomeDir="@ReferenceGenomeDir", VariantCallingMode="@VariantCallingMode"),
 ]
 
-wb = samplesheet_format(BCLConvert_Data, DragenGermline_Data)
+wb = generate_samplesheet_workbook(BCLConvert_Data, DragenGermline_Data)
 wb.save("test.xlsx")
