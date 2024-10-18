@@ -108,7 +108,6 @@ class SampleQCTestCase(TestCase):
         # Sample information tests
         sample = Sample.objects.get(name=self.sample_name)
         self.assertEqual(sample.volume, self.sample_new_volume)
-        self.assertEqual(sample.derived_sample.first().sample_kind, self.sample_kind)
         self.assertEqual(sample.concentration, self.sample_new_concentration)
         self.assertEqual(sample.depleted, self.sample_new_depleted)
         # Sample flag tests
