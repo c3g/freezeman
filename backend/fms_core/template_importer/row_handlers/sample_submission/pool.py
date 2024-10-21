@@ -28,17 +28,19 @@ class PoolsRowHandler(GenericRowHandler):
 
             parent_barcode = pool_container_dict["parent_barcode"]
             if parent_barcode:
-                container_parent, self.errors['parent_container'], self.warnings['parent_container'] = get_container(
-                    barcode=parent_barcode)
+                container_parent, _, self.errors['parent_container'], self.warnings['parent_container'] = \
+                    get_or_create_container(barcode=parent_barcode,
+                                            kind=pool_container_dict["parent_kind"],
+                                            name=pool_container_dict["parent_name"])
             else:
                 container_parent = None
 
-            container_destination, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
-                barcode=pool_container_dict['barcode'],
-                kind=pool_container_dict['kind'],
-                name=pool_container_dict['name'],
-                coordinates=pool_container_dict['coordinates'],
-                container_parent=container_parent)
+            container_destination, _, self.errors['container'], self.warnings['container'] = \
+                get_or_create_container(barcode=pool_container_dict['barcode'],
+                                        kind=pool_container_dict['kind'],
+                                        name=pool_container_dict['name'],
+                                        coordinates=pool_container_dict['coordinates'],
+                                        container_parent=container_parent)
 
             # Validate indices from the samples being pooled
             if seq_instrument_type is not None:

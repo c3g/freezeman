@@ -40,6 +40,8 @@ class SampleSubmissionImporter(GenericImporter):
                 'coordinates': str_cast_and_normalize(row_data['Container Coord']),
             }
             parent_container = {
+                'kind': str_cast_and_normalize_lower(row_data['Location Kind']),
+                'name': str_cast_and_normalize(row_data['Location Name']),
                 'barcode': str_cast_and_normalize(row_data['Location Barcode']),
             }
             individual = {
@@ -118,6 +120,8 @@ class SampleSubmissionImporter(GenericImporter):
                             "kind": str_cast_and_normalize_lower(row_data["Container Kind"]),
                             "coordinates": str_cast_and_normalize(row_data["Container Coord"]),
                             "parent_barcode": str_cast_and_normalize(row_data["Location Barcode"]),
+                            "parent_name": str_cast_and_normalize(row_data["Location Name"]),
+                            "parent_kind": str_cast_and_normalize_lower(row_data["Location Kind"]),
                         },
                     },
                     "seq_instrument_type": str_cast_and_normalize(row_data["Seq Instrument Type"]),

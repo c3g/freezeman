@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fms_core.models import Individual, Sample
 
@@ -22,7 +22,7 @@ class SampleRowHandler(GenericRowHandler):
 
 
     def process_row_inner(self, sample, library, container, project, parent_container, individual, sample_kind_objects_by_name, defined_pools):
-        comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
+        comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.now(timezone.utc).isoformat()}Z"
 
         # Individual related section
         taxon_obj = None
@@ -141,7 +141,11 @@ class SampleRowHandler(GenericRowHandler):
             # Container related section
             parent_container_obj = None
             if parent_container['barcode']:
-                parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
+                parent_container_obj, _, self.errors['parent_container'], self.warnings['parent_container'] = \
+                    get_or_create_container(barcode=parent_container['barcode'],
+                                            kind=parent_container['kind'],
+                                            name=parent_container['name'],
+                                            creation_comment=comment)
 
             container_obj, _, self.errors['container'], self.warnings['container'] = \
                 get_or_create_container(barcode=container['barcode'],
@@ -149,8 +153,7 @@ class SampleRowHandler(GenericRowHandler):
                                         name=container['name'],
                                         coordinates=container['coordinates'],
                                         container_parent=parent_container_obj,
-                                        creation_comment=comment,
-                                        )
+                                        creation_comment=comment)
 
             sample_obj = None
             if library_obj is not None or not is_library:
