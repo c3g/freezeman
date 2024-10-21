@@ -12,7 +12,7 @@ from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import DerivedBySample, Index
-from fms_core.services.workbook_utils import add_horizontal_table, add_vertical_table
+from fms_core.services.workbook_utils import CD, insert_cells
 
 REFERENCE_GENOME_REFERENCE_DIRS = [
     "hg38-alt_masked.cnv.hla.rna-8-r2.0-1",
@@ -105,10 +105,18 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
     workbook.create_sheet("Index")
 
     MAX_COLUMN = 5
+
+    # fill patterns
     fillSectionName = PatternFill(start_color="b3cac7", end_color="b3cac7", fill_type="solid")
     fillKey = PatternFill(start_color="e8a202", end_color="e8a202", fill_type="solid")
+    def style_header(cell):
+        cell.fill = fillKey
     fillPrefilled = PatternFill(start_color="dee7e5", end_color="dee7e5", fill_type="solid")
-    fillBlank = PatternFill(start_color="e8f2a1", end_color="e8f2a1", fill_type="solid")
+    def style_prefilled(cell):
+        cell.fill = fillPrefilled
+    fillWritable = PatternFill(start_color="e8f2a1", end_color="e8f2a1", fill_type="solid")
+    def style_writable(cell):
+        cell.fill = fillWritable
 
     def add_section_header(section_name: str):
         samplesheet.append([f"[{section_name}]"])
@@ -117,184 +125,137 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
 
     MAX_RUN_NAME_LENGTH = 255
     add_section_header("Header")
-    header_cells, _ = add_vertical_table(
+    insert_cells(
         samplesheet,
-        headers=["FileFormatVersion", "RunName", "InstrumentPlatform", "IndexOrientation"],
-        data=[["@FileFormatVersion", "@RunName", "@InstrumentPlatform", "@IndexOrientation"]],
-        topleft=(samplesheet.max_row+1, 1)
+        topleft=(samplesheet.max_row+1, 1),
+        order="col",
+        descriptors=[
+            [CD("FileFormatVersion", None, style_header), CD("RunName", None, style_header), CD("InstrumentPlatform", None, style_header), CD("IndexOrientation", None, style_header)],
+            [
+                CD("2", DataValidation(type="whole", operator="equal", formula1=2, allow_blank=False, showErrorMessage=True, errorTitle="Invalid FileFormatVersion Value", error="FileFormatVersion must always be 2"), style_writable),
+                CD("", DataValidation(type="textLength", operator="lessThanOrEqual", formula1=MAX_RUN_NAME_LENGTH, allow_blank=True, showErrorMessage=True, errorTitle="Invalid RunName Length", error=f"RunName must be less than or equal to {MAX_RUN_NAME_LENGTH} characters"), style_writable),
+                CD("NovaSeqXSeries", DataValidation(type="list", formula1='"NovaSeqXSeries"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid InstrumentPlatform Value", error="Only NovaSeqXSeries is supported"), style_writable),
+                CD("Forward", DataValidation(type="list", formula1='"Forward"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid IndexOrientation Value", error="Only Forward is supported"), style_writable),
+            ]
+        ]
     )
-    for cell in header_cells:
-        cell.fill = fillKey
 
     samplesheet.append([])
     add_section_header("Reads")
-    header_cells, _ = add_vertical_table(
+    insert_cells(
         samplesheet,
-        headers=["Read1Cycles", "Read2Cycles", "Index1Cycles", "Index2Cycles"],
-        data=[["@Read1Cycles", "@Read2Cycles", "@Index1Cycles", "@Index2Cycles"]],
-        topleft=(samplesheet.max_row+1, 1)
+        topleft=(samplesheet.max_row+1, 1),
+        order="col",
+        descriptors=[
+            [CD("Read1Cycles", None, style_header), CD("Read2Cycles", None, style_header), CD("Index1Cycles", None, style_header), CD("Index2Cycles", None, style_header)],
+            [
+                CD("", DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read1Cycles Value", error="Read1Cycles must be greater than 0"), style_writable),
+                CD("", DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read2Cycles Value", error="Read2Cycles must be greater than 0"), style_writable),
+                CD("", DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index1Cycles Value", error="Index1Cycles must be greater than or equal to 0"), style_writable),
+                CD("", DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index2Cycles Value", error="Index2Cycles must be greater than or equal to 0"), style_writable),
+            ]
+        ]
     )
-    for cell in header_cells:
-        cell.fill = fillKey
 
     samplesheet.append([])
     add_section_header("Sequencing_Settings")
-    header_cells, data_cells = add_vertical_table(
+    insert_cells(
         samplesheet,
-        headers=["LibraryPrepKits"],
-        data=[["@LibraryPrepKits"]],
-        topleft=(samplesheet.max_row+1, 1)
+        topleft=(samplesheet.max_row+1, 1),
+        order="col",
+        descriptors=[
+            [CD("LibraryPrepKits", None, style_header)],
+            [CD("IlluminaDNAPCRFree", DataValidation(type="list", formula1='"IlluminaDNAPCRFree"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error="Only IlluminaDNAPCRFree is supported"), style_writable)]
+        ]
     )
-    header_cells[0].fill = fillKey
 
     samplesheet.append([])
     add_section_header("BCLConvert_Settings")
-    header_cells, data_cells = add_vertical_table(
+    insert_cells(
         samplesheet,
-        headers=["SoftwareVersion", "AdapterRead1", "AdapterRead2", "OverrideCycles", "FastqCompressionFormat"],
-        data=[["@BCLConvert_SoftwareVersion", "@AdapterRead1", "@AdapterRead2", "@OverrideCycles", "@FastqCompressionFormat"]],
-        topleft=(samplesheet.max_row+1, 1)
+        topleft=(samplesheet.max_row+1, 1),
+        order="col",
+        descriptors=[
+            [CD("SoftwareVersion", None, style_header), CD("AdapterRead1", None, style_header), CD("AdapterRead2", None, style_header), CD("OverrideCycles", None, style_header), CD("FastqCompressionFormat", None, style_header)],
+            [
+                CD("", None, style_writable),
+                CD("CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", None, style_writable),
+                CD("CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", None, style_writable),
+                CD("", None, style_writable),
+                CD("gzip", DataValidation(type="list", formula1='"gzip"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported"), style_writable)
+            ]
+        ]
     )
-    for cell in header_cells:
-        cell.fill = fillKey
-    adapter_read_cells = [data_cells[0][1], data_cells[0][2]]
 
     samplesheet.append([])
     add_section_header("BCLConvert_Data")
-    header_cells, data_cells = add_horizontal_table(
+    insert_cells(
         samplesheet,
-        headers=["Lane", "Sample_ID", "Index", "Index2"],
-        data=[[datum.Lane, datum.Sample_ID, datum.Index, datum.Index2] for datum in BCLConvert_Data],
-        topleft=(samplesheet.max_row+1, 1)
+        topleft=(samplesheet.max_row+1, 1),
+        order="row",
+        descriptors=[
+            [CD("Lane", None, style_header), CD("Sample_ID", None, style_header), CD("Index", None, style_header), CD("Index2", None, style_header)],
+        ] + [
+            [
+                CD(datum.Lane, None, style_prefilled),
+                CD(datum.Sample_ID, None, style_prefilled),
+                CD(datum.Index, None, style_prefilled),
+                CD(datum.Index2, None, style_prefilled)
+            ]
+            for datum in BCLConvert_Data
+        ]
     )
-    for cell in header_cells:
-        cell.fill = fillKey
-    for row_cells in data_cells:
-        for cell in row_cells:
-            cell.fill = fillPrefilled
 
     samplesheet.append([])
     add_section_header("DragenGermline_Settings")
-    header_cells, _ = add_vertical_table(
+    insert_cells(
         samplesheet,
-        headers=["SoftwareVersion", "AppVersion", "MapAlignOutFormat", "KeepFastq"],
-        data=[["@DragenGermline_SoftwareVersion", "@AppVersion", "@MapAlignOutFormat", "@KeepFastq"]],
-        topleft=(samplesheet.max_row+1, 1)
+        topleft=(samplesheet.max_row+1, 1),
+        order="col",
+        descriptors=[
+            [CD("SoftwareVersion", None, style_header), CD("AppVersion", None, style_header), CD("MapAlignOutFormat", None, style_header), CD("KeepFastq", None, style_header)],
+            [
+                CD("", None, style_writable),
+                CD("", None, style_writable),
+                CD("none", DataValidation(type="list", formula1='"bam,cram,none"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error="Only bam, cram, none are supported"), style_writable),
+                CD("TRUE", DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid KeepFastq Value", error="Only TRUE, FALSE are supported"), style_writable)
+            ]
+        ]
     )
-    for cell in header_cells:
-        cell.fill = fillKey
 
     samplesheet.append([])
     add_section_header("DragenGermline_Data")
-    header_cells, data_cells = add_horizontal_table(
-        samplesheet,
-        headers=["Sample_ID", "ReferenceGenomeDir", "VariantCallingMode"],
-        data=[[datum.Sample_ID, "@ReferenceGenomeDir", "@VariantCallingMode"] for datum in DragenGermline_Data],
-        topleft=(samplesheet.max_row+1, 1)
+    REFERENCE_GENOME_VALIDATION = DataValidation(
+        type="list",
+        formula1=f'"{",".join(REFERENCE_GENOME_REFERENCE_DIRS)}"',
+        allow_blank=False,
+        showErrorMessage=True,
+        errorTitle="Invalid ReferenceGenomeDir Value",
+        error=f"Only {', '.join(REFERENCE_GENOME_REFERENCE_DIRS)} are supported"
     )
-    for cell in header_cells:
-        cell.fill = fillKey
-    for row_cells in data_cells:
-        row_cells[0].fill = fillPrefilled
-
-    samplesheet_cells_validations: dict[str, list[DataValidation]] = {
-        # [Header]
-        "FileFormatVersion": [
-            DataValidation(type="whole", operator="equal", formula1=2, allow_blank=False, showErrorMessage=True, errorTitle="Invalid FileFormatVersion Value", error="FileFormatVersion must always be 2")
-        ],
-        "RunName": [
-            DataValidation(type="textLength", operator="lessThanOrEqual", formula1=MAX_RUN_NAME_LENGTH, allow_blank=True, showErrorMessage=True, errorTitle="Invalid RunName Length", error=f"RunName must be less than or equal to {MAX_RUN_NAME_LENGTH} characters")
-        ],
-        "InstrumentPlatform": [
-            DataValidation(type="list", formula1='"NovaSeqXSeries"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid InstrumentPlatform Value", error="Only NovaSeqXSeries is supported")
-        ],
-        # "InstrumentType": [],
-        "IndexOrientation": [
-            DataValidation(type="list", formula1='"Forward"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid IndexOrientation Value", error="Only Forward is supported")
-        ],
-        # [Reads]
-        "Read1Cycles": [
-            DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read1Cycles Value", error="Read1Cycles must be greater than 0")
-        ],
-        "Read2Cycles": [
-            DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read2Cycles Value", error="Read2Cycles must be greater than 0")
-        ],
-        "Index1Cycles": [
-            DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index1Cycles Value", error="Index1Cycles must be greater than or equal to 0")
-        ],
-        "Index2Cycles": [
-            DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index2Cycles Value", error="Index2Cycles must be greater than or equal to 0")
-        ],
-        # [Sequencing_Settings]
-        "LibraryPrepKits": [
-            DataValidation(type="list", formula1='"IlluminaDNAPCRFree"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error="Only IlluminaDNAPCRFree is supported")
-        ],
-        # [BCLConvert_Settings]
-        "BCLConvert_SoftwareVersion": [],
-        "AdapterRead1": [],
-        "AdapterRead2": [],
-        "OverrideCycles": [],
-        "FastqCompressionFormat": [
-            DataValidation(type="list", formula1='"gzip"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported")
-        ],
-        # [BCLConvert_Data]
-        # [DragenGermline_Settings]
-        "DragenGermline_SoftwareVersion": [],
-        "AppVersion": [],
-        "MapAlignOutFormat": [
-            DataValidation(type="list", formula1='"bam,cram,none"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error="Only bam, cram, none are supported")
-        ],
-        "KeepFastq": [
-            DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid KeepFastq Value", error="Only TRUE, FALSE are supported")
-        ],
-        # [DragenGermline_Data]
-        "ReferenceGenomeDir": [
-            DataValidation(type="list", formula1=f'"{",".join(REFERENCE_GENOME_REFERENCE_DIRS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid ReferenceGenomeDir Value", error="Only hg38-alt_masked.cnv.hla.rna-8-r2.0-1, hg19-alt_masked.cnv.graph.hla.rna-10-r4.0-1, chm13_v2-cnv.graph.hla.rna-10-r4.0-1 are supported")
-        ],
-        "VariantCallingMode": [
-            DataValidation(type="list", formula1='"None,SmallVariantCaller,AllVariantCallers"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid VariantCallingMode Value", error="Only None, SmallVariantCaller, AllVariantCallers are supported")
+    VARIANT_CALLING_MODE_VALIDATION = DataValidation(
+        type="list",
+        formula1='"None,SmallVariantCaller,AllVariantCallers"',
+        allow_blank=False,
+        showErrorMessage=True,
+        errorTitle="Invalid VariantCallingMode Value",
+        error="Only None, SmallVariantCaller, AllVariantCallers are supported"
+    )
+    insert_cells(
+        samplesheet,
+        topleft=(samplesheet.max_row+1, 1),
+        order="row",
+        descriptors=[
+            [CD("Sample_ID", None, style_header), CD("ReferenceGenomeDir", None, style_header), CD("VariantCallingMode", None, style_header)],
+        ] + [
+            [
+                CD(datum.Sample_ID, None, style_prefilled),
+                CD(REFERENCE_GENOME_REFERENCE_DIRS[0], REFERENCE_GENOME_VALIDATION, style_writable),
+                CD("None", VARIANT_CALLING_MODE_VALIDATION, style_writable),
+            ]
+            for datum in DragenGermline_Data
         ]
-    }
-    samplesheet_cells_default_values: dict[str, str] = {
-        # [Header]
-        "FileFormatVersion": "2",
-        "RunName": "",
-        "InstrumentPlatform": "NovaSeqXSeries",
-        "InstrumentType": "",
-        "IndexOrientation": "Forward",
-        # [Reads]
-        "Read1Cycles": "",
-        "Read2Cycles": "",
-        "Index1Cycles": "",
-        "Index2Cycles": "",
-        # [Sequencing_Settings]
-        "LibraryPrepKits": "IlluminaDNAPCRFree",
-        # [BCLConvert_Settings]
-        "BCLConvert_SoftwareVersion": "",
-        "AdapterRead1": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA",
-        "AdapterRead2": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA",
-        "OverrideCycles": "",
-        "FastqCompressionFormat": "gzip",
-        # [BCLConvert_Data]
-        # [DragenGermline_Settings]
-        "DragenGermline_SoftwareVersion": "",
-        "AppVersion": "",
-        "MapAlignOutFormat": "none",
-        "KeepFastq": "TRUE",
-        # [DragenGermline_Data]
-        "ReferenceGenomeDir": REFERENCE_GENOME_REFERENCE_DIRS[0],
-        "VariantCallingMode": "None"
-    }
-    for row_cells in samplesheet.rows:
-        for cell in row_cells:
-            value = cell.value
-            if value and value.startswith("@"):
-                key = value[1:]
-                cell.value = samplesheet_cells_default_values.get(key, "UNKNOWN_DEFAULT_VALUE")
-                cell.fill = fillBlank
-                for validation in samplesheet_cells_validations.get(key, []):
-                    samplesheet.add_data_validation(validation)
-                    validation.add(cell)
+    )
 
     samplesheet.column_dimensions["A"].width = 25
     samplesheet.column_dimensions["B"].width = 20
@@ -317,20 +278,20 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
             )
 
     # erase border on the right of adapter read value cells
-    for adapter_read_cell in adapter_read_cells:
-        adapter_read_cell.border = Border(
-            left=Side(border_style="thin", color="000000"),
-            right=None,
-            top=Side(border_style="thin", color="000000"),
-            bottom=Side(border_style="thin", color="000000"),
-        )
-        right_cell = adapter_read_cell.row, adapter_read_cell.column
-        right_cell = right_cell[0], right_cell[1]+1
-        samplesheet.cell(row=right_cell[0], column=right_cell[1]).border = Border(
-            left=None,
-            right=Side(border_style="thin", color="000000"),
-            top=Side(border_style="thin", color="000000"),
-            bottom=Side(border_style="thin", color="000000"),
-        )
+    # for adapter_read_cell in adapter_read_cells:
+    #     adapter_read_cell.border = Border(
+    #         left=Side(border_style="thin", color="000000"),
+    #         right=None,
+    #         top=Side(border_style="thin", color="000000"),
+    #         bottom=Side(border_style="thin", color="000000"),
+    #     )
+    #     right_cell = adapter_read_cell.row, adapter_read_cell.column
+    #     right_cell = right_cell[0], right_cell[1]+1
+    #     samplesheet.cell(row=right_cell[0], column=right_cell[1]).border = Border(
+    #         left=None,
+    #         right=Side(border_style="thin", color="000000"),
+    #         top=Side(border_style="thin", color="000000"),
+    #         bottom=Side(border_style="thin", color="000000"),
+    #     )
 
     return workbook

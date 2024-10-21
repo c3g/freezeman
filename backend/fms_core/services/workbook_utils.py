@@ -1,32 +1,32 @@
+from dataclasses import dataclass
+from typing import Callable, Iterable, Literal
 from openpyxl.cell.cell import Cell
+from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
-def add_horizontal_table(worksheet: Worksheet, headers: list[str], data: list[list[str]], topleft: tuple[int, int]):
-    header_cells = list[Cell]()
-    data_cells = list[list[Cell]]()
+@dataclass
+class CellDescription:
+    value: str
+    validation: DataValidation | None
+    apply_cell: Callable[[Cell], None] | None
 
-    for col_offset, header in enumerate(headers):
-        header_cells.append(worksheet.cell(row=topleft[0], column=topleft[1]+col_offset, value=header))
-    for row_offset, row_data in enumerate(data):
-        row_cells = list[Cell]()
-        for col_offset, value in enumerate(row_data):
-            # +1 to skip the header row
-            row_cells.append(worksheet.cell(row=topleft[0]+row_offset+1, column=topleft[1]+col_offset, value=value))
-        data_cells.append(row_cells)
+CD = CellDescription
 
-    return header_cells, data_cells
+def insert_cells(worksheet: Worksheet, topleft: tuple[int, int], descriptors: Iterable[Iterable[CellDescription]], order: Literal["row"] | Literal["col"]):
+    validations = set()
 
-def add_vertical_table(worksheet: Worksheet, headers: list[str], data: list[list[str]], topleft: tuple[int, int]):
-    header_cells = list[Cell]()
-    data_cells = list[list[Cell]]()
+    for outer_offset, row_entries in enumerate(descriptors):
+        for inner_offset, cell_description in enumerate(row_entries):
+            row_offset = outer_offset if order == "row" else inner_offset
+            column_offset = outer_offset if order == "col" else inner_offset
+            cell = worksheet.cell(row=topleft[0] + row_offset, column=topleft[1] + column_offset, value=cell_description.value)
 
-    for row_rel_index, header in enumerate(headers):
-        header_cells.append(worksheet.cell(row=topleft[0]+row_rel_index, column=topleft[1], value=header))
-    for col_rel_index, col_data in enumerate(data):
-        col_cells = list[Cell]()
-        for row_rel_index, value in enumerate(col_data):
-            # +1 to skip the header column
-            col_cells.append(worksheet.cell(row=topleft[0]+row_rel_index, column=topleft[1]+col_rel_index+1, value=value))
-        data_cells.append(col_cells)
+            validation = cell_description.validation
+            if validation is not None:
+                validation.add(cell)
+                if validation not in validations:
+                    worksheet.add_data_validation(cell_description.validation)
+                    validations.add(validation)
 
-    return header_cells, data_cells
+            if cell_description.apply_cell is not None:
+                cell_description.apply_cell(cell)
