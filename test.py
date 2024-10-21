@@ -1,9 +1,46 @@
 from dataclasses import dataclass
 from openpyxl import Workbook
+from openpyxl.cell.cell import Cell
+from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Border, Side
 from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
+
+def add_horizontal_table(worksheet: Worksheet, headers: list[str], data: list[list[str]], topleft: tuple[int, int]):
+    header_cells = list[Cell]()
+    data_cells = list[list[Cell]]()
+
+    for col_offset, header in enumerate(headers):
+        header_cells.append(worksheet.cell(row=topleft[0], column=topleft[1]+col_offset, value=header))
+    for row_offset, row_data in enumerate(data):
+        row_cells = list[Cell]()
+        for col_offset, value in enumerate(row_data):
+            # +1 to skip the header row
+            row_cells.append(worksheet.cell(row=topleft[0]+row_offset+1, column=topleft[1]+col_offset, value=value))
+        data_cells.append(row_cells)
+
+    return header_cells, data_cells
+
+def add_vertical_table(worksheet: Worksheet, headers: list[str], data: list[list[str]], topleft: tuple[int, int]):
+    header_cells = list[Cell]()
+    data_cells = list[list[Cell]]()
+
+    for row_rel_index, header in enumerate(headers):
+        header_cells.append(worksheet.cell(row=topleft[0]+row_rel_index, column=topleft[1], value=header))
+    for col_rel_index, col_data in enumerate(data):
+        col_cells = list[Cell]()
+        for row_rel_index, value in enumerate(col_data):
+            # +1 to skip the header column
+            col_cells.append(worksheet.cell(row=topleft[0]+row_rel_index, column=topleft[1]+col_rel_index+1, value=value))
+        data_cells.append(col_cells)
+
+    return header_cells, data_cells
+
+@dataclass
+class HorizontalTable:
+    headers: list[Cell]
+    data: list[list[Cell]]
 
 @dataclass
 class BCLConvert_Datum:
@@ -34,94 +71,92 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
     fillPrefilled = PatternFill(start_color="dee7e5", end_color="dee7e5", fill_type="solid")
     fillBlank = PatternFill(start_color="e8f2a1", end_color="e8f2a1", fill_type="solid")
 
-    samplesheet.append(["[Header]"])
-    section_start_row = samplesheet.max_row
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
-    samplesheet.append(["FileFormatVersion", "@FileFormatVersion"])
-    samplesheet.append(["RunName", "@RunName"])
+    def add_section_header(section_name: str):
+        samplesheet.append([f"[{section_name}]"])
+        for i in range(1, MAX_COLUMN):
+            samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
+
     MAX_RUN_NAME_LENGTH = 255
-    samplesheet.append(["InstrumentPlatform", "@InstrumentPlatform"])
-    # samplesheet.append(["InstrumentType", "@InstrumentType"])
-    samplesheet.append(["IndexOrientation", "@IndexOrientation"])
-    section_end_row = samplesheet.max_row
-    for i in range(section_start_row+1, section_end_row+1):
-        samplesheet.cell(row=i, column=1).fill = fillKey
+    add_section_header("Header")
+    header_cells, _ = add_vertical_table(
+        samplesheet,
+        headers=["FileFormatVersion", "RunName", "InstrumentPlatform", "IndexOrientation"],
+        data=[["@FileFormatVersion", "@RunName", "@InstrumentPlatform", "@IndexOrientation"]],
+        topleft=(samplesheet.max_row+1, 1)
+    )
+    for cell in header_cells:
+        cell.fill = fillKey
 
     samplesheet.append([])
-    samplesheet.append(["[Reads]"])
-    section_start_row = samplesheet.max_row
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
-    samplesheet.append(["Read1Cycles", "@Read1Cycles"])
-    samplesheet.append(["Read2Cycles", "@Read2Cycles"])
-    samplesheet.append(["Index1Cycles", "@Index1Cycles"])
-    samplesheet.append(["Index2Cycles", "@Index2Cycles"])
-    section_end_row = samplesheet.max_row
-    for i in range(section_start_row+1, section_end_row+1):
-        samplesheet.cell(row=i, column=1).fill = fillKey
+    add_section_header("Reads")
+    header_cells, _ = add_vertical_table(
+        samplesheet,
+        headers=["Read1Cycles", "Read2Cycles", "Index1Cycles", "Index2Cycles"],
+        data=[["@Read1Cycles", "@Read2Cycles", "@Index1Cycles", "@Index2Cycles"]],
+        topleft=(samplesheet.max_row+1, 1)
+    )
+    for cell in header_cells:
+        cell.fill = fillKey
 
     samplesheet.append([])
-    samplesheet.append(["[Sequencing_Settings]"])
-    section_start_row = samplesheet.max_row
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
-    samplesheet.append(["LibraryPrepKits", "@LibraryPrepKits"])
-    library_kit_cell = samplesheet.cell(row=samplesheet.max_row, column=2)
-    section_end_row = samplesheet.max_row
-    for i in range(section_start_row+1, section_end_row+1):
-        samplesheet.cell(row=i, column=1).fill = fillKey
+    add_section_header("Sequencing_Settings")
+    header_cells, data_cells = add_vertical_table(
+        samplesheet,
+        headers=["LibraryPrepKits"],
+        data=[["@LibraryPrepKits"]],
+        topleft=(samplesheet.max_row+1, 1)
+    )
+    header_cells[0].fill = fillKey
 
     samplesheet.append([])
-    samplesheet.append(["[BCLConvert_Settings]"])
-    section_start_row = samplesheet.max_row
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
-    samplesheet.append(["SoftwareVersion", "@BCLConvert_SoftwareVersion"])
-    samplesheet.append(["AdapterRead1", "@AdapterRead1"])
-    samplesheet.append(["AdapterRead2", "@AdapterRead2"])
-    samplesheet.append(["OverrideCycles", "@OverrideCycles"])
-    samplesheet.append(["FastqCompressionFormat", "@FastqCompressionFormat"])
-    section_end_row = samplesheet.max_row
-    for i in range(section_start_row+1, section_end_row+1):
-        samplesheet.cell(row=i, column=1).fill = fillKey
+    add_section_header("BCLConvert_Settings")
+    header_cells, data_cells = add_vertical_table(
+        samplesheet,
+        headers=["SoftwareVersion", "AdapterRead1", "AdapterRead2", "OverrideCycles", "FastqCompressionFormat"],
+        data=[["@BCLConvert_SoftwareVersion", "@AdapterRead1", "@AdapterRead2", "@OverrideCycles", "@FastqCompressionFormat"]],
+        topleft=(samplesheet.max_row+1, 1)
+    )
+    for cell in header_cells:
+        cell.fill = fillKey
+    adapter_read_cells = [data_cells[0][1], data_cells[0][2]]
 
     samplesheet.append([])
-    samplesheet.append(["[BCLConvert_Data]"])
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
-    samplesheet.append(["Lane", "Sample_ID", "Index", "Index2"])
-    for i in range(1, 4+1):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillKey
-    for datum in BCLConvert_Data:
-        samplesheet.append([datum.Lane, datum.Sample_ID, datum.Index, datum.Index2])
-        for i in range(1, 4+1):
-            samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillPrefilled
+    add_section_header("BCLConvert_Data")
+    header_cells, data_cells = add_horizontal_table(
+        samplesheet,
+        headers=["Lane", "Sample_ID", "Index", "Index2"],
+        data=[[datum.Lane, datum.Sample_ID, datum.Index, datum.Index2] for datum in BCLConvert_Data],
+        topleft=(samplesheet.max_row+1, 1)
+    )
+    for cell in header_cells:
+        cell.fill = fillKey
+    for row_cells in data_cells:
+        for cell in row_cells:
+            cell.fill = fillPrefilled
 
     samplesheet.append([])
-    samplesheet.append(["[DragenGermline_Settings]"])
-    section_start_row = samplesheet.max_row
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
-    samplesheet.append(["SoftwareVersion", "@DragenGermline_SoftwareVersion"])
-    samplesheet.append(["AppVersion", "@AppVersion"])
-    samplesheet.append(["MapAlignOutFormat", "@MapAlignOutFormat"])
-    samplesheet.append(["KeepFastq", "@KeepFastq"])
-    section_end_row = samplesheet.max_row
-    for i in range(section_start_row+1, section_end_row+1):
-        samplesheet.cell(row=i, column=1).fill = fillKey
+    add_section_header("DragenGermline_Settings")
+    header_cells, _ = add_vertical_table(
+        samplesheet,
+        headers=["SoftwareVersion", "AppVersion", "MapAlignOutFormat", "KeepFastq"],
+        data=[["@DragenGermline_SoftwareVersion", "@AppVersion", "@MapAlignOutFormat", "@KeepFastq"]],
+        topleft=(samplesheet.max_row+1, 1)
+    )
+    for cell in header_cells:
+        cell.fill = fillKey
 
     samplesheet.append([])
-    samplesheet.append(["[DragenGermline_Data]"])
-    for i in range(1, MAX_COLUMN):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
-    samplesheet.append(["Sample_ID", "ReferenceGenomeDir", "VariantCallingMode"])
-    for i in range(1, 3+1):
-        samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillKey
-    for datum in DragenGermline_Data:
-        samplesheet.append([datum.Sample_ID, datum.ReferenceGenomeDir, datum.VariantCallingMode])
-        for i in range(1, 3+1):
-            samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillPrefilled
+    add_section_header("DragenGermline_Data")
+    header_cells, data_cells = add_horizontal_table(
+        samplesheet,
+        headers=["Sample_ID", "ReferenceGenomeDir", "VariantCallingMode"],
+        data=[[datum.Sample_ID, datum.ReferenceGenomeDir, datum.VariantCallingMode] for datum in DragenGermline_Data],
+        topleft=(samplesheet.max_row+1, 1)
+    )
+    for cell in header_cells:
+        cell.fill = fillKey
+    for row_cells in data_cells:
+        row_cells[0].fill = fillPrefilled
 
     samplesheet_cells_validations: dict[str, list[DataValidation]] = {
         # [Header]
@@ -195,8 +230,8 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
         "LibraryPrepKits": "IlluminaDNAPCRFree",
         # [BCLConvert_Settings]
         "BCLConvert_SoftwareVersion": "",
-        "AdapterRead1": f'=IF({library_kit_cell.coordinate}="IlluminaDNAPCRFree","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
-        "AdapterRead2": f'=IF({library_kit_cell.coordinate}="IlluminaDNAPCRFree","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
+        "AdapterRead1": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA",
+        "AdapterRead2": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA",
         "OverrideCycles": "",
         "FastqCompressionFormat": "gzip",
         # [BCLConvert_Data]
@@ -209,8 +244,8 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
         "ReferenceGenomeDir": "",
         "VariantCallingMode": "None"
     }
-    for row in samplesheet.rows:
-        for cell in row:
+    for row_cells in samplesheet.rows:
+        for cell in row_cells:
             value = cell.value
             if value and value.startswith("@"):
                 key = value[1:]
@@ -226,9 +261,10 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
     samplesheet.column_dimensions["D"].width = 20
     samplesheet.column_dimensions["E"].width = 20
 
+    # add border to all cells in the bounding range
     bounding_range = samplesheet.calculate_dimension().split(":")
-    bounding_rate = coordinate_from_string(bounding_range[0]), coordinate_from_string(bounding_range[1])
-    bounding_range = (column_index_from_string(bounding_rate[0][0]), int(bounding_rate[0][1])), (column_index_from_string(bounding_rate[1][0]), int(bounding_rate[1][1]))
+    bounding_range = coordinate_from_string(bounding_range[0]), coordinate_from_string(bounding_range[1])
+    bounding_range = (column_index_from_string(bounding_range[0][0]), int(bounding_range[0][1])), (column_index_from_string(bounding_range[1][0]), int(bounding_range[1][1]))
     for i in range(bounding_range[0][0], bounding_range[1][0]+1):
         for j in range(bounding_range[0][1], bounding_range[1][1]+1):
             cell = samplesheet.cell(row=j, column=i)
@@ -238,6 +274,23 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
                 top=Side(border_style="thin", color="000000"),
                 bottom=Side(border_style="thin", color="000000"),
             )
+
+    # erase border on the right of adapter read value cells
+    for adapter_read_cell in adapter_read_cells:
+        adapter_read_cell.border = Border(
+            left=Side(border_style="thin", color="000000"),
+            right=None,
+            top=Side(border_style="thin", color="000000"),
+            bottom=Side(border_style="thin", color="000000"),
+        )
+        right_cell = adapter_read_cell.row, adapter_read_cell.column
+        right_cell = right_cell[0], right_cell[1]+1
+        samplesheet.cell(row=right_cell[0], column=right_cell[1]).border = Border(
+            left=None,
+            right=Side(border_style="thin", color="000000"),
+            top=Side(border_style="thin", color="000000"),
+            bottom=Side(border_style="thin", color="000000"),
+        )
 
     return workbook
 
