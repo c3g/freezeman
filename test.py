@@ -68,7 +68,6 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
         samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
     samplesheet.append(["LibraryPrepKits", "@LibraryPrepKits"])
     library_kit_cell = samplesheet.cell(row=samplesheet.max_row, column=2)
-    IlluminaDNAPCRFree = "IlluminaDNAPCRFree"
     section_end_row = samplesheet.max_row
     for i in range(section_start_row+1, section_end_row+1):
         samplesheet.cell(row=i, column=1).fill = fillKey
@@ -196,8 +195,8 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
         "LibraryPrepKits": "IlluminaDNAPCRFree",
         # [BCLConvert_Settings]
         "BCLConvert_SoftwareVersion": "",
-        "AdapterRead1": f'=IF({library_kit_cell.coordinate}="{IlluminaDNAPCRFree}","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
-        "AdapterRead2": f'=IF({library_kit_cell.coordinate}="{IlluminaDNAPCRFree}","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
+        "AdapterRead1": f'=IF({library_kit_cell.coordinate}="IlluminaDNAPCRFree","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
+        "AdapterRead2": f'=IF({library_kit_cell.coordinate}="IlluminaDNAPCRFree","CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA","")',
         "OverrideCycles": "",
         "FastqCompressionFormat": "gzip",
         # [BCLConvert_Data]
