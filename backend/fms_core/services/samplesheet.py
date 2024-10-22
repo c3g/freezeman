@@ -277,21 +277,4 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
                 bottom=Side(border_style="thin", color="000000"),
             )
 
-    # erase border on the right of adapter read value cells
-    # for adapter_read_cell in adapter_read_cells:
-    #     adapter_read_cell.border = Border(
-    #         left=Side(border_style="thin", color="000000"),
-    #         right=None,
-    #         top=Side(border_style="thin", color="000000"),
-    #         bottom=Side(border_style="thin", color="000000"),
-    #     )
-    #     right_cell = adapter_read_cell.row, adapter_read_cell.column
-    #     right_cell = right_cell[0], right_cell[1]+1
-    #     samplesheet.cell(row=right_cell[0], column=right_cell[1]).border = Border(
-    #         left=None,
-    #         right=Side(border_style="thin", color="000000"),
-    #         top=Side(border_style="thin", color="000000"),
-    #         bottom=Side(border_style="thin", color="000000"),
-    #     )
-
     return workbook
