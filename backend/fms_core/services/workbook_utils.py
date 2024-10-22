@@ -7,15 +7,13 @@ from openpyxl.worksheet.worksheet import Worksheet
 @dataclass
 class CellDescription:
     value: str
-    validation: DataValidation | None = None
-    apply_cell: Callable[[Cell], None] | None = None
-    id: str | None = None
+    validation: DataValidation | None
+    apply_cell: Callable[[Cell], None] | None
 
 CD = CellDescription
 
 def insert_cells(worksheet: Worksheet, topleft: tuple[int, int], descriptors: Iterable[Iterable[CellDescription]], order: Literal["row"] | Literal["col"]):
     validations = set()
-    cells_by_id = dict[str, Cell]()
 
     for outer_offset, row_entries in enumerate(descriptors):
         for inner_offset, cell_description in enumerate(row_entries):
@@ -32,8 +30,3 @@ def insert_cells(worksheet: Worksheet, topleft: tuple[int, int], descriptors: It
 
             if cell_description.apply_cell is not None:
                 cell_description.apply_cell(cell)
-
-            if cell_description.id is not None:
-                cells_by_id[cell_description.id] = cell
-
-    return cells_by_id
