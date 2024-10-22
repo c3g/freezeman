@@ -76,7 +76,7 @@ def get_samplesheet(container_kind, placement):
         for lane, sample_alias, derived_sample_id, sequences_3prime, sequences_5prime
         in row_data_by_lane
     ]
-    workbook = generate_samplesheet_workbook(
+    workbook = _generate_samplesheet_workbook(
         BCLConvert_Data=bclconvert_data,
         DragenGermline_Data=dragen_data
     )
@@ -94,7 +94,7 @@ class BCLConvert_Datum:
 class DragenGermline_Datum:
     Sample_ID: str
 
-def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], DragenGermline_Data: list[DragenGermline_Datum]) -> Workbook:
+def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], DragenGermline_Data: list[DragenGermline_Datum]) -> Workbook:
     workbook = Workbook()
 
     workbook.create_sheet("Samplesheet")
