@@ -104,8 +104,6 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
     workbook.create_sheet("Info")
     workbook.create_sheet("Index")
 
-    MAX_COLUMN = 5
-
     # fill patterns
     fillSectionName = PatternFill(start_color="b3cac7", end_color="b3cac7", fill_type="solid")
     fillKey = PatternFill(start_color="e8a202", end_color="e8a202", fill_type="solid")
@@ -118,6 +116,7 @@ def generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drage
     def style_writable(cell):
         cell.fill = fillWritable
 
+    MAX_COLUMN = 5
     def add_section_header(section_name: str):
         samplesheet.append([f"[{section_name}]"])
         for i in range(1, MAX_COLUMN):
