@@ -521,6 +521,7 @@ SAMPLE_POOLING_TEMPLATE = {
       ("SamplesToPool", "Source Sample Name", "name", "name", None),
       ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode", None),
       ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SamplesToPool", "Index Name", None, "index_name", None),
       ("SamplesToPool", "Current Volume (uL)", "volume", "volume", None),
       ("LabInput", "Sample Name", "name", "name", None),
       ("LabInput", "Library Type", None, "library_type", None),
