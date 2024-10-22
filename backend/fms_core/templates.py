@@ -495,8 +495,8 @@ SAMPLE_POOLING_TEMPLATE = {
       {
           "name": "Pools",
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Coord",
-                      "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode",
-                      "Destination Parent Container Coord", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
+                      "Destination Container Name", "Destination Container Kind", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)",
+                      "Destination Parent Container Barcode", "Destination Parent Container Coord", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
       },
