@@ -50,13 +50,13 @@ def get_samplesheet(container_kind, placement):
                 sample_id = lane_info["sample_id"]
                 lane = convert_alpha_digit_coord_to_ordinal(coordinates, container_spec.coordinate_spec)
                 derived_by_samples = DerivedBySample.objects.filter(sample_id=sample_id)
-                values = derived_by_samples.values_list("derived_sample__biosample__alias", "derived_sample__library__index_id")
-                for sample_alias, index_id in values:
+                values = derived_by_samples.values_list("derived_sample__biosample__alias", "derived_sample__id", "derived_sample__library__index_id")
+                for sample_alias, derived_sample_id, index_id in values:
                     if index_id is not None:
                         index = Index.objects.get(id=index_id)
                         sequences_3prime = ", ".join(index.list_3prime_sequences)
                         sequences_5prime = ", ".join(index.list_5prime_sequences)
-                        row_data_by_lane.append((str(lane), sample_alias, sequences_3prime, sequences_5prime))
+                        row_data_by_lane.append((str(lane), sample_alias, derived_sample_id, sequences_3prime, sequences_5prime))
                     else:
                         errors.append(f'Cannot find index associated to sample {sample_alias}.')
         else:
@@ -66,14 +66,14 @@ def get_samplesheet(container_kind, placement):
 
     row_data_by_lane.sort(key=lambda x: x[0])
     bclconvert_data = [
-        BCLConvert_Datum(Lane=lane, Sample_ID=sample_alias, Index=sequences_3prime, Index2=sequences_5prime)
-        for lane, sample_alias, sequences_3prime, sequences_5prime
+        BCLConvert_Datum(Lane=lane, Sample_ID=f"{sample_alias}*{derived_sample_id}", Index=sequences_3prime, Index2=sequences_5prime)
+        for lane, sample_alias, derived_sample_id, sequences_3prime, sequences_5prime
         in row_data_by_lane
     ]
     row_data_by_lane.sort(key=lambda x: x[1])
     dragen_data = [
-        DragenGermline_Datum(Sample_ID=sample_alias)
-        for lane, sample_alias, sequences_3prime, sequences_5prime
+        DragenGermline_Datum(Sample_ID=f"{sample_alias}*{derived_sample_id}")
+        for lane, sample_alias, derived_sample_id, sequences_3prime, sequences_5prime
         in row_data_by_lane
     ]
     workbook = generate_samplesheet_workbook(
