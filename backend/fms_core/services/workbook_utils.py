@@ -12,14 +12,14 @@ class CellDescription:
 
 CD = CellDescription
 
-def insert_cells(worksheet: Worksheet, topleft: tuple[int, int], descriptors: Iterable[Iterable[CellDescription]], order: Literal["row"] | Literal["col"]):
+def insert_cells(worksheet: Worksheet, first_cell_location: tuple[int, int], descriptors: Iterable[Iterable[CellDescription]], order: Literal["row"] | Literal["col"]):
     validations = set()
 
-    for outer_offset, row_entries in enumerate(descriptors):
-        for inner_offset, cell_description in enumerate(row_entries):
+    for outer_offset, descriptor_row in enumerate(descriptors):
+        for inner_offset, cell_description in enumerate(descriptor_row):
             row_offset = outer_offset if order == "row" else inner_offset
             column_offset = outer_offset if order == "col" else inner_offset
-            cell = worksheet.cell(row=topleft[0] + row_offset, column=topleft[1] + column_offset, value=cell_description.value)
+            cell = worksheet.cell(row=first_cell_location[0] + row_offset, column=first_cell_location[1] + column_offset, value=cell_description.value)
 
             validation = cell_description.validation
             if validation is not None:

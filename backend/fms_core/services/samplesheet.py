@@ -126,7 +126,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     add_section_header("Header")
     insert_cells(
         samplesheet,
-        topleft=(samplesheet.max_row+1, 1),
+        first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
             [CD("FileFormatVersion", None, style_header), CD("RunName", None, style_header), CD("InstrumentPlatform", None, style_header), CD("IndexOrientation", None, style_header)],
@@ -143,7 +143,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     add_section_header("Reads")
     insert_cells(
         samplesheet,
-        topleft=(samplesheet.max_row+1, 1),
+        first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
             [CD("Read1Cycles", None, style_header), CD("Read2Cycles", None, style_header), CD("Index1Cycles", None, style_header), CD("Index2Cycles", None, style_header)],
@@ -160,7 +160,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     add_section_header("Sequencing_Settings")
     insert_cells(
         samplesheet,
-        topleft=(samplesheet.max_row+1, 1),
+        first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
             [CD("LibraryPrepKits", None, style_header)],
@@ -172,7 +172,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     add_section_header("BCLConvert_Settings")
     insert_cells(
         samplesheet,
-        topleft=(samplesheet.max_row+1, 1),
+        first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
             [CD("SoftwareVersion", None, style_header), CD("AdapterRead1", None, style_header), CD("AdapterRead2", None, style_header), CD("OverrideCycles", None, style_header), CD("FastqCompressionFormat", None, style_header)],
@@ -190,7 +190,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     add_section_header("BCLConvert_Data")
     insert_cells(
         samplesheet,
-        topleft=(samplesheet.max_row+1, 1),
+        first_cell_location=(samplesheet.max_row+1, 1),
         order="row",
         descriptors=[
             [CD("Lane", None, style_header), CD("Sample_ID", None, style_header), CD("Index", None, style_header), CD("Index2", None, style_header)],
@@ -209,7 +209,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     add_section_header("DragenGermline_Settings")
     insert_cells(
         samplesheet,
-        topleft=(samplesheet.max_row+1, 1),
+        first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
             [CD("SoftwareVersion", None, style_header), CD("AppVersion", None, style_header), CD("MapAlignOutFormat", None, style_header), CD("KeepFastq", None, style_header)],
@@ -242,7 +242,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     )
     insert_cells(
         samplesheet,
-        topleft=(samplesheet.max_row+1, 1),
+        first_cell_location=(samplesheet.max_row+1, 1),
         order="row",
         descriptors=[
             [CD("Sample_ID", None, style_header), CD("ReferenceGenomeDir", None, style_header), CD("VariantCallingMode", None, style_header)],
