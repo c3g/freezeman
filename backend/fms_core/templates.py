@@ -489,7 +489,7 @@ SAMPLE_METADATA_TEMPLATE = {
 
 SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries",
-               "file": static("submission_templates/Sample_pooling_v4_9_0.xlsx"),
+               "file": static("submission_templates/Sample_pooling_v4_12_0.xlsx"),
                "protocol": "Sample Pooling"},
   "sheets info": [
       {
