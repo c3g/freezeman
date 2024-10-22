@@ -129,12 +129,33 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
-            [CD("FileFormatVersion", None, style_header), CD("RunName", None, style_header), CD("InstrumentPlatform", None, style_header), CD("IndexOrientation", None, style_header)],
             [
-                CD("2", DataValidation(type="whole", operator="equal", formula1=2, allow_blank=False, showErrorMessage=True, errorTitle="Invalid FileFormatVersion Value", error="FileFormatVersion must always be 2"), style_writable),
-                CD("", DataValidation(type="textLength", operator="lessThanOrEqual", formula1=MAX_RUN_NAME_LENGTH, allow_blank=True, showErrorMessage=True, errorTitle="Invalid RunName Length", error=f"RunName must be less than or equal to {MAX_RUN_NAME_LENGTH} characters"), style_writable),
-                CD("NovaSeqXSeries", DataValidation(type="list", formula1='"NovaSeqXSeries"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid InstrumentPlatform Value", error="Only NovaSeqXSeries is supported"), style_writable),
-                CD("Forward", DataValidation(type="list", formula1='"Forward"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid IndexOrientation Value", error="Only Forward is supported"), style_writable),
+                CD(value="FileFormatVersion", apply_cell=style_header),
+                CD(value="RunName", apply_cell=style_header),
+                CD(value="InstrumentPlatform", apply_cell=style_header),
+                CD(value="IndexOrientation", apply_cell=style_header)
+            ],
+            [
+                CD(
+                    value="2",
+                    validation=DataValidation(type="whole", operator="equal", formula1=2, allow_blank=False, showErrorMessage=True, errorTitle="Invalid FileFormatVersion Value", error="FileFormatVersion must always be 2"),
+                    apply_cell=style_writable
+                ),
+                CD(
+                    value="",
+                    validation=DataValidation(type="textLength", operator="lessThanOrEqual", formula1=MAX_RUN_NAME_LENGTH, allow_blank=True, showErrorMessage=True, errorTitle="Invalid RunName Length", error=f"RunName must be less than or equal to {MAX_RUN_NAME_LENGTH} characters"),
+                    apply_cell=style_writable
+                ),
+                CD(
+                    value="NovaSeqXSeries",
+                    validation=DataValidation(type="list", formula1='"NovaSeqXSeries"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid InstrumentPlatform Value", error="Only NovaSeqXSeries is supported"),
+                    apply_cell=style_writable
+                ),
+                CD(
+                    value="Forward",
+                    validation=DataValidation(type="list", formula1='"Forward"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid IndexOrientation Value", error="Only Forward is supported"),
+                    apply_cell=style_writable
+                )
             ]
         ]
     )
@@ -146,12 +167,33 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
-            [CD("Read1Cycles", None, style_header), CD("Read2Cycles", None, style_header), CD("Index1Cycles", None, style_header), CD("Index2Cycles", None, style_header)],
             [
-                CD("", DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read1Cycles Value", error="Read1Cycles must be greater than 0"), style_writable),
-                CD("", DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read2Cycles Value", error="Read2Cycles must be greater than 0"), style_writable),
-                CD("", DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index1Cycles Value", error="Index1Cycles must be greater than or equal to 0"), style_writable),
-                CD("", DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index2Cycles Value", error="Index2Cycles must be greater than or equal to 0"), style_writable),
+                CD(value="Read1Cycles", apply_cell=style_header),
+                CD(value="Read2Cycles", apply_cell=style_header),
+                CD(value="Index1Cycles", apply_cell=style_header),
+                CD(value="Index2Cycles", apply_cell=style_header)
+            ],
+            [
+                CD(
+                    value="",
+                    validation=DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read1Cycles Value", error="Read1Cycles must be greater than 0"),
+                    apply_cell=style_writable
+                ),
+                CD(
+                    value="",
+                    validation=DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read2Cycles Value", error="Read2Cycles must be greater than 0"),
+                    apply_cell=style_writable
+                ),
+                CD(
+                    value="",
+                    validation=DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index1Cycles Value", error="Index1Cycles must be greater than or equal to 0"),
+                    apply_cell=style_writable
+                ),
+                CD(
+                    value="",
+                    validation=DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index2Cycles Value", error="Index2Cycles must be greater than or equal to 0"),
+                    apply_cell=style_writable
+                ),
             ]
         ]
     )
@@ -163,8 +205,14 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
-            [CD("LibraryPrepKits", None, style_header)],
-            [CD("IlluminaDNAPCRFree", DataValidation(type="list", formula1='"IlluminaDNAPCRFree"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error="Only IlluminaDNAPCRFree is supported"), style_writable)]
+            [CD(value="LibraryPrepKits", apply_cell=style_header)],
+            [
+                CD(
+                    value="IlluminaDNAPCRFree",
+                    validation=DataValidation(type="list", formula1='"IlluminaDNAPCRFree"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error="Only IlluminaDNAPCRFree is supported"),
+                    apply_cell=style_writable
+                )
+            ]
         ]
     )
 
@@ -175,13 +223,23 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
-            [CD("SoftwareVersion", None, style_header), CD("AdapterRead1", None, style_header), CD("AdapterRead2", None, style_header), CD("OverrideCycles", None, style_header), CD("FastqCompressionFormat", None, style_header)],
             [
-                CD("", None, style_writable),
-                CD("CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", None, style_writable),
-                CD("CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", None, style_writable),
-                CD("", None, style_writable),
-                CD("gzip", DataValidation(type="list", formula1='"gzip"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported"), style_writable)
+                CD(value="SoftwareVersion", apply_cell=style_header),
+                CD(value="AdapterRead1", apply_cell=style_header),
+                CD(value="AdapterRead2", apply_cell=style_header),
+                CD(value="OverrideCycles", apply_cell=style_header),
+                CD(value="FastqCompressionFormat", apply_cell=style_header)
+            ],
+            [
+                CD(value="", apply_cell=style_writable),
+                CD(value="CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", apply_cell=style_writable),
+                CD(value="CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", apply_cell=style_writable),
+                CD(value="", apply_cell=style_writable),
+                CD(
+                    value="gzip",
+                    validation=DataValidation(type="list", formula1='"gzip"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported"),
+                    apply_cell=style_writable
+                )
             ]
         ]
     )
@@ -193,13 +251,18 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="row",
         descriptors=[
-            [CD("Lane", None, style_header), CD("Sample_ID", None, style_header), CD("Index", None, style_header), CD("Index2", None, style_header)],
+            [
+                CD(value="Lane", apply_cell=style_header),
+                CD(value="Sample_ID", apply_cell=style_header),
+                CD(value="Index", apply_cell=style_header),
+                CD(value="Index2", apply_cell=style_header)
+            ],
         ] + [
             [
-                CD(datum.Lane, None, style_prefilled),
-                CD(datum.Sample_ID, None, style_prefilled),
-                CD(datum.Index, None, style_prefilled),
-                CD(datum.Index2, None, style_prefilled)
+                CD(value=datum.Lane, apply_cell=style_prefilled),
+                CD(value=datum.Sample_ID, apply_cell=style_prefilled),
+                CD(value=datum.Index, apply_cell=style_prefilled),
+                CD(value=datum.Index2, apply_cell=style_prefilled)
             ]
             for datum in BCLConvert_Data
         ]
@@ -212,12 +275,25 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
-            [CD("SoftwareVersion", None, style_header), CD("AppVersion", None, style_header), CD("MapAlignOutFormat", None, style_header), CD("KeepFastq", None, style_header)],
             [
-                CD("", None, style_writable),
-                CD("", None, style_writable),
-                CD("none", DataValidation(type="list", formula1='"bam,cram,none"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error="Only bam, cram, none are supported"), style_writable),
-                CD("TRUE", DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid KeepFastq Value", error="Only TRUE, FALSE are supported"), style_writable)
+                CD(value="SoftwareVersion", apply_cell=style_header),
+                CD(value="AppVersion", apply_cell=style_header),
+                CD(value="MapAlignOutFormat", apply_cell=style_header),
+                CD(value="KeepFastq", apply_cell=style_header)
+            ],
+            [
+                CD(value="", apply_cell=style_writable),
+                CD(value="", apply_cell=style_writable),
+                CD(
+                    value="none",
+                    validation=DataValidation(type="list", formula1='"bam,cram,none"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error="Only bam, cram, none are supported"),
+                    apply_cell=style_writable
+                ),
+                CD(
+                    value="TRUE",
+                    validation=DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid KeepFastq Value", error="Only TRUE, FALSE are supported"),
+                    apply_cell=style_writable
+                )
             ]
         ]
     )
@@ -245,12 +321,16 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="row",
         descriptors=[
-            [CD("Sample_ID", None, style_header), CD("ReferenceGenomeDir", None, style_header), CD("VariantCallingMode", None, style_header)],
+            [
+                CD(value="Sample_ID", apply_cell=style_header),
+                CD(value="ReferenceGenomeDir", apply_cell=style_header),
+                CD(value="VariantCallingMode", apply_cell=style_header)
+            ],
         ] + [
             [
-                CD(datum.Sample_ID, None, style_prefilled),
-                CD(REFERENCE_GENOME_REFERENCE_DIRS[0], REFERENCE_GENOME_VALIDATION, style_writable),
-                CD("None", VARIANT_CALLING_MODE_VALIDATION, style_writable),
+                CD(value=datum.Sample_ID, apply_cell=style_prefilled),
+                CD(value=REFERENCE_GENOME_REFERENCE_DIRS[0], validation=REFERENCE_GENOME_VALIDATION, apply_cell=style_writable),
+                CD(value="None", validation=VARIANT_CALLING_MODE_VALIDATION, apply_cell=style_writable),
             ]
             for datum in DragenGermline_Data
         ]

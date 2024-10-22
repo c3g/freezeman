@@ -7,8 +7,8 @@ from openpyxl.worksheet.worksheet import Worksheet
 @dataclass
 class CellDescription:
     value: str
-    validation: DataValidation | None
-    apply_cell: Callable[[Cell], None] | None
+    validation: DataValidation | None = None
+    apply_cell: Callable[[Cell], None] | None = None
 
 CD = CellDescription
 
