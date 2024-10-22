@@ -503,7 +503,7 @@ SAMPLE_POOLING_TEMPLATE = {
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
+                      "Index Name", "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
                       "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
