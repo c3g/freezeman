@@ -9,7 +9,8 @@ from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    VALID_QC_FLAG_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
                                                    LIBRARY_QC_QUANTITY_INSTRUMENTS,
-                                                   SAMPLE_QC_QUALITY_INSTRUMENTS)
+                                                   SAMPLE_QC_QUALITY_INSTRUMENTS,
+                                                   SAMPLE_QC_QUANTITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment
@@ -634,7 +635,7 @@ SAMPLE_QC_TEMPLATE = {
       "Volume Used (uL)": "number",
       "Quality Instrument": SAMPLE_QC_QUALITY_INSTRUMENTS,
       "Quality Flag": VALID_QC_FLAG_CHOICES,
-      "Quantity Instrument": SAMPLE_QC_QUALITY_INSTRUMENTS,
+      "Quantity Instrument": SAMPLE_QC_QUANTITY_INSTRUMENTS,
       "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]

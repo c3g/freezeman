@@ -17,6 +17,8 @@ VALID_QC_FLAG_CHOICES = [PASSED, FAILED]
 # QC Instruments
 LIBRARY_QC_QUALITY_INSTRUMENTS = ["Caliper LabChip", "TapeStation"]
 SAMPLE_QC_QUALITY_INSTRUMENTS = ['Agarose Gel', 'TapeStation', 'NanoDrop', 'Caliper LabChip', 'Tecan Absorbance', 'BioAnalyzer']
+SAMPLE_QC_QUANTITY_INSTRUMENTS = ['PicoGreen', 'Qubit', 'NanoDrop', 'Caliper LabChip', 'Tecan Absorbance', 'BioAnalyzer', 'TapeStation']
 LIBRARY_QC_QUANTITY_INSTRUMENTS = ["qPCR", "Qubit"]
 # Marker for destination container barcode
 DESTINATION_CONTAINER_BARCODE_MARKER = "DESTINATION_CONTAINER_BARCODE => "
+
