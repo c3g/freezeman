@@ -28,6 +28,23 @@ def set_measured_volume_properties_optional(apps, schema_editor):
             property_type.save()
             reversion.add_to_revision(property_type)
 
+def remove_serial_number_from_some_instruments(apps, schema_editor):
+    instrument_name_maps = {
+        "Rosalind Franklin": "Decomissioned-Rosalind Franklin",
+        "LH00375-Rosalind Franklin": "Rosalind Franklin",
+    }
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        reversion.set_comment("Decomissioned Rosalind Franklin and renamed LH00375-Rosalind Franklin to Rosalind Franklin.")
+        reversion.set_user(admin_user)
+
+        Instrument = apps.get_model("fms_core", "Instrument")
+        for old, new in instrument_name_maps.items():
+            instrument = Instrument.objects.get(name=old)
+            instrument.name = new
+            instrument.save()
+            reversion.add_to_revision(instrument)
+
 
 class Migration(migrations.Migration):
 
@@ -43,5 +60,9 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='samplekind',
             name='concentration_required',
+        ),
+        migrations.RunPython(
+            remove_serial_number_from_some_instruments,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
