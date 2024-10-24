@@ -5,7 +5,7 @@ from django.db import transaction
 from fms_core.template_importer.importers import SampleSubmissionImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, Workflow
+from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, Workflow, Container
 from fms_core.services.project import create_project
 from fms_core.services.study import create_study
 from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
@@ -14,14 +14,14 @@ from fms_core.services.index import get_or_create_index_set, create_index, creat
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v4_5_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v4_12_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
         self.workflow_name = "PCR-free Illumina"
 
-        self.invalid_template_tests = ["Sample_submission_v4_5_0_bad_location.xlsx",
-                                       "Sample_submission_v4_5_0_library_without_index.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v4_12_0_bad_location.xlsx",
+                                       "Sample_submission_v4_12_0_library_without_index.xlsx",]
 
         # Create indices
         (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
@@ -68,7 +68,8 @@ class SampleSubmissionTestCase(TestCase):
             {'name': 'Sample_saliva1', 'alias': ''},
             {'name': 'Library_pcr_free', 'alias': ''},
             {'name': 'Gen_eric_1', 'alias': ''},
-            {'name': 'Gen_eric_2', 'alias': ''}
+            {'name': 'Gen_eric_2', 'alias': ''},
+            {'name': 'MySampleInTube', 'alias': 'MySampleInTube'}
         ]
         individual_name = 'MrTest'
         individual_alias = 'MonsieurTest'
@@ -82,11 +83,12 @@ class SampleSubmissionTestCase(TestCase):
             sample_obj = Sample.objects.get(name=sample['name'])
             derived_sample_id = DerivedBySample.objects.filter(sample_id=sample_obj.id).first().derived_sample_id
             biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
-            if biosample.individual.is_generic:
-                self.assertEqual(generic_individual_prefix, biosample.individual.name[:len(generic_individual_prefix)])
-            else:
-                self.assertEqual(biosample.individual.name, individual_name)
-                self.assertEqual(biosample.individual.alias, individual_alias)
+            if biosample.individual is not None:
+                if biosample.individual.is_generic:
+                    self.assertEqual(generic_individual_prefix, biosample.individual.name[:len(generic_individual_prefix)])
+                else:
+                    self.assertEqual(biosample.individual.name, individual_name)
+                    self.assertEqual(biosample.individual.alias, individual_alias)
             if sample['alias']:
                 self.assertEqual(biosample.alias, sample['alias'])
             else:
@@ -109,6 +111,9 @@ class SampleSubmissionTestCase(TestCase):
         self.assertIsNotNone(library_derived_sample.library)
         self.assertEqual(library_derived_sample.library.library_selection.name, "Capture")
         self.assertEqual(library_derived_sample.library.library_selection.target, "Exome")
+
+        # Verify the parent container is created
+        self.assertTrue(Container.objects.filter(name="Rackadoodledoo").exists())
 
     def test_invalid_sample_submission(self):
         for f in self.invalid_template_tests:
