@@ -69,23 +69,6 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
         reversion.add_to_revision(oldStep)
         oldStep.delete()
 
-def remove_serial_number_from_some_instruments(apps, schema_editor):
-    instrument_name_maps = {
-        "Rosalind Franklin": "Decomissioned-Rosalind Franklin",
-        "LH00375-Rosalind Franklin": "Rosalind Franklin",
-    }
-    with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
-        reversion.set_comment("Decomissioned Rosalind Franklin and renamed LH00375-Rosalind Franklin to Rosalind Franklin.")
-        reversion.set_user(admin_user)
-
-        Instrument = apps.get_model("fms_core", "Instrument")
-        for old, new in instrument_name_maps.items():
-            instrument = Instrument.objects.get(name=old)
-            instrument.name = new
-            instrument.save()
-            reversion.add_to_revision(instrument)
-
 def set_measured_volume_properties_optional(apps, schema_editor):
     PROPERTY_TYPE_NAME = "Measured Volume (uL)"
     PROTOCOL_NAMES = ["Sample Quality Control", "Library Quality Control"]
