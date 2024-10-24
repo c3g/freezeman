@@ -489,21 +489,21 @@ SAMPLE_METADATA_TEMPLATE = {
 
 SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries",
-               "file": static("submission_templates/Sample_pooling_v4_9_0.xlsx"),
+               "file": static("submission_templates/Sample_pooling_v4_12_0.xlsx"),
                "protocol": "Sample Pooling"},
   "sheets info": [
       {
           "name": "Pools",
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Coord",
-                      "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode",
-                      "Destination Parent Container Coord", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
+                      "Destination Container Name", "Destination Container Kind", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)",
+                      "Destination Parent Container Barcode", "Destination Parent Container Coord", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
       },
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
+                      "Index Name", "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
                       "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
@@ -521,6 +521,7 @@ SAMPLE_POOLING_TEMPLATE = {
       ("SamplesToPool", "Source Sample Name", "name", "name", None),
       ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode", None),
       ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SamplesToPool", "Index Name", None, "index_name", None),
       ("SamplesToPool", "Current Volume (uL)", "volume", "volume", None),
       ("LabInput", "Sample Name", "name", "name", None),
       ("LabInput", "Library Type", None, "library_type", None),
