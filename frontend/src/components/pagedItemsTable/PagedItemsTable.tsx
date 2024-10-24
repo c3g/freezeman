@@ -250,7 +250,7 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						scroll={{x: 300}}
+						scroll={{ x: 1500, y: 700 }}
 						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}

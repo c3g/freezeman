@@ -79,13 +79,19 @@ function SamplesListContent() {
 	// Tweak the columns to customize them for this table.
 	const tweakedColumns = useMemo(() => {
 		let columns = setColumnWidths(SAMPLES_TABLE_COLUMNS, {
-			[SampleColumnID.ID]: 90,
-			[SampleColumnID.KIND]: 80,
-			[SampleColumnID.COORDINATES]: 70,
-			[SampleColumnID.VOLUME]: 100,
-			[SampleColumnID.CONCENTRATION]: 115,
-			[SampleColumnID.CREATION_DATE]: 115,
-			[SampleColumnID.DEPLETED]: 85
+			[SampleColumnID.ID]: 130,
+			[SampleColumnID.KIND]: 130,
+			[SampleColumnID.COORDINATES]: 130,
+			[SampleColumnID.VOLUME]: 130,
+			[SampleColumnID.CONCENTRATION]: 130,
+			[SampleColumnID.CREATION_DATE]: 130,
+			[SampleColumnID.DEPLETED]: 130,
+			[SampleColumnID.NAME]: 130,
+			[SampleColumnID.PROJECT]: 130,
+			[SampleColumnID.INDIVIDUAL]: 130,
+			[SampleColumnID.CONTAINER_NAME]: 130,
+			[SampleColumnID.CONTAINER_BARCODE]: 130,
+			[SampleColumnID.QC_FLAG]: 130,
 		})
 
 		// Only allow sorting on these columns when the table is displaying only samples (and not pools).

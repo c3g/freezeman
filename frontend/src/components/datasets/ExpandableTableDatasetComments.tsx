@@ -1,15 +1,19 @@
-import React from "react"
+import React, { ReactNode } from "react"
 import { TableProps, Tooltip } from "antd"
-import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
+import { CommentOutlined, MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
 import ArchivedCommentsTimeline from "../shared/ArchivedCommentsTimeline"
 import { ObjectWithDataset } from "./DatasetsTableColumns";
 import { Dataset } from "../../models/frontend_models";
 
 
 export default function ExpandableTableDatasetComments(): NonNullable<TableProps<any>['expandable']> {
+
+  const columnTitleIcon: ReactNode = <Tooltip title="Validation Comments">
+              <CommentOutlined />
+            </Tooltip>
   return (
     {
-      columnTitle: <div>Comments</div>,
+      columnTitle: columnTitleIcon,
       expandIcon: ({ expanded, onExpand, record }) =>
           expanded ? (
             <Tooltip title="Hide Comments">

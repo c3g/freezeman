@@ -15,7 +15,7 @@ export interface ObjectWithDataset {
 	dataset: Dataset
 }
 
-enum DatasetColumnID {
+export enum DatasetColumnID {
 	ID  = 'ID',
 	RUN = 'RUN',
 	PROJECT = 'PROJECT',
@@ -80,7 +80,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		dataIndex: ['dataset', 'latest_release_update'],
 		render: (_, {dataset}) => {
 			return dataset.latest_release_update ? moment(dataset.latest_release_update).format("YYYY-MM-DD LT") : ""
-		}	
+		}
 
 	}
 }
