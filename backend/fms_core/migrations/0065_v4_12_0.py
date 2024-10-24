@@ -7,11 +7,31 @@ ADMIN_USERNAME = 'biobankadmin'
 def add_sample_qc_distinction_dna_rna(apps, schema_editor):
     # load the new sample qc steps and other necessary assets
     STEPS = [
-        {"name": "Sample QC (DNA)", "protocol_name": "Sample Quality Control","expected_sample_type": "EXTRACTED_SAMPLE",
-          "specifications": [{"display_name": "SampleQcType", "sheet_name": "SampleQC", "column_name": "Sample Kind", "value": "DNA"}]
+        {
+          "name": "Sample QC (DNA)",
+          "protocol_name": "Sample Quality Control",
+          "expected_sample_type": "EXTRACTED_SAMPLE",
+          "specifications": [
+            {
+                "display_name": "SampleQcType",
+                "sheet_name": "SampleQC",
+                "column_name": "Sample Kind",
+                "value": "DNA"
+            }
+          ]
         },
-        {"name": "Sample QC (RNA)", "protocol_name": "Sample Quality Control","expected_sample_type": "EXTRACTED_SAMPLE",
-         "specifications": [{"display_name": "SampleQcType", "sheet_name": "SampleQC", "column_name": "Sample Kind", "value": "RNA"}]
+        {
+          "name": "Sample QC (RNA)",
+          "protocol_name": "Sample Quality Control",
+          "expected_sample_type": "EXTRACTED_SAMPLE",
+          "specifications": [
+            {
+              "display_name": "SampleQcType",
+              "sheet_name": "SampleQC",
+              "column_name": "Sample Kind",
+              "value": "RNA"
+            }
+          ]
         }
     ]
     StepOrder = apps.get_model("fms_core", "StepOrder")
@@ -48,8 +68,8 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
         dnaStep = Step.objects.get(name="Sample QC (DNA)")
         rnaStep = Step.objects.get(name="Sample QC (RNA)")
         # Start for data transfer process
-        sns = SampleNextStep.objects.filter(step__id=oldStep.id)
-        for sampleNextStep in sns:
+        sampleNextSteps = SampleNextStep.objects.filter(step__id=oldStep.id)
+        for sampleNextStep in sampleNextSteps:
             updatedSampleNextStep = SampleNextStep.objects.get(id=sampleNextStep.id)
             if sampleNextStep.sample.derived_samples.first().sample_kind.name == "DNA":
               updatedSampleNextStep.step = dnaStep
@@ -58,11 +78,11 @@ def add_sample_qc_distinction_dna_rna(apps, schema_editor):
             updatedSampleNextStep.save()
             reversion.add_to_revision(updatedSampleNextStep)
         # make sure there are no loose ends before deleting oldStep
-        so = StepOrder.objects.filter(step__id=oldStep.id)
-        for order in so:
-            if "Extraction (DNA)" in order.previous_step_order.first().step.name:
+        stepOrders = StepOrder.objects.filter(step__id=oldStep.id)
+        for order in stepOrders:
+            if "Extraction (DNA)" == order.previous_step_order.first().step.name:
                 order.step = dnaStep
-            elif "Extraction (RNA)" in order.previous_step_order.first().step.name:
+            elif "Extraction (RNA)" == order.previous_step_order.first().step.name:
                 order.step = rnaStep
             order.save()
             reversion.add_to_revision(order)
@@ -82,7 +102,7 @@ def set_measured_volume_properties_optional(apps, schema_editor):
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        
+
         reversion.set_comment(f"Set '{PROPERTY_TYPE_NAME}' property types as optional.")
         reversion.set_user(admin_user)
 
