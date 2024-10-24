@@ -37,7 +37,7 @@ class StudyServicesTestCase(TestCase):
                                          sample_kind=sample_kind_BLOOD,
                                          container=valid_container_1)
         workflow = Workflow.objects.get(name="PCR-free Illumina")
-        step_valid = Step.objects.get(name="Sample QC")
+        step_valid = Step.objects.get(name="Sample QC (DNA)")
         step_before = Step.objects.get(name="Extraction (DNA)")
         step_after = Step.objects.get(name="Library Preparation (PCR-free, Illumina)")
         step_order = StepOrder.objects.get(order=2, workflow=workflow, step=step_valid)
@@ -46,7 +46,7 @@ class StudyServicesTestCase(TestCase):
         for derived_by_sample in self.sample_BLOOD.derived_by_samples.all():
             derived_by_sample.project_id = self.project.id
             derived_by_sample.save()
-    
+
     def setup_stephistory(self):
         update_protocol, _ = Protocol.objects.get_or_create(name="Update")
         process = Process.objects.create(protocol=update_protocol, comment="Process for Protocol Update Test")
@@ -65,7 +65,7 @@ class StudyServicesTestCase(TestCase):
         self.assertEqual(study.letter, self.letter_valid)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
-      
+
     def test_create_study(self):
         """
           Test to create the study B (generated automatically since there's already study A) of project TestStudy
@@ -79,7 +79,7 @@ class StudyServicesTestCase(TestCase):
 
     def test_create_invalid_study(self):
         """
-          Test to create an invalid (without workflow and start) study B of project TestStudy 
+          Test to create an invalid (without workflow and start) study B of project TestStudy
         """
         study, errors, warnings = create_study(self.project, None, None, self.end)
 
@@ -90,16 +90,16 @@ class StudyServicesTestCase(TestCase):
 
     def test_create_invalid_end_study(self):
         """
-          Test to create an invalid (end > num_steps) study B of project TestStudy 
+          Test to create an invalid (end > num_steps) study B of project TestStudy
         """
         study, errors, warnings = create_study(self.project, self.workflow, self.start, 10)
         self.assertEqual(study, None)
         self.assertEqual(errors['step_range'], ['The end step cannot be after the last step of the workflow.'])
         self.assertEqual(warnings, {})
-    
+
     def test_can_remove_study(self):
         study, errors, warnings = get_study(self.project, self.letter_valid)
-        
+
         # no dependencies
         is_removable, errors, warnings = can_remove_study(study.pk)
         self.assertEqual(True, is_removable)
@@ -116,7 +116,7 @@ class StudyServicesTestCase(TestCase):
             'At least one SampleNextStepByStudy is associated with the Study'
         ], errors)
         dequeue_sample_from_specific_step_study_workflow(self.sample_BLOOD, self.study, 1)
-        
+
         # no dependencies
         is_removable, errors, warnings = can_remove_study(study.pk)
         self.assertEqual(True, is_removable)

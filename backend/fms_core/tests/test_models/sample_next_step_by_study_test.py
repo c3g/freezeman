@@ -26,7 +26,7 @@ class SampleNextStepByStudyTest(TestCase):
                                             sample_kind=self.sample_kind_DNA,
                                             container=self.valid_container_2)
         self.workflow = Workflow.objects.get(name="PCR-free Illumina")
-        self.step_valid = Step.objects.get(name="Sample QC")
+        self.step_valid = Step.objects.get(name="Sample QC (DNA)")
         self.step_before = Step.objects.get(name="Extraction (DNA)")
         self.step_after = Step.objects.get(name="Library Preparation (PCR-free, Illumina)")
         self.step_order = StepOrder.objects.get(order=2, workflow=self.workflow, step=self.step_valid)
@@ -51,7 +51,7 @@ class SampleNextStepByStudyTest(TestCase):
 
     def test_sample_next_step_by_study(self):
         sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
-                                                         sample=self.sample_DNA)                                                         
+                                                         sample=self.sample_DNA)
         self.assertEqual(sample_next_step.step, self.step_valid)
         sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
                                                                          step_order=self.step_order,
@@ -69,7 +69,7 @@ class SampleNextStepByStudyTest(TestCase):
 
     def test_no_study(self):
         sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
-                                                         sample=self.sample_DNA)                                                         
+                                                         sample=self.sample_DNA)
         self.assertEqual(sample_next_step.step, self.step_valid)
         with self.assertRaises(Study.DoesNotExist):
             try:
@@ -81,7 +81,7 @@ class SampleNextStepByStudyTest(TestCase):
 
     def test_no_step_order(self):
         sample_next_step = SampleNextStep.objects.create(step=self.step_before,
-                                                         sample=self.sample_BLOOD)                                                         
+                                                         sample=self.sample_BLOOD)
         self.assertEqual(sample_next_step.step, self.step_before)
         with self.assertRaises(StepOrder.DoesNotExist):
             try:
@@ -93,7 +93,7 @@ class SampleNextStepByStudyTest(TestCase):
 
     def test_step_order_before(self):
         sample_next_step = SampleNextStep.objects.create(step=self.step_before,
-                                                         sample=self.sample_BLOOD)                                                         
+                                                         sample=self.sample_BLOOD)
         self.assertEqual(sample_next_step.step, self.step_before)
         with self.assertRaises(ValidationError):
             try:
@@ -101,12 +101,12 @@ class SampleNextStepByStudyTest(TestCase):
                                                                                  step_order=self.step_order_before,
                                                                                  study=self.study)
             except ValidationError as e:
-                self.assertTrue('step_order' in e.message_dict)                                            
+                self.assertTrue('step_order' in e.message_dict)
                 raise e
 
     def test_step_order_after(self):
         sample_next_step = SampleNextStep.objects.create(step=self.step_after,
-                                                         sample=self.sample_DNA)                                                         
+                                                         sample=self.sample_DNA)
         self.assertEqual(sample_next_step.step, self.step_after)
         with self.assertRaises(ValidationError):
             try:
@@ -114,12 +114,12 @@ class SampleNextStepByStudyTest(TestCase):
                                                                                  step_order=self.step_order_after,
                                                                                  study=self.study)
             except ValidationError as e:
-                self.assertTrue('step_order' in e.message_dict)                                            
+                self.assertTrue('step_order' in e.message_dict)
                 raise e
 
     def test_wrong_step(self):
         sample_next_step = SampleNextStep.objects.create(step=self.step_before,
-                                                         sample=self.sample_BLOOD)                                                         
+                                                         sample=self.sample_BLOOD)
         self.assertEqual(sample_next_step.step, self.step_before)
         with self.assertRaises(ValidationError):
             try:
@@ -127,7 +127,7 @@ class SampleNextStepByStudyTest(TestCase):
                                                                                  step_order=self.step_order,
                                                                                  study=self.study)
             except ValidationError as e:
-                self.assertTrue('step' in e.message_dict)                                            
+                self.assertTrue('step' in e.message_dict)
                 raise e
 
     def test_wrong_project(self):
@@ -135,7 +135,7 @@ class SampleNextStepByStudyTest(TestCase):
             derived_by_sample.project_id = self.project_other.id
             derived_by_sample.save()
         sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
-                                                         sample=self.sample_DNA)                                                         
+                                                         sample=self.sample_DNA)
         self.assertEqual(sample_next_step.step, self.step_valid)
         with self.assertRaises(ValidationError):
             try:
@@ -143,5 +143,5 @@ class SampleNextStepByStudyTest(TestCase):
                                                                                  step_order=self.step_order,
                                                                                  study=self.study)
             except ValidationError as e:
-                self.assertTrue('project' in e.message_dict)                                            
+                self.assertTrue('project' in e.message_dict)
                 raise e
