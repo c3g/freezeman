@@ -99,9 +99,8 @@ const JumpBar = (props) => {
   return <>
     <Select
       showSearch
-      showArrow
       filterOption={false}
-      dropdownMatchSelectWidth={false}
+      popupMatchSelectWidth={false}
       placeholder="Jump to... [Ctrl + K]"
       size="medium"
       style={style}
