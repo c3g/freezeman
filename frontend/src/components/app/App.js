@@ -27,7 +27,7 @@ import UsersPage from "../users/UsersPage";
 
 import PrivateNavigate from "../PrivateNavigate";
 
-import { matchingMenuKeys, renderMenuItem } from "../../utils/menus";
+import { matchingMenuKeys, resolveBadMenuItem } from "../../utils/menus";
 import { hour } from "../../utils/time";
 import useUserInputExpiration from "../../utils/useUserInputExpiration";
 
@@ -49,6 +49,12 @@ import InstrumentsRoute from "../instruments/InstrumentsRoute";
 
 const { Title } = Typography;
 
+/**
+ * 
+ * @param {import("../../models/frontend_models").User | undefined} user 
+ * @param {() => void} logOut 
+ * @returns {BadMenuItem[]}
+ */
 const getMenuItems = (user, logOut) => [
   {
     key: "about",
@@ -71,56 +77,69 @@ const getMenuItems = (user, logOut) => [
   },
 ]
 
+/**
+ * @type {BadMenuItem[]}
+ */
 const MENU_ITEMS = [
   {
     url: "/dashboard",
     icon: <DashboardOutlined />,
     text: "Dashboard",
+    key: "dashboard",
   },
   {
     url: "/lab-work",
     icon: <ExperimentOutlined />,
-    text: "Lab Work"
+    text: "Lab Work",
+    key: "lab-work",
   },
   {
     url: "/projects",
     icon: <ProjectOutlined />,
     text: "Projects",
+    key: "projects",
   },
   {
     url: "/containers",
     icon: <TableOutlined />,
     text: "Containers",
+    key: "containers",
   },
   {
     url: "/samples",
     icon: <ExperimentOutlined />,
     text: "Samples",
+    key: "samples",
   },
   {
     url: "/libraries",
     icon: <ExperimentOutlined />,
     text: "Libraries",
+    key: "libraries",
   },
   {
     url: "/individuals",
     icon: <TeamOutlined />,
     text: "Individuals",
+    key: "individuals",
   },
   {
     url: "/process-measurements",
     icon: <ExperimentOutlined />,
     text: "Protocols",
+    key: "process-measurements",
   },
   {
     url: "/experiment-runs",
     icon: <HddOutlined />,
     text: "Experiments",
+    key: "experiment-runs",
   },
   {
     url: "/datasets",
     icon: <FileZipOutlined />,
     text: "Datasets",
+    key: "datasets",
   },
   {
     icon: <SettingOutlined />,
@@ -131,26 +150,31 @@ const MENU_ITEMS = [
         url: "/indices",
         icon: <BarcodeOutlined />,
         text: "Indices",
+        key: "indices",
       },
       {
         url: "/instruments",
         icon: <BarcodeOutlined />,
         text: "Instruments",
+        key: "instruments",
       },
       {
         url: "/genomes",
         icon: <BarcodeOutlined />,
         text: "Reference Genomes",
+        key: "genomes",
       },
       {
         url: "/taxons",
         icon: <BarcodeOutlined />,
         text: "Taxons",
+        key: "taxons",
       },
       {
         url: "/workflows",
         icon: <BarcodeOutlined />,
         text: "Workflows",
+        key: "workflows",
       },
     ]
   },
@@ -158,6 +182,7 @@ const MENU_ITEMS = [
     url: "/users",
     icon: <AuditOutlined />,
     text: "Users",
+    key: "users",
   },
 ]
 
@@ -261,18 +286,16 @@ const App = ({userID, usersByID, logOut, get}) => {
               selectedKeys={matchingMenuKeys(MENU_ITEMS)}
               style={{ flex: 1 }}
               defaultOpenKeys={['definitions']} // Submenus should be open by default
-            >
-              {MENU_ITEMS.map(renderMenuItem)}
-            </Menu>
+              items={MENU_ITEMS.map(resolveBadMenuItem)}
+            />
             {isLoggedIn &&
               <Menu
                 theme="dark"
                 mode="inline"
-                selectedKeys={matchingMenuKeys(MENU_ITEMS)}
+                selectedKeys={matchingMenuKeys(menuItems)}
                 style={{ flex: 1 }}
-              >
-                {menuItems.map(renderMenuItem)}
-              </Menu>
+                items={menuItems.map(resolveBadMenuItem)}
+              />
             }
           </Layout.Sider>
         }
