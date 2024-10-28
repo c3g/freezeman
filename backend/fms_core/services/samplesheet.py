@@ -14,12 +14,6 @@ from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import DerivedBySample, Index
 from fms_core.services.workbook_utils import CD, insert_cells
 
-REFERENCE_GENOME_REFERENCE_DIRS = [
-    "hg38-alt_masked.cnv.hla.rna-8-r2.0-1",
-    "hg19-alt_masked.cnv.graph.hla.rna-10-r4.0-1",
-    "chm13_v2-cnv.graph.hla.rna-10-r4.0-1",
-]
-
 def get_samplesheet(container_kind, placement):
     """
     Prefill a samplesheet V2 using samples index information and return it as a Byte stream.
@@ -122,8 +116,10 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         for i in range(1, MAX_COLUMN):
             samplesheet.cell(row=samplesheet.max_row, column=i).fill = fillSectionName
 
-    MAX_RUN_NAME_LENGTH = 255
     add_section_header("Header")
+    MAX_RUN_NAME_LENGTH = 255
+    INSTRUMENT_PLATFORMS = ["NovaSeqXSeries"]
+    INDEX_ORIENTATIONS = ["Forward"]
     insert_cells(
         samplesheet,
         first_cell_location=(samplesheet.max_row+1, 1),
@@ -147,13 +143,13 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
                     apply_cell=style_writable
                 ),
                 CD(
-                    value="NovaSeqXSeries",
-                    validation=DataValidation(type="list", formula1='"NovaSeqXSeries"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid InstrumentPlatform Value", error="Only NovaSeqXSeries is supported"),
+                    value=INSTRUMENT_PLATFORMS[0],
+                    validation=DataValidation(type="list", formula1=f'"{",".join(INSTRUMENT_PLATFORMS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid InstrumentPlatform Value", error=f"Only {', '.join(INSTRUMENT_PLATFORMS)} is supported"),
                     apply_cell=style_writable
                 ),
                 CD(
-                    value="Forward",
-                    validation=DataValidation(type="list", formula1='"Forward"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid IndexOrientation Value", error="Only Forward is supported"),
+                    value=INDEX_ORIENTATIONS[0],
+                    validation=DataValidation(type="list", formula1=f'"{",".join(INDEX_ORIENTATIONS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid IndexOrientation Value", error=f"Only {', '.join(INDEX_ORIENTATIONS)} is supported"),
                     apply_cell=style_writable
                 )
             ]
@@ -200,6 +196,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
 
     samplesheet.append([])
     add_section_header("Sequencing_Settings")
+    LIBRARY_PREP_KITS = ["IlluminaDNAPCRFree"]
     insert_cells(
         samplesheet,
         first_cell_location=(samplesheet.max_row+1, 1),
@@ -208,8 +205,8 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
             [CD(value="LibraryPrepKits", apply_cell=style_header)],
             [
                 CD(
-                    value="IlluminaDNAPCRFree",
-                    validation=DataValidation(type="list", formula1='"IlluminaDNAPCRFree"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error="Only IlluminaDNAPCRFree is supported"),
+                    value=LIBRARY_PREP_KITS[0],
+                    validation=DataValidation(type="list", formula1=f'"{",".join(LIBRARY_PREP_KITS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error=f"Only {', '.join(LIBRARY_PREP_KITS)} is supported"),
                     apply_cell=style_writable
                 )
             ]
@@ -218,6 +215,9 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
 
     samplesheet.append([])
     add_section_header("BCLConvert_Settings")
+    ADAPTER_READ1S = { "NovaSeqXSeries": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA" }
+    ADAPTER_READ2S = { "NovaSeqXSeries": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA" }
+    FASTQ_COMPRESSION_FORMATS = ["gzip"]
     insert_cells(
         samplesheet,
         first_cell_location=(samplesheet.max_row+1, 1),
@@ -232,12 +232,12 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
             ],
             [
                 CD(value="", apply_cell=style_writable),
-                CD(value="CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", apply_cell=style_writable),
-                CD(value="CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA", apply_cell=style_writable),
+                CD(value=ADAPTER_READ1S["NovaSeqXSeries"], apply_cell=style_writable),
+                CD(value=ADAPTER_READ2S["NovaSeqXSeries"], apply_cell=style_writable),
                 CD(value="", apply_cell=style_writable),
                 CD(
                     value="gzip",
-                    validation=DataValidation(type="list", formula1='"gzip"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported"),
+                    validation=DataValidation(type="list", formula1=f'"{",".join(FASTQ_COMPRESSION_FORMATS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported"),
                     apply_cell=style_writable
                 )
             ]
@@ -270,6 +270,8 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
 
     samplesheet.append([])
     add_section_header("DragenGermline_Settings")
+    MAP_ALIGN_OUT_FORMATS = ["bam", "cram", "none"]
+    KEEP_FASTQS = ["TRUE", "FALSE"]
     insert_cells(
         samplesheet,
         first_cell_location=(samplesheet.max_row+1, 1),
@@ -286,12 +288,12 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
                 CD(value="", apply_cell=style_writable),
                 CD(
                     value="none",
-                    validation=DataValidation(type="list", formula1='"bam,cram,none"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error="Only bam, cram, none are supported"),
+                    validation=DataValidation(type="list", formula1=f'"{",".join(MAP_ALIGN_OUT_FORMATS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error=f"Only {', '.join(MAP_ALIGN_OUT_FORMATS)} are supported"),
                     apply_cell=style_writable
                 ),
                 CD(
                     value="TRUE",
-                    validation=DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid KeepFastq Value", error="Only TRUE, FALSE are supported"),
+                    validation=DataValidation(type="list", formula1=f'"{",".join(KEEP_FASTQS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid KeepFastq Value", error=f"Only {', '.join(KEEP_FASTQS)} are supported"),
                     apply_cell=style_writable
                 )
             ]
@@ -300,6 +302,11 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
 
     samplesheet.append([])
     add_section_header("DragenGermline_Data")
+    REFERENCE_GENOME_REFERENCE_DIRS = [
+        "hg38-alt_masked.cnv.hla.rna-8-r2.0-1",
+        "hg19-alt_masked.cnv.graph.hla.rna-10-r4.0-1",
+        "chm13_v2-cnv.graph.hla.rna-10-r4.0-1",
+    ]
     REFERENCE_GENOME_VALIDATION = DataValidation(
         type="list",
         formula1=f'"{",".join(REFERENCE_GENOME_REFERENCE_DIRS)}"',
