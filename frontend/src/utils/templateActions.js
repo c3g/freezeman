@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { Button, Menu, Dropdown } from "antd";
+import { Button, Dropdown } from "antd";
 import {
   EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined,
   CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined, DotChartOutlined, FormOutlined
@@ -37,28 +37,21 @@ export const actionsToButtonList = (urlBase, actions, fullWidth = false) =>
 export function ActionDropdown({ urlBase, actions, fullWidth = true }) {
   const history = useNavigate();
   const renderActions = actions.items.length > 0;
-  const actionMenu = renderActions ? (
-    <Menu>
-      {actions.items.map((a) =>
-        <Menu.Item key={a.id.toString()}>
-          <Button
-            icon={actionIcon(a)}
-            onClick={() => history(`${urlBase}/actions/${a.id}/`)}
-            {...(fullWidth ? { style: { width: "100%", border: 0, textAlign: 'left' } } : { style: { border: 0 } })}
-          >
-            {a.name}
-          </Button>
-        </Menu.Item>)
-      }
-    </Menu>
-  ) : null;
 
   return (
     renderActions ?
-      <Dropdown overlay={actionMenu} placement="bottomRight">
-        <Button>
-          <MonitorOutlined />  Available Actions
-        </Button>
+      <Dropdown menu={{
+        items: actions.items.map(a => ({
+          key: a.id.toString(),
+          icon: actionIcon(a),
+          onClick: () => history(`${urlBase}/actions/${a.id}/`),
+          label: a.name,
+          style: fullWidth ? { style: { width: "100%", border: 0, textAlign: 'left' } } : { style: { border: 0 } }
+        }))
+      }} placement="bottomRight">
+      <Button>
+        <MonitorOutlined />  Available Actions
+      </Button>
       </Dropdown> : null)
 }
 
