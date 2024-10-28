@@ -25,20 +25,21 @@ const LabworkOverviewAutomations = ({ summary, hideEmptySections}: LabworkAutoma
 				<Title level={2}>Automations</Title>
 			</div>
       <div style={{ padding: '1rem' }}>
-        {showPanel && <Collapse>
-          <Collapse.Panel key={"Automations"} header={"Automations"} extra={<Title level={4}>{countAutomation}</Title>}>
-            <List
-              size="small"
-              dataSource={listData}
-              style={{ marginRight: '0.5rem' }}
-              renderItem={(item) => (
-                <List.Item>
-                  <LabworkOverviewStep step={item} />
-                </List.Item>
-              )}
-            />
-          </Collapse.Panel>
-        </Collapse>}
+        {showPanel && <Collapse items={[{
+          key: "Automations",
+          label: "Automations",
+          extra: <Title level={4}>{countAutomation}</Title>,
+          children: <List
+            size="small"
+            dataSource={listData}
+            style={{ marginRight: '0.5rem' }}
+            renderItem={(item) => (
+              <List.Item>
+                <LabworkOverviewStep step={item} />
+              </List.Item>
+            )}
+          />
+        }]} />}
       </div>
 		</>
 	)
