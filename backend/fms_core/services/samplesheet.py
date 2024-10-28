@@ -100,6 +100,8 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
 
     # fill patterns
     fillSectionName = PatternFill(start_color="b3cac7", end_color="b3cac7", fill_type="solid")
+    def style_section_name(cell):
+        cell.fill = fillSectionName
     fillKey = PatternFill(start_color="e8a202", end_color="e8a202", fill_type="solid")
     def style_header(cell):
         cell.fill = fillKey
@@ -362,5 +364,54 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
                 top=Side(border_style="thin", color="000000"),
                 bottom=Side(border_style="thin", color="000000"),
             )
+
+
+    infosheet = workbook["Info"]
+    insert_cells(
+        infosheet,
+        first_cell_location=(1, 1),
+        order="row",
+        descriptors=[
+            [CD(value="[Header]", apply_cell=style_section_name), CD(value="")],
+            [CD(value="FileFormatVersion", apply_cell=style_header), CD(value="")],
+            [CD(value="RunName", apply_cell=style_header), CD(value="")],
+            [CD(value="InstrumentPlatform", apply_cell=style_header), CD(value="")],
+            [CD(value="IndexOrientation", apply_cell=style_header), CD(value="")],
+            [CD(value=""), CD(value="")],
+            [CD(value="[Reads]", apply_cell=style_section_name), CD(value="")],
+            [CD(value="Read1Cycles", apply_cell=style_header), CD(value="")],
+            [CD(value="Read2Cycles", apply_cell=style_header), CD(value="")],
+            [CD(value="Index1Cycles", apply_cell=style_header), CD(value="")],
+            [CD(value="Index2Cycles", apply_cell=style_header), CD(value="")],
+            [CD(value=""), CD(value="")],
+            [CD(value="[Sequencing_Settings]", apply_cell=style_section_name), CD(value="")],
+            [CD(value="LibraryPrepKits", apply_cell=style_header), CD(value="")],
+            [CD(value=""), CD(value="")],
+            [CD(value="[BCLConvert_Settings]", apply_cell=style_section_name), CD(value="")],
+            [CD(value="SoftwareVersion", apply_cell=style_header), CD(value="")],
+            [CD(value="AdapterRead1", apply_cell=style_header), CD(value="")],
+            [CD(value="AdapterRead2", apply_cell=style_header), CD(value="")],
+            [CD(value="OverrideCycles", apply_cell=style_header), CD(value="")],
+            [CD(value="FastqCompressionFormat"), CD(value="")],
+            [CD(value=""), CD(value="")],
+            [CD(value="[BCLConvert_Data]", apply_cell=style_section_name), CD(value="")],
+            [CD(value="Lane", apply_cell=style_header), CD(value="")],
+            [CD(value="Sample_ID", apply_cell=style_header), CD(value="")],
+            [CD(value="Index", apply_cell=style_header), CD(value="")],
+            [CD(value="Index2", apply_cell=style_header), CD(value="")],
+            [CD(value=""), CD(value="")],
+            [CD(value="[DragenGermline_Settings]", apply_cell=style_section_name), CD(value="")],
+            [CD(value="SoftwareVersion", apply_cell=style_header), CD(value="")],
+            [CD(value="AppVersion", apply_cell=style_header), CD(value="")],
+            [CD(value="MapAlignOutFormat", apply_cell=style_header), CD(value="")],
+            [CD(value="KeepFastq", apply_cell=style_header), CD(value="")],
+            [CD(value=""), CD(value="")],
+            [CD(value="[DragenGermline_Data]", apply_cell=style_section_name), CD(value="")],
+            [CD(value="Sample_ID", apply_cell=style_header), CD(value="")],
+            [CD(value="ReferenceGenomeDir", apply_cell=style_header), CD(value="")],
+            [CD(value="VariantCallingMode", apply_cell=style_header), CD(value="")],
+        ]
+    )
+    infosheet.column_dimensions["A"].width = 25
 
     return workbook
