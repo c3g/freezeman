@@ -62,8 +62,10 @@ const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption, withCo
     if (withCollapsible) {
         return (
             <div className="FiltersPanel">
-                <Collapse defaultActiveKey={[]} ghost collapsible={"header"}>
-                    <Collapse.Panel header="Show advanced filters" key={'detached-filters'}>
+                <Collapse defaultActiveKey={[]} ghost collapsible={"header"} items={[{
+                    key: 'detached-filters',
+                    label: "Show advanced filters",
+                    children: (
                         <div style={{
                             display: 'flex',
                             gap: '0.5em',
@@ -73,7 +75,8 @@ const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption, withCo
                                 return createFilterContainer(description)
                             })}
                         </div>
-                    </Collapse.Panel>
+                    )
+                }]}>
                 </Collapse>
             </div>
             )
