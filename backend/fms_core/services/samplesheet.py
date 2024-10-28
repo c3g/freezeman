@@ -365,53 +365,61 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
                 bottom=Side(border_style="thin", color="000000"),
             )
 
-
     infosheet = workbook["Info"]
+    INFO = {
+        "Header" : {
+            "FileFormatVersion": "Used to identify the sample sheet as a v2 sample sheet. Must always be 2.",
+            "RunName": "The run name can contain 255 alphanumeric characters, spaces, dashes, and underscores.",
+            "InstrumentPlatform": "Identifies the instrument platform to be used for the run. Only NovaSeqXSeries is supported.",
+            "IndexOrientation": "We will only support Forward.",
+        },
+        "Reads": {
+            "Read1Cycles": "Number of cycles in Index Read 1. Index 1 required if more than one sample is present in sample sheet.",
+            "Read2Cycles": "Number of cycles in Index Read 2. Index 2 required if using dual indexes for demultiplexing.",
+            "Index1Cycles": "Number of cycles for Read 1.",
+            "Index2Cycles": "Number of cycles for Read 2. Read 2 required if running a paired-end sequencing run.",
+        },
+        "Sequencing_Settings": {
+            "LibraryPrepKits": "Identifies the library prep kit used for the run. Only IlluminaDNAPCRFree is supported.",
+        },
+        "BCLConvert_Settings": {
+            "SoftwareVersion": "Identifies the version of the DRAGEN software to be used process the specific DRAGEN pipeline, including conversion to FASTQ. Use all three integers included in the DRAGEN version name. For example, 3.5.7",
+            "AdapterRead1": "This sequence is tied to the Library Kits used to prepare the sample.",
+            "AdapterRead2": "This sequence is tied to the Library Kits used to prepare the sample.",
+            "OverrideCycles": "Examples of OverrideCycles: U8Y143;I8;I8;U8Y143 or N10Y66;I6;N10Y66",
+            "FastqCompressionFormat": "The compression format for the FASTQ output files. Only gzip is supported.",
+        },
+        "BCLConvert_Data": {
+            "Lane": "Specifies FASTQ files only for the samples with the specified lane number.",
+            "Sample_ID": "Freezeman formats Sample_ID as [Sample Alias]_[Derived Sample ID]. Sample_IDs can be repeated. This assumes that a sample is split across lanes, and results will be merged for samples with the same ID.",
+            "Index": "The Index 1 (i7) index adapter. Index 1 is required if index cycles are specified for the sample in OverrideCycles.",
+            "Index2": "The Index 2 (i5) index adapter. Index 2 is required if Index2Cycles is > 0. Index2 is entered in the sample sheet in forward, non-complemented format for user convenience",
+        },
+        "DragenGermline_Settings": {
+            "SoftwareVersion": "Identifies the version of the DRAGEN software to be used process the specific DRAGEN pipeline, including conversion to FASTQ. Use all three integers included in the DRAGEN version name. For example, 3.5.7",
+            "AppVersion": "The version of the workflow-specific application. Use all three integers included in the version name. For example, 3.5.7",
+            "MapAlignOutFormat": "Formatting of the alignment output files. (bam, cram, none)",
+            "KeepFastq": "Indicates whether FASTQ files are saved (TRUE) or discarded (FALSE).",
+        },
+        "DragenGermline_Data": {
+            "Sample_ID": "Freezeman formats Sample_ID as [Sample Alias]_[Derived Sample ID]. Sample_IDs must be unique. If samples are split across lanes, then there must be a [BCLConvert_Data] section with duplicate samples indicating which ones will be merged.",
+            "ReferenceGenomeDir": "Dragen requires its own custom binaries for reference genomes.",
+            "VariantCallingMode": "None (No variant calling will be performed), SmallVariantCaller (Only small variant calling will be performed), AllVariantCallers (The following variant callers will be run: Small, Structural, CNV, Repeat Expansions, ROH, CYP2D6)",
+        }
+    }
+    info_descriptors = []
+    for section_name, section in INFO.items():
+        info_descriptors.append([CD(value=f"[{section_name}]", apply_cell=style_section_name)])
+        for header, value in section.items():
+            info_descriptors.append([CD(value=header, apply_cell=style_header), CD(value=value)])
+        info_descriptors.append([CD(value="")])
     insert_cells(
         infosheet,
         first_cell_location=(1, 1),
         order="row",
-        descriptors=[
-            [CD(value="[Header]", apply_cell=style_section_name), CD(value="")],
-            [CD(value="FileFormatVersion", apply_cell=style_header), CD(value="")],
-            [CD(value="RunName", apply_cell=style_header), CD(value="")],
-            [CD(value="InstrumentPlatform", apply_cell=style_header), CD(value="")],
-            [CD(value="IndexOrientation", apply_cell=style_header), CD(value="")],
-            [CD(value=""), CD(value="")],
-            [CD(value="[Reads]", apply_cell=style_section_name), CD(value="")],
-            [CD(value="Read1Cycles", apply_cell=style_header), CD(value="")],
-            [CD(value="Read2Cycles", apply_cell=style_header), CD(value="")],
-            [CD(value="Index1Cycles", apply_cell=style_header), CD(value="")],
-            [CD(value="Index2Cycles", apply_cell=style_header), CD(value="")],
-            [CD(value=""), CD(value="")],
-            [CD(value="[Sequencing_Settings]", apply_cell=style_section_name), CD(value="")],
-            [CD(value="LibraryPrepKits", apply_cell=style_header), CD(value="")],
-            [CD(value=""), CD(value="")],
-            [CD(value="[BCLConvert_Settings]", apply_cell=style_section_name), CD(value="")],
-            [CD(value="SoftwareVersion", apply_cell=style_header), CD(value="")],
-            [CD(value="AdapterRead1", apply_cell=style_header), CD(value="")],
-            [CD(value="AdapterRead2", apply_cell=style_header), CD(value="")],
-            [CD(value="OverrideCycles", apply_cell=style_header), CD(value="")],
-            [CD(value="FastqCompressionFormat"), CD(value="")],
-            [CD(value=""), CD(value="")],
-            [CD(value="[BCLConvert_Data]", apply_cell=style_section_name), CD(value="")],
-            [CD(value="Lane", apply_cell=style_header), CD(value="")],
-            [CD(value="Sample_ID", apply_cell=style_header), CD(value="")],
-            [CD(value="Index", apply_cell=style_header), CD(value="")],
-            [CD(value="Index2", apply_cell=style_header), CD(value="")],
-            [CD(value=""), CD(value="")],
-            [CD(value="[DragenGermline_Settings]", apply_cell=style_section_name), CD(value="")],
-            [CD(value="SoftwareVersion", apply_cell=style_header), CD(value="")],
-            [CD(value="AppVersion", apply_cell=style_header), CD(value="")],
-            [CD(value="MapAlignOutFormat", apply_cell=style_header), CD(value="")],
-            [CD(value="KeepFastq", apply_cell=style_header), CD(value="")],
-            [CD(value=""), CD(value="")],
-            [CD(value="[DragenGermline_Data]", apply_cell=style_section_name), CD(value="")],
-            [CD(value="Sample_ID", apply_cell=style_header), CD(value="")],
-            [CD(value="ReferenceGenomeDir", apply_cell=style_header), CD(value="")],
-            [CD(value="VariantCallingMode", apply_cell=style_header), CD(value="")],
-        ]
+        descriptors=info_descriptors
     )
+    infosheet.append(["To view the full requirements for each section, please consult the documentation: https://help.connected.illumina.com/run-set-up/overview/section-requirements"])
     infosheet.column_dimensions["A"].width = 25
 
     return workbook
