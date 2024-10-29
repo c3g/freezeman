@@ -78,7 +78,10 @@ def get_samplesheet(container_kind, placement):
     return out_stream.getvalue(), errors, warnings
 
 def _get_Sample_ID(sample_alias, derived_sample_id):
-    return f"{sample_alias}_{derived_sample_id}"
+    Sample_ID = f"{sample_alias}_{derived_sample_id}"
+    if len(Sample_ID) > 100:
+        raise Exception(f"Sample_ID '{Sample_ID}' is too long. It must be less than or equal to 100 characters.")
+    return Sample_ID
 
 @dataclass
 class BCLConvert_Datum:
