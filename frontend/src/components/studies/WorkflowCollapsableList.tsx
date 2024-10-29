@@ -32,9 +32,11 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 			}
 		})
 		return (
-			<Collapse accordion>
-				<Collapse.Panel header={workflow.name} key={workflow.name} style={{ width: '100%' }}>
-					<List
+			<Collapse accordion items={[
+				{
+					key: 'step-names',
+					label: workflow.name,
+					children: <List
 						dataSource={stepNames}
 						size="small"
 						renderItem={(item) => {
@@ -45,9 +47,9 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 								</span>
 							</List.Item>
 						}}
-					></List>
-				</Collapse.Panel>
-			</Collapse>
+					/>
+				}
+			]} />
 		)
 	}
 
