@@ -60,13 +60,13 @@ def get_samplesheet(container_kind, placement):
 
     row_data_by_lane.sort(key=lambda x: x[0])
     bclconvert_data = [
-        BCLConvert_Datum(Lane=lane, Sample_ID=f"{sample_alias}*{derived_sample_id}", Index=sequences_3prime, Index2=sequences_5prime)
+        BCLConvert_Datum(Lane=lane, Sample_ID=f"{sample_alias}_{derived_sample_id}", Index=sequences_3prime, Index2=sequences_5prime)
         for lane, sample_alias, derived_sample_id, sequences_3prime, sequences_5prime
         in row_data_by_lane
     ]
     row_data_by_lane.sort(key=lambda x: x[1])
     dragen_data = [
-        DragenGermline_Datum(Sample_ID=f"{sample_alias}*{derived_sample_id}")
+        DragenGermline_Datum(Sample_ID=f"{sample_alias}_{derived_sample_id}")
         for lane, sample_alias, derived_sample_id, sequences_3prime, sequences_5prime
         in row_data_by_lane
     ]
