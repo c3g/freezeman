@@ -366,6 +366,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
             )
 
     infosheet = workbook["Info"]
+    # the standard dict type maintains insertion order by default
     INFO = {
         "Header" : {
             "FileFormatVersion": "Used to identify the sample sheet as a v2 sample sheet. Must always be 2.",
@@ -374,26 +375,26 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
             "IndexOrientation": "We will only support Forward.",
         },
         "Reads": {
-            "Read1Cycles": "Number of cycles in Index Read 1. Index 1 required if more than one sample is present in sample sheet.",
-            "Read2Cycles": "Number of cycles in Index Read 2. Index 2 required if using dual indexes for demultiplexing.",
-            "Index1Cycles": "Number of cycles for Read 1.",
-            "Index2Cycles": "Number of cycles for Read 2. Read 2 required if running a paired-end sequencing run.",
+            "Read1Cycles": "Number of cycles for Read 1.",
+            "Read2Cycles": "Number of cycles for Read 1. Read 2 required if running a paired-end sequencing run.",
+            "Index1Cycles": "Number of cycles in Index Read 1. Index 1 required if more than one sample is present in sample sheet.",
+            "Index2Cycles": "Number of cycles in Index Read 2. Index 2 required if using dual indexes for demultiplexing.",
         },
         "Sequencing_Settings": {
             "LibraryPrepKits": "Identifies the library prep kit used for the run. Only IlluminaDNAPCRFree is supported.",
         },
         "BCLConvert_Settings": {
             "SoftwareVersion": "Identifies the version of the DRAGEN software to be used process the specific DRAGEN pipeline, including conversion to FASTQ. Use all three integers included in the DRAGEN version name. For example, 3.5.7",
-            "AdapterRead1": "This sequence is tied to the Library Kits used to prepare the sample.",
-            "AdapterRead2": "This sequence is tied to the Library Kits used to prepare the sample.",
+            "AdapterRead1": "The sequence tied to the Library Kits used to prepare the sample. To trim multiple adapters, separate the sequences with a plus sign (+).",
+            "AdapterRead2": "The sequence tied to the Library Kits used to prepare the sample. To trim multiple adapters, separate the sequences with a plus sign (+).",
             "OverrideCycles": "Examples of OverrideCycles: U8Y143;I8;I8;U8Y143 or N10Y66;I6;N10Y66",
             "FastqCompressionFormat": "The compression format for the FASTQ output files. Only gzip is supported.",
         },
         "BCLConvert_Data": {
             "Lane": "Specifies FASTQ files only for the samples with the specified lane number.",
             "Sample_ID": "Freezeman formats Sample_ID as [Sample Alias]_[Derived Sample ID]. Sample_IDs can be repeated. This assumes that a sample is split across lanes, and results will be merged for samples with the same ID.",
-            "Index": "The Index 1 (i7) index adapter. Index 1 is required if index cycles are specified for the sample in OverrideCycles.",
-            "Index2": "The Index 2 (i5) index adapter. Index 2 is required if Index2Cycles is > 0. Index2 is entered in the sample sheet in forward, non-complemented format for user convenience",
+            "Index": "The Index 1 (i7) index adapter sequence. Index 1 is required if index cycles are specified for the sample in OverrideCycles.",
+            "Index2": "The Index 2 (i5) index adapter sequence. Index 2 is required if Index2Cycles is > 0. Index2 is entered in the sample sheet in forward, non-complemented format for user convenience",
         },
         "DragenGermline_Settings": {
             "SoftwareVersion": "Identifies the version of the DRAGEN software to be used process the specific DRAGEN pipeline, including conversion to FASTQ. Use all three integers included in the DRAGEN version name. For example, 3.5.7",
