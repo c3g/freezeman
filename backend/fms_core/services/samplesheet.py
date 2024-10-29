@@ -60,13 +60,13 @@ def get_samplesheet(container_kind, placement):
 
     row_data_by_lane.sort(key=lambda x: x[0])
     bclconvert_data = [
-        BCLConvert_Datum(Lane=lane, Sample_ID=f"{sample_alias}_{derived_sample_id}", Index=sequences_3prime, Index2=sequences_5prime)
+        BCLConvert_Datum(Lane=lane, Sample_ID=_get_Sample_ID(sample_alias, derived_sample_id), Index=sequences_3prime, Index2=sequences_5prime)
         for lane, sample_alias, derived_sample_id, sequences_3prime, sequences_5prime
         in row_data_by_lane
     ]
     row_data_by_lane.sort(key=lambda x: x[1])
     dragen_data = [
-        DragenGermline_Datum(Sample_ID=f"{sample_alias}_{derived_sample_id}")
+        DragenGermline_Datum(Sample_ID=_get_Sample_ID(sample_alias, derived_sample_id))
         for lane, sample_alias, derived_sample_id, sequences_3prime, sequences_5prime
         in row_data_by_lane
     ]
@@ -76,6 +76,9 @@ def get_samplesheet(container_kind, placement):
     )
     workbook.save(out_stream)
     return out_stream.getvalue(), errors, warnings
+
+def _get_Sample_ID(sample_alias, derived_sample_id):
+    return f"{sample_alias}_{derived_sample_id}"
 
 @dataclass
 class BCLConvert_Datum:
@@ -217,8 +220,8 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
 
     samplesheet.append([])
     add_section_header("BCLConvert_Settings")
-    ADAPTER_READ1S = { "NovaSeqXSeries": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA" }
-    ADAPTER_READ2S = { "NovaSeqXSeries": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA" }
+    ADAPTERREAD1S = { "IlluminaDNAPCRFree": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA" }
+    ADAPTERREAD2S = { "IlluminaDNAPCRFree": "CTGTCTCTTATACACATCT+ATGTGTATAAGAGACA" }
     FASTQ_COMPRESSION_FORMATS = ["gzip"]
     insert_cells(
         samplesheet,
@@ -234,8 +237,8 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
             ],
             [
                 CD(value="", apply_cell=style_writable),
-                CD(value=ADAPTER_READ1S["NovaSeqXSeries"], apply_cell=style_writable),
-                CD(value=ADAPTER_READ2S["NovaSeqXSeries"], apply_cell=style_writable),
+                CD(value=ADAPTERREAD1S["IlluminaDNAPCRFree"], apply_cell=style_writable),
+                CD(value=ADAPTERREAD2S["IlluminaDNAPCRFree"], apply_cell=style_writable),
                 CD(value="", apply_cell=style_writable),
                 CD(
                     value="gzip",
@@ -420,7 +423,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         order="row",
         descriptors=info_descriptors
     )
-    infosheet.append(["To view the full requirements for each section, please consult the documentation: https://help.connected.illumina.com/run-set-up/overview/section-requirements"])
+    infosheet.append(["To view the full requirements for each section, please consult the documentation: https://help.connected.illumina.com/run-set-up/overview/parameters"])
     infosheet.column_dimensions["A"].width = 25
 
     return workbook
