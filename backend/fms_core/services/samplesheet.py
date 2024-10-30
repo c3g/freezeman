@@ -13,6 +13,7 @@ from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import DerivedBySample, Index
 from fms_core.services.workbook_utils import CD, insert_cells
+from fms_core.services.utils import fit_string_with_ellipses
 
 def get_samplesheet(container_kind, placement):
     """
@@ -78,10 +79,15 @@ def get_samplesheet(container_kind, placement):
     return out_stream.getvalue(), errors, warnings
 
 def _get_Sample_ID(sample_alias, derived_sample_id):
-    Sample_ID = f"{sample_alias}_{derived_sample_id}"
-    if len(Sample_ID) > 100:
-        raise Exception(f"Sample_ID '{Sample_ID}' is too long. It must be less than or equal to 100 characters.")
-    return Sample_ID
+    MAX_SAMPLE_ID_LENGTH = 100
+    SEPERATOR = "_"
+    sample_alias = str(sample_alias)
+    derived_sample_id = str(derived_sample_id)
+    max_sample_alias_length = MAX_SAMPLE_ID_LENGTH - len(SEPERATOR) - len(derived_sample_id)
+
+    sample_alias = fit_string_with_ellipses(sample_alias, max_sample_alias_length, "---")
+
+    return f"{sample_alias}_{derived_sample_id}"
 
 @dataclass
 class BCLConvert_Datum:
