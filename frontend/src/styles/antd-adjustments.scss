@@ -113,6 +113,9 @@ $descriptions-border-color: #e0e0e0;
 
 $table-border-color: #cccccc;
 
+.ant-table-header div.table-layout th .ant-table-expand-icon-col {
+  background-color: black;
+}
 .ant-table.ant-table-bordered > .ant-table-container {
   border: 1px solid $table-border-color;
 }
@@ -206,7 +209,6 @@ $table-border-color: #cccccc;
 
 // antd v4 to v5 adjustments
 
-
 body {
   margin:0px;
 }
@@ -225,8 +227,4 @@ div.ant-collapse-item  {
 .ant-table-pagination {
   justify-content: flex-end;
   margin: 12px
-}
-
-div.ant-table-header th {
-  width: 1000;
 }

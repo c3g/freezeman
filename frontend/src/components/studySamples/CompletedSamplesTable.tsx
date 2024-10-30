@@ -103,7 +103,7 @@ function CompletedSamplesTable({studyID, step, workflowAction, tableState, setti
 				USER,
 				COMMENT
 			]}
-      scroll={{ x: 1500, y: 700}}
+      scroll={{ y: 700}}
 			dataSource={dataSource}
 			rowKey={completedSample => completedSample.id}
 			pagination={false}

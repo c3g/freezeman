@@ -34,6 +34,7 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         columnID: InstrumentColumnID.ID,
         title: 'ID',
         dataIndex: ['instrument', 'id'],
+        width: 85,
         render: (_, { instrument }) => {
             return <div>{instrument.id}</div>
         }

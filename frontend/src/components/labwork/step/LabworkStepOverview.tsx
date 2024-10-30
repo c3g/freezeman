@@ -51,7 +51,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
-  
+
   const loading = refreshing  || labworkStepSummary.isFetching
 
   useEffect(() => {
@@ -80,7 +80,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
     }
   }, [stepSamples.selectedSamples.items, step.id, dispatch])
 
-  const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {   
+  const handleClearGroup = useCallback((groupSampleIds: FMSId[]) => {
     dispatch(unselectSamples(step.id, groupSampleIds))
   }, [dispatch, step.id])
 
@@ -108,22 +108,22 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 					return (
 						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
 							<LabworkStepOverviewPanel
-                refreshing={refreshing || labworkStepSummary.isFetching}
-                grouping={activeGrouping}
-                groupingValue={group.name}
-                clearFilters={clearFilters}
+							  refreshing={refreshing || labworkStepSummary.isFetching}
+							  grouping={activeGrouping}
+							  groupingValue={group.name}
+							  clearFilters={clearFilters}
 							  hasFilter={true}
-                columns={columns}
-                filterDefinitions={filterDefinitions}
-                filterKeys={filterKeys}
-                filters={filters}
-                setFilter={setFilter}
-                setFilterOptions={setFilterOptions}
-                selection={selection}
-                setSortBy={setSortBy}
-                pagination={pagination}
-		stepID={step.id}
-              />
+							  columns={columns}
+							  filterDefinitions={filterDefinitions}
+							  filterKeys={filterKeys}
+							  filters={filters}
+							  setFilter={setFilter}
+							  setFilterOptions={setFilterOptions}
+							  selection={selection}
+							  setSortBy={setSortBy}
+							  pagination={pagination}
+							  stepID={step.id}
+							/>
 						</Collapse.Panel>
 					)
 				})}

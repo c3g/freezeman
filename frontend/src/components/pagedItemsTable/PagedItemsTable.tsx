@@ -238,7 +238,7 @@ function PagedItemsTable<T extends object>({
 		<>
 			{columns && (
 				<>
-					<div style={{ display: 'flex', justifyContent: 'space-between', margin: '0 0 0.5em 0' }}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5em' }}>
 						<div>{topBarExtra}</div>
 						{usingFilters && pagedItems.filters && (
 							<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback} buttonStyle={{ margin: 0 }}/>
@@ -250,26 +250,24 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						scroll={{ x: 1500, y: 700 }}
+						scroll={{ y: 700 }}
 						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
 
 					/>
-					{true && (
-						<Pagination
-							className="ant-table-pagination ant-table-pagination-right"
-							showSizeChanger={true}
-							showQuickJumper={true}
-							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-							current={pagedItems.page?.pageNumber ?? 0}
-							pageSize={pagedItems.page?.limit ?? 0}
-							total={pagedItems.totalCount}
-							onChange={listPageCallback}
-							onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
-						/>
-					)}
+					<Pagination
+						className="ant-table-pagination ant-table-pagination-right"
+						showSizeChanger={true}
+						showQuickJumper={true}
+						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+						current={pagedItems.page?.pageNumber ?? 0}
+						pageSize={pagedItems.page?.limit ?? 0}
+						total={pagedItems.totalCount}
+						onChange={listPageCallback}
+						onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
+					/>
 				</>
 			)}
 		</>
