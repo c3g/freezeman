@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Readset } from "../../models/frontend_models";
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns";
 import { FilterDescription } from "../../models/paged_items";
@@ -25,15 +25,6 @@ function defaultRenderReleaseStatus(value: any, record: ObjectWithReadset, index
 
 export function useReadsetColumnDefinitions({ renderReleaseStatus = defaultRenderReleaseStatus }): { [key in ReadsetColumnID]: ReadsetColumn } {
     return useMemo(() => ({
-        // [ReadsetColumnID.METRIC]: {
-        //     columnID: ReadsetColumnID.ID,
-        //     title: 'Metric',
-        //     dataIndex: ['readset', 'id'],
-        //     width: 60,
-        //     render: (_, { readset }) => {
-        //         return readset &&  <div>{ReadsetMetricContent(readset)}</div>  //
-        //     }
-        // },
         [ReadsetColumnID.ID]: {
             columnID: ReadsetColumnID.ID,
             title: 'ID',
