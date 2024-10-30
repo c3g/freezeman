@@ -367,12 +367,12 @@ function useColumns(filters: FilterSet, readsetTableCallbacks: PagedItemsActions
     readsetTableColumns = setColumnWidths(
         readsetTableColumns,
         {
-            [ReadsetColumnID.ID]: 10,
-            [ReadsetColumnID.SAMPLE_NAME]: 10,
-            [ReadsetColumnID.RELEASE_STATUS]: 10,
-            [ReadsetColumnID.LIBRARY_TYPE]: 10,
-            [ReadsetColumnID.INDEX]: 10,
-            [ReadsetColumnID.NUMBER_READS]: 10,
+            [ReadsetColumnID.ID]: 125,
+            [ReadsetColumnID.SAMPLE_NAME]: 125,
+            [ReadsetColumnID.RELEASE_STATUS]: 125,
+            [ReadsetColumnID.LIBRARY_TYPE]: 125,
+            [ReadsetColumnID.INDEX]: 125,
+            [ReadsetColumnID.NUMBER_READS]: 125,
         }
 
     )

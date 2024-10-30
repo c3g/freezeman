@@ -1,13 +1,13 @@
 import { ExpandableConfig } from "antd/lib/table/interface"
 import { ObjectWithReadset } from "./ReadsetsTableColumns"
 import { ReactNode, useMemo } from "react"
-import { TableProps, Tooltip } from "antd"
+import { TableProps, Tooltip, Typography } from "antd"
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons"
 import { Readset } from "../../models/frontend_models"
 import React from "react"
 
-export const ReadsetMetricContent = () => {
-    const columnTitle: ReactNode = <div>View Metrics</div>
+export const ReadsetMetricContent = (): ExpandableConfig<ObjectWithReadset> => {
+    const columnTitle: ReactNode = <Typography.Text>Metrics</Typography.Text>
     function checkIfDecimal(str: string) {
       const num = parseFloat(str)
       if (String(num).includes('.')) {
@@ -16,7 +16,7 @@ export const ReadsetMetricContent = () => {
           return num
       }
     }
-    return ({
+    return {
         columnTitle: columnTitle,
         expandIcon: ({ expanded, onExpand, record }) =>
             expanded ? (
@@ -30,12 +30,13 @@ export const ReadsetMetricContent = () => {
 
             )
         ,
+        rowExpandable: (record) => !!record.readset.metrics,
         expandedRowRender: (record) => {
             const readset: Readset = record.readset
             return (
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(8,1fr)',
+                    gridTemplateColumns: 'repeat(7,1fr)',
                     gap: '1em'
                 }} key={readset.id}>
                     {
@@ -68,5 +69,4 @@ export const ReadsetMetricContent = () => {
             )
         }
     }
-  )
 }
