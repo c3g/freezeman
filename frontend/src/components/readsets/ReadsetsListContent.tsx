@@ -19,7 +19,7 @@ import { createFixedFilter, FilterSet } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
 import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities";
 import { ReleaseStatus } from "../../models/fms_api_models";
-import { ExpandableConfig } from "antd/lib/table/interface";
+import { ReadsetMetricContent } from "./ReadsetMetricContent";
 import api from "../../utils/api";
 import produce from "immer";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
@@ -52,7 +52,7 @@ interface ReadsetsListContentProps {
 const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: ReadsetsListContentProps) => {
     const user = useCurrentUser()
     const isAdmin = user ? user.is_staff : false
-
+    const expandableContent = ReadsetMetricContent()
     const readsetTableState = useAppSelector(selectReadsetsTable)
     const readsetTableCallbacks = usePagedItemsActionsCallbacks(ReadsetTableActions)
     const dispatch = useAppDispatch()
@@ -77,7 +77,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
     const renderReleaseStatus = useCallback((_: any, { readset }: ObjectWithReadset) => {
         const readsetStatus = releaseStatusManager.readsetReleaseStates[readset.id]
         if (readsetStatus) {
-            return <ReleaseStatusButton 
+            return <ReleaseStatusButton
                 readsetStatus={readsetStatus}
                 disabled={!canUpdateReleaseStatus}
                 onClick={() => {
@@ -91,7 +91,6 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
     }, [canUpdateReleaseStatus, releaseStatusManager])
     const columns = useColumns(filters, readsetTableCallbacks, renderReleaseStatus)
 
-    const expandableMetricConfig = useExpandableMetricConfig()
 
     const extraButtons = useMemo(() => {
         const readsetStates = Object.values(releaseStatusManager.readsetReleaseStates).reduce<NonNullable<ReleaseStatusManagerState[Readset["id"]]>[]>((readsetStates, readsetState) =>  {
@@ -107,10 +106,10 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
         const allReadsetsReleasedOrBlocked = readsetStates.every((readsetState) => getCurrentReleaseStatus(readsetState) !== ReleaseStatus.AVAILABLE)
         const someReadsetsChangedStatus =    readsetStates.some((readsetState) => readsetState.new !== undefined)
 
-        const releaseAllEnabled =   canUpdateReleaseStatus && !allReadsetsReleased      
-        const blockAllEnabled =     canUpdateReleaseStatus && !allReadsetsBlocked       
+        const releaseAllEnabled =   canUpdateReleaseStatus && !allReadsetsReleased
+        const blockAllEnabled =     canUpdateReleaseStatus && !allReadsetsBlocked
         const availableAllEnabled = canUpdateReleaseStatus && !allReadsetsAvailable && isAdmin
-        const undoChangesEnabled =  canUpdateReleaseStatus && someReadsetsChangedStatus 
+        const undoChangesEnabled =  canUpdateReleaseStatus && someReadsetsChangedStatus
         const saveChangesEnabled =  canUpdateReleaseStatus && someReadsetsChangedStatus && (
             // normal user
             (!isAdmin && allReadsetsReleasedOrBlocked)
@@ -142,7 +141,7 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
             newAvailableCount > 0 ? `${newAvailableCount} will be made available` : '',
             `Do you want to save these changes?`
         ].map((str, index) => <div key={index}>{str}</div>)
-    
+
         return <div>
             <Button
                 style={{ margin: 6 }}
@@ -226,8 +225,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
                 <FiltersBar filters={filters} clearFilters={readsetTableCallbacks.clearFiltersCallback} />
             </div>
             <PagedItemsTable<ObjectWithReadset>
+                expandable={expandableContent}
                 columns={columns}
-                expandable={expandableMetricConfig}
                 getDataObjectsByID={mapContainerIDs}
                 pagedItems={readsetTableState}
                 usingFilters={false}
@@ -368,12 +367,12 @@ function useColumns(filters: FilterSet, readsetTableCallbacks: PagedItemsActions
     readsetTableColumns = setColumnWidths(
         readsetTableColumns,
         {
-            [ReadsetColumnID.ID]: 10,
-            [ReadsetColumnID.SAMPLE_NAME]: 10,
-            [ReadsetColumnID.RELEASE_STATUS]: 10,
-            [ReadsetColumnID.LIBRARY_TYPE]: 10,
-            [ReadsetColumnID.INDEX]: 10,
-            [ReadsetColumnID.NUMBER_READS]: 10,
+            [ReadsetColumnID.ID]: 125,
+            [ReadsetColumnID.SAMPLE_NAME]: 125,
+            [ReadsetColumnID.RELEASE_STATUS]: 125,
+            [ReadsetColumnID.LIBRARY_TYPE]: 125,
+            [ReadsetColumnID.INDEX]: 125,
+            [ReadsetColumnID.NUMBER_READS]: 125,
         }
 
     )
@@ -389,61 +388,6 @@ function useColumns(filters: FilterSet, readsetTableCallbacks: PagedItemsActions
     return columns
 }
 
-function useExpandableMetricConfig(): ExpandableConfig<ObjectWithReadset> {
-    return useMemo(() => ({
-        columnTitle: <div>View Metrics</div>,
-        expandIcon: ({ expanded, onExpand, record }) =>
-            expanded ? (
-                <Tooltip title="Hide Metrics">
-                    <MinusCircleTwoTone style={{fontSize: 18}} onClick={e => onExpand(record, e)} />
-                </Tooltip>
-            ) : (
-                <Tooltip title="View Metrics">
-                    <PlusCircleTwoTone style={{fontSize: 18}} onClick={e => onExpand(record, e)} />
-                </Tooltip>
-
-            )
-        ,
-        expandedRowRender: (record) => {
-            const readset: Readset = record.readset
-            return (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(8,1fr)',
-                    gap: '1em'
-                }} key={readset.id}>
-                    {
-                        readset.metrics ?
-                            Object.keys(readset.metrics).map(
-                                (name) => {
-                                    return (
-                                        readset.metrics && (readset.metrics[name].value_numeric || readset.metrics[name].value_string) &&
-
-
-                                        <div style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                        }} key={name}>
-                                            {<b >
-                                                {name.replace(/_/g, " ")}
-                                            </b>
-                                            }
-                                            {readset.metrics[name].value_numeric
-                                                ?
-                                                checkIfDecimal(readset.metrics[name].value_numeric)
-                                                :
-                                                readset.metrics[name].value_string}
-                                        </div>)
-                                })
-                            :
-                            <div>No metrics</div>
-                    }
-                </div>
-            )
-        }
-        ,
-    }), [])
-}
 
 interface ReleaseStatusButtonProps {
     readsetStatus: NonNullable<ReleaseStatusManagerState[Readset["id"]]>
@@ -464,15 +408,6 @@ function ReleaseStatusButton({ readsetStatus, disabled, onClick }: ReleaseStatus
             >
                 {RELEASE_STATUS_STRING[getCurrentReleaseStatus(readsetStatus)]}
         </Button>
-}
-
-function checkIfDecimal(str: string) {
-    const num = parseFloat(str)
-    if (String(num).includes('.')) {
-        return num.toFixed(3)
-    } else {
-        return num
-    }
 }
 
 function wrapReadset(readset: Readset): ObjectWithReadset {

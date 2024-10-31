@@ -29,6 +29,7 @@ export const INDIVIDUAL_COLUMN_DEFINITIONS: { [key in IndividualColumnID]: Indiv
 		title: 'ID',
 		dataIndex: ['individual', 'id'],
 		sorter: true,
+    width: 115,
 		render: (id, { individual }) => <Link to={`/individuals/${individual.id}`}>{id}</Link>,
 	},
 	[IndividualColumnID.NAME]: {

@@ -33,4 +33,3 @@ export default function ExpandableTableDatasetComments(): NonNullable<TableProps
     }
   )
 }
-11

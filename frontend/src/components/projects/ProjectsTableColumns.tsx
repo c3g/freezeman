@@ -30,7 +30,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		title: 'ID',
 		dataIndex: ['project', 'id'],
 		sorter: true,
-		width: 80,
+		width: 30,
 		render: (id, {project}) => (
 			<Link to={`/projects/${project.id}`}>
 				<div>{id}</div>
@@ -68,7 +68,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		title: 'Requestor Name',
 		dataIndex: ['project', 'requestor_name'],
 		sorter: true,
-		width: 100,
+		width: 90,
 	},
 	[ProjectColumnID.REQUESTOR_EMAIL]: {
 		columnID: ProjectColumnID.REQUESTOR_EMAIL,
@@ -81,14 +81,14 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		title: 'Targeted End Date',
 		dataIndex: ['project', 'targeted_end_date'],
 		sorter: true,
-		width: 115,
+		width: 50,
 	},
 	[ProjectColumnID.STATUS]: {
 		columnID: ProjectColumnID.STATUS,
 		title: 'Status',
 		dataIndex: ['project', 'status'],
 		sorter: true,
-		width: 115,
+		width: 50,
 	},
 }
 

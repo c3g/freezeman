@@ -58,6 +58,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		title: 'ID',
 		dataIndex: ['container', 'id'],
 		sorter: true,
+    width: 115,
 		render: (_, {container}) => {
 			return container && <Link to={`/containers/${container.id}`}>{container.id}</Link>
 		}
@@ -119,13 +120,13 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		title: 'Coord.',
 		dataIndex: ['container', 'coordinate'],
 		sorter: true,
-		render: (_, {container}) => 
-			container.coordinate && 
-				<WithCoordinateRenderComponent 
-					objectID={container.coordinate} 
-					placeholder={"loading..."} 
+		render: (_, {container}) =>
+			container.coordinate &&
+				<WithCoordinateRenderComponent
+					objectID={container.coordinate}
+					placeholder={"loading..."}
 					render={coordinate => <span>{coordinate.name}</span>}/>
-    
+
 	},
 	[ContainerColumnID.CHILDREN]: {
 		columnID: ContainerColumnID.CHILDREN,

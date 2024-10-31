@@ -206,7 +206,6 @@ $table-border-color: #cccccc;
 
 // antd v4 to v5 adjustments
 
-
 body {
   margin:0px;
 }
@@ -225,8 +224,4 @@ div.ant-collapse-item  {
 .ant-table-pagination {
   justify-content: flex-end;
   margin: 12px
-}
-
-div.ant-table-header th {
-  width: 1000;
 }
