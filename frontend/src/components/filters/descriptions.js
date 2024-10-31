@@ -415,10 +415,10 @@ export const INDEX_FILTERS = {
     key: "index_structure__name",
     label: "Index Structure",
   },
-  index_set__name: {
+  index_sets__name: {
     type: FILTER_TYPE.INPUT,
-    key: "index_set__name",
-    label: "Index Structure",
+    key: "index_sets__name",
+    label: "Index Sets",
     batch: true,
   },
   sequences_3prime__value: {

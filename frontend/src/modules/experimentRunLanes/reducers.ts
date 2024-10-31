@@ -27,6 +27,7 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 		
 		case SET_EXPERIMENT_LANES: {
 			const lanes : ExperimentRunLanes = action.lanes
+			lanes.lanes.sort((a, b) => a.laneNumber - b.laneNumber)
 			state.runs[lanes.experimentRunName] = lanes
 			break
 		}

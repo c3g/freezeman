@@ -105,13 +105,18 @@ export interface FMSArchivedComment extends FMSTrackedModel {
     comment: string
 }
 
+export enum ReleaseStatus {
+    AVAILABLE = 0,
+    RELEASED = 1,
+    BLOCKED = 2,
+}
 export interface FMSReadset extends FMSTrackedModel {
     id: FMSId                          // Unique ID of object in database
     name: string                       // External name that identifies the readset if the run did not come from Freezeman
     sample_name: string                // Name that identifies the sample if the run did not come from Freezeman
     derived_sample: FMSId              // Derived sample matching the readset
     sample_source: FMSId               // Last non pool sample (if any, else last pool) before experiment
-    release_status: number              // The file's release status (AVAILABLE = 0, RELEASED = 1,BLOCKED = 2)
+    release_status: ReleaseStatus
     release_status_timestamp: Date
     released_by?: FMSId                // User that released the run data
     validation_status: number
@@ -158,7 +163,7 @@ export interface FMSImportedFile {
 
 export interface FMSIndex extends FMSTrackedModel {
     name: string                        // eg "Index_1"
-    index_set: string                   // IndexSet name
+    index_sets: string[]                // IndexSet names
     index_structure: string             // IndexStructure name
     sequences_3prime: FMSId[]           // Sequence ID's
     sequences_5prime: FMSId[]           // Sequence ID's
@@ -278,7 +283,6 @@ export interface FMSPooledSample extends FMSTrackedModel {
     // Library fields                   // Library fields are only defined if pool contains libraries
     index?: string,                     // Name of index
     index_id?: FMSId,                   // ID of index
-    index_set?: string,                 // Name of index set containing library index
     library_type?: string,              // Library Type (eg. PCR-free) (pre-defined)
     platform?: string,                  // Platform name (eg. ILLUMINA)
     strandedness?: string,              // "Double stranded" (for DNA) or "Single stranded" (for RNA)
@@ -395,7 +399,6 @@ export interface FMSSample extends FMSTrackedModel {
 export interface FMSSampleKind extends FMSTrackedModel {
     name: string                        // Sample kind name
     is_extracted: boolean               // Indicator to identify kinds that were extracted. Sample will have tissue source.
-    concentration_required: boolean     // Sample kind requires a concentration value for sample processing
     molecule_ontology_curie?: string    // SO ontology term to describe a molecule, such as ‘SO:0000991’ (‘genomic_DNA’)
 }
 

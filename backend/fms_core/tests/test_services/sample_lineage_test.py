@@ -96,7 +96,7 @@ class SampleLineageServicesTestCase(TestCase):
         self.project, _, _ = create_project(name=PROJECT_NAME)
 
         self.import_template(IndexCreationImporter(), 'Index_creation_v3_7_0.xlsx')
-        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_5_0.xlsx')
+        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_12_0.xlsx')
         self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_4_0.xlsx')
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0.xlsx')
 

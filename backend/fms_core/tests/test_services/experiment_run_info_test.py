@@ -36,19 +36,19 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(IndexCreationImporter(), 'Index_creation_v3_7_0.xlsx')
 
-        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_5_0.xlsx')
+        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_12_0.xlsx')
         
         self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_4_0.xlsx')
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_9_0.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_12_0.xlsx')
 
         self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_4_0.xlsx')
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_4_0_after_capture.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_9_0_after_capture.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_12_0_after_capture.xlsx')
 
 
     def import_template(self, importer, file):
@@ -68,7 +68,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(mgi_experiment)
 
         self.assertIsNotNone(run_info)
-        self.assertEqual(run_info['version'], '1.0.0')
+        self.assertEqual(run_info['version'], '1.1.0')
         self.assertEqual(run_info['run_name'], 'ER-RNA-MGI-EXPERIMENT')
         self.assertEqual(run_info['run_obj_id'], mgi_experiment.id)
         self.assertEqual(run_info['run_start_date'],  mgi_experiment.start_date.strftime("%Y-%m-%d"))
@@ -100,8 +100,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             taxon_name= "Homo sapiens",
             library_type= "PCR-free",
             library_size= 500,
-            index_set_obj_id= IndexSet.objects.get(name='_10x_Genomics_scRNA_V1').id,
-            index_set_name= "_10x_Genomics_scRNA_V1",
+            index_sets= [{"obj_id": IndexSet.objects.get(name='_10x_Genomics_scRNA_V1').id, "name": "_10x_Genomics_scRNA_V1"}],
             index_obj_id= Index.objects.get(name='SI-3A-A1').id,
             index_name= "SI-3A-A1",
             index_sequence_3_prime= [

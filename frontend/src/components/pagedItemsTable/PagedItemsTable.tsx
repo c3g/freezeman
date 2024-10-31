@@ -7,6 +7,7 @@ import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
+import { useDebounce } from '../filters/filterComponents/DebouncedInput'
 
 
 export interface PagedItemTableSelection {
@@ -46,7 +47,7 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	usingFilters: boolean
 
 	selection?: PagedItemTableSelection
-	expandable?: TableProps<any>['expandable']
+	expandable?: TableProps<T>['expandable']
 	initialLoad?: boolean
 
 	topBarExtra?: React.ReactNode[]
@@ -79,7 +80,6 @@ function PagedItemsTable<T extends object>({
 
 	const { items, sortBy, stale } = pagedItems
 	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
-
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
 		() => {
@@ -89,7 +89,6 @@ function PagedItemsTable<T extends object>({
 			if (fixedFilter && fixedFilter.description) {
 				setFixedFilterCallback(fixedFilter)
 			}
-
 			// If a page isn't already loaded in redux then request page 1
 			if (!pagedItems.page?.pageNumber) {
 				listPageCallback(1)
@@ -100,7 +99,7 @@ function PagedItemsTable<T extends object>({
 		]
 	)
 
-	// Refresh the page if the paged items are marked as stale, if using 
+	// Refresh the page if the paged items are marked as stale, if using
 	// the refresh mechanism.
 	const refreshWhenStale = useRefreshWhenStale(refreshPageCallback, setStaleCallback)
 	useEffect(() => {
@@ -134,6 +133,7 @@ function PagedItemsTable<T extends object>({
 		},
 		[sortBy, setSortByCallback]
 	)
+    const debouncedSortByCallback = useDebounce(sortByCallback)
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
@@ -238,7 +238,7 @@ function PagedItemsTable<T extends object>({
 		<>
 			{columns && (
 				<>
-					<div style={{ display: 'flex', justifyContent: 'space-between', margin: '0 0 0.5em 0' }}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5em' }}>
 						<div>{topBarExtra}</div>
 						{usingFilters && pagedItems.filters && (
 							<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback} buttonStyle={{ margin: 0 }}/>
@@ -250,26 +250,24 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						scroll={{x: 300}}
-						onChange={sortByCallback}
+						scroll={{ y: 700 }}
+						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
 
 					/>
-					{true && (
-						<Pagination
-							className="ant-table-pagination ant-table-pagination-right"
-							showSizeChanger={true}
-							showQuickJumper={true}
-							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-							current={pagedItems.page?.pageNumber ?? 0}
-							pageSize={pagedItems.page?.limit ?? 0}
-							total={pagedItems.totalCount}
-							onChange={listPageCallback}
-							onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
-						/>
-					)}
+					<Pagination
+						className="ant-table-pagination ant-table-pagination-right"
+						showSizeChanger={true}
+						showQuickJumper={true}
+						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+						current={pagedItems.page?.pageNumber ?? 0}
+						pageSize={pagedItems.page?.limit ?? 0}
+						total={pagedItems.totalCount}
+						onChange={listPageCallback}
+						onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
+					/>
 				</>
 			)}
 		</>

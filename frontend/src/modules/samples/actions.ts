@@ -36,11 +36,13 @@ export const update = (id, sample) => async (dispatch, getState) => {
         UPDATE, api.samples.update(sample), { meta: { id, ignoreError: 'APIError' }}));
 };
 
-export const list = (options) => async (dispatch: AppDispatch, getState) => {
+export const list = (options, abort = true) => async (dispatch: AppDispatch, getState) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
-        api.samples.list(params),
-        { meta: params }
+        api.samples.list(params, { abort }),
+        {
+            meta: params,
+        }
     ));
 };
 

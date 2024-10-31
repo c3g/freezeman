@@ -46,7 +46,6 @@ interface SelectInstrumentTypeProps extends SelectProps {
 }
 function SelectInstrumentType({ type, ...props }: SelectInstrumentTypeProps) {
     const listInstrumentTypesCallback = useCallback(() => store.dispatch(api.instrumentTypes.list({ platform__name: type })), [type])
-    
     const [instrumentTypes, setInstrumentTypes] = useState<InstrumentType[]>([])
 
     useEffect(() => {

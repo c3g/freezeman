@@ -27,7 +27,7 @@ export const TAXON_COLUMN_DEFINITIONS = (hasWritePermission: boolean): { [key in
         title: 'ID',
         dataIndex: ['taxon', 'id'],
         sorter: (a, b) => a.id - b.id,
-        width: '20%',
+        width: '5%',
         render: (_, { id }) =>
             id && hasWritePermission ? (
                 <Link to={`/taxons/update/${id}`}>

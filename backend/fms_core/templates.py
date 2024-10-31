@@ -8,7 +8,9 @@ from django.templatetags.static import static
 from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    VALID_QC_FLAG_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
-                                                   LIBRARY_QC_QUANTITY_INSTRUMENTS)
+                                                   LIBRARY_QC_QUANTITY_INSTRUMENTS,
+                                                   SAMPLE_QC_QUALITY_INSTRUMENTS,
+                                                   SAMPLE_QC_QUANTITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment
@@ -489,21 +491,21 @@ SAMPLE_METADATA_TEMPLATE = {
 
 SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries",
-               "file": static("submission_templates/Sample_pooling_v4_9_0.xlsx"),
+               "file": static("submission_templates/Sample_pooling_v4_12_0.xlsx"),
                "protocol": "Sample Pooling"},
   "sheets info": [
       {
           "name": "Pools",
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Coord",
-                      "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode",
-                      "Destination Parent Container Coord", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
+                      "Destination Container Name", "Destination Container Kind", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)",
+                      "Destination Parent Container Barcode", "Destination Parent Container Coord", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
       },
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Type", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
+                      "Index Name", "Robot Source Container", "Robot Source Coord", "Source Depleted", "Current Volume (uL)",
                       "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
@@ -521,6 +523,7 @@ SAMPLE_POOLING_TEMPLATE = {
       ("SamplesToPool", "Source Sample Name", "name", "name", None),
       ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode", None),
       ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SamplesToPool", "Index Name", None, "index_name", None),
       ("SamplesToPool", "Current Volume (uL)", "volume", "volume", None),
       ("LabInput", "Sample Name", "name", "name", None),
       ("LabInput", "Library Type", None, "library_type", None),
@@ -568,23 +571,22 @@ SAMPLE_POOLING_PLANNING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_5_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_12_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
           'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name',
-                      'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Name',
-                      'Container Barcode', 'Sample Coord', 'Location Barcode', 'Container Coord', 'Project', 'Study',
-                      'Experimental Group','NCBI Taxon ID #','Individual Name', 'Individual Alias', 'Cohort', 'Sex', 'Pedigree',
-                      'Mother Name', 'Father Name', 'Reference Genome', 'Library Type', 'Platform', 'Strandedness',
-                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Comment'],
+                      'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Barcode',
+                      'Container Name', 'Sample Coord', 'Location Kind', 'Location Barcode', 'Location Name', 'Container Coord', 'Project', 'Study',
+                      'Experimental Group', 'Taxon', 'Sex', 'Reference Genome', 'Individual Name', 'Individual Alias', 'Cohort',
+                      'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Selection', 'Selection Target', 'Comment'],
           'stitch_column': 'Pool Name',
           'batch': False,
       },
       {
           "name": "PoolSubmission",
-          "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Name",
-                      "Container Barcode", "Pool Coord", "Location Barcode", 
+          "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Barcode",
+                      "Container Name", "Pool Coord", "Location Kind", "Location Barcode", "Location Name",
                       "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
@@ -616,12 +618,12 @@ SAMPLE_UPDATE_TEMPLATE = {
 
 SAMPLE_QC_TEMPLATE = {
   "identity": {"description": "Template to perform sample quality control",
-               "file": static("submission_templates/Sample_QC_v4_8_0.xlsx"),
+               "file": static("submission_templates/Sample_QC_v4_12_0.xlsx"),
                "protocol": "Sample Quality Control"},
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
+          'headers': ['Sample Name', 'Sample Kind', 'Sample Container Barcode', 'Sample Container Coord', 'Sample Parent Container Barcode',
                       'Sample Parent Container Coord','Current Volume (uL)', 'Measured Volume (uL)', 'Volume Used (uL)',
                       'Concentration (ng/uL)', 'NA Quantity (ng)', 'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag',
                       'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
@@ -631,9 +633,9 @@ SAMPLE_QC_TEMPLATE = {
   "user prefill info": {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
-      "Quality Instrument": "qc-instrument",
+      "Quality Instrument": SAMPLE_QC_QUALITY_INSTRUMENTS,
       "Quality Flag": VALID_QC_FLAG_CHOICES,
-      "Quantity Instrument": "qc-instrument",
+      "Quantity Instrument": SAMPLE_QC_QUANTITY_INSTRUMENTS,
       "Quantity Flag": VALID_QC_FLAG_CHOICES,
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
@@ -650,7 +652,7 @@ SAMPLE_QC_TEMPLATE = {
 
 SAMPLE_EXTRACTION_TEMPLATE = {
   "identity": {"description": "Template to extract NA from samples",
-               "file": static("submission_templates/Sample_extraction_v4_4_0.xlsx"),
+               "file": static("submission_templates/Sample_extraction_v4_12_0.xlsx"),
                "protocol": "Extraction"},
   "sheets info": [
       {
@@ -658,7 +660,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
           'headers': ['Extraction Type', 'Current Volume (uL)', 'Volume Used (uL)', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
                       'Source Parent Container Barcode', 'Source Parent Container Coord', 'Destination Container Barcode', 'Destination Container Coord',
                       'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
-                      'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+                      'Volume (uL)', 'Source Depleted', 'Extraction Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
   ],

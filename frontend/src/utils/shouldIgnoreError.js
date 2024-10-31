@@ -2,6 +2,8 @@
  * shouldIgnoreError.js
  */
 
+import { ABORT_ERROR_NAME } from './api.ts'
+
 
 export default function shouldIgnoreError(action) {
   const ignoreError = action?.meta?.ignoreError
@@ -17,6 +19,10 @@ export default function shouldIgnoreError(action) {
 
   if (typeof ignoreError === 'function' && ignoreError(action.error, action))
     return true
+
+  if (action.error.name === ABORT_ERROR_NAME) {
+    return true
+  }
 
   return false
 }

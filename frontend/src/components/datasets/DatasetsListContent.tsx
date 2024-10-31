@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import { useAppSelector } from "../../hooks"
@@ -7,10 +7,11 @@ import DatasetsTableActions from '../../modules/datasetsTable/actions'
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
-import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, ObjectWithDataset } from "./DatasetsTableColumns"
+import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, DatasetColumnID, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
+import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities"
 
 
 const tableColumns = [
@@ -30,13 +31,14 @@ function DatasetsListContent() {
 
 	const callbacks = usePagedItemsActionsCallbacks(DatasetsTableActions)
 
-	const columns = useFilteredColumns(
-						tableColumns, 
-						DATASET_FILTER_DEFINITIONS,
-						DATASET_FILTER_KEYS,
-						filters,
-						callbacks.setFilterCallback,
-						callbacks.setFilterOptionsCallback)
+  let tweakedColumns = useFilteredColumns(
+          tableColumns,
+          DATASET_FILTER_DEFINITIONS,
+          DATASET_FILTER_KEYS,
+          filters,
+          callbacks.setFilterCallback,
+          callbacks.setFilterOptionsCallback)
+
 
 	const getDataObjectsByID = useItemsByIDToDataObjects(selectDatasetsByID, dataset => {return {dataset}})
 		return(
@@ -44,8 +46,8 @@ function DatasetsListContent() {
 				<AppPageHeader title="Datasets"/>
 				<PageContent>
 					<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
-					<PagedItemsTable<ObjectWithDataset> 
-						columns={columns}
+					<PagedItemsTable<ObjectWithDataset>
+						columns={tweakedColumns}
 						expandable={ExpandableTableDatasetComments()}
 						getDataObjectsByID={getDataObjectsByID}
 						pagedItems={pagedItems}

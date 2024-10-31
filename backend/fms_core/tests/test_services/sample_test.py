@@ -4,7 +4,7 @@ from django.test import TestCase
 import datetime
 from decimal import Decimal
 
-from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure,
+from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure, IndexBySet,
                              Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage,
                              SampleMetadata, Coordinate)
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
@@ -77,7 +77,8 @@ class SampleServicesTestCase(TestCase):
 
         test_indices = []
         for index in TEST_INDEX:
-            new_index = Index.objects.create(name=index["name"], index_set=index["index_set"], index_structure=index["index_structure"])
+            new_index = Index.objects.create(name=index["name"], index_structure=index["index_structure"])
+            IndexBySet.objects.create(index=new_index, index_set=index["index_set"])
             create_indices_3prime_by_sequence(new_index, [index["sequence_3_prime"]])
             create_indices_5prime_by_sequence(new_index, [index["sequence_5_prime"]])
             test_indices.append(new_index)
@@ -312,7 +313,6 @@ class SampleServicesTestCase(TestCase):
                                                             container_destination=self.test_containers[0],
                                                             volume_used=1000,
                                                             execution_date=EXECUTION_DATE,
-                                                            concentration_destination=10,
                                                             sample_kind_destination=self.sample_kind_dna,
                                                             coordinates_destination="A09",
                                                             volume_destination=200,
@@ -320,7 +320,6 @@ class SampleServicesTestCase(TestCase):
                                                             comment="Extracting dna from a blood sample")
         self.assertEqual(source_sample.volume, self.TEST_SAMPLES[0]["volume"]-1000)
         self.assertEqual(extracted_sample.volume, 200)
-        self.assertEqual(extracted_sample.concentration, 10)
         self.assertTrue(source_sample.depleted)
         self.assertIsNone(extracted_sample.fragment_size)
         self.assertFalse(extracted_sample.depleted)

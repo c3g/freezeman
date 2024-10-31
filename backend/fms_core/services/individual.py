@@ -1,9 +1,5 @@
 from django.core.exceptions import ValidationError
-
 from fms_core.models import Individual, Taxon, ReferenceGenome
-
-from ..utils import normalize_scientific_name
-
 
 def get_taxon(name=None, ncbi_id=None):
     taxon = None
@@ -14,7 +10,7 @@ def get_taxon(name=None, ncbi_id=None):
         errors.append(f"Taxon name or NCBI ID must be provided.")
     else:
         taxon_data = dict(
-            **(dict(name=normalize_scientific_name(name)) if name is not None else dict()),
+            **(dict(name__iexact=name) if name is not None else dict()),
             **(dict(ncbi_id=ncbi_id) if ncbi_id is not None else dict()),
           )
         try:

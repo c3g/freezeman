@@ -50,7 +50,7 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitResult, setSubmitResult] = useState(null);
 
-  const { action, actionIndex, checkRequest, submitRequest, goBack } = props;
+  const { action, actionIndex, checkRequest, submitRequest } = props;
   const StepContent = STEPS[step].content;
 
   if (file && !isChecked && !isChecking) {
@@ -173,15 +173,6 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
             onClick={onSubmit}
           >
             <CheckOutlined /> Submit
-          </Button>
-        }
-        {
-          step === STEPS.CONFIRM &&
-          <Button
-            type="primary"
-            onClick={goBack}
-          >
-            <CheckOutlined /> Go Back
           </Button>
         }
       </Col>

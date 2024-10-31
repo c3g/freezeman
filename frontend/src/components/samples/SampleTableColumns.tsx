@@ -19,7 +19,7 @@ import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndivi
 	for a given context.
 */
 
-/* 
+/*
 	To use these column descriptors, the data objects passed to the Ant table
 	must contain a property named 'sample' containing a Sample object.
 */
@@ -66,6 +66,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 	[SampleColumnID.KIND]: {
 		columnID: SampleColumnID.KIND,
 		title: 'Kind',
+    width: 90,
 		dataIndex: ['sample', 'sample_kind'],
 		render: (_, { sample }) => sample && <SampleKindTag sampleKindID={sample.sample_kind} />,
 	},

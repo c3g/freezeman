@@ -7,15 +7,15 @@ import { EXPERIMENT_RUN_FILTER_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ObjectWi
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects";
 import React, { useEffect } from "react";
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable";
-import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER, EXPERIMENT_RUN_PROCESS_FILTER, RUN_TYPES, PROGRESS_FLAGS } from "./ExperimentRunsDetachedFilters"
+import { EXPERIMENT_RUNS_PLATFORM_NAME_FILTER, EXPERIMENT_RUN_PROGRESS_FILTER, RUN_TYPES } from "./ExperimentRunsDetachedFilters"
 import FilterPanel from "../filters/filterPanel/FilterPanel";
 import Flexbar from "../shared/Flexbar";
 import FiltersBar from "../filters/filtersBar/FiltersBar";
 
 
 const detachedFilters = [
-	EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
-    EXPERIMENT_RUN_PROCESS_FILTER
+	  EXPERIMENT_RUNS_PLATFORM_NAME_FILTER,
+    EXPERIMENT_RUN_PROGRESS_FILTER
 ]
 
 function ExperimentRunListContent() {
@@ -36,11 +36,10 @@ function ExperimentRunListContent() {
         callbacks.setFilterOptionsCallback
     )
 
-    useEffect(()=>{
+    useEffect(() => {
         // default setting set at the redux level
         callbacks.setFilterCallback([RUN_TYPES.ILLUMINA], EXPERIMENT_RUNS_PLATFORM_NAME_FILTER)
-        callbacks.setFilterCallback([PROGRESS_FLAGS.PROCESSED], EXPERIMENT_RUN_PROCESS_FILTER)
-    },[])
+    }, [])
 
     return (
         <>

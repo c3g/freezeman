@@ -20,8 +20,8 @@ class PropertyValueServicesTestCase(TestCase):
             "Library Size (bp)": {"property_type_obj": None, "value": None,},
         }
         self.property_dict_invalid = {
-            "Measured Volume (uL)": {"property_type_obj": None, "value": None,},
-            "Concentration (ng/uL)": {"property_type_obj": None, "value": 10,},
+            "Concentration (ng/uL)": {"property_type_obj": None, "value": None,},
+            "Measured Volume (uL)": {"property_type_obj": None, "value": 10,},
             "Library Size (bp)": {"property_type_obj": None, "value": None,},
         }
         for property_type_name, dict  in self.property_dict_for_pm.items():

@@ -37,30 +37,30 @@ class IndexCreationTestCase(TestCase):
         index_set_1 = IndexSet.objects.get(name=self.set_name_1)
         index_structure_1 = IndexStructure.objects.get(name=self.index_structure_name_1)
 
-        self.assertEqual(index_1.name, self.index_name_1)
-        self.assertEqual(index_1.index_set, index_set_1)
-        self.assertEqual(index_set_1.name, self.set_name_1)
-        self.assertEqual(index_1.index_structure, index_structure_1)
-        self.assertEqual(index_structure_1.name, self.index_structure_name_1)
-
         #Second index tests
         index_2 = Index.objects.get(name=self.index_name_2)
         index_set_2 = IndexSet.objects.get(name=self.set_name_1)
         index_structure_2 = IndexStructure.objects.get(name=self.index_structure_name_1)
-
-        self.assertEqual(index_2.name, self.index_name_2)
-        self.assertEqual(index_2.index_set, index_set_2)
-        self.assertEqual(index_set_2.name, self.set_name_1)
-        self.assertEqual(index_2.index_structure, index_structure_2)
-        self.assertEqual(index_structure_2.name, self.index_structure_name_1)
 
         #Third index tests
         index_3 = Index.objects.get(name=self.index_name_3)
         index_set_3 = IndexSet.objects.get(name=self.set_name_2)
         index_structure_3 = IndexStructure.objects.get(name=self.index_structure_name_2)
 
+        self.assertEqual(index_1.name, self.index_name_1)
+        self.assertEqual([index_set for index_set in index_1.index_sets.all()], [index_set_1, index_set_3])
+        self.assertEqual(index_set_1.name, self.set_name_1)
+        self.assertEqual(index_1.index_structure, index_structure_1)
+        self.assertEqual(index_structure_1.name, self.index_structure_name_1)
+
+        self.assertEqual(index_2.name, self.index_name_2)
+        self.assertEqual(index_2.index_sets.first(), index_set_2)
+        self.assertEqual(index_set_2.name, self.set_name_1)
+        self.assertEqual(index_2.index_structure, index_structure_2)
+        self.assertEqual(index_structure_2.name, self.index_structure_name_1)
+
         self.assertEqual(index_3.name, self.index_name_3)
-        self.assertEqual(index_3.index_set, index_set_3)
+        self.assertEqual(index_3.index_sets.first(), index_set_3)
         self.assertEqual(index_set_3.name, self.set_name_2)
         self.assertEqual(index_3.index_structure, index_structure_3)
         self.assertEqual(index_structure_3.name, self.index_structure_name_2)

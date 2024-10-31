@@ -1,6 +1,6 @@
-import { stringify as qs } from "querystring";
-import { API_BASE_PATH } from "../config";
-import { FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, WorkflowStepOrder } from "../models/fms_api_models";
+import {stringify as qs} from "querystring";
+import {API_BASE_PATH} from "../config";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, WorkflowStepOrder } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -44,16 +44,18 @@ const api = {
   },
 
   datasets: {
-    get: id => get(`/datasets/${id}/`),
+    get: (id: FMSDataset["id"]) => get<JsonResponse<FMSDataset>>(`/datasets/${id}/`),
     list: (options, abort?) => get("/datasets/", options, { abort }),
-    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters }),
+    setReleaseStatus: (
+      id: FMSDataset["id"],
+      updates: Record<FMSReadset["id"], ReleaseStatus>,
+    ) => patch<StringResponse>(`/datasets/${id}/set_release_status/`, updates),
     addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
   },
 
   readsets: {
     get: id => get(`/readsets/${id}/`),
-    list: (options, abort?) => get(`/readsets/`, options, { abort }),
-    setReleaseStatus: (id, release_status) => post(`/readsets/set_release_status/`, {id, release_status}),
+    list: (options: QueryParams, abort?: any) => get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
   },
 
   datasetFiles: {
@@ -72,7 +74,7 @@ const api = {
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
-    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}), 
+    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}),
     fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info/`, {}),
     setLaneValidationStatus: (run_name, lane, validation_status) => post(`/experiment-runs/set_experiment_run_lane_validation_status/`, {run_name, lane, validation_status}),
     getLaneValidationStatus: (run_name, lane) => get(`/experiment-runs/get_experiment_run_lane_validation_status/`, {run_name, lane})
@@ -341,6 +343,8 @@ interface APIFetchOptions {
 }
 interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
 
+export const ABORT_ERROR_NAME = 'AbortError'
+
 function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
     const baseRoute = getPathname(route)
 
@@ -362,7 +366,10 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
             const controller = new AbortController()
             signal = controller.signal
             if (ongoingRequests[baseRoute]) {
-                ongoingRequests[baseRoute].abort()
+                ongoingRequests[baseRoute].abort({
+                    name: ABORT_ERROR_NAME,
+                    message: `Request aborted for request to ${baseRoute}`,
+                })
             }
             ongoingRequests[baseRoute] = controller
         }

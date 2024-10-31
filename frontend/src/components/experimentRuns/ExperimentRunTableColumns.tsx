@@ -45,6 +45,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'ID',
         dataIndex: ['experimentRun', 'id'],
         sorter: true,
+        width: 115,
         render: (_, { experimentRun }) => {
             return (experimentRun.id &&
                 <Link to={`/experiment-runs/${experimentRun.id}`}>

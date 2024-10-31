@@ -1,5 +1,5 @@
 import { Dispatch } from "redux"
-import { FMSId, FMSStudy, FMSTrackedModel } from "../../models/fms_api_models"
+import { FMSId, FMSSample, FMSStudy, FMSTrackedModel } from "../../models/fms_api_models"
 import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Readset, Sample, Study, User, Workflow } from "../../models/frontend_models"
 import { selectContainersByID, selectLibrariesByID, selectProcessMeasurementsByID, selectProcessesByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
@@ -23,7 +23,7 @@ interface ListPagedOptions extends ListOptions {
 
 type ListPagedReturnType<T> = { results: T[], count: number }
 type ListReturnType<T> = ListPagedReturnType<T> | T[]
-type ListFunction<T> = (options: ListOptions | ListPagedOptions) => (dispatch: Dispatch, getState: () => any) => Promise<ListReturnType<T>>
+type ListFunction<T> = (options: ListOptions | ListPagedOptions, abort?: boolean) => (dispatch: Dispatch, getState: () => any) => Promise<ListReturnType<T>>
 
 function isResultPaged<T>(result: ListReturnType<T>): result is ListPagedReturnType<T> {
 	const r = (result as ListPagedReturnType<T>)
@@ -39,7 +39,7 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 	listFunc: ListFunction<ItemType>
 ) {
 
-	async function fetchItemsByID(ids: FMSId[]): Promise<ItemType[]> {
+	async function fetchItemsByID(ids: FMSId[], abort = false): Promise<ItemType[]> {
 
 		const fetchedItems: ItemType[] = []
  		const itemsByID: ItemsByID<ItemType> = itemsByIDSelector(store.getState())
@@ -94,7 +94,7 @@ export const fetchLibrariesForSamples = createFetchItemsByID<Library>(selectLibr
 export const fetchProcesses = createFetchItemsByID<Process>(selectProcessesByID, listProcesses)
 export const fetchProcessMeasurements = createFetchItemsByID<ProcessMeasurement>(selectProcessMeasurementsByID, listProcessMeasurements)
 export const fetchPropertyValues = createFetchItemsByID<PropertyValue>(selectPropertyValuesByID, listPropertyValues)
-export const fetchSamples = createFetchItemsByID<Sample>(selectSamplesByID, listSamples)
+export const fetchSamples = createFetchItemsByID<Sample | FMSSample>(selectSamplesByID, listSamples)
 export const fetchStudies = createFetchItemsByID<FMSStudy>(selectStudiesByID, listStudies)
 export const fetchUsers = createFetchItemsByID<User>(selectUsersByID, listUsers)
 export const fetchWorkflows = createFetchItemsByID<Workflow>(selectWorkflowsByID, listWorkflows)
