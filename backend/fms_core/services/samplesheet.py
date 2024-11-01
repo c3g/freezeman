@@ -13,7 +13,7 @@ from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import DerivedBySample, Index
 from fms_core.services.workbook_utils import CD, insert_cells
-from fms_core.services.utils import fit_string_with_ellipsis_in_middle
+from fms_core.utils import fit_string_with_ellipsis_in_middle
 
 def get_samplesheet(container_kind, placement):
     """
