@@ -36,7 +36,7 @@ export interface PlaceAllSourcePayload {
     destination: ParentContainerState['name']
 }
 
-const initialState: PlacementState = {
+export const initialState: PlacementState = {
     containers: [] as PlacementState['containers'],
     placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.COLUMN,
@@ -215,6 +215,7 @@ const slice = createSlice({
     }
 })
 
+export type PlacementAction = ReturnType<typeof slice.actions[keyof typeof slice.actions]>
 export const {
     loadContainer,
     setPlacementType,
