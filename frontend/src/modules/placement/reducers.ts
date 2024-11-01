@@ -1,7 +1,7 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
+import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, ChildContainerState } from "./models"
 import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
@@ -16,11 +16,11 @@ export type MultiSelectPayload = {
         source?: ContainerState['name']
     }
 } & ({
-    parentContainer: ParentContainerState['name']
+    parentContainer: ContainerState['name']
     type: 'row'
     row: number
 } | {
-    parentContainer: ParentContainerState['name']
+    parentContainer: ContainerState['name']
     type: 'column'
     column: number
 } | {
@@ -33,7 +33,7 @@ export type MultiSelectPayload = {
 })
 export interface PlaceAllSourcePayload {
     source: ContainerIdentifier['name']
-    destination: ParentContainerState['name']
+    destination: ContainerState['name']
 }
 
 export const initialState: PlacementState = {
@@ -58,13 +58,13 @@ const slice = createSlice({
                         spec: [],
                         cells: [],
                         cellsIndexBySampleID: {},
-                    } as TubesWithoutParentState)
+                    } as ChildContainerState)
             )
 
             // create container state based only on payload
             const payloadContainerState = payload.parentContainerName
                 ? initialParentContainerState(payload)
-                : ({ name: null, cells: [], cellsIndexBySampleID: {}, spec: [] } as TubesWithoutParentState)
+                : ({ name: null, cells: [], cellsIndexBySampleID: {}, spec: [] } as ChildContainerState)
             for (const payloadCell of payload.cells) {
                 if (payloadContainerState.name && payloadCell.coordinates) {
                     // with parent container
@@ -262,10 +262,10 @@ function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>)
     }
 }
 
-function initialParentContainerState(payload: LoadParentContainerPayload): ParentContainerState {
-    const cells: ParentContainerState['cells'] = []
+function initialParentContainerState(payload: LoadParentContainerPayload): ContainerState {
+    const cells: ContainerState['cells'] = []
     const { parentContainerName, spec } = payload
-    const cellsIndexByCoordinates: ParentContainerState['cellsIndexByCoordinates'] = {}
+    const cellsIndexByCoordinates: ContainerState['cellsIndexByCoordinates'] = {}
     if (parentContainerName && spec) {
         const [axisRow = [] as const, axisColumn = [] as const] = spec
         for (const row of axisRow) {
