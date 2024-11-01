@@ -27,7 +27,7 @@ export function resolveBadMenuItem(menuItem) {
 				<span className="freezeman-menu-text">{menuItem.text || null}</span>
 			</span>
 		),
-		children: menuItem.children?.map(resolveBadMenuItem),
+		children: menuItem.children ? menuItem.children.map(resolveBadMenuItem) : undefined,
 	}
 }
 
