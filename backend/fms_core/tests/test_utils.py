@@ -77,16 +77,16 @@ def test_fit_string_with_ellipsis_in_middle_errors(max_length, ellipsis, error):
 @pytest.mark.parametrize("string, max_length, ellipsis, expected", [
     (FIT_STRING, len(FIT_STRING) + 1,  FIT_ELLIPSIS, FIT_STRING),
     (FIT_STRING, len(FIT_STRING) + 0,  FIT_ELLIPSIS, FIT_STRING),
-    (FIT_STRING, len(FIT_STRING) - 1,  FIT_ELLIPSIS, "Hello...ld!!!"),
-    (FIT_STRING, len(FIT_STRING) - 2,  FIT_ELLIPSIS, "Hello...d!!!"),
-    (FIT_STRING, len(FIT_STRING) - 3,  FIT_ELLIPSIS, "Hell...d!!!"),
-    (FIT_STRING, len(FIT_STRING) - 4,  FIT_ELLIPSIS, "Hell...!!!"),
-    (FIT_STRING, len(FIT_STRING) - 5,  FIT_ELLIPSIS, "Hel...!!!"),
-    (FIT_STRING, len(FIT_STRING) - 6,  FIT_ELLIPSIS, "Hel...!!"),
-    (FIT_STRING, len(FIT_STRING) - 7,  FIT_ELLIPSIS, "He...!!"),
-    (FIT_STRING, len(FIT_STRING) - 8,  FIT_ELLIPSIS, "He...!"),
-    (FIT_STRING, len(FIT_STRING) - 9,  FIT_ELLIPSIS, "H...!"),
-    (FIT_STRING, len(FIT_STRING) - 10, FIT_ELLIPSIS, "H..."),
+    (FIT_STRING, len(FIT_STRING) - 1,  FIT_ELLIPSIS, f"Hello{FIT_ELLIPSIS}ld!!!"),
+    (FIT_STRING, len(FIT_STRING) - 2,  FIT_ELLIPSIS, f"Hello{FIT_ELLIPSIS}d!!!"),
+    (FIT_STRING, len(FIT_STRING) - 3,  FIT_ELLIPSIS, f"Hell{FIT_ELLIPSIS}d!!!"),
+    (FIT_STRING, len(FIT_STRING) - 4,  FIT_ELLIPSIS, f"Hell{FIT_ELLIPSIS}!!!"),
+    (FIT_STRING, len(FIT_STRING) - 5,  FIT_ELLIPSIS, f"Hel{FIT_ELLIPSIS}!!!"),
+    (FIT_STRING, len(FIT_STRING) - 6,  FIT_ELLIPSIS, f"Hel{FIT_ELLIPSIS}!!"),
+    (FIT_STRING, len(FIT_STRING) - 7,  FIT_ELLIPSIS, f"He{FIT_ELLIPSIS}!!"),
+    (FIT_STRING, len(FIT_STRING) - 8,  FIT_ELLIPSIS, f"He{FIT_ELLIPSIS}!"),
+    (FIT_STRING, len(FIT_STRING) - 9,  FIT_ELLIPSIS, f"H{FIT_ELLIPSIS}!"),
+    (FIT_STRING, len(FIT_STRING) - 10, FIT_ELLIPSIS, f"H{FIT_ELLIPSIS}"),
 ])
 def test_fit_string_with_ellipsis_in_middle(string, max_length, ellipsis, expected):
     assert fit_string_with_ellipsis_in_middle(string, max_length, ellipsis) == expected
