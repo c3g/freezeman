@@ -20,7 +20,7 @@ import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '..
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import LabworkSelection from './LabworkSelection'
-import Placement from '../../placementVisuals/Placement'
+import Placement from '../../Placement'
 import { flushPlacement, flushContainers as flushPlacementContainers } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
 import { selectSourceContainers } from '../../../modules/labworkSteps/selectors'
