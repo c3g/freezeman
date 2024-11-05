@@ -1,8 +1,6 @@
 import { CoordinateSpec } from "../../models/fms_api_models"
 import { Container, Project, Sample } from "../../models/frontend_models"
 
-export const TUBES_WITHOUT_PARENT_NAME = "Tubes without parent"
-
 type PlacementCoordinates = string
 
 export interface PlacementState {
@@ -11,7 +9,6 @@ export interface PlacementState {
     sampleIndexByCellWithParent: Record<`${CellWithParentIdentifier['parentContainer']}@${CellWithParentIdentifier['coordinates']}`, number | undefined>
 
     parentContainers: RealParentContainerState[]
-    tubesWithoutParent: TubesWithoutParentState
 
     placementType: PlacementOptions['type']
     placementDirection: PlacementGroupOptions['direction']
@@ -42,7 +39,8 @@ interface PlacementSampleBase {
     placedAt: Record<
         `${CellWithParentIdentifier['parentContainer']}@${CellWithParentIdentifier['coordinates']}`,
         number
-    >
+    > // numerators; subtracts totalAmount
+    totalAmount: number // denominator
 }
 export interface PlacementSampleWithoutParent extends PlacementSampleBase {
     readonly parentContainer: null
@@ -56,51 +54,22 @@ export interface PlacementSampleWithParent extends PlacementSampleBase {
 }
 export type PlacementSample = PlacementSampleWithoutParent | PlacementSampleWithParent
 
-/**
- * Each cell can contain more than one sample.
- * If the cell already contains a sample, by default it would be amounts[sample.id] = 1, totalAmount = 1.
- * If the sample is completely distributed among 5 cells, then amounts[sample.id] = 0, totalAmount = 5.
- */
-
-interface CellStateBase {
+export interface CellWithParentState {
+    preview: boolean
     selected: boolean
 }
-export interface CellStateWithoutParent extends CellStateBase {
-    readonly parentContainer: null
-}
-export interface CellStateWithParent extends CellStateBase {
-    readonly parentContainer: Container['name']
-    preview: boolean
-}
-export type CellState = CellStateWithParent
 
-interface BaseContainerState {}
-export interface TubesWithoutParentState extends BaseContainerState {
-    readonly name: null
-    readonly spec: null
-}
-export interface RealParentContainerState extends BaseContainerState {
+export interface RealParentContainerState {
     readonly name: Container['name']
     readonly spec: CoordinateSpec
-    cells: CellStateWithParent[]
+    cells: CellWithParentState[]
     readonly cellsIndexByCoordinates: Record<PlacementCoordinates, number>
 }
-export type ParentContainerState = TubesWithoutParentState | RealParentContainerState
 
 export interface RealParentContainerIdentifier {
     readonly parentContainer: Container['name'],
 }
-export interface TubesWithoutParentIdentifier {
-    readonly parentContainer: null,
-}
-export type ParentContainerIdentifier = RealParentContainerIdentifier | TubesWithoutParentIdentifier
 
 export interface CellWithParentIdentifier extends RealParentContainerIdentifier {
     readonly coordinates: PlacementCoordinates // tube or well coordinates
 }
-export type CellWithoutParentIdentifier = TubesWithoutParentIdentifier & ({
-    readonly container: Container['name'], // tube name
-} | {
-    readonly sample: Sample['name'], // sample name
-})
-export type CellIdentifier = CellWithParentIdentifier | CellWithoutParentIdentifier
