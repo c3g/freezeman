@@ -6,9 +6,9 @@ type PlacementCoordinates = string
 export interface PlacementState {
     samples: Array<PlacementSample>
     sampleIndexByName: Record<PlacementSample['name'], number | undefined>
-    sampleIndexByCellWithParent: Record<`${CellWithParentIdentifier['parentContainer']}@${CellWithParentIdentifier['coordinates']}`, number | undefined>
+    sampleIndexByCellWithParent: Record<`${CellIdentifier['parentContainer']}@${CellIdentifier['coordinates']}`, number | undefined>
 
-    parentContainers: RealParentContainerState[]
+    parentContainers: ParentContainerState[]
 
     placementType: PlacementOptions['type']
     placementDirection: PlacementGroupOptions['direction']
@@ -37,7 +37,7 @@ interface PlacementSampleBase {
     readonly project: Project['name']
     readonly id: Sample['id']
     placedAt: Record<
-        `${CellWithParentIdentifier['parentContainer']}@${CellWithParentIdentifier['coordinates']}`,
+        `${CellIdentifier['parentContainer']}@${CellIdentifier['coordinates']}`,
         number
     > // numerators; subtracts totalAmount
     totalAmount: number // denominator
@@ -54,22 +54,22 @@ export interface PlacementSampleWithParent extends PlacementSampleBase {
 }
 export type PlacementSample = PlacementSampleWithoutParent | PlacementSampleWithParent
 
-export interface CellWithParentState {
+export interface CellState {
     preview: boolean
     selected: boolean
 }
 
-export interface RealParentContainerState {
+export interface ParentContainerState {
     readonly name: Container['name']
     readonly spec: CoordinateSpec
-    cells: CellWithParentState[]
+    cells: CellState[]
     readonly cellsIndexByCoordinates: Record<PlacementCoordinates, number>
 }
 
-export interface RealParentContainerIdentifier {
+export interface ParentContainerIdentifier {
     readonly parentContainer: Container['name'],
 }
 
-export interface CellWithParentIdentifier extends RealParentContainerIdentifier {
+export interface CellIdentifier extends ParentContainerIdentifier {
     readonly coordinates: PlacementCoordinates // tube or well coordinates
 }
