@@ -39,7 +39,7 @@ export const update = (id, sample) => async (dispatch, getState) => {
 export const list = (options, abort = false) => async (dispatch: AppDispatch, getState) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
-        api.samples.list(params, { abort }),
+        api.samples.list(params, abort),
         {
             meta: params,
         }
