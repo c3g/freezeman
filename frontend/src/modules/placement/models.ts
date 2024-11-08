@@ -5,8 +5,9 @@ type PlacementCoordinates = string
 
 export interface PlacementState {
     samples: Array<PlacementSample>
-    sampleIndexByName: Record<PlacementSample['name'], number | undefined>
-    sampleIndexByCellWithParent: Record<`${CellIdentifier['parentContainer']}@${CellIdentifier['coordinates']}`, number | undefined>
+    samplesIndexByName: Record<PlacementSample['name'], number | undefined>
+    // find sample by its source location
+    samplesIndexByCellIdentifier: Record<`${CellIdentifier['parentContainer']}@${CellIdentifier['coordinates']}`, number | undefined>
 
     parentContainers: ParentContainerState[]
 
@@ -36,9 +37,10 @@ interface PlacementSampleBase {
     readonly name: Sample['name']
     readonly project: Project['name']
     readonly id: Sample['id']
+    selected: boolean
     placedAt: Record<
         `${CellIdentifier['parentContainer']}@${CellIdentifier['coordinates']}`,
-        number
+        number | undefined
     > // numerators; subtracts totalAmount
     totalAmount: number // denominator
 }
@@ -56,7 +58,7 @@ export type PlacementSample = PlacementSampleWithoutParent | PlacementSampleWith
 
 export interface CellState {
     preview: boolean
-    selected: boolean
+    samples: Array<PlacementSample['name']>
 }
 
 export interface ParentContainerState {
