@@ -10,7 +10,7 @@ import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS }
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS } from '../samples/SampleTableColumns'
 import WorkflowSamplesTable from '../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterValue, SortBy } from '../../models/paged_items'
-import { Popconfirm, Typography, notification } from 'antd'
+import { Popconfirm, Button, notification } from 'antd'
 import api from '../../utils/api'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { DEFAULT_SMALL_PAGINATION_LIMIT } from '../../config'
@@ -76,7 +76,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 				disabled={!sample}
 				placement={'topLeft'}
 			>
-				<Typography.Link underline type={'danger'} href={''}>Remove</Typography.Link>
+				<Button color="danger" variant="link">Remove</Button>
 			</Popconfirm>
 		}
 	}), [dispatch, step.ready.sampleNextStepByID, step.stepID, step.stepName, studyID])
