@@ -1,13 +1,13 @@
 import { Draft, PayloadAction, original } from "@reduxjs/toolkit"
 import { coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
-import { CellIdentifier, PlacementDirections, PlacementState, PlacementType, ParentContainerState } from "./models"
-import { CoordinateSpec } from "../../models/fms_api_models"
+import { CellIdentifier, PlacementDirections, PlacementState, PlacementType, ParentContainerState, CellState, PlacementOptions, PlacementSampleWithParent, PlacementSample, ParentContainerIdentifier } from "./models"
+import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 
 export const initialState: PlacementState = {
     samples: [],
     sampleIndexByName: {},
-    sampleIndexByCellWithParent: {},
+    sampleIndexByCellIdentifier: {},
     parentContainers: [],
     placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.COLUMN,
@@ -27,12 +27,9 @@ export interface LoadTubesWithoutParentPayload {
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellIdentifier {
     context: {
-        sourceSamples: Array<Sample['name']>
-    } | {
-        parentContainer: CellIdentifier['parentContainer']
-    } | {
-        parentContainer: CellIdentifier['parentContainer']
-        coordinates: CellIdentifier['coordinates']
+        sourceSamples: Array<PlacementSample['name']>
+        sourceParentContainer: ParentContainerState['name'] | null
+        destinationParentContainer: ParentContainerState['name']
     }
 }
 export type MultiSelectPayload = {
@@ -115,7 +112,7 @@ export function initialParentContainerState(payload: LoadParentContainerPayload)
 }
 
 export function atCellLocations(...ids: CellIdentifier[]) {
-    return ids.map((id) => [id.sample, id.parentContainerName, id.coordinates].filter((x) => x).join('@')).join(',')
+    return ids.map((id) => [id.parentContainer, id.coordinates].filter((x) => x).join('@')).join(',')
 }
 
 export const selectContainer = (state: PlacementState) => (location: ParentContainerIdentifier) => {
@@ -146,14 +143,14 @@ export const selectCell = (state: PlacementState) => (location: CellIdentifier) 
 
     return cell
 }
-export function getCell(state: Draft<PlacementState>, location: CellIdentifier): Draft<CellWithParentState> {
+export function getCell(state: Draft<PlacementState>, location: CellIdentifier): Draft<CellState> {
     const cell = selectCell(state)(location)
     if (!cell)
         throw new Error(`Cell not loaded: "${atCellLocations(location)}"`)
     return cell
 }
 
-export function getCellLocationsFromSampleNames(state: Draft<PlacementState>, samples: Draft<PlacementSample['name']>[]): (CellIdentifier | null)[] {
+export function getCellIdentifiersFromSampleNames(state: Draft<PlacementState>, samples: Draft<PlacementSample['name']>[]): (CellIdentifier | null)[] {
     return samples.map((name) => {
         const sampleIndex = state.sampleIndexByName[name]
         if (sampleIndex === undefined) {
@@ -190,7 +187,7 @@ export function placeCell(sourceCell: Draft<CellState>, destCell: Draft<CellWith
     destCell.placedFrom = sourceCell
 }
 
-export function placementDestinationLocations(state: PlacementState, sources: Draft<CellState>[], destination: Draft<CellWithParentState>, placementOptions: PlacementOptions): Draft<CellWithParentState>[] {
+export function placementDestinationLocations(state: PlacementState, sources: Draft<PlacementSample>[], destination: Draft<CellIdentifier>, placementOptions: PlacementOptions): Draft<CellState>[] {
     /**
      * If this function encounters an error, it will set state.error and return an array that might be less than the length of sources arguments
      */
@@ -207,14 +204,22 @@ export function placementDestinationLocations(state: PlacementState, sources: Dr
     const height = axisRow?.length ?? 1
     const width = axisCol?.length ?? 1
 
-    const sourceContainerNames = new Set(sources.map((s) => s.parentContainerName))
+    const sourceContainerNames = new Set(sources.map((s) => s.parentContainer))
     if (sourceContainerNames.size > 1) {
         throw new Error('Cannot use pattern placement type with more than one source container')
     }
 
     switch (placementOptions.type) {
         case PlacementType.PATTERN: {
-            const sourceOffsetsList = sources.map((source) => {
+            const sourcesWithParent = sources.reduce<Draft<PlacementSampleWithParent>[]>((sourcesWithParent, source) => {
+                if (source.coordinates === null) {
+                    throw new Error('For pattern placement, all source cells must be in a parent container')
+                }
+                sourcesWithParent.push(source)
+                return sourcesWithParent
+            }, [])
+
+            const sourceOffsetsList = sourcesWithParent.map((source) => {
                 const parentContainer = getParentContainer(state, source)
                 if (!source.coordinates)
                     throw new Error(`For pattern placement, source cell must be in a parent container`)
@@ -289,27 +294,46 @@ export function placementDestinationLocations(state: PlacementState, sources: Dr
 }
 
 export function cellSelectable(state: PlacementState, id: CellIdentifier, context: MouseOnCellPayload['context']): boolean {
-    const cell = getCell(state, id)
-    let sourceLocation: CellIdentifier
-    if ('sourceSamples' in context) {
-        const loc = getCellLocationsFromSampleNames(state, context.sourceSamples)[0]
-        if (loc === null) {
-            throw new Error(`Sample ${context.sourceSamples[0]} not found in sampleIndexByName`)
+    const foundSample = state.sampleIndexByCellIdentifier[`${id.parentContainer}@${id.coordinates}`]
+
+    if (context.sourceParentContainer === id.parentContainer) {
+        if (foundSample === undefined) {
+            return true
         }
-        sourceLocation = loc
-    } else if ('coordinates' in context) {
-        sourceLocation = { parentContainer: context.parentContainer, coordinates: context.coordinates }
-    } else {
-        throw new Error(`Invalid context: ${JSON.stringify(context)}`)
+        for (const sample of state.samples) {
+            const amountPlaced = Object.values(sample.placedAt).reduce<number>((sum, amount) => sum + (amount ?? 0), 0)
+            return amountPlaced < sample.totalAmount
+        }
     }
-    
+    if (context.destinationParentContainer === id.parentContainer) {
+        if (foundSample !== undefined) {
+            return false
+        }
+        for (const sample of state.samples) {
+            const amount = sample.placedAt[`${id.parentContainer}@${id.coordinates}`]
+            if (amount !== undefined) {
+                return true
+            }
+        }
+        return false
+    }
+
+    throw new Error(`Invalid id ${atCellLocations(id)} and context ${JSON.stringify(context)} and foundSample ${foundSample}`)
 }
 
-export function placeCellsHelper(state: Draft<PlacementState>, sources: Draft<CellState>[], destination: Draft<CellWithParentState>, placementOptions: PlacementOptions) {
+export function placeSamplesHelper(state: Draft<PlacementState>, sources: Array<PlacementSample['name']>, destination: CellIdentifier, placementOptions: PlacementOptions) {
     if (sources.length > 0) {
         // relying on placeCell to do error checking
 
-        const destinations = placementDestinationLocations(state, sources, destination, placementOptions)
+        const sourceSamples = sources.reduce<Draft<PlacementSample>[]>((samples, name) => {
+            const sampleIndex = state.sampleIndexByName[name]
+            if (sampleIndex === undefined) {
+                throw new Error(`Sample ${name} not found in sampleIndexByName`)
+            }
+            samples.push(state.samples[sampleIndex])
+            return samples
+        }, [])
+        const destinations = placementDestinationLocations(state, sourceSamples, destination, placementOptions)
         if (state.error) throw { message: state.error } // placementDestinationLocations threw an error at some point
 
         sources.forEach((_, index) => {
@@ -327,15 +351,16 @@ export function getPlacementOption(state: PlacementState): PlacementOptions {
 }
 
 export function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnCellPayload) {
-    if (cellSelectable(state, clickedLocation, clickedLocation.context)) {
-        const clickedCell = getCell(state, clickedLocation)
-        clickedCell.selected = !clickedCell.selected
-    }
+    const { sourceSamples, destinationParentContainer } = clickedLocation.context
+    const sampleIndex = state.sampleIndexByCellIdentifier[`${clickedLocation.parentContainer}@${clickedLocation.coordinates}`]
+    const foundSample = sampleIndex === undefined ? undefined : state.samples[sampleIndex]
 
-    if (!isSource && sourceContainerName !== undefined) {
-        const sourceContainer = getContainer(state, { name: sourceContainerName })
-        const destCell = getCell(state, clickedLocation)
-        placeCellsHelper(state, sourceContainer.cells.filter((c) => c.selected), destCell, getPlacementOption(state))
+    if (foundSample && cellSelectable(state, clickedLocation, clickedLocation.context)) {
+        foundSample.selected = !foundSample.selected
+    } else if (foundSample === undefined && clickedLocation.parentContainer === destinationParentContainer) {
+        placeSamplesHelper(state, sourceSamples, clickedLocation, getPlacementOption(state))
+    } else {
+        return
     }
 }
 
@@ -419,4 +444,44 @@ export function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSe
         .filter((id) => cellSelectable(state, id, isSource))
         .map((id) => getCell(state, id))
     selectMultipleCells(cells, payload.forcedSelectedValue)
+}
+
+export function comparePlacementSamples(state: PlacementState, a: PlacementSample['name'], b: PlacementSample['name']): number {
+    const MAX = 128
+
+    const aIndex = state.sampleIndexByName[a]
+    if (aIndex === undefined) {
+        throw new Error(`Sample ${a} not found in sampleIndexByName`)
+    }
+    const sampleA = state.samples[aIndex]
+
+    const bIndex = state.sampleIndexByName[b]
+    if (bIndex === undefined) {
+        throw new Error(`Sample ${b} not found in sampleIndexByName`)
+    }
+    const sampleB = state.samples[bIndex]
+
+    let orderA = MAX
+    let orderB = MAX
+
+    if (a.selected) orderA -= MAX/2
+    if (b.selected) orderB -= MAX/2
+
+    if (spec && a.coordinates && b.coordinates) {
+        // if both have coordinates, both have a parent container
+        const aOffsets = coordinatesToOffsets(spec, a.coordinates)
+        const bOffsets = coordinatesToOffsets(spec, b.coordinates)
+        const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
+        if (arrayComparison < 0) orderA -= MAX/4
+        if (arrayComparison > 0) orderB -= MAX/4
+    }
+
+    if (a.name < b.name) orderA -= MAX/8
+    if (a.name > b.name) orderB -= MAX/8
+
+    if (a.projectName < b.projectName) orderA -= MAX/16
+    if (a.projectName > b.projectName) orderB -= MAX/16
+
+    return orderA - orderB
+
 }

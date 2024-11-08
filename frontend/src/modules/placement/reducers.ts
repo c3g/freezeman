@@ -1,7 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Container } from "../../models/frontend_models"
 import { PlacementType, ParentContainerState, PlacementSample, PlacementOptions, PlacementGroupOptions } from "./models"
-import { LoadContainerPayload, MouseOnCellPayload, PlaceAllSourcePayload, clickCellHelper, getCell, getContainer, getParentContainer, initialParentContainerState, initialState, multiSelectHelper, placeCellsHelper, reducerWithThrows, setPreviews, undoCellPlacement } from "./helpers"
+import { LoadContainerPayload, MouseOnCellPayload, PlaceAllSourcePayload, clickCellHelper, getCell, getContainer, getParentContainer, initialParentContainerState, initialState, multiSelectHelper, placeSamplesHelper, reducerWithThrows, setPreviews, undoCellPlacement } from "./helpers"
 
 const slice = createSlice({
     name: 'PLACEMENT',
@@ -10,8 +10,8 @@ const slice = createSlice({
         loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) => {
             /* Update or Add parent container */
             if (payload.parentContainerName) {
-                const container = state.parentContainers.find((c) => c.name === payload.parentContainerName)
-                if (!container) {
+                const foundContainer = state.parentContainers.find((c) => c.name === payload.parentContainerName)
+                if (!foundContainer) {
                     state.parentContainers.push(initialParentContainerState(payload))
                 }
             }
@@ -33,6 +33,7 @@ const slice = createSlice({
                         coordinates: payloadCell.coordinates,
                         placedAt: {},
                         totalAmount: 1,
+                        selected: false,
                     }
                 } else {
                     // without parent container
@@ -45,6 +46,7 @@ const slice = createSlice({
                         coordinates: null,
                         placedAt: {},
                         totalAmount: 1,
+                        selected: false,
                     }
                 }
 
@@ -52,12 +54,13 @@ const slice = createSlice({
                 if (foundSampleIndex) {
                     state.samples[foundSampleIndex] = {
                         ...payloadSample,
-                        placedAt: state.samples[foundSampleIndex].placedAt
+                        placedAt: state.samples[foundSampleIndex].placedAt,
+                        selected: state.samples[foundSampleIndex].selected
                     }
                 } else {
                     state.sampleIndexByName[payloadCell.name] = state.samples.length
                     if (payload.parentContainerName && payloadCell.coordinates) {
-                        state.sampleIndexByCellWithParent[`${payload.parentContainerName}@${payloadCell.coordinates}`] = state.samples.length
+                        state.sampleIndexByCellIdentifier[`${payload.parentContainerName}@${payloadCell.coordinates}`] = state.samples.length
                     }
                     state.samples.push(payloadSample)
                 }
@@ -65,7 +68,7 @@ const slice = createSlice({
 
             /* Remove samples that have disappeared */
             const samples = Object.values(state.samples).reduce((samples, sample) => {
-                if (sample && sample.parentContainer === payload.parentContainerName) {
+                if (sample.parentContainer === payload.parentContainerName) {
                     samples.add(sample.name)
                 }
                 return samples
@@ -80,7 +83,7 @@ const slice = createSlice({
                     delete state.samples[sampleIndex]
                     delete state.sampleIndexByName[sampleName]
                     if (payload.parentContainerName !== null && sample.coordinates) {
-                        delete state.sampleIndexByCellWithParent[`${payload.parentContainerName}@${sample.coordinates}`]
+                        delete state.sampleIndexByCellIdentifier[`${payload.parentContainerName}@${sample.coordinates}`]
                     }
                 }
             }
@@ -99,7 +102,7 @@ const slice = createSlice({
             if (axisRow === undefined) return state
 
             // use pattern placement to place all source starting from the top-left of destination
-            placeCellsHelper(state, sourceCells, getCell(state, {
+            placeSamplesHelper(state, sourceCells, getCell(state, {
                 parentContainer: payload.destination,
                 coordinates: axisRow[0] + axisCol[0]
             }), {
