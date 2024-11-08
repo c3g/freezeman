@@ -18,7 +18,7 @@ const api = {
     get: id => get(`/containers/${id}/`),
     add: container => post("/containers/", container),
     update: container => patch(`/containers/${container.id}/`, container),
-    list: (options, abort?) => get("/containers/", options, { abort }),
+    list: (options, abort?: boolean) => get("/containers/", options, { abort }),
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
@@ -39,13 +39,13 @@ const api = {
 
   coordinates: {
     get: coordinateId => get(`/coordinates/${coordinateId}/`),
-    list: (options, abort?) => get("/coordinates/", options, { abort }),
+    list: (options, abort?: boolean) => get("/coordinates/", options, { abort }),
     search: (q, options) => get("/coordinates/search/", { q, ...options }),
   },
 
   datasets: {
     get: (id: FMSDataset["id"]) => get<JsonResponse<FMSDataset>>(`/datasets/${id}/`),
-    list: (options, abort?) => get("/datasets/", options, { abort }),
+    list: (options, abort?: boolean) => get("/datasets/", options, { abort }),
     setReleaseStatus: (
       id: FMSDataset["id"],
       updates: Record<FMSReadset["id"], ReleaseStatus>,
@@ -55,20 +55,20 @@ const api = {
 
   readsets: {
     get: id => get(`/readsets/${id}/`),
-    list: (options: QueryParams, abort?: any) => get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
+    list: (options: QueryParams, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
   },
 
   datasetFiles: {
     get: id => get(`/dataset-files/${id}/`),
     update: dataset => patch(`/dataset-files/${dataset.id}/`, dataset),
-    list: (options, abort?) => get("/dataset-files/", options, { abort }),
+    list: (options, abort?: boolean) => get("/dataset-files/", options, { abort }),
   },
 
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}/`),
-    list: (options, abort?) => get("/experiment-runs/", options, {abort}),
+    list: (options, abort?: boolean) => get("/experiment-runs/", options, {abort}),
     listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
-    listExternalRuns: (options, abort?) => get("/experiment-runs/list_external_experiment_run/", {limit: 100000, ...options}, {abort}),
+    listExternalRuns: (options, abort?: boolean) => get("/experiment-runs/list_external_experiment_run/", {limit: 100000, ...options}, {abort}),
     template: {
       actions: () => get(`/experiment-runs/template_actions/`),
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
@@ -86,13 +86,13 @@ const api = {
 
   importedFiles: {
     get: fileId => get(`/imported-files/${fileId}/`),
-    list: (options, abort?) => get("/imported-files/", options, { abort }),
+    list: (options, abort?: boolean) => get("/imported-files/", options, { abort }),
     download: fileId => get(`/imported-files/${fileId}/download/`),
   },
 
   indices: {
     get: indexId => get(`/indices/${indexId}/`),
-    list: (options, abort?) => get("/indices/", options, { abort }),
+    list: (options, abort?: boolean) => get("/indices/", options, { abort }),
     listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
     listSets: () => get("/indices/list_sets/"),
     summary: () => get("/indices/summary/"),
@@ -108,7 +108,7 @@ const api = {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
     update: individual => patch(`/individuals/${individual.id}/`, individual),
-    list: (options, abort?) => get("/individuals/", options, { abort }),
+    list: (options, abort?: boolean) => get("/individuals/", options, { abort }),
     listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
     search: (q, options) => get("/individuals/search/", { q, ...options }),
   },
@@ -123,7 +123,7 @@ const api = {
 
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
-    list: (options, abort?) => get("/libraries/", options, { abort }),
+    list: (options, abort?: boolean) => get("/libraries/", options, { abort }),
     listExport: options => get("/libraries/list_export/", {format: "csv", ...options}),
     summary: () => get("/libraries/summary/"),
     template: {
@@ -140,7 +140,7 @@ const api = {
 
   libraryTypes: {
     get: libraryTypeId => get(`/library-types/${libraryTypeId}/`),
-    list: (options, abort?) => get("/library-types/", options, { abort }),
+    list: (options, abort?: boolean) => get("/library-types/", options, { abort }),
   },
 
   metrics: {
@@ -149,22 +149,22 @@ const api = {
 
   platforms: {
     get: platformId => get(`/platforms/${platformId}/`),
-    list: (options, abort?) => get("/platforms/", options, { abort }),
+    list: (options, abort?: boolean) => get("/platforms/", options, { abort }),
   },
 
   pooledSamples: {
-    list: (options, abort?) => get("/pooled-samples/", options, { abort }),
+    list: (options, abort?: boolean) => get("/pooled-samples/", options, { abort }),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
   },
 
   processes: {
     get: processId => get(`/processes/${processId}/`),
-    list: (options, abort?) => get("/processes/", options, { abort }),
+    list: (options, abort?: boolean) => get("/processes/", options, { abort }),
   },
 
   processMeasurements: {
     get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
-    list: (options, abort?) => get("/process-measurements/", options, { abort }),
+    list: (options, abort?: boolean) => get("/process-measurements/", options, { abort }),
     listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
     search: q => get("/process-measurements/search/", { q }),
     summary: () => get("/process-measurements/summary/"),
@@ -179,7 +179,7 @@ const api = {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
-    list: (options, abort?) => get("/projects/", options, { abort }),
+    list: (options, abort?: boolean) => get("/projects/", options, { abort }),
     listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
     summary: () => get("/projects/summary/"),
     template: {
@@ -190,19 +190,19 @@ const api = {
   },
 
   propertyValues: {
-    list: (options, abort?) => get("/property-values/", options, { abort }),
+    list: (options, abort?: boolean) => get("/property-values/", options, { abort }),
   },
 
   protocols: {
-    list:  (options, abort?) => get("/protocols/", options, { abort }),
-    lastProtocols: (options, abort?) => get<JsonResponse<{sample_result: FMSSample['id'], protocol: FMSProtocol['name']}[]>>("/protocols/last_protocols/", options, { abort }),
+    list:  (options, abort?: boolean) => get("/protocols/", options, { abort }),
+    lastProtocols: (options, abort?: boolean) => get<JsonResponse<{sample_result: FMSSample['id'], protocol: FMSProtocol['name']}[]>>("/protocols/last_protocols/", options, { abort }),
   },
 
   referenceGenomes: {
     get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
     add: referenceGenome => post(`/reference-genomes/`, referenceGenome),
     update: referenceGenome => patch(`/reference-genomes/${referenceGenome.id}/`, referenceGenome),
-    list: (options, abort?) => get('/reference-genomes/', options, { abort }),
+    list: (options, abort?: boolean) => get('/reference-genomes/', options, { abort }),
     search: q => get("/reference-genomes/search/", { q }),
   },
 
@@ -212,7 +212,7 @@ const api = {
     addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], queryParams?: QueryParams) =>
       filteredpost<StringResponse>(`/samples/add_samples_to_study/`, queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
     update: sample => patch(`/samples/${sample.id}/`, sample),
-    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSSample>>>("/samples/", options, { abort }),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSSample>>>("/samples/", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
@@ -261,7 +261,7 @@ const api = {
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
-    list: (options, abort?) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
+    list: (options, abort?: boolean) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },
 
   samplesheets: {
@@ -270,7 +270,7 @@ const api = {
 
   sequences: {
     get: sequenceId => get(`/sequences/${sequenceId}/`),
-    list: (options, abort?) => get("/sequences/", options, { abort }),
+    list: (options, abort?: boolean) => get("/sequences/", options, { abort }),
   },
 
   stepHistory: {
@@ -279,14 +279,14 @@ const api = {
   },
 
   steps: {
-    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStep>>>('/steps/', options, { abort} ),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSStep>>>('/steps/', options, { abort} ),
   },
 
   studies: {
     get: studyId => get<JsonResponse<FMSStudy>>(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
-    list: (options, abort?) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies', options, {abort}),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies', options, {abort}),
     listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
@@ -295,7 +295,7 @@ const api = {
     get: taxonId => get(`/taxons/${taxonId}/`),
     add: taxon => post(`/taxons/`, taxon),
     update: taxon => patch(`/taxons/${taxon.id}/`, taxon),
-    list: (options, abort?) => get("/taxons/", options, { abort }),
+    list: (options, abort?: boolean) => get("/taxons/", options, { abort }),
     search: q => get("/taxons/search/", { q }),
   },
 
@@ -304,18 +304,18 @@ const api = {
     add: user => post("/users/", user),
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
-    list: (options, abort?) => get("/users/", options, { abort }),
+    list: (options, abort?: boolean) => get("/users/", options, { abort }),
     listRevisions: (userId, options = {}) => get(`/revisions/`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions/`, { revision__user: userId, ...options }),
   },
 
   workflows: {
     get: (workflowId: FMSWorkflow['id']) => get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
-    list: (options, abort?) => get('/workflows/', options, { abort })
+    list: (options, abort?: boolean) => get('/workflows/', options, { abort })
   },
 
   groups: {
-    list: (options, abort?) => get("/groups/", options, { abort }),
+    list: (options, abort?: boolean) => get("/groups/", options, { abort }),
   },
 
   query: {
@@ -339,7 +339,7 @@ const ongoingRequests: Record<string, AbortController> = {}
 
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
-    abort: boolean
+    abort?: boolean
 }
 interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
 

@@ -6,7 +6,7 @@ import { selectProjectSamplesTable } from "../../selectors"
 import { list as listSamples } from '../samples/actions'
 import { actionTypes } from "./reducers"
 
-const pagedItemsActions = createPagedItemsActions(actionTypes, (state) => selectProjectSamplesTable(state).pagedItems, listSamples)
+const pagedItemsActions = createPagedItemsActions(actionTypes, (state) => selectProjectSamplesTable(state).pagedItems, (option) => listSamples(option, true))
 
 const setProject: (projectID: Project['id']) => FreezemanAsyncThunk<void> = (projectID: Project['id']) => async (dispatch, getState) =>  {
     
