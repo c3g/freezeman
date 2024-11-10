@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch} from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -12,7 +12,7 @@ import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/la
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { selectContainer} from "../../modules/placement/selectors"
+import { selectContainer } from "../../modules/placement/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
@@ -36,19 +36,18 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
     const step = useAppSelector((state) => selectStepsByID(state)[stepID])
     const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
-    const cells = useAppSelector((state) =>  activeDestinationContainer?.name !== undefined ? selectContainer(state)({ name: activeDestinationContainer.name })?.cells : undefined)
+    const cells = useAppSelector((state) => activeDestinationContainer?.name !== undefined ? selectContainer(state)({ parentContainer: activeDestinationContainer.name })?.cells : undefined)
 
     const handleGetSamplesheet = useCallback(async () => {
-      await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
+        if (activeDestinationContainer && cells) {
+            await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
+        }
     }, [dispatch, activeDestinationContainer, cells])
 
     const isPlacementComplete = useMemo(() => {
-      if (!activeDestinationContainer) return false
-      if (!cells) return false
-      const [Rows = [] as const, Columns = [] as const] = activeDestinationContainer.spec
-      const containerSize = Rows.length * Columns.length
-      const placedCells = cells.reduce((acc, cur) => {return cur.placedFrom ? ++acc : acc}, 0)
-      return placedCells === containerSize
+        if (!activeDestinationContainer) return false
+        if (!cells) return false
+        return cells.every((cell) => cell.samples !== undefined)
     }, [activeDestinationContainer, cells])
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
@@ -78,7 +77,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const changeSourceContainer = useCallback((direction: number) => {
         const currentIndex = sourceContainers.findIndex((x) => x.name === activeSourceContainer?.name)
-	const newIndex = currentIndex + direction
+        const newIndex = currentIndex + direction
         if (currentIndex < 0 || newIndex < 0 || newIndex >= sourceContainers.length) {
             return
         }
@@ -87,7 +86,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const changeDestinationContainer = useCallback((direction: number) => {
         const currentIndex = destinationContainers.findIndex((x) => x.name === activeDestinationContainer?.name)
-	const newIndex = currentIndex + direction
+        const newIndex = currentIndex + direction
         if (currentIndex < 0 || newIndex < 0 || newIndex >= destinationContainers.length) {
             return
         }
@@ -97,7 +96,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {
             containerNames.sort()
-	    if (containerNames.length > 0)
+            if (containerNames.length > 0)
                 dispatch(setActiveSourceContainer(containerNames[0]))
         })
     }, [dispatch, sampleIDs, stepID])

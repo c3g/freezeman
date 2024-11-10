@@ -1,7 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Container } from "../../models/frontend_models"
 import { PlacementType, ParentContainerState, PlacementSample, PlacementOptions, PlacementGroupOptions } from "./models"
-import { LoadContainerPayload, MouseOnCellPayload, PlaceAllSourcePayload, clickCellHelper, getCell, getContainer, getParentContainer, initialParentContainerState, initialState, multiSelectHelper, placeSamplesHelper, reducerWithThrows, setPreviews, undoCellPlacement } from "./helpers"
+import { LoadContainerPayload, MouseOnCellPayload, PlaceAllSourcePayload, clickCellHelper, selectPlacementSample, findPlacementSampleIndex, getCell, getContainer, getParentContainer, initialParentContainerState, initialState, multiSelectHelper, placeSamplesHelper, reducerWithThrows, selectParentContainer, setPreviews, undoCellPlacement } from "./helpers"
 
 const slice = createSlice({
     name: 'PLACEMENT',
@@ -10,7 +10,7 @@ const slice = createSlice({
         loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) => {
             /* Update or Add parent container */
             if (payload.parentContainerName) {
-                const foundContainer = state.parentContainers.find((c) => c.name === payload.parentContainerName)
+                const foundContainer = selectParentContainer(state, { parentContainer: payload.parentContainerName })
                 if (!foundContainer) {
                     state.parentContainers.push(initialParentContainerState(payload))
                 }
@@ -31,9 +31,10 @@ const slice = createSlice({
                         parentContainer: payloadCell.name,
                         container: 'unknown-container',
                         coordinates: payloadCell.coordinates,
-                        placedAt: {},
-                        totalAmount: 1,
                         selected: false,
+                        highlight: false,
+                        amountByCell: {},
+                        totalAmount: 1,
                     }
                 } else {
                     // without parent container
@@ -44,24 +45,23 @@ const slice = createSlice({
                         parentContainer: null,
                         container: 'unknown-container',
                         coordinates: null,
-                        placedAt: {},
-                        totalAmount: 1,
                         selected: false,
+                        highlight: false,
+                        amountByCell: {},
+                        totalAmount: 1,
                     }
                 }
 
-                const foundSampleIndex = state.sampleIndexByName[payloadCell.name]
+                const foundSampleIndex = findPlacementSampleIndex(state, payloadCell.name)
                 if (foundSampleIndex) {
+                    const foundSample = state.samples[foundSampleIndex]
                     state.samples[foundSampleIndex] = {
                         ...payloadSample,
-                        placedAt: state.samples[foundSampleIndex].placedAt,
-                        selected: state.samples[foundSampleIndex].selected
+                        selected: foundSample.selected,
+                        highlight: foundSample.highlight,
+                        amountByCell: foundSample.amountByCell,
                     }
                 } else {
-                    state.sampleIndexByName[payloadCell.name] = state.samples.length
-                    if (payload.parentContainerName && payloadCell.coordinates) {
-                        state.sampleIndexByCellIdentifier[`${payload.parentContainerName}@${payloadCell.coordinates}`] = state.samples.length
-                    }
                     state.samples.push(payloadSample)
                 }
             }
@@ -75,15 +75,15 @@ const slice = createSlice({
             }, new Set<PlacementSample['name']>())
             for (const sampleName of samples) {
                 if (!payloadSampleNames.has(sampleName)) {
-                    const sampleIndex = state.sampleIndexByName[sampleName]
+                    const sampleIndex = state.samplesIndexByName[sampleName]
                     if (!sampleIndex) {
                         throw new Error(`Sample ${sampleName} not found in sampleIndexByName`)
                     }
                     const sample = state.samples[sampleIndex]
                     delete state.samples[sampleIndex]
-                    delete state.sampleIndexByName[sampleName]
+                    delete state.samplesIndexByName[sampleName]
                     if (payload.parentContainerName !== null && sample.coordinates) {
-                        delete state.sampleIndexByCellIdentifier[`${payload.parentContainerName}@${sample.coordinates}`]
+                        delete state.samplesIndexByCellIdentifier[`${payload.parentContainerName}@${sample.coordinates}`]
                     }
                 }
             }
