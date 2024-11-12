@@ -40,6 +40,7 @@ from .readset import ReadsetViewSet
 from .coordinate import CoordinateViewSet
 from .metric import MetricViewSet
 from .samplesheet import SamplesheetViewSet
+from .report import ReportViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -84,4 +85,5 @@ __all__ = [
     "CoordinateViewSet",
     "MetricViewSet",
     "SamplesheetViewSet",
+    "ReportViewSet",
 ]
