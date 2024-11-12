@@ -67,26 +67,17 @@ export function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action
 
 export function loadContainerHelper(state: Draft<PlacementState>, payload: LoadContainerPayload) {
     /* Update or Add parent container */
-    if (payload.parentContainerName) {
-        const foundContainer = selectParentContainer(state, { parentContainer: payload.parentContainerName })
-        if (!foundContainer) {
-            state.parentContainers.push(initialParentContainerState(payload))
-        }
-    } else {
-        const foundContainer = selectParentContainer(state, { parentContainer: null })
-        if (!foundContainer) {
-            const parentContainer: TubesWithoutParentState = {
-                name: null,
-                samples: [],
-            }
-            state.parentContainers.push(parentContainer)
-        }
-    }
+    getOrCreateParentContainer(
+        state,
+        payload.parentContainerName
+            ? initialParentContainerState(payload)
+            : { name: null, samples: [] }
+    )
 
     /* Update or Add samples */
-    const payloadSamples: Set<SampleIdentifier> = new Set()
+    const payloadSampleIDs: Set<SampleIdentifier> = new Set()
     for (const payloadCell of payload.cells) {
-        payloadSamples.add(payloadCell.sample)
+        payloadSampleIDs.add(payloadCell.sample)
 
         let payloadSample: PlacementSample
         if (payloadCell.coordinates) {
@@ -113,24 +104,18 @@ export function loadContainerHelper(state: Draft<PlacementState>, payload: LoadC
             }
         }
 
-        const foundSampleIndex = findPlacementSampleIndex(state, payloadCell.sample)
-        if (foundSampleIndex) {
-            const foundSample = state.samples[foundSampleIndex]
-            state.samples[foundSampleIndex] = {
-                ...payloadSample,
-                highlight: foundSample.highlight,
-            }
-        } else {
-            state.samples.push(payloadSample)
-        }
+        const sample = getOrCreatePlacementSample(state, payloadSample)
+        const { highlight } = sample
+        Object.assign(sample, payloadSample)
+        sample.highlight = highlight
     }
 
     /* Remove samples that have disappeared */
-    const disappearedSamples = Object.values(state.samples).reduce((samples, sample) => {
-        if (sample.parentContainer === payload.parentContainerName && !payloadSamples.has(sample.id)) {
-            samples.add(sample.id)
+    const disappearedSamples = reducePlacementSamples(state, (disappearedSamples, sample) => {
+        if (sample.parentContainer === payload.parentContainerName && !payloadSampleIDs.has(sample.id)) {
+            disappearedSamples.add(sample.id)
         }
-        return samples
+        return disappearedSamples
     }, new Set<SampleIdentifier>())
     removeSamples(state, ...disappearedSamples)
 }
@@ -213,7 +198,7 @@ export function getPlacementSample<S extends PlacementState>(state: S, sample: S
 export function selectOriginalPlacementSampleByCell<S extends PlacementState>(state: S, cellID: CellIdentifier) {
     return state.samples.find((s) => s.parentContainer === cellID.parentContainer && s.coordinates === cellID.coordinates)
 }
-export function selectPlacementSamplesByCell<S extends PlacementState>(state: S, cellID: CellIdentifier) {
+export function selectPlacementSampleEntriesByCell<S extends PlacementState>(state: S, cellID: CellIdentifier) {
     const container = getParentContainer(state, cellID)
     if (!container.name)
         throw new Error('cellID.parentContainer must be in a parent container')
@@ -221,7 +206,7 @@ export function selectPlacementSamplesByCell<S extends PlacementState>(state: S,
 }
 
 export function placeSample(state: Draft<PlacementState>, sample: PlacementSampleEntry, destCell: CellIdentifier) {
-    const foundSample = selectPlacementSamplesByCell(state, destCell).find((s) => s.id === sample.id)
+    const foundSample = selectPlacementSampleEntriesByCell(state, destCell).find((s) => s.id === sample.id)
     if (foundSample) {
         foundSample.amount += 1
     } else {
@@ -267,7 +252,7 @@ export function placementDestinationLocations(
     switch (placementOptions.type) {
         case PlacementType.PATTERN: {
             const sourceSamplesWithParent = sourceSamples.reduce<Draft<PlacementSampleEntryWithParent>[]>((sourcesWithParent, source) => {
-                if (! ('coordinates' in source)) {
+                if (!('coordinates' in source)) {
                     throw new Error('For pattern placement, all source cells must be in a parent container')
                 }
                 sourcesWithParent.push(source)
@@ -298,7 +283,7 @@ export function placementDestinationLocations(
             const relativeOffsetByIndices = [...sourceSamples.keys()].sort((indexA, indexB) => {
                 const a = sourceSamples[indexA]
                 const b = sourceSamples[indexB]
-                return comparePlacementSamples(state , a, b, getRealParentContainer(state, destination))
+                return comparePlacementSamples(state, a, b, getRealParentContainer(state, destination))
             }).reduce<Record<number, number>>((relativeOffsetByIndices, sortedIndex, index) => {
                 relativeOffsetByIndices[sortedIndex] = index
                 return relativeOffsetByIndices
@@ -370,7 +355,7 @@ export function getPlacementOption(state: PlacementState): PlacementOptions {
 export function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnCellPayload) {
     const { sourceParentContainer, destinationParentContainer } = clickedLocation.context
 
-    const samples = selectPlacementSamplesByCell(state, clickedLocation)
+    const samples = selectPlacementSampleEntriesByCell(state, clickedLocation)
     const selectionSuccess = multiSelectionHelper(state, {
         parentContainer: clickedLocation.parentContainer,
         type: 'sample-identifiers',
@@ -383,7 +368,7 @@ export function clickCellHelper(state: Draft<PlacementState>, clickedLocation: M
             }
             const sourceContainer = getParentContainer(state, { parentContainer: sourceParentContainer })
             placeSamplesHelper(
-                state, 
+                state,
                 sourceContainer.samples,
                 clickedLocation,
                 getPlacementOption(state)
@@ -410,7 +395,7 @@ export function selectionMultipleSamples(samples: Draft<PlacementSampleEntry>[],
 }
 
 export function selectPlacementSampleEntries(state: Draft<PlacementState>, location: CellIdentifier): Draft<PlacementSampleEntry>[] {
-    const samples = selectPlacementSamplesByCell(state, location)
+    const samples = selectPlacementSampleEntriesByCell(state, location)
     const sampleIDs = samples.map((s) => s.id)
     const container = getParentContainer(state, location)
     return container.samples.filter((s) => sampleIDs.includes(s.id))
@@ -484,34 +469,69 @@ export function comparePlacementSamples(state: PlacementState, a: PlacementSampl
     let orderA = MAX
     let orderB = MAX
 
-    if (a.selected) orderA -= MAX/2
-    if (b.selected) orderB -= MAX/2
+    if (a.selected) orderA -= MAX / 2
+    if (b.selected) orderB -= MAX / 2
 
     if (container?.spec && 'coordinates' in a && 'coordinates' in b) {
         // if both have coordinates, both have a parent container (that's hopefully the same)
         const aOffsets = coordinatesToOffsets(container.spec, a.coordinates)
         const bOffsets = coordinatesToOffsets(container.spec, b.coordinates)
         const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
-        if (arrayComparison < 0) orderA -= MAX/4
-        if (arrayComparison > 0) orderB -= MAX/4
+        if (arrayComparison < 0) orderA -= MAX / 4
+        if (arrayComparison > 0) orderB -= MAX / 4
     }
 
-    if (sampleA.name < sampleB.name) orderA -= MAX/8
-    if (sampleA.name > sampleB.name) orderB -= MAX/8
+    if (sampleA.name < sampleB.name) orderA -= MAX / 8
+    if (sampleA.name > sampleB.name) orderB -= MAX / 8
 
-    if (sampleA.project < sampleA.project) orderA -= MAX/16
-    if (sampleA.project > sampleA.project) orderB -= MAX/16
+    if (sampleA.project < sampleA.project) orderA -= MAX / 16
+    if (sampleA.project > sampleA.project) orderB -= MAX / 16
 
     return orderA - orderB
 
 }
 
-function findPlacementSampleIndex(state: PlacementState, id: SampleIdentifier) {
-    return state.samples.findIndex((s) => s.id === id)
+function getOrCreatePlacementSample(state: Draft<PlacementState>, sample: PlacementSample) {
+    const foundSample = selectPlacementSample(state, sample.id)
+    if (foundSample) {
+        return foundSample
+    } else {
+        state.samples.push(sample)
+        return sample
+    }
+}
+
+function getOrCreateParentContainer(state: Draft<PlacementState>, parentContainer: ParentContainerState) {
+    const foundContainer = selectParentContainer(state, { parentContainer: parentContainer.name })
+    if (foundContainer) {
+        return foundContainer
+    } else {
+        state.parentContainers.push(parentContainer)
+        return parentContainer
+    }
+}
+
+function reducePlacementSamples<T>(state: Draft<PlacementState>, reducer: (accumulator: T, sample: Draft<PlacementSample>) => T, initial: T) {
+    let accumulator = initial
+    for (const sample of state.samples) {
+        accumulator = reducer(accumulator, sample)
+    }
+    return accumulator
+}
+function reduceParentContainers<T>(state: Draft<PlacementState>, reducer: (accumulator: T, container: Draft<ParentContainerState>) => T, initial: T) {
+    let accumulator = initial
+    for (const container of state.parentContainers) {
+        accumulator = reducer(accumulator, container)
+    }
+    return accumulator
 }
 
 function removeSamples(state: Draft<PlacementState>, ...samples: Array<SampleIdentifier>) {
     const sampleSet = new Set(samples)
     state.samples = state.samples.filter((s) => !sampleSet.has(s.id))
+    reduceParentContainers(state, (containerSamples, container) => {
+        container.samples = container.samples.filter((s) => !sampleSet.has(s.id))
+        return containerSamples
+    }, undefined)
     return state.samples
 }

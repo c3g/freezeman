@@ -1,7 +1,7 @@
 import { CoordinateSpec } from "../../models/fms_api_models"
 import { Container, Project, Sample } from "../../models/frontend_models"
 
-export type PlacementCoordinates = string
+/* Placement State */
 
 export interface PlacementState {
     samples: PlacementSample[]
@@ -11,6 +11,8 @@ export interface PlacementState {
     placementDirection: PlacementGroupOptions['direction']
     error: string | null
 }
+
+/* Placement Options */
 
 export enum PlacementType {
     PATTERN,
@@ -28,6 +30,9 @@ export interface PlacementGroupOptions {
     readonly direction: PlacementDirections
 }
 export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
+
+/* Placement Sample State */
+// Shared state of samples (unique by id)
 
 interface PlacementSampleBase {
     readonly name: Sample['name']
@@ -48,6 +53,9 @@ export interface PlacementSampleWithParent extends PlacementSampleBase {
 export type PlacementSample = PlacementSampleWithoutParent | PlacementSampleWithParent
 export type SampleIdentifier = PlacementSample['id']
 // container specific sample data (including for tubes without parent)
+
+/* Placement Sample Entry */
+
 export interface PlacementSampleEntryBase {
     readonly id: SampleIdentifier
     selected: boolean
@@ -58,10 +66,14 @@ export interface PlacementSampleEntryWithParent extends PlacementSampleEntryBase
 }
 export type PlacementSampleEntry = PlacementSampleEntryWithParent | PlacementSampleEntryWithoutParent
 
+/* Placement Cell State */
+
 export interface CellState {
     coordinates: PlacementCoordinates
     preview: boolean
 }
+
+/* Parent Container State */
 
 export interface ParentContainerStateBase {}
 export interface TubesWithoutParentState extends ParentContainerStateBase {
@@ -83,6 +95,7 @@ export interface RealParentContainerIdentifier extends ParentContainerIdentifier
     readonly parentContainer: RealParentContainerState['name']
 }
 
+export type PlacementCoordinates = string
 export interface CellIdentifier extends RealParentContainerIdentifier {
     readonly coordinates: PlacementCoordinates // tube or well coordinates
 }
