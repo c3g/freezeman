@@ -1,7 +1,7 @@
 import { CoordinateSpec } from "../../models/fms_api_models"
 import { Container, Project, Sample } from "../../models/frontend_models"
 
-type PlacementCoordinates = string
+export type PlacementCoordinates = string
 
 export interface PlacementState {
     samples: PlacementSample[]
@@ -34,54 +34,56 @@ interface PlacementSampleBase {
     readonly project: Project['name']
     readonly id: Sample['id']
     highlight: boolean
-    amountByCell: Record<CellIdentifierString, number | undefined>
-    totalAmount: number
 }
 export interface PlacementSampleWithoutParent extends PlacementSampleBase {
     readonly parentContainer: null
-    readonly container: Container['name'] // has to be in a container
+    readonly container: Container['name'] // has to be in a container like tube
     readonly coordinates: null
 }
 export interface PlacementSampleWithParent extends PlacementSampleBase {
-    readonly parentContainer: Container['name']
+    readonly parentContainer: RealParentContainerState['name']
     readonly container: Container['name'] | null // tube name or null for well
     readonly coordinates: PlacementCoordinates // tube or well coordinates
 }
 export type PlacementSample = PlacementSampleWithoutParent | PlacementSampleWithParent
+export type SampleIdentifier = PlacementSample['id']
 // container specific sample data (including for tubes without parent)
-export interface PlacementSampleEntry {
-    readonly name: Sample['name']
+export interface PlacementSampleEntryBase {
+    readonly id: SampleIdentifier
     selected: boolean
 }
+export interface PlacementSampleEntryWithoutParent extends PlacementSampleEntryBase, ParentContainerIdentifier {}
+export interface PlacementSampleEntryWithParent extends PlacementSampleEntryBase, CellIdentifier {
+    amount: number
+}
+export type PlacementSampleEntry = PlacementSampleEntryWithParent | PlacementSampleEntryWithoutParent
 
 export interface CellState {
+    coordinates: PlacementCoordinates
     preview: boolean
 }
 
-export interface ParentContainerStateBase {
-    samples: Array<PlacementSampleEntry>
-}
-
+export interface ParentContainerStateBase {}
 export interface TubesWithoutParentState extends ParentContainerStateBase {
     readonly name: null
+    samples: Array<PlacementSampleEntryWithoutParent>
 }
-
 export interface RealParentContainerState extends ParentContainerStateBase {
     readonly name: Container['name']
     readonly spec: CoordinateSpec
     cells: CellState[]
-    readonly cellsIndexByCoordinates: Record<PlacementCoordinates, number>
+    samples: Array<PlacementSampleEntryWithParent>
 }
 export type ParentContainerState = TubesWithoutParentState | RealParentContainerState
 
 export interface ParentContainerIdentifier {
     readonly parentContainer: ParentContainerState['name']
 }
-export interface RealParentContainerStateIdentifier extends ParentContainerIdentifier {
+export interface RealParentContainerIdentifier extends ParentContainerIdentifier {
     readonly parentContainer: RealParentContainerState['name']
 }
 
-export interface CellIdentifier extends RealParentContainerStateIdentifier {
+export interface CellIdentifier extends RealParentContainerIdentifier {
     readonly coordinates: PlacementCoordinates // tube or well coordinates
 }
 export type CellIdentifierString = `${CellIdentifier['parentContainer']}@${CellIdentifier['coordinates']}`
