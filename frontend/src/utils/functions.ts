@@ -1,5 +1,4 @@
 import { CoordinateSpec } from "../models/fms_api_models"
-import { CellState, PlacementSample } from "../modules/placement/models"
 
 export function constVal<T>(x: T) {
     return () => x
