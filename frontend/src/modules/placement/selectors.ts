@@ -1,11 +1,40 @@
 import { RootState } from "../../store";
-import { PlacementState } from "./models";
-import { selectContainer as helperSelectContainer, selectCell as helperSelectCell } from "./helpers";
+import { ParentContainerIdentifier, PlacementCoordinates, RealParentContainerIdentifier, SampleDetail } from "./models";
+import {
+    selectParentContainer as selectParentContainerHelper,
+    selectCell as SelectCellHelper,
+    selectSampleDetail as selectSampleDetailHelper,
+    selectPlacementSamplesByParentContainerAndSampleIDs
+} from "./helpers";
+import { createSelector } from "@reduxjs/toolkit";
 
-export const selectPlacementState = (state: RootState) => state.placement
-export const selectContainer = selectorWrapper(helperSelectContainer)
-export const selectCell = selectorWrapper(helperSelectCell)
+const selectPlacementState = (state: RootState) => state.placement
 
-function selectorWrapper<T>(selector: (state: PlacementState) => T) {
-    return (state: RootState) => selector(selectPlacementState(state))
-}
+export const selectParentContainer = createSelector([
+    selectPlacementState,
+    (_, parentContainer: ParentContainerIdentifier['parentContainer']) => parentContainer
+], (state, parentContainer) => {
+    return selectParentContainerHelper(state, { parentContainer })
+})
+
+export const selectCell = createSelector([
+    selectPlacementState,
+    (_, parentContainer: RealParentContainerIdentifier['parentContainer']) => parentContainer,
+    (_, __, coordinates: PlacementCoordinates) => coordinates
+], (state, parentContainer, coordinates) => {
+    return SelectCellHelper(state, { parentContainer, coordinates })
+})
+
+export const selectPlacementSamples = createSelector([
+    selectPlacementState,
+    (_, parentContainer: ParentContainerIdentifier['parentContainer']) => parentContainer
+], (state, parentContainer) => {
+    return selectPlacementSamplesByParentContainerAndSampleIDs(state, { parentContainer })
+})
+
+export const selectSampleDetail = createSelector([
+    selectPlacementState,
+    (_, id: SampleDetail['id']) => id
+], (state, id) => {
+    return selectSampleDetailHelper(state, id)
+})

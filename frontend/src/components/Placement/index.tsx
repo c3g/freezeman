@@ -36,7 +36,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
     const step = useAppSelector((state) => selectStepsByID(state)[stepID])
     const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
-    const cells = useAppSelector((state) => activeDestinationContainer?.name !== undefined ? selectContainer(state)({ parentContainer: activeDestinationContainer.name })?.cells : undefined)
 
     const handleGetSamplesheet = useCallback(async () => {
         if (activeDestinationContainer && cells) {
@@ -153,9 +152,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     parentContainer: parentContainer.name,
                     type: 'all',
                     forcedSelectedValue: false,
-                    context: {
-                        source: activeSourceContainer?.name
-                    }
                 }))
             }
             for (const parentContainer of destinationContainers) {
@@ -163,13 +159,10 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     parentContainer: parentContainer.name,
                     type: 'all',
                     forcedSelectedValue: false,
-                    context: {
-                        source: activeSourceContainer?.name
-                    }
                 }))
             }
         })
-    }, [activeSourceContainer?.name, destinationContainers, dispatch, sourceContainers])
+    }, [destinationContainers, dispatch, sourceContainers])
 
     const removeSelectedCells = useCallback(() => {
         if (activeDestinationContainer) {
