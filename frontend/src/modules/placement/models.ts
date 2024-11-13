@@ -4,7 +4,7 @@ import { Container, Project, Sample } from "../../models/frontend_models"
 /* Placement State */
 
 export interface PlacementState {
-    samples: PlacementSample[]
+    samples: SampleDetail[]
     parentContainers: ParentContainerState[]
 
     placementType: PlacementOptions['type']
@@ -34,37 +34,37 @@ export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 /* Placement Sample State */
 // Shared state of samples (unique by id)
 
-interface PlacementSampleBase {
+interface SampleDetailBase {
     readonly name: Sample['name']
     readonly project: Project['name']
     readonly id: Sample['id']
     highlight: boolean
 }
-export interface PlacementSampleWithoutParent extends PlacementSampleBase {
+export interface SampleDetailWithoutParent extends SampleDetailBase {
     readonly parentContainer: null
     readonly container: Container['name'] // has to be in a container like tube
     readonly coordinates: null
 }
-export interface PlacementSampleWithParent extends PlacementSampleBase {
+export interface SampleDetailWithParent extends SampleDetailBase {
     readonly parentContainer: RealParentContainerState['name']
     readonly container: Container['name'] | null // tube name or null for well
     readonly coordinates: PlacementCoordinates // tube or well coordinates
 }
-export type PlacementSample = PlacementSampleWithoutParent | PlacementSampleWithParent
-export type SampleIdentifier = PlacementSample['id']
+export type SampleDetail = SampleDetailWithoutParent | SampleDetailWithParent
+export type SampleIdentifier = SampleDetail['id']
 // container specific sample data (including for tubes without parent)
 
 /* Placement Sample Entry */
 
-export interface PlacementSampleEntryBase {
+interface PlacementSampleBase {
     readonly id: SampleIdentifier
     selected: boolean
 }
-export interface PlacementSampleEntryWithoutParent extends PlacementSampleEntryBase, ParentContainerIdentifier {}
-export interface PlacementSampleEntryWithParent extends PlacementSampleEntryBase, CellIdentifier {
+export interface PlacementSampleWithoutParent extends PlacementSampleBase, TubesWithoutParentIdentifier {}
+export interface PlacementSampleWithParent extends PlacementSampleBase, CellIdentifier {
     amount: number
 }
-export type PlacementSampleEntry = PlacementSampleEntryWithParent | PlacementSampleEntryWithoutParent
+export type PlacementSample = PlacementSampleWithParent | PlacementSampleWithoutParent
 
 /* Placement Cell State */
 
@@ -75,25 +75,26 @@ export interface CellState {
 
 /* Parent Container State */
 
-export interface ParentContainerStateBase {}
+interface ParentContainerStateBase {}
 export interface TubesWithoutParentState extends ParentContainerStateBase {
     readonly name: null
-    samples: Array<PlacementSampleEntryWithoutParent>
+    samples: Array<PlacementSampleWithoutParent>
 }
 export interface RealParentContainerState extends ParentContainerStateBase {
     readonly name: Container['name']
     readonly spec: CoordinateSpec
     cells: CellState[]
-    samples: Array<PlacementSampleEntryWithParent>
+    samples: Array<PlacementSampleWithParent>
 }
 export type ParentContainerState = TubesWithoutParentState | RealParentContainerState
 
-export interface ParentContainerIdentifier {
-    readonly parentContainer: ParentContainerState['name']
+export interface TubesWithoutParentIdentifier {
+    readonly parentContainer: null
 }
-export interface RealParentContainerIdentifier extends ParentContainerIdentifier {
+export interface RealParentContainerIdentifier {
     readonly parentContainer: RealParentContainerState['name']
 }
+export type ParentContainerIdentifier = RealParentContainerIdentifier | TubesWithoutParentIdentifier
 
 export type PlacementCoordinates = string
 export interface CellIdentifier extends RealParentContainerIdentifier {
