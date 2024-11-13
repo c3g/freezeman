@@ -196,7 +196,7 @@ export function onCellExitHelper(state: Draft<PlacementState>, payload: MouseOnC
     }
 }
 
-export function undoSelectedSamplesHelper(state: Draft<PlacementState>, parentContainer: RealParentContainerIdentifier['parentContainer']) {
+export function undoSelectedSamplesInContainerHelper(state: Draft<PlacementState>, parentContainer: RealParentContainerIdentifier['parentContainer']) {
     reducePlacementSamplesWithParent(state, { parentContainer: parentContainer }, (_, sample) => {
         if (sample.selected) {
             undoSamplePlacement(state, sample)
@@ -205,8 +205,8 @@ export function undoSelectedSamplesHelper(state: Draft<PlacementState>, parentCo
     }, undefined)
 }
 
-export function flushContainersHelper(state: Draft<PlacementState>, action: PayloadAction<Array<ParentContainerState['name']>>) {
-    const deletedContainerNames = new Set(action.payload ?? state.parentContainers.map((c) => c.name))
+export function flushContainersHelper(state: Draft<PlacementState>, parentContainers?: Array<ParentContainerState['name']>) {
+    const deletedContainerNames = new Set(parentContainers ?? state.parentContainers.map((c) => c.name))
     state.parentContainers = state.parentContainers.filter((c) => !deletedContainerNames.has(c.name))
     const deletedSamples = new Set(state.samples.filter((s) => deletedContainerNames.has(s.parentContainer)).map((s) => s.id))
     state.samples = state.samples.filter((s) => !deletedContainerNames.has(s.parentContainer))
