@@ -2,7 +2,8 @@ import {
   AuditOutlined, BarcodeOutlined, DashboardOutlined,
   ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SettingOutlined, SyncOutlined, TableOutlined,
   TeamOutlined,
-  UserOutlined
+  UserOutlined,
+  BarChartOutlined
 } from "@ant-design/icons";
 import { Layout, Menu, Spin, Typography } from "antd";
 import React, { useEffect } from "react";
@@ -24,6 +25,7 @@ import ProfilePage from "../profile/ProfilePage";
 import ProjectsPage from "../projects/ProjectsPage";
 import SamplesPage from "../samples/SamplesPage";
 import UsersPage from "../users/UsersPage";
+import ReportsPage from "../reports/ReportsPage"
 
 import PrivateNavigate from "../PrivateNavigate";
 
@@ -158,6 +160,11 @@ const MENU_ITEMS = [
     url: "/users",
     icon: <AuditOutlined />,
     text: "Users",
+  },
+  {
+    url: "/reports",
+    icon: <BarChartOutlined />,
+    text: "Reports",
   },
 ]
 
@@ -372,6 +379,11 @@ const App = ({userID, usersByID, logOut, get}) => {
             <Route path="/instruments/*" element={
               <PrivateNavigate>
                 <InstrumentsRoute />
+              </PrivateNavigate>
+            } />
+            <Route path="/reports/*" element={
+              <PrivateNavigate>
+                <ReportsPage />
               </PrivateNavigate>
             } />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
