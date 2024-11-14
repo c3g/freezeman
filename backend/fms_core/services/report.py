@@ -19,49 +19,47 @@ def get_report(name: str, grouped_by: List[str], time_aggregation: str, start_da
     errors = {}
     warnings = {}
     is_detailed_report = (len(grouped_by) == 0)
+    headers = grouped_by
     report_info = REPORT_INFORMATION.get(name, {})
     queryset = _get_queryset(name, start_date, end_date)
-    print(grouped_by)
+    print(queryset)
+    queryset.select_related("container__samples")
+    queryset.select_related("datasets__readsets__metrics")
     if report_info:
         if is_detailed_report:
             pass
         else:
+            # Add grouping annotations
+            for group_by in grouped_by:
+                match group_by:
+                    case "library_type":
+                        queryset = queryset.annotate(library_type=F("container__samples__derived_samples__library__library_type__name"))
+                    case "project":
+                        queryset = queryset.annotate(project=F("container__samples__derived_by_samples__project__name"))
+                    case "taxon":
+                        queryset = queryset.annotate(taxon=F("container__samples__derived_samples__biosample__individual__taxon__name"))
+                    case "technology":
+                        queryset = queryset.annotate(technology=F("instrument__type__type"))
+            queryset = queryset.values(*grouped_by)
+            print(queryset)
             print("Yoga")
             # Add metrics column to the queryset
             # sample_count
-            queryset = queryset.annotate(sample_count=Count("container__samples__derived_samples__biosample_id"))
+            queryset = queryset.annotate(sample_count=Count(F("container__samples__derived_samples__biosample__id"), distinct=True))
             # library_count
-            queryset = queryset.annotate(library_count=Count("container__samples__derived_samples__id"))
+            queryset = queryset.annotate(library_count=Count(F("container__samples__derived_samples__id"), distinct=True))
             # read_count
-            read_count = Sum("datasets__readsets__metrics__value_numeric", filter=Q(datasets__readsets__metrics__name="nb_reads"))
+            read_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="nb_reads"))
             queryset = queryset.annotate(read_count=read_count)
             # base_count
-            base_count = Sum("datasets__readsets__metrics__value_numeric", filter=Q(datasets__readsets__metrics__name="yield"))
+            base_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="yield"))
             queryset = queryset.annotate(base_count=base_count)
             print("Yogotoga")
-            try:
-                # Add grouping annotations
-                # library_type
-                queryset = queryset.annotate(library_type=F("container__samples__derived_samples__library__library_type__name"))
-                # project
-                queryset = queryset.annotate(project=F("container__samples__derived_by_samples__project__name"))
-                # taxon
-                queryset = queryset.annotate(taxon=F("container__samples__derived_samples__biosample__individual__taxon__name"))
-                # technology
-                queryset = queryset.annotate(technology=F("instrument__type__type"))
-            except Exception as err:
-                print(err)
+            print(queryset.query)
+            for entry in queryset.all().distinct():
+                print(entry)
             print("Patchouli")
-            try:
-                # list_header
-                header = grouped_by.append(report_info["aggregated_metrics"])
-                print(header)
-                # Get values
-                report_values = queryset.values_list(*header, flat=True)
-            except Exception as err:
-                print(err)
-            print(report_values)
-
+    print("Matamout")
     return report_data, errors, warnings
 
 def _get_queryset(name: str, start_date: str, end_date: str):
@@ -76,6 +74,7 @@ def _get_queryset(name: str, start_date: str, end_date: str):
     BASE_QUERY_SET = {
         "production_report": ExperimentRun.objects.filter(process__process_measurement__execution_date__gte=start_date)
                                                   .filter(process__process_measurement__execution_date__lte=end_date)
+                                                  .distinct()
                                                   .order_by()
     }
 

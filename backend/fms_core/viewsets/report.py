@@ -10,15 +10,8 @@ from ..services.report import AVAILABLE_REPORTS, REPORT_INFORMATION, get_report
 
 class ReportViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
-
-    def list(self, request):
-        """
-            Provides the list of existing reports by name.
-        """
-        return Response(AVAILABLE_REPORTS)
     
-    @action(detail=False, methods=["get"])
-    def report(self, request):
+    def list(self, request):
         """
             Produce a report with given parameters or provide guidance for the required parameters.
         """
@@ -29,7 +22,9 @@ class ReportViewSet(viewsets.ViewSet):
         start_date = params.get("start_date", None)
         end_date = params.get("end_date", None)
 
-        if name is not None:
+        if name is None:
+            return Response(AVAILABLE_REPORTS)
+        else:
             if start_date is None or end_date is None:
                 # Provide information about the requested report if no start_date and end_date provided
                 report_information = REPORT_INFORMATION.get(name, f"Requested report does not exist.")
