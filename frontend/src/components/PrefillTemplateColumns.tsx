@@ -113,7 +113,7 @@ const PrefillButton = ({ canPrefill, handlePrefillTemplate, data, onPrefillOpen 
                     if (!column.toLocaleLowerCase().includes("date")) {
                         prefillData[column] = fieldValues[column]
                     } else {
-                        prefillData[column] = moment(fieldValues[column]).format("YYYY-MM-DD")
+                        prefillData[column] = fieldValues[column].format("YYYY-MM-DD")
                     }
                 }
             }
