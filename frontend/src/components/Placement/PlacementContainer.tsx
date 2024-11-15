@@ -3,9 +3,7 @@ import { Empty } from "antd"
 import Cell from "./Cell"
 import { multiSelect } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import store from "../../store"
-import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
-import { selectContainer } from "../../modules/placement/selectors"
+import { selectParentContainer } from "../../modules/placement/selectors"
 
 interface PlacementContainerProps {
     container: string | null
@@ -14,8 +12,11 @@ interface PlacementContainerProps {
 //component is used to visually represent the container, and its rows and columns of cells
 const PlacementContainer = ({ container: containerName }: PlacementContainerProps) => {
     const dispatch = useAppDispatch()
-    const container = useAppSelector((state) => selectContainer(state)({ parentContainer: containerName }))
-    const [axisRow = [] as const, axisColumn = [] as const] = container?.spec ?? [[], []] as const
+    const containerSpec = useAppSelector((state) => {
+        const container = selectParentContainer(state, containerName)
+        return container ? ('spec' in container ? container.spec : undefined) : undefined
+    })
+    const [axisRow = [] as const, axisColumn = [] as const] = containerSpec ?? [[], []] as const
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length
 
@@ -24,9 +25,6 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
             parentContainer: containerName,
             type: 'column',
             column,
-            context: {
-                source: selectActiveSourceContainer(store.getState())?.name
-            }
         }))
     }, [containerName, dispatch])
     const selectRow = useCallback((row: number) => {
@@ -34,18 +32,12 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
             parentContainer: containerName,
             type: 'row',
             row,
-            context: {
-                source: selectActiveSourceContainer(store.getState())?.name
-            }
         }))
     }, [containerName, dispatch])
     const selectAll = useCallback(() => {
         dispatch(multiSelect({
             parentContainer: containerName,
             type: 'all',
-            context: {
-                source: selectActiveSourceContainer(store.getState())?.name
-            }
         }))
     }, [containerName, dispatch])
 

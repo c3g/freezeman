@@ -31,7 +31,7 @@ export interface PlacementGroupOptions {
 }
 export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
-/* Placement Sample State */
+/* Sample Detail */
 // Shared state of samples (unique by id)
 
 interface SampleDetailBase {
@@ -54,15 +54,15 @@ export type SampleDetail = SampleDetailWithoutParent | SampleDetailWithParent
 export type SampleIdentifier = SampleDetail['id']
 // container specific sample data (including for tubes without parent)
 
-/* Placement Sample Entry */
+/* Placement Sample */
 
 interface PlacementSampleBase {
     readonly id: SampleIdentifier
     selected: boolean
 }
-export interface PlacementSampleWithoutParent extends PlacementSampleBase, TubesWithoutParentIdentifier {}
+export interface PlacementSampleWithoutParent extends PlacementSampleBase {}
 export interface PlacementSampleWithParent extends PlacementSampleBase, CellIdentifier {
-    amount: number
+    volume: string
 }
 export type PlacementSample = PlacementSampleWithParent | PlacementSampleWithoutParent
 
@@ -78,13 +78,14 @@ export interface CellState {
 interface ParentContainerStateBase {}
 export interface TubesWithoutParentState extends ParentContainerStateBase {
     readonly name: null
-    samples: Array<PlacementSampleWithoutParent>
+    existingSamples: Array<PlacementSampleWithoutParent>
 }
 export interface RealParentContainerState extends ParentContainerStateBase {
     readonly name: Container['name']
     readonly spec: CoordinateSpec
     cells: CellState[]
-    samples: Array<PlacementSampleWithParent>
+    existingSamples: Array<PlacementSampleWithParent>
+    placedSamples: Array<PlacementSampleWithParent>
 }
 export type ParentContainerState = TubesWithoutParentState | RealParentContainerState
 
