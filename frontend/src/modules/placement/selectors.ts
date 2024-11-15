@@ -4,37 +4,50 @@ import {
     selectParentContainer as selectParentContainerHelper,
     selectCell as SelectCellHelper,
     selectSampleDetail as selectSampleDetailHelper,
-    selectPlacementSamplesByParentContainerAndSampleIDs
+    selectOriginalSampleDetailOfCell as selectOriginalSampleDetailOfCellHelper,
+    comparePlacementSamples,
 } from "./helpers";
 import { createSelector } from "@reduxjs/toolkit";
 
-const selectPlacementState = (state: RootState) => state.placement
+export function selectParentContainer(state: RootState, parentContainer: ParentContainerIdentifier['parentContainer']) {
+    return selectParentContainerHelper(state.placement, { parentContainer })
+}
 
-export const selectParentContainer = createSelector([
-    selectPlacementState,
-    (_, parentContainer: ParentContainerIdentifier['parentContainer']) => parentContainer
-], (state, parentContainer) => {
-    return selectParentContainerHelper(state, { parentContainer })
-})
+export function selectCell(state: RootState, parentContainer: RealParentContainerIdentifier['parentContainer'], coordinates: PlacementCoordinates) {
+    return SelectCellHelper(state.placement, { parentContainer, coordinates })
+}
 
-export const selectCell = createSelector([
-    selectPlacementState,
-    (_, parentContainer: RealParentContainerIdentifier['parentContainer']) => parentContainer,
-    (_, __, coordinates: PlacementCoordinates) => coordinates
-], (state, parentContainer, coordinates) => {
-    return SelectCellHelper(state, { parentContainer, coordinates })
-})
+export const selectSampleDetailsOfContainer = createSelector(
+    [
+        (state: RootState) => state.placement.samples,
+        (_: RootState, parentContainer: ParentContainerIdentifier['parentContainer']) => parentContainer
+    ],
+    (samples, parentContainer) => samples.filter(sample => sample.parentContainer === parentContainer)
+)
 
-export const selectPlacementSamples = createSelector([
-    selectPlacementState,
-    (_, parentContainer: ParentContainerIdentifier['parentContainer']) => parentContainer
-], (state, parentContainer) => {
-    return selectPlacementSamplesByParentContainerAndSampleIDs(state, { parentContainer })
-})
+export const selectPlacementSamples = createSelector(
+    [
+        (state: RootState) => state.placement.samples,
+        selectSampleDetailsOfContainer,
+        (state: RootState, parentContainer: ParentContainerIdentifier['parentContainer']) => selectParentContainer(state, parentContainer)?.samples
+    ], 
+    (allSampleDetails, sampleDetailsOfContainer, placementSamples) => {
+        return [...sampleDetailsOfContainer, ...(placementSamples ?? [])].sort((a, b) => comparePlacementSamples({ samples: allSampleDetails }, a, b))
+    }
+)
 
-export const selectSampleDetail = createSelector([
-    selectPlacementState,
-    (_, id: SampleDetail['id']) => id
-], (state, id) => {
-    return selectSampleDetailHelper(state, id)
+export function selectOriginalSampleDetailOfCell(state: RootState, parentContainer: RealParentContainerIdentifier['parentContainer'], coordinates: PlacementCoordinates) {
+    return selectOriginalSampleDetailOfCellHelper(state.placement, { parentContainer, coordinates })
+}
+
+export function selectSampleDetail(state: RootState, id: SampleDetail['id']) {
+    return selectSampleDetailHelper(state.placement, id)
+}
+
+export const selectSampleDetails = createSelector([
+    (state: RootState) => state.placement.samples,
+    (_: RootState, ids: Array<SampleDetail['id']>) => ids,
+], (samples, ids) => {
+    const sampleIDs = new Set(ids)
+    return samples.filter(sample => sampleIDs.has(sample.id))
 })

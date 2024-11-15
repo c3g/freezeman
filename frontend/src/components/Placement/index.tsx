@@ -16,6 +16,7 @@ import { selectContainer } from "../../modules/placement/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
+import { useIsPlacementContainerFilled } from "../../modules/placement/hook"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -38,16 +39,12 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
 
     const handleGetSamplesheet = useCallback(async () => {
-        if (activeDestinationContainer && cells) {
-            await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
+        if (activeDestinationContainer) {
+            await dispatch(fetchSamplesheet(activeDestinationContainer))
         }
-    }, [dispatch, activeDestinationContainer, cells])
+    }, [dispatch, activeDestinationContainer])
 
-    const isPlacementComplete = useMemo(() => {
-        if (!activeDestinationContainer) return false
-        if (!cells) return false
-        return cells.every((cell) => cell.samples !== undefined)
-    }, [activeDestinationContainer, cells])
+    const isPlacementComplete = useIsPlacementContainerFilled(activeDestinationContainer?.name)
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
