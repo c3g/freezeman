@@ -3,7 +3,6 @@ import { Button, Checkbox, Form, Input, Modal, DatePicker, Typography, FormItemP
 import api from '../utils/api'
 import { InstrumentType } from '../models/frontend_models'
 import store from '../store'
-import moment from 'moment'
 import { useAppDispatch } from '../hooks'
 
 type ColumnType = 'number' | 'text' | 'date' | 'qc-instrument' | string[]
