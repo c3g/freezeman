@@ -1,4 +1,5 @@
 from typing import List
+import datetime
 
 from django.db.models import Q, F, When, Case, BooleanField, Prefetch, Count, Subquery, OuterRef, Sum, Max
 
@@ -21,6 +22,7 @@ def get_report(name: str, grouped_by: List[str], time_aggregation: str, start_da
     is_detailed_report = (len(grouped_by) == 0)
     headers = grouped_by
     report_info = REPORT_INFORMATION.get(name, {})
+    tic = datetime.datetime.now()
     queryset = _get_queryset(name, start_date, end_date)
     print(queryset)
     queryset.select_related("container__samples")
@@ -49,16 +51,19 @@ def get_report(name: str, grouped_by: List[str], time_aggregation: str, start_da
             # library_count
             queryset = queryset.annotate(library_count=Count(F("container__samples__derived_samples__id"), distinct=True))
             # read_count
-            read_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="nb_reads"))
+            read_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="nb_reads"), distinct=True)
             queryset = queryset.annotate(read_count=read_count)
             # base_count
-            base_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="yield"))
-            queryset = queryset.annotate(base_count=base_count)
+            #base_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="yield"), distinct=True)
+            #queryset = queryset.annotate(base_count=base_count)
             print("Yogotoga")
             print(queryset.query)
             for entry in queryset.all().distinct():
                 print(entry)
             print("Patchouli")
+    toc = datetime.datetime.now()
+    duration = toc - tic
+    print(duration)
     print("Matamout")
     return report_data, errors, warnings
 
