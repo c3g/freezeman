@@ -51,7 +51,7 @@ def get_report(name: str, grouped_by: List[str], time_aggregation: str, start_da
             # library_count
             queryset = queryset.annotate(library_count=Count(F("container__samples__derived_samples__id"), distinct=True))
             # read_count
-            read_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="nb_reads"), distinct=True)
+            read_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__derived_sample_id=F("container__samples__derived_samples__id")) & Q(datasets__readsets__metrics__name="nb_reads"), distinct=True)
             queryset = queryset.annotate(read_count=read_count)
             # base_count
             #base_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="yield"), distinct=True)
