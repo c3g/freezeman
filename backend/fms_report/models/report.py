@@ -1,5 +1,5 @@
 from django.db import models
-from _constants import REPORTING_NAME_FIELD_LENGTH
+from ._constants import REPORTING_NAME_FIELD_LENGTH
 
 __all__ = ["Report"]
 
