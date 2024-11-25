@@ -3,7 +3,16 @@ import { Link } from "react-router-dom";
 
 /**
  * @typedef {Required<import("antd").MenuProps>['items'][number]} MenuItem
- * @typedef {Partial<{ key: string, icon: JSX.Element, text: string, url: string, onClick: () => void, children: BadMenuItem[], style: React.CSSProperties, disabled?: boolean }>} BadMenuItem
+ * @typedef {Partial<{
+	* key: string,
+	* icon: JSX.Element,
+	* text: string,
+	* url: string,
+	* onClick: () => void,
+	* children: BadMenuItem[],
+	* style: React.CSSProperties,
+	* disabled?: boolean
+ * }>} BadMenuItem
  */
 
 /**
