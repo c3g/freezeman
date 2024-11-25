@@ -1,5 +1,4 @@
 from django.db import models
-from _constants import REPORTING_NAME_FIELD_LENGTH
 
 from fms_core.models._constants import STANDARD_NAME_FIELD_LENGTH
 from fms_core.models import ExperimentRun, DerivedSample, Process, Biosample
@@ -28,12 +27,12 @@ class ProductionData(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['sequencing_date'], name='productiondata_sequencingdate_idx'),
+            models.Index(fields=['sequencing_date'], name='productiondata_seqdate_idx'),
             models.Index(fields=['library_type'], name='productiondata_librarytype_idx'),
             models.Index(fields=['project'], name='productiondata_project_idx'),
             models.Index(fields=['technology'], name='productiondata_technology_idx'),
             models.Index(fields=['taxon'], name='productiondata_taxon_idx'),
         ]
         constraints = [
-            models.UniqueConstraint(fields=["experiment_run", "library", "lane"], name="productiondata_experimentrun_library_lane_key")
+            models.UniqueConstraint(fields=["experiment_run", "library", "lane"], name="productiondata_natural_key")
         ]

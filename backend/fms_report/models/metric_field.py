@@ -1,5 +1,5 @@
 from django.db import models
-from _constants import REPORTING_NAME_FIELD_LENGTH, AggregationType
+from ._constants import REPORTING_NAME_FIELD_LENGTH, AggregationType
 
 from .report import Report
 

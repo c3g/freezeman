@@ -1,5 +1,4 @@
 from django.db import models
-from _constants import REPORTING_NAME_FIELD_LENGTH
 
 from fms_core.models.readset import Readset
 
