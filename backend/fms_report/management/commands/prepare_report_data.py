@@ -28,7 +28,7 @@ class Command(BaseCommand):
             os.makedirs(path)
         filename = path + log_name + ".log"
         formatter = logging.Formatter("%(asctime)s || %(levelname)s || %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-        handler = logging.FileHandler(filename, "w+")
+        handler = logging.FileHandler(filename, "a+")
         handler.setFormatter(formatter)
         log = logging.getLogger(log_name)
         log.setLevel(logging.DEBUG)
