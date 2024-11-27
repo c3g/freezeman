@@ -1,15 +1,16 @@
 from typing import List
 import datetime
-
+from django.apps import apps
 from django.db.models import Q, F, When, Case, BooleanField, Prefetch, Count, Subquery, OuterRef, Sum, Max
 
 from ..models import ExperimentRun, Process
+from fms_report.models import Report, MetricField
 
 AVAILABLE_REPORTS = ["production_report"]
 
 REPORT_INFORMATION = {
     "production_report": {
-        "aggregated_metrics": ["sample_count", "library_count", "read_count", "base_count"],
+        "aggregated_metrics": ["biosample", "library", "reads", "bases"],
         "groups": ["library_type","project","taxon","technology"],  # Add technology_detailed once the rest is working
         "time_aggregation": ["daily", "weekly", "monthly"],
     },
@@ -25,46 +26,26 @@ def get_report(name: str, grouped_by: List[str], time_aggregation: str, start_da
     tic = datetime.datetime.now()
     queryset = _get_queryset(name, start_date, end_date)
     print(queryset)
-    queryset.select_related("container__samples")
-    queryset.select_related("datasets__readsets__metrics")
     if report_info:
         if is_detailed_report:
             pass
         else:
             # Add grouping annotations
-            for group_by in grouped_by:
-                match group_by:
-                    case "library_type":
-                        queryset = queryset.annotate(library_type=F("container__samples__derived_samples__library__library_type__name"))
-                    case "project":
-                        queryset = queryset.annotate(project=F("container__samples__derived_by_samples__project__name"))
-                    case "taxon":
-                        queryset = queryset.annotate(taxon=F("container__samples__derived_samples__biosample__individual__taxon__name"))
-                    case "technology":
-                        queryset = queryset.annotate(technology=F("instrument__type__type"))
             queryset = queryset.values(*grouped_by)
-            print(queryset)
-            print("Yoga")
             # Add metrics column to the queryset
             # sample_count
-            queryset = queryset.annotate(sample_count=Count(F("container__samples__derived_samples__biosample__id"), distinct=True))
+            queryset = queryset.annotate(sample_count=Count(F("biosample"), distinct=True))
             # library_count
-            queryset = queryset.annotate(library_count=Count(F("container__samples__derived_samples__id"), distinct=True))
+            queryset = queryset.annotate(library_count=Count(F("library"), distinct=True))
             # read_count
-            read_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__derived_sample_id=F("container__samples__derived_samples__id")) & Q(datasets__readsets__metrics__name="nb_reads"), distinct=True)
-            queryset = queryset.annotate(read_count=read_count)
+            queryset = queryset.annotate(read_count=Sum(F("reads")))
             # base_count
-            #base_count = Sum(F("datasets__readsets__metrics__value_numeric"), filter=Q(datasets__readsets__metrics__name="yield"), distinct=True)
-            #queryset = queryset.annotate(base_count=base_count)
-            print("Yogotoga")
-            print(queryset.query)
+            queryset = queryset.annotate(base_count=Sum(F("bases")))
             for entry in queryset.all().distinct():
                 print(entry)
-            print("Patchouli")
     toc = datetime.datetime.now()
     duration = toc - tic
     print(duration)
-    print("Matamout")
     return report_data, errors, warnings
 
 def _get_queryset(name: str, start_date: str, end_date: str):
@@ -76,11 +57,15 @@ def _get_queryset(name: str, start_date: str, end_date: str):
           `start_date`: start of the report time period requested
           `end_date`: end of the report time period requested
     """
-    BASE_QUERY_SET = {
-        "production_report": ExperimentRun.objects.filter(process__process_measurement__execution_date__gte=start_date)
-                                                  .filter(process__process_measurement__execution_date__lte=end_date)
-                                                  .distinct()
-                                                  .order_by()
-    }
+    
+    # For now this assumes only one field is designated as is_date by report. Once we set more date fields we would need to have the date field name as input.
+    report_data = MetricField.objects.filter(report__name=name).annotate(date_field=F("name")).filter(is_date=True).values("report__data_model", "date_field")[:1]
+    DataModel = apps.get_model("fms_report", report_data[0]["report__data_model"])
+    print(report_data)
+    queryset = ( DataModel.objects.annotate(date_field=F(report_data[0]["date_field"]))
+                                  .filter(date_field__gte=start_date)
+                                  .filter(date_field__lte=end_date)
+                                  .distinct()
+                                  .order_by() )
 
-    return BASE_QUERY_SET.get(name, None)
+    return queryset

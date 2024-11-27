@@ -17,6 +17,7 @@ def prepare_production_report_data(log):
         log.info(f"Deleted {deleted_rows} rows from ProductionData table. Readset validation timestamp no longer match the prepared validation timestamp.")
     except Exception as err:
         log.error(f"ProductionData removal failure: {err}.")
+        raise err
     
     # Build a dictionary of investigators by external ids to prevent a costly join
     project_qs = Project.objects.exclude(external_id__isnull=True).exclude(principal_investigator="").all()
@@ -66,6 +67,7 @@ def prepare_production_report_data(log):
     except Exception as err:
         log.error(f"Query preparation failure: {err}.")
         log.error(queryset.query)
+        raise err
 
     try:
         queryset = queryset.all().distinct().order_by().values("id",
@@ -91,6 +93,7 @@ def prepare_production_report_data(log):
                                                                "bases")
     except Exception as err:
         log.error(f"Query execution failure: {err}.")
+        raise err
 
     try:
         for readset_data in queryset:
@@ -119,3 +122,4 @@ def prepare_production_report_data(log):
     except Exception as err:
         log.error(f"Data creation failure: {err}.")
         log.error(f"Readset {readset_data['id']} failed.")
+        raise err
