@@ -3,6 +3,143 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
+from fms_report.models._constants import AggregationType
+
+
+def initialize_report(apps, schema_editor):
+    REPORTS = [{"name": "production_report", "data_model": "ProductionData"}]
+    REPORT_METRICS = {
+        "production_report": [
+            {
+                "name": "sequencing_date",
+                "is_date": True,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "library_creation_date",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "library_capture_date",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "run_name",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "experiment_run",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "lane",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "sample_name",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "library",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": AggregationType.COUNT,
+            },
+            {
+                "name": "library_batch",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": None,
+            },
+            {
+                "name": "is_internal_library",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+            },
+            {
+                "name": "biosample",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": AggregationType.COUNT,
+            },
+            {
+                "name": "library_type",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+            },
+            {
+                "name": "library_selection",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+            },
+            {
+                "name": "project",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+            },
+            {
+                "name": "principal_investigator",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+            },
+            {
+                "name": "taxon",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+            },
+            {
+                "name": "technology",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+            },
+            {
+                "name": "reads",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": AggregationType.SUM,
+            },
+            {
+                "name": "bases",
+                "is_date": False,
+                "is_group": False,
+                "aggregation": AggregationType.SUM,
+            },
+        ]
+    }
+
+    Report = apps.get_model("fms_report", "Report")
+    MetricField = apps.get_model("fms_report", "MetricField")
+
+    for report in REPORTS:
+        report_obj = Report.objects.create(name=report["name"], data_model=report["data_model"])
+
+        for field in REPORT_METRICS[report["name"]]:
+            MetricField.objects.create(name=field["name"],
+                                       report=report_obj,
+                                       is_date=field["is_date"],
+                                       is_group=field["is_group"],
+                                       aggregation=field["aggregation"])
+
 
 class Migration(migrations.Migration):
 
@@ -18,6 +155,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Internal name by which a report can be identified.', max_length=100, unique=True)),
+                ('data_model', models.CharField(help_text='Name of the model from which to get data.', max_length=100)),
             ],
         ),
         migrations.CreateModel(
@@ -33,8 +171,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Name of the field containing a report metric.', max_length=100)),
+                ('is_date', models.BooleanField(default=False, help_text='Flag indicating if the value can be used to filter by date.')),
                 ('is_group', models.BooleanField(default=False, help_text='Flag indicating if the value can be a group for aggregation.')),
-                ('aggregation', models.CharField(choices=[('SUM', 'Sum'), ('COUNT', 'Count'), ('MAX', 'Max'), ('MIN', 'Min')], help_text='Aggregation to use on this field.', max_length=100)),
+                ('aggregation', models.CharField(null=True, blank=True, choices=[('SUM', 'Sum'), ('COUNT', 'Count'), ('MAX', 'Max'), ('MIN', 'Min')], help_text='Aggregation to use on this field.', max_length=100)),
                 ('report', models.ForeignKey(help_text='Report to which the field is related.', on_delete=django.db.models.deletion.PROTECT, related_name='metric_fields', to='fms_report.report')),
             ],
         ),
@@ -70,5 +209,9 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='productiondata',
             constraint=models.UniqueConstraint(fields=('experiment_run', 'library', 'lane'), name='productiondata_natural_key'),
+        ),
+        migrations.RunPython(
+            initialize_report,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
