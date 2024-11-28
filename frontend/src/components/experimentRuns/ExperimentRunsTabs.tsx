@@ -13,8 +13,6 @@ import { useAppSelector } from '../../hooks'
 import { selectAuthTokenAccess, selectExperimentRunsTable, selectExperimentRunsTemplateActions } from '../../selectors'
 import { EXPERIMENT_RUN_FILTERS } from '../filters/descriptions'
 
-const { TabPane } = Tabs
-
 const pageStyle = {
 	padding: 0,
 	overflow: "auto",
@@ -65,14 +63,20 @@ function ExperimentRunsTabs() {
 
 		<AppPageHeader title='Experiment Runs'  extra={getPageHeaderExtra()}></AppPageHeader>
 		<PageContent style={pageStyle}>
-			<Tabs onChange={setActiveKey} type='card' style={tabsStyle}>
-				<TabPane tab='FreezeMan' key={ExperimentRunsTabsName.FREEZEMAN} style={tabStyle}>
-					<ExperimentRunListContent selectedTab={activeKey}/>
-				</TabPane>
- 				<TabPane tab='External' key={ExperimentRunsTabsName.EXTERNAL}  style={tabStyle}>
-					<ExternalExperimentRunsListContent/>
-				</TabPane>
-			</Tabs>
+			<Tabs onChange={setActiveKey} type='card' style={tabsStyle} items={[
+				{
+					key: ExperimentRunsTabsName.FREEZEMAN,
+					label: 'FreezeMan',
+					style: tabStyle,
+					children: <ExperimentRunListContent/>
+				},
+				{
+					key: ExperimentRunsTabsName.EXTERNAL,
+					label: 'External',
+					style: tabStyle,
+					children: <ExternalExperimentRunsListContent/>
+				}
+			]} />
 		</PageContent>
 
 	</>)

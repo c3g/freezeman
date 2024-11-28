@@ -1,45 +1,62 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Menu } from "antd";
 
-// renderMenuItem and matchingMenuKeys taken from chord_web
+/**
+ * @typedef {Required<import("antd").MenuProps>['items'][number]} MenuItem
+ * @typedef {Partial<{
+	* key: string,
+	* icon: JSX.Element,
+	* text: string,
+	* url: string,
+	* onClick: () => void,
+	* children: BadMenuItem[],
+	* style: React.CSSProperties,
+	* disabled?: boolean
+ * }>} BadMenuItem
+ */
 
-// Custom menu renderer
-export const renderMenuItem = (i) => {
-	if (i['children']) {
-		return (
-			<Menu.SubMenu
-				style={i.style || {}}
-				title={
-					<span>
-						{i.icon || null}
-									<span>{i.text || null}</span>
-					</span>
-				}
-				key={i.key || ''}
-			>
-				{(i.children || []).map((ii) => renderMenuItem(ii))}
-			</Menu.SubMenu>
-		)
+/**
+ * @param {BadMenuItem} menuItem
+ * @returns {Pick<MenuItem, "key" | "label" | "onClick" | "children">}
+ */
+export function resolveBadMenuItem(menuItem) {
+	return {
+		key: menuItem.key || menuItem.url || "",
+		onClick: menuItem.onClick,
+		style: menuItem.style,
+		disabled: menuItem.disabled ?? false,
+		label: menuItem.url && !menuItem.onClick ? (
+			<Link to={menuItem.url}>
+				{menuItem.icon || null}
+				<span className="freezeman-menu-text">{menuItem.text || null}</span>
+			</Link>
+		) : (
+			<span>
+				{menuItem.icon || null}
+				<span className="freezeman-menu-text">{menuItem.text || null}</span>
+			</span>
+		),
+		children: menuItem.children ? menuItem.children.map(resolveBadMenuItem) : undefined,
 	}
-
-	return (
-		<Menu.Item key={i.key || i.url || ''} onClick={i.onClick || undefined} style={i.style || {}} disabled={i.disabled || false}>
-			{i.url && !i.onClick ? (
-				<Link to={i.url}>
-					{i.icon || null}
-					<span className="freezeman-menu-text">{i.text || null}</span>
-				</Link>
-			) : (
-				<span>
-					{i.icon || null}
-					<span className="freezeman-menu-text">{i.text || null}</span>
-				</span>
-			)}
-		</Menu.Item>
-	)
 }
 
-export const matchingMenuKeys = menuItems => menuItems
-  .filter(i => (i.url && window.location.pathname.startsWith(i.url)) || (i.children || []).length > 0)
-  .flatMap(i => [i.key || i.url || "", ...matchingMenuKeys(i.children || [])]);
+
+/**
+* @param {BadMenuItem[]} menuItems
+* @returns {string[]}
+ */
+export function matchingMenuKeys(menuItems) {
+	/**
+	 * @type {string[]}
+	 */
+	const keys = []
+	for (const i of menuItems) {
+		if (i.url && window.location.pathname.startsWith(i.url)) {
+			keys.push(i.key || i.url || "")
+		}
+		if (i.children) {
+			keys.push(...matchingMenuKeys(i.children))
+		}
+	}
+	return keys
+}
