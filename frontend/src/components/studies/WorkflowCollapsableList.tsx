@@ -4,7 +4,6 @@ import { Workflow } from '../../models/frontend_models'
 import { createStructuredWorkflows } from './StructuredWorkflows'
 import './WorkflowCollapsableList.scss'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import { CollapseProps } from 'antd/lib'
 const { Text } = Typography
 
 interface WorkflowCollapsableListProps {
