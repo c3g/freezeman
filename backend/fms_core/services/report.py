@@ -1,5 +1,7 @@
 from typing import List
 import datetime
+from collections import defaultdict
+import pandas as pd
 from django.apps import apps
 from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions
 
@@ -10,6 +12,20 @@ class TimeWindow(TextChoices):
     MONTHLY = "month", "Monthly"
     WEEKLY = "week", "Weekly"
     DAILY = "day", "Daily"
+
+def get_date_range_with_window(start_date: str, end_date: str, time_window: TimeWindow):
+    time_series = pd.date_range(start=start_date, end=end_date).to_series()
+    match time_window:
+        case TimeWindow.MONTHLY: 
+            window_time_series = time_series.to_numpy().astype('datetime64[M]')
+        case TimeWindow.WEEKLY:
+            window_time_series = time_series - pd.to_timedelta(time_series.dt.dayofweek, unit="D")
+        case TimeWindow.DAILY:
+             window_time_series = time_series
+
+    date_range = pd.to_datetime(time_series, unit='D')
+    time_window_range = pd.to_datetime(window_time_series, unit='D')
+    return date_range, time_window_range
 
 def list_reports():
     return Report.objects.values_list("name", flat=True)
@@ -23,23 +39,43 @@ def list_report_information(name: str):
                    "time_windows": time_windows}
     return report_info
 
-def get_report(name: str, grouped_by: List[str], time_window: str, start_date: str, end_date: str):
+def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_date: str, end_date: str):
     report_data = {}
-    errors = {}
-    warnings = {}
-    is_detailed_report = (len(grouped_by) == 0)
-    tic = datetime.datetime.now()
     queryset = _get_queryset(name, start_date, end_date, time_window, grouped_by)
+    report_by_time_window = defaultdict(list)
     for entry in queryset:
-        print(entry)
-    headers = [column for column in queryset.first().keys()]
-    print(headers)
-    toc = datetime.datetime.now()
-    duration = toc - tic
-    print(duration)
-    return report_data, errors, warnings
+        current_row = {key: value for key, value in entry.items() if not key=="time_window"}
+        report_by_time_window[entry["time_window"]].append(current_row)
+  
+    headers = [column for column in queryset.first().keys() if not column=="time_window"]  
+    report_data = {
+        "name": name,
+        "start_date": start_date,
+        "end_date": end_date,
+        "time_window": time_window.label,
+        "grouped_by": grouped_by,
+        "headers": headers,
+    }
 
-def _get_queryset(name: str, start_date: str, end_date: str, time_window: str, grouped_by: List[str]):
+    date_range, date_time_windows = get_date_range_with_window(start_date, end_date, time_window)
+    data = []
+    current_data = {}
+    for date, time_window in zip(date_range, date_time_windows):
+        current_time_window = current_data.get("time_window", None)
+        if current_time_window is not None and not current_time_window == time_window.date():
+                data.append(current_data)
+                current_data = {}
+        current_data["time_window"] = time_window.date()
+        if current_data.get("time_window_start", None) is None:
+            current_data["time_window_start"] = date.date()
+            current_data["time_window_data"] = report_by_time_window.get(time_window.date(), None)
+        current_data["time_window_end"] = date.date()
+    data.append(current_data)
+    report_data["data"] = data
+
+    return report_data
+
+def _get_queryset(name: str, start_date: str, end_date: str, time_window: TimeWindow, grouped_by: List[str]):
     """
     Provides for each report the basic report quesyset
 
@@ -55,19 +91,9 @@ def _get_queryset(name: str, start_date: str, end_date: str, time_window: str, g
     report_data = MetricField.objects.filter(report__name=name).annotate(date_field=F("name")).filter(is_date=True).values("report__data_model", "date_field")[:1]
     if report_data:
         DataModel = apps.get_model("fms_report", report_data[0]["report__data_model"])
-        print(report_data)
-        # Annotate for the time aggregation
-        kind = TimeWindow.DAILY.value # defaults to daily
-        match time_window:
-            case TimeWindow.MONTHLY.label:
-                kind = TimeWindow.MONTHLY.value
-            case TimeWindow.WEEKLY.label:
-                kind = TimeWindow.WEEKLY.value
-            case TimeWindow.DAILY.label:
-                kind = TimeWindow.DAILY.value
 
         queryset = ( DataModel.objects.annotate(date_field=F(report_data[0]["date_field"]))
-                                      .annotate(time_window=functions.Trunc(F("date_field"), kind))
+                                      .annotate(time_window=functions.Trunc(F("date_field"), time_window.value))
                                       .filter(date_field__gte=start_date)
                                       .filter(date_field__lte=end_date)
                                       .distinct() )
