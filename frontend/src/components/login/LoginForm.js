@@ -36,7 +36,7 @@ export default function LoginForm({ isFetching, login }) {
           placeholder="Password"
         />
       </Form.Item>
-      <Form.Item {...layout}>
+      <Form.Item {...layout} style={{ marginBottom: 0}}>
         <Button type="primary" htmlType="submit" loading={isFetching} style={buttonStyle}>
           Login
         </Button>
