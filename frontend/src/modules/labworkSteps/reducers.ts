@@ -289,10 +289,10 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 					...stepSamples,
 					pagedItems: {
 						...stepSamples.pagedItems,
-						sortBy: {
+						sortByList: [{
 							key: sortBy.key,
 							order: sortBy.order
-						}
+						}]
 					}
 				})
 			}

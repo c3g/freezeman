@@ -116,7 +116,7 @@ export function loadSampleNextStepsAtStep(stepID: FMSId, pageNumber: number, pag
 		const limit = pageSize ?? selectPageSize(getState())
 		const offset = limit * (pageNumber - 1)
 		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
-		const ordering = serializeSortByParams(stepSamples.pagedItems.sortBy)
+		const ordering = serializeSortByParams(...stepSamples.pagedItems.sortByList)
 		const options = {
 			limit,
 			offset,
