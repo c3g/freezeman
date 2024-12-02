@@ -38,7 +38,7 @@ export type SetFilterFunc = (filterKey: string, value: FilterValue, description:
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
 export type SetFixedFilterFunc = (filter: FilterSetting) => void
 export type FilterValidationFunc = (string: string) => boolean
-export type SetSortByFunc = (sortBy: SortBy) => void
+export type SetSortByFunc = (sortByList: SortBy[]) => void
 
 export interface FilterOptions {
 	[key: string]: boolean
@@ -58,8 +58,8 @@ export interface FilterSet {
 }
 
 export interface SortBy {
-	key?: string
-	order?: 'ascend' | 'descend'
+	key: string
+	order: 'ascend' | 'descend'
 }
 
 // Maps column ID's to filter key string (django keys)
@@ -81,7 +81,7 @@ export interface PagedItems {
 	readonly totalCount: number
 	readonly filters: FilterSet
 	readonly fixedFilters: FilterSet
-	readonly sortBy: SortBy
+	readonly sortByList: SortBy[]
 	readonly page?: {
 		readonly pageNumber?: number		// Move to using page number instead of offset
 		readonly offset?: number
@@ -106,7 +106,7 @@ export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
 		totalCount: 0,
 		fixedFilters: fixedFilters ?? {},
 		filters: {},
-		sortBy: {},
+		sortByList: [],
 		page: {
 			limit: 20
 			// Note: The pageNumber is left undefined intentionally. A page number

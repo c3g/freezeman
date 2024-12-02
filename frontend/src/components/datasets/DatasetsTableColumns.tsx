@@ -38,21 +38,25 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
                 </Link>
 		},
 		width: 90,
+		sorter: { multiple: 1 }
 	},
 	[DatasetColumnID.RUN]: {
 		columnID: DatasetColumnID.RUN,
 		title: 'Run',
-		dataIndex: ['dataset', 'run_name']
+		dataIndex: ['dataset', 'run_name'],
+		sorter: { multiple: 1 }
 	},
 	[DatasetColumnID.PROJECT]: {
 		columnID: DatasetColumnID.PROJECT,
 		title: 'Project',
-		dataIndex: ['dataset', 'project_name']
+		dataIndex: ['dataset', 'project_name'],
+		sorter: { multiple: 1 }
 	},
 	[DatasetColumnID.LANE]: {
 		columnID: DatasetColumnID.LANE,
 		title: 'Lane',
-		dataIndex: ['dataset', 'lane']
+		dataIndex: ['dataset', 'lane'],
+		sorter: { multiple: 1 }
 	},
 	[DatasetColumnID.VALIDATION_STATUS]: {
 		columnID: DatasetColumnID.VALIDATION_STATUS,

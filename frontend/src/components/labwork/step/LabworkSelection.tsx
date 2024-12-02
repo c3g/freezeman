@@ -17,7 +17,7 @@ export interface LabworkSelectionProps {
 	stepSamples: LabworkStepSamples
 	step: Step
 	protocol: Protocol | undefined
-	setSortBy: WorkflowSamplesTableProps['setSortBy']
+	setSortByList: WorkflowSamplesTableProps['setSortByList']
 }
 
 function samplesAndLibrariesToSampleIDs(sampleAndLibraries: SampleAndLibrary[]) {
@@ -29,7 +29,7 @@ function samplesAndLibrariesToSampleIDs(sampleAndLibraries: SampleAndLibrary[]) 
 	}, [] as FMSId[])
 }
 
-export function LabworkSelection({stepSamples, step, protocol, setSortBy}: LabworkSelectionProps) {
+export function LabworkSelection({stepSamples, step, protocol, setSortByList}: LabworkSelectionProps) {
 	const dispatch = useAppDispatch()
 
 	const [pageSize, setPageSize] = useState(DEFAULT_SMALL_PAGE_SIZE)
@@ -92,7 +92,8 @@ export function LabworkSelection({stepSamples, step, protocol, setSortBy}: Labwo
 			samples={samples}
 			columns={columnsForSelection}
 			selection={selection}
-			setSortBy={setSortBy}
+			sortByList={[]}
+			setSortByList={setSortByList}
 			pagination={{ pageNumber, pageSize, onChangePageNumber, onChangePageSize, totalCount }}
 			loading={loading}
 		/>
