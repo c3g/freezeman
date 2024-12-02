@@ -1,16 +1,16 @@
 import type { Dayjs } from 'dayjs';
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models";
 import api from "../../utils/api";
 import { useAppDispatch } from "../../hooks";
-import { Button, DatePicker, Form, Select, Spin } from "antd";
+import { Button, DatePicker, Form, Select, Spin, Table } from "antd";
 
 export function Report() {
     const dispatch = useAppDispatch();
-    const [reportName, setReportName] = React.useState<string>();
-    const [nameOfAvailableReports, setNameOfAvailableReports] = React.useState<string[]>([]);
-    const [reportInfo, setReportInfo] = React.useState<FMSReportInformation>();
-    const [reportData, setReportData] = React.useState<FMSReportData>();
+    const [reportName, setReportName] = useState<string>();
+    const [nameOfAvailableReports, setNameOfAvailableReports] = useState<string[]>([]);
+    const [reportInfo, setReportInfo] = useState<FMSReportInformation>();
+    const [reportData, setReportData] = useState<FMSReportData>();
 
     useEffect(() => {
         dispatch(api.report.listReports()).then((response) => {
@@ -32,39 +32,39 @@ export function Report() {
                 <Select
                     value={reportName}
                     placeholder={"Name of Report"}
-                    onChange={(value) => setReportName(value)}
+                    onChange={setReportName}
                     options={nameOfAvailableReports.map((name) => ({ value: name, label: name }))}
                 />
         </div>
-        {reportName && reportInfo && <ReportForm reportName={reportName} reportInfo={reportInfo} />}
+        {reportInfo && <ReportForm reportInfo={reportInfo} onReportData={setReportData} />}
+        {reportData && <ReportTable {...reportData} />}
     </>
 }
 
 export interface ReportFormProps {
-    reportName: string
     reportInfo: FMSReportInformation
+    onReportData: (data: FMSReportData) => void
 }
-function ReportForm({ reportName, reportInfo }: ReportFormProps) {
+function ReportForm({ reportInfo, onReportData }: ReportFormProps) {
     const dispatch = useAppDispatch();
     const onFinish = useCallback((values: ReportFormObject) => {
-        console.info(values)
         dispatch(api.report.getReport(
-            reportName,
+            reportInfo.name,
             values.start_date.format("YYYY-MM-DD"),
             values.end_date.format("YYYY-MM-DD"),
             values.time_window,
             values.group_by,
         )).then((response) => {
-            console.info(response.data)
+            onReportData(response.data);
         })
-    }, [dispatch, reportName])
+    }, [dispatch, onReportData, reportInfo.name])
 
     return <>
         <h1>
-            {reportName}
+            {reportInfo.name}
         </h1>
         <Form onFinish={onFinish}>
-            <Form.Item name={"group_by"} label={"Group By"}>
+            <Form.Item name={"group_by"} label={"Group By"} initialValue={[]}>
                 <Select<FMSReportInformation["groups"][number]>
                     placeholder={"Select fields to group by"}
                     options={reportInfo.groups.map((name) => ({ value: name, label: name }))}
@@ -99,4 +99,31 @@ interface ReportFormObject {
     time_window: string
     start_date: Dayjs
     end_date: Dayjs
+}
+
+function ReportTable(reportData: FMSReportData) {
+    const [timeWindow, setTimewindow] = useState<string>();
+    return <>
+        <Select
+            placeholder={"Select Time-Window"}
+            options={reportData.data.map(({ time_window, time_window_data: data }) =>  ({
+                value: time_window,
+                label: `${time_window} (${data ? data.length : 0})`
+            }))}
+            onChange={setTimewindow}
+        />
+        {
+            timeWindow && <Table
+                columns={reportData.headers.map((header) => ({
+                    title: header,
+                    key: header,
+                    dataIndex: header
+                }))}
+                dataSource={reportData.data.filter(({ time_window }) => time_window === timeWindow).map(({time_window_data: data }, index) => ({
+                    ...data,
+                    key: index
+                }))}
+            />
+        }
+    </>
 }
