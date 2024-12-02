@@ -21,6 +21,7 @@ class ProductionData(models.Model):
     library_type = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the library type.")
     library_selection = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the library selection protocol.")
     project = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the project.")
+    project_external_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project ID.")
     principal_investigator = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Principal investigator of the project.")
     taxon = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Taxon scientific name.")
     technology = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Sequencing instrument type.")

@@ -12,11 +12,14 @@ class ReportViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     
     def list(self, request):
+        return Response(list_reports())
+
+    def retrieve(self, request, pk=None):
         """
             Produce a report with given parameters or provide guidance for the required parameters.
         """
         params = QueryDict(request.META.get("QUERY_STRING"))
-        name = params.get("name", None)
+        name = pk
         grouped_by = params.getlist("group_by", [])
         time_window_label = params.get("time_window", None)
         start_date = params.get("start_date", None)
