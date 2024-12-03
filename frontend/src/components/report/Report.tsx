@@ -135,25 +135,25 @@ function ReportTable(reportData: FMSReportData) {
 
     const [timeWindow, setTimewindow] = useState<string>()
 
-    const columns: ColumnsType<RecordType> = useMemo(() => 
+    const originalColumns: ColumnsType<RecordType> =
         reportData.headers
             .sort((a, b) => a.field_order - b.field_order)
             .map((header) => ({
                 title: header.display_name,
                 key: header.name,
                 dataIndex: header.name,
-            })
-    ), [reportData.headers])
-    const timeWindowData = useMemo(() =>
+            }))
+    const columnsForSelection = originalColumns.map(({ key, title }) => ({ value: key, label: title }))
+    const [columns, setColumns] = useState<ColumnsType<RecordType>>(originalColumns)
+
+    const timeWindowData =
         timeWindow
             ? reportData.data.find(({ time_window }) => time_window === timeWindow)?.time_window_data
-            : undefined,
-    [reportData.data, timeWindow])
-    const dataSource = useMemo(() =>
+            : undefined
+    const dataSource =
         timeWindowData
             ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() }))
-            : [],
-    [timeWindowData])
+            : []
 
     return <>
         <Flex justify={"center"} gap={"small"} vertical>
@@ -164,6 +164,13 @@ function ReportTable(reportData: FMSReportData) {
                     label: `${time_window} (${data ? data.length : 0})`
                 }))}
                 onChange={setTimewindow}
+            />
+            <Select
+                placeholder={"Select Columns"}
+                options={columnsForSelection}
+                mode={"multiple"}
+                onChange={(columns) => setColumns(originalColumns.filter(({ key }) => columns.includes(key)))}
+                defaultValue={columnsForSelection.map(({ value }) => value)}
             />
             <Table<RecordType>
                 columns={columns}
