@@ -1,10 +1,10 @@
 import type { Dayjs } from 'dayjs'
 import type { ColumnsType } from 'antd/lib/table'
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Empty, Flex, Form, Select, Space, Table, Tabs } from "antd"
+import { Button, DatePicker, Empty, Flex, Form, List, Select, Table, Tabs } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 
@@ -70,10 +70,11 @@ function ReportForm({ onReportData }: ReportFormProps) {
 
     const onFinish = useCallback((values: ReportFormObject) => {
         if (reportInfo?.name) {
+            const [start_date, end_date] = values.date_range
             dispatch(api.report.getReport(
                 reportInfo.name,
-                values.start_date.format("YYYY-MM-DD"),
-                values.end_date.format("YYYY-MM-DD"),
+                start_date.format("YYYY-MM-DD"),
+                end_date.format("YYYY-MM-DD"),
                 values.time_window,
                 values.group_by,
             )).then((response) => {
@@ -83,8 +84,8 @@ function ReportForm({ onReportData }: ReportFormProps) {
     }, [dispatch, onReportData, reportInfo?.name])
 
     return <>
-        <Form onFinish={onFinish} form={form} labelCol={{ span: 2 }}>
-            <Form.Item name={"report_name"} label={"Select Report"}>
+        <Form onFinish={onFinish} form={form} labelCol={{ span: 3 }}>
+            <Form.Item name={"report_name"} label={"Select Report"} required>
                 <Select
                     placeholder={"Name of Report"}
                     options={nameOfAvailableReports.map((name) => ({ value: name, label: name }))}
@@ -107,11 +108,8 @@ function ReportForm({ onReportData }: ReportFormProps) {
                     disabled={!reportInfo}
                 />
             </Form.Item>
-            <Form.Item name={"start_date"} label={"Start Date"}>
-                <DatePicker disabled={!reportInfo} />
-            </Form.Item>
-            <Form.Item name={"end_date"} label={"End Date"}>
-                <DatePicker disabled={!reportInfo} />
+            <Form.Item name={"date_range"} label={"Start-End Date"} required>
+                <DatePicker.RangePicker allowClear={false} disabled={!reportInfo} />
             </Form.Item>
             <Form.Item label={null}>
                 <Button type="primary" htmlType="submit" disabled={!reportInfo}>
@@ -126,8 +124,7 @@ interface ReportFormObject {
     report_name: string
     group_by: string[]
     time_window: string
-    start_date: Dayjs
-    end_date: Dayjs
+    date_range: [Dayjs, Dayjs]
 }
 
 function ReportTable(reportData: FMSReportData) {
@@ -157,6 +154,19 @@ function ReportTable(reportData: FMSReportData) {
 
     return <>
         <Flex justify={"center"} gap={"small"} vertical>
+            <List
+                size={"small"}
+                bordered
+                dataSource={[
+                    `Report Name: ${reportData.name}`,
+                    `Start Date: ${reportData.start_date}`,
+                    `End Date: ${reportData.end_date}`,
+                    `Time Window: ${reportData.time_window}`,
+                    `Total Time-Windows: ${reportData.data.length}`,
+                    `Grouped By: ${reportData.grouped_by.length > 0 ? reportData.grouped_by.join(", ") : "N/A"}`,
+                ]}
+                renderItem={(item) => <List.Item>{item}</List.Item>}
+            />
             <Select
                 placeholder={"Select Time-Window"}
                 options={reportData.data.map(({ time_window, time_window_data: data }) =>  ({
