@@ -135,11 +135,13 @@ function ReportTable(reportData: FMSReportData) {
 
     const [timeWindow, setTimewindow] = useState<string>()
 
-    const columns: ColumnsType<RecordType> = reportData.headers.map((header) => ({
-        title: header,
-        key: header,
-        dataIndex: header
-    }))
+    const columns: ColumnsType<RecordType> = reportData.headers
+        .sort((a, b) => a.field_order - b.field_order)
+        .map((header) => ({
+            title: header.display_name,
+            key: header.name,
+            dataIndex: header.name,
+        }))
     const timeWindowData = timeWindow ? reportData.data.find(({ time_window }) => time_window === timeWindow)?.time_window_data : undefined
     const dataSource = timeWindowData ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() })) : []
 

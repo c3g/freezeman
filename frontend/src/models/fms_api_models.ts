@@ -554,11 +554,15 @@ export interface FMSReportData {
     end_date: string
     time_window: string
     grouped_by: string[]
-    headers: string[]
+    headers: {
+        name: string
+        display_name: string
+        field_order: number
+    }[]
     data: {
-        time_window: string,
-        time_window_start: string,
-        time_window_end: string,
+        time_window: string
+        time_window_start: string
+        time_window_end: string
         time_window_data: null | { [key: string]: string | number }[]
     }[]
 }
