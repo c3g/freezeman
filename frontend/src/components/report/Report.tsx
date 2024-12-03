@@ -1,21 +1,42 @@
-import type { Dayjs } from 'dayjs';
-import type { ColumnsType } from 'antd/lib/table';
-import React, { useCallback, useEffect, useState } from "react";
-import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models";
-import api from "../../utils/api";
-import { useAppDispatch } from "../../hooks";
-import { Button, DatePicker, Form, Select, Table } from "antd";
-import AppPageHeader from '../AppPageHeader';
-import PageContent from '../PageContent';
+import type { Dayjs } from 'dayjs'
+import type { ColumnsType } from 'antd/lib/table'
+import React, { useCallback, useEffect, useState } from "react"
+import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
+import api from "../../utils/api"
+import { useAppDispatch } from "../../hooks"
+import { Button, DatePicker, Empty, Flex, Form, Select, Space, Table, Tabs } from "antd"
+import AppPageHeader from '../AppPageHeader'
+import PageContent from '../PageContent'
 
 export function Report() {
-    const [reportData, setReportData] = useState<FMSReportData>();
+    const [activeKey, setActiveKey] = useState<string>("form")
+    const [reportData, setReportData] = useState<FMSReportData>()
 
     return <>
         <AppPageHeader title={"Reports"} />
         <PageContent>
-            <ReportForm onReportData={setReportData} />
-            {reportData && <ReportTable {...reportData} />}
+            <Tabs
+                activeKey={activeKey}
+                defaultActiveKey="form"
+                centered
+                onChange={setActiveKey}
+                items={[
+                    {
+                        key: "form",
+                        label: "Form",
+                        children: <ReportForm onReportData={(reportData) => {
+                            setReportData(reportData)
+                            setActiveKey("report")
+                        }} />
+                    },
+                    {
+                        key: "report",
+                        label: "Report",
+                        children: reportData && <ReportTable {...reportData} />,
+                        disabled: !reportData,
+                    }
+                ]}
+            />
         </PageContent>
     </>
 }
@@ -56,13 +77,13 @@ function ReportForm({ onReportData }: ReportFormProps) {
                 values.time_window,
                 values.group_by,
             )).then((response) => {
-                onReportData(response.data);
+                onReportData(response.data)
             })
         }
     }, [dispatch, onReportData, reportInfo?.name])
 
     return <>
-        <Form onFinish={onFinish} form={form}>
+        <Form onFinish={onFinish} form={form} labelCol={{ span: 2 }}>
             <Form.Item name={"report_name"} label={"Select Report"}>
                 <Select
                     placeholder={"Name of Report"}
@@ -112,7 +133,7 @@ interface ReportFormObject {
 function ReportTable(reportData: FMSReportData) {
     type RecordType = NonNullable<NonNullable<FMSReportData['data'][number]['time_window_data']>[number]> & { key: string }
 
-    const [timeWindow, setTimewindow] = useState<string>();
+    const [timeWindow, setTimewindow] = useState<string>()
 
     const columns: ColumnsType<RecordType> = reportData.headers.map((header) => ({
         title: header,
@@ -123,20 +144,21 @@ function ReportTable(reportData: FMSReportData) {
     const dataSource = timeWindowData ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() })) : []
 
     return <>
-        <Select
-            placeholder={"Select Time-Window"}
-            options={reportData.data.map(({ time_window, time_window_data: data }) =>  ({
-                value: time_window,
-                label: `${time_window} (${data ? data.length : 0})`
-            }))}
-            onChange={setTimewindow}
-        />
-        {
+        <Flex justify={"center"} gap={"small"} vertical>
+            <Select
+                placeholder={"Select Time-Window"}
+                options={reportData.data.map(({ time_window, time_window_data: data }) =>  ({
+                    value: time_window,
+                    label: `${time_window} (${data ? data.length : 0})`
+                }))}
+                onChange={setTimewindow}
+            />
             <Table<RecordType>
                 columns={columns}
                 dataSource={dataSource}
                 scroll={{ x: 'max-content' }}
+                locale={{ emptyText: <Empty description={timeWindow ? "No Data Available" : "Select a Time-Window"} /> }}
             />
-        }
+        </Flex>
     </>
 }
