@@ -1,6 +1,6 @@
 import type { Dayjs } from 'dayjs'
 import type { ColumnsType } from 'antd/lib/table'
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
@@ -135,15 +135,25 @@ function ReportTable(reportData: FMSReportData) {
 
     const [timeWindow, setTimewindow] = useState<string>()
 
-    const columns: ColumnsType<RecordType> = reportData.headers
-        .sort((a, b) => a.field_order - b.field_order)
-        .map((header) => ({
-            title: header.display_name,
-            key: header.name,
-            dataIndex: header.name,
-        }))
-    const timeWindowData = timeWindow ? reportData.data.find(({ time_window }) => time_window === timeWindow)?.time_window_data : undefined
-    const dataSource = timeWindowData ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() })) : []
+    const columns: ColumnsType<RecordType> = useMemo(() => 
+        reportData.headers
+            .sort((a, b) => a.field_order - b.field_order)
+            .map((header) => ({
+                title: header.display_name,
+                key: header.name,
+                dataIndex: header.name,
+            })
+    ), [reportData.headers])
+    const timeWindowData = useMemo(() =>
+        timeWindow
+            ? reportData.data.find(({ time_window }) => time_window === timeWindow)?.time_window_data
+            : undefined,
+    [reportData.data, timeWindow])
+    const dataSource = useMemo(() =>
+        timeWindowData
+            ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() }))
+            : [],
+    [timeWindowData])
 
     return <>
         <Flex justify={"center"} gap={"small"} vertical>
