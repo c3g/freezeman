@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models";
 import api from "../../utils/api";
 import { useAppDispatch } from "../../hooks";
-import { Button, DatePicker, Form, Select, Spin, Table } from "antd";
+import { Button, DatePicker, Form, Select, Table } from "antd";
 
 export function Report() {
     const dispatch = useAppDispatch();
@@ -102,7 +102,18 @@ interface ReportFormObject {
 }
 
 function ReportTable(reportData: FMSReportData) {
+    type RecordType = NonNullable<NonNullable<FMSReportData['data'][number]['time_window_data']>[number]> & { key: string }
+
     const [timeWindow, setTimewindow] = useState<string>();
+
+    const columns = reportData.headers.map((header) => ({
+        title: header,
+        key: header,
+        dataIndex: header
+    }))
+    const timeWindowData = timeWindow ? reportData.data.find(({ time_window }) => time_window === timeWindow)?.time_window_data : undefined
+    const dataSource = timeWindowData ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() })) : []
+
     return <>
         <Select
             placeholder={"Select Time-Window"}
@@ -113,16 +124,9 @@ function ReportTable(reportData: FMSReportData) {
             onChange={setTimewindow}
         />
         {
-            timeWindow && <Table
-                columns={reportData.headers.map((header) => ({
-                    title: header,
-                    key: header,
-                    dataIndex: header
-                }))}
-                dataSource={reportData.data.filter(({ time_window }) => time_window === timeWindow).map(({time_window_data: data }, index) => ({
-                    ...data,
-                    key: index
-                }))}
+            timeWindow && <Table<RecordType>
+                columns={columns}
+                dataSource={dataSource}
             />
         }
     </>
