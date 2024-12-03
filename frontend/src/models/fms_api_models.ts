@@ -559,6 +559,6 @@ export interface FMSReportData {
         time_window: string,
         time_window_start: string,
         time_window_end: string,
-        time_window_data: null | { [key: string]: string | number }
+        time_window_data: null | { [key: string]: string | number }[]
     }[]
 }
