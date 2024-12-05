@@ -140,8 +140,7 @@ function ReportTable(reportData: FMSReportData) {
                 key: header.name,
                 dataIndex: header.name,
             }))
-    const columnsForSelection = originalColumns.map(({ key, title }) => ({ value: key, label: title }))
-    const [columns, setColumns] = useState<ColumnsType<RecordType>>(originalColumns)
+    const [columns] = useState<ColumnsType<RecordType>>(originalColumns)
 
     const timeWindowData =
         timeWindow
@@ -163,7 +162,7 @@ function ReportTable(reportData: FMSReportData) {
                     `End Date: ${reportData.end_date}`,
                     `Time Window: ${reportData.time_window}`,
                     `Total Time-Windows: ${reportData.data.length}`,
-                    `Grouped By: ${reportData.grouped_by.length > 0 ? reportData.grouped_by.join(", ") : "N/A"}`,
+                    `Grouped By: ${reportData.grouped_by.join(", ")}`,
                 ]}
                 renderItem={(item) => <List.Item>{item}</List.Item>}
             />
@@ -174,13 +173,6 @@ function ReportTable(reportData: FMSReportData) {
                     label: `${time_window} (${data ? data.length : 0})`
                 }))}
                 onChange={setTimewindow}
-            />
-            <Select
-                placeholder={"Select Columns"}
-                options={columnsForSelection}
-                mode={"multiple"}
-                onChange={(columns) => setColumns(originalColumns.filter(({ key }) => columns.includes(key)))}
-                defaultValue={columnsForSelection.map(({ value }) => value)}
             />
             <Table<RecordType>
                 columns={columns}
