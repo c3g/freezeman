@@ -17,7 +17,7 @@ def get_date_range_with_window(start_date: str, end_date: str, time_window: Time
     time_series = pd.date_range(start=start_date, end=end_date).to_series()
     match time_window:
         case TimeWindow.MONTHLY: 
-            window_time_series = time_series.to_numpy().astype('datetime64[M]')
+            window_time_series = time_series - pd.to_timedelta(time_series.dt.day - 1, unit="D")
         case TimeWindow.WEEKLY:
             window_time_series = time_series - pd.to_timedelta(time_series.dt.dayofweek, unit="D")
         case TimeWindow.DAILY:
@@ -26,6 +26,17 @@ def get_date_range_with_window(start_date: str, end_date: str, time_window: Time
     date_range = pd.to_datetime(time_series, unit='D')
     time_window_range = pd.to_datetime(window_time_series, unit='D')
     return date_range, time_window_range
+
+def human_readable_time_window(date: datetime, time_window: TimeWindow):
+    time_window_label = None
+    match time_window:
+        case TimeWindow.MONTHLY:
+            time_window_label = f"{date.strftime('%B')} {date.year}"
+        case TimeWindow.WEEKLY:
+            time_window_label = f"Week-{date.strftime('%U')} {date.year}"
+        case TimeWindow.DAILY:
+            time_window_label = date
+    return time_window_label
 
 def list_reports():
     return Report.objects.values_list("name", flat=True)
@@ -48,7 +59,8 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
         current_row = {key: value for key, value in entry.items() if not key=="time_window"}
         report_by_time_window[entry["time_window"]].append(current_row)
   
-    fields = [column for column in queryset.first().keys() if not column=="time_window"]
+    # Creating header
+    fields = [column for column in queryset.first().keys() if not column=="time_window"] if queryset.first() is not None else []
     if len(grouped_by) == 0:
         headers = [field for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order")]
     else:
@@ -60,12 +72,8 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
             field_ordering_dict[name]["field_order"] = i
             headers.append(field_ordering_dict[name])
         # order for value fields
-        print(fields)
         aggregate_fields = MetricField.objects.filter(name__in=fields).filter(aggregation__isnull=False).values("name", "display_name", "field_order").order_by("field_order")
-        print(aggregate_fields)
         for i, field in enumerate(aggregate_fields, start=len(grouped_by)+1):
-            print(i)
-            print(field["name"])
             field_ordering_dict[field["name"]]["field_order"] = i
             headers.append(field_ordering_dict[field["name"]])
 
@@ -78,18 +86,20 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
         "headers": headers,
     }
 
+    # spliting data by time_window
     date_range, date_time_windows = get_date_range_with_window(start_date, end_date, time_window)
     data = []
     current_data = {}
-    for date, time_window in zip(date_range, date_time_windows):
-        current_time_window = current_data.get("time_window", None)
-        if current_time_window is not None and not current_time_window == time_window.date():
+    for date, window in zip(date_range, date_time_windows):
+        current_window = current_data.get("time_window", None)
+        if current_window is not None and not current_window == window.date():
+                current_data["time_window_label"] = human_readable_time_window(date=current_window, time_window=time_window)
                 data.append(current_data)
                 current_data = {}
-        current_data["time_window"] = time_window.date()
+        current_data["time_window"] = window.date()
         if current_data.get("time_window_start", None) is None:
             current_data["time_window_start"] = date.date()
-            current_data["time_window_data"] = report_by_time_window.get(time_window.date(), [])
+            current_data["time_window_data"] = report_by_time_window.get(window.date(), [])
         current_data["time_window_end"] = date.date()
     data.append(current_data)
     report_data["data"] = data
