@@ -4,39 +4,32 @@ import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Empty, Flex, Form, List, Select, Table, Tabs } from "antd"
+import { Button, DatePicker, Drawer, Empty, Flex, Form, List, Select, Space, Table, Tabs } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 
 export function Report() {
-    const [activeKey, setActiveKey] = useState<string>("form")
     const [reportData, setReportData] = useState<FMSReportData>()
+    const [drawerFormOpen, setDrawerFormOpen] = useState(true)
 
     return <>
         <AppPageHeader title={"Reports"} />
         <PageContent>
-            <Tabs
-                activeKey={activeKey}
-                defaultActiveKey="form"
-                centered
-                onChange={setActiveKey}
-                items={[
-                    {
-                        key: "form",
-                        label: "Form",
-                        children: <ReportForm onReportData={(reportData) => {
-                            setReportData(reportData)
-                            setActiveKey("report")
-                        }} />
-                    },
-                    {
-                        key: "report",
-                        label: "Report",
-                        children: reportData && <ReportTable {...reportData} />,
-                        disabled: !reportData,
-                    }
-                ]}
-            />
+            <Flex justify={"center"} gap={"small"} vertical>
+                {<Button onClick={() => setDrawerFormOpen(true)}>Change Report</Button>}
+                {reportData ? <ReportTable {...reportData} /> : <Table />}
+            </Flex>
+            <Drawer
+                title={"Select Report"}
+                open={drawerFormOpen}
+                onClose={() => setDrawerFormOpen(false)}
+                size={"large"}
+            >
+                <ReportForm onReportData={(data) => {
+                    setReportData(data)
+                    setDrawerFormOpen(false)
+                }} />
+            </Drawer>
         </PageContent>
     </>
 }
@@ -84,7 +77,7 @@ function ReportForm({ onReportData }: ReportFormProps) {
     }, [dispatch, onReportData, reportInfo?.name])
 
     return <>
-        <Form onFinish={onFinish} form={form} labelCol={{ span: 3 }}>
+        <Form onFinish={onFinish} form={form}>
             <Form.Item name={"report_name"} label={"Select Report"} required>
                 <Select
                     placeholder={"Name of Report"}
@@ -153,19 +146,6 @@ function ReportTable(reportData: FMSReportData) {
 
     return <>
         <Flex justify={"center"} gap={"small"} vertical>
-            <List
-                size={"small"}
-                bordered
-                dataSource={[
-                    `Report Name: ${reportData.name}`,
-                    `Start Date: ${reportData.start_date}`,
-                    `End Date: ${reportData.end_date}`,
-                    `Time Window: ${reportData.time_window}`,
-                    `Total Time-Windows: ${reportData.data.length}`,
-                    `Grouped By: ${reportData.grouped_by.join(", ")}`,
-                ]}
-                renderItem={(item) => <List.Item>{item}</List.Item>}
-            />
             <Select
                 placeholder={"Select Time-Window"}
                 options={reportData.data.map(({ time_window, time_window_data: data }) =>  ({
@@ -178,7 +158,7 @@ function ReportTable(reportData: FMSReportData) {
                 columns={columns}
                 dataSource={dataSource}
                 scroll={{ x: 'max-content' }}
-                locale={{ emptyText: <Empty description={timeWindow ? "No Data Available" : "Select a Time-Window"} /> }}
+                locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={timeWindow ? "No Data Available" : "Select a Time-Window"} /> }}
             />
         </Flex>
     </>
