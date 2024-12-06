@@ -1,9 +1,17 @@
 from typing import List
 import datetime
 from collections import defaultdict
+
 import pandas as pd
 from django.apps import apps
 from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions
+
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.reader.excel import load_workbook
+from openpyxl.styles import PatternFill, Border, Side
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 
 from fms_report.models import Report, MetricField
 from fms_report.models._constants import AggregationType
@@ -37,6 +45,36 @@ def human_readable_time_window(date: datetime, time_window: TimeWindow):
         case TimeWindow.DAILY:
             time_window_label = date
     return time_window_label
+
+def get_report_as_excel(report_data):
+    out_stream = BytesIO()
+    workbook = Workbook()
+
+    headers = datum["headers"]
+    for i, datum in enumerate, report_data:
+        samplesheet_name = report_data.get("time_window_label", str(i))
+        workbook.create_sheet(samplesheet_name)
+        samplesheet = workbook[samplesheet_name]
+
+        # fill header
+        ordered_headers = sorted(headers, key= lambda a : a["field_order"])
+        for j, header in enumerate(ordered_headers):
+            cell = samplesheet.cell(row=1, column=j)
+            cell.value = header["display_name"]
+            cell.fill = PatternFill(start_color="17599b", end_color="17599b", fill_type="solid")
+            
+        if datum["data"]:
+            for k, sheet_datum in enumerate(datum["data"], start=2):
+                for j, header in enumerate(datum["data"]):
+                    cell = samplesheet.cell(row=k, column=j)
+                    cell.value = sheet_datum[header["name"]]
+        
+    # Remove default sheet
+    del workbook["Sheet"]
+
+    workbook.save(out_stream)
+    return out_stream.getvalue()
+
 
 def list_reports():
     return Report.objects.values_list("name", flat=True)
