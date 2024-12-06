@@ -197,3 +197,5 @@ On this page we list the various steps needed for deployments. The first section
   * PostgreSQL version upgrade to 15.4 (Verify permissions for user and re-compile and install the fzy extension).
 * Version 4.6.0:
   * Add FMS_AUTOMATIONS_WORK_PATH to env variables through uwsgi.ini.
+* Version 4.13.0
+  * Add a daily Cron call to "Python manage.py prepare_report_data" from a script on the server.

@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth.models import User
-from django.http import QueryDict
+from django.http import QueryDict, HttpResponseServerError, HttpResponseBadRequest, HttpResponse
 
-from ..services.report import list_reports, list_report_information, get_report, TimeWindow
+from ..services.report import list_reports, list_report_information, get_report, get_report_as_excel, TimeWindow
 
 class ReportViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
@@ -24,6 +24,7 @@ class ReportViewSet(viewsets.ViewSet):
         time_window_label = params.get("time_window", None)
         start_date = params.get("start_date", None)
         end_date = params.get("end_date", None)
+        format = params.get("format", "json")
         # Use time window text choices
         match time_window_label:
             case TimeWindow.MONTHLY.label:
@@ -47,4 +48,11 @@ class ReportViewSet(viewsets.ViewSet):
                                      time_window=time_window,
                                      start_date=start_date,
                                      end_date=end_date)
-            return Response(report_data)
+            if (format == "excel"):
+                excel_report = get_report_as_excel(report_data)
+                response = HttpResponse(content=excel_report)
+                response["Content-Type"] = "application/ms-excel"
+                response["Content-Disposition"] = f"attachment; filename={report_data.get('name', 'Report')}_{report_data.get('time_window', '')}_{report_data.get('start_date', '')}_{report_data.get('end_date', '')}.xlsx"
+            else:
+                response = Response(report_data)
+            return response
