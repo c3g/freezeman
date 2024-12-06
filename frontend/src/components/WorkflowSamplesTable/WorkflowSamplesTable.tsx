@@ -92,7 +92,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 						dataSource={samples ?? []}
 						columns={tableColumns}
 						rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
-            			scroll={{ x: 2500, y: 550 }}
+						scroll={{ x: 2500, y: 550 }}
 						onChange={handleTableOnChange}
 						pagination={pagination ? false : undefined}
 						loading={loading}
