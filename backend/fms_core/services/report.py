@@ -102,7 +102,7 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
     # Creating header
     fields = [column for column in queryset.first().keys() if not column=="time_window"] if queryset.first() is not None else []
     if len(grouped_by) == 0:
-        headers = [field for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order")]
+        headers = [field for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "aggregation")]
     else:
         field_ordering_dict = {}
         for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "aggregation"):
