@@ -18,13 +18,14 @@ class ReportViewSet(viewsets.ViewSet):
         """
             Produce a report with given parameters or provide guidance for the required parameters.
         """
+        response = None
         params = QueryDict(request.META.get("QUERY_STRING"))
         name = pk
         grouped_by = params.getlist("group_by", [])
         time_window_label = params.get("time_window", None)
         start_date = params.get("start_date", None)
         end_date = params.get("end_date", None)
-        format = params.get("format", "json")
+        export = params.get("export", None)
         # Use time window text choices
         match time_window_label:
             case TimeWindow.MONTHLY.label:
@@ -48,7 +49,7 @@ class ReportViewSet(viewsets.ViewSet):
                                      time_window=time_window,
                                      start_date=start_date,
                                      end_date=end_date)
-            if (format == "excel"):
+            if export is not None:
                 excel_report = get_report_as_excel(report_data)
                 response = HttpResponse(content=excel_report)
                 response["Content-Type"] = "application/ms-excel"
