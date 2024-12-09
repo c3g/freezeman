@@ -8,10 +8,7 @@ from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions
 
 from io import BytesIO
 from openpyxl import Workbook
-from openpyxl.reader.excel import load_workbook
-from openpyxl.styles import PatternFill, Border, Side
-from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
+from openpyxl.styles import PatternFill
 
 from fms_report.models import Report, MetricField
 from fms_report.models._constants import AggregationType
@@ -20,6 +17,8 @@ class TimeWindow(TextChoices):
     MONTHLY = "month", "Monthly"
     WEEKLY = "week", "Weekly"
     DAILY = "day", "Daily"
+
+REPORT_HEADER_COLOR = "34a8eb"
 
 def get_date_range_with_window(start_date: str, end_date: str, time_window: TimeWindow):
     time_series = pd.date_range(start=start_date, end=end_date).to_series()
@@ -50,22 +49,25 @@ def get_report_as_excel(report_data):
     out_stream = BytesIO()
     workbook = Workbook()
 
-    headers = datum["headers"]
-    for i, datum in enumerate, report_data:
-        samplesheet_name = report_data.get("time_window_label", str(i))
+    headers = report_data["headers"]
+    ordered_headers = sorted(headers, key= lambda a : a["field_order"])
+    for i, datum in enumerate(report_data["data"], start=1):
+        samplesheet_name = datum.get("time_window_label", str(i))
         workbook.create_sheet(samplesheet_name)
         samplesheet = workbook[samplesheet_name]
 
         # fill header
-        ordered_headers = sorted(headers, key= lambda a : a["field_order"])
-        for j, header in enumerate(ordered_headers):
+        for j, header in enumerate(ordered_headers, start=1):
             cell = samplesheet.cell(row=1, column=j)
-            cell.value = header["display_name"]
-            cell.fill = PatternFill(start_color="17599b", end_color="17599b", fill_type="solid")
-            
-        if datum["data"]:
-            for k, sheet_datum in enumerate(datum["data"], start=2):
-                for j, header in enumerate(datum["data"]):
+            header_label = header["display_name"]
+            # append aggregation to aggregated fields
+            if header.get("aggregation", None) is not None:
+                header_label = header_label + f" ({header['aggregation']})"
+            cell.value = header_label
+            cell.fill = PatternFill(start_color=REPORT_HEADER_COLOR, end_color=REPORT_HEADER_COLOR, fill_type="solid")
+        if datum["time_window_data"]:
+            for k, sheet_datum in enumerate(datum["time_window_data"], start=2):
+                for j, header in enumerate(ordered_headers, start=1):
                     cell = samplesheet.cell(row=k, column=j)
                     cell.value = sheet_datum[header["name"]]
         
@@ -103,14 +105,14 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
         headers = [field for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order")]
     else:
         field_ordering_dict = {}
-        for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order"):
+        for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "aggregation"):
             field_ordering_dict[field["name"]] = field
         # order for grouping fields
         for i, name in enumerate(grouped_by, start=1):
             field_ordering_dict[name]["field_order"] = i
             headers.append(field_ordering_dict[name])
         # order for value fields
-        aggregate_fields = MetricField.objects.filter(name__in=fields).filter(aggregation__isnull=False).values("name", "display_name", "field_order").order_by("field_order")
+        aggregate_fields = MetricField.objects.filter(name__in=fields).filter(aggregation__isnull=False).values("name", "display_name", "field_order", "aggregation").order_by("field_order")
         for i, field in enumerate(aggregate_fields, start=len(grouped_by)+1):
             field_ordering_dict[field["name"]]["field_order"] = i
             headers.append(field_ordering_dict[field["name"]])
@@ -131,11 +133,11 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
     for date, window in zip(date_range, date_time_windows):
         current_window = current_data.get("time_window", None)
         if current_window is not None and not current_window == window.date():
-                current_data["time_window_label"] = human_readable_time_window(date=current_window, time_window=time_window)
                 data.append(current_data)
                 current_data = {}
         current_data["time_window"] = window.date()
         if current_data.get("time_window_start", None) is None:
+            current_data["time_window_label"] = human_readable_time_window(date=window.date(), time_window=time_window)
             current_data["time_window_start"] = date.date()
             current_data["time_window_data"] = report_by_time_window.get(window.date(), [])
         current_data["time_window_end"] = date.date()
