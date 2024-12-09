@@ -39,13 +39,17 @@ export function getColumnsForExperimentRun(launchesById, runTypesById, instrumen
 }
 
 
+const SMALL_COLUMN_WIDTH = 90
+const MEDIUM_COLUMN_WIDTH = 120
+const LARGE_COLUMN_WIDTH = 270
+
 export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, instrumentsById): { [key in ExperimentRunColumnID]: ExperimentRunColumn } => ({
     [ExperimentRunColumnID.ID]: {
         columnID: ExperimentRunColumnID.ID,
         title: 'ID',
         dataIndex: ['experimentRun', 'id'],
         sorter: true,
-        width: 115,
+        width: (SMALL_COLUMN_WIDTH + MEDIUM_COLUMN_WIDTH)/2,
         render: (_, { experimentRun }) => {
             return (experimentRun.id &&
                 <Link to={`/experiment-runs/${experimentRun.id}`}>
@@ -58,6 +62,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Name',
         dataIndex: ['experimentRun', 'name'],
         sorter: true,
+        width: LARGE_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.name}</div>
         }
@@ -67,6 +72,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Run Type',
         dataIndex: ['experimentRun', 'run_type'],
         sorter: true,
+        width: SMALL_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
             return <Tag>{runTypesById[experimentRun.run_type]?.name}</Tag>
         }
@@ -106,7 +112,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Start date',
         dataIndex: ['experimentRun', 'start_date'],
         sorter: true,
-        width: 120,
+        width: MEDIUM_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.start_date}</div>
         }
@@ -115,7 +121,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         columnID: ExperimentRunColumnID.LAUNCH,
         title: 'Launch',
         dataIndex: ['experimentRun', 'launch'],
-        width: 180,
+        width: (MEDIUM_COLUMN_WIDTH + LARGE_COLUMN_WIDTH)/2 + 10,
         render: (_, { experimentRun }) => {
             return (<div>
                 {
