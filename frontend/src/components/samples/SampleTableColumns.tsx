@@ -296,6 +296,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		title: "Cohort",
 		dataIndex: ["derived_samples", "biosample", "individual", "cohort"],
 		sorter: true,
+		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			const individual = sample?.individual
 			return (individual !== undefined &&

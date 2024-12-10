@@ -194,6 +194,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
             columnID: 'LAST_PROTOCOL',
             title: 'Last Protocol',
             dataIndex: ['sample', 'id'],
+            width: 200,
             render: (_, { sample }) =>
                 sample && <LastProtocol sampleID={sample.id} />,
         }
