@@ -7,7 +7,7 @@ from fms_report.models._constants import AggregationType, FieldDataType
 
 
 def initialize_report(apps, schema_editor):
-    REPORTS = [{"name": "production_report", "data_model": "ProductionData"}]
+    REPORTS = [{"name": "production_report", "display_name": "Production", "data_model": "ProductionData"}]
     REPORT_METRICS = {
         "production_report": [
             {
@@ -206,7 +206,7 @@ def initialize_report(apps, schema_editor):
     MetricField = apps.get_model("fms_report", "MetricField")
 
     for report in REPORTS:
-        report_obj = Report.objects.create(name=report["name"], data_model=report["data_model"])
+        report_obj = Report.objects.create(name=report["name"], display_name=report["display_name"], data_model=report["data_model"])
 
         for field in REPORT_METRICS[report["name"]]:
             MetricField.objects.create(name=field["name"],
@@ -233,8 +233,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Internal name by which a report can be identified.', max_length=100, unique=True)),
+                ('display_name', models.CharField(help_text='Display name of a report.', max_length=100)),
                 ('data_model', models.CharField(help_text='Name of the model from which to get data.', max_length=100)),
             ],
+            options={
+                'indexes': [models.Index(fields=['name'], name='report_name_idx')],
+            },
         ),
         migrations.CreateModel(
             name='ProductionTracking',
