@@ -37,7 +37,7 @@ def prepare_production_report_data(log):
     queryset = queryset.select_related("dataset__experiment_run__name")
     queryset = queryset.select_related("dataset__experiment_run__id")
     queryset = queryset.select_related("dataset__experiment_run__instrument__type__type")
-    queryset = queryset.select_related("dataset__experiment_run__container__barcode")
+    queryset = queryset.select_related("dataset__experiment_run__container__kind")
     queryset = queryset.select_related("dataset__external_project_id")
     queryset = queryset.select_related("dataset__project_name")
 
@@ -84,6 +84,7 @@ def prepare_production_report_data(log):
                                                                "library_batch_id",
                                                                "dataset__experiment_run__id",                                                           
                                                                "dataset__experiment_run__name",
+                                                               "dataset__experiment_run__container__kind",
                                                                "dataset__lane",
                                                                "dataset__experiment_run__start_date",
                                                                "dataset__experiment_run__instrument__type__type",
@@ -103,6 +104,7 @@ def prepare_production_report_data(log):
                                           library_capture_date=readset_data["library_capture_date"],
                                           run_name=readset_data["dataset__experiment_run__name"],
                                           experiment_run_id=readset_data["dataset__experiment_run__id"],
+                                          experiment_container_kind=readset_data["dataset__experiment_run__container__kind"],
                                           lane=readset_data["dataset__lane"],
                                           sample_name=readset_data["sample_name"],
                                           library_id=readset_data["derived_sample_id"],

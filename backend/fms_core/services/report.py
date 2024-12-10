@@ -11,7 +11,7 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill
 
 from fms_report.models import Report, MetricField
-from fms_report.models._constants import AggregationType
+from fms_report.models._constants import AggregationType, FieldDataType
 
 class TimeWindow(TextChoices):
     MONTHLY = "month", "Monthly"
@@ -102,10 +102,10 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
     # Creating header
     fields = [column for column in queryset.first().keys() if not column=="time_window"] if queryset.first() is not None else []
     if len(grouped_by) == 0:
-        headers = [{**field, "aggregation": None} for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order")]
+        headers = [{**field, "aggregation": None} for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "data_type")]
     else:
         field_ordering_dict = {}
-        for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "aggregation"):
+        for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "aggregation", "data_type"):
             field_ordering_dict[field["name"]] = field
         # order for grouping fields
         for i, name in enumerate(grouped_by, start=1):
@@ -115,6 +115,7 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
         aggregate_fields = MetricField.objects.filter(name__in=fields).filter(aggregation__isnull=False).values("name", "display_name", "field_order", "aggregation").order_by("field_order")
         for i, field in enumerate(aggregate_fields, start=len(grouped_by)+1):
             field_ordering_dict[field["name"]]["field_order"] = i
+            field_ordering_dict[field["name"]]["data_type"] = FieldDataType.NUMBER # Convert data types to numbers for aggregated columns
             headers.append(field_ordering_dict[field["name"]])
 
     report_data = {

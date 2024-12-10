@@ -12,6 +12,7 @@ class ProductionData(models.Model):
     library_capture_date = models.DateField(null=True, blank=True, help_text="Date the library was captured.")
     run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the sequencing run.")
     experiment_run = models.ForeignKey(ExperimentRun, on_delete=models.PROTECT, related_name="production_data", help_text="Experiment run for current data row.")
+    experiment_container_kind = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Flowcell type used for the experiment.")
     lane = models.PositiveIntegerField(help_text="Sequencing run lane.")
     sample_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Sample name.")
     library = models.ForeignKey(DerivedSample, on_delete=models.PROTECT, related_name="production_data", help_text="Derived sample that defines a library.")
@@ -30,6 +31,7 @@ class ProductionData(models.Model):
 
     class Meta:
         indexes = [
+            models.Index(fields=['experiment_container_kind'], name='productiondata_flowcell_idx'),
             models.Index(fields=['sequencing_date'], name='productiondata_seqdate_idx'),
             models.Index(fields=['library_type'], name='productiondata_librarytype_idx'),
             models.Index(fields=['project'], name='productiondata_project_idx'),

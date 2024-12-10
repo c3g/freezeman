@@ -3,7 +3,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-from fms_report.models._constants import AggregationType
+from fms_report.models._constants import AggregationType, FieldDataType
 
 
 def initialize_report(apps, schema_editor):
@@ -17,6 +17,7 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 1,
                 "display_name": "Date Sequenced",
+                "data_type": FieldDataType.DATE,
             },
             {
                 "name": "library_creation_date",
@@ -25,6 +26,7 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 2,
                 "display_name": "Date Library Created",
+                "data_type": FieldDataType.DATE,
             },
             {
                 "name": "library_capture_date",
@@ -33,22 +35,34 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 3,
                 "display_name": "Date Library Captured",
+                "data_type": FieldDataType.DATE,
             },
             {
                 "name": "run_name",
                 "is_date": False,
                 "is_group": False,
                 "aggregation": None,
-                "field_order": 17,
+                "field_order": 18,
                 "display_name": "Run Name",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "experiment_run",
                 "is_date": False,
                 "is_group": False,
                 "aggregation": None,
-                "field_order": 18,
+                "field_order": 19,
                 "display_name": "Run ID",
+                "data_type": FieldDataType.STRING,
+            },
+            {
+                "name": "experiment_container_kind",
+                "is_date": False,
+                "is_group": True,
+                "aggregation": None,
+                "field_order": 5,
+                "display_name": "Flowcell Type",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "lane",
@@ -57,6 +71,7 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 16,
                 "display_name": "Lane",
+                "data_type": FieldDataType.NUMBER,
             },
             {
                 "name": "sample_name",
@@ -65,6 +80,7 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 12,
                 "display_name": "Sample Name",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "library",
@@ -73,6 +89,7 @@ def initialize_report(apps, schema_editor):
                 "aggregation": AggregationType.COUNT,
                 "field_order": 13,
                 "display_name": "Library ID",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "library_batch",
@@ -81,6 +98,7 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 14,
                 "display_name": "Library Batch ID",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "is_internal_library",
@@ -89,6 +107,7 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 15,
                 "display_name": "Internal Library",
+                "data_type": FieldDataType.BOOLEAN,
             },
             {
                 "name": "biosample",
@@ -97,54 +116,61 @@ def initialize_report(apps, schema_editor):
                 "aggregation": AggregationType.COUNT,
                 "field_order": 11,
                 "display_name": "Biosample ID",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "library_type",
                 "is_date": False,
                 "is_group": True,
                 "aggregation": None,
-                "field_order": 5,
+                "field_order": 6,
                 "display_name": "Library Type",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "library_selection",
                 "is_date": False,
                 "is_group": True,
                 "aggregation": None,
-                "field_order": 6,
+                "field_order": 7,
                 "display_name": "Library Selection",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "project",
                 "is_date": False,
                 "is_group": True,
                 "aggregation": None,
-                "field_order": 8,
+                "field_order": 9,
                 "display_name": "Project Name",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "project_external_id",
                 "is_date": False,
                 "is_group": False,
                 "aggregation": None,
-                "field_order": 9,
+                "field_order": 10,
                 "display_name": "Project ID",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "principal_investigator",
                 "is_date": False,
                 "is_group": True,
                 "aggregation": None,
-                "field_order": 10,
+                "field_order": 11,
                 "display_name": "Principal Investigator",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "taxon",
                 "is_date": False,
                 "is_group": True,
                 "aggregation": None,
-                "field_order": 7,
+                "field_order": 8,
                 "display_name": "Taxon",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "technology",
@@ -153,22 +179,25 @@ def initialize_report(apps, schema_editor):
                 "aggregation": None,
                 "field_order": 4,
                 "display_name": "Technology",
+                "data_type": FieldDataType.STRING,
             },
             {
                 "name": "reads",
                 "is_date": False,
                 "is_group": False,
                 "aggregation": AggregationType.SUM,
-                "field_order": 19,
+                "field_order": 20,
                 "display_name": "Reads",
+                "data_type": FieldDataType.NUMBER,
             },
             {
                 "name": "bases",
                 "is_date": False,
                 "is_group": False,
                 "aggregation": AggregationType.SUM,
-                "field_order": 20,
+                "field_order": 21,
                 "display_name": "Bases",
+                "data_type": FieldDataType.NUMBER,
             },
         ]
     }
@@ -186,7 +215,8 @@ def initialize_report(apps, schema_editor):
                                        is_group=field["is_group"],
                                        aggregation=field["aggregation"],
                                        field_order=field["field_order"],
-                                       display_name=field["display_name"])
+                                       display_name=field["display_name"],
+                                       data_type=field["data_type"]),
 
 
 class Migration(migrations.Migration):
@@ -225,6 +255,7 @@ class Migration(migrations.Migration):
                 ('report', models.ForeignKey(help_text='Report to which the field is related.', on_delete=django.db.models.deletion.PROTECT, related_name='metric_fields', to='fms_report.report')),
                 ('field_order', models.PositiveIntegerField(help_text='Field order in the report columns.')),
                 ('display_name', models.CharField(help_text='Human readable field name.', max_length=100)),
+                ('data_type', models.CharField(choices=[('boolean', 'Boolean'), ('string', 'String'), ('number', 'Number'), ('date', 'Date')], help_text="Data type contained in the field.", max_length=100)),
             ],
         ),
         migrations.CreateModel(
@@ -249,12 +280,13 @@ class Migration(migrations.Migration):
                 ('bases', models.BigIntegerField(help_text='Number of bases read during sequencing.')),
                 ('biosample', models.ForeignKey(help_text='Biosample used to generate the library.', on_delete=django.db.models.deletion.PROTECT, related_name='production_data', to='fms_core.biosample')),
                 ('experiment_run', models.ForeignKey(help_text='Experiment run for current data row.', on_delete=django.db.models.deletion.PROTECT, related_name='production_data', to='fms_core.experimentrun')),
+                ('experiment_container_kind', models.CharField(help_text='Flowcell type used for the experiment.', max_length=200)),
                 ('library', models.ForeignKey(help_text='Derived sample that defines a library.', on_delete=django.db.models.deletion.PROTECT, related_name='production_data', to='fms_core.derivedsample')),
                 ('library_batch', models.ForeignKey(null=True, blank=True, help_text='Process that generated the library.', on_delete=django.db.models.deletion.PROTECT, related_name='production_data', to='fms_core.process')),
                 ('readset', models.OneToOneField(help_text='Readset for current data row.', on_delete=django.db.models.deletion.PROTECT, related_name='production_data', to='fms_core.readset')),
             ],
             options={
-                'indexes': [models.Index(fields=['sequencing_date'], name='productiondata_seqdate_idx'), models.Index(fields=['library_type'], name='productiondata_librarytype_idx'), models.Index(fields=['project'], name='productiondata_project_idx'), models.Index(fields=['technology'], name='productiondata_technology_idx'), models.Index(fields=['taxon'], name='productiondata_taxon_idx')],
+                'indexes': [models.Index(fields=['sequencing_date'], name='productiondata_seqdate_idx'), models.Index(fields=['library_type'], name='productiondata_librarytype_idx'), models.Index(fields=['project'], name='productiondata_project_idx'), models.Index(fields=['technology'], name='productiondata_technology_idx'), models.Index(fields=['taxon'], name='productiondata_taxon_idx'), models.Index(fields=['experiment_container_kind'], name='productiondata_flowcell_idx')],
             },
         ),
         migrations.AddConstraint(
