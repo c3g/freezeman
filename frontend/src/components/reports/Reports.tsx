@@ -167,9 +167,9 @@ function ReportTable(reportData: FMSReportData) {
                 key={"time-window-select"}
                 placeholder={"Select Time-Window"}
                 options={reportData
-                    ? reportData.data.map(({ time_window, time_window_data: data }) =>  ({
+                    ? reportData.data.map(({ time_window, time_window_label, time_window_data: data }) =>  ({
                         value: time_window,
-                        label: `${time_window} (${data ? data.length : 0})`
+                        label: `${time_window_label} (${data ? data.length : 0})`
                     }))
                     : []
                 }

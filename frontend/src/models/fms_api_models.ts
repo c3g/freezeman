@@ -558,11 +558,13 @@ export interface FMSReportData {
         name: string
         display_name: string
         field_order: number
+        aggregation: null
     }[]
     data: {
         time_window: string
         time_window_start: string
         time_window_end: string
         time_window_data: null | { [key: string]: string | number }[]
+        time_window_label: string
     }[]
 }
