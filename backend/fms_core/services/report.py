@@ -83,7 +83,7 @@ def list_reports():
 
 def list_report_information(name: str):
     queryset = MetricField.objects.filter(report__name=name).all()
-    groups = [field.name for field in queryset if field.is_group]
+    groups = [{"name": field.name, "display_name": field.display_name} for field in queryset if field.is_group]
     time_windows = [TimeWindow.DAILY.label, TimeWindow.WEEKLY.label, TimeWindow.MONTHLY.label]
     report_info = {"name": name,
                    "groups": groups,
