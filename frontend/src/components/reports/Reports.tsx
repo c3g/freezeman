@@ -7,31 +7,24 @@ import { useAppDispatch } from "../../hooks"
 import { Button, DatePicker, Empty, Form, Select, Table, Typography } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import { Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 export function Reports() {
-    const [reportData, setReportData] = useState<FMSReportData>()
+    const [searchParams] = useSearchParams()
 
     return <>
         <AppPageHeader title={"Reports"} />
         <PageContent>
-            <Routes>
-                <Route path={"/"} element={<ReportForm onReportData={setReportData} />} />
-                {<Route path={"/:reportName/"} element={reportData
-                    ? <ReportTable {...reportData} />
-                    : <ReportForm onReportData={setReportData} />
-                } />}
-            </Routes>
+            {searchParams.has("report_name") && searchParams.has("start_date") && searchParams.has("end_date")
+                ? <ReportTableWrapper />
+                : <ReportForm />}
         </PageContent>
     </>
 }
 
-export interface ReportFormProps {
-    onReportData: (data: FMSReportData) => void
-}
-function ReportForm({ onReportData }: ReportFormProps) {
-    const { reportName: paramReportName } = useParams()
-    const navigate = useNavigate()
+function ReportForm() {
+    const [searchParams, setSearchParams] = useSearchParams()
+    const paramReportName = searchParams.get("report_name")
 
     const dispatch = useAppDispatch()
 
@@ -44,7 +37,7 @@ function ReportForm({ onReportData }: ReportFormProps) {
         })
     }, [dispatch])
 
-    const [reportName, setReportName] = useState<string | undefined>(paramReportName)
+    const [reportName, setReportName] = useState<string | undefined>(paramReportName ?? undefined)
     useEffect(() => {
         if (reportName) {
             dispatch(api.report.listReportInformation(reportName)).then((response) => {
@@ -57,18 +50,15 @@ function ReportForm({ onReportData }: ReportFormProps) {
     const onFinish = useCallback((values: ReportFormObject) => {
         if (reportInfo?.name) {
             const [start_date, end_date] = values.date_range
-            dispatch(api.report.getReport(
-                reportInfo.name,
-                start_date.format("YYYY-MM-DD"),
-                end_date.format("YYYY-MM-DD"),
-                values.time_window,
-                values.group_by,
-            )).then((response) => {
-                onReportData(response.data)
-                navigate(`/reports/${reportInfo.name}/`)
+            setSearchParams({
+                report_name: reportInfo.name,
+                start_date: start_date.format("YYYY-MM-DD"),
+                end_date: end_date.format("YYYY-MM-DD"),
+                time_window: values.time_window,
+                group_by: values.group_by,
             })
         }
-    }, [dispatch, navigate, onReportData, reportInfo?.name])
+    }, [reportInfo?.name, setSearchParams])
 
     return <>
         <Form onFinish={onFinish}>
@@ -115,6 +105,36 @@ interface ReportFormObject {
     date_range: [Dayjs, Dayjs]
 }
 
+function ReportTableWrapper() {
+    const [reportData, setReportData] = useState<FMSReportData>()
+
+    const dispatch = useAppDispatch()
+    const [searchParams, setSearchParams] = useSearchParams()
+    const reportName = searchParams.get("report_name")
+    useEffect(() => {
+        const startDate = searchParams.get("start_date")
+        const endDate = searchParams.get("end_date")
+        const timeWindow = searchParams.get("time_window") ?? "Monthly"
+        const groupBy = searchParams.getAll("group_by")
+        if (!reportName || !startDate || !endDate) {
+            console.error({ reportName, startDate, endDate })
+            setSearchParams({}, { replace: true })
+            return
+        }
+        dispatch(api.report.getReport(
+            reportName,
+            startDate,
+            endDate,
+            timeWindow,
+            groupBy
+        )).then((response) => {
+            setReportData(response.data)
+        })
+    }, [dispatch, reportName, searchParams, setSearchParams])
+
+    return reportData ? <ReportTable {...reportData} /> : null
+}
+
 function ReportTable(reportData: FMSReportData) {
     type RecordType = NonNullable<NonNullable<FMSReportData['data'][number]['time_window_data']>[number]> & { key: string }
 
@@ -146,10 +166,13 @@ function ReportTable(reportData: FMSReportData) {
             <Select
                 key={"time-window-select"}
                 placeholder={"Select Time-Window"}
-                options={reportData.data.map(({ time_window, time_window_data: data }) =>  ({
-                    value: time_window,
-                    label: `${time_window} (${data ? data.length : 0})`
-                }))}
+                options={reportData
+                    ? reportData.data.map(({ time_window, time_window_data: data }) =>  ({
+                        value: time_window,
+                        label: `${time_window} (${data ? data.length : 0})`
+                    }))
+                    : []
+                }
                 onChange={setTimewindow}
                 defaultValue={timeWindow}
             />
