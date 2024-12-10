@@ -8,7 +8,7 @@ import { Button, DatePicker, Drawer, Empty, Form, Select, Space, Table, Typograp
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 
-export function Report() {
+export function Reports() {
     const [reportData, setReportData] = useState<FMSReportData>()
     const [drawerFormOpen, setDrawerFormOpen] = useState(true)
 
