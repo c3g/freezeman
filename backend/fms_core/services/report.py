@@ -79,7 +79,7 @@ def get_report_as_excel(report_data):
 
 
 def list_reports():
-    return Report.objects.values_list("name", flat=True)
+    return Report.objects.values("name", "display_name")
 
 def list_report_information(name: str):
     queryset = MetricField.objects.filter(report__name=name).all()
