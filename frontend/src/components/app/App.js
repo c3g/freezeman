@@ -56,7 +56,7 @@ import WorkflowDefinitionsRoute from "../workflows/WorkflowDefinitionsRoute";
 import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
-import { Report } from "../report/Report";
+import { Reports } from "../reports/Reports";
 
 
 const { Title } = Typography;
@@ -136,10 +136,10 @@ const MENU_ITEMS = [
     key: "datasets",
   },
   {
-    url: "/report",
+    url: "/reports",
     icon: <FlagOutlined />,
-    text: "Report",
-    key: "report",
+    text: "Reports",
+    key: "reports",
   },
   {
     icon: <SettingOutlined />,
@@ -415,9 +415,9 @@ const App = ({userID, usersByID, logOut, get}) => {
                 <InstrumentsRoute />
               </PrivateNavigate>
             }/>
-            <Route path="/report/*" element={
+            <Route path="/reports/*" element={
               <PrivateNavigate>
-                <Report />
+                <Reports />
               </PrivateNavigate>
             } />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
