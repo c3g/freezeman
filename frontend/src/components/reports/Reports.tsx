@@ -4,33 +4,24 @@ import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Drawer, Empty, Form, Select, Space, Table, Typography } from "antd"
+import { Button, DatePicker, Empty, Form, Select, Table, Typography } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
+import { Route, Routes, useNavigate, useParams } from 'react-router-dom'
 
 export function Reports() {
     const [reportData, setReportData] = useState<FMSReportData>()
-    const [drawerFormOpen, setDrawerFormOpen] = useState(true)
 
     return <>
         <AppPageHeader title={"Reports"} />
         <PageContent>
-            <Space direction={"vertical"} style={{ display: 'flex' }}>
-                {<Button onClick={() => setDrawerFormOpen(true)}>Select Report</Button>}
-                <hr color={"#aaaaaa"} />
-                {reportData ? <ReportTable {...reportData} /> : undefined}
-            </Space>
-            <Drawer
-                title={"Select Report"}
-                open={drawerFormOpen}
-                onClose={() => setDrawerFormOpen(false)}
-                size={"large"}
-            >
-                <ReportForm onReportData={(data) => {
-                    setReportData(data)
-                    setDrawerFormOpen(false)
-                }} />
-            </Drawer>
+            <Routes>
+                <Route path={"/"} element={<ReportForm onReportData={setReportData} />} />
+                {<Route path={"/:reportName/"} element={reportData
+                    ? <ReportTable {...reportData} />
+                    : <ReportForm onReportData={setReportData} />
+                } />}
+            </Routes>
         </PageContent>
     </>
 }
@@ -39,6 +30,9 @@ export interface ReportFormProps {
     onReportData: (data: FMSReportData) => void
 }
 function ReportForm({ onReportData }: ReportFormProps) {
+    const { reportName: paramReportName } = useParams()
+    const navigate = useNavigate()
+
     const dispatch = useAppDispatch()
 
     const [reportInfo, setReportInfo] = useState<FMSReportInformation>()
@@ -50,8 +44,7 @@ function ReportForm({ onReportData }: ReportFormProps) {
         })
     }, [dispatch])
 
-    const [form] = Form.useForm<ReportFormObject>()
-    const reportName: string | undefined = Form.useWatch("report_name", form)
+    const [reportName, setReportName] = useState<string | undefined>(paramReportName)
     useEffect(() => {
         if (reportName) {
             dispatch(api.report.listReportInformation(reportName)).then((response) => {
@@ -72,16 +65,18 @@ function ReportForm({ onReportData }: ReportFormProps) {
                 values.group_by,
             )).then((response) => {
                 onReportData(response.data)
+                navigate(`/reports/${reportInfo.name}/`)
             })
         }
-    }, [dispatch, onReportData, reportInfo?.name])
+    }, [dispatch, navigate, onReportData, reportInfo?.name])
 
     return <>
-        <Form onFinish={onFinish} form={form}>
-            <Form.Item name={"report_name"} label={"Select Report"} rules={[{ required: true, message: "Please select a report." }]}>
+        <Form onFinish={onFinish}>
+            <Form.Item name={"report_name"} label={"Select Report"} initialValue={reportName} rules={[{ required: true, message: "Please select a report." }]}>
                 <Select
                     placeholder={"Name of Report"}
                     options={nameOfAvailableReports.map((name) => ({ value: name, label: name }))}
+                    onChange={setReportName}
                 />
             </Form.Item>
             <Form.Item name={"group_by"} label={"Group By"} initialValue={[]}>
@@ -102,11 +97,11 @@ function ReportForm({ onReportData }: ReportFormProps) {
                 />
             </Form.Item>
             <Form.Item name={"date_range"} label={"Start-End Date"} rules={[{ required: true, message: "Please select start and end date." }]}>
-                <DatePicker.RangePicker allowClear={false} disabled={!reportInfo} />
+                <DatePicker.RangePicker allowClear={false} />
             </Form.Item>
             <Form.Item label={null}>
                 <Button type="primary" htmlType="submit" disabled={!reportInfo}>
-                    Request Report
+                    Submit
                 </Button>
             </Form.Item>
         </Form>
@@ -133,6 +128,7 @@ function ReportTable(reportData: FMSReportData) {
                 key: header.name,
                 dataIndex: header.name,
             }))
+    // if you want to add or remove columns, you can do it with this useState
     const [columns] = useState<ColumnsType<RecordType>>(originalColumns)
 
     const timeWindowData =
@@ -144,8 +140,9 @@ function ReportTable(reportData: FMSReportData) {
             ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() }))
             : []
 
-    return [
-            <Typography.Title key={"report-title"} style={{ marginTop: 0 }}>{reportData.name}</Typography.Title>,
+    return <>
+            <Typography.Title key={"report-title"} style={{ marginTop: 0 }}>{reportData.name}</Typography.Title>
+            {"Time Window: "}
             <Select
                 key={"time-window-select"}
                 placeholder={"Select Time-Window"}
@@ -155,7 +152,7 @@ function ReportTable(reportData: FMSReportData) {
                 }))}
                 onChange={setTimewindow}
                 defaultValue={timeWindow}
-            />,
+            />
             <Table<RecordType>
                 key={"report-table"}
                 columns={columns}
@@ -163,5 +160,5 @@ function ReportTable(reportData: FMSReportData) {
                 scroll={{ x: 'max-content' }}
                 locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={timeWindow ? "No Data Available" : "Select a Time-Window"} /> }}
             />
-        ]
+        </>
 }
