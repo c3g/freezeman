@@ -327,7 +327,7 @@ const api = {
   },
 
   report: {
-    listReports: () => get<JsonResponse<string[]>>("/reports/"),
+    listReports: () => get<JsonResponse<{ name: string, display_name: string }[]>>("/reports/"),
     listReportInformation: (name: string) => get<JsonResponse<FMSReportInformation>>(`/reports/${name}/`),
     getReport: (name: string, start_date: string, end_date: string, time_window = "month", group_by: string[] = []) => get<JsonResponse<FMSReportData>>(`/reports/${name}/`, { group_by, time_window, start_date, end_date }),  }
 };
