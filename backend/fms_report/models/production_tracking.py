@@ -11,5 +11,5 @@ class ProductionTracking(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['validation_timestamp'], name='productiontracking_timestamp_idx'),
+            models.Index(fields=['validation_timestamp'], name='prodtracking_timestamp_idx'),
         ]
