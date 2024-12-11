@@ -231,6 +231,7 @@ def get_report(report_name: str, grouped_by: List[str], time_window: TimeWindow,
 
     return report_data
 
+
 def _get_queryset(report_name: str, start_date: str, end_date: str, time_window: TimeWindow, grouped_by: List[str]) -> QuerySet:
     """
     Provides for each report the basic report quesyset
