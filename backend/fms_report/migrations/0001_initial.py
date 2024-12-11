@@ -247,6 +247,9 @@ class Migration(migrations.Migration):
                 ('validation_timestamp', models.DateTimeField(blank=True, help_text='Timestamp of the validation status when the data was prepared.', null=True)),
                 ('extracted_readset', models.OneToOneField(help_text='Readset for which the data has been prepared.', on_delete=django.db.models.deletion.PROTECT, related_name='production_tracking', to='fms_core.readset')),
             ],
+            options={
+                'indexes': [models.Index(fields=['validation_timestamp'], name='productiontracking_timestamp_idx')],
+            },
         ),
         migrations.CreateModel(
             name='MetricField',

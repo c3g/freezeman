@@ -7,17 +7,30 @@ from fms_core.models.project import Project
 from fms_core.models.sample import Sample
 from fms_core.models.process import Process
 
-from django.db.models import Q, F, When, Case, Prefetch, Count, Subquery, OuterRef, Sum, Max, Value, BigIntegerField, BooleanField, DateField, functions
+from django.db.models import Q, F, When, Case, OuterRef, Sum, Value, BigIntegerField, BooleanField, DateField, functions
 
 def prepare_production_report_data(log):
+    """
+    Prepares the data for production report. Based on readsets that passed validation. 
+    If the readset validation timestamp does not match the stored value in the production tracking table, existing report data (if any) is removed and preparation is done.
+
+    Args:
+        `log`: active logger to keep informed on preparation
+
+    Raises:
+        `removal_err`: An error happened while removing existing data from deprecated readsets.
+        `query_err`: An error happened while preparing the queryset for the data extraction.
+        `exec_err`: An error happened while executing the data extraction query.
+        `create_err`: An error happened while creating a production data entry.
+    """
     # Remove updated readsets from the data table
     try:
         log.info("Removing deprecated data.")
         deleted_rows, _ = ProductionData.objects.filter(readset_id__in=Readset.objects.exclude(production_tracking__validation_timestamp=F("validation_status_timestamp")).values_list("id", flat=True)).delete()
         log.info(f"Deleted {deleted_rows} rows from ProductionData table. Readset validation timestamp no longer match the prepared validation timestamp.")
-    except Exception as err:
-        log.error(f"ProductionData removal failure: {err}.")
-        raise err
+    except Exception as removal_err:
+        log.error(f"ProductionData removal failure: {removal_err}.")
+        raise removal_err
     
     # Build a dictionary of investigators by external ids to prevent a costly join
     project_qs = Project.objects.exclude(external_id__isnull=True).exclude(principal_investigator="").all()
@@ -64,10 +77,10 @@ def prepare_production_report_data(log):
 
         # internal library
         queryset = queryset.annotate(is_internal_library = Case(When(library_creation_date__isnull=True, then=Value(False)), default=Value(True), output_field=BooleanField()))
-    except Exception as err:
-        log.error(f"Query preparation failure: {err}.")
+    except Exception as query_err:
+        log.error(f"Query preparation failure: {query_err}.")
         log.error(queryset.query)
-        raise err
+        raise query_err
 
     try:
         queryset = queryset.all().distinct().order_by().values("id",
@@ -92,9 +105,9 @@ def prepare_production_report_data(log):
                                                                "dataset__project_name",
                                                                "reads",
                                                                "bases")
-    except Exception as err:
-        log.error(f"Query execution failure: {err}.")
-        raise err
+    except Exception as exec_err:
+        log.error(f"Query execution failure: {exec_err}.")
+        raise exec_err
 
     try:
         for readset_data in queryset:
@@ -122,7 +135,7 @@ def prepare_production_report_data(log):
                                           bases=readset_data["bases"])
             ProductionTracking.objects.update_or_create(extracted_readset_id=readset_data["id"], defaults={"validation_timestamp": readset_data["validation_status_timestamp"]})
             
-    except Exception as err:
-        log.error(f"Data creation failure: {err}.")
+    except Exception as create_err:
+        log.error(f"Data creation failure: {create_err}.")
         log.error(f"Readset {readset_data['id']} failed.")
-        raise err
+        raise create_err
