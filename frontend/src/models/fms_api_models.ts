@@ -552,14 +552,14 @@ export interface FMSReportInformation {
  * Returned by the /api/report/[name]/?start_date=[start_date]&end_date=[end_date]&time_window=[time_window]&group_by=[group_by] endpoint
  */
 export interface FMSReportData {
-    name: string
+    report: {
+        name: string
+        display_name: string
+    }
     start_date: string
     end_date: string
     time_window: string
-    grouped_by: {
-        name: string
-        display_name: string
-    }[]
+    grouped_by: string[]
     headers: {
         name: string
         display_name: string

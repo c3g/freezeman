@@ -210,13 +210,14 @@ function ReportTableWrapper() {
     }, [dispatch, goBack, reportName, searchParams, setSearchParams])
 
     return <>
+        {reportData && <ReportTable {...reportData} />}
         <Button onClick={goBack}>
             <Space>
                 <ArrowLeftOutlined />
-                {"Back to Search Form"}
+                {"Back"}
             </Space>
         </Button>
-        {reportData && <ReportTable {...reportData} />}
+
     </>
 }
 
@@ -228,11 +229,19 @@ function ReportTable(reportData: FMSReportData) {
     const originalColumns: ColumnsType<RecordType> =
         reportData.headers
             .sort((a, b) => a.field_order - b.field_order)
-            .map((header) => ({
-                title: header.display_name,
-                key: header.name,
-                dataIndex: header.name,
-            }))
+            .map((header) => {
+                let title = header.display_name
+                const key = header.name
+                const dataIndex = header.name
+
+                if (header.aggregation) {
+                    title = `${header.display_name} (${header.aggregation})`
+                } else if (reportData.grouped_by.includes(header.name)) {
+                    title = `${header.display_name} (Grouped By)`
+                }
+
+                return { title, key, dataIndex } 
+            })
     // if you want to add or remove columns, you can do it with this useState
     const [columns] = useState<ColumnsType<RecordType>>(originalColumns)
 
@@ -246,22 +255,24 @@ function ReportTable(reportData: FMSReportData) {
             : []
 
     return <>
-            <Typography.Title style={{ marginTop: 0 }}>{reportData.name}</Typography.Title>
-            {"Time Window: "}
-            <Select
-                placeholder={"Select Time-Window"}
-                options={reportData
-                    ? reportData.data.map(({ time_window, time_window_label, time_window_data: data }) =>  ({
-                        value: time_window,
-                        label: `${time_window_label} (${data ? data.length : 0})`
-                    }))
-                    : []
-                }
-                onChange={setTimewindow}
-                defaultValue={timeWindow}
-                popupMatchSelectWidth={false}
+            <Typography.Title italic style={{ marginTop: 0, marginBottom: 0 }}>{reportData.report.display_name} report</Typography.Title>
+            <Typography.Title level={4} style={{ marginTop: 0, marginLeft: '2rem' }}>From {reportData.start_date} To {reportData.end_date}</Typography.Title>
+            <div style={{ marginBottom: '0.5em' }}>
+                {"Time Window: "}
+                <Select
+                    placeholder={"Select Time-Window"}
+                    options={reportData
+                        ? reportData.data.map(({ time_window, time_window_label, time_window_data: data }) =>  ({
+                            value: time_window,
+                            label: `${time_window_label} (${data ? data.length : 0})`
+                        }))
+                        : []
+                    }
+                    onChange={setTimewindow}
+                    defaultValue={timeWindow}
+                    popupMatchSelectWidth={false}
             />
-            <div style={{ marginBottom: '1em' }} />
+            </div>
             <Table<RecordType>
                 key={"report-table"}
                 columns={columns}
