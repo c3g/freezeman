@@ -20,7 +20,7 @@ class ReportViewSet(viewsets.ViewSet):
         """
         response = None
         params = QueryDict(request.META.get("QUERY_STRING"))
-        name = pk
+        report_name = pk
         grouped_by = params.getlist("group_by", [])
         time_window_label = params.get("time_window", None)
         start_date = params.get("start_date", None)
@@ -37,14 +37,14 @@ class ReportViewSet(viewsets.ViewSet):
             case _:
                 time_window = TimeWindow.MONTHLY
 
-        if name is None:
+        if report_name is None:
             return Response(list_reports())
         else:
             if start_date is None or end_date is None:
                 # Provide information about the requested report if no start_date and end_date provided
-                return Response(list_report_information(name))
+                return Response(list_report_information(report_name))
             
-            report_data = get_report(name=name,
+            report_data = get_report(report_name=report_name,
                                      grouped_by=grouped_by,
                                      time_window=time_window,
                                      start_date=start_date,

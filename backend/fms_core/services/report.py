@@ -2,9 +2,11 @@ from typing import List
 import datetime
 from collections import defaultdict
 
+from typing import TypedDict, Union
+
 import pandas as pd
 from django.apps import apps
-from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions
+from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions, QuerySet
 
 from io import BytesIO
 from openpyxl import Workbook
@@ -20,9 +22,42 @@ class TimeWindow(TextChoices):
 
 REPORT_HEADER_COLOR = "34a8eb"
 
-def get_date_range_with_window(start_date: str, end_date: str, time_window: TimeWindow):
+class EnhancedName(TypedDict):
+    name: str
+    display_name: str
+
+class ReportInfo(TypedDict):
+    name: str
+    groups: list[EnhancedName]
+    time_windows: list[str]
+
+class ReportHeader(TypedDict):
+    name: str
+    display_name: str
+    field_order: int
+    aggregation: str
+    data_type: str
+
+class TimeWindowData(TypedDict):
+    time_window: datetime.date
+    time_window_label: str
+    time_window_start: datetime.date
+    time_window_end: datetime.date
+    time_window_data: list[dict[str, Union[str, int]]]
+    
+class ReportData(TypedDict):
+    name: str
+    start_date: str
+    end_date: str
+    time_window: str
+    grouped_by: list[str]
+    headers: list[ReportHeader]
+    data: list[TimeWindowData]
+    
+
+def get_date_range_with_window(start_date: str, end_date: str, time_window: TimeWindow) -> tuple[list[str], list[str]]:
     """
-    Provides two lists. One list with each date between two given dates and one list with the matching time window for each of these dates.
+    Provides two lists of dates. One list with each date between two given dates and one list with the matching time window date identifier for each of these dates.
 
     Args:
         `start_date`: start date for the list of dates.
@@ -45,9 +80,10 @@ def get_date_range_with_window(start_date: str, end_date: str, time_window: Time
     time_window_range = pd.to_datetime(window_time_series, unit='D')
     return date_range, time_window_range
 
-def human_readable_time_window(date: datetime, time_window: TimeWindow):
+
+def human_readable_time_window(date: datetime, time_window: TimeWindow) -> str:
     """
-    Provide a human readable label to describe a time window.
+    Provides a human readable label to describe a time window.
 
     Args:
         `date`: date for which to provide a label.
@@ -66,7 +102,17 @@ def human_readable_time_window(date: datetime, time_window: TimeWindow):
             time_window_label = date
     return time_window_label
 
-def get_report_as_excel(report_data):
+
+def get_report_as_excel(report_data) -> bytes:
+    """
+    Converts the report data to an excel workbook bytes stream to be returned to the user.
+
+    Args:
+        `report_data`: ReportData for the requested report.
+
+    Returns:
+        Bytes stream of an excel workbook.
+    """
     out_stream = BytesIO()
     workbook = Workbook()
 
@@ -99,22 +145,39 @@ def get_report_as_excel(report_data):
     return out_stream.getvalue()
 
 
-def list_reports():
+def list_reports() -> EnhancedName:
+    """
+    Lists all reports that are currently available.
+
+    Returns:
+        List of name and display name dictionary for each report.
+    """
     return Report.objects.values("name", "display_name")
 
-def list_report_information(name: str):
-    queryset = MetricField.objects.filter(report__name=name).all()
+
+def list_report_information(report_name: str) -> ReportInfo:
+    """
+    List additional information about a given report.
+
+    Args:
+        `name`: Name of the report for which additional information is requested.
+
+    Returns:
+        Report info dictionary with important information to define requested report.
+    """
+    queryset = MetricField.objects.filter(report__name=report_name).all()
     groups = [{"name": field.name, "display_name": field.display_name} for field in queryset if field.is_group]
     time_windows = [TimeWindow.DAILY.label, TimeWindow.WEEKLY.label, TimeWindow.MONTHLY.label]
-    report_info = {"name": name,
+    report_info = {"name": report_name,
                    "groups": groups,
                    "time_windows": time_windows}
     return report_info
 
-def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_date: str, end_date: str):
+
+def get_report(report_name: str, grouped_by: List[str], time_window: TimeWindow, start_date: str, end_date: str) -> ReportData:
     report_data = {}
     headers = []
-    queryset = _get_queryset(name, start_date, end_date, time_window, grouped_by)
+    queryset = _get_queryset(report_name, start_date, end_date, time_window, grouped_by)
     report_by_time_window = defaultdict(list)
     for entry in queryset:
         current_row = {key: value for key, value in entry.items() if not key=="time_window"}
@@ -140,7 +203,7 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
             headers.append(field_ordering_dict[field["name"]])
 
     report_data = {
-        "name": name,
+        "name": report_name,
         "start_date": start_date,
         "end_date": end_date,
         "time_window": time_window.label,
@@ -168,20 +231,23 @@ def get_report(name: str, grouped_by: List[str], time_window: TimeWindow, start_
 
     return report_data
 
-def _get_queryset(name: str, start_date: str, end_date: str, time_window: TimeWindow, grouped_by: List[str]):
+def _get_queryset(report_name: str, start_date: str, end_date: str, time_window: TimeWindow, grouped_by: List[str]) -> QuerySet:
     """
     Provides for each report the basic report quesyset
 
-      Args:
-          `name`: name of the report
-          `start_date`: start of the report time period requested
-          `end_date`: end of the report time period requested
-          `time_range`: size of the report page in time.
-          `grouped_by`: fields that drive the aggregation of data in order.
+    Args:
+        `name`: name of the report
+        `start_date`: start of the report time period requested
+        `end_date`: end of the report time period requested
+        `time_range`: size of the report page in time.
+        `grouped_by`: fields that drive the aggregation of data in order.
+    
+    Returns:
+        Queryset for the report data requested.
     """
     
     # For now this assumes only one field is designated as is_date by report. Once we set more date fields we would need to have the date field name as input.
-    report_data = MetricField.objects.filter(report__name=name).annotate(date_field=F("name")).filter(is_date=True).values("report__data_model", "date_field")[:1]
+    report_data = MetricField.objects.filter(report__name=report_name).annotate(date_field=F("name")).filter(is_date=True).values("report__data_model", "date_field")[:1]
     if report_data:
         DataModel = apps.get_model("fms_report", report_data[0]["report__data_model"])
 
@@ -197,7 +263,7 @@ def _get_queryset(name: str, start_date: str, end_date: str, time_window: TimeWi
             ordering_fields = ["time_window", "date_field"]
             ordering_fields.extend(custom_fields)
             detailed_fields = ["time_window"]
-            detailed_fields.extend(MetricField.objects.filter(report__name=name).values_list("name", flat=True))
+            detailed_fields.extend(MetricField.objects.filter(report__name=report_name).values_list("name", flat=True))
             queryset = queryset.values(*detailed_fields)
             queryset = queryset.order_by(*ordering_fields)
         else:
@@ -206,7 +272,7 @@ def _get_queryset(name: str, start_date: str, end_date: str, time_window: TimeWi
             extended_grouped_by.extend(grouped_by)
             queryset = queryset.values(*extended_grouped_by)
             # aggregated fields
-            aggregate_fields = MetricField.objects.filter(report__name=name).filter(aggregation__isnull=False).values_list("name", "aggregation")
+            aggregate_fields = MetricField.objects.filter(report__name=report_name).filter(aggregation__isnull=False).values_list("name", "aggregation")
             for name, aggregation in aggregate_fields:
                 aggregate = None
                 match aggregation:
