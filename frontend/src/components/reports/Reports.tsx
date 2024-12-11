@@ -10,6 +10,7 @@ import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-rou
 import dayjs, { Dayjs } from 'dayjs'
 import { notifyError } from '../../modules/notification/actions'
 import { ArrowLeftOutlined } from '@ant-design/icons'
+import { downloadFromFile } from '../../utils/download'
 
 export const BASE_ROUTE = "/reports/"
 const FORM_ROUTE = `${BASE_ROUTE}search/`
@@ -18,7 +19,7 @@ const LIST_ROUTE = `${BASE_ROUTE}list/`
 export function Reports() {
     const [searchParams] = useSearchParams()
     return <>
-        <AppPageHeader title={"Reports"} />
+        <AppPageHeader title={"Reports"}/>
         <PageContent>
             <Routes>
                 <Route path={FORM_ROUTE.slice(BASE_ROUTE.length)} element={<ReportForm />} />
@@ -222,6 +223,8 @@ function ReportTableWrapper() {
 }
 
 function ReportTable(reportData: FMSReportData) {
+    const dispatch = useAppDispatch()
+
     type RecordType = NonNullable<NonNullable<FMSReportData['data'][number]['time_window_data']>[number]> & { key: string }
 
     const [timeWindow, setTimewindow] = useState<string | undefined>(reportData.data.find((d) => (d.time_window_data?.length ?? 0) > 0)?.time_window)
@@ -283,21 +286,40 @@ function ReportTable(reportData: FMSReportData) {
     return <>
             <Typography.Title italic style={{ marginTop: 0, marginBottom: 0 }}>{reportData.report.display_name} report</Typography.Title>
             <Typography.Title level={4} style={{ marginTop: 0, marginLeft: '2rem' }}>From {reportData.start_date} To {reportData.end_date}</Typography.Title>
-            <div style={{ marginBottom: '0.5em' }}>
-                {"Time Window: "}
-                <Select
-                    placeholder={"Select Time-Window"}
-                    options={reportData
-                        ? reportData.data.map(({ time_window, time_window_label, time_window_data: data }) =>  ({
-                            value: time_window,
-                            label: `${time_window_label} (${data ? data.length : 0})`
+            <div style={{ marginBottom: '0.5em', display: 'flex', justifyContent: 'space-between' }}>
+                <div>
+                    {"Time Window: "}
+                    <Select
+                        placeholder={"Select Time-Window"}
+                        options={reportData
+                            ? reportData.data.map(({ time_window, time_window_label, time_window_data: data }) =>  ({
+                                value: time_window,
+                                label: `${time_window_label} (${data ? data.length : 0})`
+                            }))
+                            : []
+                        }
+                        onChange={setTimewindow}
+                        defaultValue={timeWindow}
+                        popupMatchSelectWidth={false}
+                    />
+                </div>
+                <Button onClick={() => {
+                    dispatch(api.report.getReportAsExcel(
+                        reportData.report.name,
+                        reportData.start_date,
+                        reportData.end_date,
+                        reportData.time_window,
+                        reportData.grouped_by
+                    )).then((response) => {
+                        return downloadFromFile(response.filename, response.data)
+                    }).catch((error) => {
+                        dispatch(notifyError({
+                            title: "Failed to Download Report",
+                            description: error.message,
+                            id: "reports-download-failed"
                         }))
-                        : []
-                    }
-                    onChange={setTimewindow}
-                    defaultValue={timeWindow}
-                    popupMatchSelectWidth={false}
-            />
+                    })
+                }}>Export to Excel</Button>
             </div>
             <Table<RecordType>
                 key={"report-table"}
