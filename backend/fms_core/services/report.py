@@ -21,6 +21,17 @@ class TimeWindow(TextChoices):
 REPORT_HEADER_COLOR = "34a8eb"
 
 def get_date_range_with_window(start_date: str, end_date: str, time_window: TimeWindow):
+    """
+    Provides two lists. One list with each date between two given dates and one list with the matching time window for each of these dates.
+
+    Args:
+        `start_date`: start date for the list of dates.
+        `end_date`: end date for the list of dates.
+        `time_window`: size of the report page in time.
+  
+    Returns:
+        Tuple with one ordered date list and one matching time window list.
+    """
     time_series = pd.date_range(start=start_date, end=end_date).to_series()
     match time_window:
         case TimeWindow.MONTHLY: 
@@ -35,6 +46,16 @@ def get_date_range_with_window(start_date: str, end_date: str, time_window: Time
     return date_range, time_window_range
 
 def human_readable_time_window(date: datetime, time_window: TimeWindow):
+    """
+    Provide a human readable label to describe a time window.
+
+    Args:
+        `date`: date for which to provide a label.
+        `time_window`: size of the report page in time.
+  
+    Returns:
+        String label that best describes the time window to which the date belong.
+    """
     time_window_label = None
     match time_window:
         case TimeWindow.MONTHLY:
