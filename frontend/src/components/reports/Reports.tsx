@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Empty, Form, Select, Space, Table, Typography } from "antd"
+import { Button, DatePicker, Empty, Form, Select, SelectProps, Space, Table, Typography } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom'
@@ -60,11 +60,11 @@ function ReportForm() {
     const dispatch = useAppDispatch()
 
     const [reportInfo, setReportInfo] = useState<FMSReportInformation>()
-    const [nameOfAvailableReports, setNameOfAvailableReports] = useState<string[]>([])
+    const [reportNameOptions, setReportNameOptions] = useState<NonNullable<SelectProps['options']>>([])
 
     useEffect(() => {
         dispatch(api.report.listReports()).then((response) => {
-            setNameOfAvailableReports(response.data)
+            setReportNameOptions(response.data.map(({ name: value, display_name: label }) => ({ value, label })))
         })
     }, [dispatch])
 
@@ -97,8 +97,8 @@ function ReportForm() {
         <Form onFinish={onFinish}>
             <Form.Item name={"report_name"} label={"Select Report"} initialValue={paramReportName} rules={[{ required: true, message: "Please select a report." }]}>
                 <Select
-                    placeholder={"Name of Report"}
-                    options={nameOfAvailableReports.map((name) => ({ value: name, label: name }))}
+                    placeholder={"Select Report"}
+                    options={reportNameOptions}
                     onChange={(name) => {
                         const newSearchParams = new URLSearchParams(searchParams)
                         newSearchParams.set("report_name", name)
@@ -109,7 +109,7 @@ function ReportForm() {
             <Form.Item name={"group_by"} label={"Group By"} initialValue={paramGroupBy}>
                 <Select<FMSReportInformation["groups"][number]>
                     placeholder={"Select fields to group by"}
-                    options={reportInfo ? reportInfo.groups.map((name) => ({ value: name, label: name })) : []}
+                    options={reportInfo ? reportInfo.groups.map(({ name: value, display_name: label }) => ({ value, label })) : []}
                     allowClear
                     mode={"multiple"}
                     disabled={!reportInfo}
@@ -139,7 +139,7 @@ function ReportForm() {
             <Form.Item
                 name={"date_range"} label={"Start-End Date"}
                 initialValue={[ paramStartDate ? dayjs(paramStartDate) : undefined, paramEndDate ? dayjs(paramEndDate) : undefined ]}
-                rules={[{ required: true, message: "Please select start and end date." }]}
+                rules={[{ required: true }]}
             >
                 <DatePicker.RangePicker
                     allowClear={false}
@@ -160,7 +160,7 @@ function ReportForm() {
                 />
             </Form.Item>
             <Form.Item label={null}>
-                <Button type="primary" htmlType="submit" disabled={!reportInfo}>
+                <Button type="primary" htmlType="submit" disabled={!reportInfo || !paramStartDate || !paramEndDate}>
                     Submit
                 </Button>
             </Form.Item>
@@ -261,6 +261,7 @@ function ReportTable(reportData: FMSReportData) {
                 defaultValue={timeWindow}
                 popupMatchSelectWidth={false}
             />
+            <div style={{ marginBottom: '1em' }} />
             <Table<RecordType>
                 key={"report-table"}
                 columns={columns}

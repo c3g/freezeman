@@ -536,24 +536,30 @@ export interface LabworkStepInfo {
 
 /**
  * ReportInformation
- * Returned by the /api/report/?name=... endpoint
+ * Returned by the /api/report/[name]/ endpoint
  */
 export interface FMSReportInformation {
     name: string // report name
-    groups: string[] // used for group_by query parameter
+    groups: {
+        name: string
+        display_name: string
+    }[] // used for group_by query parameter
     time_windows: string[] // e.g. ["Daily", "Weekly", "Monthly", ...]
 }
 
 /**
  * ReportData
- * Returned by the /api/report/?name=...&start_date=...&end_date=...&time_window=...&group_by=... endpoint
+ * Returned by the /api/report/[name]/?start_date=[start_date]&end_date=[end_date]&time_window=[time_window]&group_by=[group_by] endpoint
  */
 export interface FMSReportData {
     name: string
     start_date: string
     end_date: string
     time_window: string
-    grouped_by: string[]
+    grouped_by: {
+        name: string
+        display_name: string
+    }[]
     headers: {
         name: string
         display_name: string
