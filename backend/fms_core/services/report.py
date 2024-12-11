@@ -32,7 +32,7 @@ class ReportInfo(TypedDict):
     time_windows: list[str]
 
 class ReportHeader(TypedDict):
-    name: str
+    report: EnhancedName
     display_name: str
     field_order: int
     aggregation: str
@@ -46,7 +46,7 @@ class TimeWindowData(TypedDict):
     time_window_data: list[dict[str, Union[str, int]]]
     
 class ReportData(TypedDict):
-    name: str
+    report: EnhancedName
     start_date: str
     end_date: str
     time_window: str
@@ -168,7 +168,7 @@ def list_report_information(report_name: str) -> ReportInfo:
     queryset = MetricField.objects.filter(report__name=report_name).all()
     groups = [{"name": field.name, "display_name": field.display_name} for field in queryset if field.is_group]
     time_windows = [TimeWindow.DAILY.label, TimeWindow.WEEKLY.label, TimeWindow.MONTHLY.label]
-    report_info = {"name": report_name,
+    report_info = {"report": Report.objects.filter(name=report_name).values("name", "display_name").first(),
                    "groups": groups,
                    "time_windows": time_windows}
     return report_info
@@ -203,7 +203,7 @@ def get_report(report_name: str, grouped_by: List[str], time_window: TimeWindow,
             headers.append(field_ordering_dict[field["name"]])
 
     report_data = {
-        "name": report_name,
+        "report": Report.objects.filter(name=report_name).values("name", "display_name").first(),
         "start_date": start_date,
         "end_date": end_date,
         "time_window": time_window.label,
