@@ -1,30 +1,61 @@
-import type { Dayjs } from 'dayjs'
 import type { ColumnsType } from 'antd/lib/table'
 import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Empty, Form, Select, Table, Typography } from "antd"
+import { Button, DatePicker, Empty, Form, Select, Space, Table, Typography } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom'
+import dayjs, { Dayjs } from 'dayjs'
+import { notifyError } from '../../modules/notification/actions'
+import { ArrowLeftOutlined } from '@ant-design/icons'
+
+export const BASE_ROUTE = "/reports/"
+const FORM_ROUTE = `${BASE_ROUTE}search/`
+const LIST_ROUTE = `${BASE_ROUTE}list/`
 
 export function Reports() {
     const [searchParams] = useSearchParams()
-
     return <>
         <AppPageHeader title={"Reports"} />
         <PageContent>
-            {searchParams.has("report_name") && searchParams.has("start_date") && searchParams.has("end_date")
-                ? <ReportTableWrapper />
-                : <ReportForm />}
+            <Routes>
+                <Route path={FORM_ROUTE.slice(BASE_ROUTE.length)} element={<ReportForm />} />
+                <Route path={LIST_ROUTE.slice(BASE_ROUTE.length)} element={<ReportTableWrapper />} />
+                <Route path={"*"} element={<Navigate to={`${FORM_ROUTE}?${searchParams.toString()}`} replace/>} />
+            </Routes>
         </PageContent>
     </>
 }
 
 function ReportForm() {
+    const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
-    const paramReportName = searchParams.get("report_name")
+    const {
+        report_name: paramReportName,
+        start_date: paramStartDate,
+        end_date: paramEndDate,
+        time_window: paramTimeWindow,
+        group_by: paramGroupBy,
+    } = getParams(searchParams)
+    useEffect(() => {
+        // set default time window
+        if (!paramTimeWindow) {
+            const newSearchParams = new URLSearchParams(searchParams)
+            newSearchParams.set("time_window", "Monthly")
+            setSearchParams(newSearchParams, { replace: true })
+        }   
+    }, [paramTimeWindow, searchParams, setSearchParams])
+
+    /* */
+
+    interface ReportFormObject {
+        report_name: string
+        group_by: string[]
+        time_window: string
+        date_range: [Dayjs, Dayjs]
+    }
 
     const dispatch = useAppDispatch()
 
@@ -37,45 +68,59 @@ function ReportForm() {
         })
     }, [dispatch])
 
-    const [reportName, setReportName] = useState<string | undefined>(paramReportName ?? undefined)
     useEffect(() => {
-        if (reportName) {
-            dispatch(api.report.listReportInformation(reportName)).then((response) => {
+        if (paramReportName) {
+            dispatch(api.report.listReportInformation(paramReportName)).then((response) => {
                 setReportInfo(response.data)
             })
         }
-    }, [dispatch, reportName])
+    }, [dispatch, paramReportName])
 
 
     const onFinish = useCallback((values: ReportFormObject) => {
-        if (reportInfo?.name) {
-            const [start_date, end_date] = values.date_range
-            setSearchParams({
-                report_name: reportInfo.name,
-                start_date: start_date.format("YYYY-MM-DD"),
-                end_date: end_date.format("YYYY-MM-DD"),
-                time_window: values.time_window,
-                group_by: values.group_by,
-            })
-        }
-    }, [reportInfo?.name, setSearchParams])
+        const [start_date, end_date] = values.date_range
+        const newSearchParams = new URLSearchParams()
+        newSearchParams.set("report_name", values.report_name)
+        newSearchParams.set("start_date", start_date.format("YYYY-MM-DD"))
+        newSearchParams.set("end_date", end_date.format("YYYY-MM-DD"))
+        newSearchParams.set("time_window", values.time_window ?? "Monthly")
+        values.group_by.forEach((group) => newSearchParams.append("group_by", group))        
+        setSearchParams(newSearchParams, { replace: true })
+        navigate({
+            pathname: LIST_ROUTE,
+            search: newSearchParams.toString(),
+        })
+    }, [navigate, setSearchParams])
 
     return <>
+        <Typography.Title style={{ marginTop: 0 }}>Report Search Form</Typography.Title>
         <Form onFinish={onFinish}>
-            <Form.Item name={"report_name"} label={"Select Report"} initialValue={reportName} rules={[{ required: true, message: "Please select a report." }]}>
+            <Form.Item name={"report_name"} label={"Select Report"} initialValue={paramReportName} rules={[{ required: true, message: "Please select a report." }]}>
                 <Select
                     placeholder={"Name of Report"}
                     options={nameOfAvailableReports.map((name) => ({ value: name, label: name }))}
-                    onChange={setReportName}
+                    onChange={(name) => {
+                        const newSearchParams = new URLSearchParams(searchParams)
+                        newSearchParams.set("report_name", name)
+                        setSearchParams(newSearchParams, { replace: true })
+                    }}
                 />
             </Form.Item>
-            <Form.Item name={"group_by"} label={"Group By"} initialValue={[]}>
+            <Form.Item name={"group_by"} label={"Group By"} initialValue={paramGroupBy}>
                 <Select<FMSReportInformation["groups"][number]>
                     placeholder={"Select fields to group by"}
                     options={reportInfo ? reportInfo.groups.map((name) => ({ value: name, label: name })) : []}
                     allowClear
                     mode={"multiple"}
                     disabled={!reportInfo}
+                    onChange={(group_by_many: unknown) => {
+                        const newSearchParams = new URLSearchParams(searchParams)
+                        newSearchParams.delete("group_by")
+                        for (const group_by of (group_by_many as string[])) {
+                            newSearchParams.append("group_by", group_by)
+                        }
+                        setSearchParams(newSearchParams, { replace: true })
+                    }}
                 />
             </Form.Item>
             <Form.Item name={"time_window"} label={"Time Window"} initialValue={"Monthly"}>
@@ -84,10 +129,35 @@ function ReportForm() {
                     options={reportInfo ? reportInfo.time_windows.map((name) => ({ value: name, label: name })) : []}
                     allowClear
                     disabled={!reportInfo}
+                    onChange={(time_window) => {
+                        const newSearchParams = new URLSearchParams(searchParams)
+                        newSearchParams.set("time_window", time_window)
+                        setSearchParams(newSearchParams, { replace: true })
+                    }}
                 />
             </Form.Item>
-            <Form.Item name={"date_range"} label={"Start-End Date"} rules={[{ required: true, message: "Please select start and end date." }]}>
-                <DatePicker.RangePicker allowClear={false} />
+            <Form.Item
+                name={"date_range"} label={"Start-End Date"}
+                initialValue={[ paramStartDate ? dayjs(paramStartDate) : undefined, paramEndDate ? dayjs(paramEndDate) : undefined ]}
+                rules={[{ required: true, message: "Please select start and end date." }]}
+            >
+                <DatePicker.RangePicker
+                    allowClear={false}
+                    onChange={(dates) => {
+                        const newSearchParams = new URLSearchParams(searchParams)
+                        if (dates && dates[0]) {
+                            newSearchParams.set("start_date", dates[0].format("YYYY-MM-DD"))
+                        } else {
+                            newSearchParams.delete("start_date")
+                        }
+                        if (dates && dates[1]) {
+                            newSearchParams.set("end_date", dates[1].format("YYYY-MM-DD"))
+                        } else {
+                            newSearchParams.delete("end_date")
+                        }
+                        setSearchParams(newSearchParams, { replace: true })
+                    }}
+                />
             </Form.Item>
             <Form.Item label={null}>
                 <Button type="primary" htmlType="submit" disabled={!reportInfo}>
@@ -98,18 +168,20 @@ function ReportForm() {
     </>
 }
 
-interface ReportFormObject {
-    report_name: string
-    group_by: string[]
-    time_window: string
-    date_range: [Dayjs, Dayjs]
-}
-
 function ReportTableWrapper() {
+    const dispatch = useAppDispatch()
+
+    const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
+    const goBack = useCallback(() => {
+        navigate({
+            pathname: FORM_ROUTE,
+            search: searchParams.toString()
+        })
+    }, [navigate, searchParams])
+
     const [reportData, setReportData] = useState<FMSReportData>()
 
-    const dispatch = useAppDispatch()
-    const [searchParams, setSearchParams] = useSearchParams()
     const reportName = searchParams.get("report_name")
     useEffect(() => {
         const startDate = searchParams.get("start_date")
@@ -118,7 +190,12 @@ function ReportTableWrapper() {
         const groupBy = searchParams.getAll("group_by")
         if (!reportName || !startDate || !endDate) {
             console.error({ reportName, startDate, endDate })
-            setSearchParams({}, { replace: true })
+            dispatch(notifyError({
+                title: "Invalid Parameters for Reports",
+                description: "Please provide report name and date range.",
+                id: "reports-invalid-parameters"
+            }))
+            goBack()
             return
         }
         dispatch(api.report.getReport(
@@ -130,9 +207,17 @@ function ReportTableWrapper() {
         )).then((response) => {
             setReportData(response.data)
         })
-    }, [dispatch, reportName, searchParams, setSearchParams])
+    }, [dispatch, goBack, reportName, searchParams, setSearchParams])
 
-    return reportData ? <ReportTable {...reportData} /> : null
+    return <>
+        <Button onClick={goBack}>
+            <Space>
+                <ArrowLeftOutlined />
+                {"Back to Search Form"}
+            </Space>
+        </Button>
+        {reportData && <ReportTable {...reportData} />}
+    </>
 }
 
 function ReportTable(reportData: FMSReportData) {
@@ -161,10 +246,9 @@ function ReportTable(reportData: FMSReportData) {
             : []
 
     return <>
-            <Typography.Title key={"report-title"} style={{ marginTop: 0 }}>{reportData.name}</Typography.Title>
+            <Typography.Title style={{ marginTop: 0 }}>{reportData.name}</Typography.Title>
             {"Time Window: "}
             <Select
-                key={"time-window-select"}
                 placeholder={"Select Time-Window"}
                 options={reportData
                     ? reportData.data.map(({ time_window, time_window_label, time_window_data: data }) =>  ({
@@ -175,6 +259,7 @@ function ReportTable(reportData: FMSReportData) {
                 }
                 onChange={setTimewindow}
                 defaultValue={timeWindow}
+                popupMatchSelectWidth={false}
             />
             <Table<RecordType>
                 key={"report-table"}
@@ -184,4 +269,19 @@ function ReportTable(reportData: FMSReportData) {
                 locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={timeWindow ? "No Data Available" : "Select a Time-Window"} /> }}
             />
         </>
+}
+
+function getParams(searchParams: URLSearchParams) {
+    const report_name = searchParams.get("report_name")
+    const start_date = searchParams.get("start_date") ?? undefined
+    const end_date = searchParams.get("end_date") ?? undefined
+    const time_window = searchParams.get("time_window") ?? undefined
+    const group_by = searchParams.getAll("group_by")
+    return {
+        report_name,
+        start_date,
+        end_date,
+        time_window,
+        group_by,
+    }
 }
