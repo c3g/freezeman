@@ -232,9 +232,9 @@ class Migration(migrations.Migration):
             name='Report',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text='Internal name by which a report can be identified.', max_length=100, unique=True)),
+                ('name', models.CharField(default=None, help_text='Internal name by which a report can be identified.', max_length=100, unique=True)),
                 ('display_name', models.CharField(help_text='Display name of a report.', max_length=100)),
-                ('data_model', models.CharField(help_text='Name of the model from which to get data.', max_length=100)),
+                ('data_model', models.CharField(default=None, help_text='Name of the model from which to get data.', max_length=100)),
             ],
             options={
                 'indexes': [models.Index(fields=['name'], name='report_name_idx')],
