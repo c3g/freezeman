@@ -245,13 +245,39 @@ function ReportTable(reportData: FMSReportData) {
     // if you want to add or remove columns, you can do it with this useState
     const [columns] = useState<ColumnsType<RecordType>>(originalColumns)
 
+    const fieldNameToHeader = reportData.headers.reduce<Record<string, typeof reportData.headers[0]>>((acc, header) => {
+        acc[header.name] = header
+        return acc
+    }, {})
+
     const timeWindowData =
         timeWindow
             ? reportData.data.find(({ time_window }) => time_window === timeWindow)?.time_window_data
             : undefined
     const dataSource =
         timeWindowData
-            ? timeWindowData.map<RecordType>((data, index) => ({ ...data, key: index.toString() }))
+            ? timeWindowData.map<RecordType>((data, index) => {
+                const record = { ...data, key: index.toString() }
+                for (const [key, value] of Object.entries(data)) {
+                    switch (fieldNameToHeader[key].data_type) {
+                        case "boolean":
+                            record[key] = value ? "Yes" : "No"
+                            break
+                        case "date":
+                            record[key] = value ? value : "N/A"
+                            break
+                        case "number":
+                            record[key] = value ? Number(value).toLocaleString('fr') : "N/A"
+                            break
+                        case "string":
+                            record[key] = value ? value : "N/A"
+                            break
+                        default:
+                            record[key] = value
+                    }
+                }
+                return record
+            })
             : []
 
     return <>

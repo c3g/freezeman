@@ -565,6 +565,7 @@ export interface FMSReportData {
         display_name: string
         field_order: number
         aggregation: null
+        data_type: "boolean" | "number" | "string" | "date"
     }[]
     data: {
         time_window: string
