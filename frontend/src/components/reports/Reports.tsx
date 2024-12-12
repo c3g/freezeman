@@ -260,8 +260,6 @@ function ReportTableWrapper() {
 }
 
 function ReportTable(reportData: FMSReportData) {
-    const dispatch = useAppDispatch()
-
     type RecordType = NonNullable<NonNullable<FMSReportData['data'][number]['time_window_data']>[number]> & { key: string }
 
     const [timeWindow, setTimewindow] = useState<string | undefined>(reportData.data.find((d) => (d.time_window_data?.length ?? 0) > 0)?.time_window)
@@ -270,17 +268,29 @@ function ReportTable(reportData: FMSReportData) {
         reportData.headers
             .sort((a, b) => a.field_order - b.field_order)
             .map((header) => {
-                let title = header.display_name
                 const key = header.name
                 const dataIndex = header.name
-
+                
+                let title = header.display_name
                 if (header.aggregation) {
                     title = `${header.display_name} (${header.aggregation})`
                 } else if (reportData.grouped_by.includes(header.name)) {
                     title = `${header.display_name} (Grouped By)`
                 }
 
-                return { title, key, dataIndex } 
+                let align: ColumnsType<RecordType>[number]['align']
+                switch (header.data_type) {
+                    case "number":
+                        align = "right"
+                        break
+                    case "date":
+                        align = "center"
+                        break
+                    default:
+                        break
+                }
+
+                return { title, key, dataIndex, align } 
             })
     // if you want to add or remove columns, you can do it with this useState
     const [columns] = useState<ColumnsType<RecordType>>(originalColumns)
@@ -336,11 +346,12 @@ function ReportTable(reportData: FMSReportData) {
                 }
             />
             <Table<RecordType>
-                key={"report-table"}
                 columns={columns}
                 dataSource={dataSource}
                 scroll={{ x: 'max-content' }}
-                locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
+                pagination={{
+                    pageSizeOptions: [10]
+                }}
             />
         </>
 }
