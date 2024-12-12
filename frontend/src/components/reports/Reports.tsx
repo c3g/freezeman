@@ -328,7 +328,7 @@ function ReportTable(reportData: FMSReportData) {
                 columns={columns}
                 dataSource={dataSource}
                 scroll={{ x: 'max-content' }}
-                locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={timeWindow ? "No Data Available" : "Select a Time-Window"} /> }}
+                locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
             />
         </>
 }
