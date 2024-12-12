@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Empty, Form, Select, SelectProps, Space, Table, Typography } from "antd"
+import { Button, DatePicker, Empty, Form, Select, SelectProps, Space, Spin, Table, Typography } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom'
@@ -213,7 +213,7 @@ function ReportTableWrapper() {
     }, [dispatch, goBack, searchParams])
 
     return <>
-        {reportData && <ReportTable {...reportData} />}
+        {reportData ? <ReportTable {...reportData} /> : <Spin />}
         <Button onClick={goBack}>
             <Space>
                 <ArrowLeftOutlined />
