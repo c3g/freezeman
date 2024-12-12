@@ -173,7 +173,7 @@ function ReportTableWrapper() {
     const dispatch = useAppDispatch()
 
     const navigate = useNavigate()
-    const [searchParams, setSearchParams] = useSearchParams()
+    const [searchParams] = useSearchParams()
     const goBack = useCallback(() => {
         navigate({
             pathname: FORM_ROUTE,
@@ -210,7 +210,7 @@ function ReportTableWrapper() {
         )).then((response) => {
             setReportData(response.data)
         })
-    }, [dispatch, goBack, searchParams, setSearchParams])
+    }, [dispatch, goBack, searchParams])
 
     return <>
         {reportData && <ReportTable {...reportData} />}
