@@ -27,12 +27,12 @@ class EnhancedName(TypedDict):
     display_name: str
 
 class ReportInfo(TypedDict):
-    name: str
+    report: EnhancedName
     groups: list[EnhancedName]
     time_windows: list[str]
 
 class ReportHeader(TypedDict):
-    report: EnhancedName
+    name: str
     display_name: str
     field_order: int
     aggregation: str
@@ -145,7 +145,7 @@ def get_report_as_excel(report_data) -> bytes:
     return out_stream.getvalue()
 
 
-def list_reports() -> EnhancedName:
+def list_reports() -> list[EnhancedName]:
     """
     Lists all reports that are currently available.
 

@@ -300,6 +300,10 @@ class Migration(migrations.Migration):
             model_name='productiondata',
             constraint=models.UniqueConstraint(fields=('experiment_run', 'library', 'lane'), name='productiondata_natural_key'),
         ),
+        migrations.AddConstraint(
+            model_name='metricfield',
+            constraint=models.UniqueConstraint(fields=('report', 'field_order'), name='metricfield_uniqueorder_key'),
+        ),
         migrations.RunPython(
             initialize_report,
             reverse_code=migrations.RunPython.noop,

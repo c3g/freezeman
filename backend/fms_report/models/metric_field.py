@@ -14,3 +14,8 @@ class MetricField(models.Model):
     field_order = models.PositiveIntegerField(help_text="Field order in the report columns.")
     display_name = models.CharField(max_length=REPORTING_NAME_FIELD_LENGTH, help_text="Human readable field name.")
     data_type = models.CharField(choices=FieldDataType.choices, max_length=REPORTING_NAME_FIELD_LENGTH, help_text="Data type contained in the field.")
+
+    class Meta:
+      constraints = [
+          models.UniqueConstraint(fields=["report", "field_order"], name="metricfield_uniqueorder_key")
+      ]
