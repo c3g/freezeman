@@ -130,6 +130,12 @@ const MENU_ITEMS = [
     key: "libraries",
   },
   {
+    url: "/experiment-runs",
+    icon: <HddOutlined />,
+    text: "Experiments",
+    key: "experiment-runs",
+  },
+  {
     url: "/datasets",
     icon: <FileZipOutlined />,
     text: "Datasets",
@@ -189,12 +195,6 @@ const MENU_ITEMS = [
     icon: <ExperimentOutlined />,
     text: "Protocols",
     key: "process-measurements",
-  },
-  {
-    url: "/experiment-runs",
-    icon: <HddOutlined />,
-    text: "Experiments",
-    key: "experiment-runs",
   },
   {
     url: "/users",
