@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Empty, Form, Select, SelectProps, Space, Spin, Table, Typography } from "antd"
+import { Button, DatePicker, Empty, Form, Select, SelectProps, Space, Spin, Table, Tabs, Typography } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom'
@@ -18,8 +18,43 @@ const LIST_ROUTE = `${BASE_ROUTE}list/`
 
 export function Reports() {
     const [searchParams] = useSearchParams()
+
+    const dispatch = useAppDispatch()
+    const params = getParams(searchParams)
+    const exportOnClick = useCallback(() => {
+        if (!params.report_name || !params.start_date || !params.end_date) {
+            dispatch(notifyError({
+                title: "Invalid Parameters for Reports",
+                description: "Please provide report name and date range before exporting.",
+                id: "reports-invalid-parameters"
+            }))
+            return
+        }
+        dispatch(api.report.getReportAsExcel(
+            params.report_name,
+            params.start_date,
+            params.end_date,
+            params.time_window,
+            params.group_by
+        )).then((response) => {
+            return downloadFromFile(response.filename, response.data)
+        }).catch((error) => {
+            dispatch(notifyError({
+                title: "Failed to Download Report",
+                description: error.message,
+                id: "reports-download-failed"
+            }))
+        })
+    }, [dispatch, params])
+
     return <>
-        <AppPageHeader title={"Reports"}/>
+        <AppPageHeader
+            title={"Reports"}
+            extra={
+                <Button onClick={exportOnClick} disabled={!params.report_name || !params.start_date || !params.end_date}>
+                    Export to Excel
+                </Button>
+            }/>
         <PageContent>
             <Routes>
                 <Route path={FORM_ROUTE.slice(BASE_ROUTE.length)} element={<ReportForm />} />
@@ -288,41 +323,18 @@ function ReportTable(reportData: FMSReportData) {
     return <>
             <Typography.Title italic style={{ marginTop: 0, marginBottom: 0 }}>{reportData.report.display_name} report</Typography.Title>
             <Typography.Title level={4} style={{ marginTop: 0, marginLeft: '2rem' }}>From {reportData.start_date} To {reportData.end_date}</Typography.Title>
-            <div style={{ marginBottom: '0.5em', display: 'flex', justifyContent: 'space-between' }}>
-                <div>
-                    {"Time Window: "}
-                    <Select
-                        placeholder={"Select Time-Window"}
-                        options={reportData
-                            ? reportData.data.map(({ time_window, time_window_label, time_window_data: data }) =>  ({
-                                value: time_window,
-                                label: `${time_window_label} (${data ? data.length : 0})`
-                            }))
-                            : []
-                        }
-                        onChange={setTimewindow}
-                        defaultValue={timeWindow}
-                        popupMatchSelectWidth={false}
-                    />
-                </div>
-                <Button onClick={() => {
-                    dispatch(api.report.getReportAsExcel(
-                        reportData.report.name,
-                        reportData.start_date,
-                        reportData.end_date,
-                        reportData.time_window,
-                        reportData.grouped_by
-                    )).then((response) => {
-                        return downloadFromFile(response.filename, response.data)
-                    }).catch((error) => {
-                        dispatch(notifyError({
-                            title: "Failed to Download Report",
-                            description: error.message,
-                            id: "reports-download-failed"
-                        }))
-                    })
-                }}>Export to Excel</Button>
-            </div>
+            <Tabs
+                className={"ant-tabs-no-content"}
+                activeKey={timeWindow}
+                onChange={(key) => setTimewindow(key)}
+                type={"card"}
+                items={
+                    reportData.data.map(({ time_window, time_window_label, time_window_data }) => ({
+                        key: time_window,
+                        label: `${time_window_label} (${time_window_data?.length ?? 0})`,
+                    }))
+                }
+            />
             <Table<RecordType>
                 key={"report-table"}
                 columns={columns}
