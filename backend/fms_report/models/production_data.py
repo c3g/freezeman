@@ -41,3 +41,8 @@ class ProductionData(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["experiment_run", "library", "lane"], name="productiondata_natural_key")
         ]
+
+    def save(self, *args, **kwargs):
+        # Normalize and validate before saving, always!
+        self.full_clean()
+        super().save(*args, **kwargs)  # Save the object

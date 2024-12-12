@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 
 from django.utils import timezone
 
@@ -23,10 +24,10 @@ class ProductionTrackingTest(TestCase):
         self.assertIsNone(production_tracking.validation_timestamp)
 
     def test_duplicate(self):
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             try:
                 ProductionTracking.objects.create(extracted_readset=self.readset, validation_timestamp=self.timestamp)
                 ProductionTracking.objects.create(extracted_readset=self.readset, validation_timestamp=self.timestamp)
-            except IntegrityError as e:
-                self.assertIn('Key (extracted_readset_id)=(1) already exists.', str(e))
+            except ValidationError as e:
+                self.assertTrue("extracted_readset" in e.message_dict)
                 raise e

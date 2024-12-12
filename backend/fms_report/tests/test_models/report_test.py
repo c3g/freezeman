@@ -9,7 +9,7 @@ class ReportTest(TestCase):
     def setUp(self):
         self.name = "production_report_test"
         self.display_name = "Production TEST"
-        self.data_model = "production_data"
+        self.data_model = "ProductionData"
 
     def test_report(self):
         report = Report.objects.create(name=self.name, display_name=self.display_name, data_model=self.data_model)
@@ -19,18 +19,18 @@ class ReportTest(TestCase):
 
     
     def test_missing_name(self):
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             try:
                 Report.objects.create(display_name=self.display_name, data_model=self.data_model)
-            except IntegrityError as e:
-                self.assertIn('null value in column "name" violates not-null constraint', str(e))
+            except ValidationError as e:
+                self.assertTrue("name" in e.message_dict)
                 raise e
 
     def test_duplicate(self):
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             try:
                 Report.objects.create(name=self.name, display_name=self.display_name, data_model=self.data_model)
                 Report.objects.create(name=self.name, display_name=self.display_name, data_model=self.data_model)
-            except IntegrityError as e:
-                self.assertIn('Key (name)=(production_report_test) already exists.', str(e))
+            except ValidationError as e:
+                self.assertTrue("name" in e.message_dict)
                 raise e

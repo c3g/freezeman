@@ -74,14 +74,14 @@ def get_date_range_with_window(start_date: str, end_date: str, time_window: Time
         case TimeWindow.WEEKLY:
             window_time_series = time_series - pd.to_timedelta(time_series.dt.dayofweek, unit="D")
         case TimeWindow.DAILY:
-             window_time_series = time_series
+            window_time_series = time_series
 
-    date_range = pd.to_datetime(time_series, unit='D')
-    time_window_range = pd.to_datetime(window_time_series, unit='D')
+    date_range = [datetime.date().isoformat() for datetime in pd.to_datetime(time_series, unit='D')]
+    time_window_range = [datetime.date().isoformat() for datetime in pd.to_datetime(window_time_series, unit='D')]
     return date_range, time_window_range
 
 
-def human_readable_time_window(date: datetime, time_window: TimeWindow) -> str:
+def human_readable_time_window(date: str, time_window: TimeWindow) -> str:
     """
     Provides a human readable label to describe a time window.
 
@@ -93,13 +93,14 @@ def human_readable_time_window(date: datetime, time_window: TimeWindow) -> str:
         String label that best describes the time window to which the date belong.
     """
     time_window_label = None
+    date_obj = datetime.date.fromisoformat(date)
     match time_window:
         case TimeWindow.MONTHLY:
-            time_window_label = f"{date.strftime('%B')} {date.year}"
+            time_window_label = f"{date_obj.strftime('%B')} {date_obj.year}"
         case TimeWindow.WEEKLY:
-            time_window_label = f"Week-{date.strftime('%U')} {date.year}"
+            time_window_label = f"Week-{date_obj.isocalendar()[1]:02} {date_obj.year}"
         case TimeWindow.DAILY:
-            time_window_label = date
+            time_window_label = date_obj.isoformat()
     return time_window_label
 
 
@@ -152,7 +153,7 @@ def list_reports() -> list[EnhancedName]:
     Returns:
         List of name and display name dictionary for each report.
     """
-    return Report.objects.values("name", "display_name")
+    return [{"name": values["name"], "display_name": values["display_name"]} for values in Report.objects.all().values("name", "display_name")]
 
 
 def list_report_information(report_name: str) -> ReportInfo:
@@ -217,15 +218,15 @@ def get_report(report_name: str, grouped_by: List[str], time_window: TimeWindow,
     current_data = {}
     for date, window in zip(date_range, date_time_windows):
         current_window = current_data.get("time_window", None)
-        if current_window is not None and not current_window == window.date():
+        if current_window is not None and not current_window == window:
                 data.append(current_data)
                 current_data = {}
-        current_data["time_window"] = window.date()
+        current_data["time_window"] = window
         if current_data.get("time_window_start", None) is None:
-            current_data["time_window_label"] = human_readable_time_window(date=window.date(), time_window=time_window)
-            current_data["time_window_start"] = date.date()
-            current_data["time_window_data"] = report_by_time_window.get(window.date(), [])
-        current_data["time_window_end"] = date.date()
+            current_data["time_window_label"] = human_readable_time_window(date=window, time_window=time_window)
+            current_data["time_window_start"] = date
+            current_data["time_window_data"] = report_by_time_window.get(datetime.date.fromisoformat(window), [])
+        current_data["time_window_end"] = date
     data.append(current_data)
     report_data["data"] = data
 

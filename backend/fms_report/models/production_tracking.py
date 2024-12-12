@@ -13,3 +13,8 @@ class ProductionTracking(models.Model):
         indexes = [
             models.Index(fields=['validation_timestamp'], name='prodtracking_timestamp_idx'),
         ]
+
+    def save(self, *args, **kwargs):
+        # Normalize and validate before saving, always!
+        self.full_clean()
+        super().save(*args, **kwargs)  # Save the object
