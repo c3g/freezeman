@@ -183,12 +183,14 @@ function ReportTableWrapper() {
 
     const [reportData, setReportData] = useState<FMSReportData>()
 
-    const reportName = searchParams.get("report_name")
     useEffect(() => {
-        const startDate = searchParams.get("start_date")
-        const endDate = searchParams.get("end_date")
-        const timeWindow = searchParams.get("time_window") ?? "Monthly"
-        const groupBy = searchParams.getAll("group_by")
+        const {
+            report_name: reportName,
+            start_date: startDate,
+            end_date: endDate,
+            time_window: timeWindow = "Monthly",
+            group_by: groupBy,
+        } = getParams(searchParams)
         if (!reportName || !startDate || !endDate) {
             console.error({ reportName, startDate, endDate })
             dispatch(notifyError({
@@ -208,7 +210,7 @@ function ReportTableWrapper() {
         )).then((response) => {
             setReportData(response.data)
         })
-    }, [dispatch, goBack, reportName, searchParams, setSearchParams])
+    }, [dispatch, goBack, searchParams, setSearchParams])
 
     return <>
         {reportData && <ReportTable {...reportData} />}
@@ -332,7 +334,7 @@ function ReportTable(reportData: FMSReportData) {
 }
 
 function getParams(searchParams: URLSearchParams) {
-    const report_name = searchParams.get("report_name")
+    const report_name = searchParams.get("report_name") ?? undefined
     const start_date = searchParams.get("start_date") ?? undefined
     const end_date = searchParams.get("end_date") ?? undefined
     const time_window = searchParams.get("time_window") ?? undefined
