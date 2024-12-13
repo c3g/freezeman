@@ -342,6 +342,7 @@ function ReportTable(reportData: FMSReportData) {
                     reportData.data.map(({ time_window, time_window_label, time_window_data }) => ({
                         key: time_window,
                         label: `${time_window_label} (${time_window_data?.length ?? 0})`,
+                        disabled: (time_window_data?.length ?? 0) === 0
                     }))
                 }
             />
