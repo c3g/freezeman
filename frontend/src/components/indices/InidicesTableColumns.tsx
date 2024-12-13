@@ -24,11 +24,16 @@ enum IndexColumnID {
 	SEQUENCE_5_PRIME = 'SEQUENCE_5_PRIME',
 }
 
+const SMALL_COLUMN_WIDTH = 75
+const MEDIUM_COLUMN_WIDTH = 120
+const LARGE_COLUMN_WIDTH = 240
+
 export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexColumn>} = {
 	[IndexColumnID.ID]: {
 		columnID: IndexColumnID.ID,
 		title: 'ID',
 		dataIndex: ['index', 'id'],
+		width: SMALL_COLUMN_WIDTH,
 		render: (id, {index}) =>
         <Link to={`/indices/${index.id}`}>
           <div>{id}</div>
@@ -38,6 +43,7 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 		columnID: IndexColumnID.INDEX_NAME,
 		title: 'Index Name',
 		dataIndex: ['index', 'name'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (name, {index}) =>
 			<Link to={`/indices/${index.id}`}>
 			<FixedLengthText text={name} fixedLength={50} />
@@ -47,6 +53,7 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 		columnID: IndexColumnID.INDEX_SET,
 		title: 'Index Sets',
 		dataIndex: ['index', 'index_sets'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (_, {index}) => { return index && index.index_sets &&
       <DropdownListItems listItems={index.index_sets}/>
     }
@@ -55,13 +62,15 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 		columnID: IndexColumnID.INDEX_STRUCTURE,
 		title: "Index Structure",
     	dataIndex: ['index', 'index_structure'],
+		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, {index}) => index.index_structure
 	},
 	[IndexColumnID.SEQUENCE_3_PRIME]: {
 		columnID: IndexColumnID.SEQUENCE_3_PRIME,
 		title: "Sequence 3 prime (i7)",
       	dataIndex: ['index', 'sequences_3prime'],
-		  render: (_, {index}) => { return index && index.sequences_3prime &&
+		width: MEDIUM_COLUMN_WIDTH,
+		render: (_, {index}) => { return index && index.sequences_3prime &&
 			<DropdownListItems listItems={index.sequences_3prime.map(sequence =>
 			  sequence && <WithSequenceRenderComponent objectID={sequence} render={sequence => <>{sequence.value}</>} />)}
 			/>
@@ -71,7 +80,8 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 		columnID: IndexColumnID.SEQUENCE_5_PRIME,
 		title: "Sequence 5 prime (i5)",
       	dataIndex: ['index', 'sequences_5prime'],
-		  render: (_, {index}) => { return index && index.sequences_5prime &&
+		width: MEDIUM_COLUMN_WIDTH,
+		render: (_, {index}) => { return index && index.sequences_5prime &&
 			<DropdownListItems listItems={index.sequences_5prime.map(sequence =>
 			  sequence && <WithSequenceRenderComponent objectID={sequence} render={sequence => <>{sequence.value}</>} />
 			)}

@@ -87,18 +87,20 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 						<FiltersBar filters={filters} clearFilters={clearFilters}></FiltersBar>
 					}
 					<Table
+						className={"ant-table-cells-short ant-table-header-short"}
 						rowSelection={rowSelection}
 						dataSource={samples ?? []}
 						columns={tableColumns}
 						rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
-            scroll={{ y: 550 }}
+						scroll={{ x: '100%', y: '70vh' }}
 						onChange={handleTableOnChange}
 						pagination={pagination ? false : undefined}
 						loading={loading}
+						bordered
 					/>
 					{pagination &&
 						<Pagination
-							className="ant-table-pagination ant-table-pagination-right"
+							className="ant-table-pagination"
 							showSizeChanger={true}
 							showQuickJumper={true}
 							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}

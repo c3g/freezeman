@@ -250,15 +250,15 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						scroll={{ y: 700 }}
+						scroll={{ x: '100%', y: '70vh' }}
 						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
-
+						className={"ant-table-cells-short ant-table-header-short"}
 					/>
 					<Pagination
-						className="ant-table-pagination ant-table-pagination-right"
+						className="ant-table-pagination"
 						showSizeChanger={true}
 						showQuickJumper={true}
 						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
