@@ -331,8 +331,9 @@ function ReportTable(reportData: FMSReportData) {
             : []
 
     return <>
-            <Typography.Title italic style={{ marginTop: 0, marginBottom: 0 }}>{reportData.report.display_name} report</Typography.Title>
-            <Typography.Title level={4} style={{ marginTop: 0, marginLeft: '2rem' }}>From {reportData.start_date} To {reportData.end_date}</Typography.Title>
+            <Typography.Title italic style={{ display: 'inline' }}>{reportData.report.display_name} report</Typography.Title>
+            <Typography.Title level={4} style={{ marginLeft: '1rem', display: 'inline' }}>from {reportData.start_date} to {reportData.end_date}</Typography.Title>
+            <div style={{ marginBottom: '1rem' }} />
             <Tabs
                 className={"ant-tabs-no-content"}
                 activeKey={timeWindow}
