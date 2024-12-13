@@ -159,7 +159,7 @@ function ReportForm() {
                     }}
                 />
             </Form.Item>
-            <Form.Item name={"time_window"} label={"Time Window"} initialValue={"Monthly"}>
+            <Form.Item name={"time_window"} label={"Time Window"} initialValue={paramTimeWindow ?? "Monthly"}>
                 <Select<FMSReportInformation["time_windows"][number]>
                     placeholder={"Select Time Window"}
                     options={reportInfo ? reportInfo.time_windows.map((name) => ({ value: name, label: name })) : []}
