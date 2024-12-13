@@ -225,3 +225,7 @@ div.ant-collapse-item  {
   justify-content: flex-end;
   margin: 12px
 }
+
+.ant-tabs-no-content .ant-tabs-content-holder {
+  display: none;
+}

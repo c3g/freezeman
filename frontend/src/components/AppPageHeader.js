@@ -1,5 +1,5 @@
 import React from "react";
-import { PageHeader } from '@ant-design/pro-layout';
+import { PageHeader, PageHeaderProps } from '@ant-design/pro-layout';
 
 const style = {
   backgroundColor: "rgba(0, 0, 0, 0.03)",
@@ -7,7 +7,12 @@ const style = {
   flex: "0",
 };
 
-const AppPageHeader = ({...props}) =>
+/**
+ * 
+ * @param {PageHeaderProps} props
+ * @returns 
+ */
+const AppPageHeader = (props) =>
   <PageHeader
     ghost={false}
     style={style}

@@ -1,8 +1,19 @@
 import {
-  AuditOutlined, BarcodeOutlined, DashboardOutlined,
-  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SettingOutlined, SyncOutlined, TableOutlined,
+  AuditOutlined,
+  BarcodeOutlined,
+  DashboardOutlined,
+  ExperimentOutlined,
+  FileZipOutlined,
+  FlagOutlined,  
+  HddOutlined,
+  InfoCircleOutlined,
+  LogoutOutlined,
+  ProjectOutlined,
+  SettingOutlined,
+  SyncOutlined,
+  TableOutlined,
   TeamOutlined,
-  UserOutlined
+  UserOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Spin, Typography } from "antd";
 import React, { useEffect } from "react";
@@ -45,6 +56,7 @@ import WorkflowDefinitionsRoute from "../workflows/WorkflowDefinitionsRoute";
 import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
+import { Reports } from "../reports/Reports";
 
 
 const { Title } = Typography;
@@ -118,18 +130,6 @@ const MENU_ITEMS = [
     key: "libraries",
   },
   {
-    url: "/individuals",
-    icon: <TeamOutlined />,
-    text: "Individuals",
-    key: "individuals",
-  },
-  {
-    url: "/process-measurements",
-    icon: <ExperimentOutlined />,
-    text: "Protocols",
-    key: "process-measurements",
-  },
-  {
     url: "/experiment-runs",
     icon: <HddOutlined />,
     text: "Experiments",
@@ -140,6 +140,12 @@ const MENU_ITEMS = [
     icon: <FileZipOutlined />,
     text: "Datasets",
     key: "datasets",
+  },
+  {
+    url: "/reports",
+    icon: <FlagOutlined />,
+    text: "Reports",
+    key: "reports",
   },
   {
     icon: <SettingOutlined />,
@@ -177,6 +183,18 @@ const MENU_ITEMS = [
         key: "workflows",
       },
     ]
+  },
+  {
+    url: "/individuals",
+    icon: <TeamOutlined />,
+    text: "Individuals",
+    key: "individuals",
+  },
+  {
+    url: "/process-measurements",
+    icon: <ExperimentOutlined />,
+    text: "Protocols",
+    key: "process-measurements",
   },
   {
     url: "/users",
@@ -395,6 +413,11 @@ const App = ({userID, usersByID, logOut, get}) => {
             <Route path="/instruments/*" element={
               <PrivateNavigate>
                 <InstrumentsRoute />
+              </PrivateNavigate>
+            }/>
+            <Route path="/reports/*" element={
+              <PrivateNavigate>
+                <Reports />
               </PrivateNavigate>
             } />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
