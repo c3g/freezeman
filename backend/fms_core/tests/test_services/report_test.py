@@ -35,5 +35,8 @@ class ReportServicesTestCase(TestCase):
         label = human_readable_time_window(date="2024-01-30", time_window=TimeWindow.WEEKLY)
         self.assertEqual(label, "Week-05 2024")
 
+        label = human_readable_time_window(date="2024-12-30", time_window=TimeWindow.WEEKLY)
+        self.assertEqual(label, "Week-01 2025")
+
         label = human_readable_time_window(date="2024-01-30", time_window=TimeWindow.DAILY)
         self.assertEqual(label, "2024-01-30")

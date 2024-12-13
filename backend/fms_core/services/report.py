@@ -98,7 +98,7 @@ def human_readable_time_window(date: str, time_window: TimeWindow) -> str:
         case TimeWindow.MONTHLY:
             time_window_label = f"{date_obj.strftime('%B')} {date_obj.year}"
         case TimeWindow.WEEKLY:
-            time_window_label = f"Week-{date_obj.isocalendar()[1]:02} {date_obj.year}"
+            time_window_label = f"Week-{date_obj.isocalendar()[1]:02} {date_obj.isocalendar()[0]}"
         case TimeWindow.DAILY:
             time_window_label = date_obj.isoformat()
     return time_window_label
