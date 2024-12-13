@@ -14,8 +14,4 @@ class Migration(migrations.Migration):
             model_name='metric',
             index=models.Index(fields=['name'], name='metric_name_idx'),
         ),
-        migrations.AddIndex(
-            model_name='metric',
-            index=models.Index(fields=['name', 'value_numeric'], name='metric_name_value_numeric_idx'),
-        ),
     ]

@@ -26,7 +26,6 @@ class Metric(TrackedModel):
     class Meta:
         indexes = [
             models.Index(fields=['name'], name='metric_name_idx'),
-            models.Index(fields=['name', 'value_numeric'], name='metric_name_value_numeric_idx'),
         ]
 
     def __str__(self):
