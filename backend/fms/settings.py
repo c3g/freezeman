@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
 
     'fms_core.apps.FmsCoreConfig',
+    'fms_report.apps.FmsReportConfig',
 ]
 
 MIDDLEWARE = [

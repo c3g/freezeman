@@ -43,6 +43,7 @@ from .viewsets import (
     CoordinateViewSet,
     MetricViewSet,
     SamplesheetViewSet,
+    ReportViewSet,
 )
 
 __all__ = ["router"]
@@ -90,3 +91,4 @@ router.register(r"step-histories", StepHistoryViewSet, basename="step-history")
 router.register(r"coordinates", CoordinateViewSet)
 router.register(r"metrics", MetricViewSet)
 router.register(r"samplesheets", SamplesheetViewSet, basename="samplesheets")
+router.register(r"reports", ReportViewSet, basename="reports")
