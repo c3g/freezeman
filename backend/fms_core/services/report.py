@@ -104,7 +104,7 @@ def human_readable_time_window(date: str, time_window: TimeWindow) -> str:
     return time_window_label
 
 
-def get_report_as_excel(report_data) -> bytes:
+def get_report_as_excel(report_data: ReportData) -> bytes:
     """
     Converts the report data to an excel workbook bytes stream to be returned to the user.
 
