@@ -112,6 +112,10 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
                 "GGCGTTTC",
                 "TTGTAAGA"
             ],
+            index_adapter_3_prime = "",
+            insert_adapter_3_prime = "",
+            index_adapter_5_prime = "AATGATACGGCGACCACCGAGATCT",
+            insert_adapter_5_prime = "ACACTCTTTCCCTACACGACGCTCTTCCGATCT",
             library_kit= "miRNA NEBNext",
             capture_kit= "MCC-Seq",
             capture_baits= "MCC-Seq ImmuneV2 (ImmuneV3B)",

@@ -70,6 +70,10 @@ class RunInfoSample:
     index_name: Optional[str] = None
     index_sequence_3_prime: Optional[List[str]] = None
     index_sequence_5_prime: Optional[List[str]] = None
+    index_adapter_3_prime: Optional[List[str]] = None
+    insert_adapter_3_prime: Optional[List[str]] = None
+    index_adapter_5_prime: Optional[List[str]] = None
+    insert_adapter_5_prime: Optional[List[str]] = None
     library_kit: Optional[str] = None
 
     # capture fields
@@ -259,6 +263,10 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
         row.index_sequence_3_prime = index.list_3prime_sequences
         row.index_sequence_5_prime = index.list_5prime_sequences
+        row.index_adapter_3_prime = index.index_structure.flanker_3prime_forward.value if index.index_structure.flanker_3prime_forward else None
+        row.insert_adapter_3_prime = index.index_structure.flanker_3prime_reverse.value if index.index_structure.flanker_3prime_reverse else None
+        row.index_adapter_5_prime = index.index_structure.flanker_5prime_reverse.value if index.index_structure.flanker_5prime_reverse else None
+        row.insert_adapter_5_prime = index.index_structure.flanker_5prime_forward.value if index.index_structure.flanker_5prime_forward else None
 
         if index.index_sets is not None:
             row.index_sets = [{"obj_id": index_set_id, "name": index_set_name} for index_set_id, index_set_name in index.index_sets.values_list("id", "name")]
