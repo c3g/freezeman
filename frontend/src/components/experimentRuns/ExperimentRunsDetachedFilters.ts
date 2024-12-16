@@ -6,7 +6,7 @@ export enum RUN_TYPES {
     ILLUMINA = "Illumina",
     AXIOM = "Axiom",
     DNBSEQ = "DNBSEQ",
-    INFINIUM =  "Infinium Global Screening Array-24",
+    INFINIUM =  "Infinium",
 }
 
 export enum PROGRESS_FLAGS {

@@ -16,7 +16,7 @@ from fms_core.services.project import create_project
 class ExperimentRunInfiniumTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_Infinium_24_v4_8_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_Infinium_v4_14_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "EQ00539851"
@@ -55,7 +55,7 @@ class ExperimentRunInfiniumTestCase(TestCase):
         content_type_process = ContentType.objects.get_for_model(Process)
 
         # Experiment Run tests
-        self.assertEqual(experiment_run_obj.run_type.name, 'Infinium Global Screening Array-24')
+        self.assertEqual(experiment_run_obj.run_type.name, 'Infinium')
         self.assertEqual(experiment_run_obj.instrument.name, 'iScan_1')
         self.assertEqual(experiment_run_obj.process.comment, self.comment)
         self.assertEqual(pm_obj.comment, self.comment)

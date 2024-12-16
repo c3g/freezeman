@@ -6,7 +6,7 @@ from fms_core.models import Platform, Protocol, RunType
 
 class RunTypeTest(TestCase):
     def setUp(self):
-        self.name = "Infinium Global Screening Array-24"
+        self.name = "Infinium"
         self.platform, _ = Platform.objects.get_or_create(name="ILLUMINA_ARRAY")
         self.protocol, _ = Protocol.objects.get_or_create(name="Illumina Infinium Preparation")
         self.run_type, _ = RunType.objects.get_or_create(name=self.name, platform=self.platform, protocol=self.protocol)

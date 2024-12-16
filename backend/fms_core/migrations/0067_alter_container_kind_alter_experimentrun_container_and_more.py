@@ -4,6 +4,10 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def rename_infinium_runtype(apps, schema_editor):
+    RunType = apps.get_model('fms_core', 'RunType')
+    RunType.objects.filter(name='Infinium Global Screening Array-24').update(name='Infinium')
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -25,5 +29,9 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='container',
             field=models.ForeignKey(help_text='Container in which the sample is placed.', limit_choices_to={'kind__in': ('axiom 96-format array pmra', 'axiom 96-format array ukbb', 'infinium epic 8 beadchip', 'infinium gs 24 beadchip', 'dnbseq-g400 flowcell', 'dnbseq-t7 flowcell', 'illumina-novaseq-x-1.5b flowcell', 'illumina-novaseq-x-10b flowcell', 'illumina-novaseq-x-25b flowcell', 'illumina-novaseq-sp flowcell', 'illumina-novaseq-s1 flowcell', 'illumina-novaseq-s2 flowcell', 'illumina-novaseq-s4 flowcell', 'illumina-miseq-v2 flowcell', 'illumina-miseq-v3 flowcell', 'illumina-miseq-micro flowcell', 'illumina-miseq-nano flowcell', 'illumina-iseq-100 flowcell', 'tube', 'tube strip 2x1', 'tube strip 3x1', 'tube strip 4x1', 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate', '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.container'),
+        ),
+        migrations.RunPython(
+            rename_infinium_runtype,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
