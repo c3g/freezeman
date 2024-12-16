@@ -95,6 +95,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             external_project_id= EXTERNAL_PROJECT_ID,
             external_project_name= EXTERNAL_PROJECT_NAME,
             pool_volume_ratio= 0.5,
+            tissue_source = "BLOOD",
             expected_sex= "M",
             ncbi_taxon_id= 9606,
             taxon_name= "Homo sapiens",
