@@ -110,7 +110,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     const closeButton = <Button type='default' shape="circle" icon={<CloseOutlined/>} onClick={closeLaunchPanel}/>
 
     return (
-        <Row align='middle' justify='center' wrap={false}>
+        <Row align='middle' justify='center' wrap={false} style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
           <Col flex="auto" style={{textAlign: 'center'}}>{getContents()}</Col>
           <Col span="32px">{panelIsOpen ? closeButton : openButton}</Col>  
         </Row>

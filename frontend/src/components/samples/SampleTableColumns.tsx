@@ -49,12 +49,17 @@ export enum SampleColumnID {
 	SAMPLE_COUNT = 'SAMPLE_COUNT',
 }
 
+const SMALL_COLUMN_WIDTH = 90
+const MEDIUM_COLUMN_WIDTH = 120
+const LARGE_COLUMN_WIDTH = 270
+
 export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
 
 	[SampleColumnID.ID]: {
 		columnID: SampleColumnID.ID,
 		title: 'ID',
 		dataIndex: ['sample', 'id'],
+		width: (SMALL_COLUMN_WIDTH + MEDIUM_COLUMN_WIDTH)/2,
 		render: (_, { sample }) =>
 			sample && (
 				<Link to={`/samples/${sample.id}`}>
@@ -66,8 +71,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 	[SampleColumnID.KIND]: {
 		columnID: SampleColumnID.KIND,
 		title: 'Kind',
-    width: 90,
 		dataIndex: ['sample', 'sample_kind'],
+    	width: SMALL_COLUMN_WIDTH,
 		render: (_, { sample }) => sample && <SampleKindTag sampleKindID={sample.sample_kind} />,
 	},
 
@@ -75,6 +80,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.NAME,
 		title: 'Name',
 		dataIndex: ['sample', 'name'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (name, { sample }) =>
 			sample && (
 				<Link to={`/samples/${sample.id}`}>
@@ -92,6 +98,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.INDIVIDUAL,
 		title: 'Individual',
 		dataIndex: ['sample', 'individual'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample &&
@@ -111,6 +118,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.PARENT_CONTAINER,
 		title: 'Parent Container Barcode',
 		dataIndex: ['sample', 'container'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample &&
@@ -136,6 +144,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.PARENT_COORDINATES,
 		title: 'Parent Coords',
 		dataIndex: ['sample', 'coordinate'],
+		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample &&
@@ -163,6 +172,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.CONTAINER_NAME,
 		title: 'Container Name',
 		dataIndex: ['sample', 'container'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample &&
@@ -181,6 +191,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.CONTAINER_BARCODE,
 		title: 'Container Barcode',
 		dataIndex: ['sample', 'container'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample &&
@@ -199,6 +210,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.COORDINATES,
 		title: 'Coords',
 		dataIndex: ['sample', 'coordinate'],
+		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample &&
@@ -219,6 +231,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		dataIndex: ['sample', 'volume'],
 		align: 'right',
 		className: 'table-column-numbers',
+		width: MEDIUM_COLUMN_WIDTH
 	},
 
 	[SampleColumnID.CONCENTRATION]: {
@@ -228,6 +241,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		align: 'right',
 		className: 'table-column-numbers',
 		render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
+		width: MEDIUM_COLUMN_WIDTH
 	},
 
 	[SampleColumnID.QC_FLAG]: {
@@ -243,12 +257,14 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			}
 			return null
 		},
+		width: MEDIUM_COLUMN_WIDTH
 	},
 
 	[SampleColumnID.CREATION_DATE]: {
 		columnID: SampleColumnID.CREATION_DATE,
 		title: 'Creation Date',
 		dataIndex: ['sample', 'creation_date'],
+		width: MEDIUM_COLUMN_WIDTH
 	},
 
 	[SampleColumnID.DEPLETED]: {
@@ -256,6 +272,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		title: 'Depleted',
 		dataIndex: ['sample', 'depleted'],
 		render: (depleted) => <Depletion depleted={depleted} />,
+		width: MEDIUM_COLUMN_WIDTH
 	},
 
 	[SampleColumnID.PROJECT]: {
@@ -263,6 +280,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		title: 'Project',
 		dataIndex: ['sample', 'project'],
 		sorter: false,	// Disable project sorting, due to pools not being sortable by project
+		width: LARGE_COLUMN_WIDTH,
 		render: (projectID) =>
 			projectID && (
 				<WithProjectRenderComponent
@@ -278,6 +296,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		title: "Cohort",
 		dataIndex: ["derived_samples", "biosample", "individual", "cohort"],
 		sorter: true,
+		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			const individual = sample?.individual
 			return (individual !== undefined &&
@@ -290,6 +309,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.SAMPLE_COUNT,
 		title: 'Samples in pool',
 		dataIndex: ['sample', 'id'],
+		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample && sample.is_pool
@@ -329,7 +349,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 	[SampleColumnID.ID]: {
 		type: FILTER_TYPE.INPUT_OBJECT_ID,
 		key: UNDEFINED_FILTER_KEY,
-		label: 'Sample ID'
+		label: 'Sample ID',
 	},
 	[SampleColumnID.KIND]: {
 		type: FILTER_TYPE.SELECT,
@@ -344,6 +364,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Name',
 		batch: true,
+		width: 'max-content'
 	},
 	[SampleColumnID.INDIVIDUAL]: {
 		type: FILTER_TYPE.INPUT,
@@ -374,6 +395,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		label: 'Container Barcode',
 		recursive: true,
 		batch: true,
+		width: 'max-content'
 	},
 	[SampleColumnID.COORDINATES]: {
 		type: FILTER_TYPE.INPUT,

@@ -52,13 +52,17 @@ export enum ContainerColumnID {
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
+const SMALL_COLUMN_WIDTH = 90
+const MEDIUM_COLUMN_WIDTH = 120
+const LARGE_COLUMN_WIDTH = 240
+
 export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : ContainerColumn} = {
 	[ContainerColumnID.ID]: {
 		columnID: ContainerColumnID.ID,
 		title: 'ID',
 		dataIndex: ['container', 'id'],
 		sorter: true,
-    width: 115,
+    	width: SMALL_COLUMN_WIDTH,
 		render: (_, {container}) => {
 			return container && <Link to={`/containers/${container.id}`}>{container.id}</Link>
 		}
@@ -67,13 +71,15 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.NAME,
 		title: 'Name',
 		dataIndex: ['container', 'name'],
-		sorter: true
+		sorter: true,
+		width: LARGE_COLUMN_WIDTH,
 	},
 	[ContainerColumnID.BARCODE]: {
 		columnID: ContainerColumnID.BARCODE,
 		title: 'Barcode',
 		dataIndex: ['container', 'barcode'],
 		sorter: true,
+		width: LARGE_COLUMN_WIDTH,
 		render: (_, {container}) => {
 			return container && <Link to={`/containers/${container.id}`}>{container.barcode}</Link>
 		}
@@ -82,6 +88,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.SAMPLES,
 		title: 'Sample(s)',
 		dataIndex: ['container', 'samples'],
+		width: LARGE_COLUMN_WIDTH,
 		render: (samples, {container}) => {
 			return (
 				// If the container is a tube, display a link to the sample in the tube.
@@ -103,6 +110,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.KIND,
 		title: 'Kind',
 		dataIndex: ['container', 'kind'],
+		width: MEDIUM_COLUMN_WIDTH,
 		sorter: true,
 	},
 	[ContainerColumnID.LOCATION]: {
@@ -110,6 +118,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		title: 'Location',
 		dataIndex: ['container', 'location'],
 		sorter: true,
+		width: LARGE_COLUMN_WIDTH,
 		render: location => (location &&
 			<Link to={`/containers/${location}`}>
 			  <WithContainerRenderComponent objectID={location} placeholder={"Loading..."} render={container => <span>{container.name}</span>}/>
@@ -120,6 +129,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		title: 'Coord.',
 		dataIndex: ['container', 'coordinate'],
 		sorter: true,
+		width: SMALL_COLUMN_WIDTH,
 		render: (_, {container}) =>
 			container.coordinate &&
 				<WithCoordinateRenderComponent
@@ -132,6 +142,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.CHILDREN,
 		title: 'Children',
 		dataIndex: ['container', 'children'],
+		width: SMALL_COLUMN_WIDTH,
 		render: children => children ? children.length : null
 	},
 }
