@@ -56,7 +56,7 @@ class RunInfoSample:
 
     pool_volume_ratio: Optional[float] = None
 
-    # biosample fields
+    # derived_sample fields
     tissue_source: Optional[str] = None 
 
     # individual fields
