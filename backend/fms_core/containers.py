@@ -170,7 +170,7 @@ CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB = ContainerSpec(
 
 CONTAINER_SPEC_INFINIUM_EPIC_8_BEADCHIP = ContainerSpec(
     container_kind_id="infinium epic 8 beadchip",
-    coordinate_spec=(alphas(8), ints(1, pad_to=2)), # 8 lanes
+    coordinate_spec=(alphas(1), ints(8, pad_to=2)), # 8 lanes
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,
