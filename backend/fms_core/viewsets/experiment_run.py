@@ -11,6 +11,7 @@ from fms_core.models import ExperimentRun, Dataset
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer, ExternalExperimentRunSerializer
 from fms_core.services.experiment_run import (start_experiment_run_processing,
                                               get_run_info_for_experiment,
+                                              set_experiment_run_end_time,
                                               set_run_processing_start_time,
                                               set_run_processing_end_time)
 from fms_core.services.dataset import  set_experiment_run_lane_validation_status, get_experiment_run_lane_validation_status
@@ -61,6 +62,15 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         queryset = Dataset.objects.filter(experiment_run__isnull=True).distinct("run_name")
         serializer = ExternalExperimentRunSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def set_experiment_run_end_time(self, _request, pk=None):
+        _, errors, _ = set_experiment_run_end_time(pk)
+        if errors:
+            response = HttpResponseServerError("\n".join(errors))
+        else:
+            response = Response("Time set successfully.")
+        return response
 
     @action(detail=True, methods=["post"])
     def set_run_processing_start_time(self, _request, pk=None):
