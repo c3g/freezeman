@@ -2,11 +2,12 @@ import { Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useMemo } from 'react'
 import { FMSId } from '../../models/fms_api_models'
-import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../models/paged_items'
+import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterOptions, FilterSet, FilterSetting, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../models/paged_items'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from './ColumnSets'
 import { addFiltersToColumns } from '../pagedItemsTable/MergeColumnsAndFilters'
+import PagedItemsTable, { DataObjectsByID } from '../pagedItemsTable/PagedItemsTable'
 
 
 export interface PaginationParameters {
@@ -78,49 +79,43 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 		}
 	}
 
-	return (
-		<>
-			{tableColumns &&
-				<>
-					{
-						hasFilter && clearFilters && filters &&
-						<FiltersBar filters={filters} clearFilters={clearFilters}></FiltersBar>
-					}
-					<Table
-						className={"ant-table-cells-short ant-table-header-short"}
-						rowSelection={rowSelection}
-						dataSource={samples ?? []}
-						columns={tableColumns}
-						rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
-						scroll={{ x: '100%', y: '70vh' }}
-						onChange={handleTableOnChange}
-						pagination={pagination ? false : undefined}
-						loading={loading}
-						bordered
-					/>
-					{pagination &&
-						<Pagination
-							className="ant-table-pagination"
-							showSizeChanger={true}
-							showQuickJumper={true}
-							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
-							current={pagination.pageNumber}
-							pageSize={pagination.pageSize}
-							total={pagination.totalCount}
-							onChange={(pageNumber, pageSize) => {
-								if (pagination.pageSize !== pageSize) {
-									pagination.onChangePageNumber(1)
-								} else {
-									pagination.onChangePageNumber(pageNumber)
-								}
-							}}
-							onShowSizeChange={(current, newPageSize) => pagination.onChangePageSize(newPageSize)}
-						/>
-					}
-				</>
-			}
-		</>
-	)
+	return <PagedItemsTable
+		getDataObjectsByID={function (ids: number[]): Promise<DataObjectsByID<object>> {
+			throw new Error('Function not implemented.')
+		} }
+		pagedItems={undefined}
+		usingFilters={false}
+		listPageCallback={function (pagedNumber: number): void {
+			throw new Error('Function not implemented.')
+		} }
+		setFixedFilterCallback={function (filter: FilterSetting): void {
+			throw new Error('Function not implemented.')
+		} }
+		setFilterCallback={function (value: FilterValue, description: FilterDescription): void {
+			throw new Error('Function not implemented.')
+		} }
+		setFilterOptionsCallback={function (description: FilterDescription, options: FilterOptions): void {
+			throw new Error('Function not implemented.')
+		} }
+		clearFiltersCallback={function (): void {
+			throw new Error('Function not implemented.')
+		} }
+		setSortByCallback={function (sortBy: SortBy): void {
+			throw new Error('Function not implemented.')
+		} }
+		setPageSizeCallback={function (pageSize: number): void {
+			throw new Error('Function not implemented.')
+		} }
+		resetPagedItemsCallback={function (): void {
+			throw new Error('Function not implemented.')
+		} }
+		setStaleCallback={function (stale: boolean): void {
+			throw new Error('Function not implemented.')
+		} }
+		refreshPageCallback={function (): void {
+			throw new Error('Function not implemented.')
+		} }
+	/>
 }
 
 export default WorkflowSamplesTable
