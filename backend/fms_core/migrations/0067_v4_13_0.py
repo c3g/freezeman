@@ -5,7 +5,9 @@ import django.db.models.deletion
 
 def rename_infinium_runtype(apps, schema_editor):
     RunType = apps.get_model('fms_core', 'RunType')
-    RunType.objects.filter(name='Infinium Global Screening Array-24').update(name='Infinium')
+    run_type = RunType.objects.get(name='Infinium Global Screening Array-24')
+    run_type.name = 'Infinium'
+    run_type.save()
 
 class Migration(migrations.Migration):
 
