@@ -56,6 +56,9 @@ class RunInfoSample:
 
     pool_volume_ratio: Optional[float] = None
 
+    # derived_sample fields
+    tissue_source: Optional[str] = None 
+
     # individual fields
     expected_sex: Optional[str] = None
     ncbi_taxon_id: Optional[int] = None
@@ -250,6 +253,9 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
         if individual.reference_genome is not None:
             row.reference_genome = individual.reference_genome.assembly_name
+
+    # SAMPLE
+    row.tissue_source = derived_sample.tissue_source.name if derived_sample.tissue_source is not None else None
 
     # LIBRARY
     if derived_sample.library is not None:
