@@ -111,7 +111,7 @@ function handleListReceive(
 			},
 		}
 
-		// Update the list of displayed samples
+    // Update the list of displayed samples
 		stepSamples.displayedSamples = sampleNextSteps.map((sampleNextStep) => sampleNextStep.sample)
 
 		state = updateStepSamples(state, stepSamples)
