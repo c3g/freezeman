@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useAppSelector } from '../../hooks'
 import { Container } from '../../models/frontend_models'
 import ContainersTableActions from '../../modules/containersTable/actions'
-import { selectContainerPrefillTemplates, selectContainerTemplateActions, selectContainersByID, selectContainersTable } from '../../selectors'
-import api from '../../utils/api'
+import { selectContainerPrefillTemplates, selectContainerTemplateActions, selectContainersByID } from '../../selectors'
+import api, { withToken } from '../../utils/api'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
@@ -16,9 +16,9 @@ import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
 import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import useListExportCallback from '../pagedItemsTable/useListExportCallback'
-import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
 import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTemplateCallback'
 import { CONTAINER_COLUMN_FILTERS, CONTAINER_FILTER_KEYS, CONTAINER_COLUMN_DEFINITIONS as ContainerColumns, CONTAINER_COLUMN_FILTERS as ContainerFilters, ObjectWithContainer } from './ContainersTableColumns'
+import { usePagedItems } from '../../models/paged_items_factory'
 
 const containersTableColumns = [
 	ContainerColumns.ID,
@@ -42,7 +42,9 @@ function wrapContainer(container: Container): ObjectWithContainer {
 }
 
 export default function ContainersListContent() {
-	const containersTableState = useAppSelector(selectContainersTable)
+	const token = useAppSelector(state => state.auth.tokens.access)
+	const list = token ? withToken(token, api.containers.list) : () => Promise.resolve({results: [], count: 0} as )
+	const [containersTableState, containersTableCallbacks] = usePagedItems(, wrapContainer)
 	const { filters, sortBy, totalCount } = containersTableState
 	const templateActions = useAppSelector(selectContainerTemplateActions)
 	const prefills = useAppSelector(selectContainerPrefillTemplates)

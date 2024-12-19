@@ -45,7 +45,7 @@ const api = {
 
   datasets: {
     get: (id: FMSDataset["id"]) => get<JsonResponse<FMSDataset>>(`/datasets/${id}/`),
-    list: (options, abort?: boolean) => get("/datasets/", options, { abort }),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSDataset>>>("/datasets/", options, { abort }),
     setReleaseStatus: (
       id: FMSDataset["id"],
       updates: Record<FMSReadset["id"], ReleaseStatus>,

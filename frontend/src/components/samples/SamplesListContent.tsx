@@ -1,9 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react'
 
-import { useAppSelector } from '../../hooks'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
-import SamplesTableActions from '../../modules/samplesTable/actions'
-import { selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable } from '../../selectors'
+import { selectPageSize, selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID } from '../../selectors'
 import api from '../../utils/api'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
@@ -18,12 +17,13 @@ import { setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import useListExportCallback from '../pagedItemsTable/useListExportCallback'
-import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
 import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTemplateCallback'
 import Flexbar from '../shared/Flexbar'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
+import { PagedItemsListFuncType, usePagedItems } from '../../models/paged_items_factory'
+import { list as listSamples } from '../../modules/samples/actions'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
@@ -55,7 +55,17 @@ function wrapSample(sample: Sample) {
 }
 
 function SamplesListContent() {
-	const samplesTableState = useAppSelector(selectSamplesTable)
+	const dispatch = useAppDispatch()
+	const pageSize = useAppSelector(selectPageSize)
+	const samplesByID = useAppSelector(selectSamplesByID)
+	const list: PagedItemsListFuncType<Sample> = useCallback(async (options) => {
+		const data = await dispatch(listSamples(options))
+		return {
+			results: data.results.map((s) => samplesByID[s.id]),
+			count: data.count
+		}
+	}, [dispatch, samplesByID])
+	const [samplesTableState, samplesTableActions] = usePagedItems(list, () => pageSize) 
 	const { filters, fixedFilters, sortBy, totalCount, isFetching } = samplesTableState
 	const templateActions = useAppSelector(selectSampleTemplateActions)
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
@@ -67,14 +77,19 @@ function SamplesListContent() {
 
 	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortBy)
 
-	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
 	// Special clearFilters callback that also sets the sample category back to ALL whenever
 	// filters are cleared. Do we still want that to happen?
 	const clearFiltersAndCategory = useCallback(() => {
-		samplesTableCallbacks.setFixedFilterCallback(getSampleCategoryFilterSetting(SampleCategory.ALL))
-		samplesTableCallbacks.clearFiltersCallback()
-	}, [samplesTableCallbacks])
+		samplesTableActions.setFixedFilter(getSampleCategoryFilterSetting(SampleCategory.ALL))
+		return samplesTableActions.clearFilters()
+	}, [samplesTableActions])
+	const samplesTableActionsTweaked = useMemo(() => {
+		return {
+			...samplesTableActions,
+			clearFilters: clearFiltersAndCategory
+		}
+	}, [samplesTableActions, clearFiltersAndCategory])
 
 	// Tweak the columns to customize them for this table.
 	const tweakedColumns = useMemo(() => {
@@ -96,17 +111,17 @@ function SamplesListContent() {
 		SAMPLE_COLUMN_FILTERS,
 		SAMPLE_FILTER_KEYS,
 		filters,
-		samplesTableCallbacks.setFilterCallback,
-		samplesTableCallbacks.setFilterOptionsCallback
+		samplesTableActions.setFilter,
+		samplesTableActions.setFilterOptions
 	)
 
 	// When the user switches between Samples/Pools/All we have to refresh the page.
 	const onSampleCategoryChange = useCallback(
 		(sampleCategory: SampleCategory) => {
 			setSampleCategory(sampleCategory)
-			samplesTableCallbacks.refreshPageCallback()
+			samplesTableActions.refreshPage()
 		}
-	, [samplesTableCallbacks])
+	, [samplesTableActions])
 
 	const mapSampleIDs = useItemsByIDToDataObjects(selectSamplesByID, wrapSample)
 
@@ -122,12 +137,12 @@ function SamplesListContent() {
 				]}
 			/>
 			<PageContent>
-				<FilterPanel descriptions={detachedFilters} filters={samplesTableState.filters} setFilter={samplesTableCallbacks.setFilterCallback} setFilterOption={samplesTableCallbacks.setFilterOptionsCallback}/>
+				<FilterPanel descriptions={detachedFilters} filters={samplesTableState.filters} setFilter={samplesTableActions.setFilter} setFilterOption={samplesTableActions.setFilterOptions}/>
 				<Flexbar style={{alignItems: 'center'}}>
 					<SampleCategoryChooser
 						disabled={isFetching}
 						filters={fixedFilters}
-						setFixedFilter={samplesTableCallbacks.setFixedFilterCallback}
+						setFixedFilter={samplesTableActions.setFixedFilter}
 						onChange={(category) => onSampleCategoryChange(category)}
 					/>
 					<FiltersBar filters={samplesTableState.filters} clearFilters={clearFiltersAndCategory}/>
@@ -135,11 +150,10 @@ function SamplesListContent() {
 				<PagedItemsTable<ObjectWithSample>
 					getDataObjectsByID={mapSampleIDs}
 					pagedItems={samplesTableState}
+					pagedItemsActions={samplesTableActionsTweaked}
 					columns={baseColumns}
 					usingFilters={false}
 					initialLoad={false}
-					{...samplesTableCallbacks}
-					clearFiltersCallback={clearFiltersAndCategory}
 				/>
 			</PageContent>
 		</>

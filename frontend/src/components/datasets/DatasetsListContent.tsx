@@ -1,17 +1,17 @@
-import React, { useMemo } from "react"
+import React, { useCallback } from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
-import { useAppSelector } from "../../hooks"
-import { selectDatasetsByID, selectDatasetsTable } from "../../selectors"
-import DatasetsTableActions from '../../modules/datasetsTable/actions'
-import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { selectDatasetsByID } from "../../selectors"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
-import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, DatasetColumnID, ObjectWithDataset } from "./DatasetsTableColumns"
+import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
-import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities"
+import { PagedItemsListFuncType, usePagedItems } from "../../models/paged_items_factory"
+import { list as listDatasets } from "../../modules/datasets/actions"
+import { Dataset } from "../../models/frontend_models"
 
 
 const tableColumns = [
@@ -25,19 +25,27 @@ const tableColumns = [
 ]
 
 function DatasetsListContent() {
+	const dispatch = useAppDispatch()
+	const pageSize = useAppSelector(state => state.pagination.pageSize)
+	const datasetsByID = useAppSelector(selectDatasetsByID)
 
-	const pagedItems = useAppSelector(selectDatasetsTable)
+	const list: PagedItemsListFuncType<Dataset> = useCallback(async (options) => {
+		const results = await dispatch(listDatasets(options))
+		return {
+			results: results.results.map((d) => datasetsByID[d.id]),
+			count: results.count
+		}
+	}, [datasetsByID, dispatch])
+	const [pagedItems, pagedItemsActions] = usePagedItems(list, () => pageSize)
 	const { filters } = pagedItems
 
-	const callbacks = usePagedItemsActionsCallbacks(DatasetsTableActions)
-
-  let tweakedColumns = useFilteredColumns(
+  const tweakedColumns = useFilteredColumns(
           tableColumns,
           DATASET_FILTER_DEFINITIONS,
           DATASET_FILTER_KEYS,
           filters,
-          callbacks.setFilterCallback,
-          callbacks.setFilterOptionsCallback)
+          pagedItemsActions.setFilter,
+          pagedItemsActions.setFilterOptions)
 
 
 	const getDataObjectsByID = useItemsByIDToDataObjects(selectDatasetsByID, dataset => {return {dataset}})
@@ -45,14 +53,14 @@ function DatasetsListContent() {
 			<>
 				<AppPageHeader title="Datasets"/>
 				<PageContent>
-					<FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
+					<FiltersBar filters={filters} clearFilters={pagedItemsActions.clearFilters}/>
 					<PagedItemsTable<ObjectWithDataset>
 						columns={tweakedColumns}
 						expandable={ExpandableTableDatasetComments()}
 						getDataObjectsByID={getDataObjectsByID}
 						pagedItems={pagedItems}
+						pagedItemsActions={pagedItemsActions}
 						usingFilters={false}
-						{...callbacks}
 					/>
 				</PageContent>
 		</>

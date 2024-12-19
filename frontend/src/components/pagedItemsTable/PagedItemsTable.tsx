@@ -1,44 +1,31 @@
-import { Checkbox, Pagination, Space, Table, TableProps } from 'antd'
+import { Checkbox, Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
-import { DataID, FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
+import { FilterSetting, PageableData, PagedItems } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
 import { useDebounce } from '../filters/filterComponents/DebouncedInput'
+import { PagedItemsActions } from '../../models/paged_items_factory'
 
 
 export interface PagedItemTableSelection {
 	onSelectionChanged: (exceptedItems: React.Key[], defaultSelection: boolean) => void
 }
-
-// This is the set of possible callbacks for the paged items table.
-export interface PagedItemsActionsCallbacks {
-	listPageCallback: (pagedNumber: number) => void
-	setFixedFilterCallback: (filter: FilterSetting) => void
-	setFilterCallback: (value: FilterValue, description: FilterDescription) => void
-	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => void
-	clearFiltersCallback: () => void
-	setSortByCallback: (sortBy: SortBy) => void
-	setPageSizeCallback: (pageSize: number) => void
-	resetPagedItemsCallback: () => void
-	setStaleCallback: (stale: boolean) => void
-	refreshPageCallback: () => void
-}
-
 export interface DataObjectsByID<T> {
 	[key: string] : T
 }
 export type GetDataObjectsByIDCallback<T> = (ids: number[]) => Promise<DataObjectsByID<T>>
 
 
-export interface PagedItemsTableProps<T extends PageableData> extends PagedItemsActionsCallbacks {
+export interface PagedItemsTableProps<T extends PageableData> {
 	// The paged items table only has a list of item ID's. You have provide a function
 	// that maps those ID's to data objects which get rendered by the table.
 	getDataObjectsByID: GetDataObjectsByIDCallback<T>
 	pagedItems: PagedItems
+	pagedItemsActions: PagedItemsActions
 
 	columns?: IdentifiedTableColumnType<T>[]
 	fixedFilter?: FilterSetting
@@ -60,14 +47,8 @@ interface TableDataState<T> {
 
 function PagedItemsTable<T extends object>({
 	getDataObjectsByID,
-	listPageCallback,
-	setFixedFilterCallback,
-	clearFiltersCallback,
-	setSortByCallback,
-	setPageSizeCallback,
-	refreshPageCallback,
-	setStaleCallback,
 	pagedItems,
+	pagedItemsActions,
 	columns,
 	fixedFilter,
 	usingFilters,
@@ -87,11 +68,11 @@ function PagedItemsTable<T extends object>({
 
 			// If this table uses a fixed filter then set it before loading any items.
 			if (fixedFilter && fixedFilter.description) {
-				setFixedFilterCallback(fixedFilter)
+				pagedItemsActions.setFixedFilter(fixedFilter)
 			}
 			// If a page isn't already loaded in redux then request page 1
 			if (!pagedItems.page?.pageNumber) {
-				listPageCallback(1)
+				pagedItemsActions.listPage(1)
 			}
 		},
 		[
@@ -101,7 +82,7 @@ function PagedItemsTable<T extends object>({
 
 	// Refresh the page if the paged items are marked as stale, if using
 	// the refresh mechanism.
-	const refreshWhenStale = useRefreshWhenStale(refreshPageCallback, setStaleCallback)
+	const refreshWhenStale = useRefreshWhenStale(pagedItemsActions.refreshPage, pagedItemsActions.setStale)
 	useEffect(() => {
 			refreshWhenStale(stale)
 	}, [stale, refreshWhenStale])
@@ -111,10 +92,10 @@ function PagedItemsTable<T extends object>({
 			// TODO: It's unclear if limit should be part of the paged items data structure,
 			// or if we should ALWAYS use the pageSize stored for the app. Right now, setting
 			// the page size changes it for the current table and for the app.
-			setPageSizeCallback(pageSize)
+			pagedItemsActions.setPageSize(pageSize)
 			dispatch(setPageSizeForApp(pageSize))
 		},
-		[dispatch, setPageSizeCallback]
+		[dispatch, pagedItemsActions]
 	)
 
 	// We use this callback to respond when the user sorts a column
@@ -126,12 +107,12 @@ function PagedItemsTable<T extends object>({
 				const order = sorter.order ?? undefined
 				if (key) {
 					if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
-						setSortByCallback({ key, order })
+						pagedItemsActions.setSortBy({ key, order })
 					}
 				}
 			}
 		},
-		[sortBy, setSortByCallback]
+		[sortBy, pagedItemsActions]
 	)
     const debouncedSortByCallback = useDebounce(sortByCallback)
 
@@ -241,7 +222,7 @@ function PagedItemsTable<T extends object>({
 					<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5em' }}>
 						<div>{topBarExtra}</div>
 						{usingFilters && pagedItems.filters && (
-							<FiltersBar filters={pagedItems.filters} clearFilters={clearFiltersCallback} buttonStyle={{ margin: 0 }}/>
+							<FiltersBar filters={pagedItems.filters} clearFilters={pagedItemsActions.clearFilters} buttonStyle={{ margin: 0 }}/>
 						)}
 					</div>
 					<Table<T>
@@ -265,7 +246,7 @@ function PagedItemsTable<T extends object>({
 						current={pagedItems.page?.pageNumber ?? 0}
 						pageSize={pagedItems.page?.limit ?? 0}
 						total={pagedItems.totalCount}
-						onChange={listPageCallback}
+						onChange={pagedItemsActions.listPage}
 						onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
 					/>
 				</>

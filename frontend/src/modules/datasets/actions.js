@@ -24,6 +24,11 @@ export const get = id => async (dispatch, getState) => {
     return await dispatch(networkAction(GET, api.datasets.get(id), { meta: { id } }));
 };
 
+/**
+ * 
+ * @param {*} options 
+ * @returns {Promise<import("../../models/fms_api_models").FMSPagedResultsReponse<import("../../models/fms_api_models").FMSDataset>>>}
+ */
 export const list = (options) => async (dispatch, getState) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
