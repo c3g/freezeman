@@ -56,7 +56,7 @@ export interface FetchedObject {
 	didFail?: boolean
 }
 
-export interface ItemsByID<T extends FMSTrackedModel> {
+export interface ItemsByID<T extends Pick<FMSTrackedModel, 'id'>> {
 	[key: FMSId]: T
 }
 

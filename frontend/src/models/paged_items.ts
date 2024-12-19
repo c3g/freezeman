@@ -91,7 +91,7 @@ export interface PagedItems {
 	readonly stale: boolean
 }
 
-interface PagedItem extends FMSTrackedModel, FetchedObject, PageableData {}
+interface PagedItem extends Pick<FMSTrackedModel, 'id'>, FetchedObject, PageableData {}
 
 
 export interface PagedItemsByID<T extends PagedItem> extends PagedItems {

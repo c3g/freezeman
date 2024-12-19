@@ -1,6 +1,6 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../components/pagedItemsTable/serializeFilterParamsTS"
 import { NetworkActionTypes, createNetworkActionTypes } from "../utils/actions"
-import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
+import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy, createPagedItems } from "./paged_items"
 import {
 	ReduceListReceiveType,
 	reduceClearFilters,
@@ -16,8 +16,8 @@ import {
 	reduceSetSortBy,
     reduceSetStale,
 } from './paged_items_reducers'
-import { FMSResponse } from "../utils/api"
 import { FMSPagedResultsReponse, FMSTrackedModel } from "./fms_api_models"
+import { RootState } from "../store"
 
 export interface PagedItemsActions<Prefix extends string> {
 	listPage: (pageNumber: number) => Promise<void>
@@ -100,14 +100,20 @@ function createActionsTypes<Prefix extends string>(prefix: Prefix): PagedActionT
 }
 
 // Define a type alias for the list function signature
-type ListFuncType<T> = (option: any) => Promise<FMSResponse<FMSPagedResultsReponse<T>>['data']>
+interface ListFuncOptions {
+    offset: number
+    limit: number
+    ordering?: string
+    [key: string]: any
+}
+type ListFuncType<T> = (options: ListFuncOptions) => Promise<FMSPagedResultsReponse<T>>
 
-function _createPagedItemsActions<M extends FMSTrackedModel, Prefix extends string>(
+export function createPagedItemsActions<M extends FMSTrackedModel, Prefix extends string>(
+    prefix: Prefix,
     list: ListFuncType<M>,
     selectPagedItems: () => PagedItems,
     selectPageSize: () => number,
     dispatch: (action: PagedItemAction<Prefix>) => void,
-    prefix: Prefix,
     extra?: object,
 ): PagedItemsActions<Prefix> {
     const {
@@ -315,10 +321,10 @@ function _createPagedItemsActions<M extends FMSTrackedModel, Prefix extends stri
 }
 
 // This reducer will support any state that extends PagedItems.
-export function createPagedItemsReducer<P extends PagedItems, Prefix extends string>(initialState: P, prefix: Prefix): (state: P, action: PagedItemAction<Prefix>) => P {
+export function createPagedItemsReducer<Prefix extends string>(prefix: Prefix, initialState?: PagedItems): (state: PagedItems, action: PagedItemAction<Prefix>) => PagedItems {
     const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } = createActionsTypes(prefix)
 
-    function reduce(state: P = initialState, action: PagedItemAction<Prefix>): P {
+    function reduce(state: PagedItems = initialState ?? createPagedItems(), action: PagedItemAction<Prefix>): PagedItems {
         switch (action.type) {
 			case LIST_PAGE.REQUEST: {
 				return reduceListRequest(state)
