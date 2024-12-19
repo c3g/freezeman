@@ -185,7 +185,7 @@ def get_report(report_name: str, grouped_by: List[str], time_window: TimeWindow,
         report_by_time_window[entry["time_window"]].append(current_row)
   
     # Creating header
-    fields = [column for column in queryset.first().keys() if not column=="time_window"] if queryset.first() is not None else []
+    fields = [field.name for field in queryset.model._meta.get_fields()]
     if len(grouped_by) == 0:
         headers = [{**field, "aggregation": None} for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "data_type")]
     else:
