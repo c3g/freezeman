@@ -20,7 +20,7 @@ class ExperimentRunTest(TestCase):
     def setUp(self):
         self.start_date = "2021-06-22"
         self.experiment_name = "RunNovaseq_100213"
-        self.run_type_name = "Infinium Global Screening Array-24"
+        self.run_type_name = "Infinium"
         self.run_type, _ = RunType.objects.get_or_create(name=self.run_type_name)
 
         self.container, _ = Container.objects.get_or_create(**create_container(name="Flowcell1212testtest", barcode="Flowcell1212testtest", kind="infinium gs 24 beadchip"))
