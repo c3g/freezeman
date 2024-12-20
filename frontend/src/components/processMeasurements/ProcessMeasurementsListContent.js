@@ -84,6 +84,35 @@ const getTableColumns = (protocols) => [
     },
   ];
 
+/**
+ * @typedef {import("../../store").RootState} RootState
+ * @typedef {{
+ *   token: RootState['auth']['tokens']['access']
+ *   processMeasurementsByID: RootState['processMeasurements']['itemsByID']
+ *   processMeasurements: RootState['processMeasurements']['items']
+ *   protocols: RootState['protocols']
+ *   actions: RootState['processMeasurementTemplateActions']
+ *   page: RootState['processMeasurements']['page']
+ *   totalCount: RootState['processMeasurements']['totalCount']
+ *   isFetching: RootState['processMeasurements']['isFetching']
+ *   filters: RootState['processMeasurements']['filters']
+ *   sortBy: RootState['processMeasurements']['sortBy']
+ * }} ProcessMeasurementsListContentStateProps
+ * @typedef {{
+ *   listTable: typeof listTable
+ *   setFilter: typeof setFilter
+ *   setFilterOption: typeof setFilterOption
+ *   clearFilters: typeof clearFilters
+ *   setSortBy: typeof setSortBy
+ * }} ProcessMeasurementsListContentDispatchedProps
+ * @typedef {ProcessMeasurementsListContentStateProps & ProcessMeasurementsListContentDispatchedProps} ProcessMeasurementsListContentProps
+ */
+
+/**
+ * 
+ * @param {RootState} state 
+ * @returns {ProcessMeasurementsListContentStateProps}
+ */
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   processMeasurementsByID: state.processMeasurements.itemsByID,
@@ -97,8 +126,14 @@ const mapStateToProps = state => ({
   sortBy: state.processMeasurements.sortBy,
 });
 
+/**
+ * @type {ProcessMeasurementsListContentDispatchedProps}
+ */
 const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
+/**
+ * @param {ProcessMeasurementsListContentProps} props
+ */
 const ProcessMeasurementsListContent = ({
   token,
   processMeasurements,
