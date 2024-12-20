@@ -57,6 +57,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 		setSampleAndLibraryList(await fetchSamplesAndLibraries(samples.results.map((sample) => sample.sample)))
 		setIsFetchingSamples(false)
 	}, [dispatch, pagination?.pageNumber, pagination?.pageSize, stepID])
+
 	useEffect(() => {
 		initialSampleFetch()
 	}, [initialSampleFetch])
@@ -64,7 +65,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
   useEffect(() => {
     const updateDisplay = async () => setSampleAndLibraryList(await fetchSamplesAndLibraries(displayedSamples))
     updateDisplay()
-  }, [filters])
+  }, [filters]) // Triggers off filters instead of displayed samples to prevent endless loop. TODO fix loopy behaviour ... 
 
 	return (
 		<>
