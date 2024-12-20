@@ -21,7 +21,7 @@ export interface PagedItemsActionsCallbacks {
 	setFilterCallback: (value: FilterValue, description: FilterDescription) => void
 	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => void
 	clearFiltersCallback: () => void
-	setSortByCallback: (...sortByList: SortBy[]) => void
+	setSortByCallback: (sortByList: SortBy[]) => void
 	setPageSizeCallback: (pageSize: number) => void
 	resetPagedItemsCallback: () => void
 	setStaleCallback: (stale: boolean) => void
@@ -123,7 +123,7 @@ function PagedItemsTable<T extends object>({
 			if (!Array.isArray(sorterResult)) {
 				sorterResult = [sorterResult]
 			}
-			setSortByCallback(...sorterResult
+			setSortByCallback(sorterResult
 				.sort((a, b) => {
 					const aSorter = a.column?.sorter
 					const bSorter = b.column?.sorter

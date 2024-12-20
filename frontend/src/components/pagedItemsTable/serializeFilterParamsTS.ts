@@ -105,7 +105,7 @@ export default function serializeFilterParamsWithDescriptions(filters: FilterSet
 	return params
 }
 
-export function serializeSortByParams(...sortByList: SortBy[]) {
+export function serializeSortByParams(sortByList: SortBy[]) {
 	const prefixByOrder = {
 		'ascend': '',
 		'descend': '-',
@@ -125,5 +125,5 @@ export function serializeSortByParams(...sortByList: SortBy[]) {
  * @returns 
  */
 export function filtersQueryParams(filters: FilterSet, sortByList: SortBy[]){
-	return {...serializeFilterParamsWithDescriptions(filters), ordering: serializeSortByParams(...sortByList)}
+	return {...serializeFilterParamsWithDescriptions(filters), ordering: serializeSortByParams(sortByList)}
   }

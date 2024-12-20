@@ -90,7 +90,7 @@ export function reduceClearFilters<P extends PagedItems>(pagedItems: P): P {
     }
 }
 
-export function reduceSetSortBy<P extends PagedItems>(pagedItems: P, ...sortByList: SortBy[]): P {
+export function reduceSetSortBy<P extends PagedItems>(pagedItems: P, sortByList: SortBy[]): P {
     return {
         ...pagedItems,
         sortByList

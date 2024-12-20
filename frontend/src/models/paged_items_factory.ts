@@ -37,7 +37,7 @@ export interface PagedItemsActions {
 	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<void>
 	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<void>
 	clearFilters: () => FreezemanAsyncThunk<void>
-	setSortBy: (...sortByList: SortBy[]) => FreezemanAsyncThunk<void>
+	setSortBy: (sortByList: SortBy[]) => FreezemanAsyncThunk<void>
 	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
     resetPagedItems: () => FreezemanAsyncThunk<void>
     setStale: (stale: boolean) => FreezemanAsyncThunk<void>
@@ -142,7 +142,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         const { filters, fixedFilters, sortByList } = pagedItems
 
         const serializedFilters = serializeFilterParamsWithDescriptions({ ...fixedFilters, ...filters })
-		const ordering = serializeSortByParams(...sortByList)
+		const ordering = serializeSortByParams(sortByList)
 
         const params = {
 			offset,
@@ -231,7 +231,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         return await dispatch(_fetchPage(1))
     }
 
-    const setSortBy: PagedItemsActions['setSortBy'] = (...sortByList) => async (dispatch) => {
+    const setSortBy: PagedItemsActions['setSortBy'] = (sortByList) => async (dispatch) => {
         dispatch({
             type: SET_SORT_BY,
             sortByList,
@@ -314,7 +314,7 @@ export function createPagedItemsReducer<P extends PagedItems, Prefix extends str
 				return reduceClearFilters(state)
 			}
 			case SET_SORT_BY: {
-				return reduceSetSortBy(state, ...action.sortByList)
+				return reduceSetSortBy(state, action.sortByList)
 			}
 			case SET_PAGE_SIZE: {
 				return reduceSetPageSize(state, action.pageSize)
