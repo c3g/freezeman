@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react"
 import { FMSReportData, FMSReportInformation } from "../../models/fms_api_models"
 import api from "../../utils/api"
 import { useAppDispatch } from "../../hooks"
-import { Button, DatePicker, Empty, Form, Select, SelectProps, Space, Spin, Table, Tabs, Typography } from "antd"
+import { Button, DatePicker, Flex, Form, Select, SelectProps, Space, Spin, Table, Tabs, Typography } from "antd"
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from 'react-router-dom'
@@ -19,42 +19,8 @@ const LIST_ROUTE = `${BASE_ROUTE}list/`
 export function Reports() {
     const [searchParams] = useSearchParams()
 
-    const dispatch = useAppDispatch()
-    const params = getParams(searchParams)
-    const exportOnClick = useCallback(() => {
-        if (!params.report_name || !params.start_date || !params.end_date) {
-            dispatch(notifyError({
-                title: "Invalid Parameters for Reports",
-                description: "Please provide report name and date range before exporting.",
-                id: "reports-invalid-parameters"
-            }))
-            return
-        }
-        dispatch(api.report.getReportAsExcel(
-            params.report_name,
-            params.start_date,
-            params.end_date,
-            params.time_window,
-            params.group_by
-        )).then((response) => {
-            return downloadFromFile(response.filename, response.data)
-        }).catch((error) => {
-            dispatch(notifyError({
-                title: "Failed to Download Report",
-                description: error.message,
-                id: "reports-download-failed"
-            }))
-        })
-    }, [dispatch, params])
-
     return <>
-        <AppPageHeader
-            title={"Reports"}
-            extra={
-                <Button onClick={exportOnClick} disabled={!params.report_name || !params.start_date || !params.end_date}>
-                    Export to Excel
-                </Button>
-            }/>
+        <AppPageHeader title={"Reports"}/>
         <PageContent>
             <Routes>
                 <Route path={FORM_ROUTE.slice(BASE_ROUTE.length)} element={<ReportForm />} />
@@ -75,6 +41,7 @@ function ReportForm() {
         time_window: paramTimeWindow,
         group_by: paramGroupBy,
     } = getParams(searchParams)
+
     useEffect(() => {
         // set default time window
         if (!paramTimeWindow) {
@@ -112,7 +79,6 @@ function ReportForm() {
         }
     }, [dispatch, paramReportName])
 
-
     const onFinish = useCallback((values: ReportFormObject) => {
         const [start_date, end_date] = values.date_range
         const newSearchParams = new URLSearchParams()
@@ -127,6 +93,32 @@ function ReportForm() {
             search: newSearchParams.toString(),
         })
     }, [navigate, setSearchParams])
+
+    const exportOnClick = useCallback(() => {
+      if (!paramReportName || !paramStartDate || !paramEndDate) {
+          dispatch(notifyError({
+              title: "Invalid Parameters for Reports",
+              description: "Please provide report name and date range before exporting.",
+              id: "reports-invalid-parameters"
+          }))
+          return
+      }
+      dispatch(api.report.getReportAsExcel(
+          paramReportName,
+          paramStartDate,
+          paramEndDate,
+          paramTimeWindow,
+          paramGroupBy
+      )).then((response) => {
+          return downloadFromFile(response.filename, response.data)
+      }).catch((error) => {
+          dispatch(notifyError({
+              title: "Failed to Download Report",
+              description: error.message,
+              id: "reports-download-failed"
+          }))
+      })
+  }, [dispatch, paramReportName, paramStartDate, paramEndDate, paramTimeWindow, paramGroupBy])
 
     return <>
         <Typography.Title style={{ marginTop: 0 }}>Report Search Form</Typography.Title>
@@ -196,10 +188,16 @@ function ReportForm() {
                 />
             </Form.Item>
             <Form.Item label={null}>
-                <Button type="primary" htmlType="submit" disabled={!reportInfo || !paramStartDate || !paramEndDate}>
-                    Submit
-                </Button>
+                <Flex gap="middle">
+                    <Button type="primary" htmlType="submit" disabled={!reportInfo || !paramStartDate || !paramEndDate}>
+                        Get report
+                    </Button>
+                    <Button onClick={exportOnClick} disabled={!paramReportName || !paramStartDate || !paramEndDate}>
+                        Export report to Excel
+                    </Button>
+                </Flex>
             </Form.Item>
+            
         </Form>
     </>
 }
