@@ -40,7 +40,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 		}
 
 		const setSortByCallback = (sortByList: SortBy[]) => {
-				dispatch(pagedItemActions.setSortBy(sortByList))
+			dispatch(pagedItemActions.setSortBy(sortByList))
 		}
 
 		const setPageSizeCallback =(pageSize: number) => {

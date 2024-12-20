@@ -60,7 +60,6 @@ export interface FilterSet {
 export interface SortBy {
 	key: string
 	order: 'ascend' | 'descend'
-	secondary?: boolean // e.g. shift held
 }
 
 // Maps column ID's to filter key string (django keys)
