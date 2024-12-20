@@ -47,9 +47,9 @@ export default function ContainersListContent() {
 	const templateActions = useAppSelector(selectContainerTemplateActions)
 	const prefills = useAppSelector(selectContainerPrefillTemplates)
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.containers.prefill.request, filters, sortByList[0])
+	const prefillTemplate = usePrefilledTemplateCallback(api.containers.prefill.request, filters, sortByList)
 
-	const listExport = useListExportCallback(api.containers.listExport, filters, sortByList[0])
+	const listExport = useListExportCallback(api.containers.listExport, filters, sortByList)
 
 	const containersTableCallbacks = usePagedItemsActionsCallbacks(ContainersTableActions)
 

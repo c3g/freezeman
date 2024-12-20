@@ -16,11 +16,11 @@ type PrefillFunc = typeof api.samples.prefill.request
  * @param sortBy 	The current sort order in a table
  * @returns 
  */
-export function usePrefilledTemplateCallback(prefillFunc: PrefillFunc, filters: FilterSet, sortBy: SortBy) {
+export function usePrefilledTemplateCallback(prefillFunc: PrefillFunc, filters: FilterSet, sortByList: SortBy[]) {
 	const token = useAppSelector(selectAuthTokenAccess)
 
 	return useCallback(({template}) =>
-		withToken(token, prefillFunc)(filtersQueryParams(filters, sortBy), template)
+		withToken(token, prefillFunc)(filtersQueryParams(filters, sortByList), template)
 		.then(response => response)
-	, [filters, prefillFunc, sortBy, token])
+	, [filters, prefillFunc, sortByList, token])
 }

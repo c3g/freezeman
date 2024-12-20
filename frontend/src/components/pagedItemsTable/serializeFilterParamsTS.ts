@@ -124,6 +124,6 @@ export function serializeSortByParams(...sortByList: SortBy[]) {
  * @param sortBy 
  * @returns 
  */
-export function filtersQueryParams(filters: FilterSet, sortBy: SortBy){
-	return {...serializeFilterParamsWithDescriptions(filters), ordering: serializeSortByParams(sortBy)}
+export function filtersQueryParams(filters: FilterSet, sortByList: SortBy[]){
+	return {...serializeFilterParamsWithDescriptions(filters), ordering: serializeSortByParams(...sortByList)}
   }
