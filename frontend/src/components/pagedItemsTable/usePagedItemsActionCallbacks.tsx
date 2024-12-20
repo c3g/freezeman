@@ -39,8 +39,8 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 			dispatch(pagedItemActions.clearFilters())
 		}
 
-		const setSortByCallback = (sortBy: SortBy) => {
-				dispatch(pagedItemActions.setSortBy(sortBy))
+		const setSortByCallback = (sortByList: SortBy[]) => {
+			dispatch(pagedItemActions.setSortBy(sortByList))
 		}
 
 		const setPageSizeCallback =(pageSize: number) => {

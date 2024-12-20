@@ -48,14 +48,14 @@ function wrapLibrary(library: Library) {
 export default function LibariesListContent() {
 
 	const librariesTableState = useAppSelector(selectLibrariesTable)
-	const { filters, fixedFilters, sortBy, totalCount, isFetching } = librariesTableState
+	const { filters, fixedFilters, sortByList, totalCount, isFetching } = librariesTableState
 	const templateActions = useAppSelector(selectLibraryTemplateActions)
 	const prefills = useAppSelector(selectLibraryPrefillTemplates)
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.libraries.prefill.request, {...filters, ...fixedFilters}, sortBy)
+	const prefillTemplate = usePrefilledTemplateCallback(api.libraries.prefill.request, {...filters, ...fixedFilters}, sortByList)
 
-	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortBy)
+	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortByList)
 
 	const librariesTableCallbacks = usePagedItemsActionsCallbacks(LibrariesTableActions)
 
