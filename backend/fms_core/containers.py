@@ -5,6 +5,7 @@ from .coordinates import CoordinateSpec, alphas, ints, validate_and_normalize_co
 __all__ = [
     "ContainerSpec",
 
+    "CONTAINER_SPEC_INFINIUM_EPIC_8_BEADCHIP",
     "CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP",
     "CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL",
     "CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL",
@@ -167,6 +168,14 @@ CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB = ContainerSpec(
     is_run_container=True,
 )
 
+CONTAINER_SPEC_INFINIUM_EPIC_8_BEADCHIP = ContainerSpec(
+    container_kind_id="infinium epic 8 beadchip",
+    coordinate_spec=(alphas(1), ints(8, pad_to=2)), # 8 lanes
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=True,
+)
+
 CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     container_kind_id="infinium gs 24 beadchip",
     coordinate_spec=(alphas(12), ints(2, pad_to=2)),
@@ -290,6 +299,7 @@ CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL = ContainerSpec(
 RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA,
     CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB,
+    CONTAINER_SPEC_INFINIUM_EPIC_8_BEADCHIP,
     CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
     CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL,
     CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL,
