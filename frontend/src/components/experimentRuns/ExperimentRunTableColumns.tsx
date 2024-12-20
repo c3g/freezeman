@@ -55,7 +55,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
                 <Link to={`/experiment-runs/${experimentRun.id}`}>
                     {experimentRun.id}
                 </Link>)
-        },
+        }
     },
     [ExperimentRunColumnID.NAME]: {
         columnID: ExperimentRunColumnID.NAME,
@@ -81,9 +81,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         columnID: ExperimentRunColumnID.INSTRUMENT,
         title: 'Instrument',
         dataIndex: ['experimentRun', 'instrument'],
-        sorter: {
-            multiple: 7,
-        },
+        sorter: true,
         render: (_, { experimentRun }) => {
             return <div>{instrumentsById[experimentRun.instrument]?.name}</div>
         }
@@ -92,9 +90,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         columnID: ExperimentRunColumnID.INSTRUMENT_TYPE,
         title: 'Instrument Type',
         dataIndex: ['experimentRun', 'instrument_type'],
-        sorter: {
-            multiple: 3,
-        },
+        sorter: true,
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.instrument_type}</div>
         }
@@ -103,9 +99,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         columnID: ExperimentRunColumnID.CONTAINER_BARCODE,
         title: 'Container Barcode',
         dataIndex: ['experimentRun', 'container_barcode'],
-        sorter: {
-            multiple: 1,
-        },
+        sorter: true,
         render: (_, { experimentRun }) => {
             return (experimentRun.container &&
                 <Link to={`/containers/${experimentRun.container}`}>
