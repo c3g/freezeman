@@ -8,7 +8,7 @@ import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
 import { useDebounce } from '../filters/filterComponents/DebouncedInput'
-import { SortAscendingOutlined } from '@ant-design/icons'
+import { SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons'
 
 
 export interface PagedItemTableSelection {
@@ -141,12 +141,17 @@ function PagedItemsTable<T extends object>({
 	// We use this callback to respond when the user sorts a column
 	const sortByCallback = useCallback((columnKey: string) => {
 		const [existingFirst = undefined, existingSecond = undefined] = pagedItems.sortByList
-		const newFirst: Partial<SortBy> = {}
-		const newSecond: Partial<SortBy> = {}
+		const newFirst: Partial<SortBy> = { ...existingFirst }
+		const newSecond: Partial<SortBy> = { ...existingSecond }
 	
 		if (!shiftHeld.current) {
-			if (existingFirst?.key === columnKey && existingFirst.order !== 'descend') {
-				newFirst.order = 'descend'
+			if (existingFirst?.key === columnKey) {
+				if (existingFirst.order !== 'descend') {
+					newFirst.order = 'descend'
+				} else {
+					newFirst.key = undefined
+					newFirst.order = undefined
+				}
 			} else if (existingFirst?.key !== columnKey) {
 				newFirst.key = columnKey
 				newFirst.order = 'ascend'
@@ -156,8 +161,13 @@ function PagedItemsTable<T extends object>({
 				newFirst.key = existingFirst?.key
 				newFirst.order = existingFirst?.order
 			}
-			if (existingSecond?.key === columnKey && existingSecond.order !== 'descend') {
-				newSecond.order = 'descend'
+			if (existingSecond?.key === columnKey) {
+				if (existingSecond.order !== 'descend') {
+					newSecond.order = 'descend'
+				} else {
+					newSecond.key = undefined
+					newSecond.order = undefined
+				}
 			} else if (existingSecond?.key !== columnKey) {
 				newSecond.key = columnKey
 				newSecond.order = 'ascend'
@@ -171,20 +181,22 @@ function PagedItemsTable<T extends object>({
 			newSecond.order = undefined
 		}
 
-		const sortByList = pagedItems.sortByList
+		console.info({ newFirst, newSecond })
 		const newSortByList = [newFirst, newSecond].reduce<SortBy[]>((acc, item) => {
 			if (item.key && item.order) {
 				acc.push(item as SortBy)
 			}
 			return acc
 		}, [])
-		console.info('sortByCallback', columnKey, { sortByList, newSortByList })
 		setSortByCallback(newSortByList)
 	},
 	[pagedItems.sortByList, setSortByCallback])
 	const finalColumns: NonNullable<TableProps<T>['columns']> = useMemo(() => {
 		return columns.map((column) => {
 			if (column.sorter) {
+				const sortByIndex = pagedItems.sortByList.findIndex((x) => x.key === column.key)
+				const sortBy = sortByIndex >= 0 ? pagedItems.sortByList[sortByIndex] : undefined
+				console.info({ sortByIndex, sortBy })
 				return {
 					...column,
 					sorter: false,
@@ -192,8 +204,10 @@ function PagedItemsTable<T extends object>({
 						<>{column.title}</>
 						<div>
 							<Button
+								variant={'outlined'}
+								color={sortByIndex === 0 ? 'primary' : (sortByIndex === 1 ? 'danger' : 'default')}
 								size={'small'}
-								icon={<SortAscendingOutlined />}
+								icon={!sortBy || sortBy.order === 'ascend' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
 								onClick={() => {
 									if (column.key) {
 										sortByCallback(column.key.toString())
@@ -206,7 +220,7 @@ function PagedItemsTable<T extends object>({
 			}
 			return column
 		})
-	}, [columns, sortByCallback])
+	}, [columns, pagedItems.sortByList, sortByCallback])
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
