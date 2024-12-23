@@ -52,7 +52,7 @@ export enum ContainerColumnID {
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
-const SMALL_COLUMN_WIDTH = 90
+const SMALL_COLUMN_WIDTH = 100
 const MEDIUM_COLUMN_WIDTH = 120
 const LARGE_COLUMN_WIDTH = 240
 

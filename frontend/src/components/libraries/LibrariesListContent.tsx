@@ -67,7 +67,7 @@ export default function LibariesListContent() {
 
 	// Tweak the column definitions a bit for this table.
 	const tweakedColumns = useMemo(() => {
-		const MEDIUM_COLUMN_WIDTH = 120
+		const MEDIUM_COLUMN_WIDTH = 150
 		const LARGE_COLUMN_WIDTH = 270
 
 		// Set the widths of selected columns in this table.
@@ -78,8 +78,8 @@ export default function LibariesListContent() {
 			[LibraryColumnID.NAME]: LARGE_COLUMN_WIDTH,
 			[LibraryColumnID.CONTAINER_BARCODE]: LARGE_COLUMN_WIDTH,
 			[LibraryColumnID.COORDINATES]: MEDIUM_COLUMN_WIDTH,
-			[LibraryColumnID.LIBRARY_TYPE]: 130,
-			[LibraryColumnID.SELECTION_TARGET]: 130,
+			[LibraryColumnID.LIBRARY_TYPE]: 170,
+			[LibraryColumnID.SELECTION_TARGET]: 200,
 			[LibraryColumnID.INDEX_NAME]: LARGE_COLUMN_WIDTH*1.5,
 			[LibraryColumnID.VOLUME]: MEDIUM_COLUMN_WIDTH,
 			[LibraryColumnID.LIBRARY_SIZE]: MEDIUM_COLUMN_WIDTH,
@@ -87,7 +87,7 @@ export default function LibariesListContent() {
 			[LibraryColumnID.CONCENTRATION]: MEDIUM_COLUMN_WIDTH,
 			[LibraryColumnID.NA_QUANTITY]: MEDIUM_COLUMN_WIDTH,
 			[LibraryColumnID.QC_FLAG]: MEDIUM_COLUMN_WIDTH,
-			[LibraryColumnID.CREATION_DATE]: MEDIUM_COLUMN_WIDTH,
+			[LibraryColumnID.CREATION_DATE]: 170,
 			[LibraryColumnID.DEPLETED]: MEDIUM_COLUMN_WIDTH
 		})
 

@@ -49,8 +49,8 @@ export enum SampleColumnID {
 	SAMPLE_COUNT = 'SAMPLE_COUNT',
 }
 
-const SMALL_COLUMN_WIDTH = 90
-const MEDIUM_COLUMN_WIDTH = 120
+const SMALL_COLUMN_WIDTH = 110
+const MEDIUM_COLUMN_WIDTH = 170
 const LARGE_COLUMN_WIDTH = 270
 
 export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
