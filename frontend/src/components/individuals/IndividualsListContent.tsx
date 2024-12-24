@@ -32,9 +32,9 @@ function wrapIndividual(individual: Individual) {
 
 function IndividualsListContent() {
 	const individualsTableState = useAppSelector(selectIndividualsTable)
-	const { filters, sortBy, totalCount } = individualsTableState
+	const { filters, sortByList, totalCount } = individualsTableState
 
-	const listExport = useListExportCallback(api.individuals.listExport, filters, sortBy)
+	const listExport = useListExportCallback(api.individuals.listExport, filters, sortByList)
 
 	const mapIndividualIDs = useItemsByIDToDataObjects(selectIndividualsByID, wrapIndividual)
 

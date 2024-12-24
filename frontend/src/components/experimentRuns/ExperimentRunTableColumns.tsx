@@ -40,7 +40,7 @@ export function getColumnsForExperimentRun(launchesById, runTypesById, instrumen
 
 
 const SMALL_COLUMN_WIDTH = 90
-const MEDIUM_COLUMN_WIDTH = 120
+const MEDIUM_COLUMN_WIDTH = 150
 const LARGE_COLUMN_WIDTH = 270
 
 export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, instrumentsById): { [key in ExperimentRunColumnID]: ExperimentRunColumn } => ({
@@ -72,7 +72,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Run Type',
         dataIndex: ['experimentRun', 'run_type'],
         sorter: true,
-        width: SMALL_COLUMN_WIDTH,
+        width: MEDIUM_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
             return <Tag>{runTypesById[experimentRun.run_type]?.name}</Tag>
         }

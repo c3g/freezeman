@@ -1,13 +1,14 @@
-import { Checkbox, Pagination, Space, Table, TableProps } from 'antd'
+import { Button, Checkbox, Flex, Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
-import { DataID, FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
+import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
 import { useDebounce } from '../filters/filterComponents/DebouncedInput'
+import { SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons'
 
 
 export interface PagedItemTableSelection {
@@ -21,7 +22,7 @@ export interface PagedItemsActionsCallbacks {
 	setFilterCallback: (value: FilterValue, description: FilterDescription) => void
 	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => void
 	clearFiltersCallback: () => void
-	setSortByCallback: (sortBy: SortBy) => void
+	setSortByCallback: (sortByList: SortBy[]) => void
 	setPageSizeCallback: (pageSize: number) => void
 	resetPagedItemsCallback: () => void
 	setStaleCallback: (stale: boolean) => void
@@ -78,7 +79,7 @@ function PagedItemsTable<T extends object>({
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
-	const { items, sortBy, stale } = pagedItems
+	const { items, stale } = pagedItems
 	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
@@ -117,23 +118,109 @@ function PagedItemsTable<T extends object>({
 		[dispatch, setPageSizeCallback]
 	)
 
+	const shiftHeld = useRef(false)
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Shift') {
+				shiftHeld.current = true
+			}
+		}
+		const handleKeyUp = (event: KeyboardEvent) => {
+			if (event.key === 'Shift') {
+				shiftHeld.current = false
+			}
+		}
+		document.addEventListener('keydown', handleKeyDown)
+		document.addEventListener('keyup', handleKeyUp)
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+			document.removeEventListener('keyup', handleKeyUp)
+		}
+	}, [])
+
 	// We use this callback to respond when the user sorts a column
-	const sortByCallback: TableProps<any>['onChange'] = useCallback(
-		(pagination, filters, sorterResult) => {
-			if (!Array.isArray(sorterResult)) {
-				const sorter = sorterResult
-				const key = sorter.columnKey?.toString()
-				const order = sorter.order ?? undefined
-				if (key) {
-					if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
-						setSortByCallback({ key, order })
-					}
+	const sortByCallback = useCallback((columnKey: string) => {
+		const [existingFirst = undefined, existingSecond = undefined] = pagedItems.sortByList
+		const newFirst: Partial<SortBy> = { ...existingFirst }
+		const newSecond: Partial<SortBy> = { ...existingSecond }
+	
+		if (!shiftHeld.current) {
+			if (existingFirst?.key === columnKey) {
+				if (existingFirst.order !== 'descend') {
+					newFirst.order = 'descend'
+				} else {
+					newFirst.key = undefined
+					newFirst.order = undefined
+				}
+			} else if (existingFirst?.key !== columnKey) {
+				newFirst.key = columnKey
+				newFirst.order = 'ascend'
+			}
+		} else {
+			if (newFirst.key === undefined) {
+				newFirst.key = existingFirst?.key
+				newFirst.order = existingFirst?.order
+			}
+			if (existingSecond?.key === columnKey) {
+				if (existingSecond.order !== 'descend') {
+					newSecond.order = 'descend'
+				} else {
+					newSecond.key = undefined
+					newSecond.order = undefined
+				}
+			} else if (existingSecond?.key !== columnKey) {
+				newSecond.key = columnKey
+				newSecond.order = 'ascend'
+			}
+		}
+	
+		if (newFirst.key === undefined || newFirst.key === newSecond.key) {
+			newFirst.key = newSecond.key
+			newFirst.order = newSecond.order
+			newSecond.key = undefined
+			newSecond.order = undefined
+		}
+
+		console.info({ newFirst, newSecond })
+		const newSortByList = [newFirst, newSecond].reduce<SortBy[]>((acc, item) => {
+			if (item.key && item.order) {
+				acc.push(item as SortBy)
+			}
+			return acc
+		}, [])
+		setSortByCallback(newSortByList)
+	},
+	[pagedItems.sortByList, setSortByCallback])
+	const finalColumns: NonNullable<TableProps<T>['columns']> = useMemo(() => {
+		return columns.map((column) => {
+			if (column.sorter) {
+				const sortByIndex = pagedItems.sortByList.findIndex((x) => x.key === column.key)
+				const sortBy = sortByIndex >= 0 ? pagedItems.sortByList[sortByIndex] : undefined
+				console.info({ sortByIndex, sortBy })
+				return {
+					...column,
+					sorter: false,
+					title: <Flex justify={"space-between"}>
+						<>{column.title}</>
+						<div>
+							<Button
+								variant={'outlined'}
+								color={sortByIndex === 0 ? 'primary' : (sortByIndex === 1 ? 'danger' : 'default')}
+								size={'small'}
+								icon={!sortBy || sortBy.order === 'ascend' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
+								onClick={() => {
+									if (column.key) {
+										sortByCallback(column.key.toString())
+									}
+								}}
+							/>
+						</div>
+					</Flex>
 				}
 			}
-		},
-		[sortBy, setSortByCallback]
-	)
-    const debouncedSortByCallback = useDebounce(sortByCallback)
+			return column
+		})
+	}, [columns, pagedItems.sortByList, sortByCallback])
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
@@ -248,10 +335,9 @@ function PagedItemsTable<T extends object>({
 						expandable={expandable}
 						rowSelection={rowSelection}
 						dataSource={tableDataState.tableData}
-						columns={columns}
+						columns={finalColumns}
 						rowKey={getRowKeyForDataObject}
 						scroll={{ x: '100%', y: '70vh' }}
-						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}

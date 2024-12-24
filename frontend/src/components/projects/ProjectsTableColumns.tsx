@@ -30,7 +30,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		title: 'ID',
 		dataIndex: ['project', 'id'],
 		sorter: true,
-		width: 30,
+		width: 40,
 		render: (id, {project}) => (
 			<Link to={`/projects/${project.id}`}>
 				<div>{id}</div>
@@ -61,7 +61,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		title: 'Principal Investigator',
 		dataIndex: ['project', 'principal_investigator'],
 		sorter: true,
-		width: 70,
+		width: 80,
 	},
 	[ProjectColumnID.REQUESTOR_NAME]: {
 		columnID: ProjectColumnID.REQUESTOR_NAME,
@@ -81,7 +81,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		title: 'Targeted End Date',
 		dataIndex: ['project', 'targeted_end_date'],
 		sorter: true,
-		width: 50,
+		width: 80,
 	},
 	[ProjectColumnID.STATUS]: {
 		columnID: ProjectColumnID.STATUS,

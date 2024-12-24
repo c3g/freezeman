@@ -56,16 +56,16 @@ function wrapSample(sample: Sample) {
 
 function SamplesListContent() {
 	const samplesTableState = useAppSelector(selectSamplesTable)
-	const { filters, fixedFilters, sortBy, totalCount, isFetching } = samplesTableState
+	const { filters, fixedFilters, sortByList, totalCount, isFetching } = samplesTableState
 	const templateActions = useAppSelector(selectSampleTemplateActions)
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortBy)
+	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortByList)
 
-	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortBy)
+	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortByList)
 
-	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortBy)
+	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortByList)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
