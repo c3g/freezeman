@@ -170,7 +170,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			if (typeof description === 'undefined') {
 				return
 			}
-			dispatch(setFilter(step.id, description, value, false))
+			dispatch(setFilter(step.id, description, value, true))
 		}, [step, dispatch]
 	)
 
@@ -179,7 +179,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			if (typeof description === 'undefined') {
 				return
 			}
-			dispatch(setFilterOptions(step.id, description, { [property]: value }, false))
+			dispatch(setFilterOptions(step.id, description, { [property]: value }, true))
 		}
 		, [step, dispatch])
 

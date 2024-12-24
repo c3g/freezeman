@@ -55,15 +55,19 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   const loading = refreshing  || labworkStepSummary.isFetching
 
   useEffect(() => {
-    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
+    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {}))
+  }, [])  // Fetches the initial labwork step summary
+
+  useEffect(() => {
         dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
-    })
-  }, [activeGrouping.key, dispatch, step.id, stepSamples.selectedSamples.items])
+  }, [dispatch, stepSamples.selectedSamples.items])
 
   const handleChangeActiveGrouping = useCallback((grouping) => {
     clearFilters && clearFilters(false)
-    setActiveGrouping(grouping)
-  }, [])
+    dispatch(getLabworkStepSummary(step.id, grouping.key, {})).then(() => {
+      setActiveGrouping(grouping) // use within then to prevent a mismatch between the current summary and the active grouping.
+    })
+  }, [clearFilters, dispatch, step.id])
 
   const handleSelectGroup = useCallback(async (groupSampleIds: FMSId[]) => {
     const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples.items, groupSampleIds)
