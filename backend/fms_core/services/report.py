@@ -129,21 +129,27 @@ def get_report_as_excel(report_data: ReportData) -> bytes:
         workbook.create_sheet(samplesheet_name)
         samplesheet = workbook[samplesheet_name]
 
-        # fill header
+        # Fill header
         for j, header in enumerate(ordered_headers, start=1):
             cell = samplesheet.cell(row=1, column=j)
             header_label = header["display_name"]
-            # append aggregation to aggregated fields
+            # Append aggregation to aggregated fields
             if header.get("aggregation", None) is not None:
                 header_label = header_label + f" ({header['aggregation']})"
             cell.value = header_label
             cell.fill = PatternFill(start_color=REPORT_HEADER_COLOR, end_color=REPORT_HEADER_COLOR, fill_type="solid")
+        # Fill data
         if datum["time_window_data"]:
             for k, sheet_datum in enumerate(datum["time_window_data"], start=2):
                 for j, header in enumerate(ordered_headers, start=1):
                     cell = samplesheet.cell(row=k, column=j)
                     cell.value = sheet_datum[header["name"]]
-        
+        # Refit columns width to data
+        for column in samplesheet.columns:
+            max_length = max(len(str(cell.value)) for cell in column)
+            adjusted_width = (max_length * 1.1) + 4 # Ad Hoc values to tweak the width
+            samplesheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
     # Remove default sheet
     del workbook["Sheet"]
 
