@@ -10,6 +10,7 @@ import {
   Space,
   Switch,
 } from "antd";
+import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -88,6 +89,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
 
   const [form] = Form.useForm()
   const [formErrors, setFormErrors] = useState({})
+  const [disabledQualityFlag, setDisabledQualityFlag] = useState(true)
+  const [disabledQuantityFlag, setDisabledQuantityFlag] = useState(true)
 
   // Initialize the form with the sample values only once, when the component is mounted.
   // Once the form has been loaded with data we have to keep the form data, and not
@@ -129,6 +132,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
     onSearchContainer(sampleData.container, { exact_match: true })
     onSearchCoordinate(sampleData.coordinate, { exact_match: true })
     onSearchSampleKind(sampleData.sample_kind)
+    setDisabledQualityFlag(sample.quality_flag == undefined)
+    setDisabledQuantityFlag(sample.quantity_flag == undefined)
   }, [sample, onSearchSite, onSearchIndividual, onSearchContainer, onSearchCoordinate, onSearchSampleKind])
 
   /*
@@ -336,6 +341,26 @@ const SampleEditContent = ({ sample, isAdding}) => {
             extra="Indicator that reflects insufficient volume for more processing." >
             <Switch />
           </Item>
+          {!isAdding &&
+          <>
+            <Item label="Quantity Flag" {...props("quantity_flag")} valuePropName="checked"
+              extra="Indicator that reflects the quantity QC." >
+              <Switch
+                disabled={disabledQualityFlag}
+                checkedChildren={<CheckOutlined style={{backgroundColor: disabledQualityFlag ? 'default' : 'green'}}/>}
+                unCheckedChildren={<CloseOutlined style={{backgroundColor: disabledQualityFlag ? 'default' : 'red'}}/>}
+              />
+            </Item>
+            <Item label="Quality Flag" {...props("quality_flag")} valuePropName="checked"
+              extra="Indicator that reflects the quality QC." >
+              <Switch
+                disabled={disabledQuantityFlag}
+                checkedChildren={<CheckOutlined style={{backgroundColor: disabledQuantityFlag ? 'default' : 'green'}}/>}
+                unCheckedChildren={<CloseOutlined style={{backgroundColor: disabledQuantityFlag ? 'default' : 'red'}}/>}
+              />
+            </Item>
+          </>
+          }
           {isAdding &&
             <Item
               label="Vol. (µL)"
@@ -443,6 +468,12 @@ function serializeFormData(form) {
 
   if (form.getFieldValue("depleted") != null || form.getFieldValue("depleted") != undefined)
     newValues.depleted = form.getFieldValue("depleted")
+
+  if (form.getFieldValue("quantity_flag") != null || form.getFieldValue("quantity_flag") != undefined && !form.getFieldValue("quantity_flag").disabled)
+    newValues.quantity_flag = form.getFieldValue("quantity_flag")
+
+  if (form.getFieldValue("quality_flag") != null || form.getFieldValue("quality_flag") != undefined && !form.getFieldValue("quality_flag").disabled)
+    newValues.quality_flag = form.getFieldValue("quality_flag")
 
   if (!form.getFieldValue("concentration")) {
     newValues.concentration = null
