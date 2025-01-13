@@ -22,11 +22,14 @@ class SheetData():
         self.dataframe = dataframe
         self.headers = headers
 
-        for i, row_list in enumerate(self.dataframe.values.tolist()):
-            if row_list[:len(self.headers)] == self.headers:
-                self.dataframe.columns = row_list
-                self.header_row_nb = i
-                break
+        if self.dataframe.columns is not None:
+            self.header_row_nb = -1 # No header in dataframe for json files
+        else:
+            for i, row_list in enumerate(self.dataframe.values.tolist()):
+                if row_list[:len(self.headers)] == self.headers:
+                    self.dataframe.columns = row_list
+                    self.header_row_nb = i
+                    break
 
         if self.header_row_nb is not None:
             self.prepare_rows()

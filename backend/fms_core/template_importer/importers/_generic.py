@@ -6,6 +6,7 @@ from django.db import transaction
 import time
 import reversion
 import os
+import json
 
 from ..sheet_data import SheetData
 from .._utils import blank_and_nan_to_none
@@ -37,7 +38,7 @@ class GenericImporter():
         self.format = file_format
         file_path = None
 
-        if not self.format == ".xlsx" and len(self.SHEETS_INFO) > 1:
+        if not (self.format == ".xlsx" or self.format == ".json") and len(self.SHEETS_INFO) > 1:
             self.base_errors.append(f"Templates with multiple sheets need to be submitted as xlsx files.")
         else:
             for sheet_info in self.SHEETS_INFO:
@@ -108,7 +109,12 @@ class GenericImporter():
 
     def create_sheet_data(self, name, headers):
         try:
-            if self.format == ".xlsx":
+            if self.format == ".json":
+                with open(self.file, 'r') as file:
+                    file_content = file.read()
+                sheet_data = StringIO(json.dumps(json.loads(file_content)["datasheets"][name]["sheet_data"]))
+                pd_sheet = pd.read_json(sheet_data, orient="records")
+            elif self.format == ".xlsx":
                 pd_sheet = pd.read_excel(self.preprocess_file(self.file), sheet_name=name, header=None)
             elif self.format == ".csv" or self.format == ".txt" or self.format == ".asc":
                 pd_sheet = pd.read_csv(self.preprocess_file(self.file), header=None)
