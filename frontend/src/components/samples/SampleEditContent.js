@@ -10,7 +10,7 @@ import {
   Space,
   Switch,
 } from "antd";
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { CheckSquareFilled, CloseSquareFilled } from '@ant-design/icons';
 import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -89,8 +89,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
 
   const [form] = Form.useForm()
   const [formErrors, setFormErrors] = useState({})
-  const [disabledQualityFlag, setDisabledQualityFlag] = useState(true)
-  const [disabledQuantityFlag, setDisabledQuantityFlag] = useState(true)
+  const disabledQualityFlag = (sample.quality_flag == undefined)
+  const disabledQuantityFlag = (sample.quantity_flag == undefined)
 
   // Initialize the form with the sample values only once, when the component is mounted.
   // Once the form has been loaded with data we have to keep the form data, and not
@@ -132,8 +132,6 @@ const SampleEditContent = ({ sample, isAdding}) => {
     onSearchContainer(sampleData.container, { exact_match: true })
     onSearchCoordinate(sampleData.coordinate, { exact_match: true })
     onSearchSampleKind(sampleData.sample_kind)
-    setDisabledQualityFlag(sample.quality_flag == undefined)
-    setDisabledQuantityFlag(sample.quantity_flag == undefined)
   }, [sample, onSearchSite, onSearchIndividual, onSearchContainer, onSearchCoordinate, onSearchSampleKind])
 
   /*
@@ -347,16 +345,16 @@ const SampleEditContent = ({ sample, isAdding}) => {
               extra="Indicator that reflects the quantity QC." >
               <Switch
                 disabled={disabledQualityFlag}
-                checkedChildren={<CheckOutlined style={{backgroundColor: disabledQualityFlag ? 'default' : 'green'}}/>}
-                unCheckedChildren={<CloseOutlined style={{backgroundColor: disabledQualityFlag ? 'default' : 'red'}}/>}
+                checkedChildren={<CheckSquareFilled style={{backgroundColor: disabledQualityFlag ? 'default' : 'green'}}/>}
+                unCheckedChildren={<CloseSquareFilled style={{backgroundColor: disabledQualityFlag ? 'default' : 'red'}}/>}
               />
             </Item>
             <Item label="Quality Flag" {...props("quality_flag")} valuePropName="checked"
               extra="Indicator that reflects the quality QC." >
               <Switch
                 disabled={disabledQuantityFlag}
-                checkedChildren={<CheckOutlined style={{backgroundColor: disabledQuantityFlag ? 'default' : 'green'}}/>}
-                unCheckedChildren={<CloseOutlined style={{backgroundColor: disabledQuantityFlag ? 'default' : 'red'}}/>}
+                checkedChildren={<CheckSquareFilled style={{backgroundColor: disabledQuantityFlag ? 'default' : 'green'}}/>}
+                unCheckedChildren={<CloseSquareFilled style={{backgroundColor: disabledQuantityFlag ? 'default' : 'red'}}/>}
               />
             </Item>
           </>
