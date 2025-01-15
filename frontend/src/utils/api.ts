@@ -1,6 +1,7 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSListPrefills } from "../models/fms_api_models";
+import { AnyAction, Dispatch } from "redux";
 
 const api = {
   auth: {
@@ -30,7 +31,7 @@ const api = {
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
     },
     prefill: {
-      templates: () => get(`/containers/list_prefills/`),
+      templates: () => get<JsonResponse<FMSListPrefills>>(`/containers/list_prefills/`),
       request: (options, template) => filteredpost(`/containers/prefill_template/`, {...options}, form({ template: template })),
     },
     search: (q, { parent, sample_holding, exact_match, except_kinds }) =>
@@ -132,7 +133,7 @@ const api = {
       submit: (action, template) => post(`/libraries/template_submit/`, form({ action, template })),
     },
     prefill: {
-      templates: () => get(`/libraries/list_prefills/`),
+      templates: () => get<JsonResponse<FMSListPrefills>>(`/libraries/list_prefills/`),
       request: (options, template) => filteredpost(`/libraries/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/libraries/search/", { q }),
@@ -224,7 +225,7 @@ const api = {
       submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
     },
     prefill: {
-      templates: () => get(`/samples/list_prefills/`),
+      templates: () => get<JsonResponse<FMSListPrefills>>(`/samples/list_prefills/`),
       request: (options, template) => filteredpost(`/samples/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/samples/search/", { q }),
@@ -246,7 +247,7 @@ const api = {
     labworkStepSummary: (stepId: FMSId, groupBy: string, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<LabworkStepInfo>>('/sample-next-step/labwork_step_info/', {...options, step__id__in: stepId, group_by: groupBy}, { sample__id__in }),
     listSamplesAtStep: (stepId: FMSId, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
     prefill: {
-      templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
+      templates: (protocolId) => get<JsonResponse<FMSListPrefills>>('/sample-next-step/list_prefills/', {protocol: protocolId}),
       request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string,  options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID.toString(), sample__id__in }))
     },
     template: {
@@ -355,7 +356,9 @@ export const ABORT_ERROR_NAME = 'AbortError'
 function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
     const baseRoute = getPathname(route)
 
-    return (_: any, getState: () => AuthTokensAccess) => {
+    // leave type of parameters general cause they are barely used
+    // getState() must at least return an object with key sequences auth.tokens.access
+    return (dispatch: Dispatch<AnyAction>, getState: () => any) => {
 
         const accessToken = getState().auth.tokens.access;
 

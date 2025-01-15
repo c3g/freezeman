@@ -575,3 +575,13 @@ export interface FMSReportData {
         time_window_label: string
     }[]
 }
+
+export type UserPrefillInfo = {
+    [key: string]: string | string[] | "number" | "date"
+}
+
+export type FMSListPrefills = {
+    id: FMSId
+    description: string
+    prefillFields: UserPrefillInfo | null
+}[]
