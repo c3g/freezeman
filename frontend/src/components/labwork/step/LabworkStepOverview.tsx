@@ -65,9 +65,10 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   const handleChangeActiveGrouping = useCallback((grouping) => {
     clearFilters && clearFilters(false)
     dispatch(getLabworkStepSummary(step.id, grouping.key, {})).then(() => {
+      dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
       setActiveGrouping(grouping) // use within then to prevent a mismatch between the current summary and the active grouping.
     })
-  }, [clearFilters, dispatch, step.id])
+  }, [clearFilters, dispatch, step.id, stepSamples.selectedSamples.items])
 
   const handleSelectGroup = useCallback(async (groupSampleIds: FMSId[]) => {
     const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples.items, groupSampleIds)
@@ -124,6 +125,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 							  setFilter={setFilter}
 							  setFilterOptions={setFilterOptions}
 							  selection={selection}
+                sortBy={sortBy}
 							  setSortBy={setSortBy}
 							  pagination={pagination}
 							  stepID={step.id}

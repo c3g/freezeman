@@ -417,6 +417,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							setFilterOptions={handleSetFilterOptions}
 							selection={selectionProps(onSelectChange)}
 							setSortBy={handleSetSortBy}
+              sortBy={stepSamples.pagedItems.sortBy}
 							pagination={pagination}
 						/>
 					</Tabs.TabPane>

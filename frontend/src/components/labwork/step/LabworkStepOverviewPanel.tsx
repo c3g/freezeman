@@ -39,7 +39,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 
 	const [isFetchingSamples, setIsFetchingSamples] = useState(false)
 	const [sampleAndLibraryList, setSampleAndLibraryList] = useState<SampleAndLibrary[]>([])
-  const displayedSamples = useAppSelector(selectLabworkStepsState).steps[stepID].displayedSamples
+  const displayedSamples = useAppSelector((state) => selectLabworkStepsState(state).steps[stepID].displayedSamples)
 
 	useEffect(() => {
 		clearFilters && clearFilters(false)
@@ -65,7 +65,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
   useEffect(() => {
     const updateDisplay = async () => setSampleAndLibraryList(await fetchSamplesAndLibraries(displayedSamples))
     updateDisplay()
-  }, [filters]) // Triggers off filters instead of displayed samples to prevent endless loop. TODO fix loopy behaviour ... 
+  }, [displayedSamples]) // Triggers off filters instead of displayed samples to prevent endless loop. TODO fix loopy behaviour ... 
 
 	return (
 		<>
@@ -79,6 +79,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 				setFilter={setFilter}
 				setFilterOptions={setFilterOptions}
 				selection={selection}
+        sortBy={sortBy}
 				setSortBy={setSortBy}
 				pagination={pagination}
 				loading={refreshing || isFetchingSamples}
