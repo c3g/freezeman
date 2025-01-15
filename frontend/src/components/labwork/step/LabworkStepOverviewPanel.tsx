@@ -9,7 +9,6 @@ import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { selectLabworkStepsState } from '../../../selectors'
 import { loadSampleNextStepsAtStep } from '../../../modules/labworkSteps/actions'
 import { fetchSamplesAndLibraries } from '../../../modules/studySamples/services'
-import { useDebounce } from '../../filters/filterComponents/DebouncedInput'
 
 export interface LabworkStepPanelProps {
 	refreshing: boolean
