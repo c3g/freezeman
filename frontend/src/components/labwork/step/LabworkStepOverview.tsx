@@ -54,7 +54,9 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
   const loading = refreshing  || labworkStepSummary.isFetching
 
   useEffect(() => {
-    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {}))
+    dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
+      dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
+    })
   }, [])  // Fetches the initial labwork step summary
 
   useEffect(() => {
