@@ -16,6 +16,8 @@ export const BASE_ROUTE = "/reports/"
 const FORM_ROUTE = `${BASE_ROUTE}search/`
 const LIST_ROUTE = `${BASE_ROUTE}list/`
 
+const DEFAULT_TIME_WINDOW = "Annually"
+
 export function Reports() {
     const [searchParams] = useSearchParams()
 
@@ -46,7 +48,7 @@ function ReportForm() {
         // set default time window
         if (!paramTimeWindow) {
             const newSearchParams = new URLSearchParams(searchParams)
-            newSearchParams.set("time_window", "Monthly")
+            newSearchParams.set("time_window", DEFAULT_TIME_WINDOW)
             setSearchParams(newSearchParams, { replace: true })
         }   
     }, [paramTimeWindow, searchParams, setSearchParams])
@@ -85,7 +87,7 @@ function ReportForm() {
         newSearchParams.set("report_name", values.report_name)
         newSearchParams.set("start_date", start_date.format("YYYY-MM-DD"))
         newSearchParams.set("end_date", end_date.format("YYYY-MM-DD"))
-        newSearchParams.set("time_window", values.time_window ?? "Monthly")
+        newSearchParams.set("time_window", values.time_window ?? DEFAULT_TIME_WINDOW)
         values.group_by.forEach((group) => newSearchParams.append("group_by", group))        
         setSearchParams(newSearchParams, { replace: true })
         navigate({
@@ -151,7 +153,7 @@ function ReportForm() {
                     }}
                 />
             </Form.Item>
-            <Form.Item name={"time_window"} label={"Time Window"} initialValue={paramTimeWindow ?? "Monthly"}>
+            <Form.Item name={"time_window"} label={"Time Window"} initialValue={paramTimeWindow ?? DEFAULT_TIME_WINDOW}>
                 <Select<FMSReportInformation["time_windows"][number]>
                     placeholder={"Select Time Window"}
                     options={reportInfo ? reportInfo.time_windows.map((name) => ({ value: name, label: name })) : []}
@@ -221,7 +223,7 @@ function ReportTableWrapper() {
             report_name: reportName,
             start_date: startDate,
             end_date: endDate,
-            time_window: timeWindow = "Monthly",
+            time_window: timeWindow = DEFAULT_TIME_WINDOW,
             group_by: groupBy,
         } = getParams(searchParams)
         if (!reportName || !startDate || !endDate) {

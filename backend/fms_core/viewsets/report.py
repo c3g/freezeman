@@ -28,6 +28,8 @@ class ReportViewSet(viewsets.ViewSet):
         export = params.get("export", None)
         # Use time window text choices
         match time_window_label:
+            case TimeWindow.ANNUALLY.label:
+                time_window = TimeWindow.ANNUALLY
             case TimeWindow.MONTHLY.label:
                 time_window = TimeWindow.MONTHLY
             case TimeWindow.WEEKLY.label:
@@ -35,7 +37,7 @@ class ReportViewSet(viewsets.ViewSet):
             case TimeWindow.DAILY.label:
                 time_window = TimeWindow.DAILY
             case _:
-                time_window = TimeWindow.MONTHLY
+                time_window = TimeWindow.ANNUALLY
 
         if report_name is None:
             return Response(list_reports())

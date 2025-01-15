@@ -16,6 +16,7 @@ from fms_report.models import Report, MetricField
 from fms_report.models._constants import AggregationType, FieldDataType
 
 class TimeWindow(TextChoices):
+    ANNUALLY = "year", "Annually"
     MONTHLY = "month", "Monthly"
     WEEKLY = "week", "Weekly"
     DAILY = "day", "Daily"
@@ -69,6 +70,8 @@ def get_date_range_with_window(start_date: str, end_date: str, time_window: Time
     """
     time_series = pd.date_range(start=start_date, end=end_date).to_series()
     match time_window:
+        case TimeWindow.ANNUALLY:
+             window_time_series = time_series - pd.to_timedelta(time_series.dt.dayofyear - 1, unit="D")
         case TimeWindow.MONTHLY: 
             window_time_series = time_series - pd.to_timedelta(time_series.dt.day - 1, unit="D")
         case TimeWindow.WEEKLY:
@@ -95,6 +98,8 @@ def human_readable_time_window(date: str, time_window: TimeWindow) -> str:
     time_window_label = None
     date_obj = datetime.date.fromisoformat(date)
     match time_window:
+        case TimeWindow.ANNUALLY:
+            time_window_label = f"{date_obj.year}"
         case TimeWindow.MONTHLY:
             time_window_label = f"{date_obj.strftime('%B')} {date_obj.year}"
         case TimeWindow.WEEKLY:
@@ -124,21 +129,27 @@ def get_report_as_excel(report_data: ReportData) -> bytes:
         workbook.create_sheet(samplesheet_name)
         samplesheet = workbook[samplesheet_name]
 
-        # fill header
+        # Fill header
         for j, header in enumerate(ordered_headers, start=1):
             cell = samplesheet.cell(row=1, column=j)
             header_label = header["display_name"]
-            # append aggregation to aggregated fields
+            # Append aggregation to aggregated fields
             if header.get("aggregation", None) is not None:
                 header_label = header_label + f" ({header['aggregation']})"
             cell.value = header_label
             cell.fill = PatternFill(start_color=REPORT_HEADER_COLOR, end_color=REPORT_HEADER_COLOR, fill_type="solid")
+        # Fill data
         if datum["time_window_data"]:
             for k, sheet_datum in enumerate(datum["time_window_data"], start=2):
                 for j, header in enumerate(ordered_headers, start=1):
                     cell = samplesheet.cell(row=k, column=j)
                     cell.value = sheet_datum[header["name"]]
-        
+        # Refit columns width to data
+        for column in samplesheet.columns:
+            max_length = max(len(str(cell.value)) for cell in column)
+            adjusted_width = (max_length * 1.1) + 4 # Ad Hoc values to tweak the width
+            samplesheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
     # Remove default sheet
     del workbook["Sheet"]
 
@@ -168,7 +179,7 @@ def list_report_information(report_name: str) -> ReportInfo:
     """
     queryset = MetricField.objects.filter(report__name=report_name).all()
     groups = [{"name": field.name, "display_name": field.display_name} for field in queryset if field.is_group]
-    time_windows = [TimeWindow.DAILY.label, TimeWindow.WEEKLY.label, TimeWindow.MONTHLY.label]
+    time_windows = [TimeWindow.DAILY.label, TimeWindow.WEEKLY.label, TimeWindow.MONTHLY.label, TimeWindow.ANNUALLY.label]
     report_info = {"report": Report.objects.filter(name=report_name).values("name", "display_name").first(),
                    "groups": groups,
                    "time_windows": time_windows}
