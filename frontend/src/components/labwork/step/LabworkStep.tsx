@@ -6,7 +6,7 @@ import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import AppPageHeader from '../../AppPageHeader'
@@ -170,7 +170,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			if (typeof description === 'undefined') {
 				return
 			}
-			dispatch(setFilter(step.id, description, value, false))
+			dispatch(setFilter(step.id, description, value, true))
 		}, [step, dispatch]
 	)
 
@@ -179,7 +179,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			if (typeof description === 'undefined') {
 				return
 			}
-			dispatch(setFilterOptions(step.id, description, { [property]: value }, false))
+			dispatch(setFilterOptions(step.id, description, { [property]: value }, true))
 		}
 		, [step, dispatch])
 
@@ -417,6 +417,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							setFilterOptions={handleSetFilterOptions}
 							selection={selectionProps(onSelectChange)}
 							setSortBy={handleSetSortBy}
+              sortBy={stepSamples.pagedItems.sortBy}
 							pagination={pagination}
 						/>
 					</Tabs.TabPane>

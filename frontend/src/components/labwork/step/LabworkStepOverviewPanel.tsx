@@ -5,10 +5,10 @@ import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
-import { useAppDispatch } from '../../../hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { selectLabworkStepsState } from '../../../selectors'
 import { loadSampleNextStepsAtStep } from '../../../modules/labworkSteps/actions'
 import { fetchSamplesAndLibraries } from '../../../modules/studySamples/services'
-import { useDebounce } from '../../filters/filterComponents/DebouncedInput'
 
 export interface LabworkStepPanelProps {
 	refreshing: boolean
@@ -38,6 +38,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 
 	const [isFetchingSamples, setIsFetchingSamples] = useState(false)
 	const [sampleAndLibraryList, setSampleAndLibraryList] = useState<SampleAndLibrary[]>([])
+  const displayedSamples = useAppSelector((state) => selectLabworkStepsState(state).steps[stepID].displayedSamples)
 
 	useEffect(() => {
 		clearFilters && clearFilters(false)
@@ -55,9 +56,15 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 		setSampleAndLibraryList(await fetchSamplesAndLibraries(samples.results.map((sample) => sample.sample)))
 		setIsFetchingSamples(false)
 	}, [dispatch, pagination?.pageNumber, pagination?.pageSize, stepID])
+
 	useEffect(() => {
 		initialSampleFetch()
 	}, [initialSampleFetch])
+
+  useEffect(() => {
+    const updateDisplay = async () => setSampleAndLibraryList(await fetchSamplesAndLibraries(displayedSamples))
+    updateDisplay()
+  }, [displayedSamples]) // Triggers off filters instead of displayed samples to prevent endless loop. TODO fix loopy behaviour ... 
 
 	return (
 		<>
@@ -71,6 +78,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 				setFilter={setFilter}
 				setFilterOptions={setFilterOptions}
 				selection={selection}
+        sortBy={sortBy}
 				setSortBy={setSortBy}
 				pagination={pagination}
 				loading={refreshing || isFetchingSamples}

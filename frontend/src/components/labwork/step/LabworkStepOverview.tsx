@@ -1,12 +1,12 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, unselectSamples } from '../../../modules/labworkSteps/actions'
 import GroupingButton from '../../GroupingButton'
-import LabworkStepOverviewPanel, { LabworkStepPanelProps } from './LabworkStepOverviewPanel'
+import LabworkStepOverviewPanel from './LabworkStepOverviewPanel'
 import { selectLabworkStepSummaryState } from '../../../selectors'
-import { Step, Sample } from '../../../models/frontend_models'
+import { Step } from '../../../models/frontend_models'
 import { FMSId } from '../../../models/fms_api_models'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
@@ -14,7 +14,6 @@ import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamples
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { LabworkStepSamples, LabworkStepSamplesGroup } from '../../../modules/labworkSteps/models'
 import { mergeArraysIntoSet } from '../../../utils/mergeArraysIntoSet'
-import { fetchLibrariesForSamples, fetchSamples } from "../../../modules/cache/cache"
 
 const { Title } = Typography
 
@@ -56,14 +55,21 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 
   useEffect(() => {
     dispatch(getLabworkStepSummary(step.id, activeGrouping.key, {})).then(() => {
-        dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
+      dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
     })
-  }, [activeGrouping.key, dispatch, step.id, stepSamples.selectedSamples.items])
+  }, [])  // Fetches the initial labwork step summary
+
+  useEffect(() => {
+        dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
+  }, [dispatch, stepSamples.selectedSamples.items])
 
   const handleChangeActiveGrouping = useCallback((grouping) => {
     clearFilters && clearFilters(false)
-    setActiveGrouping(grouping)
-  }, [])
+    dispatch(getLabworkStepSummary(step.id, grouping.key, {})).then(() => {
+      dispatch(setSelectedSamplesInGroups(stepSamples.selectedSamples.items))
+      setActiveGrouping(grouping) // use within then to prevent a mismatch between the current summary and the active grouping.
+    })
+  }, [clearFilters, dispatch, step.id, stepSamples.selectedSamples.items])
 
   const handleSelectGroup = useCallback(async (groupSampleIds: FMSId[]) => {
     const mergedSelection = mergeArraysIntoSet(stepSamples.selectedSamples.items, groupSampleIds)
@@ -120,6 +126,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 							  setFilter={setFilter}
 							  setFilterOptions={setFilterOptions}
 							  selection={selection}
+                sortBy={sortBy}
 							  setSortBy={setSortBy}
 							  pagination={pagination}
 							  stepID={step.id}
