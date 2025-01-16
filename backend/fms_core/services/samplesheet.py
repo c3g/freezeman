@@ -123,6 +123,9 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     fillWritable = PatternFill(start_color="e8f2a1", end_color="e8f2a1", fill_type="solid")
     def style_writable(cell):
         cell.fill = fillWritable
+    fillHardcoded = PatternFill(start_color="fc8b8b", end_color="fc8b8b", fill_type="solid")
+    def style_hardcoded(cell):
+        cell.fill = fillHardcoded
 
     MAX_COLUMN = 5
     def add_section_header(section_name: str):
@@ -187,22 +190,22 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
                 CD(
                     value="151",
                     validation=DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read1Cycles Value", error="Read1Cycles must be greater than 0"),
-                    apply_cell=style_writable
+                    apply_cell=style_hardcoded
                 ),
                 CD(
                     value="151",
                     validation=DataValidation(type="whole", operator="greaterThan", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Read2Cycles Value", error="Read2Cycles must be greater than 0"),
-                    apply_cell=style_writable
+                    apply_cell=style_hardcoded
                 ),
                 CD(
                     value="10",
                     validation=DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index1Cycles Value", error="Index1Cycles must be greater than or equal to 0"),
-                    apply_cell=style_writable
+                    apply_cell=style_hardcoded
                 ),
                 CD(
                     value="10",
                     validation=DataValidation(type="whole", operator="greaterThanOrEqual", formula1=0, allow_blank=False, showErrorMessage=True, errorTitle="Invalid Index2Cycles Value", error="Index2Cycles must be greater than or equal to 0"),
-                    apply_cell=style_writable
+                    apply_cell=style_hardcoded
                 ),
             ]
         ]
@@ -245,10 +248,10 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
                 CD(value="FastqCompressionFormat", apply_cell=style_header)
             ],
             [
-                CD(value="4.3.13", apply_cell=style_writable),
+                CD(value="4.3.13", apply_cell=style_hardcoded),
                 CD(value=ADAPTERREAD1S["IlluminaDNAPCRFree"], apply_cell=style_writable),
                 CD(value=ADAPTERREAD2S["IlluminaDNAPCRFree"], apply_cell=style_writable),
-                CD(value="Y151;I10;I10;Y151", apply_cell=style_writable),
+                CD(value="Y151;I10;I10;Y151", apply_cell=style_hardcoded),
                 CD(
                     value="gzip",
                     validation=DataValidation(type="list", formula1=f'"{",".join(FASTQ_COMPRESSION_FORMATS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid FastqCompressionFormat Value", error="Only gzip is supported"),
@@ -298,8 +301,8 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
                 CD(value="KeepFastq", apply_cell=style_header)
             ],
             [
-                CD(value="4.3.13", apply_cell=style_writable),
-                CD(value="1.3.11", apply_cell=style_writable),
+                CD(value="4.3.13", apply_cell=style_hardcoded),
+                CD(value="1.3.11", apply_cell=style_hardcoded),
                 CD(
                     value="none",
                     validation=DataValidation(type="list", formula1=f'"{",".join(MAP_ALIGN_OUT_FORMATS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid MapAlignOutFormat Value", error=f"Only {', '.join(MAP_ALIGN_OUT_FORMATS)} are supported"),
@@ -317,7 +320,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
     samplesheet.append([])
     add_section_header("DragenGermline_Data")
     REFERENCE_GENOME_REFERENCE_DIRS = [
-        "hg38-alt_masked.cnv.hla.rna-8-r2.0-1",
+        "hg38-alt_masked.cnv.graph.hla.rna-10-r4.0-2",
         "hg19-alt_masked.cnv.graph.hla.rna-10-r4.0-1",
         "chm13_v2-cnv.graph.hla.rna-10-r4.0-1",
     ]
