@@ -219,7 +219,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
-            [CD(value="LibraryPrepKits", apply_cell=style_header, comment="Leave it blank if you wish to auto-fill [Cloud_Settings].")],
+            [CD(value="LibraryPrepKits", apply_cell=style_header, comment="Leave it blank unless you want to fill the [Cloud_Settings] section.")],
             [
                 CD(
                     value="",
