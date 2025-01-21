@@ -75,6 +75,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 				)
 			)
 		},
+		width: 200,
 	},
 
 	[LibraryColumnID.LIBRARY_SIZE]: {
@@ -91,6 +92,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		title: 'Library Type',
 		dataIndex: ['library', 'library_type'],
 		render: (_, { library }) => library && library.library_type && <span>{library.library_type}</span>,
+		width: 150,
 	},
 
 	[LibraryColumnID.PLATFORM_NAME]: {
