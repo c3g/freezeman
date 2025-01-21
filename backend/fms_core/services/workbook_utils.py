@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Iterable, Literal
 from openpyxl.cell.cell import Cell
+from openpyxl.comments import Comment
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -9,6 +10,7 @@ class CellDescription:
     value: str
     validation: DataValidation | None = None
     apply_cell: Callable[[Cell], None] | None = None
+    comment: str | None = None
 
 CD = CellDescription
 
@@ -30,3 +32,6 @@ def insert_cells(worksheet: Worksheet, first_cell_location: tuple[int, int], des
 
             if cell_description.apply_cell is not None:
                 cell_description.apply_cell(cell)
+            
+            if cell_description.comment is not None:
+                cell.comment = Comment(cell_description.comment, "FreezeMan")

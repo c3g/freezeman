@@ -219,11 +219,11 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
         first_cell_location=(samplesheet.max_row+1, 1),
         order="col",
         descriptors=[
-            [CD(value="LibraryPrepKits", apply_cell=style_header)],
+            [CD(value="LibraryPrepKits", apply_cell=style_header, comment="Leave it blank unless you want to fill the [Cloud_Settings] section.")],
             [
                 CD(
-                    value=LIBRARY_PREP_KITS[0],
-                    validation=DataValidation(type="list", formula1=f'"{",".join(LIBRARY_PREP_KITS)}"', allow_blank=False, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error=f"Only {', '.join(LIBRARY_PREP_KITS)} is supported"),
+                    value="",
+                    validation=DataValidation(type="list", formula1=f'"{",".join(LIBRARY_PREP_KITS)}"', allow_blank=True, showErrorMessage=True, errorTitle="Invalid LibraryPrepKits Value", error=f"Only {', '.join(LIBRARY_PREP_KITS)} is supported"),
                     apply_cell=style_writable
                 )
             ]
