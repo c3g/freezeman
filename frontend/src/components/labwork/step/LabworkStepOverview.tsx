@@ -11,13 +11,13 @@ import { FMSId } from '../../../models/fms_api_models'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
-import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
+import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { LabworkStepSamples, LabworkStepSamplesGroup } from '../../../modules/labworkSteps/models'
 import { mergeArraysIntoSet } from '../../../utils/mergeArraysIntoSet'
 
 const { Title } = Typography
 
-interface LabworkStepCollapseProps {
+export interface LabworkStepOverviewProps {
   step: Step,
   refreshing: boolean
   stepSamples: LabworkStepSamples
@@ -27,8 +27,8 @@ interface LabworkStepCollapseProps {
 	filterDefinitions?: FilterDescriptionSet,
 	filterKeys?: FilterKeySet,
 	filters?: FilterSet,
-	setFilter?: SetFilterFunc,
-	setFilterOptions?: SetFilterOptionFunc,
+	setFilter?: (filterKey: string, value: FilterValue, description: FilterDescription, refresh?: boolean) => void,
+	setFilterOptions?: (filterKey: string, property: string, value: boolean, description: FilterDescription, refresh?: boolean) => void,
 	sortBy?: SortBy,
 	setSortBy?: SetSortByFunc,
 	pagination?: PaginationParameters,
@@ -46,7 +46,7 @@ export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", 
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepCollapseProps) => {
+const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepOverviewProps) => {
   const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)

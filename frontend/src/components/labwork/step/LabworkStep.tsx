@@ -166,20 +166,20 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// ** Table filtering and sorting ***
 
 	const handleSetFilter = useCallback(
-		(filterKey: string, value: FilterValue, description: FilterDescription) => {
+		(filterKey: string, value: FilterValue, description: FilterDescription, refresh = true) => {
 			if (typeof description === 'undefined') {
 				return
 			}
-			dispatch(setFilter(step.id, description, value, true))
+			dispatch(setFilter(step.id, description, value, refresh))
 		}, [step, dispatch]
 	)
 
 	const handleSetFilterOptions = useCallback(
-		(filterKey: string, property: string, value: boolean, description: FilterDescription) => {
+		(filterKey: string, property: string, value: boolean, description: FilterDescription, refresh = true) => {
 			if (typeof description === 'undefined') {
 				return
 			}
-			dispatch(setFilterOptions(step.id, description, { [property]: value }, true))
+			dispatch(setFilterOptions(step.id, description, { [property]: value }, refresh))
 		}
 		, [step, dispatch])
 
