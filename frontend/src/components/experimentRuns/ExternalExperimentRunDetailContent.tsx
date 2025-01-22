@@ -9,7 +9,7 @@ import { Tabs, Typography } from 'antd'
 import PageContent from '../PageContent'
 import useHashURL from '../../hooks/useHashURL'
 import ExperimentRunValidation from './ExperimentRunValidation'
-import DatasetTable from '../datasets/DatasetTable'
+import DatasetsListContent from '../datasets/DatasetsListContent'
 const { Title } = Typography
 const { TabPane} = Tabs
 
@@ -81,7 +81,7 @@ function ExternalExperimentRunDetailContent({externalExperimentRun}: ExternalExp
 					<ExperimentRunValidation experimentRunName={externalExperimentRun.run_name}/>
 				</TabPane>
 				<TabPane tab='Datasets' key={DATASETS_TAB_KEY} style={tabStyle}>
-					<DatasetTable run_name={externalExperimentRun.run_name}/>
+					<DatasetsListContent run_name={externalExperimentRun.run_name}/>
 				</TabPane>
 			</Tabs>
 		</PageContent>

@@ -16,11 +16,11 @@ import {
 } from '../../selectors'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import DatasetTable from '../datasets/DatasetTable'
 import ProcessProperties from '../shared/ProcessProperties'
 import ExperimentRunOverview from './ExperimentRunOverview'
 import ExperimentRunValidation from './ExperimentRunValidation'
 import ExperimentRunsSamples from './ExperimentRunsSamples'
+import DatasetsListContent from '../datasets/DatasetsListContent'
 
 const { TabPane } = Tabs
 
@@ -160,7 +160,7 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 					</TabPane>
 
 					<TabPane tab={'Datasets'} key="datasets">
-						<DatasetTable run_name={experimentRun.name}/>
+						<DatasetsListContent run_name={experimentRun.name}/>
 					</TabPane>
 				</Tabs>
 			</PageContent>
