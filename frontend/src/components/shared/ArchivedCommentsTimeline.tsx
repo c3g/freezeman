@@ -4,6 +4,9 @@ import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
 import useTimeline from "../../utils/useTimeline"
 import renderTextWithLineBreaks from "../../utils/renderTextWithLineBreaks"
+import { useAppSelector } from "../../hooks"
+import { selectUsersByID } from "../../selectors"
+import * as humanReadableTime from "../../utils/humanReadableTime";
 
 const { Paragraph } = Typography
 interface commentsTimelineProps {
@@ -12,8 +15,8 @@ interface commentsTimelineProps {
 
 export default function ArchivedCommentsTimeline({ comments } : commentsTimelineProps) {
   const [timelineMarginLeft, timelineRef] = useTimeline();
-  const compareComments = (a, b) => a.id - b.id
-  const orderedComments = [...comments].sort(compareComments).reverse()
+  const orderedComments = [...comments].sort((a, b) => a.id - b.id).reverse()
+  const usersByID = useAppSelector(selectUsersByID)
 
 	return (
     <Row justify="center">
@@ -22,7 +25,7 @@ export default function ArchivedCommentsTimeline({ comments } : commentsTimeline
           {comments.length > 0 ?
             <Timeline mode={"left"} style={{ marginLeft: timelineMarginLeft}}>
               {orderedComments.map(comment => 
-                <Timeline.Item key={comment.id} label={dateToString(new Date(comment.created_at), "full")}>
+                <Timeline.Item key={comment.id} label={`${humanReadableTime.full(new Date(comment.created_at))} (${usersByID[comment.created_by]?.username})`}>
                   {renderTextWithLineBreaks(comment.comment, true)}
                 </Timeline.Item>)}
             </Timeline>
