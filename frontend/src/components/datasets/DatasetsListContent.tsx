@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import React from "react"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import { useAppSelector } from "../../hooks"
@@ -7,11 +7,10 @@ import DatasetsTableActions from '../../modules/datasetsTable/actions'
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
-import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, DatasetColumnID, ObjectWithDataset } from "./DatasetsTableColumns"
+import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
-import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities"
 
 
 const tableColumns = [
@@ -21,7 +20,8 @@ const tableColumns = [
 	DATASET_COLUMN_DEFINITIONS.LANE,
 	DATASET_COLUMN_DEFINITIONS.VALIDATION_STATUS,
 	DATASET_COLUMN_DEFINITIONS.READSETS_RELEASED,
-	DATASET_COLUMN_DEFINITIONS.LATEST_UPDATE
+	DATASET_COLUMN_DEFINITIONS.LATEST_RELEASE_UPDATE,
+	DATASET_COLUMN_DEFINITIONS.LATEST_VALIDATION_UPDATE
 ]
 
 function DatasetsListContent() {
@@ -31,7 +31,7 @@ function DatasetsListContent() {
 
 	const callbacks = usePagedItemsActionsCallbacks(DatasetsTableActions)
 
-  let tweakedColumns = useFilteredColumns(
+  	const tweakedColumns = useFilteredColumns(
           tableColumns,
           DATASET_FILTER_DEFINITIONS,
           DATASET_FILTER_KEYS,

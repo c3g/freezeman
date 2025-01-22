@@ -24,7 +24,8 @@ from ._constants import _dataset_filterset_fields
 class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
     queryset = queryset.annotate(
-        latest_release_update=Max("readsets__release_status_timestamp")
+        latest_release_update=Max("readsets__release_status_timestamp"),
+        latest_validation_update=Max("readsets__validation_status_timestamp")
     )
     queryset = queryset.annotate(
         released_status_count=Count("readsets", filter=Q(readsets__release_status=ReleaseStatus.RELEASED), distinct=True),
@@ -36,7 +37,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
     ordering_fields = (
         *_list_keys(_dataset_filterset_fields),
         "latest_release_update",
-        "released_status_count"
+        "released_status_count",
+        "latest_validation_update",
     )
 
     filterset_fields = {
