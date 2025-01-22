@@ -54,7 +54,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 		}
 		const samples = await dispatch(loadSampleNextStepsAtStep(stepID, pagination.pageNumber, pagination.pageSize))
 		setSampleAndLibraryList(await fetchSamplesAndLibraries(samples.results.map((sample) => sample.sample)))
-		setIsFetchingSamples(false)	
+		setIsFetchingSamples(false)
 	}, [dispatch, filters, grouping.key, pagination?.pageNumber, pagination?.pageSize, stepID])
 
 	useEffect(() => {
