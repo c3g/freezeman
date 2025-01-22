@@ -75,7 +75,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 				)
 			)
 		},
-		width: 200,
+		width: 350,
 	},
 
 	[LibraryColumnID.LIBRARY_SIZE]: {
