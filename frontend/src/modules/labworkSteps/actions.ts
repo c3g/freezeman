@@ -241,7 +241,7 @@ export function flushSamplesAtStep(stepID: FMSId) {
 	}
 }
 
-export function setFilter(stepID: FMSId, description: FilterDescription, value: FilterValue, refresh = true) {
+export function setFilter(stepID: FMSId, description: FilterDescription, value: FilterValue, reset = true) {
 	return (dispatch) => {
 		dispatch({
 			type: SET_FILTER,
@@ -250,12 +250,12 @@ export function setFilter(stepID: FMSId, description: FilterDescription, value: 
 			description
 		})
 		// Reset the sample list
-		if (refresh)
+		if (reset)
 			dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
 
-export function setFilterOptions(stepID: FMSId, description: FilterDescription, options: FilterOptions, refresh = true) {
+export function setFilterOptions(stepID: FMSId, description: FilterDescription, options: FilterOptions, reset = true) {
 	return (dispatch) => {
 		dispatch({
 			type: SET_FILTER_OPTION,
@@ -264,7 +264,7 @@ export function setFilterOptions(stepID: FMSId, description: FilterDescription, 
 			description
 		})
 		// Reset the sample list
-		if (refresh)
+		if (reset)
 			dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
