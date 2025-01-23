@@ -41,7 +41,7 @@ interface LabworkStepCollapseProps {
 const MAX_STEP_SAMPLE_SELECTION = 1000
 
 // If the filters do not work as expectd, check the filtering rules for sample_next_step endpoint (e.g. /backend/fms_core/viewsets/_constants.py, /backend/fms_core/filters.py)
-export const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key: "sample__derived_by_samples__project__name"}
+export const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key: "project_name"}
 export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", key: "ordering_container_name"}
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
