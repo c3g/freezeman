@@ -1,12 +1,10 @@
 import React, { useEffect, useMemo } from "react"
-import AppPageHeader from "../AppPageHeader"
-import PageContent from "../PageContent"
 import { useAppSelector } from "../../hooks"
 import { selectDatasetsByID, selectDatasetsTable } from "../../selectors"
 import DatasetsTableActions from '../../modules/datasetsTable/actions'
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
-import PagedItemsTable from "../pagedItemsTable/PagedItemsTable"
+import PagedItemsTable, { PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable"
 import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
@@ -15,8 +13,9 @@ import { ExperimentRun } from "../../models/frontend_models"
 
 export interface DatasetTableProps {
 	run_name?: ExperimentRun['name']
+	scroll?: NonNullable<PagedItemsTableProps<ObjectWithDataset>['scroll']>
 }
-function DatasetTable({ run_name }: DatasetTableProps) {
+function DatasetTable({ run_name, scroll }: DatasetTableProps) {
 
 	const pagedItems = useAppSelector(selectDatasetsTable)
 	const { filters } = pagedItems
@@ -62,6 +61,7 @@ function DatasetTable({ run_name }: DatasetTableProps) {
                     pagedItems={pagedItems}
                     usingFilters={false}
                     {...callbacks}
+					scroll={scroll}
                 />
 		</>
 	)

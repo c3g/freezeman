@@ -81,7 +81,7 @@ function ExternalExperimentRunDetailContent({externalExperimentRun}: ExternalExp
 					<ExperimentRunValidation experimentRunName={externalExperimentRun.run_name}/>
 				</TabPane>
 				<TabPane tab='Datasets' key={DATASETS_TAB_KEY} style={tabStyle}>
-					<DatasetTable run_name={externalExperimentRun.run_name}/>
+					<DatasetTable run_name={externalExperimentRun.run_name} scroll={{ x: '100%', y: '60vh' }}/>
 				</TabPane>
 			</Tabs>
 		</PageContent>
