@@ -4,11 +4,11 @@ import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColum
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
-import { GROUPING_CREATION_DATE } from './LabworkStepOverview'
-import { useAppDispatch } from '../../../hooks'
+import { GROUPING_CREATION_DATE, LabworkStepOverviewProps } from './LabworkStepOverview'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { selectLabworkStepsState } from '../../../selectors'
 import { loadSampleNextStepsAtStep } from '../../../modules/labworkSteps/actions'
 import { fetchSamplesAndLibraries } from '../../../modules/studySamples/services'
-import { useDebounce } from '../../filters/filterComponents/DebouncedInput'
 
 export interface LabworkStepPanelProps {
 	refreshing: boolean
@@ -20,8 +20,8 @@ export interface LabworkStepPanelProps {
 	filterDefinitions?: FilterDescriptionSet,
 	filterKeys?: FilterKeySet,
 	filters?: FilterSet,
-	setFilter?: SetFilterFunc,
-	setFilterOptions?: SetFilterOptionFunc,
+	setFilter?: NonNullable<LabworkStepOverviewProps['setFilter']>,
+	setFilterOptions?: NonNullable<LabworkStepOverviewProps['setFilterOptions']>,
 	sortBy?: SortBy,
 	setSortBy?: SetSortByFunc,
 	pagination?: PaginationParameters,
@@ -38,26 +38,33 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 
 	const [isFetchingSamples, setIsFetchingSamples] = useState(false)
 	const [sampleAndLibraryList, setSampleAndLibraryList] = useState<SampleAndLibrary[]>([])
+  const displayedSamples = useAppSelector((state) => selectLabworkStepsState(state).steps[stepID].displayedSamples)
 
 	useEffect(() => {
 		clearFilters && clearFilters(false)
 		const value: FilterValue = grouping === GROUPING_CREATION_DATE ? { min: groupingValue, max: groupingValue } : groupingValue
-		setFilterOptions && setFilterOptions(grouping.key, 'exactMatch', true, grouping)
-		setFilter && setFilter(grouping.key, value, grouping)
+		setFilterOptions && setFilterOptions(grouping.key, 'exactMatch', true, grouping, false)
+		setFilter && setFilter(grouping.key, value, grouping, false)
 	}, [clearFilters, dispatch, grouping, groupingValue, setFilter, setFilterOptions, stepID])
 
 	const initialSampleFetch = useCallback(async () => {
 		setIsFetchingSamples(true)
-		if (!pagination?.pageNumber || !pagination?.pageSize) {
+		if (!pagination?.pageNumber || !pagination?.pageSize || !filters || !filters[grouping.key]) {
 			return
 		}
 		const samples = await dispatch(loadSampleNextStepsAtStep(stepID, pagination.pageNumber, pagination.pageSize))
 		setSampleAndLibraryList(await fetchSamplesAndLibraries(samples.results.map((sample) => sample.sample)))
 		setIsFetchingSamples(false)
-	}, [dispatch, pagination?.pageNumber, pagination?.pageSize, stepID])
+	}, [dispatch, filters, grouping.key, pagination?.pageNumber, pagination?.pageSize, stepID])
+
 	useEffect(() => {
 		initialSampleFetch()
 	}, [initialSampleFetch])
+
+  useEffect(() => {
+    const updateDisplay = async () => setSampleAndLibraryList(await fetchSamplesAndLibraries(displayedSamples))
+    updateDisplay()
+  }, [displayedSamples]) // Triggers off filters instead of displayed samples to prevent endless loop. TODO fix loopy behaviour ... 
 
 	return (
 		<>
@@ -71,6 +78,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 				setFilter={setFilter}
 				setFilterOptions={setFilterOptions}
 				selection={selection}
+        sortBy={sortBy}
 				setSortBy={setSortBy}
 				pagination={pagination}
 				loading={refreshing || isFetchingSamples}

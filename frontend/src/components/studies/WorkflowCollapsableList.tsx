@@ -4,7 +4,6 @@ import { Workflow } from '../../models/frontend_models'
 import { createStructuredWorkflows } from './StructuredWorkflows'
 import './WorkflowCollapsableList.scss'
 import { TableRowSelection } from 'antd/lib/table/interface'
-
 const { Text } = Typography
 
 interface WorkflowCollapsableListProps {
@@ -32,9 +31,11 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 			}
 		})
 		return (
-			<Collapse accordion>
-				<Collapse.Panel header={workflow.name} key={workflow.name} style={{ width: '100%' }}>
-					<List
+			<Collapse accordion items={[
+				{
+					key: 'step-names',
+					label: workflow.name,
+					children: <List
 						dataSource={stepNames}
 						size="small"
 						renderItem={(item) => {
@@ -45,9 +46,9 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 								</span>
 							</List.Item>
 						}}
-					></List>
-				</Collapse.Panel>
-			</Collapse>
+					/>
+				}
+			]} />
 		)
 	}
 
@@ -101,22 +102,16 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 		)
 	}
 
-	function createWorkflowStructurePanels() {
-		const panels: React.ReactNode[] = []
-		for (const structureName in structuredWorkflows) {
-			const workflows = structuredWorkflows[structureName]
-
+	return <Collapse defaultActiveKey={selectedWorkflow?.structure} items={
+		Object.entries(structuredWorkflows).map(([structureName, workflows]) => {
 			const table = createWorkflowTable(workflows)
-			panels.push(
-				<Collapse.Panel header={<Text strong>{structureName}</Text>} key={structureName} style={{backgroundColor: '#f0f0f0'}}>
-					{table}
-				</Collapse.Panel>
-			)
-		}
-		return panels
-	}
-
-	return <Collapse defaultActiveKey={selectedWorkflow?.structure}>{createWorkflowStructurePanels()}</Collapse>
+			return {
+				key: structureName,
+				label: <Text strong>{structureName}</Text>,
+				children: table,
+			}
+		})
+	} />
 }
 
 export default WorkflowCollapsableList

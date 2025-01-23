@@ -60,9 +60,9 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		dataIndex: ['dataset', 'validation_status'],
 		render: (_, {dataset: { validation_status }}) => {
 			return (
-				(validation_status === ValidationStatus.PASSED && <Button style={{color: "#a0d911"}}><CheckOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>Passed</Button>)
+				(validation_status === ValidationStatus.PASSED && <Button style={{color: "#a0d911"}}><CheckOutlined/>Passed</Button>)
 				||
-				(validation_status === ValidationStatus.FAILED && <Button style={{color: "#f5222d"}}><CloseOutlined onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}/>Failed</Button>)
+				(validation_status === ValidationStatus.FAILED && <Button style={{color: "#f5222d"}}><CloseOutlined/>Failed</Button>)
 			)
 		}
 	},

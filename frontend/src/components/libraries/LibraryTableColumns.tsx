@@ -75,6 +75,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 				)
 			)
 		},
+		width: 350,
 	},
 
 	[LibraryColumnID.LIBRARY_SIZE]: {
@@ -91,6 +92,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		title: 'Library Type',
 		dataIndex: ['library', 'library_type'],
 		render: (_, { library }) => library && library.library_type && <span>{library.library_type}</span>,
+		width: 150,
 	},
 
 	[LibraryColumnID.PLATFORM_NAME]: {
@@ -374,7 +376,7 @@ export const SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS = {
 	[LibraryColumnID.SELECTION_TARGET]: 'sample__derived_samples__library__library_selection__target',
 	[LibraryColumnID.INDEX_NAME]: 'sample__derived_samples__library__index__name',
 	[LibraryColumnID.PLATFORM_NAME]: 'sample__derived_samples__library__platform__name',
-	[LibraryColumnID.PROJECT_NAME]: 'sample__derived_by_samples__project__name',
+	[LibraryColumnID.PROJECT_NAME]: 'project_name',
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',	// annotated property of viewset
 	[LibraryColumnID.LIBRARY_SIZE]: 'sample__fragment_size',
 }

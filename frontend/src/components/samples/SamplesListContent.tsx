@@ -14,7 +14,7 @@ import PageContent from '../PageContent'
 import FilterPanel from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
-import { setColumnWidths, setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
+import { setDynamicSorters } from '../pagedItemsTable/tableColumnUtilities'
 import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import useListExportCallback from '../pagedItemsTable/useListExportCallback'
@@ -78,21 +78,7 @@ function SamplesListContent() {
 
 	// Tweak the columns to customize them for this table.
 	const tweakedColumns = useMemo(() => {
-		let columns = setColumnWidths(SAMPLES_TABLE_COLUMNS, {
-			[SampleColumnID.ID]: 130,
-			[SampleColumnID.KIND]: 130,
-			[SampleColumnID.COORDINATES]: 130,
-			[SampleColumnID.VOLUME]: 130,
-			[SampleColumnID.CONCENTRATION]: 130,
-			[SampleColumnID.CREATION_DATE]: 130,
-			[SampleColumnID.DEPLETED]: 130,
-			[SampleColumnID.NAME]: 130,
-			[SampleColumnID.PROJECT]: 130,
-			[SampleColumnID.INDIVIDUAL]: 130,
-			[SampleColumnID.CONTAINER_NAME]: 130,
-			[SampleColumnID.CONTAINER_BARCODE]: 130,
-			[SampleColumnID.QC_FLAG]: 130,
-		})
+		let columns = SAMPLES_TABLE_COLUMNS
 
 		// Only allow sorting on these columns when the table is displaying only samples (and not pools).
 		columns = setDynamicSorters(columns, [

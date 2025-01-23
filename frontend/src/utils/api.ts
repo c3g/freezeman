@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, WorkflowStepOrder } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData } from "../models/fms_api_models";
 
 const api = {
   auth: {
@@ -324,8 +324,15 @@ const api = {
 
   sample_lineage: {
     get: (sampleId: FMSId) => get<JsonResponse>(`/sample-lineage/${sampleId}/graph/`)
+  },
+
+  report: {
+    listReports: () => get<JsonResponse<{ name: string, display_name: string }[]>>("/reports/"),
+    listReportInformation: (name: string) => get<JsonResponse<FMSReportInformation>>(`/reports/${name}/`),
+    getReport:        (name: string, start_date: string, end_date: string, time_window = "month", group_by: string[] = []) => get<JsonResponse<FMSReportData>>(`/reports/${name}/`, { group_by, time_window, start_date, end_date }),
+    getReportAsExcel: (name: string, start_date: string, end_date: string, time_window = "month", group_by: string[] = []) => get<ArrayBufferResponse>        (`/reports/${name}/`, { group_by, time_window, start_date, end_date, export: true }),
   }
-};
+}
 
 
 export default api;

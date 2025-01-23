@@ -23,6 +23,11 @@ class Metric(TrackedModel):
     value_numeric = models.DecimalField(null=True, blank=True, max_digits=METRIC_PRECISION, decimal_places=METRIC_DECIMAL_PLACES, help_text="Metric numerical value.")
     value_string = models.CharField(null=True, blank=True, max_length=STANDARD_STRING_FIELD_LENGTH, help_text="Metric string value.")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name'], name='metric_name_idx'),
+        ]
+
     def __str__(self):
         return self.name
 

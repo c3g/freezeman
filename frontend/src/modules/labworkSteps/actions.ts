@@ -97,9 +97,6 @@ export function initSamplesAtStep(stepID: FMSId) {
         actions
       })
     }		
-
-		// Now load the samples for the step
-		await dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
 

@@ -1,5 +1,5 @@
 import json
-from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Count, Value
+from django.db.models import F, Q, When, Case, BooleanField, CharField, IntegerField, Value
 from django.http import HttpRequest, HttpResponseBadRequest, QueryDict
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -79,6 +79,22 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         ordering_container_coordinates=Case(
             When(Q(sample__coordinate__isnull=True), then=F('sample__container__coordinate__name')),
             default=F('sample__coordinate__name'),
+            output_field=CharField()
+        )
+    )
+
+    queryset = queryset.annotate(
+        is_pooled=Case(
+            When(Q(sample__derived_by_samples__volume_ratio__lt=1), then=True),
+            default=False,
+            output_field=BooleanField()
+        )
+    )
+    
+    queryset = queryset.annotate(
+        project_name=Case(
+            When(Q(is_pooled=True), then=Value("Pooled_Projects")),
+            default=F("sample__derived_by_samples__project__name"),
             output_field=CharField()
         )
     )
@@ -227,6 +243,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             if sample__id__in:
                 queryset = queryset.filter(sample__id__in=sample__id__in)
 
+        params = QueryDict(self.request.META.get('QUERY_STRING'))
+        project_name = params.get('project_name')
+        if project_name:
+            queryset = queryset.filter(project_name=project_name)
+            
         return queryset
 
     @action(detail=False, methods=['post'])
@@ -400,7 +421,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         grouped_step_samples = self.filter_queryset(self.get_queryset())
         # Get all samples on the steps with the grouping field
         grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id) \
-            .annotate(project_name=F("sample_next_step_by_study__study__project__name")) \
             .annotate(sample_name=F("sample__name")) \
             .values_list(
                 "sample_id",

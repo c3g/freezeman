@@ -120,6 +120,35 @@ def create_experiment_run(experiment_run_name,
     return (experiment_run, errors, warnings)
 
 
+def set_experiment_run_end_time(experiment_run_id: int = None):
+    """
+    Sets the experiment run end timer using current time on the experiment run instance matching the id given.
+    experiment_run end_time is set each time and replaces the old value.
+    This is expected to be set once the files are all copied from the sequencer (local sequencer disk can be freed).
+
+    Args:
+        `experiment_run_id`: Experiment run id
+
+    Returns:
+        Returns the modified experiment run object, errors and warnings.
+    """
+    experiment_run = None
+    errors = []
+    warnings = []
+    if experiment_run_id is not None:
+        timestamp = timezone.now()
+        try:
+            experiment_run = ExperimentRun.objects.get(id=experiment_run_id)
+        except ExperimentRun.DoesNotExist as e:
+            errors.append(f"No experiment run with id {experiment_run_id} could be found.")
+        experiment_run.end_time = timestamp
+        experiment_run.save()
+    else:
+        errors.append(f"The experiment run id is required.")
+    
+    return experiment_run, errors, warnings
+
+
 def set_run_processing_start_time(experiment_run_id: int = None):
     """
     Sets the timers using current time on the experiment run instance matching the id given.

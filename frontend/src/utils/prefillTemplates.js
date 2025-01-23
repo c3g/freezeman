@@ -24,30 +24,26 @@ export const templateIcon = t => {
 };
 
 export function PrefilledTemplatesDropdown({prefillTemplate, totalCount, prefills}) {
-  const prefillChoiceMenu = (
-    <Menu>
-      { prefills && prefills.items && prefills.items.map((prefill) =>
-          <Menu.Item key={prefill.id.toString()}>
-            <PrefillTemplateButton
-              style={{width:'100%', border:0, textAlign: 'left'}}
-              key='export'
-              exportFunction={prefillTemplate}
-              filename={prefill.description}
-              description={prefill.description}
-              itemsCount={totalCount}
-              template={prefill.id}
-              icon={(templateIcon(prefill))}
-            />
-          </Menu.Item>)
-      }
-    </Menu>
-  ) ;
-
-  return <Dropdown overlay={prefillChoiceMenu} placement="bottomRight">
+  return <Dropdown menu={{
+    items: prefills && prefills.items && prefills.items.map(prefill => ({
+      key: prefill.id.toString(),
+      label: <PrefillTemplateButton
+        style={{width:'100%', border:0, textAlign: 'left'}}
+        key='export'
+        exportFunction={prefillTemplate}
+        filename={prefill.description}
+        description={prefill.description}
+        itemsCount={totalCount}
+        template={prefill.id}
+        icon={(templateIcon(prefill))}
+      />,
+      style: {style: {width: "100%", border: 0, textAlign: 'left'}}
+    }))
+  }} placement="bottomRight">
            <Button>
              <DownloadOutlined /> Prefill Template
            </Button>
-         </Dropdown>
+  </Dropdown>
 }
 
 export const prefillTemplatesReducerFactory = moduleActions => (

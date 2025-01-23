@@ -1,8 +1,19 @@
 import {
-  AuditOutlined, BarcodeOutlined, DashboardOutlined,
-  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SettingOutlined, SyncOutlined, TableOutlined,
+  AuditOutlined,
+  BarcodeOutlined,
+  DashboardOutlined,
+  ExperimentOutlined,
+  FileZipOutlined,
+  FlagOutlined,  
+  HddOutlined,
+  InfoCircleOutlined,
+  LogoutOutlined,
+  ProjectOutlined,
+  SettingOutlined,
+  SyncOutlined,
+  TableOutlined,
   TeamOutlined,
-  UserOutlined
+  UserOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Spin, Typography } from "antd";
 import React, { useEffect } from "react";
@@ -27,7 +38,7 @@ import UsersPage from "../users/UsersPage";
 
 import PrivateNavigate from "../PrivateNavigate";
 
-import { matchingMenuKeys, renderMenuItem } from "../../utils/menus";
+import { matchingMenuKeys, resolveBadMenuItem } from "../../utils/menus";
 import { hour } from "../../utils/time";
 import useUserInputExpiration from "../../utils/useUserInputExpiration";
 
@@ -45,10 +56,17 @@ import WorkflowDefinitionsRoute from "../workflows/WorkflowDefinitionsRoute";
 import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
+import { Reports } from "../reports/Reports";
 
 
 const { Title } = Typography;
 
+/**
+ * 
+ * @param {import("../../models/frontend_models").User | undefined} user 
+ * @param {() => void} logOut 
+ * @returns {BadMenuItem[]}
+ */
 const getMenuItems = (user, logOut) => [
   {
     key: "about",
@@ -71,56 +89,63 @@ const getMenuItems = (user, logOut) => [
   },
 ]
 
+/**
+ * @type {BadMenuItem[]}
+ */
 const MENU_ITEMS = [
   {
     url: "/dashboard",
     icon: <DashboardOutlined />,
     text: "Dashboard",
+    key: "dashboard",
   },
   {
     url: "/lab-work",
     icon: <ExperimentOutlined />,
-    text: "Lab Work"
+    text: "Lab Work",
+    key: "lab-work",
   },
   {
     url: "/projects",
     icon: <ProjectOutlined />,
     text: "Projects",
+    key: "projects",
   },
   {
     url: "/containers",
     icon: <TableOutlined />,
     text: "Containers",
+    key: "containers",
   },
   {
     url: "/samples",
     icon: <ExperimentOutlined />,
     text: "Samples",
+    key: "samples",
   },
   {
     url: "/libraries",
     icon: <ExperimentOutlined />,
     text: "Libraries",
-  },
-  {
-    url: "/individuals",
-    icon: <TeamOutlined />,
-    text: "Individuals",
-  },
-  {
-    url: "/process-measurements",
-    icon: <ExperimentOutlined />,
-    text: "Protocols",
+    key: "libraries",
   },
   {
     url: "/experiment-runs",
     icon: <HddOutlined />,
     text: "Experiments",
+    key: "experiment-runs",
   },
   {
     url: "/datasets",
     icon: <FileZipOutlined />,
     text: "Datasets",
+    key: "datasets",
+  },
+  {
+    url: "/reports",
+    icon: <FlagOutlined />,
+    text: "Reports",
+    key: "reports",
   },
   {
     icon: <SettingOutlined />,
@@ -131,33 +156,51 @@ const MENU_ITEMS = [
         url: "/indices",
         icon: <BarcodeOutlined />,
         text: "Indices",
+        key: "indices",
       },
       {
         url: "/instruments",
         icon: <BarcodeOutlined />,
         text: "Instruments",
+        key: "instruments",
       },
       {
         url: "/genomes",
         icon: <BarcodeOutlined />,
         text: "Reference Genomes",
+        key: "genomes",
       },
       {
         url: "/taxons",
         icon: <BarcodeOutlined />,
         text: "Taxons",
+        key: "taxons",
       },
       {
         url: "/workflows",
         icon: <BarcodeOutlined />,
         text: "Workflows",
+        key: "workflows",
       },
     ]
+  },
+  {
+    url: "/individuals",
+    icon: <TeamOutlined />,
+    text: "Individuals",
+    key: "individuals",
+  },
+  {
+    url: "/process-measurements",
+    icon: <ExperimentOutlined />,
+    text: "Protocols",
+    key: "process-measurements",
   },
   {
     url: "/users",
     icon: <AuditOutlined />,
     text: "Users",
+    key: "users",
   },
 ]
 
@@ -261,18 +304,16 @@ const App = ({userID, usersByID, logOut, get}) => {
               selectedKeys={matchingMenuKeys(MENU_ITEMS)}
               style={{ flex: 1 }}
               defaultOpenKeys={['definitions']} // Submenus should be open by default
-            >
-              {MENU_ITEMS.map(renderMenuItem)}
-            </Menu>
+              items={MENU_ITEMS.map(resolveBadMenuItem)}
+            />
             {isLoggedIn &&
               <Menu
                 theme="dark"
                 mode="inline"
-                selectedKeys={matchingMenuKeys(MENU_ITEMS)}
+                selectedKeys={matchingMenuKeys(menuItems)}
                 style={{ flex: 1 }}
-              >
-                {menuItems.map(renderMenuItem)}
-              </Menu>
+                items={menuItems.map(resolveBadMenuItem)}
+              />
             }
           </Layout.Sider>
         }
@@ -372,6 +413,11 @@ const App = ({userID, usersByID, logOut, get}) => {
             <Route path="/instruments/*" element={
               <PrivateNavigate>
                 <InstrumentsRoute />
+              </PrivateNavigate>
+            }/>
+            <Route path="/reports/*" element={
+              <PrivateNavigate>
+                <Reports />
               </PrivateNavigate>
             } />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

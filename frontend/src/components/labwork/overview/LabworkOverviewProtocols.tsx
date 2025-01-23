@@ -51,15 +51,14 @@ const LabworkOverviewProtocols = ({ summary, hideEmptySections, refreshing }: La
 					/>
 				</Space>
 			</div>
-			<Collapse>
-				{protocols.map((protocol) => {
-					return (
-						<Collapse.Panel key={protocol.id} header={protocol.name} extra={<Title level={4}>{protocol.count}</Title>}>
-							<LabworkOverviewProtocolPanel protocol={protocol} hideEmptySteps={hideEmptySections}/>
-						</Collapse.Panel>
-					)
-				})}
-			</Collapse>
+			<Collapse items={protocols.map((protocol) => {
+				return {
+					key: protocol.id,
+					label: protocol.name,
+					extra: <Title level={4}>{protocol.count}</Title>,
+					children: <LabworkOverviewProtocolPanel protocol={protocol} hideEmptySteps={hideEmptySections}/>
+				}
+			})} />
 		</>
 	)
 }
