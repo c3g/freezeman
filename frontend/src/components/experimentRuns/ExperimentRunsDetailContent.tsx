@@ -20,7 +20,7 @@ import ProcessProperties from '../shared/ProcessProperties'
 import ExperimentRunOverview from './ExperimentRunOverview'
 import ExperimentRunValidation from './ExperimentRunValidation'
 import ExperimentRunsSamples from './ExperimentRunsSamples'
-import DatasetsListContent from '../datasets/DatasetsListContent'
+import DatasetTable from '../datasets/DatasetTable'
 
 const { TabPane } = Tabs
 
@@ -160,7 +160,7 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 					</TabPane>
 
 					<TabPane tab={'Datasets'} key="datasets">
-						<DatasetsListContent run_name={experimentRun.name}/>
+						<DatasetTable run_name={experimentRun.name}/>
 					</TabPane>
 				</Tabs>
 			</PageContent>
