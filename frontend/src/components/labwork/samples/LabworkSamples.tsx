@@ -4,7 +4,6 @@ import { selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS } from '../../samples/SampleTableColumns'
-import { LIBRARY_COLUMN_FILTERS, LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS } from '../../libraries/LibraryTableColumns'
 import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import AppPageHeader from "../../AppPageHeader";
 import PageContent from "../../PageContent";
@@ -27,14 +26,13 @@ export function LabworkSamples() {
         SAMPLE_COLUMN_DEFINITIONS.COORDINATES,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
-        LIBRARY_COLUMN_DEFINITIONS.INDEX_NAME,
         SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
         SAMPLE_COLUMN_DEFINITIONS.DEPLETED
     ]
     const columns = useFilteredColumns<SampleAndLibrary>(
         SAMPLES_TABLE_COLUMNS,
-        useMemo(() => ({...LIBRARY_COLUMN_FILTERS, ...SAMPLE_COLUMN_FILTERS}), []),
-        useMemo(() => ({...LIBARY_TABLE_FILTER_KEYS, ...SAMPLE_FILTER_KEYS}), []),
+        useMemo(() => SAMPLE_COLUMN_FILTERS, []),
+        useMemo(() => SAMPLE_FILTER_KEYS, []),
         filters,
         samplesTableCallbacks.setFilterCallback,
         samplesTableCallbacks.setFilterOptionsCallback
