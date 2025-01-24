@@ -5,7 +5,7 @@ import DatasetsTableActions from '../../modules/datasetsTable/actions'
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 import PagedItemsTable, { PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable"
-import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, ObjectWithDataset } from "./DatasetsTableColumns"
+import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, DatasetColumnID, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
 import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
@@ -23,9 +23,25 @@ function DatasetTable({ run_name, scroll }: DatasetTableProps) {
 	const callbacks = usePagedItemsActionsCallbacks(DatasetsTableActions)
 	useEffect(() => {
 		if (run_name) {
-			callbacks.setFilterCallback(DATASET_FILTER_KEYS.RUN, DATASET_FILTER_DEFINITIONS[DATASET_FILTER_KEYS.RUN])
+			callbacks.setFixedFilterCallback({
+				value: run_name,
+				description: {
+					...DATASET_FILTER_DEFINITIONS[DatasetColumnID.RUN],
+					key: DATASET_FILTER_KEYS[DatasetColumnID.RUN]
+				}
+			})
+		} else {
+			callbacks.setFixedFilterCallback({ value: undefined })
 		}
+		callbacks.refreshPageCallback()
 	}, [callbacks, run_name])
+
+	// avoid showing stale data initially in another page
+	useEffect(() => {
+		return () => {
+			callbacks.resetPagedItemsCallback()
+		}
+	}, [callbacks])
 
 	const tableColumns = useMemo(() => {
 		const columns = [
@@ -62,6 +78,7 @@ function DatasetTable({ run_name, scroll }: DatasetTableProps) {
                     usingFilters={false}
                     {...callbacks}
 					scroll={scroll}
+					initialLoad={false}
                 />
 		</>
 	)
