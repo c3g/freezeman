@@ -139,25 +139,25 @@ function PagedItemsTable<T extends object>({
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
 	const onSelectAll = useCallback(() => {
-		const newSelectedItems = []
-		const newSelectAll = !allIsSelected
+		const newExceptedItems = []
+		const newDefaultSelection = !allIsSelected
 
-		setExceptedItems(newSelectedItems)
-		setDefaultSelection(newSelectAll)
+		setExceptedItems(newExceptedItems)
+		setDefaultSelection(newDefaultSelection)
 		if (selection)
-			selection.onSelectionChanged(newSelectedItems, newSelectAll)
+			selection.onSelectionChanged(newExceptedItems, newDefaultSelection)
 	}, [allIsSelected, selection])
 	const onSelectSingle = useCallback((record: T) => {
 		const key = getRowKeyForDataObject(record)
-		let newSelectedItems = exceptedItems
+		let newExceptedItems = exceptedItems
 		if (exceptedItems.includes(key)) {
-			newSelectedItems = exceptedItems.filter((id) => id !== key)
+			newExceptedItems = exceptedItems.filter((id) => id !== key)
 		} else {
-			newSelectedItems = [...exceptedItems, key]
+			newExceptedItems = [...exceptedItems, key]
 		}
-		setExceptedItems(newSelectedItems)
+		setExceptedItems(newExceptedItems)
 		if (selection) {
-			selection.onSelectionChanged(newSelectedItems, defaultSelection)
+			selection.onSelectionChanged(newExceptedItems, defaultSelection)
 		}
 	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
 	const selectedRowKeys = useMemo(() =>
