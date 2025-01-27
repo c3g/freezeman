@@ -12,6 +12,7 @@ export enum ValidationStatus {
 export interface DatasetInfo {
   datasetID: FMSId            // The ID of the dataset in the db
   metricsURL?: string         // A link to the run metrics associated with this lane
+  latestValidationTime?: string // The latest time at which a dataset of the lane was validated
 }
 
 export interface NumberOfReads {
@@ -29,6 +30,7 @@ export interface LaneInfo {
   runName: string                       // Name of the run, for both freezeman and external runs
   laneNumber: LaneNumber                // The number of the lane
   validationStatus: ValidationStatus    // The validation status for the lane
+  validationTime?: string                // The time at which the lane was last validated
   datasets: DatasetInfo[]               // List of datasets associated with lane (may be more than one)
   readsPerSample?: ReadsPerSample       // List of reads counts per sample (loaded on demand)
 }

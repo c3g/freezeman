@@ -1,6 +1,8 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
 import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData } from "../models/fms_api_models";
+import { AnyAction, Dispatch } from "redux";
+import { RootState } from "../store";
 
 const api = {
   auth: {
@@ -45,7 +47,7 @@ const api = {
 
   datasets: {
     get: (id: FMSDataset["id"]) => get<JsonResponse<FMSDataset>>(`/datasets/${id}/`),
-    list: (options, abort?: boolean) => get("/datasets/", options, { abort }),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSDataset>>>("/datasets/", options, { abort }),
     setReleaseStatus: (
       id: FMSDataset["id"],
       updates: Record<FMSReadset["id"], ReleaseStatus>,
@@ -337,9 +339,10 @@ const api = {
 
 export default api;
 
-type WithTokenFn<R extends ResponseWithData<any>> = (...args: any[]) => (_: undefined, getState: () => AuthTokensAccess) => Promise<R>
+type WithTokenFn<R extends ResponseWithData<any>, GetState extends (() => AuthTokensAccess) = (() => RootState)> = (...args: any[]) => (dispatch: Dispatch<AnyAction>, getState: GetState) => Promise<R>
 export function withToken<R extends ResponseWithData<any>>(token: string | undefined, fn: WithTokenFn<R>) {
-    return (...args: Parameters<typeof fn>) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
+    // dispatch is hopefully not used in the fn function
+    return (...args: Parameters<typeof fn>) => fn(...args)(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { tokens: { access: token } } } as RootState))
 }
 
 const ongoingRequests: Record<string, AbortController> = {}
@@ -352,10 +355,10 @@ interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined
 
 export const ABORT_ERROR_NAME = 'AbortError'
 
-function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
+function apiFetch<R extends ResponseWithData<any>, GetState extends (() => AuthTokensAccess) = (() => RootState)>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
     const baseRoute = getPathname(route)
 
-    return (_: any, getState: () => AuthTokensAccess) => {
+    return (_: Dispatch<AnyAction>, getState: GetState) => {
 
         const accessToken = getState().auth.tokens.access;
 
