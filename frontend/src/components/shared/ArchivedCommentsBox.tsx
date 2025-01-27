@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react"
-import { Card, Typography, Form, Modal, FormItemProps, FormProps, Input, Tooltip } from 'antd'
+import { Card, Typography, Form, Modal, FormItemProps, FormProps, Input, Tooltip, Space } from 'antd'
 import { LeftCircleOutlined, PlusCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
 import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
@@ -140,9 +140,16 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
             <Card.Meta
                 title={
                     <div>
-                        {currentComment && <Text strong>Added at : </Text>}{currentComment && dateToString(new Date(currentComment.updated_at), "compact")}
+                        {currentComment &&
+                            <Space>
+                                <Text key={0} strong>Added at:</Text>
+                                {dateToString(new Date(currentComment.updated_at), "compact")}
+                                <Text key={1} strong>By:</Text>
+                                {usersByID[currentComment.created_by]?.username}
+                            </Space>
+                        }
                     </div>}
-                description={currentComment && renderTextWithLineBreaks(`${usersByID[currentComment.created_by]?.username}: ${currentComment.comment}`)}
+                description={currentComment && renderTextWithLineBreaks(currentComment.comment)}
             />
         </Card>
     )
