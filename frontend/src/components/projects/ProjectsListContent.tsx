@@ -35,10 +35,10 @@ function wrapProject(project: Project) {
 
 const ProjectsListContent = () => {
 	const projectsTableState  = useAppSelector(selectProjectsTable)
-	const { filters, sortBy, totalCount } = projectsTableState
+	const { filters, sortByList, totalCount } = projectsTableState
 	const templateActions = useAppSelector(selectProjectTemplateActions)
 
-	const listExport = useListExportCallback(api.projects.listExport, filters, sortBy)
+	const listExport = useListExportCallback(api.projects.listExport, filters, sortByList)
 
 	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
 

@@ -31,9 +31,9 @@ function IndicesListContent() {
 	const navigate = useNavigate()
 	const pagedItems = useAppSelector(selectIndicesTable)
 	const templateActions = useAppSelector(selectIndicesTemplateActions)
-	const { filters, sortBy, totalCount } = pagedItems
+	const { filters, sortByList, totalCount } = pagedItems
 
-	const listExport = useListExportCallback(api.indices.listExport, filters, sortBy)
+	const listExport = useListExportCallback(api.indices.listExport, filters, sortByList)
 
 	const pagedItemCallbacks = usePagedItemsActionsCallbacks(IndicesTableActions)
 

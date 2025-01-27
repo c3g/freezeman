@@ -1,7 +1,6 @@
-import { WritableDraft } from "immer/dist/types/types-external";
 import { createNetworkActionTypes } from "../../utils/actions";
 import { AnyAction } from "redux";
-import produce, { castDraft } from "immer";
+import produce, { castDraft, Draft } from "immer";
 import { Sample, createItemsByID, preprocess } from "../../models/frontend_models";
 import { IndividualDetails, IndividualDetailsById } from "./models";
 import { clearFilters, setFilterValue } from "../../models/filter_set_reducers"
@@ -22,7 +21,7 @@ export const individualDetails = (inputState: IndividualDetailsById = INITIAL_ST
     })
 }
 
-const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, action: AnyAction) => {
+const individualDetailsReducer = (state: Draft<IndividualDetailsById>, action: AnyAction) => {
     switch (action.type) {
         case LIST_TABLE.REQUEST: {
             const { individualID } = action.meta
@@ -49,7 +48,7 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
                     items: action.data.results.map(r => r.id),
                     itemsByID: createItemsByID(action.data.results),
                     filters: state[individualID].samplesByIndividual.filters ?? {},
-                    sortBy: state[individualID].samplesByIndividual.sortBy ?? {},
+                    sortByList: state[individualID].samplesByIndividual.sortByList,
                 }
             }
             break;
@@ -77,7 +76,7 @@ const individualDetailsReducer = (state: WritableDraft<IndividualDetailsById>, a
             const { individualID, sortBy } = action
             const samplesByIndividual = state[individualID].samplesByIndividual
             if (samplesByIndividual) {
-                samplesByIndividual.sortBy = sortBy
+                samplesByIndividual.sortByList = sortBy
             }
             break;
         }

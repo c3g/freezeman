@@ -21,12 +21,12 @@ type ListExportFunc = typeof api.samples.listExport		// Just letting typescript 
  * @param sortBy 
  * @returns 
  */
-export default function useListExportCallback(listExport: ListExportFunc, filters: FilterSet, sortBy: SortBy) {
+export default function useListExportCallback(listExport: ListExportFunc, filters: FilterSet, sortByList: SortBy[]) {
 	const token = useAppSelector(selectAuthTokenAccess)
 
 	return useCallback(() => {
-		return withToken(token, listExport)(filtersQueryParams(filters, sortBy))
+		return withToken(token, listExport)(filtersQueryParams(filters, sortByList))
 		.then(response => response.data)
 
-	}, [filters, listExport, sortBy, token])
+	}, [filters, listExport, sortByList, token])
 }

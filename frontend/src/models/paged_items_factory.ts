@@ -37,7 +37,7 @@ export interface PagedItemsActions {
 	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<void>
 	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<void>
 	clearFilters: () => FreezemanAsyncThunk<void>
-	setSortBy: (sortBy: SortBy) => FreezemanAsyncThunk<void>
+	setSortBy: (sortByList: SortBy[]) => FreezemanAsyncThunk<void>
 	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
     resetPagedItems: () => FreezemanAsyncThunk<void>
     setStale: (stale: boolean) => FreezemanAsyncThunk<void>
@@ -116,7 +116,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
 		}
 
         // If the page is not already loaded then fetch the page.
-        dispatch(_fetchPage(pageNumber))
+        await dispatch(_fetchPage(pageNumber))
 	}
 
     /**
@@ -139,10 +139,10 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         
         const limit = pagedItems.page?.limit ?? selectPageSize(getState())
         const offset = limit * (pageNumber - 1)
-        const { filters, fixedFilters, sortBy } = pagedItems
+        const { filters, fixedFilters, sortByList } = pagedItems
 
         const serializedFilters = serializeFilterParamsWithDescriptions({ ...fixedFilters, ...filters })
-		const ordering = serializeSortByParams(sortBy)
+		const ordering = serializeSortByParams(sortByList)
 
         const params = {
 			offset,
@@ -231,10 +231,10 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         return await dispatch(_fetchPage(1))
     }
 
-    const setSortBy: PagedItemsActions['setSortBy'] = (sortBy) => async (dispatch) => {
+    const setSortBy: PagedItemsActions['setSortBy'] = (sortByList) => async (dispatch) => {
         dispatch({
             type: SET_SORT_BY,
-            sortBy,
+            sortByList,
             extra
         })
 
@@ -314,7 +314,7 @@ export function createPagedItemsReducer<P extends PagedItems, Prefix extends str
 				return reduceClearFilters(state)
 			}
 			case SET_SORT_BY: {
-				return reduceSetSortBy(state, action.sortBy)
+				return reduceSetSortBy(state, action.sortByList)
 			}
 			case SET_PAGE_SIZE: {
 				return reduceSetPageSize(state, action.pageSize)

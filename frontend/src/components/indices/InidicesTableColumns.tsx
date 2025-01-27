@@ -38,6 +38,7 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
         <Link to={`/indices/${index.id}`}>
           <div>{id}</div>
         </Link>,
+		sorter: { multiple: 1 }
 	},
 	[IndexColumnID.INDEX_NAME]: {
 		columnID: IndexColumnID.INDEX_NAME,
@@ -47,23 +48,24 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 		render: (name, {index}) =>
 			<Link to={`/indices/${index.id}`}>
 			<FixedLengthText text={name} fixedLength={50} />
-			</Link>
+			</Link>,
+		sorter: { multiple: 1 }
 	},
 	[IndexColumnID.INDEX_SET]: {
 		columnID: IndexColumnID.INDEX_SET,
 		title: 'Index Sets',
 		dataIndex: ['index', 'index_sets'],
 		width: LARGE_COLUMN_WIDTH,
-		render: (_, {index}) => { return index && index.index_sets &&
-      <DropdownListItems listItems={index.index_sets}/>
-    }
+		render: (_, {index}) => { return index && index.index_sets && <DropdownListItems listItems={index.index_sets}/> },
+		sorter: { multiple: 1 }
 	},
 	[IndexColumnID.INDEX_STRUCTURE]: {
 		columnID: IndexColumnID.INDEX_STRUCTURE,
 		title: "Index Structure",
     	dataIndex: ['index', 'index_structure'],
 		width: MEDIUM_COLUMN_WIDTH,
-		render: (_, {index}) => index.index_structure
+		render: (_, {index}) => index.index_structure,
+		sorter: { multiple: 1 }
 	},
 	[IndexColumnID.SEQUENCE_3_PRIME]: {
 		columnID: IndexColumnID.SEQUENCE_3_PRIME,
@@ -74,7 +76,8 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 			<DropdownListItems listItems={index.sequences_3prime.map(sequence =>
 			  sequence && <WithSequenceRenderComponent objectID={sequence} render={sequence => <>{sequence.value}</>} />)}
 			/>
-		  }
+		  },
+		sorter: { multiple: 1 }
 	},
 	[IndexColumnID.SEQUENCE_5_PRIME]: {
 		columnID: IndexColumnID.SEQUENCE_5_PRIME,
@@ -86,7 +89,8 @@ export const INDEX_COLUMN_DEFINITIONS : {[key in IndexColumnID]: Readonly<IndexC
 			  sequence && <WithSequenceRenderComponent objectID={sequence} render={sequence => <>{sequence.value}</>} />
 			)}
 			/>
-		  }
+		  },
+		sorter: { multiple: 1 }
 	}
 }
 

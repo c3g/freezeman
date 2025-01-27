@@ -49,8 +49,8 @@ export enum SampleColumnID {
 	SAMPLE_COUNT = 'SAMPLE_COUNT',
 }
 
-const SMALL_COLUMN_WIDTH = 90
-const MEDIUM_COLUMN_WIDTH = 120
+const SMALL_COLUMN_WIDTH = 110
+const MEDIUM_COLUMN_WIDTH = 170
 const LARGE_COLUMN_WIDTH = 270
 
 export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
@@ -66,6 +66,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 					<div>{sample.id}</div>
 				</Link>
 			),
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.KIND]: {
@@ -74,6 +75,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		dataIndex: ['sample', 'sample_kind'],
     	width: SMALL_COLUMN_WIDTH,
 		render: (_, { sample }) => sample && <SampleKindTag sampleKindID={sample.sample_kind} />,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.NAME]: {
@@ -92,6 +94,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 					)}
 				</Link>
 			),
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.INDIVIDUAL]: {
@@ -112,6 +115,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.PARENT_CONTAINER]:  {
@@ -138,6 +142,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.PARENT_COORDINATES]: {
@@ -166,6 +171,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CONTAINER_NAME]: {
@@ -185,6 +191,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CONTAINER_BARCODE]: {
@@ -204,6 +211,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.COORDINATES]: {
@@ -223,6 +231,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.VOLUME]: {
@@ -231,7 +240,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		dataIndex: ['sample', 'volume'],
 		align: 'right',
 		className: 'table-column-numbers',
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CONCENTRATION]: {
@@ -241,7 +251,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		align: 'right',
 		className: 'table-column-numbers',
 		render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.QC_FLAG]: {
@@ -257,14 +268,16 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			}
 			return null
 		},
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CREATION_DATE]: {
 		columnID: SampleColumnID.CREATION_DATE,
 		title: 'Creation Date',
 		dataIndex: ['sample', 'creation_date'],
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.DEPLETED]: {
@@ -272,7 +285,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		title: 'Depleted',
 		dataIndex: ['sample', 'depleted'],
 		render: (depleted) => <Depletion depleted={depleted} />,
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 }
 	},
 
 	[SampleColumnID.PROJECT]: {
@@ -295,7 +309,6 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.COHORT,
 		title: "Cohort",
 		dataIndex: ["derived_samples", "biosample", "individual", "cohort"],
-		sorter: true,
 		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			const individual = sample?.individual
@@ -303,7 +316,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				<Link to={`/individuals/${individual}`}>
 					<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""} />
 				</Link>)
-		}
+		},
+		sorter: { multiple: 1 },
 	},
 	[SampleColumnID.SAMPLE_COUNT]: {
 		columnID: SampleColumnID.SAMPLE_COUNT,

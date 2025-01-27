@@ -6,7 +6,7 @@ import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortByList, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import AppPageHeader from '../../AppPageHeader'
@@ -183,9 +183,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 		, [step, dispatch])
 
-	const handleSetSortBy = useCallback(
-		(sortBy: SortBy) => {
-			dispatch(setSortBy(step.id, sortBy))
+	const handleSetSortByList = useCallback(
+		(sortByList: SortBy[]) => {
+			dispatch(setSortByList(step.id, sortByList))
 		},
 		[step, dispatch]
 	)
@@ -285,7 +285,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [dispatch, step, stepSamples.selectedSamples.sortDirection])
 
-	const handleSelectionTableSortChange = useCallback((sortBy: SortBy) => {
+	const handleSelectionTableSortChange = useCallback((sortByList: SortBy[]) => {
+		const [sortBy] = sortByList
 		if (sortBy.key === SampleColumnID.COORDINATES && sortBy.order) {
 			dispatch(setSelectedSamplesSortDirection(step.id, { ...stepSamples.selectedSamples.sortDirection, order: sortBy.order }))
 		}
@@ -416,8 +417,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							setFilter={handleSetFilter}
 							setFilterOptions={handleSetFilterOptions}
 							selection={selectionProps(onSelectChange)}
-							setSortBy={handleSetSortBy}
-              sortBy={stepSamples.pagedItems.sortBy}
+							sortByList={stepSamples.pagedItems.sortByList}
+							setSortByList={handleSetSortByList}
 							pagination={pagination}
 						/>
 					</Tabs.TabPane>
@@ -426,7 +427,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							stepSamples={stepSamples}
 							step={step}
 							protocol={protocol}
-							setSortBy={handleSelectionTableSortChange}
+							setSortByList={handleSelectionTableSortChange}
 						/>
 					</Tabs.TabPane>
 					{step.needs_placement ?

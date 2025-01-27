@@ -113,7 +113,7 @@ export function loadSampleNextStepsAtStep(stepID: FMSId, pageNumber: number, pag
 		const limit = pageSize ?? selectPageSize(getState())
 		const offset = limit * (pageNumber - 1)
 		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
-		const ordering = serializeSortByParams(stepSamples.pagedItems.sortBy)
+		const ordering = serializeSortByParams(stepSamples.pagedItems.sortByList)
 		const options = {
 			limit,
 			offset,
@@ -282,12 +282,12 @@ export function clearFilters(stepID: FMSId, refresh: boolean = true) {
 	}
 }
 
-export function setSortBy(stepID: FMSId, sortBy: SortBy) {
+export function setSortByList(stepID: FMSId, sortByList: SortBy[]) {
 	return (dispatch) => {
 		dispatch({
 			type: SET_SORT_BY,
 			stepID,
-			sortBy
+			sortByList
 		})
 		dispatch(loadSamplesAtStep(stepID, 1))
 	}

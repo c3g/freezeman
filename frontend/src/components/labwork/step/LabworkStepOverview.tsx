@@ -29,8 +29,8 @@ export interface LabworkStepOverviewProps {
 	filters?: FilterSet,
 	setFilter?: (filterKey: string, value: FilterValue, description: FilterDescription, refresh?: boolean) => void,
 	setFilterOptions?: (filterKey: string, property: string, value: boolean, description: FilterDescription, refresh?: boolean) => void,
-	sortBy?: SortBy,
-	setSortBy?: SetSortByFunc,
+	sortByList: SortBy[],
+	setSortByList?: SetSortByFunc,
 	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[],
@@ -46,7 +46,7 @@ export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", 
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
 
-const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, clearFilters }: LabworkStepOverviewProps) => {
+const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortByList, setSortByList, pagination, selection, clearFilters }: LabworkStepOverviewProps) => {
   const dispatch = useAppDispatch()
   const [activeGrouping, setActiveGrouping] = useState<FilterDescription>(GROUPING_PROJECT)
   const labworkStepSummary = useAppSelector(selectLabworkStepSummaryState)
@@ -126,8 +126,8 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 							  setFilter={setFilter}
 							  setFilterOptions={setFilterOptions}
 							  selection={selection}
-                sortBy={sortBy}
-							  setSortBy={setSortBy}
+                sortByList={sortByList}
+							  setSortByList={setSortByList}
 							  pagination={pagination}
 							  stepID={step.id}
 							/>

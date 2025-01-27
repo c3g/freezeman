@@ -1,8 +1,7 @@
 import { Radio } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback } from 'react'
 import { FilterSet, FilterSetting, SetFixedFilterFunc } from '../../models/paged_items'
 import { FILTER_TYPE } from '../../constants'
-import { useAppDispatch } from '../../hooks'
 
 /**
  * A radio group for filtering samples by category - 
@@ -46,34 +45,19 @@ interface SampleCategoryChooserProps {
 	disabled: boolean
 	filters: FilterSet
 	setFixedFilter: SetFixedFilterFunc
+	sampleCategory: SampleCategory
 	onChange: (category: SampleCategory) => void
 	samplesLabel?: string		// Used to override the "Samples" radio button name for Libraries
 	isPooledFilterKey?: string
 }
 
 function SampleCategoryChooser({
-	disabled, filters, setFixedFilter, onChange, samplesLabel, isPooledFilterKey = 'is_pooled'
+	disabled, setFixedFilter, sampleCategory, onChange, samplesLabel, isPooledFilterKey = 'is_pooled'
 }: SampleCategoryChooserProps) {
-
-	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(SampleCategory.ALL)
-
-	useEffect(() => {
-		let category = SampleCategory.ALL
-		const isPooledFilter = filters[isPooledFilterKey]
-		if (isPooledFilter) {
-			if (isPooledFilter.value === 'true') {
-				category = SampleCategory.POOLS
-			} else if (isPooledFilter.value === 'false') {
-				category = SampleCategory.SAMPLES
-			}
-		}
-		setSampleCategory(category)
-	}, [filters, isPooledFilterKey])
 
 	const handleSampleCategoryChange = useCallback((category: SampleCategory) => {
 		const filterSetting = getSampleCategoryFilterSetting(category, isPooledFilterKey)
 		setFixedFilter(filterSetting)
-		setSampleCategory(category)
 		onChange(category)
 	}, [isPooledFilterKey, onChange, setFixedFilter])
 

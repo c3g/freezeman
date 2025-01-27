@@ -1,13 +1,12 @@
-import { Checkbox, Pagination, Space, Table, TableProps } from 'antd'
+import { Checkbox, Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
-import { DataID, FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
+import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
-import { useDebounce } from '../filters/filterComponents/DebouncedInput'
 
 
 export interface PagedItemTableSelection {
@@ -16,16 +15,16 @@ export interface PagedItemTableSelection {
 
 // This is the set of possible callbacks for the paged items table.
 export interface PagedItemsActionsCallbacks {
-	listPageCallback: (pagedNumber: number) => void
+	listPageCallback: (pagedNumber: number) => Promise<void>
 	setFixedFilterCallback: (filter: FilterSetting) => void
-	setFilterCallback: (value: FilterValue, description: FilterDescription) => void
-	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => void
-	clearFiltersCallback: () => void
-	setSortByCallback: (sortBy: SortBy) => void
-	setPageSizeCallback: (pageSize: number) => void
-	resetPagedItemsCallback: () => void
-	setStaleCallback: (stale: boolean) => void
-	refreshPageCallback: () => void
+	setFilterCallback: (value: FilterValue, description: FilterDescription) => Promise<void>
+	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => Promise<void>
+	clearFiltersCallback: () => Promise<void>
+	setSortByCallback: (sortByList: SortBy[]) => Promise<void>
+	setPageSizeCallback: (pageSize: number) => Promise<void>
+	resetPagedItemsCallback: () => Promise<void>
+	setStaleCallback: (stale: boolean) => Promise<void>
+	refreshPageCallback: () => Promise<void>
 }
 
 export interface DataObjectsByID<T> {
@@ -78,7 +77,7 @@ function PagedItemsTable<T extends object>({
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
-	const { items, sortBy, stale } = pagedItems
+	const { items, stale } = pagedItems
 	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
@@ -94,6 +93,7 @@ function PagedItemsTable<T extends object>({
 				listPageCallback(1)
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[
 			/* Only call once when the component is mounted*/
 		]
@@ -116,24 +116,6 @@ function PagedItemsTable<T extends object>({
 		},
 		[dispatch, setPageSizeCallback]
 	)
-
-	// We use this callback to respond when the user sorts a column
-	const sortByCallback: TableProps<any>['onChange'] = useCallback(
-		(pagination, filters, sorterResult) => {
-			if (!Array.isArray(sorterResult)) {
-				const sorter = sorterResult
-				const key = sorter.columnKey?.toString()
-				const order = sorter.order ?? undefined
-				if (key) {
-					if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
-						setSortByCallback({ key, order })
-					}
-				}
-			}
-		},
-		[sortBy, setSortByCallback]
-	)
-    const debouncedSortByCallback = useDebounce(sortByCallback)
 
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
@@ -251,11 +233,17 @@ function PagedItemsTable<T extends object>({
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
 						scroll={{ x: '100%', y: '70vh' }}
-						onChange={debouncedSortByCallback}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
 						className={"ant-table-cells-short ant-table-header-short"}
+						onChange={(pagination, filters, sorter) => {
+							if (Array.isArray(sorter)) {
+								setSortByCallback(sorter.map(({ columnKey, order }) => ({ key: columnKey?.toString() ?? '', order: order === 'ascend' ? 'ascend' : 'descend' })))
+							} else {
+								setSortByCallback([{ key: sorter.columnKey?.toString() ?? '', order: sorter.order === 'ascend' ? 'ascend' : 'descend' }])
+							}
+						}}
 					/>
 					<Pagination
 						className="ant-table-pagination"

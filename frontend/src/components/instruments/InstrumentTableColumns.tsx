@@ -37,7 +37,8 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         width: 85,
         render: (_, { instrument }) => {
             return <div>{instrument.id}</div>
-        }
+        },
+		sorter: { multiple: 1 }
     },
     [InstrumentColumnID.NAME]: {
         columnID: InstrumentColumnID.NAME,
@@ -45,7 +46,8 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         dataIndex: ['instrument', 'name'],
         render: (_, { instrument }) => {
             return <div>{instrument.name}</div>
-        }
+        },
+		sorter: { multiple: 1 }
     },
     [InstrumentColumnID.SERIAL_ID]: {
         columnID: InstrumentColumnID.SERIAL_ID,
@@ -53,7 +55,8 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         dataIndex: ['instrument', 'serial_id'],
         render: (_, { instrument }) => {
             return <div>{instrument.serial_id}</div>
-        }
+        },
+		sorter: { multiple: 1 }
     },
     [InstrumentColumnID.TYPE]: {
         columnID: InstrumentColumnID.TYPE,
@@ -61,7 +64,8 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         dataIndex: ['instrument', 'type'],
         render: (_, { instrument }) => {
             return <Tag>{instrumentTypesById[instrument.type]?.type}</Tag>
-        }
+        },
+		sorter: { multiple: 1 }
     }
 })
 enum InstrumentFilterID {

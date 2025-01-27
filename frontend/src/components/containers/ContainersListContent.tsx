@@ -43,13 +43,13 @@ function wrapContainer(container: Container): ObjectWithContainer {
 
 export default function ContainersListContent() {
 	const containersTableState = useAppSelector(selectContainersTable)
-	const { filters, sortBy, totalCount } = containersTableState
+	const { filters, sortByList, totalCount } = containersTableState
 	const templateActions = useAppSelector(selectContainerTemplateActions)
 	const prefills = useAppSelector(selectContainerPrefillTemplates)
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.containers.prefill.request, filters, sortBy)
+	const prefillTemplate = usePrefilledTemplateCallback(api.containers.prefill.request, filters, sortByList)
 
-	const listExport = useListExportCallback(api.containers.listExport, filters, sortBy)
+	const listExport = useListExportCallback(api.containers.listExport, filters, sortByList)
 
 	const containersTableCallbacks = usePagedItemsActionsCallbacks(ContainersTableActions)
 

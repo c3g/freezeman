@@ -1,4 +1,8 @@
+import { Button, Flex, TableProps } from "antd"
+import { SortBy } from "../../models/paged_items"
 import { IdentifiedTableColumnType } from "./PagedItemsColumns"
+import React, { useCallback, useEffect, useRef } from "react"
+import { SortAscendingOutlined, SortDescendingOutlined } from "@ant-design/icons"
 
 
 /**
@@ -11,13 +15,14 @@ import { IdentifiedTableColumnType } from "./PagedItemsColumns"
 export function setDynamicSorters<T>(
 	columns: IdentifiedTableColumnType<T>[],
 	columnIDs: string[],
-	sorterValue: boolean
+	sorterValue: boolean,
+	multiple = false
 ) {
 	return columns.map((column) => {
 		if (columnIDs.includes(column.columnID)) {
 			return {
 				...column,
-				sorter: sorterValue
+				sorter: sorterValue ? (multiple ? { multiple: 1 } : true) : false
 			}
 		} else {
 			return column

@@ -48,26 +48,36 @@ function wrapLibrary(library: Library) {
 export default function LibariesListContent() {
 
 	const librariesTableState = useAppSelector(selectLibrariesTable)
-	const { filters, fixedFilters, sortBy, totalCount, isFetching } = librariesTableState
+	const { filters, fixedFilters, sortByList, totalCount, isFetching } = librariesTableState
 	const templateActions = useAppSelector(selectLibraryTemplateActions)
 	const prefills = useAppSelector(selectLibraryPrefillTemplates)
-	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.libraries.prefill.request, {...filters, ...fixedFilters}, sortBy)
+	let initialCategory = SampleCategory.ALL
+	const isPooledFilter = fixedFilters['is_pooled']
+	if (isPooledFilter) {
+		if (isPooledFilter.value === 'true') {
+			initialCategory = SampleCategory.POOLS
+		} else if (isPooledFilter.value === 'false') {
+			initialCategory = SampleCategory.SAMPLES
+		}
+	}
+	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(initialCategory)
 
-	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortBy)
+	const prefillTemplate = usePrefilledTemplateCallback(api.libraries.prefill.request, {...filters, ...fixedFilters}, sortByList)
+
+	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortByList)
 
 	const librariesTableCallbacks = usePagedItemsActionsCallbacks(LibrariesTableActions)
 
-	const clearFiltersAndCategory = useCallback(() => {
+	const clearFiltersAndCategory = useCallback(async () => {
 		librariesTableCallbacks.setFixedFilterCallback(getSampleCategoryFilterSetting(SampleCategory.ALL))
-		librariesTableCallbacks.clearFiltersCallback()
+		await librariesTableCallbacks.clearFiltersCallback()
 	}, [librariesTableCallbacks])
 
 
 	// Tweak the column definitions a bit for this table.
 	const tweakedColumns = useMemo(() => {
-		const MEDIUM_COLUMN_WIDTH = 120
+		const MEDIUM_COLUMN_WIDTH = 150
 		const LARGE_COLUMN_WIDTH = 270
 
 		// Set the widths of selected columns in this table.
@@ -78,8 +88,8 @@ export default function LibariesListContent() {
 			[LibraryColumnID.NAME]: LARGE_COLUMN_WIDTH,
 			[LibraryColumnID.CONTAINER_BARCODE]: LARGE_COLUMN_WIDTH,
 			[LibraryColumnID.COORDINATES]: MEDIUM_COLUMN_WIDTH,
-			[LibraryColumnID.LIBRARY_TYPE]: 130,
-			[LibraryColumnID.SELECTION_TARGET]: 130,
+			[LibraryColumnID.LIBRARY_TYPE]: 170,
+			[LibraryColumnID.SELECTION_TARGET]: 200,
 			[LibraryColumnID.INDEX_NAME]: LARGE_COLUMN_WIDTH*1.5,
 			[LibraryColumnID.VOLUME]: MEDIUM_COLUMN_WIDTH,
 			[LibraryColumnID.LIBRARY_SIZE]: MEDIUM_COLUMN_WIDTH,
@@ -87,7 +97,7 @@ export default function LibariesListContent() {
 			[LibraryColumnID.CONCENTRATION]: MEDIUM_COLUMN_WIDTH,
 			[LibraryColumnID.NA_QUANTITY]: MEDIUM_COLUMN_WIDTH,
 			[LibraryColumnID.QC_FLAG]: MEDIUM_COLUMN_WIDTH,
-			[LibraryColumnID.CREATION_DATE]: MEDIUM_COLUMN_WIDTH,
+			[LibraryColumnID.CREATION_DATE]: 170,
 			[LibraryColumnID.DEPLETED]: MEDIUM_COLUMN_WIDTH
 		})
 
@@ -100,7 +110,7 @@ export default function LibariesListContent() {
 			LibraryColumnID.INDEX_NAME,
 			LibraryColumnID.LIBRARY_SIZE,
 		]
-		, sampleCategory === SampleCategory.SAMPLES)
+		, sampleCategory === SampleCategory.SAMPLES, true)
 
 		return columns
 
@@ -142,7 +152,8 @@ export default function LibariesListContent() {
 						disabled={isFetching}
 						filters={fixedFilters}
 						setFixedFilter={librariesTableCallbacks.setFixedFilterCallback}
-						onChange={(sampleCategory) => onSampleCategoryChange(sampleCategory)}
+						sampleCategory={sampleCategory}
+						onChange={onSampleCategoryChange}
 						samplesLabel='Libraries'
 					/>
 					<FiltersBar filters={filters} clearFilters={clearFiltersAndCategory}/>

@@ -282,17 +282,14 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 		}
 
 		case SET_SORT_BY: {
-			const { stepID, sortBy } = action
+			const { stepID, sortByList } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if (stepSamples) {
 				return updateStepSamples(state, {
 					...stepSamples,
 					pagedItems: {
 						...stepSamples.pagedItems,
-						sortBy: {
-							key: sortBy.key,
-							order: sortBy.order
-						}
+						sortByList
 					}
 				})
 			}

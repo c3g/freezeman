@@ -29,8 +29,8 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		columnID: ProjectColumnID.ID,
 		title: 'ID',
 		dataIndex: ['project', 'id'],
-		sorter: true,
-		width: 30,
+		sorter: { multiple: 1 },
+		width: 40,
 		render: (id, {project}) => (
 			<Link to={`/projects/${project.id}`}>
 				<div>{id}</div>
@@ -41,7 +41,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		columnID: ProjectColumnID.NAME,
 		title: 'Name',
 		dataIndex: ['project', 'name'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: 80,
 		render: (name, {project}) => (
 			<Link to={`/projects/${project.id}`}>
@@ -53,41 +53,42 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 		columnID: ProjectColumnID.EXTERNAL_ID,
 		title: 'External ID',
 		dataIndex: ['project', 'external_id'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: 70,
 	},
 	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: {
 		columnID: ProjectColumnID.PRINCIPAL_INVESTIGATOR,
 		title: 'Principal Investigator',
 		dataIndex: ['project', 'principal_investigator'],
-		sorter: true,
-		width: 70,
+		sorter: { multiple: 1 },
+		width: 80,
 	},
 	[ProjectColumnID.REQUESTOR_NAME]: {
 		columnID: ProjectColumnID.REQUESTOR_NAME,
 		title: 'Requestor Name',
 		dataIndex: ['project', 'requestor_name'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: 90,
 	},
 	[ProjectColumnID.REQUESTOR_EMAIL]: {
 		columnID: ProjectColumnID.REQUESTOR_EMAIL,
 		title: 'Requestor Email',
 		dataIndex: ['project', 'requestor_email'],
+		sorter: false,
 		width: 115,
 	},
 	[ProjectColumnID.TARGETED_END_DATE]: {
 		columnID: ProjectColumnID.TARGETED_END_DATE,
 		title: 'Targeted End Date',
 		dataIndex: ['project', 'targeted_end_date'],
-		sorter: true,
-		width: 50,
+		sorter: { multiple: 1 },
+		width: 80,
 	},
 	[ProjectColumnID.STATUS]: {
 		columnID: ProjectColumnID.STATUS,
 		title: 'Status',
 		dataIndex: ['project', 'status'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: 50,
 	},
 }
