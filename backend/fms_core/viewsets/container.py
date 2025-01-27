@@ -35,9 +35,10 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
     serializer_class = ContainerSerializer
     filterset_class = ContainerFilter
 
-    ordering_fields = (
+    ordering_fields = [
         *_list_keys(_container_filterset_fields),
-    )
+        "location__name"
+    ]
 
     ordering = ["-id"]
 
