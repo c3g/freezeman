@@ -8,7 +8,7 @@ import PagedItemsTable, { PagedItemsTableProps } from "../pagedItemsTable/PagedI
 import { DATASET_COLUMN_DEFINITIONS, DATASET_FILTER_DEFINITIONS, DATASET_FILTER_KEYS, DatasetColumnID, ObjectWithDataset } from "./DatasetsTableColumns"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
-import ExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
+import useExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
 import { ExperimentRun } from "../../models/frontend_models"
 
 export interface DatasetTableProps {
@@ -66,13 +66,15 @@ function DatasetTable({ run_name, scroll }: DatasetTableProps) {
           callbacks.setFilterOptionsCallback
 	)
 
+	const expandable = useExpandableTableDatasetComments()
+
 	const getDataObjectsByID = useItemsByIDToDataObjects(selectDatasetsByID, dataset => {return {dataset}})
 		return(
 			<>
                 <FiltersBar filters={filters} clearFilters={callbacks.clearFiltersCallback}/>
                 <PagedItemsTable<ObjectWithDataset>
                     columns={tweakedColumns}
-                    expandable={ExpandableTableDatasetComments()}
+                    expandable={expandable}
                     getDataObjectsByID={getDataObjectsByID}
                     pagedItems={pagedItems}
                     usingFilters={false}
