@@ -14,6 +14,9 @@ from fms_core.services.sample import create_full_sample
 
 class JsonTemplatesTestCase(TestCase):
     def setUp(self) -> None:
+        # Test cases files index
+        self.SAMPLE_QC = 0
+
         self.importers = [SampleQCImporter()]
         self.files = [APP_DATA_ROOT / "Sample_QC_v4_14_0.json"]
         ContentType.objects.clear_cache()
@@ -47,15 +50,14 @@ class JsonTemplatesTestCase(TestCase):
 
 
     def test_import(self):
-        
-        for i, importer in  enumerate(self.importers):
+        for i, importer in enumerate(self.importers):
             # Basic test for all templates - checks that template is valid
             result = load_template(importer=importer, file=self.files[i])
             self.assertEqual(result['valid'], True)
             
             # Custom tests for each template
             match i:
-                case 0: # Sample QC
+                case self.SAMPLE_QC:
                     sample = Sample.objects.get(name=self.sample_name)
                     self.assertEqual(sample.volume, self.sample_new_volume)
                     self.assertEqual(sample.concentration, self.sample_new_concentration)
