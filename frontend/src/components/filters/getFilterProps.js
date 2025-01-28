@@ -1,6 +1,5 @@
 import React from "react"
 import {SearchOutlined} from "@ant-design/icons"
-import moment from 'moment'
 import InputFilter from './filterComponents/InputFilter'
 // import DebouncedInputFilter from "./FilterProps/DebouncedInputFilter"
 import InputNumberFilter from './filterComponents/InputNumberFilter'
@@ -11,6 +10,7 @@ import DateRangeFilter from "./filterComponents/DateRange"
 import { nullize } from '../../utils/nullize'
 
 import {FILTER_TYPE} from "../../constants"
+import dayjs from "dayjs"
 
 
 export default function getFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
@@ -156,8 +156,8 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
 function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
   const filterKey = column.dataIndex;
   const value = filters[filterKey]?.value
-  const minValue = value && nullize(value.min) && moment(value.min)
-  const maxValue = value && nullize(value.max) && moment(value.max)
+  const minValue = value && nullize(value.min) && dayjs(value.min)
+  const maxValue = value && nullize(value.max) && dayjs(value.max)
 
   return ({
     filterIcon: getFilterIcon(Boolean(value)),
