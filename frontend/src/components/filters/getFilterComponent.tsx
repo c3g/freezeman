@@ -1,4 +1,3 @@
-import moment from 'moment'
 import React from 'react'
 import { FILTER_TYPE } from '../../constants'
 import {
@@ -17,6 +16,7 @@ import RangeFilterComponent from './filterComponents/RangeFilter'
 import SelectFilter from './filterComponents/SelectFilter'
 import { isValidInteger, isValidObjectID } from './validators'
 import MetadataFilter from './filterComponents/MetadataFilter'
+import dayjs, { Dayjs } from 'dayjs'
 
 export function getFilterComponent(
 	description: FilterDescription,
@@ -26,6 +26,9 @@ export function getFilterComponent(
 	confirm = () => true, // Used by column filters
 	visible = true // Used by column filters
 ) {
+	if (!setFilter || !setFilterOption) {
+		return null
+	}
 	switch (description.type) {
 		case FILTER_TYPE.INPUT: {
 			return getInputFilter(description, filterSetting, setFilter, setFilterOption, confirm, visible)
@@ -197,10 +200,10 @@ export function getDateRangeFilter(
 	visible = true // Used by column filters
 ) {
 	const value = filterSetting?.value
-	let minValue, maxValue
+	let minValue: Dayjs | undefined, maxValue: Dayjs | undefined
 	if (isRangeFilterValue(value)) {
-		minValue = value && nullize(value.min) && moment(value.min)
-		maxValue = value && nullize(value.max) && moment(value.max)
+		minValue = value && nullize(value.min) && dayjs(value.min)
+		maxValue = value && nullize(value.max) && dayjs(value.max)
 	}
 
 	return (
