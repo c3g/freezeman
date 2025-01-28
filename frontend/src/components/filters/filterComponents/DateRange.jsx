@@ -1,15 +1,24 @@
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import {Button, DatePicker, Input, Space } from 'antd'
 import {SearchOutlined} from "@ant-design/icons"
 import { DATE_FORMAT } from '../../../constants'
 import { nullize } from '../../../utils/nullize'
+import { Dayjs } from 'dayjs'
 
 const { RangePicker } = DatePicker
-
-const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, visible, description}) => {
-
-    const dateRangeRef = useRef()
-
+/**
+ * 
+ * @param {{
+ * minValue?: Dayjs,
+ * maxValue?: Dayjs,
+ * filterKey: string,
+ * setFilter: import('../../../models/paged_items').SetFilterFunc,
+ * confirm: () => void,
+ * description: import('../../../models/paged_items').FilterDescription
+ * }} props 
+ * @returns 
+ */
+const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, description}) => {
     const onSearch = (values) => {
       setFilter(filterKey, values, description)
     }
@@ -24,18 +33,11 @@ const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, vis
         confirm()
       }
     }
-
-    useEffect(() => {
-        if (visible) {
-          setTimeout(() => {dateRangeRef.current?.focus()}, 100)
-        }
-      }, [visible])
   
     return (
       <div>
         <Input.Group compact style={{ marginBottom: 8 }}>
           <RangePicker
-            ref = {dateRangeRef}
             style={{ width: 300 }}
             format={DATE_FORMAT}
             allowEmpty={[true, true]}
