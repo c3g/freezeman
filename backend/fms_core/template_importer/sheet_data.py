@@ -13,7 +13,7 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name, dataframe, headers):
+    def __init__(self, name, dataframe, headers, shared_data=None):
         self.base_errors = []
         self.is_valid = None
         self.header_row_nb = None
@@ -21,12 +21,16 @@ class SheetData():
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
+        self.shared_data = shared_data # This is additional information that is not assigned to a specific row. None for xls templates.
 
-        for i, row_list in enumerate(self.dataframe.values.tolist()):
-            if row_list[:len(self.headers)] == self.headers:
-                self.dataframe.columns = row_list
-                self.header_row_nb = i
-                break
+        if self.shared_data is not None: # This is not defined for xls templates
+            self.header_row_nb = -1 # No header in dataframe for json files
+        else:
+            for i, row_list in enumerate(self.dataframe.values.tolist()):
+                if row_list[:len(self.headers)] == self.headers:
+                    self.dataframe.columns = row_list
+                    self.header_row_nb = i
+                    break
 
         if self.header_row_nb is not None:
             self.prepare_rows()
