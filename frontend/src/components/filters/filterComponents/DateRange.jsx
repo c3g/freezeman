@@ -14,6 +14,7 @@ const { RangePicker } = DatePicker
  * filterKey: string,
  * setFilter: import('../../../models/paged_items').SetFilterFunc,
  * confirm: () => void,
+ * visible: boolean,
  * description: import('../../../models/paged_items').FilterDescription
  * }} props 
  * @returns 
