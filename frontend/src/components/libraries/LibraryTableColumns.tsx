@@ -57,6 +57,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		align: 'right',
 		className: 'table-column-numbers',
 		render: (conc) => isNullish(conc) ? '' : parseFloat(conc).toFixed(3),
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.INDEX_NAME]: {
@@ -76,6 +77,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 			)
 		},
 		width: 350,
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.LIBRARY_SIZE]: {
@@ -85,6 +87,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		align: 'right',
 		className: 'table-column-numbers',
 		render: (library_size) => library_size && <span>{library_size}</span>,
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.LIBRARY_TYPE]: {
@@ -93,6 +96,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		dataIndex: ['library', 'library_type'],
 		render: (_, { library }) => library && library.library_type && <span>{library.library_type}</span>,
 		width: 150,
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.PLATFORM_NAME]: {
@@ -102,6 +106,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		render: (_, { library }) => {
 			return library && library.platform && <span>{library.platform}</span>
 		},
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.PROJECT_NAME]: {
@@ -120,6 +125,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 				)
 			)
 		},
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.NA_QUANTITY]: {
@@ -129,6 +135,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		align: 'right',
 		className: 'table-column-numbers',
 		render: (qty) => qty && parseFloat(qty).toFixed(3),
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.SELECTION_TARGET]: {
@@ -148,6 +155,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 					<div>{library.id}</div>
 				</Link>
 			),
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.NAME]: {
@@ -160,6 +168,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 					{library.name}
 				</Link>
 			),
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.CONTAINER_BARCODE]: {
@@ -178,6 +187,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 				)
 			)
 		},
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.COORDINATES]: {
@@ -196,6 +206,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 					)
 				)
 			},
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.VOLUME]: {
@@ -204,6 +215,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		dataIndex: ['library', 'volume'],
 		align: 'right',
 		className: 'table-column-numbers',
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.CONCENTRATION]: {
@@ -213,6 +225,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		align: 'right',
 		className: 'table-column-numbers',
 		render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.QC_FLAG]: {
@@ -228,12 +241,14 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 			}
 			return null
 		},
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.CREATION_DATE]: {
 		columnID: LibraryColumnID.CREATION_DATE,
 		title: 'Creation Date',
 		dataIndex: ['library', 'creation_date'],
+		sorter: { multiple: 1 }
 	},
 
 	[LibraryColumnID.DEPLETED]: {
@@ -241,6 +256,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		title: 'Depleted',
 		dataIndex: ['library', 'depleted'],
 		render: (depleted) => <Depletion depleted={depleted} />,
+		sorter: { multiple: 1 }
 	},
 
 }

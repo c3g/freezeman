@@ -3,7 +3,7 @@ import { FMSId } from '../../../models/fms_api_models'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
 import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
-import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
+import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { GROUPING_CREATION_DATE, LabworkStepOverviewProps } from './LabworkStepOverview'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { selectLabworkStepsState } from '../../../selectors'
@@ -22,8 +22,8 @@ export interface LabworkStepPanelProps {
 	filters?: FilterSet,
 	setFilter?: NonNullable<LabworkStepOverviewProps['setFilter']>,
 	setFilterOptions?: NonNullable<LabworkStepOverviewProps['setFilterOptions']>,
-	sortBy?: SortBy,
-	setSortBy?: SetSortByFunc,
+	sortByList: SortBy[],
+	setSortByList?: SetSortByFunc,
 	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[],
@@ -32,7 +32,7 @@ export interface LabworkStepPanelProps {
 	stepID: FMSId
 }
 
-const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
+const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortByList, setSortByList, pagination, selection, hasFilter, clearFilters }: LabworkStepPanelProps) => {
 
 	const dispatch = useAppDispatch()
 
@@ -78,8 +78,8 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 				setFilter={setFilter}
 				setFilterOptions={setFilterOptions}
 				selection={selection}
-        sortBy={sortBy}
-				setSortBy={setSortBy}
+				sortByList={sortByList}
+				setSortByList={setSortByList}
 				pagination={pagination}
 				loading={refreshing || isFetchingSamples}
 			/>

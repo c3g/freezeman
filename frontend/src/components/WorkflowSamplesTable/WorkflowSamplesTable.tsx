@@ -27,8 +27,8 @@ export interface WorkflowSamplesTableProps {
 	filters?: FilterSet,
 	setFilter?: SetFilterFunc,
 	setFilterOptions?: SetFilterOptionFunc,
-	sortBy?: SortBy,
-	setSortBy?: SetSortByFunc,
+	sortByList: SortBy[],
+	setSortByList?: SetSortByFunc,
 	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[],
@@ -37,20 +37,18 @@ export interface WorkflowSamplesTableProps {
 	loading?: boolean
 }
 
-function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters, loading }: WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortByList, setSortByList, pagination, selection, hasFilter, clearFilters, loading }: WorkflowSamplesTableProps) {
 
-	const tableColumns = useMemo(() => {
-		const mergedColumns = addFiltersToColumns(
+	const columnsWithFilters = useMemo(() => {
+		return addFiltersToColumns(
 			columns,
 			filterDefinitions ?? {},
 			filterKeys ?? {},
 			filters ?? {},
 			setFilter,
-			setFilterOptions)
-		return mergedColumns
+			setFilterOptions
+		)
 	}, [columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions])
-
-
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
 	if (selection) {
@@ -64,23 +62,25 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 	}
 
 	const handleTableOnChange: TableProps<any>['onChange'] = (pagination, filters, sorterResult) => {
-		if (setSortBy) {
+		if (setSortByList) {
 			if (!Array.isArray(sorterResult)) {
 				const sorter = sorterResult
 				const key = sorter.columnKey?.toString()
 				const order = sorter.order ?? undefined
-				if (key) {
-					if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
-						setSortBy({ key, order })
-					}
+				if (key && order) {
+					setSortByList([{ key, order }])
+				} else {
+					setSortByList([])
 				}
+			} else {
+				setSortByList(sorterResult.map(({ columnKey, order }) => ({ key: columnKey?.toString() ?? '', order: order ?? 'ascend' })))
 			}
 		}
 	}
 
 	return (
 		<>
-			{tableColumns &&
+			{columnsWithFilters &&
 				<>
 					{
 						hasFilter && clearFilters && filters &&
@@ -90,7 +90,7 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 						className={"ant-table-cells-short ant-table-header-short"}
 						rowSelection={rowSelection}
 						dataSource={samples ?? []}
-						columns={tableColumns}
+						columns={columnsWithFilters}
 						rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
 						scroll={{ x: '100%', y: '70vh' }}
 						onChange={handleTableOnChange}

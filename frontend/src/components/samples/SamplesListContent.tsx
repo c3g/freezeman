@@ -56,24 +56,34 @@ function wrapSample(sample: Sample) {
 
 function SamplesListContent() {
 	const samplesTableState = useAppSelector(selectSamplesTable)
-	const { filters, fixedFilters, sortBy, totalCount, isFetching } = samplesTableState
+	const { filters, fixedFilters, sortByList, totalCount, isFetching } = samplesTableState
 	const templateActions = useAppSelector(selectSampleTemplateActions)
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
-	const [sampleCategory, setSampleCategory] = useState<SampleCategory>()
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortBy)
+	let initialCategory = SampleCategory.ALL
+	const isPooledFilter = fixedFilters['is_pooled']
+	if (isPooledFilter) {
+		if (isPooledFilter.value === 'true') {
+			initialCategory = SampleCategory.POOLS
+		} else if (isPooledFilter.value === 'false') {
+			initialCategory = SampleCategory.SAMPLES
+		}
+	}
+	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(initialCategory)
 
-	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortBy)
+	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortByList)
 
-	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortBy)
+	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortByList)
+
+	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortByList)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
 	// Special clearFilters callback that also sets the sample category back to ALL whenever
 	// filters are cleared. Do we still want that to happen?
-	const clearFiltersAndCategory = useCallback(() => {
+	const clearFiltersAndCategory = useCallback(async () => {
 		samplesTableCallbacks.setFixedFilterCallback(getSampleCategoryFilterSetting(SampleCategory.ALL))
-		samplesTableCallbacks.clearFiltersCallback()
+		await samplesTableCallbacks.clearFiltersCallback()
 	}, [samplesTableCallbacks])
 
 	// Tweak the columns to customize them for this table.
@@ -85,8 +95,7 @@ function SamplesListContent() {
 			SampleColumnID.KIND,
 			SampleColumnID.INDIVIDUAL,
 			SampleColumnID.PROJECT,
-		], sampleCategory === SampleCategory.SAMPLES)
-
+		], sampleCategory === SampleCategory.SAMPLES, true)
 		return columns
 	}, [sampleCategory])
 
@@ -128,7 +137,8 @@ function SamplesListContent() {
 						disabled={isFetching}
 						filters={fixedFilters}
 						setFixedFilter={samplesTableCallbacks.setFixedFilterCallback}
-						onChange={(category) => onSampleCategoryChange(category)}
+						sampleCategory={sampleCategory}
+						onChange={onSampleCategoryChange}
 					/>
 					<FiltersBar filters={samplesTableState.filters} clearFilters={clearFiltersAndCategory}/>
 				</Flexbar>

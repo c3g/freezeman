@@ -105,16 +105,17 @@ export default function serializeFilterParamsWithDescriptions(filters: FilterSet
 	return params
 }
 
-export function serializeSortByParams(sortBy: SortBy) {
-	if (sortBy && sortBy.key && sortBy.order) {
-		const prefixByOrder = {
-			'ascend': '',
-			'descend': '-',
-		}
-		const prefix = prefixByOrder[sortBy.order]
-		return prefix + sortBy.key
+export function serializeSortByParams(sortByList: SortBy[]) {
+	const prefixByOrder = {
+		'ascend': '',
+		'descend': '-',
 	}
-	return undefined
+	return sortByList.length > 0
+		? sortByList.map((sort) => {
+				const prefix = prefixByOrder[sort.order]
+				return prefix + sort.key
+		  }).join(',')
+		: undefined
 }
 
 /**
@@ -123,6 +124,6 @@ export function serializeSortByParams(sortBy: SortBy) {
  * @param sortBy 
  * @returns 
  */
-export function filtersQueryParams(filters: FilterSet, sortBy: SortBy){
-	return {...serializeFilterParamsWithDescriptions(filters), ordering: serializeSortByParams(sortBy)}
+export function filtersQueryParams(filters: FilterSet, sortByList: SortBy[]){
+	return {...serializeFilterParamsWithDescriptions(filters), ordering: serializeSortByParams(sortByList)}
   }
