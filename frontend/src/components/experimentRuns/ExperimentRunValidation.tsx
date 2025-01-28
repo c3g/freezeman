@@ -117,7 +117,7 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
 							extra={<Space direction={'horizontal'}>
 								<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
-								{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString()}`] : ''}
+								{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
 							</Space>}
 						>
 							<LanePanel 
