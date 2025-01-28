@@ -3,7 +3,6 @@
     "template_version": "4.14.0",
     "datasheets": {
         "SampleQC": {
-            "shared_data": null,
             "headers": [
                 "Sample Name",
                 "Sample Kind",

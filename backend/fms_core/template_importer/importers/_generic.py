@@ -109,10 +109,13 @@ class GenericImporter():
 
     def create_sheet_data(self, name, headers):
         try:
+            shared_data = None
             if self.format == ".json":
                 with open(self.file, 'r') as file:
                     file_content = file.read()
-                sheet_data = StringIO(json.dumps(json.loads(file_content)["datasheets"][name]["sheet_data"]))
+                json_content = json.loads(file_content)
+                sheet_data = StringIO(json.dumps(json_content["datasheets"][name]["sheet_data"]))
+                shared_data = json_content["datasheets"][name].get("shared_data", {})
                 pd_sheet = pd.read_json(sheet_data, orient="records")
             elif self.format == ".xlsx":
                 pd_sheet = pd.read_excel(self.preprocess_file(self.file), sheet_name=name, header=None)
@@ -125,7 +128,7 @@ class GenericImporter():
                 return None
             # Convert blank and NaN cells to None and Store it in self.sheets
             dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
-            return SheetData(name=name, dataframe=dataframe, headers=headers)
+            return SheetData(name=name, dataframe=dataframe, headers=headers, shared_data=shared_data)
 
         except Exception as e:
             self.base_errors.append(e)
