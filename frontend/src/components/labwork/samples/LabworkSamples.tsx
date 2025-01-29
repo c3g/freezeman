@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppSelector } from "../../../hooks";
+import { useAppSelector, useLastProtocols } from "../../../hooks";
 import { selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS } from '../../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn } from '../../samples/SampleTableColumns'
 import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import AppPageHeader from "../../AppPageHeader";
 import PageContent from "../../PageContent";
@@ -17,8 +17,11 @@ import { fetchSamplesAndLibraries } from "../../../modules/studySamples/services
 export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters } = samplesTableState
+
+    const LastProtocol = useLastProtocols(samplesTableState.items)
+
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
-    const SAMPLES_TABLE_COLUMNS = [
+    const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
         SAMPLE_COLUMN_DEFINITIONS.KIND,
         SAMPLE_COLUMN_DEFINITIONS.NAME,
         SAMPLE_COLUMN_DEFINITIONS.PROJECT,
@@ -26,9 +29,17 @@ export function LabworkSamples() {
         SAMPLE_COLUMN_DEFINITIONS.COORDINATES,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
+        {
+            columnID: 'LAST_PROTOCOL',
+            title: 'Last Protocol',
+            dataIndex: ['sample', 'id'],
+            width: 200,
+            render: (_, { sample }) =>
+                sample && <LastProtocol sampleID={sample.id} />,
+        },
         SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
-        SAMPLE_COLUMN_DEFINITIONS.DEPLETED
-    ]
+        SAMPLE_COLUMN_DEFINITIONS.DEPLETED,
+    ], [LastProtocol])
     const columns = useFilteredColumns<SampleAndLibrary>(
         SAMPLES_TABLE_COLUMNS,
         useMemo(() => SAMPLE_COLUMN_FILTERS, []),
