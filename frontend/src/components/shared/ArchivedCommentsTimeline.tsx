@@ -18,9 +18,9 @@ export default function ArchivedCommentsTimeline({ comments } : commentsTimeline
 	return (
     <Row justify="center">
       <Col span={orderedComments.length > 0 ? 24 : 1}>
-        <div ref={timelineRef}>
+        <div ref={timelineRef} style={{ paddingTop: "1rem" }}>
           {comments.length > 0 ?
-            <Timeline mode={"left"} style={{ marginLeft: timelineMarginLeft }}>
+            <Timeline mode={"left"} style={{ marginLeft: timelineMarginLeft}}>
               {orderedComments.map(comment => 
                 <Timeline.Item key={comment.id} label={dateToString(new Date(comment.created_at), "full")}>
                   {renderTextWithLineBreaks(comment.comment, true)}

@@ -50,6 +50,8 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	initialLoad?: boolean
 
 	topBarExtra?: React.ReactNode[]
+
+	scroll?: TableProps<T>['scroll']
 }
 
 interface TableDataState<T> {
@@ -74,6 +76,7 @@ function PagedItemsTable<T extends object>({
 	initialLoad = true,
 	expandable,
 	topBarExtra,
+	scroll = { x: '100%', y: '70vh' },
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -232,7 +235,7 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						scroll={{ x: '100%', y: '70vh' }}
+						scroll={scroll}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}

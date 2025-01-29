@@ -22,7 +22,8 @@ export enum DatasetColumnID {
 	LANE = 'LANE',
 	VALIDATION_STATUS = 'VALIDATION_STATUS',
 	READSETS_RELEASED = 'READSETS_RELEASED',
-	LATEST_UPDATE = 'LATEST_UPDATE'
+	LATEST_RELEASE_UPDATE = 'LATEST_RELEASE_UPDATE',
+	LATEST_VALIDATION_UPDATE = 'LATEST_VALIDATION_UPDATE'
 }
 
 type DatasetColumn = IdentifiedTableColumnType<ObjectWithDataset>
@@ -78,14 +79,21 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 			return `${dataset.released_status_count}/${dataset.readset_count}`	// TODO display the total number of readsets
 		}
 	},
-	[DatasetColumnID.LATEST_UPDATE]: {
-		columnID: DatasetColumnID.LATEST_UPDATE,
+	[DatasetColumnID.LATEST_RELEASE_UPDATE]: {
+		columnID: DatasetColumnID.LATEST_RELEASE_UPDATE,
 		title: "Latest Release Status Update",
 		dataIndex: ['dataset', 'latest_release_update'],
 		render: (_, {dataset}) => {
 			return dataset.latest_release_update ? moment(dataset.latest_release_update).format("YYYY-MM-DD LT") : ""
 		}
-
+	},
+	[DatasetColumnID.LATEST_VALIDATION_UPDATE]: {
+		columnID: DatasetColumnID.LATEST_VALIDATION_UPDATE,
+		title: "Latest Validation Status Update",
+		dataIndex: ['dataset', 'latest_validation_update'],
+		render: (_, {dataset}) => {
+			return dataset.latest_validation_update ? moment(dataset.latest_validation_update).format("YYYY-MM-DD LT") : ""
+		}
 	}
 }
 
@@ -93,7 +101,9 @@ enum DatasetFilterID {
 	ID = DatasetColumnID.ID,
 	RUN = DatasetColumnID.RUN,
 	PROJECT = DatasetColumnID.PROJECT,
-	LANE = DatasetColumnID.LANE
+	LANE = DatasetColumnID.LANE,
+	LATEST_RELEASE_UPDATE = DatasetColumnID.LATEST_RELEASE_UPDATE,
+	LATEST_VALIDATION_UPDATE = DatasetColumnID.LATEST_VALIDATION_UPDATE
 }
 
 export const DATASET_FILTER_DEFINITIONS : {[key in DatasetFilterID]: FilterDescription} = {
@@ -117,6 +127,16 @@ export const DATASET_FILTER_DEFINITIONS : {[key in DatasetFilterID]: FilterDescr
 		key: UNDEFINED_FILTER_KEY,
 		label: "Lane",
 	},
+	[DatasetFilterID.LATEST_RELEASE_UPDATE]: {
+		type: FILTER_TYPE.DATE_RANGE,
+		key: 'latest_release_update',
+		label: 'Latest Release Update'
+	},
+	[DatasetFilterID.LATEST_VALIDATION_UPDATE]: {
+		type: FILTER_TYPE.DATE_RANGE,
+		key: 'latest_validation_update',
+		label: 'Latest Validation Update'
+	}
 }
 
 // Special filter for datasets table that is filtered by a particular project.
@@ -130,6 +150,8 @@ export const DATASET_FILTER_KEYS: {[key in DatasetFilterID]: string} = {
 	[DatasetFilterID.ID]: 'id',
 	[DatasetFilterID.RUN]: 'run_name',
 	[DatasetFilterID.PROJECT]: 'project_name',
-	[DatasetFilterID.LANE]: 'lane'
+	[DatasetFilterID.LANE]: 'lane',
+	[DatasetFilterID.LATEST_RELEASE_UPDATE]: 'latest_release_update',
+	[DatasetFilterID.LATEST_VALIDATION_UPDATE]: 'latest_validation_update'
 }
 

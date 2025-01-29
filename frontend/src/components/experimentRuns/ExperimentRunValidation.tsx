@@ -115,7 +115,10 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 						<Collapse.Panel 
 							key={createLaneKey(lane)}
 							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
-							extra={<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>}
+							extra={<Space direction={'horizontal'}>
+								<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
+								{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
+							</Space>}
 						>
 							<LanePanel 
 								lane={lane}
@@ -161,7 +164,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
       return response.data
     }))
     .then((values) => {
-      setDatasets(values)})
+      setDatasets(values as Dataset[])})
 	}, [datasetsById])
 
   const handleAddComment = useCallback(

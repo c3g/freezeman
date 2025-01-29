@@ -1,3 +1,4 @@
+import { AppDispatch } from "../../store"
 import api from "../../utils/api"
 import { ValidationStatus } from "./models"
 import { LaneInfo, LaneNumber } from "./models"
@@ -6,8 +7,8 @@ import { fetchReadsPerSample, loadExperimentRunLanes } from "./services"
 
 
 export function initExperimentRunLanes(experimentRunName: string){
-	return async (dispatch) => {
-		const lanes = await loadExperimentRunLanes(experimentRunName)
+	return async (dispatch: AppDispatch) => {
+		const lanes = await dispatch(loadExperimentRunLanes(experimentRunName))
 		dispatch({
 			type: SET_EXPERIMENT_LANES,
 			lanes
