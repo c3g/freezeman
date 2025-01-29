@@ -36,7 +36,7 @@ function isResultAnArray<T>(result: ListReturnType<T>): result is T[] {
 
 function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 	itemsByIDSelector: (state: any) => ItemsByID<ItemType>,
-	listFunc: ListFunction<ItemType>
+	listFunc: ListFunction<ItemType>,
 ) {
 
 	async function fetchItemsByID(ids: FMSId[], abort = false): Promise<ItemType[]> {
@@ -76,7 +76,7 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 				} else if (isResultAnArray(reply)) {
 					fetchedItems.push(...reply)
 				} else {
-					console.error('Cache received unsupported reply from a list api call', JSON.stringify(reply))
+					console.error('Cache received unsupported reply from a list api call', itemsByIDSelector, itemsToFetch, reply)
 					throw new Error('Cache received unexpected reply from list api call')
 				}
 			}

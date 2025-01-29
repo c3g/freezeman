@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppSelector, useLastProtocols } from "../../../hooks";
+import { useAppSelector, useStudySteps } from "../../../hooks";
 import { selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
@@ -11,6 +11,8 @@ import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pa
 import { Sample } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
 import { fetchSamplesAndLibraries } from "../../../modules/studySamples/services";
+import { Button, Tag } from "antd";
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -18,7 +20,11 @@ export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters } = samplesTableState
 
-    const LastProtocol = useLastProtocols(samplesTableState.items)
+    const [StudySteps, refreshStudySteps] = useStudySteps(samplesTableState.items)
+    useEffect(() => {
+        refreshStudySteps(samplesTableState.items)
+    }, [samplesTableState.items, refreshStudySteps])
+    const navigate = useNavigate()
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
@@ -30,16 +36,18 @@ export function LabworkSamples() {
         SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
         {
-            columnID: 'LAST_PROTOCOL',
-            title: 'Last Protocol',
+            columnID: 'CURRENT_STUDY_STEP',
+            title: 'Current Lab Step',
             dataIndex: ['sample', 'id'],
-            width: 200,
+            width: 160,
             render: (_, { sample }) =>
-                sample && <LastProtocol sampleID={sample.id} />,
+                sample && <StudySteps sampleID={sample.id} render={(studyStep, studyLetter, stepOrder) => {
+                    return <Button size={"small"} onClick={() => navigate(`/lab-work/step/${stepOrder.order}`)}>{stepOrder.step_name}</Button>
+                }} />,
         },
         SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
         SAMPLE_COLUMN_DEFINITIONS.DEPLETED,
-    ], [LastProtocol])
+    ], [StudySteps])
     const columns = useFilteredColumns<SampleAndLibrary>(
         SAMPLES_TABLE_COLUMNS,
         useMemo(() => SAMPLE_COLUMN_FILTERS, []),
