@@ -13,8 +13,7 @@ export const get = (id: number) => async (dispatch: AppDispatch, getState: () =>
 }
 
 export const list = (options: any) => async (dispatch: AppDispatch) => {
-	const params = { limit: 100000, ...options }
-	console.info('list sudies params', params)
+    const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
         api.studies.list(params),
         { meta: params }
