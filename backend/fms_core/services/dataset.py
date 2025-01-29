@@ -13,6 +13,7 @@ from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
 from fms_core.services.readset import create_readset
 from fms_core.services.metric import create_metrics_from_run_validation_data
+from fms_core.services.archived_comment import create_archived_comment_for_model, AUTOMATED_COMMENT_DATASET_VALIDATED, AUTOMATED_COMMENT_DATASET_NEW_DATA, AUTOMATED_COMMENT_DATASET_RESET
 
 def create_dataset(external_project_id: str,
                    run_name: str,
@@ -68,6 +69,8 @@ def create_dataset(external_project_id: str,
         elif not created:  # There is already a dataset with this signature and it is not expected
             errors.append(f"There is already a dataset with external_project_id {kwargs['external_project_id']}, "
                           f"run_name {kwargs['run_name']} and lane {kwargs['lane']}.")
+        else:
+            create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_NEW_DATA())
     except ValidationError as e:
         # the validation error messages should be readable
         errors.extend(e.messages)
@@ -94,6 +97,7 @@ def reset_dataset_content(dataset: Dataset):
             for dataset_file in readset.files.all():
                 dataset_file.delete()
             readset.delete()
+        create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_RESET())
     except Exception as err:
         errors.append(str(err))
     return errors, warnings
@@ -175,10 +179,15 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
         for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
             for readset in Readset.objects.filter(dataset=dataset).all():
                 readset.validation_status = validation_status
-                readset.validation_status_timestamp = timestamp
-                readset.validated_by = validated_by
+                if validation_status == ValidationStatus.AVAILABLE:
+                    readset.validation_status_timestamp = None
+                    readset.validated_by = None
+                else:
+                    readset.validation_status_timestamp = timestamp
+                    readset.validated_by = validated_by
                 readset.save()
                 count_status += 1
+            create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_VALIDATED(ValidationStatus.labels[validation_status]))
     else: # Error returns None, while a non-existant run name or lane will return 0.
         return None, errors, warnings
 

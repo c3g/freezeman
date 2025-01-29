@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from fms_core.filters import DatasetFilter
 from fms_core.models.dataset import Dataset
-from fms_core.services.archived_comment import create_archived_comment_for_model
+from fms_core.services.archived_comment import create_archived_comment_for_model, AUTOMATED_COMMENT_DATASET_RELEASED, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED
 from fms_core.models._constants import ReleaseStatus
 from fms_core.serializers import  DatasetSerializer
 from fms_core.models.readset import Readset
@@ -65,6 +65,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
         readset_ids = [int(i) for i in readset_updates.keys()]
         readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids)
+        is_status_revocation = False
 
         try:
             release_status_timestamp = timezone.now()
@@ -72,6 +73,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
                 release_status = readset_updates[str(readset.id)]
                 readset.release_status = release_status
                 if release_status == ReleaseStatus.AVAILABLE:
+                    is_status_revocation = True
                     readset.release_status_timestamp = None
                     readset.released_by = None
                 else:
@@ -82,6 +84,10 @@ class DatasetViewSet(viewsets.ModelViewSet):
             transaction.set_rollback(True)
             return HttpResponseServerError(f"Error updating release status: {e}")
 
+        if is_status_revocation:
+            create_archived_comment_for_model(Dataset, pk, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED())
+        else:
+            create_archived_comment_for_model(Dataset, pk, AUTOMATED_COMMENT_DATASET_RELEASED())
         return Response(status=204)
     
     @action(detail=True, methods=["post"])
