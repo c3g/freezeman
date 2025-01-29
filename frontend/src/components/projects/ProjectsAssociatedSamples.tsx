@@ -1,46 +1,18 @@
 import React, { ReactElement, useCallback, useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { selectSamplesByID, selectProjectSamplesTable, selectStudiesByID } from "../../selectors"
+import { useAppDispatch, useAppSelector, useLastProtocols } from "../../hooks";
+import { selectSamplesByID, selectProjectSamplesTable } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
 import PagedItemsTable, { PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable"
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns"
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks"
 import { useItemsByIDToDataObjects } from "../pagedItemsTable/useItemsByIDToDataObjects"
-import { Project, Protocol, Sample } from "../../models/frontend_models"
+import { Project, Sample } from "../../models/frontend_models"
 import api from '../../utils/api'
 import { Button, Popover, Tag } from "antd";
 import LinkSamplesToStudy from "./LinkSamplesToStudy";
 import { FMSSampleNextStepByStudy, FMSStudy, WorkflowStepOrder } from "../../models/fms_api_models";
 import { fetchStudies } from "../../modules/cache/cache";
-
-const lastProtocols = api.protocols.lastProtocols;
-
-function useLastProtocols(sampleIDs: readonly Sample['id'][]) {
-    const dispatch = useAppDispatch()
-    const [lastProtocolBySampleID, setLastProtocolBySampleID] = useState<Record<Sample['id'], Protocol['name']>>({})
-
-    useEffect(() => {
-        if (sampleIDs.length > 0) {
-            dispatch(lastProtocols({ samples: sampleIDs.join(",") })).then(response => {
-                setLastProtocolBySampleID(response.data.reduce((acc, { sample_result, protocol }) => {
-                    acc[sample_result] = protocol
-                    return acc
-                }, {} as typeof lastProtocolBySampleID))
-            })
-        }
-    }, [sampleIDs, dispatch])
-
-    const LastProtocol = useCallback(({ sampleID }: { sampleID: Sample['id'] }) => {
-        if (sampleID in lastProtocolBySampleID) {
-            return <>{lastProtocolBySampleID[sampleID]}</>
-        } else {
-            return <></>
-        }
-    }, [lastProtocolBySampleID])
-
-    return LastProtocol
-}
 
 function useStudySteps(sampleIDs: readonly Sample['id'][]) {
     const dispatch = useAppDispatch()
