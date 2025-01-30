@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppSelector, useStudySteps } from "../../../hooks";
+import { useAppSelector } from "../../../hooks";
 import { selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
@@ -11,43 +11,19 @@ import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pa
 import { Sample } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
 import { fetchSamplesAndLibraries } from "../../../modules/studySamples/services";
-import { Button, Tag } from "antd";
-import { useNavigate } from "react-router-dom";
-
-
 
 export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters } = samplesTableState
 
-    const [StudySteps, refreshStudySteps] = useStudySteps(samplesTableState.items)
-    useEffect(() => {
-        refreshStudySteps(samplesTableState.items)
-    }, [samplesTableState.items, refreshStudySteps])
-    const navigate = useNavigate()
-
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
-        SAMPLE_COLUMN_DEFINITIONS.KIND,
         SAMPLE_COLUMN_DEFINITIONS.NAME,
-        SAMPLE_COLUMN_DEFINITIONS.PROJECT,
         SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
-        SAMPLE_COLUMN_DEFINITIONS.COORDINATES,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
-        {
-            columnID: 'CURRENT_STUDY_STEP',
-            title: 'Current Lab Step',
-            dataIndex: ['sample', 'id'],
-            width: 160,
-            render: (_, { sample }) =>
-                sample && <StudySteps sampleID={sample.id} render={(studyStep, studyLetter, stepOrder) => {
-                    return <Button size={"small"} onClick={() => navigate(`/lab-work/step/${stepOrder.order}`)}>{stepOrder.step_name}</Button>
-                }} />,
-        },
-        SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
-        SAMPLE_COLUMN_DEFINITIONS.DEPLETED,
-    ], [StudySteps])
+        SAMPLE_COLUMN_DEFINITIONS.PROJECT,
+    ], [])
     const columns = useFilteredColumns<SampleAndLibrary>(
         SAMPLES_TABLE_COLUMNS,
         useMemo(() => SAMPLE_COLUMN_FILTERS, []),
@@ -77,7 +53,7 @@ export function LabworkSamples() {
 
     const [defaultSelection, setDefaultSelection] = useState(false)
     const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
-    const sampleCount = defaultSelection ? samplesTableState.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
+    const sampleSelectionCount = defaultSelection ? samplesTableState.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
     const selection: NonNullable<PagedItemsTableProps<SampleAndLibrary>['selection']> = useMemo(() => ({
         onSelectionChanged: (selectedItems, selectAll) => {
             setExceptedSampleIDs(selectedItems.map(id => parseInt(id as string)))
@@ -85,19 +61,23 @@ export function LabworkSamples() {
         }
     }), [])
 
+    const samplesTableElement = useMemo(() => {
+        return (<PagedItemsTable<SampleAndLibrary>
+            getDataObjectsByID={mapSampleIDs}
+            pagedItems={samplesTableState}
+            columns={columns}
+            usingFilters={true}
+            initialLoad={false}
+            selection={selection}
+            {...samplesTableCallbacks}
+        />)
+    }, [columns, mapSampleIDs, samplesTableCallbacks, samplesTableState, selection])
+
     return (
         <>
             <AppPageHeader title = "Samples and Libraries"/>
             <PageContent>
-                <PagedItemsTable<SampleAndLibrary>
-                    getDataObjectsByID={mapSampleIDs}
-                    pagedItems={samplesTableState}
-                    columns={columns}
-                    usingFilters={true}
-                    initialLoad={false}
-                    selection={selection}
-                    {...samplesTableCallbacks}
-                />
+                {samplesTableElement}
             </PageContent>
         </>
     )
