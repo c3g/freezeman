@@ -71,7 +71,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
     const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
     const [linkSamplesToStudyOpen, setLinkSamplesToStudyOpen] = useState(false)
 
-    const sampleCount = defaultSelection ? pagedItems.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
+    const sampleSelectionCount = defaultSelection ? pagedItems.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
 
     const filters = useMemo(() => ({ ...pagedItems.fixedFilters, ...pagedItems.filters }), [pagedItems.filters, pagedItems.fixedFilters])
 
@@ -105,7 +105,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
                 selection={selection}
                 topBarExtra={[
                     <Button
-                        disabled={sampleCount === 0}
+                        disabled={sampleSelectionCount === 0}
                         key={0}
                         onClick={() => setLinkSamplesToStudyOpen(true)}
                     >
