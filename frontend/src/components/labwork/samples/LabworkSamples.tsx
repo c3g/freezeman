@@ -3,15 +3,15 @@ import { useAppSelector } from "../../../hooks";
 import { selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn } from '../../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../../samples/SampleTableColumns'
 import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import AppPageHeader from "../../AppPageHeader";
 import PageContent from "../../PageContent";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
 import { Sample } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
-import { fetchSamplesAndLibraries } from "../../../modules/studySamples/services";
-import { Col, Row } from "antd";
+import { Button, Col, Flex, Row } from "antd";
+import { fetchSamples } from "../../../modules/cache/cache";
 
 export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
@@ -25,7 +25,7 @@ export function LabworkSamples() {
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
         SAMPLE_COLUMN_DEFINITIONS.PROJECT,
     ], [])
-    const columns = useFilteredColumns<SampleAndLibrary>(
+    const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
         useMemo(() => SAMPLE_COLUMN_FILTERS, []),
         useMemo(() => SAMPLE_FILTER_KEYS, []),
@@ -34,23 +34,23 @@ export function LabworkSamples() {
         samplesTableCallbacks.setFilterOptionsCallback
     )
 
-    const [sampleAndLibraryList, setSampleAndLibraryList] = useState<SampleAndLibrary[]>([])
+    const [samples, setSamples] = useState<ObjectWithSample[]>([])
     useEffect(() => {
         (async () => {
-            setSampleAndLibraryList(await fetchSamplesAndLibraries([...samplesTableState.items]))
+            setSamples((await fetchSamples(samplesTableState.items)).map(sample => ({ sample: sample as Sample })))
         })()
     }, [samplesTableState.items])
 
     const mapSampleIDs = useCallback((ids: number[]) => {
         const idsSet = new Set(ids)
-        const dataObjectsByID = sampleAndLibraryList.reduce<DataObjectsByID<SampleAndLibrary>>((acc, sampleAndLibrary) => {
-            if (sampleAndLibrary.sample && idsSet.has(sampleAndLibrary.sample.id)) {
-                acc[sampleAndLibrary.sample.id] = sampleAndLibrary
+        const dataObjectsByID = samples.reduce<DataObjectsByID<ObjectWithSample>>((acc, sample) => {
+            if (sample.sample && idsSet.has(sample.sample.id)) {
+                acc[sample.sample.id] = sample
             }
             return acc
         }, {} as Record<string, SampleAndLibrary>)
         return Promise.resolve(dataObjectsByID)
-    }, [sampleAndLibraryList])
+    }, [samples])
 
     const [defaultSelection, setDefaultSelection] = useState(false)
     const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
@@ -62,28 +62,41 @@ export function LabworkSamples() {
         }
     }), [])
 
-    const samplesTableElement = useMemo(() => {
-        return (<PagedItemsTable<SampleAndLibrary>
-            getDataObjectsByID={mapSampleIDs}
-            pagedItems={samplesTableState}
-            columns={columns}
-            usingFilters={true}
-            initialLoad={false}
-            selection={selection}
-            simplePagination={true}
-            {...samplesTableCallbacks}
-        />)
-    }, [columns, mapSampleIDs, samplesTableCallbacks, samplesTableState, selection])
 
     return (
         <>
             <AppPageHeader title = "Samples and Libraries"/>
             <PageContent>
                 <Row gutter={16}>
-                    <Col span={12}>{samplesTableElement}</Col>
-                    <Col span={12}>Bacon</Col>
+                    <Col span={12}>
+                        <PagedItemsTable<ObjectWithSample>
+                            getDataObjectsByID={mapSampleIDs}
+                            pagedItems={samplesTableState}
+                            columns={columns}
+                            usingFilters={true}
+                            initialLoad={false}
+                            selection={selection}
+                            simplePagination={true}
+                            {...samplesTableCallbacks}
+                        />
+                    </Col>
+                    <Col span={12}>
+                        <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} />
+                    </Col>
                 </Row>
             </PageContent>
         </>
     )
+}
+
+interface LabworkSampleActionsProps {
+    defaultSelection: boolean
+    exceptedSampleIDs: Sample['id'][]
+}
+function LabworkSampleActions({ defaultSelection, exceptedSampleIDs }: LabworkSampleActionsProps) {
+
+    return <Flex vertical gap={"middle"}>
+        <Button>hello</Button>
+        <Button>world</Button>
+    </Flex>
 }
