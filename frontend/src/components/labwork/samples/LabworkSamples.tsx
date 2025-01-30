@@ -11,6 +11,7 @@ import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pa
 import { Sample } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
 import { fetchSamplesAndLibraries } from "../../../modules/studySamples/services";
+import { Col, Row } from "antd";
 
 export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
@@ -69,6 +70,7 @@ export function LabworkSamples() {
             usingFilters={true}
             initialLoad={false}
             selection={selection}
+            simplePagination={true}
             {...samplesTableCallbacks}
         />)
     }, [columns, mapSampleIDs, samplesTableCallbacks, samplesTableState, selection])
@@ -77,7 +79,10 @@ export function LabworkSamples() {
         <>
             <AppPageHeader title = "Samples and Libraries"/>
             <PageContent>
-                {samplesTableElement}
+                <Row gutter={16}>
+                    <Col span={12}>{samplesTableElement}</Col>
+                    <Col span={12}>Bacon</Col>
+                </Row>
             </PageContent>
         </>
     )

@@ -52,6 +52,7 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	topBarExtra?: React.ReactNode[]
 
 	scroll?: TableProps<T>['scroll']
+	simplePagination?: boolean
 }
 
 interface TableDataState<T> {
@@ -77,6 +78,7 @@ function PagedItemsTable<T extends object>({
 	expandable,
 	topBarExtra,
 	scroll = { x: '100%', y: '70vh' },
+	simplePagination = false
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -251,8 +253,8 @@ function PagedItemsTable<T extends object>({
 					<Pagination
 						className="ant-table-pagination"
 						showSizeChanger={true}
-						showQuickJumper={true}
-						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+						showQuickJumper={!simplePagination}
+						showTotal={(total, range) => !simplePagination ? `${range[0]}-${range[1]} of ${total} items` : `${total} items`}
 						current={pagedItems.page?.pageNumber ?? 0}
 						pageSize={pagedItems.page?.limit ?? 0}
 						total={pagedItems.totalCount}
