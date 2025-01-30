@@ -39,7 +39,7 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 	listFunc: ListFunction<ItemType>,
 ) {
 
-	async function fetchItemsByID(ids: FMSId[], abort = false): Promise<ItemType[]> {
+	async function fetchItemsByID(ids: readonly FMSId[], abort = false): Promise<ItemType[]> {
 
 		const fetchedItems: ItemType[] = []
  		const itemsByID: ItemsByID<ItemType> = itemsByIDSelector(store.getState())
