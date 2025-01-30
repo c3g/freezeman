@@ -35,9 +35,9 @@ def create_archived_comment_for_model(object_model: Model, object_id: int, comme
     errors = []
     warnings = []
 
-    content_type_dataset = ContentType.objects.get_for_model(object_model)
+    content_type_for_model = ContentType.objects.get_for_model(object_model)
     try:
-        archived_comment = ArchivedComment.objects.create(content_type=content_type_dataset, object_id=object_id, comment=comment)
+        archived_comment = ArchivedComment.objects.create(content_type=content_type_for_model, object_id=object_id, comment=comment)
     except object_model.DoesNotExist as err:
         errors.append(f"{str(object_model)} with ID [{object_id}] does not exist.")
     except Exception as err:
