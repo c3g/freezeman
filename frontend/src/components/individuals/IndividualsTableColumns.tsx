@@ -75,7 +75,7 @@ export const INDIVIDUAL_COLUMN_DEFINITIONS: { [key in IndividualColumnID]: Indiv
 	[IndividualColumnID.COHORT]: {
 		columnID: IndividualColumnID.COHORT,
 		title: 'Cohort',
-		dataIndex: 'cohort',
+		dataIndex: ['individual','cohort'],
 		sorter: { multiple: 1 },
 	},
 }
