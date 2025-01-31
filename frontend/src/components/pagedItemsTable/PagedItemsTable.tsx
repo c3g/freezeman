@@ -52,6 +52,7 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	topBarExtra?: React.ReactNode[]
 
 	scroll?: TableProps<T>['scroll']
+	simplePagination?: boolean
 }
 
 interface TableDataState<T> {
@@ -77,6 +78,7 @@ function PagedItemsTable<T extends object>({
 	expandable,
 	topBarExtra,
 	scroll = { x: '100%', y: '70vh' },
+	simplePagination = false
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -139,25 +141,25 @@ function PagedItemsTable<T extends object>({
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
 	const onSelectAll = useCallback(() => {
-		const newSelectedItems = []
-		const newSelectAll = !allIsSelected
+		const newExceptedItems = []
+		const newDefaultSelection = !allIsSelected
 
-		setExceptedItems(newSelectedItems)
-		setDefaultSelection(newSelectAll)
+		setExceptedItems(newExceptedItems)
+		setDefaultSelection(newDefaultSelection)
 		if (selection)
-			selection.onSelectionChanged(newSelectedItems, newSelectAll)
+			selection.onSelectionChanged(newExceptedItems, newDefaultSelection)
 	}, [allIsSelected, selection])
 	const onSelectSingle = useCallback((record: T) => {
 		const key = getRowKeyForDataObject(record)
-		let newSelectedItems = exceptedItems
+		let newExceptedItems = exceptedItems
 		if (exceptedItems.includes(key)) {
-			newSelectedItems = exceptedItems.filter((id) => id !== key)
+			newExceptedItems = exceptedItems.filter((id) => id !== key)
 		} else {
-			newSelectedItems = [...exceptedItems, key]
+			newExceptedItems = [...exceptedItems, key]
 		}
-		setExceptedItems(newSelectedItems)
+		setExceptedItems(newExceptedItems)
 		if (selection) {
-			selection.onSelectionChanged(newSelectedItems, defaultSelection)
+			selection.onSelectionChanged(newExceptedItems, defaultSelection)
 		}
 	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
 	const selectedRowKeys = useMemo(() =>
@@ -251,8 +253,8 @@ function PagedItemsTable<T extends object>({
 					<Pagination
 						className="ant-table-pagination"
 						showSizeChanger={true}
-						showQuickJumper={true}
-						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+						showQuickJumper={!simplePagination}
+						showTotal={(total, range) => !simplePagination ? `${range[0]}-${range[1]} of ${total} items` : `${total} items`}
 						current={pagedItems.page?.pageNumber ?? 0}
 						pageSize={pagedItems.page?.limit ?? 0}
 						total={pagedItems.totalCount}
