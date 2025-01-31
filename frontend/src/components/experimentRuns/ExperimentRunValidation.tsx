@@ -5,7 +5,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
-import { addArchivedComment } from '../../modules/datasets/actions'
+import { addArchivedComment, get } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
@@ -64,7 +64,11 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
-				.finally(() => {setIsValidationInProgress(false)})
+				.finally(() => {
+          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
+          setIsValidationInProgress(false)
+        }
+      )
 		},
 		[dispatch]
 	)
@@ -73,7 +77,11 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
-				.finally(() => {setIsValidationInProgress(false)})
+				.finally(async () => {
+          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
+          setIsValidationInProgress(false)
+        }
+      )
 		},
 		[dispatch]
 	)
@@ -82,7 +90,11 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
-				.finally(() => {setIsValidationInProgress(false)})
+				.finally(() => {
+          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
+          setIsValidationInProgress(false)
+        }
+      )
 		},
 		[dispatch]
 	)
