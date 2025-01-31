@@ -1,6 +1,16 @@
 import {LOG_OUT, PERFORM_AUTH, REFRESH_AUTH_TOKEN} from "./actions";
 
-const initialState = {
+interface AuthState {
+    isFetching: boolean;
+    currentUserID: string | null;
+    error?: string | null;
+    tokens: {
+        access: string | null;
+        refresh: string | null;
+    }
+}
+
+const initialState: AuthState = {
     isFetching: false,
     currentUserID: null,
     tokens: {
