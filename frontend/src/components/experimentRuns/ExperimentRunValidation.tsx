@@ -63,12 +63,10 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 	const setPassed = useCallback(
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
-				.finally(() => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
-        }
-      )
+			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED)).finally(() => {
+				Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() =>
+					setIsValidationInProgress(false))
+			})
 		},
 		[dispatch]
 	)
@@ -76,12 +74,10 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 	const setFailed = useCallback(
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
-				.finally(async () => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
-        }
-      )
+			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED)).finally(() => {
+				Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() =>
+					setIsValidationInProgress(false))
+			})
 		},
 		[dispatch]
 	)
@@ -89,12 +85,10 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 	const setAvailable = useCallback(
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
-				.finally(() => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
-        }
-      )
+			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE)).finally(() => {
+				Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() =>
+					setIsValidationInProgress(false))
+			})
 		},
 		[dispatch]
 	)
