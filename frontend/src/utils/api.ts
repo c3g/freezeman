@@ -230,6 +230,9 @@ const api = {
       request: (options, template) => filteredpost(`/samples/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/samples/search/", { q }),
+    sample_ids_by_default_selection_excepted_ids(defaultSelection: boolean, exceptedSampleIDs: Array<FMSSample['id']>, queryParams?: QueryParams) {
+      return filteredpost<JsonResponse<Array<FMSSample['id']>>>('/samples/sample_ids_by_default_selection_excepted_ids/', queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection })
+    }
   },
 
   sampleMetadata: {
@@ -242,6 +245,7 @@ const api = {
   },
 
   sampleNextStep: {
+    listSamples: (sampleIDs: FMSId[]) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/', {sample__id__in: sampleIDs.join(','), limit: 100000}),
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
     executeAutomation: (stepId, additionalData, options) => filteredpost(`/sample-next-step/execute_automation/`, {...options}, form({step_id: stepId, additional_data: additionalData, ...options}),),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
@@ -351,14 +355,18 @@ type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
     abort?: boolean
 }
-interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
+type AuthTokensAccess = Partial<Omit<RootState, 'auth'>> & Pick<RootState, 'auth'>
+
+export function dispatchForApi<T>(token: string, thunk: (_: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => T): T {
+  return thunk(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { isFetching: false, error: null, currentUserID: null, tokens: { access: token, refresh: null }, _persist: { version: 0, rehydrated: false } } }))
+}
 
 export const ABORT_ERROR_NAME = 'AbortError'
 
-function apiFetch<R extends ResponseWithData<any>, GetState extends (() => AuthTokensAccess) = (() => RootState)>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
+function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
     const baseRoute = getPathname(route)
 
-    return (_: Dispatch<AnyAction>, getState: GetState) => {
+    return (_: Dispatch<AnyAction>, getState: (() => AuthTokensAccess)) => {
 
         const accessToken = getState().auth.tokens.access;
 
