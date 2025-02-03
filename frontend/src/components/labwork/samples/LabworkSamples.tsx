@@ -8,12 +8,13 @@ import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import AppPageHeader from "../../AppPageHeader";
 import PageContent from "../../PageContent";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
-import { Sample, Step, Study } from "../../../models/frontend_models";
+import { Project, Sample, Step, Study } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
-import { Button, Col, Flex, Row } from "antd";
+import { Button, Col, Flex, Popover, Row } from "antd";
 import { fetchSamples } from "../../../modules/cache/cache";
 import api, { dispatchForApi } from "../../../utils/api";
 import { FilterSet } from "../../../models/paged_items";
+import { FMSProject, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
 
 export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
@@ -25,7 +26,7 @@ export function LabworkSamples() {
         SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
-        SAMPLE_COLUMN_DEFINITIONS.PROJECT,
+        // SAMPLE_COLUMN_DEFINITIONS.PROJECT,
     ], [])
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
@@ -91,6 +92,13 @@ export function LabworkSamples() {
     )
 }
 
+interface ActionInfo {
+    project: Project['name']
+    study: Study['letter']
+    workflow: FMSWorkflow['name']
+    step: Step['name']
+}
+
 interface LabworkSampleActionsProps {
     defaultSelection: boolean
     exceptedSampleIDs: Sample['id'][]
@@ -98,7 +106,7 @@ interface LabworkSampleActionsProps {
 }
 function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
     const token = useAppSelector(selectToken)
-    const [options, setOptions] = useState<string[]>([])
+    const [actions, setActions] = useState<ActionInfo[]>([])
     const [isFetching, setIsFetching] = useState(false)
     useEffect(() => {
         if (!token) return
@@ -118,7 +126,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             console.info({ sampleIDs })
 
             if (sampleIDs.length === 0) {
-                setOptions([])
+                setActions([])
                 setIsFetching(false)
                 return
             }
@@ -140,6 +148,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 studyStepCount[key] = (studyStepCount[key] ?? 0) + 1
             }
             console.info({ studyStepCount })
+
             const commonStudySteps = Object.entries(studyStepCount).reduce<ValueType[]>((acc, [key, count]) => {
                 if (count === sampleIDs.length) {
                     acc.push(key.split('-') as ValueType)
@@ -147,14 +156,51 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 return acc
             }, [])
 
-            setOptions(commonStudySteps.map(([studyID, stepName]) => `Dequeue from ${studyID} - ${stepName}`))
+            const studyIDs = [...new Set(commonStudySteps.map(([studyID]) => studyID))]
+            const studyByID = (await dispatchForApi(token, api.studies.list({ id__in: studyIDs.join(',') }))).data.results.reduce<Record<Study['id'], FMSStudy>>((acc, study) => {
+                acc[study.id] = study
+                return acc
+            }, {})
+
+            const projectIDs = [...new Set(Object.values(studyByID).map(study => study.project_id))]
+            const projectNameByID = (await dispatchForApi(token, api.projects.list({ id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSProject['id'], FMSProject['name']>>((acc, project) => {
+                acc[project.id] = project.name
+                return acc
+            }, {})
+
+            const workflowIDs = [...new Set(commonStudySteps.map(([studyID]) => studyByID[studyID].workflow_id))]
+            const workflowNameByID = (await dispatchForApi(token, api.workflows.list({ id__in: workflowIDs.join(',') }))).data.results.reduce<Record<FMSWorkflow['id'], FMSWorkflow['name']>>((acc, workflow) => {
+                acc[workflow.id] = workflow.name
+                return acc
+            }, {})
+
+            setActions(commonStudySteps.map(([studyID, stepName]) => ({
+                project: projectNameByID[studyByID[studyID].project_id],
+                study: studyByID[studyID].letter,
+                workflow: workflowNameByID[studyByID[studyID].workflow_id],
+                step: stepName
+            })))
             setIsFetching(false)
         })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [defaultSelection, exceptedSampleIDs, filters, !!token])
 
 return <Flex vertical gap={"middle"}>
         {
-            isFetching ? "Fetching options..." : options.map(option => <Button key={option} type="primary">{option}</Button>)
+            isFetching ? "Fetching options..." : actions.map(
+                action =>
+                    <Popover
+                        key={`${action.project}-${action.study}-${action.step}`}
+                        content={<>
+                            <div>{`Project: ${action.project}`}</div>
+                            <div>{`Study: ${action.study}`}</div>
+                            <div>{`Workflow: ${action.workflow}`}</div>
+                            <div>{`Step: ${action.step}`}</div>
+                        </>}
+                    >
+                        <Button type="primary">{`Dequeue from Study ${action.study} - ${action.step}`}</Button>
+                    </Popover>
+            )
         }
     </Flex>
 }
