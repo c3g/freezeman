@@ -2,7 +2,7 @@ import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'a
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
+import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
 import { addArchivedComment, get } from '../../modules/datasets/actions'
@@ -65,8 +65,11 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
 				.finally(() => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
+          Promise.allSettled(lane.datasets.map(async (dataset) => {await dispatch(get(dataset.datasetID))})).finally(() => {
+            dispatch(setRunLaneValidationTime(lane)).finally(() => {
+              setIsValidationInProgress(false)
+            })
+          })
         }
       )
 		},
@@ -77,9 +80,12 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
-				.finally(async () => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
+				.finally(() => {
+          Promise.allSettled(lane.datasets.map(async (dataset) => {await dispatch(get(dataset.datasetID))})).finally(() => {
+            dispatch(setRunLaneValidationTime(lane)).finally(() => {
+              setIsValidationInProgress(false)
+            })
+          })
         }
       )
 		},
@@ -91,8 +97,11 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 			setIsValidationInProgress(true)
 			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
 				.finally(() => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
+          Promise.allSettled(lane.datasets.map(async (dataset) => {await dispatch(get(dataset.datasetID))})).finally(() => {
+            dispatch(setRunLaneValidationTime(lane)).finally(() => {
+              setIsValidationInProgress(false)
+            })
+          })
         }
       )
 		},
