@@ -2,8 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, QueryDict
 from django.db.models import Count, F, Case, When, Q, BooleanField
 from fms_core.models.step_order import StepOrder
 from fms_core.filters import SampleNextStepByStudyFilter
@@ -61,6 +62,33 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
             return Response(data={"details": removed}, status=status.HTTP_200_OK)
         else:
             return HttpResponseBadRequest(errors or f"Missing sample-next-step-by-study ID to delete.")
+
+    @action(detail=False, methods=["post"])
+    def destroy_list(self, request):
+        sample_ids = request.data.get("sample_ids", [])
+        study = request.data.get("study", None)
+        stepOrder = request.data.get("step_order", None)
+        if not sample_ids:
+            return HttpResponseBadRequest("No sample IDs provided.")
+        if not study:
+            return HttpResponseBadRequest("No study ID provided.")
+        if not stepOrder:
+            return HttpResponseBadRequest("No step order provided.")
+        queryset = self.get_queryset().filter(sample_next_step__sample__id__in=sample_ids, study=study, step_order__order=stepOrder)
+        values_list = queryset.values_list("sample_next_step__sample", "study", "step_order__order")
+        errors = []
+        try:
+            with transaction.atomic():
+                for sample_id, study_id, order in values_list:
+                    sample = Sample.objects.get(id=sample_id)
+                    study = Study.objects.get(id=study_id)
+                    removed, newerrors, _ = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample, study, order)
+                    errors.extend(newerrors)
+                if errors:
+                    raise IntegrityError(errors)
+        except IntegrityError as err:
+            return HttpResponseBadRequest(err)
+        return Response(data={"details": removed}, status=status.HTTP_200_OK)
 
    
     @action(detail=False, methods=["get"])    
