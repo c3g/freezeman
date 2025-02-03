@@ -343,10 +343,16 @@ const api = {
 
 export default api;
 
-type WithTokenFn<R extends ResponseWithData<any>, GetState extends (() => AuthTokensAccess) = (() => RootState)> = (...args: any[]) => (dispatch: Dispatch<AnyAction>, getState: GetState) => Promise<R>
-export function withToken<R extends ResponseWithData<any>>(token: string | undefined, fn: WithTokenFn<R>) {
+type AuthTokensAccess = Partial<Omit<RootState, 'auth'>> & Pick<RootState, 'auth'>
+
+export function dispatchForApi<T>(token: string | undefined, thunk: (_: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => T): T {
+  return thunk(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { isFetching: false, error: null, currentUserID: null, tokens: { access: token, refresh: null }, _persist: { version: 0, rehydrated: false } } }))
+}
+
+type WithTokenFn<R extends ResponseWithData<any>, Args extends any[]> = (...args: Args) => (dispatch: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => Promise<R>
+export function withToken<R extends ResponseWithData<any>, Args extends any[]>(token: string | undefined, fn: WithTokenFn<R, Args>) {
     // dispatch is hopefully not used in the fn function
-    return (...args: Parameters<typeof fn>) => fn(...args)(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { tokens: { access: token } } } as RootState))
+    return (...args: Parameters<typeof fn>) => dispatchForApi(token, fn(...args))
 }
 
 const ongoingRequests: Record<string, AbortController> = {}
@@ -354,11 +360,6 @@ const ongoingRequests: Record<string, AbortController> = {}
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
     abort?: boolean
-}
-type AuthTokensAccess = Partial<Omit<RootState, 'auth'>> & Pick<RootState, 'auth'>
-
-export function dispatchForApi<T>(token: string, thunk: (_: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => T): T {
-  return thunk(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { isFetching: false, error: null, currentUserID: null, tokens: { access: token, refresh: null }, _persist: { version: 0, rehydrated: false } } }))
 }
 
 export const ABORT_ERROR_NAME = 'AbortError'
