@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppSelector } from "../../../hooks";
+import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { selectSamplesTable, selectToken } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
@@ -14,7 +14,9 @@ import { Button, Col, Flex, Popover, Row } from "antd";
 import { fetchSamples } from "../../../modules/cache/cache";
 import api, { dispatchForApi } from "../../../utils/api";
 import { FilterSet } from "../../../models/paged_items";
-import { FMSProject, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
+import { FMSProject, FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
+import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
+import { notifySuccess } from "../../../modules/notification/actions";
 
 export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
@@ -84,6 +86,7 @@ export function LabworkSamples() {
                         />
                     </Col>
                     <Col span={12}>
+                        <div>{`Samples Selected: ${sampleSelectionCount}`}</div>
                         <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
                     </Col>
                 </Row>
@@ -92,11 +95,15 @@ export function LabworkSamples() {
     )
 }
 
+type ActionType = 'dequeue' | 'queue'
+
 interface ActionInfo {
-    project: Project['name']
-    study: Study['letter']
+    type: ActionType
+    project: FMSProject
+    study: FMSStudy
     workflow: FMSWorkflow['name']
     step: Step['name']
+    stepOrder: FMSSampleNextStepByStudy['step_order']
 }
 
 interface LabworkSampleActionsProps {
@@ -105,15 +112,15 @@ interface LabworkSampleActionsProps {
     filters: FilterSet
 }
 function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
-    const token = useAppSelector(selectToken)
+    const dispatch = useAppDispatch()
     const [actions, setActions] = useState<ActionInfo[]>([])
     const [isFetching, setIsFetching] = useState(false)
+    const [sampleIDs, setSampleIDs] = useState<Sample['id'][]>([])
     useEffect(() => {
-        if (!token) return
         (async () => {
             setIsFetching(true)
             console.info({ defaultSelection, exceptedSampleIDs, filters })
-            const sampleIDs = (await dispatchForApi(token,
+            const sampleIDs = (await dispatch(
                 api.samples.sample_ids_by_default_selection_excepted_ids(
                     defaultSelection,
                     exceptedSampleIDs,
@@ -123,6 +130,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                     }, {})
                 ))
             ).data
+            setSampleIDs(sampleIDs)
             console.info({ sampleIDs })
 
             if (sampleIDs.length === 0) {
@@ -131,59 +139,68 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 return
             }
 
-            const sampleNextSteps = (await dispatchForApi(token, api.sampleNextStep.listSamples(sampleIDs))).data.results
+            const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples(sampleIDs))).data.results
             console.info({ sampleNextSteps })
             type ValueType = [Study['id'], Step['name']]
-            const studyStepsBySample = sampleNextSteps.reduce<Record<Sample['id'], ValueType>>((acc, sampleNextStep) => {
+            const studyStepsBySample = sampleNextSteps.reduce<Record<Sample['id'], ValueType[]>>((acc, sampleNextStep) => {
                 acc[sampleNextStep.sample] = acc[sampleNextStep.sample] ?? []
                 for (const study of sampleNextStep.studies) {
-                    acc[sampleNextStep.sample] = [study, sampleNextStep.step.name]
+                    acc[sampleNextStep.sample].push([study, sampleNextStep.step.name])
                 }
                 return acc
             }, {})
 
             const studyStepCount: Record<string, number> = {}
-            for (const [sampleID, [study, stepName]] of Object.entries(studyStepsBySample)) {
-                const key = `${study}-${stepName}`
-                studyStepCount[key] = (studyStepCount[key] ?? 0) + 1
+            for (const studySteps of Object.values(studyStepsBySample)) {
+                for (const [study, stepName] of studySteps) {
+                    const key = `${study}-${stepName}`
+                    studyStepCount[key] = (studyStepCount[key] ?? 0) + 1
+                }
             }
             console.info({ studyStepCount })
 
             const commonStudySteps = Object.entries(studyStepCount).reduce<ValueType[]>((acc, [key, count]) => {
                 if (count === sampleIDs.length) {
-                    acc.push(key.split('-') as ValueType)
+                    const [study, stepName] = key.split('-')
+                    acc.push([parseInt(study), stepName])
                 }
                 return acc
             }, [])
 
             const studyIDs = [...new Set(commonStudySteps.map(([studyID]) => studyID))]
-            const studyByID = (await dispatchForApi(token, api.studies.list({ id__in: studyIDs.join(',') }))).data.results.reduce<Record<Study['id'], FMSStudy>>((acc, study) => {
+            const studyByID = (await dispatch(api.studies.list({ id__in: studyIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
                 acc[study.id] = study
                 return acc
             }, {})
 
             const projectIDs = [...new Set(Object.values(studyByID).map(study => study.project_id))]
-            const projectNameByID = (await dispatchForApi(token, api.projects.list({ id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSProject['id'], FMSProject['name']>>((acc, project) => {
-                acc[project.id] = project.name
+            const projectNameByID = (await dispatch(api.projects.list({ id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSProject['id'], FMSProject>>((acc, project) => {
+                acc[project.id] = project
                 return acc
             }, {})
 
             const workflowIDs = [...new Set(commonStudySteps.map(([studyID]) => studyByID[studyID].workflow_id))]
-            const workflowNameByID = (await dispatchForApi(token, api.workflows.list({ id__in: workflowIDs.join(',') }))).data.results.reduce<Record<FMSWorkflow['id'], FMSWorkflow['name']>>((acc, workflow) => {
-                acc[workflow.id] = workflow.name
+            const workflowByID = (await dispatch(api.workflows.list({ id__in: workflowIDs.join(',') }))).data.results.reduce<Record<FMSWorkflow['id'], FMSWorkflow>>((acc, workflow) => {
+                acc[workflow.id] = workflow
                 return acc
             }, {})
 
-            setActions(commonStudySteps.map(([studyID, stepName]) => ({
-                project: projectNameByID[studyByID[studyID].project_id],
-                study: studyByID[studyID].letter,
-                workflow: workflowNameByID[studyByID[studyID].workflow_id],
-                step: stepName
-            })))
+            setActions(commonStudySteps.map(([studyID, stepName]) => {
+                const project = projectNameByID[studyByID[studyID].project_id]
+                const workflow = workflowByID[studyByID[studyID].workflow_id]
+                const stepOrder = workflow.steps_order.find(stepOrder => stepOrder.step_name === stepName)?.order ?? -1
+                return {
+                    type: 'dequeue',
+                    project: project,
+                    study: studyByID[studyID],
+                    workflow: workflow.name,
+                    step: stepName,
+                    stepOrder: stepOrder,
+                }
+            }))
             setIsFetching(false)
         })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [defaultSelection, exceptedSampleIDs, filters, !!token])
+    }, [defaultSelection, exceptedSampleIDs, filters, dispatch])
 
 return <Flex vertical gap={"middle"}>
         {
@@ -192,13 +209,30 @@ return <Flex vertical gap={"middle"}>
                     <Popover
                         key={`${action.project}-${action.study}-${action.step}`}
                         content={<>
-                            <div>{`Project: ${action.project}`}</div>
-                            <div>{`Study: ${action.study}`}</div>
+                            <div>{`Project: ${action.project.name}`}</div>
+                            <div>{`Study: ${action.study.letter}`}</div>
                             <div>{`Workflow: ${action.workflow}`}</div>
                             <div>{`Step: ${action.step}`}</div>
                         </>}
                     >
-                        <Button type="primary">{`Dequeue from Study ${action.study} - ${action.step}`}</Button>
+                        <Button onClick={async () => {
+                            if (action.stepOrder < 0) return
+                            if (action.type === 'queue') {
+                                await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, action.project.id, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
+                                dispatch(notifySuccess({
+                                    id: 'NOTIFICATION_ID',
+                                    title: "Samples queued to workflow",
+                                    description: `Successfully queued samples to study ${action.study} at step "${action.step}"`
+                                }))
+                            } else if (action.type === 'dequeue') {
+                                await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))
+                                dispatch(notifySuccess({
+                                    id: 'NOTIFICATION_ID',
+                                    title: "Samples dequeued from workflow",
+                                    description: `Successfully dequeued samples from study ${action.study} at step "${action.step}"`
+                                }))
+                            }
+                        }} type="primary">{`${action.type === 'queue' ? 'Queue' : 'Dequeue'} from Study ${action.study.letter} - ${action.step}`}</Button>
                     </Popover>
             )
         }
