@@ -181,7 +181,7 @@ const api = {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
-    list: (options, abort?: boolean) => get("/projects/", options, { abort }),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSProject>>>("/projects/", options, { abort }),
     listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
     summary: () => get("/projects/summary/"),
     template: {
@@ -317,7 +317,7 @@ const api = {
 
   workflows: {
     get: (workflowId: FMSWorkflow['id']) => get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
-    list: (options, abort?: boolean) => get('/workflows/', options, { abort })
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSWorkflow>>>('/workflows/', options, { abort })
   },
 
   groups: {
