@@ -46,7 +46,7 @@ export function setRunLaneValidationStatus(lane: LaneInfo, status: ValidationSta
 	}
 }
 
-export function setRunLaneValidationTime(lane: LaneInfo) { // datasetByID: ItemsByID<Dataset>
+export function setRunLaneValidationTime(lane: LaneInfo) {
 	return async (dispatch, getState) => {
     const validationTime = lane.datasets.reduce<string | undefined>((latest, dataset) => {
       const currentDatasetTime = getState().datasets.itemsByID[dataset.datasetID].latest_validation_update
