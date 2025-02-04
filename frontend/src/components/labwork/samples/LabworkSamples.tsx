@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
-import { selectSamplesTable, selectToken } from "../../../selectors";
+import { selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../../samples/SampleTableColumns'
@@ -11,8 +11,8 @@ import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pa
 import { Project, Sample, Step, Study } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
 import { Button, Col, Flex, Popover, Row } from "antd";
-import { fetchSamples } from "../../../modules/cache/cache";
-import api, { dispatchForApi } from "../../../utils/api";
+import { fetchSamples, fetchWorkflows } from "../../../modules/cache/cache";
+import api from "../../../utils/api";
 import { FilterSet } from "../../../models/paged_items";
 import { FMSProject, FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
 import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
@@ -118,6 +118,8 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     const [sampleIDs, setSampleIDs] = useState<Sample['id'][]>([])
     useEffect(() => {
         (async () => {
+            const actions: ActionInfo[] = []
+
             setIsFetching(true)
             console.info({ defaultSelection, exceptedSampleIDs, filters })
             const sampleIDs = (await dispatch(
@@ -159,6 +161,45 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             }
             console.info({ studyStepCount })
 
+            const samples = await fetchSamples(sampleIDs)
+            const countByProjectID = samples.reduce<Record<Project['id'], number>>((acc, sample) => {
+                if (sample.project) {
+                    acc[sample.project] = (acc[sample.project] ?? 0) + 1
+                }
+                return acc
+            }, {})
+            const commonProject = Object.entries(countByProjectID).reduce<Project['id'] | null>((acc, [projectID, count]) => {
+                if (count === sampleIDs.length) {
+                    return parseInt(projectID)
+                }
+                return acc
+            }, null)
+
+            const projectIDs = [...new Set(samples.reduce<Project['id'][]>((acc, sample) => {
+                if (sample.project) {
+                    acc.push(sample.project)
+                }
+                return acc
+            }, []))]
+            const projectByID = (await dispatch(api.projects.list({ id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSProject['id'], FMSProject>>((acc, project) => {
+                acc[project.id] = project
+                return acc
+            }, {})
+
+            const studyByID = (await dispatch(api.studies.list({ project__id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
+                acc[study.id] = study
+                return acc
+            }, {})
+
+            const workflowIDs = Object.values(studyByID).reduce<FMSWorkflow['id'][]>((acc, study) => {
+                acc.push(study.workflow_id)
+                return acc
+            }, [])
+            const workflowByID = (await fetchWorkflows(workflowIDs)).reduce<Record<FMSWorkflow['id'], FMSWorkflow>>((acc, workflow) => {
+                acc[workflow.id] = workflow
+                return acc
+            }, {})
+
             const commonStudySteps = Object.entries(studyStepCount).reduce<ValueType[]>((acc, [key, count]) => {
                 if (count === sampleIDs.length) {
                     const [study, stepName] = key.split('-')
@@ -167,37 +208,41 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 return acc
             }, [])
 
-            const studyIDs = [...new Set(commonStudySteps.map(([studyID]) => studyID))]
-            const studyByID = (await dispatch(api.studies.list({ id__in: studyIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
-                acc[study.id] = study
-                return acc
-            }, {})
+            actions.push(
+                ...commonStudySteps.map(([studyID, stepName]) => {
+                    const project = projectByID[studyByID[studyID].project_id]
+                    const workflow = workflowByID[studyByID[studyID].workflow_id]
+                    const stepOrder = workflow.steps_order.find(stepOrder => stepOrder.step_name === stepName)?.order ?? -1
+                    return {
+                        type: 'dequeue' as ActionType,
+                        project: project,
+                        study: studyByID[studyID],
+                        workflow: workflow.name,
+                        step: stepName,
+                        stepOrder: stepOrder,
+                    }
+                })
+            )
 
-            const projectIDs = [...new Set(Object.values(studyByID).map(study => study.project_id))]
-            const projectNameByID = (await dispatch(api.projects.list({ id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSProject['id'], FMSProject>>((acc, project) => {
-                acc[project.id] = project
-                return acc
-            }, {})
-
-            const workflowIDs = [...new Set(commonStudySteps.map(([studyID]) => studyByID[studyID].workflow_id))]
-            const workflowByID = (await dispatch(api.workflows.list({ id__in: workflowIDs.join(',') }))).data.results.reduce<Record<FMSWorkflow['id'], FMSWorkflow>>((acc, workflow) => {
-                acc[workflow.id] = workflow
-                return acc
-            }, {})
-
-            setActions(commonStudySteps.map(([studyID, stepName]) => {
-                const project = projectNameByID[studyByID[studyID].project_id]
-                const workflow = workflowByID[studyByID[studyID].workflow_id]
-                const stepOrder = workflow.steps_order.find(stepOrder => stepOrder.step_name === stepName)?.order ?? -1
-                return {
-                    type: 'dequeue',
-                    project: project,
-                    study: studyByID[studyID],
-                    workflow: workflow.name,
-                    step: stepName,
-                    stepOrder: stepOrder,
+            // queue sample actions
+            for (const study of Object.values(studyByID)) {
+                if (study.project_id === commonProject) {
+                    const project = projectByID[study.project_id]
+                    const workflow = workflowByID[study.workflow_id]
+                    for (const stepOrder of workflow.steps_order) {
+                        actions.push({
+                            type: 'queue' as ActionType,
+                            project: project,
+                            study: study,
+                            workflow: workflow.name,
+                            step: stepOrder.step_name,
+                            stepOrder: stepOrder.order,
+                        })
+                    }
                 }
-            }))
+            }
+
+            setActions(actions)
             setIsFetching(false)
         })();
     }, [defaultSelection, exceptedSampleIDs, filters, dispatch])
@@ -232,7 +277,7 @@ return <Flex vertical gap={"middle"}>
                                     description: `Successfully dequeued samples from study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                 }))
                             }
-                        }} type="primary">{`${action.type === 'queue' ? 'Queue' : 'Dequeue'} from Study ${action.study.letter} - ${action.step}`}</Button>
+                        }} type="primary">{`${action.type === 'queue' ? 'Queue to' : 'Dequeue from'} Study ${action.study.letter} - ${action.step}`}</Button>
                     </Popover>
             )
         }
