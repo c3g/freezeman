@@ -47,12 +47,12 @@ export function setRunLaneValidationStatus(lane: LaneInfo, status: ValidationSta
 }
 
 export function setRunLaneValidationTime(lane: LaneInfo) {
-	return async (dispatch: AppDispatch, getState: () => RootState) => {
-    const latestValidationTime = lane.datasets.reduce<string | undefined>((latest, dataset) => {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    const validationTime = lane.datasets.reduce<string | undefined>((latest, dataset) => {
       const currentDatasetTime = getState().datasets.itemsByID[dataset.datasetID].latest_validation_update
       if (currentDatasetTime) {
           if (!latest || currentDatasetTime > latest) {
-              return currentDatasetTime
+            return currentDatasetTime
           }
       }
       return latest
@@ -63,9 +63,9 @@ export function setRunLaneValidationTime(lane: LaneInfo) {
       type: SET_LANE_VALIDATION_TIME,
       experimentRunName: lane.runName,
       laneNumber: lane.laneNumber,
-      validationTime: latestValidationTime
+      validationTime: validationTime
     })
-	}
+  }
 }
 
 export function flushExperimentRunLanes(experimentRunName: string) {

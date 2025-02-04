@@ -58,16 +58,16 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 		}
 
     case SET_LANE_VALIDATION_TIME: {
-			const { experimentRunName, laneNumber, validationTime} = action
-			const experimentRunLanes = state.runs[experimentRunName] as ExperimentRunLanes
-			if (experimentRunLanes) {
-				const lane = experimentRunLanes.lanes.find(x => x.laneNumber === laneNumber)
-				if (lane) {
-					lane.validationTime = validationTime
-				}
-			}
-			break 
-		}
+      const { experimentRunName, laneNumber, validationTime} = action
+      const experimentRunLanes = state.runs[experimentRunName] as ExperimentRunLanes
+      if (experimentRunLanes) {
+        const lane = experimentRunLanes.lanes.find(x => x.laneNumber === laneNumber)
+        if (lane) {
+          lane.validationTime = validationTime
+        }
+      }
+      break 
+    }
 
 		case FLUSH_EXPERIMENT_LANES: {
 			const { experimentRunName } = action
