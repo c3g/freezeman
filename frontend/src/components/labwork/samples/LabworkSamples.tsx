@@ -222,14 +222,14 @@ return <Flex vertical gap={"middle"}>
                                 dispatch(notifySuccess({
                                     id: 'NOTIFICATION_ID',
                                     title: "Samples queued to workflow",
-                                    description: `Successfully queued samples to study ${action.study} at step "${action.step}"`
+                                    description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                 }))
                             } else if (action.type === 'dequeue') {
                                 await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))
                                 dispatch(notifySuccess({
                                     id: 'NOTIFICATION_ID',
                                     title: "Samples dequeued from workflow",
-                                    description: `Successfully dequeued samples from study ${action.study} at step "${action.step}"`
+                                    description: `Successfully dequeued samples from study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                 }))
                             }
                         }} type="primary">{`${action.type === 'queue' ? 'Queue' : 'Dequeue'} from Study ${action.study.letter} - ${action.step}`}</Button>
