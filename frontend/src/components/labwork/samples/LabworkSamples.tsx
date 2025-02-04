@@ -8,9 +8,9 @@ import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import AppPageHeader from "../../AppPageHeader";
 import PageContent from "../../PageContent";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
-import { Project, Sample, Step, Study } from "../../../models/frontend_models";
+import { Project, Sample, Step, Study, Workflow } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
-import { Button, Col, Flex, Popover, Row } from "antd";
+import { Button, Col, Flex, Popover, Row, Select } from "antd";
 import { fetchSamples, fetchWorkflows } from "../../../modules/cache/cache";
 import api from "../../../utils/api";
 import { FilterSet } from "../../../models/paged_items";
@@ -28,7 +28,7 @@ export function LabworkSamples() {
         SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
-        // SAMPLE_COLUMN_DEFINITIONS.PROJECT,
+        SAMPLE_COLUMN_DEFINITIONS.PROJECT,
     ], [])
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
@@ -95,10 +95,7 @@ export function LabworkSamples() {
     )
 }
 
-type ActionType = 'dequeue' | 'queue'
-
 interface ActionInfo {
-    type: ActionType
     project: FMSProject
     study: FMSStudy
     workflow: FMSWorkflow['name']
@@ -113,15 +110,17 @@ interface LabworkSampleActionsProps {
 }
 function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
     const dispatch = useAppDispatch()
-    const [actions, setActions] = useState<ActionInfo[]>([])
     const [isFetching, setIsFetching] = useState(false)
     const [sampleIDs, setSampleIDs] = useState<Sample['id'][]>([])
+    
+    const [dequeueActions, setDequeueActions] = useState<ActionInfo[]>([])
+    const [queueActions, setQueueActions] = useState<ActionInfo[]>([])
+    const [studyWorkflows, setStudyWorkflows] = useState<[Study['letter'], Workflow['name']][]>([])
     useEffect(() => {
         (async () => {
-            const actions: ActionInfo[] = []
-
             setIsFetching(true)
-            console.info({ defaultSelection, exceptedSampleIDs, filters })
+
+            // console.info({ defaultSelection, exceptedSampleIDs, filters })
             const sampleIDs = (await dispatch(
                 api.samples.sample_ids_by_default_selection_excepted_ids(
                     defaultSelection,
@@ -133,10 +132,11 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 ))
             ).data
             setSampleIDs(sampleIDs)
-            console.info({ sampleIDs })
+            // console.info({ sampleIDs })
 
             if (sampleIDs.length === 0) {
-                setActions([])
+                setQueueActions([])
+                setDequeueActions([])
                 setIsFetching(false)
                 return
             }
@@ -159,7 +159,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                     studyStepCount[key] = (studyStepCount[key] ?? 0) + 1
                 }
             }
-            console.info({ studyStepCount })
+            // console.info({ studyStepCount })
 
             const samples = await fetchSamples(sampleIDs)
             const countByProjectID = samples.reduce<Record<Project['id'], number>>((acc, sample) => {
@@ -208,13 +208,13 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 return acc
             }, [])
 
-            actions.push(
-                ...commonStudySteps.map(([studyID, stepName]) => {
+            // dequeue sample action
+            setDequeueActions(
+                commonStudySteps.map(([studyID, stepName]) => {
                     const project = projectByID[studyByID[studyID].project_id]
                     const workflow = workflowByID[studyByID[studyID].workflow_id]
                     const stepOrder = workflow.steps_order.find(stepOrder => stepOrder.step_name === stepName)?.order ?? -1
                     return {
-                        type: 'dequeue' as ActionType,
                         project: project,
                         study: studyByID[studyID],
                         workflow: workflow.name,
@@ -224,62 +224,104 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 })
             )
 
-            // queue sample actions
-            for (const study of Object.values(studyByID)) {
-                if (study.project_id === commonProject) {
-                    const project = projectByID[study.project_id]
-                    const workflow = workflowByID[study.workflow_id]
-                    for (const stepOrder of workflow.steps_order) {
-                        actions.push({
-                            type: 'queue' as ActionType,
-                            project: project,
-                            study: study,
-                            workflow: workflow.name,
-                            step: stepOrder.step_name,
-                            stepOrder: stepOrder.order,
-                        })
-                    }
-                }
-            }
+            const studyWorkflows: [Study['letter'], Workflow['name']][] = []
 
-            setActions(actions)
+            // queue sample actions
+            setQueueActions(Object.values(studyByID).reduce<ActionInfo[]>((queueActions, study) => {
+                if (study.project_id !== commonProject) return queueActions
+                const project = projectByID[study.project_id]
+                const workflow = workflowByID[study.workflow_id]
+                studyWorkflows.push([study.letter, workflow.name])
+                for (const stepOrder of workflow.steps_order) {
+                    if (stepOrder.order < study.start || stepOrder.order > study.end) continue
+                    queueActions.push({
+                        project: project,
+                        study: study,
+                        workflow: workflow.name,
+                        step: stepOrder.step_name,
+                        stepOrder: stepOrder.order,
+                    })
+                }
+                return queueActions
+            }, []))
+
+            setStudyWorkflows(studyWorkflows)
             setIsFetching(false)
         })();
     }, [defaultSelection, exceptedSampleIDs, filters, dispatch])
 
+
+    const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<[Study['letter'], Workflow['name']]>()
+
+    console.info(
+        { 
+            sampleIDs,
+            dequeueActions,
+            queueActions,
+            studyWorkflows,
+            selectedStudyWorkflow
+        }
+    )
+
 return <Flex vertical gap={"middle"}>
         {
-            isFetching ? "Fetching options..." : actions.map(
-                action =>
-                    <Popover
-                        key={`${action.project}-${action.study}-${action.step}`}
-                        content={<>
-                            <div>{`Project: ${action.project.name}`}</div>
-                            <div>{`Study: ${action.study.letter}`}</div>
-                            <div>{`Workflow: ${action.workflow}`}</div>
-                            <div>{`Step: ${action.step}`}</div>
-                        </>}
-                    >
-                        <Button onClick={async () => {
-                            if (action.stepOrder < 0) return
-                            if (action.type === 'queue') {
-                                await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, action.project.id, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
-                                dispatch(notifySuccess({
-                                    id: 'NOTIFICATION_ID',
-                                    title: "Samples queued to workflow",
-                                    description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
-                                }))
-                            } else if (action.type === 'dequeue') {
+        isFetching 
+            ? 'Fetching...'
+            : [
+                ...dequeueActions.map(
+                    action => 
+                        <Popover
+                            key={`${action.study.id}-${action.step}`}
+                            content={<>
+                                <div>{`Project: ${action.project.name}`}</div>
+                                <div>{`Study: ${action.study.letter}`}</div>
+                                <div>{`Workflow: ${action.workflow}`}</div>
+                                <div>{`Step: ${action.step}`}</div>
+                            </>}
+                        >
+                            <Button onClick={async () => {
+                                if (action.stepOrder < 0) return
                                 await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))
                                 dispatch(notifySuccess({
                                     id: 'NOTIFICATION_ID',
                                     title: "Samples dequeued from workflow",
                                     description: `Successfully dequeued samples from study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                 }))
-                            }
-                        }} type="primary">{`${action.type === 'queue' ? 'Queue to' : 'Dequeue from'} Study ${action.study.letter} - ${action.step}`}</Button>
-                    </Popover>
-            )
+                            }} type="primary">{`Dequeue from ${action.step}`}</Button>
+                        </Popover>
+                ),
+                <Select
+                    key={'study-workflow-select'}
+                    options={studyWorkflows.map(([study, workflow]) => ({ label: `Study ${study} - ${workflow}`, value: study }))}
+                    onChange={(value) => {
+                        setSelectedStudyWorkflow(studyWorkflows.find(([study]) => study === value))
+                    }}
+                />,
+                ...queueActions.filter(
+                    action => action.study.letter === selectedStudyWorkflow?.[0]
+                ).map(
+                    action =>
+                        <Popover
+                            key={`${action.study.id}-${action.step}`}
+                            content={<>
+                                <div>{`Project: ${action.project.name}`}</div>
+                                <div>{`Study: ${action.study.letter}`}</div>
+                                <div>{`Workflow: ${action.workflow}`}</div>
+                                <div>{`Step: ${action.step}`}</div>
+                            </>}
+                        >
+                            <Button onClick={async () => {
+                                if (action.stepOrder < 0) return
+                                await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, action.project.id, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
+                                dispatch(notifySuccess({
+                                    id: 'NOTIFICATION_ID',
+                                    title: "Samples queued to workflow",
+                                    description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
+                                }))
+                            }} type="primary">{`Queue to ${action.step}`}</Button>
+                        </Popover>
+                )
+            ]
         }
     </Flex>
 }
