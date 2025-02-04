@@ -59,53 +59,36 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 
 	}, [experimentRunName, experimentRunLanesState])
 
+	const updateLane = useCallback((lane: LaneInfo) => {
+		Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() => {
+			dispatch(setRunLaneValidationTime(lane)).finally(() => {
+			setIsValidationInProgress(false)
+			})
+		  })
+	}, [dispatch])
 
 	const setPassed = useCallback(
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
-				.finally(() => {
-          Promise.allSettled(lane.datasets.map(async (dataset) => {await dispatch(get(dataset.datasetID))})).finally(() => {
-            dispatch(setRunLaneValidationTime(lane)).finally(() => {
-              setIsValidationInProgress(false)
-            })
-          })
-        }
-      )
+			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED)).finally(() => updateLane(lane))
 		},
-		[dispatch]
+		[dispatch, updateLane]
 	)
 
 	const setFailed = useCallback(
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
-				.finally(() => {
-          Promise.allSettled(lane.datasets.map(async (dataset) => {await dispatch(get(dataset.datasetID))})).finally(() => {
-            dispatch(setRunLaneValidationTime(lane)).finally(() => {
-              setIsValidationInProgress(false)
-            })
-          })
-        }
-      )
+			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED)).finally(() => updateLane(lane))
 		},
-		[dispatch]
+		[dispatch, updateLane]
 	)
 
 	const setAvailable = useCallback(
 		(lane: LaneInfo) => {
 			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
-				.finally(() => {
-          Promise.allSettled(lane.datasets.map(async (dataset) => {await dispatch(get(dataset.datasetID))})).finally(() => {
-            dispatch(setRunLaneValidationTime(lane)).finally(() => {
-              setIsValidationInProgress(false)
-            })
-          })
-        }
-      )
+			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE)).finally(() => updateLane(lane))
 		},
-		[dispatch]
+		[dispatch, updateLane]
 	)
 
 	const setLaneExpansionState = useCallback((laneKeys: string | string[]) => {
