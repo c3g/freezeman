@@ -295,14 +295,13 @@ return <Flex vertical gap={"middle"}>
                                         title: "Samples dequeued from workflow",
                                         description: `Successfully dequeued samples from study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                     }))
+                                    await refreshActions()
                                 } catch (error) {
                                     dispatch(notifyError({
                                         id: 'NOTIFICATION_ID',
                                         title: "Error dequeuing samples from workflow",
                                         description: `Failed to dequeue samples from study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                     }))
-                                } finally {
-                                    await refreshActions()
                                 }
                             }} type="primary">{`Dequeue from ${action.step}`}</Button>
                         </Popover>
@@ -336,14 +335,13 @@ return <Flex vertical gap={"middle"}>
                                         title: "Samples queued to workflow",
                                         description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                     }))
+                                    await refreshActions()
                                 } catch (error) {
                                     dispatch(notifyError({
                                         id: 'NOTIFICATION_ID',
                                         title: "Error queuing samples to workflow",
                                         description: `Failed to queue samples to study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                     }))
-                                } finally {
-                                    await refreshActions()
                                 }
                             }} type="primary">{`Queue to ${action.step}`}</Button>
                         </Popover>
