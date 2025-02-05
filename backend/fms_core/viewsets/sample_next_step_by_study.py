@@ -86,7 +86,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                     newremoved, newerrors, _ = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample, study, order)
                     errors.extend(newerrors)
                     removed = removed and newremoved
-                if errors or not removed:
+                if errors:
                     raise IntegrityError(errors)
         except IntegrityError as err:
             return HttpResponseBadRequest(err)
