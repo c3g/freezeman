@@ -1,5 +1,6 @@
 
 import json
+import datetime
 from typing import List, Tuple
 from collections import defaultdict
 from django.db.models import Q, ExpressionWrapper, BooleanField, QuerySet, Subquery, OuterRef, Func, F
@@ -88,10 +89,18 @@ class FetchSampleData(FetchData):
         Returns:
             Returns a tuple of a list of serialized data dictionary (samples) and the count before pagination
         """
-
+        fetch_start = datetime.datetime.now()
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
+        init_end = datetime.datetime.now()
+        print(f"Init time : {init_end - fetch_start}.")
+        self.queryset = self.queryset.values('id')
 
-        self.queryset = count_derived_by_sample(self.queryset)
+        count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
+        count_end = datetime.datetime.now()
+        print(f"Time to count : {count_end - fetch_start}.")
+
+
+        self.queryset = count_derived_by_sample(self.filter_queryset(self.get_queryset()))
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -115,8 +124,6 @@ class FetchSampleData(FetchData):
             'deleted',
             'count_derived_by_sample',
         )
-
-        count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
 
         if self.fetch_limit is not None and self.fetch_offset is not None:
             self.queryset = self.queryset[self.fetch_offset:self.fetch_offset+self.fetch_limit] # page the queryset
@@ -496,7 +503,10 @@ class FetchLibraryData(FetchData):
 
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
 
-        self.queryset = count_derived_by_sample(self.queryset)
+        self.queryset = self.queryset.values('id')
+        count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
+        
+        self.queryset = count_derived_by_sample(self.filter_queryset(self.get_queryset()))
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -516,8 +526,6 @@ class FetchLibraryData(FetchData):
             'count_derived_by_sample',
         )
 
-        count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
-        
         if self.fetch_limit is not None and self.fetch_offset is not None:
             self.queryset = self.queryset[self.fetch_offset:self.fetch_offset+self.fetch_limit] # page the queryset
 
