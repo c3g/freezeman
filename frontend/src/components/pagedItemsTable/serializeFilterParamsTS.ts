@@ -13,6 +13,7 @@ import {
 	SortBy,
 } from '../../models/paged_items'
 import { QueryParams } from '../../utils/api'
+import dayjs from 'dayjs'
 
 export default function serializeFilterParamsWithDescriptions(filters: FilterSet) {
 	const params: NonNullable<QueryParams> = {}
@@ -33,8 +34,9 @@ export default function serializeFilterParamsWithDescriptions(filters: FilterSet
 			case FILTER_TYPE.DATE_RANGE:
 			case FILTER_TYPE.RANGE: {
 				if (isRangeFilterValue(value)) {
+          const dayAfterLast = dayjs(value.max).add(1, 'day').format('YYYY-MM-DD')
 					params[key + '__gte'] = value.min
-					params[key + '__lte'] = value.max
+					params[key + '__lt'] = dayAfterLast
 				}
 
 				break
