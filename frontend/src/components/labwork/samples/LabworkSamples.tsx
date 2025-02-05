@@ -10,7 +10,7 @@ import PageContent from "../../PageContent";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
 import { Project, Sample, Step, Study, Workflow } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
-import { Button, Col, Flex, Popover, Row, Select } from "antd";
+import { Button, Col, Divider, Flex, Popover, Row, Select } from "antd";
 import { fetchSamples, fetchWorkflows } from "../../../modules/cache/cache";
 import api from "../../../utils/api";
 import { FilterSet } from "../../../models/paged_items";
@@ -73,7 +73,7 @@ export function LabworkSamples() {
             <AppPageHeader title = "Samples and Libraries"/>
             <PageContent>
                 <Row gutter={16}>
-                    <Col span={12}>
+                    <Col span={16}>
                         <PagedItemsTable<ObjectWithSample>
                             getDataObjectsByID={mapSampleIDs}
                             pagedItems={samplesTableState}
@@ -84,9 +84,9 @@ export function LabworkSamples() {
                             simplePagination={true}
                             {...samplesTableCallbacks}
                         />
-                    </Col>
-                    <Col span={12}>
                         <div>{`Samples Selected: ${sampleSelectionCount}`}</div>
+                    </Col>
+                    <Col span={8}>
                         <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
                     </Col>
                 </Row>
@@ -258,24 +258,18 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         refreshActions()
     }, [refreshActions])
 
-    const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<[Study['letter'], Workflow['name']]>()
 
-    console.info(
-        { 
-            sampleIDs,
-            dequeueActions,
-            queueActions,
-            studyWorkflows,
-            selectedStudyWorkflow
-        }
-    )
+    const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<[Study['letter'], Workflow['name']]>()
 
 return <Flex vertical gap={"middle"}>
         {
         isFetching 
             ? 'Fetching...'
             : [
-                ...dequeueActions.map(
+                <b key={'dequeue'}>Dequeue From</b>,
+                ...dequeueActions.filter(
+                    action => selectedStudyWorkflow && action.study.letter === selectedStudyWorkflow[0]
+                ).map(
                     action => 
                         <Popover
                             key={`${action.study.id}-${action.step}-dequeue`}
@@ -303,18 +297,22 @@ return <Flex vertical gap={"middle"}>
                                         description: `Failed to dequeue samples from study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                     }))
                                 }
-                            }} type="primary">{`Dequeue from ${action.step}`}</Button>
+                            }} type="primary">{action.step}</Button>
                         </Popover>
                 ),
+                <Divider style={{ margin: 0 }} key={'divider'} />,
+                <b key={'queue'}>Queue To</b>,
                 <Select
                     key={'study-workflow-select'}
+                    placeholder="Select Study-Workflow"
+                    value={selectedStudyWorkflow ? selectedStudyWorkflow[0] : undefined}
                     options={studyWorkflows.map(([study, workflow]) => ({ label: `Study ${study} - ${workflow}`, value: study }))}
                     onChange={(value) => {
                         setSelectedStudyWorkflow(studyWorkflows.find(([study]) => study === value))
                     }}
                 />,
                 ...queueActions.filter(
-                    action => action.study.letter === selectedStudyWorkflow?.[0]
+                    action => selectedStudyWorkflow && action.study.letter === selectedStudyWorkflow[0]
                 ).map(
                     action =>
                         <Popover
@@ -343,7 +341,7 @@ return <Flex vertical gap={"middle"}>
                                         description: `Failed to queue samples to study ${action.study.letter} at step "${action.step} for project ${action.project.name}"`
                                     }))
                                 }
-                            }} type="primary">{`Queue to ${action.step}`}</Button>
+                            }} type="primary">{action.step}</Button>
                         </Popover>
                 )
             ]
