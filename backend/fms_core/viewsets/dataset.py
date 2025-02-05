@@ -84,6 +84,14 @@ class DatasetViewSet(viewsets.ModelViewSet):
             transaction.set_rollback(True)
             return HttpResponseServerError(f"Error updating release status: {e}")
 
+        # Validate that all release status are set (released or blocked) at once.
+        readsets = list(Readset.objects.filter(dataset=pk).all())
+        readset_count = len(readsets)
+        unset_count = len(list(filter(lambda x : x.release_status==ReleaseStatus.AVAILABLE, readsets)))
+        if unset_count > 0 and unset_count < readset_count:
+            transaction.set_rollback(True)
+            return HttpResponseServerError(f"Cannot set only a subset of a dataset readsets status.")
+
         if is_status_revocation:
             create_archived_comment_for_model(Dataset, pk, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED())
         else:
