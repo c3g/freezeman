@@ -123,28 +123,27 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     const [commonProject, setCommonProject] = useState<Project['id'] | null>(null)
 
     useEffect(() => {
-            // console.info({ defaultSelection, exceptedSampleIDs, filters })
-            dispatch(
-                api.samples.sample_ids_by_default_selection_excepted_ids(
-                    defaultSelection,
-                    exceptedSampleIDs,
-                    Object.entries(filters).reduce<Record<string, string>>((acc, [key, filter]) => {
-                        acc[key] = filter.value?.toString() ?? ''
-                        return acc
-                    }, {})
-            )).then(response => {
-                const sampleIDs = response.data
-                setSampleIDs(sampleIDs)
-                // console.info({ sampleIDs })
-        
-                if (sampleIDs.length === 0) {
-                    setQueueActions([])
-                    setDequeueActions([])
-                    setStudyWorkflows([])
-                    setIsFetching(false)
-                    return
-                }    
-            })
+        // console.info({ defaultSelection, exceptedSampleIDs, filters })
+        dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
+            defaultSelection,
+            exceptedSampleIDs,
+            Object.entries(filters).reduce<Record<string, string>>((acc, [key, filter]) => {
+                acc[key] = filter.value?.toString() ?? ''
+                return acc
+            }, {})
+        )).then(response => {
+            const sampleIDs = response.data
+            setSampleIDs(sampleIDs)
+            // console.info({ sampleIDs })
+    
+            if (sampleIDs.length === 0) {
+                setQueueActions([])
+                setDequeueActions([])
+                setStudyWorkflows([])
+                setIsFetching(false)
+                return
+            }    
+        })
     }, [defaultSelection, dispatch, exceptedSampleIDs, filters])
 
     const refreshActions = useCallback(async () => {
@@ -207,7 +206,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             }
             return acc
         }, []))]
-        const studyByID = (await dispatch(api.studies.list({ project__id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
+        const studyByID = projectIDs.length === 0 ? [] : (await dispatch(api.studies.list({ project__id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
             acc[study.id] = study
             return acc
         }, {})
