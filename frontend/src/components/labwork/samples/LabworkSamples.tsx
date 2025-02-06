@@ -114,13 +114,13 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     const sampleByID = useAppSelector(selectSamplesByID)
 
     const [isFetching, setIsFetching] = useState(false)
-    const [sampleIDs, setSampleIDs] = useState<Sample['id'][]>([])
+    const [sampleIDs, setSampleIDs] = useState<Array<Sample['id']>>([])
     
     const [dequeueActions, setDequeueActions] = useState<ActionInfo[]>([])
     const [queueActions, setQueueActions] = useState<ActionInfo[]>([])
-    const [studyWorkflows, setStudyWorkflows] = useState<[Study['letter'], Workflow['name']][]>([])
-
-    const [commonProject, setCommonProject] = useState<Project['id'] | null>(null)
+    
+    const [studyWorkflows, setStudyWorkflows] = useState<Record<Project['id'], { study: Study['letter'], workflow: Workflow['name']}>>([])
+    const [commonProjects, setCommonProjects] = useState<Array<{ id: Project['id'], name: Project['name'] }>>([])
 
     useEffect(() => {
         // console.info({ defaultSelection, exceptedSampleIDs, filters })
@@ -202,13 +202,13 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             }
             return acc
         }, {})
-        const commonProject = Object.entries(countByProjectID).reduce<Project['id'] | null>((acc, [projectID, count]) => {
+        const commonProjects = Object.entries(countByProjectID).reduce<Project['id'][]>((acc, [projectID, count]) => {
             if (count === sampleIDs.length) {
-                return parseInt(projectID)
+                acc.push(parseInt(projectID))
             }
             return acc
-        }, null)
-        setCommonProject(commonProject)
+        }, [])
+        setCommonProjects(commonProjects)
 
         const projectIDs = [...new Set(Object.values(projectsBySample).reduce<Project['id'][]>((acc, projects) => {
             acc.push(...projects)
@@ -278,7 +278,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         result = <Spin />
     } else if (sampleIDs.length === 0) {
         result = <div>{`No samples selected.`}</div>
-    } else if (!commonProject) {
+    } else if (commonProjects.length > 0) {
         result = <div>{`The samples selected don't share the same project.`}</div>
     } else {
         result = [
@@ -300,7 +300,6 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                     <Popover
                         key={`${action.study.id}-${action.step}-dequeue`}
                         content={<>
-                            <div>{`Project: ${projectByID[commonProject].name}`}</div>
                             <div>{`Study: ${action.study.letter}`}</div>
                             <div>{`Workflow: ${action.workflow}`}</div>
                             <div>{`Step: ${action.step}`}</div>
@@ -338,7 +337,6 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                             action.alreadyQueued.length > 0
                                 ? <div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(',')}`}</div>
                                 : <>
-                                    <div>{`Project: ${projectByID[commonProject].name}`}</div>
                                     <div>{`Study: ${action.study.letter}`}</div>
                                     <div>{`Workflow: ${action.workflow}`}</div>
                                     <div>{`Step: ${action.step}`}</div>
