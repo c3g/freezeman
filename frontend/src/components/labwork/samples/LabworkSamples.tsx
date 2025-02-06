@@ -121,7 +121,6 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     const [studyWorkflows, setStudyWorkflows] = useState<[Study['letter'], Workflow['name']][]>([])
 
     const [commonProject, setCommonProject] = useState<Project['id'] | null>(null)
-    const [commonPool, setCommonPool] = useState<boolean | null>(null)
 
     useEffect(() => {
         // console.info({ defaultSelection, exceptedSampleIDs, filters })
@@ -149,9 +148,26 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         }
         setIsFetching(true)
 
-        const samples = await fetchSamples(sampleIDs)
-
-        /* commonStudySteps */
+        const nonPooledSamples = (await fetchSamples(sampleIDs))
+        const pooledSamples = (await dispatch(api.pooledSamples.list({ sample__id__in: sampleIDs.join(',') }))).data.results
+        const projectsBySample = [...nonPooledSamples, ...pooledSamples].reduce<Record<Sample['id'], Set<Project['id']>>>((acc, sample) => {
+            if ('pool_id' in sample) {
+                // handle pooled samples
+                if (!acc[sample.pool_id]) {
+                    acc[sample.pool_id] = new Set()
+                }
+                acc[sample.pool_id].add(sample.project_id)
+            } else {
+                // handle non-pooled samples
+                if (!acc[sample.id]) {
+                    acc[sample.id] = new Set()
+                }
+                if (sample.project) {
+                    acc[sample.id].add(sample.project)
+                }
+            }
+            return acc
+        }, {})
 
         type StudyStepKey = `${Study['id']}-${Step['name']}`
         const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples(sampleIDs))).data.results
@@ -180,12 +196,9 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             return acc
         }, [])
 
-
-        /* commonProject */
-
-        const countByProjectID = samples.reduce<Record<Project['id'], number>>((acc, sample) => {
-            if (sample.project) {
-                acc[sample.project] = (acc[sample.project] ?? 0) + 1
+        const countByProjectID = Object.values(projectsBySample).reduce<Record<Project['id'], number>>((acc, projects) => {
+            for (const project of projects) {
+                acc[project] = (acc[project] ?? 0) + 1
             }
             return acc
         }, {})
@@ -197,26 +210,8 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         }, null)
         setCommonProject(commonProject)
 
-        /* commonPool */
-
-        const commonPool = samples.reduce<boolean | null>((acc, sample, index) => {
-            if (index === 0) {
-                return sample.is_pool
-            }
-            if (acc !== sample.is_pool) {
-                return null
-            }
-            return acc
-        }, null)
-        setCommonPool(commonPool)
-
-        /* Populate Actions */
-        
-        // studyByID
-        const projectIDs = [...new Set(samples.reduce<Project['id'][]>((acc, sample) => {
-            if (sample.project) {
-                acc.push(sample.project)
-            }
+        const projectIDs = [...new Set(Object.values(projectsBySample).reduce<Project['id'][]>((acc, projects) => {
+            acc.push(...projects)
             return acc
         }, []))]
         const studyByID = projectIDs.length === 0 ? [] : (await dispatch(api.studies.list({ project__id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
@@ -224,7 +219,6 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             return acc
         }, {})
 
-        // workflowByID
         const workflowIDs = Object.values(studyByID).reduce<FMSWorkflow['id'][]>((acc, study) => {
             acc.push(study.workflow_id)
             return acc
@@ -234,7 +228,6 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             return acc
         }, {})
 
-        // dequeue sample action
         setDequeueActions(
             commonStudySteps.reduce<ActionInfo[]>((dequeueActions, [studyID, stepName]) => {
                 const workflow = workflowByID[studyByID[studyID].workflow_id]
@@ -253,7 +246,6 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
 
         const studyWorkflows: [Study['letter'], Workflow['name']][] = []
 
-        // queue sample actions
         setQueueActions(Object.values(studyByID).reduce<ActionInfo[]>((queueActions, study) => {
             const workflow = workflowByID[study.workflow_id]
             studyWorkflows.push([study.letter, workflow.name])
@@ -286,9 +278,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         result = <Spin />
     } else if (sampleIDs.length === 0) {
         result = <div>{`No samples selected.`}</div>
-    } else if (commonPool === null) {
-        result = <div>{`The samples selected don't share the same pool status. All selections must either be a single sample or a pool.`}</div>
-    } else if (!commonProject && !commonPool) {
+    } else if (!commonProject) {
         result = <div>{`The samples selected don't share the same project.`}</div>
     } else {
         result = [

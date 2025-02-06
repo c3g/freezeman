@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 
@@ -155,7 +155,7 @@ const api = {
   },
 
   pooledSamples: {
-    list: (options, abort?: boolean) => get("/pooled-samples/", options, { abort }),
+    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, { abort }),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
   },
 
