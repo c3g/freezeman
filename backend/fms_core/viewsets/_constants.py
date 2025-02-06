@@ -163,6 +163,7 @@ _project_filterset_fields: FiltersetFields = {
     "status": CATEGORICAL_FILTERS,
     "external_id": CATEGORICAL_FILTERS_LOOSE,
     "external_name": CATEGORICAL_FILTERS_LOOSE,
+    "targeted_end_date": DATE_FILTERS,
     **_prefix_keys("project_derived_by_samples__sample__", _sample_minimal_filterset_fields),
 }
 

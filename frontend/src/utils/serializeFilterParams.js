@@ -3,6 +3,7 @@
  */
 
 import {FILTER_TYPE} from "../constants"
+import dayjs from "dayjs";
 
 export default function serializeFilterParams(filters, descriptions) {
   const params = {}
@@ -24,8 +25,9 @@ export default function serializeFilterParams(filters, descriptions) {
       case FILTER_TYPE.DATE_RANGE:
       case FILTER_TYPE.RANGE: {
         if (value) {
+          const dayAfterLast = dayjs(value.max).add(1, 'day').format('YYYY-MM-DD')
           params[key + '__gte'] = value.min
-          params[key + '__lte'] = value.max
+          params[key + '__lt'] = dayAfterLast
         }
 
         break

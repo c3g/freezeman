@@ -185,10 +185,10 @@ class DatasetFilter(GenericFilter):
     release_flag = django_filters.NumberFilter(method="release_flag_filter")
     latest_release_update = django_filters.CharFilter(method="latest_release_update_filter")
     latest_release_update__gte = django_filters.CharFilter(method="latest_release_update__gte_filter")
-    latest_release_update__lte = django_filters.CharFilter(method="latest_release_update__lte_filter")
+    latest_release_update__lt = django_filters.CharFilter(method="latest_release_update__lt_filter")
     latest_validation_update = django_filters.CharFilter(method="latest_validation_update_filter")
     latest_validation_update__gte = django_filters.CharFilter(method="latest_validation_update__gte_filter")
-    latest_validation_update__lte = django_filters.CharFilter(method="latest_validation_update__lte_filter")
+    latest_validation_update__lt = django_filters.CharFilter(method="latest_validation_update__lt_filter")
 
     def release_flag_filter(self, queryset, name, value):
         return queryset.filter(release_flag=value)
@@ -203,10 +203,10 @@ class DatasetFilter(GenericFilter):
             latest_release_update=Max("readsets__release_status_timestamp")
         ).filter(latest_release_update__gte=value)
 
-    def latest_release_update__lte_filter(self, queryset, name, value):
+    def latest_release_update__lt_filter(self, queryset, name, value):
         return queryset.annotate(
             latest_release_update=Max("readsets__release_status_timestamp")
-        ).filter(latest_release_update__lte=value)
+        ).filter(latest_release_update__lt=value)
 
     def latest_validation_update_filter(self, queryset, name, value):
         return queryset.annotate(
@@ -218,10 +218,10 @@ class DatasetFilter(GenericFilter):
             latest_validation_update=Max("readsets__validation_status_timestamp")
         ).filter(latest_validation_update__gte=value)
 
-    def latest_validation_update__lte_filter(self, queryset, name, value):
+    def latest_validation_update__lt_filter(self, queryset, name, value):
         return queryset.annotate(
             latest_validation_update=Max("readsets__validation_status_timestamp")
-        ).filter(latest_validation_update__lte=value)
+        ).filter(latest_validation_update__lt=value)
 
     class Meta:
         model = Dataset
