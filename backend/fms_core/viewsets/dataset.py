@@ -87,7 +87,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         # Validate that all release status are set (released or blocked) at once.
         readsets = list(Readset.objects.filter(dataset=pk).all())
         readset_count = len(readsets)
-        unset_count = len(list(filter(lambda x : x.release_status==ReleaseStatus.AVAILABLE, readsets)))
+        unset_count = len([readset.id for readset in readsets if readset.release_status==ReleaseStatus.AVAILABLE])
         if unset_count > 0 and unset_count < readset_count:
             transaction.set_rollback(True)
             return HttpResponseServerError(f"Cannot set only a subset of a dataset readsets status.")
