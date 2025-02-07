@@ -161,6 +161,9 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
             
             // The paged items reducer just needs the item ID's, not the actual
             // items that were retrieved, so extract the list of ID's from the data.
+            if (!reply.results) {
+                console.error(LIST_PAGE, params, reply)
+            }
             const data: ReduceListReceiveType = {
 				items: reply.results.map((item) => item.id),
 				totalCount: reply.count,
