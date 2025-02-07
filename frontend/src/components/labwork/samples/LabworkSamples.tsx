@@ -81,10 +81,18 @@ export function LabworkSamples() {
                             usingFilters={true}
                             initialLoad={false}
                             selection={selection}
-                            simplePagination={true}
+                            paginationProps={{
+                                showQuickJumper: false,
+                                showTotal(total, range) {
+                                    return <>
+                                    <>{`${total} items.`}</>
+                                    <>{' '}</>
+                                    <b style={{ color: '#1890ff' }}>{`${sampleSelectionCount} selected`}</b>
+                                    .
+                                </>                                }
+                            }}
                             {...samplesTableCallbacks}
                         />
-                        <div>{`Samples Selected: ${sampleSelectionCount}`}</div>
                     </Col>
                     <Col span={6}>
                         <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
