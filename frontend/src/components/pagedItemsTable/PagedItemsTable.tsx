@@ -1,4 +1,4 @@
-import { Checkbox, Pagination, Table, TableProps } from 'antd'
+import { Checkbox, Pagination, PaginationProps, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
@@ -52,7 +52,7 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	topBarExtra?: React.ReactNode[]
 
 	scroll?: TableProps<T>['scroll']
-	simplePagination?: boolean
+	paginationProps?: PaginationProps
 }
 
 interface TableDataState<T> {
@@ -78,7 +78,7 @@ function PagedItemsTable<T extends object>({
 	expandable,
 	topBarExtra,
 	scroll = { x: '100%', y: '70vh' },
-	simplePagination = false
+	paginationProps,
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -253,13 +253,13 @@ function PagedItemsTable<T extends object>({
 					<Pagination
 						className="ant-table-pagination"
 						showSizeChanger={true}
-						showQuickJumper={!simplePagination}
-						showTotal={(total, range) => !simplePagination ? `${range[0]}-${range[1]} of ${total} items` : `${total} items`}
+						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
 						current={pagedItems.page?.pageNumber ?? 0}
 						pageSize={pagedItems.page?.limit ?? 0}
 						total={pagedItems.totalCount}
 						onChange={listPageCallback}
 						onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
+						{...paginationProps}
 					/>
 				</>
 			)}
