@@ -127,7 +127,7 @@ class GenericImporter():
                 self.base_errors.append(f"Template file format " + self.format + " not supported.")
                 return None
             # Convert blank and NaN cells to None and Store it in self.sheets
-            dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
+            dataframe = pd_sheet.map(blank_and_nan_to_none).map(str_normalize)
             return SheetData(name=name, dataframe=dataframe, headers=headers, shared_data=shared_data)
 
         except Exception as e:
