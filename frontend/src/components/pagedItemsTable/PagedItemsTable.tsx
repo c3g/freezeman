@@ -1,6 +1,6 @@
 import { Checkbox, Pagination, PaginationProps, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
@@ -162,6 +162,27 @@ function PagedItemsTable<T extends object>({
 			selection.onSelectionChanged(newExceptedItems, defaultSelection)
 		}
 	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
+	const onSelectMultiple = useCallback((keys: React.Key[]) => {
+		if (pagedItems.page?.pageNumber !== undefined && pagedItems.page.limit !== undefined) {
+			const offset = (pagedItems.page.pageNumber - 1) * pagedItems.page.limit
+			const keysOnPage = pagedItems.items.slice(offset, offset + pagedItems.page.limit).map((id) => id.toString() as React.Key)
+			const missingKeys = keysOnPage.filter((key) => !keys.includes(key))
+			const newExceptedItems = defaultSelection
+				// if defaultSelection is true, we want to remove items in keys from exceptedItems to select them
+				? exceptedItems.filter((key) => !keys.includes(key))
+				// if defaultSelection is false, we want to add new items to exceptedItems to select them
+				: [...exceptedItems, ...keys]
+			console.info('onSelectMultiple', {
+				keys,
+				keysOnPage,
+				missingKeys,
+			})
+			setExceptedItems(newExceptedItems)
+			if (selection) {
+				selection.onSelectionChanged(newExceptedItems, defaultSelection)
+			}
+		}
+	}, [defaultSelection, exceptedItems, pagedItems.items, pagedItems?.page?.limit, pagedItems?.page?.pageNumber, selection])
 	const selectedRowKeys = useMemo(() =>
 		defaultSelection
 			? pagedItems.items.map((id) => id.toString()).filter((key) => !exceptedItems.includes(key))
@@ -177,6 +198,10 @@ function PagedItemsTable<T extends object>({
 					if (info.type === 'all') {
 						onSelectAll()
 					}
+					if (info.type === 'multiple') {
+						// shift is held
+						onSelectMultiple(selectedRowKeys)
+					}
 				},
 				onSelect: onSelectSingle,
 				columnTitle: (
@@ -189,7 +214,7 @@ function PagedItemsTable<T extends object>({
 			}
 		}
 		return undefined
-	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, selectedRowKeys, selection])
+	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, onSelectMultiple, selectedRowKeys, selection])
 
 	// avoid dilema selectAll and selectedItems logic
 	useEffect(() => {
