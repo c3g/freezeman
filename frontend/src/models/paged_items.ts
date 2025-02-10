@@ -83,8 +83,8 @@ export interface PagedItems {
 	readonly fixedFilters: FilterSet
 	readonly sortByList: SortBy[]
 	readonly page?: {
-		readonly pageNumber?: number		// Move to using page number instead of offset
-		readonly offset?: number
+		readonly pageNumber?: number
+		readonly offset?: number      // Deprecated? Use pageNumber instead.
 		readonly limit?: number
 		readonly ignoreError?: string
 	}
