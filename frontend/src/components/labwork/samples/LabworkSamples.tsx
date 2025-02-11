@@ -389,7 +389,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                             key={`${action.study.id}-${action.step}-queue`}
                             content={
                                 action.alreadyQueued.length > 0
-                                    ? <div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(',')}`}</div>
+                                    ? <div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(', ')}`}</div>
                                     : <>
                                         <div>{`Study: ${action.study.letter}`}</div>
                                         <div>{`Workflow: ${action.workflow}`}</div>
