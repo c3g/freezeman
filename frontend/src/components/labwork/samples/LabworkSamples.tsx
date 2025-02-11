@@ -18,6 +18,8 @@ import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models
 import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
 import { notifyError, notifySuccess } from "../../../modules/notification/actions";
 
+const MAX_SELECTION = 1000
+
 export function LabworkSamples() {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters } = samplesTableState
@@ -57,23 +59,24 @@ export function LabworkSamples() {
         return Promise.resolve(dataObjectsByID)
     }, [samples])
 
+    const [riskAccepted, setRiskAccepted] = useState<boolean | undefined>(undefined)
     const [defaultSelection, setDefaultSelection] = useState(false)
     const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
     const sampleSelectionCount = defaultSelection ? samplesTableState.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
     const selection: NonNullable<PagedItemsTableProps<SampleAndLibrary>['selection']> = useMemo(() => ({
         onSelectionChanged: (selectedItems, selectAll) => {
+            setRiskAccepted(undefined)
             setExceptedSampleIDs(selectedItems.map(id => parseInt(id as string)))
             setDefaultSelection(selectAll)
         }
     }), [])
-
 
     return (
         <>
             <AppPageHeader title="Samples and Libraries" />
             <PageContent>
                 <Row gutter={16}>
-                    <Col span={18}>
+                    <Col span={16}>
                         <PagedItemsTable<ObjectWithSample>
                             getDataObjectsByID={mapSampleIDs}
                             pagedItems={samplesTableState}
@@ -83,7 +86,7 @@ export function LabworkSamples() {
                             selection={selection}
                             paginationProps={{
                                 showQuickJumper: false,
-                                showTotal(total, range) {
+                                showTotal(total) {
                                     return <>
                                         <>{`${total} items.`}</>
                                         <>{' '}</>
@@ -95,8 +98,22 @@ export function LabworkSamples() {
                             {...samplesTableCallbacks}
                         />
                     </Col>
-                    <Col span={6}>
-                        <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
+                    <Col span={8}>
+                        {sampleSelectionCount > MAX_SELECTION && riskAccepted === undefined && (
+                            <div>
+                                <b>{`Warning: You are about to select ${sampleSelectionCount} samples. It might take a while to load options.`}</b>
+                                <br />
+                                <Button onClick={() => setRiskAccepted(true)} type="primary">Continue</Button>
+                                <Button onClick={() => setRiskAccepted(false)} type="default">Cancel</Button>
+                            </div>
+                        )}
+                        {sampleSelectionCount > MAX_SELECTION && riskAccepted === false && (
+                            <div>
+                                {`Please select at most ${MAX_SELECTION} samples.`}
+                            </div>)}
+                        {sampleSelectionCount <= MAX_SELECTION || riskAccepted === true ? (
+                            <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
+                        ) : null}
                     </Col>
                 </Row>
             </PageContent>
@@ -111,12 +128,8 @@ interface LabworkSampleActionsProps {
 }
 function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
     const dispatch = useAppDispatch()
-    const projectByID = useAppSelector(selectProjectsByID)
-    const sampleByID = useAppSelector(selectSamplesByID)
 
     const [isFetching, setIsFetching] = useState(false)
-    const [sampleIDs, setSampleIDs] = useState<Array<Sample['id']>>([])
-
     interface ActionInfo {
         study: FMSStudy
         workflow: FMSWorkflow['name']
@@ -139,20 +152,13 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     }
     const [commonProjects, setCommonProjects] = useState<CommonProject[]>([])
 
-    useEffect(() => {
-        // console.info({ defaultSelection, exceptedSampleIDs, filters })
-        dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
+    const refreshActions = useCallback(async () => {
+        const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
             defaultSelection,
             exceptedSampleIDs,
             serializeFilterParamsWithDescriptions(filters)
-        )).then(response => {
-            const sampleIDs = response.data
-            setSampleIDs(sampleIDs)
-            // console.info({ sampleIDs })
-        })
-    }, [defaultSelection, dispatch, exceptedSampleIDs, filters])
+        ))).data
 
-    const refreshActions = useCallback(async () => {
         if (sampleIDs.length === 0) {
             setQueueActions([])
             setDequeueActions([])
@@ -279,11 +285,14 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
 
         setStudyWorkflowsByProject(studyWorkflowsByProject)
         setIsFetching(false)
-    }, [dispatch, sampleIDs])
+    }, [defaultSelection, dispatch, exceptedSampleIDs, filters])
 
     useEffect(() => {
         refreshActions()
     }, [refreshActions])
+
+    const projectByID = useAppSelector(selectProjectsByID)
+    const sampleByID = useAppSelector(selectSamplesByID)
 
     const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<StudyWorkflow>()
     const [selectedProject, setSelectedProject] = useState<Project['id']>()
@@ -299,10 +308,13 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         let result: JSX.Element | JSX.Element[] | null = null
         if (isFetching) {
             result = <Spin />
-        } else if (sampleIDs.length === 0) {
-            result = <div>{`No samples selected.`}</div>
+        } else if ((!defaultSelection && exceptedSampleIDs.length === 0) || defaultSelection) {
+            // if defaultSelection is true, assume that not all samples are deselected manually
+            result = <div>{`Please select samples to queue/dequeue.`}</div>
         } else if (commonProjects.length === 0) {
             result = <div>{`The selected samples don't share any project.`}</div>
+        } else if (Object.values(studyWorkflowsByProject).length === 0) {
+            result = <div>{`There are no studies for projects (${commonProjects.map((p) => p.name).join(', ')}) that the samples have in common.`}</div>
         } else {
             result = [
                 <Select
@@ -345,6 +357,11 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                                 if (!selectedProject) return
                                 const project = projectByID[selectedProject]
                                 try {
+                                    const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
+                                        defaultSelection,
+                                        exceptedSampleIDs,
+                                        serializeFilterParamsWithDescriptions(filters)
+                                    ))).data
                                     await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))
                                     dispatch(notifySuccess({
                                         id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
