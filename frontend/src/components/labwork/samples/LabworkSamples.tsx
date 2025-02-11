@@ -308,7 +308,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         let result: JSX.Element | JSX.Element[] | null = null
         if (isFetching) {
             result = <Spin />
-        } else if ((!defaultSelection && exceptedSampleIDs.length === 0) || defaultSelection) {
+        } else if (!defaultSelection && exceptedSampleIDs.length === 0) {
             // if defaultSelection is true, assume that not all samples are deselected manually
             result = <div>{`Please select samples to queue/dequeue.`}</div>
         } else if (commonProjects.length === 0) {
