@@ -17,7 +17,7 @@ import { FilterSet } from "../../../models/paged_items";
 import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
 import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
 import { notifyError, notifySuccess } from "../../../modules/notification/actions";
-import { useSearchParams } from "react-router-dom";
+import { useQueryParams } from "../../../models/hooks";
 
 const MAX_SELECTION = 1000
 
@@ -27,26 +27,7 @@ export function LabworkSamples() {
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
-    const [searchParams, setSearchParams] = useSearchParams()
-    const setFilterCallback: typeof samplesTableCallbacks.setFilterCallback = useCallback((value, description) => {
-        const newSearchParams = new URLSearchParams(searchParams)
-        const columnID = Object.entries(SAMPLE_COLUMN_FILTERS).find(([_, v]) => v.label === description.label)?.[0] as SampleColumnID
-        newSearchParams.set(SAMPLE_FILTER_KEYS[columnID], value?.toString() ?? '')
-        setSearchParams(newSearchParams)
-        return Promise.resolve()
-    }, [searchParams, setSearchParams])
-    useEffect(() => {
-        for (const [filterKey, value] of searchParams.entries()) {
-            const columnID = Object.entries(SAMPLE_FILTER_KEYS).find(([_, v]) => v === filterKey)?.[0] as SampleColumnID
-            samplesTableCallbacks.setFilterCallback(
-                value,
-                {
-                    ...SAMPLE_COLUMN_FILTERS[columnID],
-                    key: filterKey
-                }
-            )
-        }
-    }, [samplesTableCallbacks, searchParams])
+    const { setFilterCallback, clearFiltersCallback } = useQueryParams(SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, samplesTableCallbacks.setFilterCallback, samplesTableCallbacks.clearFiltersCallback)
 
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
         SAMPLE_COLUMN_DEFINITIONS.NAME,
@@ -119,6 +100,8 @@ export function LabworkSamples() {
                                 }
                             }}
                             {...samplesTableCallbacks}
+                            setFilterCallback={setFilterCallback}
+                            clearFiltersCallback={clearFiltersCallback}
                         />
                     </Col>
                     <Col span={8}>
