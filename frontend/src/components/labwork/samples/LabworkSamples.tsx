@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample, SampleColumnID } from '../../samples/SampleTableColumns'
 import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import AppPageHeader from "../../AppPageHeader";
 import PageContent from "../../PageContent";
@@ -17,6 +17,7 @@ import { FilterSet } from "../../../models/paged_items";
 import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
 import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
 import { notifyError, notifySuccess } from "../../../modules/notification/actions";
+import { useSearchParams } from "react-router-dom";
 
 const MAX_SELECTION = 1000
 
@@ -25,6 +26,28 @@ export function LabworkSamples() {
     const { filters } = samplesTableState
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
+
+    const [searchParams, setSearchParams] = useSearchParams()
+    const setFilterCallback: typeof samplesTableCallbacks.setFilterCallback = useCallback((value, description) => {
+        const newSearchParams = new URLSearchParams(searchParams)
+        const columnID = Object.entries(SAMPLE_COLUMN_FILTERS).find(([_, v]) => v.label === description.label)?.[0] as SampleColumnID
+        newSearchParams.set(SAMPLE_FILTER_KEYS[columnID], value?.toString() ?? '')
+        setSearchParams(newSearchParams)
+        return Promise.resolve()
+    }, [searchParams, setSearchParams])
+    useEffect(() => {
+        for (const [filterKey, value] of searchParams.entries()) {
+            const columnID = Object.entries(SAMPLE_FILTER_KEYS).find(([_, v]) => v === filterKey)?.[0] as SampleColumnID
+            samplesTableCallbacks.setFilterCallback(
+                value,
+                {
+                    ...SAMPLE_COLUMN_FILTERS[columnID],
+                    key: filterKey
+                }
+            )
+        }
+    }, [samplesTableCallbacks, searchParams])
+
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
         SAMPLE_COLUMN_DEFINITIONS.NAME,
         SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
@@ -37,7 +60,7 @@ export function LabworkSamples() {
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
         filters,
-        samplesTableCallbacks.setFilterCallback,
+        setFilterCallback,
         samplesTableCallbacks.setFilterOptionsCallback
     )
 
