@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom"
 import { FilterDescription, FilterValue } from "./paged_items"
 import { PagedItemsActionsCallbacks } from "../components/pagedItemsTable/PagedItemsTable"
 
-export function useQueryParams(
+export function useQueryParamsForPagedItems(
     columnFilters: Record<string, FilterDescription>,
     filterKeys: Record<string, string>,
     setFilter: (value: FilterValue, description: FilterDescription) => Promise<void>,

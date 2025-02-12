@@ -5,29 +5,37 @@ import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedIte
 import SamplesTableActions from '../../../modules/samplesTable/actions'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample, SampleColumnID } from '../../samples/SampleTableColumns'
 import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
-import AppPageHeader from "../../AppPageHeader";
-import PageContent from "../../PageContent";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
 import { Project, Sample, Step, Study, Workflow } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
 import { Button, Col, Divider, Flex, Popover, Row, Select, Spin } from "antd";
 import { fetchProjects, fetchSamples, fetchWorkflows } from "../../../modules/cache/cache";
 import api from "../../../utils/api";
-import { FilterSet } from "../../../models/paged_items";
+import { FilterSet, FilterSetting } from "../../../models/paged_items";
 import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
 import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
 import { notifyError, notifySuccess } from "../../../modules/notification/actions";
-import { useQueryParams } from "../../../models/hooks";
+import { useQueryParamsForPagedItems } from "../../../models/hooks";
 
 const MAX_SELECTION = 1000
 
-export function LabworkSamples() {
+interface LabworkSamplesProps {
+    fixedFilter?: FilterSetting
+}
+
+export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
-    const { filters } = samplesTableState
+    const { filters, fixedFilters } = samplesTableState
+    const wholeFilters = { ...filters, ...fixedFilters }
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
+    useEffect(() => {
+        if (fixedFilter) {
+            samplesTableCallbacks.setFixedFilterCallback(fixedFilter)
+        }
+    }, [fixedFilter, samplesTableCallbacks])
 
-    const { setFilterCallback, clearFiltersCallback } = useQueryParams(SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, samplesTableCallbacks.setFilterCallback, samplesTableCallbacks.clearFiltersCallback)
+    const { setFilterCallback, clearFiltersCallback } = useQueryParamsForPagedItems(SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, samplesTableCallbacks.setFilterCallback, samplesTableCallbacks.clearFiltersCallback)
 
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
         SAMPLE_COLUMN_DEFINITIONS.NAME,
@@ -40,7 +48,7 @@ export function LabworkSamples() {
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
-        filters,
+        wholeFilters,
         setFilterCallback,
         samplesTableCallbacks.setFilterOptionsCallback
     )
@@ -116,7 +124,7 @@ export function LabworkSamples() {
                             {`Please select at most ${MAX_SELECTION} samples.`}
                         </div>)}
                     {sampleSelectionCount <= MAX_SELECTION || riskAccepted === true ? (
-                        <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
+                        <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
                     ) : null}
                 </Col>
             </Row>
