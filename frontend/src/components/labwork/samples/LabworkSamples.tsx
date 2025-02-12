@@ -3,12 +3,12 @@ import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../../selectors";
 import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
 import SamplesTableActions from '../../../modules/samplesTable/actions'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample, SampleColumnID } from '../../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../../samples/SampleTableColumns'
 import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
 import { Project, Sample, Step, Study, Workflow } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
-import { Button, Col, Divider, Flex, Popover, Row, Select, Spin } from "antd";
+import { Button, Divider, Flex, Popover, Select, Spin, Splitter } from "antd";
 import { fetchProjects, fetchSamples, fetchWorkflows } from "../../../modules/cache/cache";
 import api from "../../../utils/api";
 import { FilterSet, FilterSetting } from "../../../models/paged_items";
@@ -16,6 +16,7 @@ import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models
 import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
 import { notifyError, notifySuccess } from "../../../modules/notification/actions";
 import { useQueryParamsForPagedItems } from "../../../models/hooks";
+import { PanelProps } from "antd/lib/splitter/interface";
 
 const MAX_SELECTION = 1000
 
@@ -83,51 +84,51 @@ export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
         }
     }), [])
 
+    const [sizes, setSizes] = useState<NonNullable<PanelProps['size']>[]>(['100%', '0%'])
+    const expandRightPanel = useCallback(() => {
+        setSizes(['75%', '25%'])
+    }, [])
+    const collapseRightPanel = useCallback(() => {
+        setSizes(['100%', '0%'])
+    }, [])
+
     return (
         <>
-            <Row gutter={16}>
-                <Col span={16}>
-                    <PagedItemsTable<ObjectWithSample>
-                        getDataObjectsByID={mapSampleIDs}
-                        pagedItems={samplesTableState}
-                        columns={columns}
-                        usingFilters={true}
-                        initialLoad={false}
-                        selection={selection}
-                        paginationProps={{
-                            showQuickJumper: false,
-                            showTotal(total) {
-                                return <>
-                                    <>{`${total} items.`}</>
-                                    <>{' '}</>
-                                    <b style={{ color: '#1890ff' }}>{`${sampleSelectionCount} selected`}</b>
-                                    .
-                                </>
-                            }
-                        }}
-                        {...samplesTableCallbacks}
-                        setFilterCallback={setFilterCallback}
-                        clearFiltersCallback={clearFiltersCallback}
-                    />
-                </Col>
-                <Col span={8}>
-                    {sampleSelectionCount > MAX_SELECTION && riskAccepted === undefined && (
-                        <div>
-                            <b>{`Warning: You are about to select ${sampleSelectionCount} samples. It might take a while to load options.`}</b>
-                            <br />
-                            <Button onClick={() => setRiskAccepted(true)} type="primary">Continue</Button>
-                            <Button onClick={() => setRiskAccepted(false)} type="default">Cancel</Button>
-                        </div>
-                    )}
-                    {sampleSelectionCount > MAX_SELECTION && riskAccepted === false && (
-                        <div>
-                            {`Please select at most ${MAX_SELECTION} samples.`}
-                        </div>)}
+            <Splitter onResize={setSizes}>
+                <Splitter.Panel collapsible defaultSize={"100%"} min={"25%"} size={sizes[0]}>
+                    <div style={{ paddingRight: '1rem' }}>
+                        <PagedItemsTable<ObjectWithSample>
+                            getDataObjectsByID={mapSampleIDs}
+                            pagedItems={samplesTableState}
+                            columns={columns}
+                            usingFilters={true}
+                            initialLoad={false}
+                            selection={selection}
+                            paginationProps={{
+                                simple: true,
+                                showTotal(total) {
+                                    return <>
+                                        <>{`${total} items.`}</>
+                                        <>{' '}</>
+                                        <b style={{ color: '#1890ff' }}>{`${sampleSelectionCount} selected`}</b>
+                                        .
+                                    </>
+                                }
+                            }}
+                            {...samplesTableCallbacks}
+                            setFilterCallback={setFilterCallback}
+                            clearFiltersCallback={clearFiltersCallback}
+                        />
+                    </div>
+                </Splitter.Panel>
+                <Splitter.Panel collapsible size={sizes[1]}>
                     {sampleSelectionCount <= MAX_SELECTION || riskAccepted === true ? (
-                        <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
+                        <div style={{ paddingLeft: '1rem' }}>
+                            <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
+                        </div>
                     ) : null}
-                </Col>
-            </Row>
+                </Splitter.Panel>
+            </Splitter>
         </>
     )
 }
@@ -142,7 +143,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
 
     const [isFetching, setIsFetching] = useState(false)
     interface ActionInfo {
-        study: FMSStudy
+        study: Pick<FMSStudy, 'id' | 'letter'>
         workflow: FMSWorkflow['name']
         step: Step['name']
         stepOrder: FMSSampleNextStepByStudy['step_order'],
@@ -163,6 +164,9 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     }
     const [commonProjects, setCommonProjects] = useState<CommonProject[]>([])
 
+    const [selectedProject, setSelectedProject] = useState<Project['id']>()
+    const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<StudyWorkflow>()
+
     const refreshActions = useCallback(async () => {
         const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
             defaultSelection,
@@ -176,6 +180,8 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
             setStudyWorkflowsByProject({})
             setCommonProjects([])
             setIsFetching(false)
+            setSelectedProject(undefined)
+            setSelectedStudyWorkflow(undefined)
             return
         }
         setIsFetching(true)
@@ -305,9 +311,6 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     const projectByID = useAppSelector(selectProjectsByID)
     const sampleByID = useAppSelector(selectSamplesByID)
 
-    const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<StudyWorkflow>()
-    const [selectedProject, setSelectedProject] = useState<Project['id']>()
-
     // console.info({
     //     commonProjects,
     //     studyWorkflowsByProject,
@@ -356,7 +359,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 ).map(
                     action =>
                         <Popover
-                            key={`${action.study.id}-${action.step}-dequeue`}
+                            key={`${action.study.id}-${action.stepOrder}-dequeue`}
                             content={<>
                                 <div>{`Study: ${action.study.letter}`}</div>
                                 <div>{`Workflow: ${action.workflow}`}</div>
@@ -397,7 +400,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 ).map(
                     action =>
                         <Popover
-                            key={`${action.study.id}-${action.step}-queue`}
+                            key={`${action.study.id}-${action.stepOrder}-queue`}
                             content={
                                 action.alreadyQueued.length > 0
                                     ? <div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(', ')}`}</div>
