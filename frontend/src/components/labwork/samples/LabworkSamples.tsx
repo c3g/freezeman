@@ -77,52 +77,49 @@ export function LabworkSamples() {
 
     return (
         <>
-            <AppPageHeader title="Samples and Libraries" />
-            <PageContent>
-                <Row gutter={16}>
-                    <Col span={16}>
-                        <PagedItemsTable<ObjectWithSample>
-                            getDataObjectsByID={mapSampleIDs}
-                            pagedItems={samplesTableState}
-                            columns={columns}
-                            usingFilters={true}
-                            initialLoad={false}
-                            selection={selection}
-                            paginationProps={{
-                                showQuickJumper: false,
-                                showTotal(total) {
-                                    return <>
-                                        <>{`${total} items.`}</>
-                                        <>{' '}</>
-                                        <b style={{ color: '#1890ff' }}>{`${sampleSelectionCount} selected`}</b>
-                                        .
-                                    </>
-                                }
-                            }}
-                            {...samplesTableCallbacks}
-                            setFilterCallback={setFilterCallback}
-                            clearFiltersCallback={clearFiltersCallback}
-                        />
-                    </Col>
-                    <Col span={8}>
-                        {sampleSelectionCount > MAX_SELECTION && riskAccepted === undefined && (
-                            <div>
-                                <b>{`Warning: You are about to select ${sampleSelectionCount} samples. It might take a while to load options.`}</b>
-                                <br />
-                                <Button onClick={() => setRiskAccepted(true)} type="primary">Continue</Button>
-                                <Button onClick={() => setRiskAccepted(false)} type="default">Cancel</Button>
-                            </div>
-                        )}
-                        {sampleSelectionCount > MAX_SELECTION && riskAccepted === false && (
-                            <div>
-                                {`Please select at most ${MAX_SELECTION} samples.`}
-                            </div>)}
-                        {sampleSelectionCount <= MAX_SELECTION || riskAccepted === true ? (
-                            <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
-                        ) : null}
-                    </Col>
-                </Row>
-            </PageContent>
+            <Row gutter={16}>
+                <Col span={16}>
+                    <PagedItemsTable<ObjectWithSample>
+                        getDataObjectsByID={mapSampleIDs}
+                        pagedItems={samplesTableState}
+                        columns={columns}
+                        usingFilters={true}
+                        initialLoad={false}
+                        selection={selection}
+                        paginationProps={{
+                            showQuickJumper: false,
+                            showTotal(total) {
+                                return <>
+                                    <>{`${total} items.`}</>
+                                    <>{' '}</>
+                                    <b style={{ color: '#1890ff' }}>{`${sampleSelectionCount} selected`}</b>
+                                    .
+                                </>
+                            }
+                        }}
+                        {...samplesTableCallbacks}
+                        setFilterCallback={setFilterCallback}
+                        clearFiltersCallback={clearFiltersCallback}
+                    />
+                </Col>
+                <Col span={8}>
+                    {sampleSelectionCount > MAX_SELECTION && riskAccepted === undefined && (
+                        <div>
+                            <b>{`Warning: You are about to select ${sampleSelectionCount} samples. It might take a while to load options.`}</b>
+                            <br />
+                            <Button onClick={() => setRiskAccepted(true)} type="primary">Continue</Button>
+                            <Button onClick={() => setRiskAccepted(false)} type="default">Cancel</Button>
+                        </div>
+                    )}
+                    {sampleSelectionCount > MAX_SELECTION && riskAccepted === false && (
+                        <div>
+                            {`Please select at most ${MAX_SELECTION} samples.`}
+                        </div>)}
+                    {sampleSelectionCount <= MAX_SELECTION || riskAccepted === true ? (
+                        <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
+                    ) : null}
+                </Col>
+            </Row>
         </>
     )
 }
