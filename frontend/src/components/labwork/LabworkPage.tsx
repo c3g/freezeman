@@ -8,6 +8,7 @@ import PageContainer from '../PageContainer'
 import LabworkOverviewRoute from './overview/LabworkOverviewRoute'
 import LabworkStepRoute from './step/LabworkStepRoute'
 import { LabworkSamples } from './samples/LabworkSamples'
+import { LabworkSamplesPage } from './samples/LabworkSamplesPage'
 
 const LabworkPage = () => {
 	// Load the labwork summary whenever the user hits a page in the Lab Work section.
@@ -43,7 +44,7 @@ const LabworkPage = () => {
 		<PageContainer>
 			<Routes>
 				<Route path="*" element={<LabworkOverviewRoute />} />
-				<Route path="samples" element={<LabworkSamples />} />
+				<Route path="samples" element={<LabworkSamplesPage />} />
 				<Route path="step/:stepID/*" element={<LabworkStepRoute />} />
 				<Route path="step/:stepID/actions/:action/*" element={<ActionContent templateType="sampleNextStep" />}/>
 			</Routes>
