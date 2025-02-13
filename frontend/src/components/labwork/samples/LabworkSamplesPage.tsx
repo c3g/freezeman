@@ -5,7 +5,7 @@ import { LabworkSamples } from "./LabworkSamples";
 
 export function LabworkSamplesPage() {
   return (<>
-        <AppPageHeader title="Samples and Libraries" />
+        <AppPageHeader title="Queue/Dequeue Samples and Libraries to Workflow Step" />
         <PageContent>
             <LabworkSamples />
         </PageContent>
