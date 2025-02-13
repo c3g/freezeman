@@ -2,7 +2,7 @@ import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'a
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
+import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
 import { addArchivedComment, get } from '../../modules/datasets/actions'
@@ -59,45 +59,28 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 
 	}, [experimentRunName, experimentRunLanesState])
 
+	const updateLane = useCallback((lane: LaneInfo) => {
+		Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() => {
+			dispatch(setRunLaneValidationTime(lane)).finally(() => {
+			  setIsValidationInProgress(false)
+			})
+		})
+  }, [dispatch])
 
-	const setPassed = useCallback(
-		(lane: LaneInfo) => {
-			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
-				.finally(() => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
-        }
-      )
-		},
-		[dispatch]
-	)
+	const setPassed = useCallback((lane: LaneInfo) => {
+	  setIsValidationInProgress(true)
+	  dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED)).finally(() => updateLane(lane))
+	}, [dispatch, updateLane])
 
-	const setFailed = useCallback(
-		(lane: LaneInfo) => {
-			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
-				.finally(async () => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
-        }
-      )
-		},
-		[dispatch]
-	)
+	const setFailed = useCallback((lane: LaneInfo) => {
+	  setIsValidationInProgress(true)
+	  dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED)).finally(() => updateLane(lane))
+	}, [dispatch, updateLane])
 
-	const setAvailable = useCallback(
-		(lane: LaneInfo) => {
-			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
-				.finally(() => {
-          lane.datasets.map((dataset) => {dispatch(get(dataset.datasetID))})
-          setIsValidationInProgress(false)
-        }
-      )
-		},
-		[dispatch]
-	)
+	const setAvailable = useCallback((lane: LaneInfo) => {
+		setIsValidationInProgress(true)
+		dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE)).finally(() => updateLane(lane))
+	}, [dispatch, updateLane])
 
 	const setLaneExpansionState = useCallback((laneKeys: string | string[]) => {
 		if (runLanes) {
@@ -115,7 +98,6 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 			if (laneInfo) {
 				expandedLaneKeys.push(createLaneKey(laneInfo))
 			}
-
 		}
 	}
 
@@ -171,13 +153,18 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 	const [datasets, setDatasets] = useState<Dataset[]>([])
 
   useEffect(() => {
+    const refreshedDatasets = lane.datasets.map((dataset) => datasetsById[dataset.datasetID])
+    setDatasets(refreshedDatasets as Dataset[])
+	}, [datasetsById])
+
+  useEffect(() => {
     Promise.all(lane.datasets.map(async (dataset) => {
       const response = await dispatch(api.datasets.get(dataset.datasetID))
       return response.data
     }))
     .then((values) => {
       setDatasets(values as Dataset[])})
-	}, [datasetsById])
+	}, [dispatch, lane.datasets])
 
   const handleAddComment = useCallback(
     (id, comment) => {

@@ -1,8 +1,10 @@
-import { AppDispatch } from "../../store"
+import { ItemsByID } from "../../models/frontend_models"
+import { AppDispatch, RootState } from "../../store"
 import api from "../../utils/api"
 import { ValidationStatus } from "./models"
 import { LaneInfo, LaneNumber } from "./models"
-import { FLUSH_EXPERIMENT_LANES, SET_EXPANDED_LANES, SET_EXPERIMENT_LANES, SET_LANE_VALIDATION_STATUS, SET_READS_PER_SAMPLE } from "./reducers"
+import { Dataset } from '../../models/frontend_models'
+import { FLUSH_EXPERIMENT_LANES, SET_EXPANDED_LANES, SET_EXPERIMENT_LANES, SET_LANE_VALIDATION_STATUS, SET_LANE_VALIDATION_TIME, SET_READS_PER_SAMPLE } from "./reducers"
 import { fetchReadsPerSample, loadExperimentRunLanes } from "./services"
 
 
@@ -42,6 +44,28 @@ export function setRunLaneValidationStatus(lane: LaneInfo, status: ValidationSta
 			})
 		}
 	}
+}
+
+export function setRunLaneValidationTime(lane: LaneInfo) {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    const validationTime = lane.datasets.reduce<string | undefined>((latest, dataset) => {
+      const currentDatasetTime = getState().datasets.itemsByID[dataset.datasetID].latest_validation_update
+      if (currentDatasetTime) {
+          if (!latest || currentDatasetTime > latest) {
+            return currentDatasetTime
+          }
+      }
+      return latest
+    }, undefined)
+    // NOTE: Loading experiment runs is expensive so, rather than reloading
+    // everything from the server, we just update the lane's validation time in the redux store.
+    dispatch({
+      type: SET_LANE_VALIDATION_TIME,
+      experimentRunName: lane.runName,
+      laneNumber: lane.laneNumber,
+      validationTime: validationTime
+    })
+  }
 }
 
 export function flushExperimentRunLanes(experimentRunName: string) {

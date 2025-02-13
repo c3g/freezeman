@@ -30,7 +30,7 @@ export interface LaneInfo {
   runName: string                       // Name of the run, for both freezeman and external runs
   laneNumber: LaneNumber                // The number of the lane
   validationStatus: ValidationStatus    // The validation status for the lane
-  validationTime?: string                // The time at which the lane was last validated
+  validationTime?: string               // The time at which the lane was last validated
   datasets: DatasetInfo[]               // List of datasets associated with lane (may be more than one)
   readsPerSample?: ReadsPerSample       // List of reads counts per sample (loaded on demand)
 }

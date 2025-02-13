@@ -5,6 +5,7 @@ import produce, { Draft } from "immer"
 export const SET_EXPERIMENT_LANES = 'EXPERIMENT_RUN_LANES:SET_EXPERIMENT_LANES'
 export const SET_READS_PER_SAMPLE = 'EXPERIMENT_RUN_LANES:SET_READS_PER_SAMPLE'
 export const SET_LANE_VALIDATION_STATUS = 'EXPERIMENT_RUN_LANES:SET_LANE_VALIDATION_STATUS'
+export const SET_LANE_VALIDATION_TIME = 'EXPERIMENT_RUN_LANES:SET_LANE_VALIDATION_TIME'
 export const FLUSH_EXPERIMENT_LANES = 'EXPERIMENT_RUN_LANES:FLUSH_EXPERIMENT_LANES'
 export const SET_EXPANDED_LANES = 'EXPERIMENT_RUN_LANES:SET_EXPANDED_LANES'
 
@@ -55,6 +56,18 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 			}
 			break 
 		}
+
+    case SET_LANE_VALIDATION_TIME: {
+      const { experimentRunName, laneNumber, validationTime} = action
+      const experimentRunLanes = state.runs[experimentRunName] as ExperimentRunLanes
+      if (experimentRunLanes) {
+        const lane = experimentRunLanes.lanes.find(x => x.laneNumber === laneNumber)
+        if (lane) {
+          lane.validationTime = validationTime
+        }
+      }
+      break 
+    }
 
 		case FLUSH_EXPERIMENT_LANES: {
 			const { experimentRunName } = action
