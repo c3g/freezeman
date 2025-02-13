@@ -31,7 +31,9 @@ export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     useEffect(() => {
         if (fixedFilter) {
+            samplesTableCallbacks.clearFixedFiltersCallback()
             samplesTableCallbacks.setFixedFilterCallback(fixedFilter)
+            samplesTableCallbacks.refreshPageCallback()
         }
     }, [fixedFilter, samplesTableCallbacks])
 
