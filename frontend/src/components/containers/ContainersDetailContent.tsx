@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { connect } from "react-redux";
+import React, { useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { Space, Descriptions, Typography, List, Tabs } from "antd";
-const { Title } = Typography;
+import { Space, Descriptions, Tabs, Button } from "antd";
 const { TabPane } = Tabs;
 
 import AppPageHeader from "../AppPageHeader";
@@ -12,13 +10,11 @@ import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
 import { get  as getCoordinate } from "../../modules/coordinates/actions"
-import { withContainer, withCoordinate } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
 import useHashURL from "../../hooks/useHashURL";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectContainerKindsByID, selectContainersByID, selectCoordinatesByID } from "../../selectors";
 import { Container } from "../../models/frontend_models";
-import { FMSId } from "../../models/fms_api_models";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 import { isNullish } from "../../utils/functions";
 
@@ -34,7 +30,7 @@ const tabStyle = {
 }
 
 const ContainersDetailContent = () => {
-  const history = useNavigate();
+  const navigate = useNavigate();
   const { id } = useParams();
   const [activeKey, setActiveKey] = useHashURL('overview')
 
@@ -65,7 +61,7 @@ const ContainersDetailContent = () => {
     if (container && !isNullish(container?.coordinate) && !coordinate?.isLoaded) {
       getCoordinate(container.coordinate)
     }
-  }, [isLoaded, container?.coordinate, coordinate?.isLoaded])
+  }, [isLoaded, container?.coordinate, coordinate?.isLoaded, container])
 
   return (
     <>
@@ -74,6 +70,9 @@ const ContainersDetailContent = () => {
         extra={
           !isLoaded ? null :
             <Space>
+              <Button onClick={() => navigate(
+                `/lab-work/samples?${(container?.children.length ?? 0) > 0 ? 'container__location__barcode=' : 'container__barcode='}${container?.barcode}`
+              )}>Workflow</Button>
               <EditButton url={`/containers/${id}/update`} />
             </Space>
         } />

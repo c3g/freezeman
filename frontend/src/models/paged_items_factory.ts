@@ -7,6 +7,7 @@ import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItem
 import {
 	ReduceListReceiveType,
 	reduceClearFilters,
+	reduceClearFixedFilters,
 	reduceListError,
 	reduceListReceive,
 	reduceListRequest,
@@ -37,6 +38,7 @@ export interface PagedItemsActions {
 	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<void>
 	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<void>
 	clearFilters: () => FreezemanAsyncThunk<void>
+    clearFixedFilters: () => FreezemanAsyncThunk<void>
 	setSortBy: (sortByList: SortBy[]) => FreezemanAsyncThunk<void>
 	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
     resetPagedItems: () => FreezemanAsyncThunk<void>
@@ -57,6 +59,7 @@ interface PagedItemsActionTypes<Prefix extends string> {
 	SET_FILTER_OPTIONS: `${Prefix}.SET_FILTER_OPTIONS`
 	REMOVE_FILTER: `${Prefix}.REMOVE_FILTER`
 	CLEAR_FILTERS: `${Prefix}.CLEAR_FILTER`
+    CLEAR_FIXED_FILTERS: `${Prefix}.CLEAR_FIXED_FILTERS`
 	SET_SORT_BY: `${Prefix}.SET_SORT_BY`
 	SET_PAGE_SIZE: `${Prefix}.SET_PAGE_SIZE`
     RESET_PAGED_ITEMS: `${Prefix}.RESET_PAGED_ITEMS`
@@ -71,6 +74,7 @@ export function createPagedItemsActionTypes<Prefix extends string>(prefix: Prefi
         SET_FILTER_OPTIONS: `${prefix}.SET_FILTER_OPTIONS`,
         REMOVE_FILTER: `${prefix}.REMOVE_FILTER`,
         CLEAR_FILTERS: `${prefix}.CLEAR_FILTER`,
+        CLEAR_FIXED_FILTERS: `${prefix}.CLEAR_FIXED_FILTERS`,
         SET_SORT_BY: `${prefix}.SET_SORT_BY`,
         SET_PAGE_SIZE: `${prefix}.SET_PAGE_SIZE`,
         RESET_PAGED_ITEMS: `${prefix}.RESET_PAGED_ITEMS`,
@@ -87,7 +91,7 @@ export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
 export function createPagedItemsActions<Prefix extends string, M extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes<Prefix>, selectPagedItems: SelectPagedItemsFunc, list: ListType<M>, extra?: object): PagedItemsActions {
 
-    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } =
+    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, CLEAR_FIXED_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } =
 		actionTypes
 
 
@@ -234,6 +238,11 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         return await dispatch(_fetchPage(1))
     }
 
+    const clearFixedFilters: PagedItemsActions['clearFixedFilters'] = () => async (dispatch) => {
+        dispatch({ type: CLEAR_FIXED_FILTERS, extra })
+        return await dispatch(_fetchPage(1))
+    }
+
     const setSortBy: PagedItemsActions['setSortBy'] = (sortByList) => async (dispatch) => {
         dispatch({
             type: SET_SORT_BY,
@@ -276,6 +285,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         setFilterOptions,
         removeFilter,
         clearFilters,
+        clearFixedFilters,
         setSortBy,
         setPageSize,
         resetPagedItems,
@@ -288,7 +298,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
 
 // This reducer will support any state that extends PagedItems.
 export function createPagedItemsReducer<P extends PagedItems, Prefix extends string>(actionTypes: PagedItemsActionTypes<Prefix>, initialState: P): Reducer<P, AnyAction> {
-    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } = actionTypes
+    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, CLEAR_FIXED_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } = actionTypes
 
     function reduce(state: P = initialState, action: AnyAction): P {
         switch (action.type) {
@@ -316,6 +326,9 @@ export function createPagedItemsReducer<P extends PagedItems, Prefix extends str
 			case CLEAR_FILTERS: {
 				return reduceClearFilters(state)
 			}
+            case CLEAR_FIXED_FILTERS: {
+                return reduceClearFixedFilters(state)
+            }
 			case SET_SORT_BY: {
 				return reduceSetSortBy(state, action.sortByList)
 			}

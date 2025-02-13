@@ -39,6 +39,10 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 			return dispatch(pagedItemActions.clearFilters())
 		}
 
+		const clearFixedFiltersCallback = () => {
+			return dispatch(pagedItemActions.clearFixedFilters())
+		}
+
 		const setSortByCallback = (sortByList: SortBy[]) => {
 			return dispatch(pagedItemActions.setSortBy(sortByList))
 		}
@@ -65,6 +69,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 			setFilterCallback,
 			setFilterOptionsCallback,
 			clearFiltersCallback,
+			clearFixedFiltersCallback,
 			setSortByCallback,
 			setPageSizeCallback,
 			resetPagedItemsCallback,

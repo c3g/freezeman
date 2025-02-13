@@ -20,6 +20,7 @@ export interface PagedItemsActionsCallbacks {
 	setFilterCallback: (value: FilterValue, description: FilterDescription) => Promise<void>
 	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => Promise<void>
 	clearFiltersCallback: () => Promise<void>
+	clearFixedFiltersCallback: () => Promise<void>
 	setSortByCallback: (sortByList: SortBy[]) => Promise<void>
 	setPageSizeCallback: (pageSize: number) => Promise<void>
 	resetPagedItemsCallback: () => Promise<void>
