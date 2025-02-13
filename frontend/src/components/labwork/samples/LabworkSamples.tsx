@@ -17,7 +17,7 @@ import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/seriali
 import { notifyError, notifySuccess } from "../../../modules/notification/actions";
 import { useQueryParamsForPagedItems } from "../../../models/hooks";
 
-const MAX_SELECTION = 1000
+const MAX_SELECTION = 960
 
 interface LabworkSamplesProps {
     fixedFilter?: FilterSetting
@@ -73,35 +73,30 @@ export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
         return Promise.resolve(dataObjectsByID)
     }, [samples])
 
-    const [riskAccepted, setRiskAccepted] = useState<boolean | undefined>(undefined)
-
     const [defaultSelection, setDefaultSelection] = useState(false)
     const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
     const sampleSelectionCount = defaultSelection ? samplesTableState.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
     const selection: NonNullable<PagedItemsTableProps<SampleAndLibrary>['selection']> = useMemo(() => ({
         onSelectionChanged: (selectedItems, selectAll) => {
-            setRiskAccepted(undefined)
             setExceptedSampleIDs(selectedItems.map(id => parseInt(id as string)))
             setDefaultSelection(selectAll)
         }
     }), [])
 
     const [open, setOpen] = useState(false)
-    const expandRightPanel = useCallback(() => {
-        setOpen(true)
-        // setRiskAccepted(true)
-    }, [])
+    const maybeExpandRightPanel = useCallback(() => {
+        if (sampleSelectionCount > MAX_SELECTION) {
+            Modal.warning({
+                title: "Warning",
+                content: `You cannot queue/dequeue more than ${MAX_SELECTION} samples.`,
+            })
+        } else {
+            setOpen(true)
+        }
+    }, [sampleSelectionCount])
     const collapseRightPanel = useCallback(() => {
         setOpen(false)
-        setRiskAccepted(undefined)
     }, [])
-
-
-    // console.info({
-    //     open,
-    //     sampleSelectionCount,
-    //     riskAccepted
-    // })
 
     return (
         <>
@@ -112,26 +107,18 @@ export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
                 usingFilters={true}
                 initialLoad={false}
                 selection={selection}
-                topBarExtra={<Button onClick={expandRightPanel} disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
+                topBarExtra={<Button onClick={maybeExpandRightPanel} disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
                 paginationProps={{simple: true}}
                 {...samplesTableCallbacks}
                 setFilterCallback={setFilterCallback}
                 clearFiltersCallback={clearFiltersCallback}
             />
-            <Modal
-                open={open && sampleSelectionCount > MAX_SELECTION && riskAccepted === undefined }
-                title={"Warning"}
-                onOk={() => setRiskAccepted(true)}
-                onCancel={collapseRightPanel}
-            >
-                {`Are you sure you want to queue/dequeue ${sampleSelectionCount} samples? It might take a while to load options.`}
-            </Modal>
             <Drawer
-                title="Labwork Actions"
+                title="Queue/Dequeue Samples"
                 placement="right"
                 size="large"
                 onClose={collapseRightPanel}
-                open={open && (sampleSelectionCount <= MAX_SELECTION || riskAccepted === true)}
+                open={open}
                 destroyOnClose={true}
             >
                 <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
@@ -335,7 +322,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
         } else if (commonProjects.length === 0) {
             result = <div>{`The selected samples don't share any project.`}</div>
         } else if (Object.values(studyWorkflowsByProject).length === 0) {
-            result = <div>{`There are no studies for projects (${commonProjects.map((p) => p.name).join(', ')}) that the samples have in common.`}</div>
+            result = <div>{`There are no studies available for project ${commonProjects.map((p) => p.name).join(', ')}.`}</div>
         } else {
             result = [
                 <Select
@@ -363,83 +350,83 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                 <b key={'dequeue'}>Dequeue From</b>,
                 ...dequeueActions.filter(
                     action => selectedStudyWorkflow && action.study.letter === selectedStudyWorkflow.study
-                ).map(
-                    action =>
-                        <Popover
-                            key={`${action.study.id}-${action.stepOrder}-dequeue`}
-                            content={<>
-                                <div>{`Study: ${action.study.letter}`}</div>
-                                <div>{`Workflow: ${action.workflow}`}</div>
-                                <div>{`Step: ${action.step}`}</div>
-                            </>}
-                            placement={'left'}
-                        >
-                            <Button onClick={async () => {
-                                if (!selectedProject) return
-                                const project = projectByID[selectedProject]
-                                try {
-                                    const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
-                                        defaultSelection,
-                                        exceptedSampleIDs,
-                                        serializeFilterParamsWithDescriptions(filters)
-                                    ))).data
-                                    await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))
-                                    dispatch(notifySuccess({
-                                        id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                        title: "Samples dequeued from workflow",
-                                        description: `Successfully dequeued samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}"`
-                                    }))
-                                    await refreshActions()
-                                } catch (error) {
-                                    dispatch(notifyError({
-                                        id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                        title: "Error dequeuing samples from workflow",
-                                        description: `Failed to dequeue samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}"`
-                                    }))
-                                }
-                            }} type="primary">{action.step}</Button>
-                        </Popover>
-                ),
+                ).map(action => {
+                    return <Popover
+                        key={`${action.study.id}-${action.stepOrder}-dequeue`}
+                        content={<>
+                            <div>{`Study: ${action.study.letter}`}</div>
+                            <div>{`Workflow: ${action.workflow}`}</div>
+                            <div>{`Step: ${action.step}`}</div>
+                        </>}
+                        placement={'left'}
+                    >
+                        <Button onClick={async () => {
+                            if (!selectedProject) return
+                            const project = projectByID[selectedProject]
+                            try {
+                                const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
+                                    defaultSelection,
+                                    exceptedSampleIDs,
+                                    serializeFilterParamsWithDescriptions(filters)
+                                ))).data
+                                await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))
+                                dispatch(notifySuccess({
+                                    id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                                    title: "Samples dequeued from workflow",
+                                    description: `Successfully dequeued samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}"`
+                                }))
+                                await refreshActions()
+                            } catch (error) {
+                                dispatch(notifyError({
+                                    id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                                    title: "Error dequeuing samples from workflow",
+                                    description: `Failed to dequeue samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}"`
+                                }))
+                            }
+                        }} type="primary">{action.step}</Button>
+                    </Popover>
+                }),
                 <Divider style={{ margin: 0 }} key={'divider'} />,
                 <b key={'queue'}>Queue To</b>,
                 ...queueActions.filter(
                     action => selectedStudyWorkflow && action.study.letter === selectedStudyWorkflow.study
-                ).map(
-                    action =>
-                        <Popover
-                            key={`${action.study.id}-${action.stepOrder}-queue`}
-                            content={
-                                action.alreadyQueued.length > 0
-                                    ? <div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(', ')}`}</div>
-                                    : <>
-                                        <div>{`Study: ${action.study.letter}`}</div>
-                                        <div>{`Workflow: ${action.workflow}`}</div>
-                                        <div>{`Step: ${action.step}`}</div>
-                                    </>
+                ).map(action => {
+                    return <Popover
+                        key={`${action.study.id}-${action.stepOrder}-queue`}
+                        content={
+                            action.alreadyQueued.length > 0
+                                ? <div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(', ')}`}</div>
+                                : <>
+                                    <div>{`Study: ${action.study.letter}`}</div>
+                                    <div>{`Workflow: ${action.workflow}`}</div>
+                                    <div>{`Step: ${action.step}`}</div>
+                                </>
+                        }
+                        placement={'left'}
+                    >
+                        <Button disabled={action.alreadyQueued.length > 0} onClick={async () => {
+                            if (!selectedProject) return
+                            const project = projectByID[selectedProject]
+                            try {
+                                await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, selectedProject, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
+                                dispatch(notifySuccess({
+                                    id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                                    title: "Samples queued to workflow",
+                                    description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${project.name}"`
+                                }))
+                                await refreshActions()
+                            } catch (error) {
+                                const errors = error.data['queue_sample_to_study_workflow']
+                                dispatch(notifyError({
+                                    id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                                    title: "Error queuing samples to workflow",
+                                    description: `${errors[0]}${errors[0].endsWith('.') ? '' : '.'}${errors.length > 1 ? ' And ' + (errors.length - 1) + ' more errors...' : ''}`,
+                                    duration: 5
+                                }))
                             }
-                            placement={'left'}
-                        >
-                            <Button disabled={action.alreadyQueued.length > 0} onClick={async () => {
-                                if (!selectedProject) return
-                                const project = projectByID[selectedProject]
-                                try {
-                                    await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, selectedProject, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
-                                    dispatch(notifySuccess({
-                                        id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                        title: "Samples queued to workflow",
-                                        description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${project.name}"`
-                                    }))
-                                    await refreshActions()
-                                } catch (error) {
-                                    dispatch(notifyError({
-                                        id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                        title: "Error queuing samples to workflow",
-                                        description: `Failed to queue samples to study ${action.study.letter} at step "${action.step} for project ${project.name}"`
-                                    }))
-                                }
-                            }} type="primary">{action.step}</Button>
-                        </Popover>
-                )
+                        }} type="primary">{action.step}</Button>
+                    </Popover>
+                })
             ]
         }
 
