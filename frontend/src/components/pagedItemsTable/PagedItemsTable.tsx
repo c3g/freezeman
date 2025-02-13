@@ -49,7 +49,7 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	expandable?: TableProps<T>['expandable']
 	initialLoad?: boolean
 
-	topBarExtra?: React.ReactNode[]
+	topBarExtra?: React.ReactNode
 
 	scroll?: TableProps<T>['scroll']
 	paginationProps?: PaginationProps

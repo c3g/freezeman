@@ -8,7 +8,7 @@ import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
 import { Project, Sample, Step, Study, Workflow } from "../../../models/frontend_models";
 import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
-import { Button, Divider, Flex, Popover, Select, Spin, Splitter } from "antd";
+import { Button, Divider, Drawer, Flex, Modal, Popover, Select, Spin } from "antd";
 import { fetchProjects, fetchSamples, fetchWorkflows } from "../../../modules/cache/cache";
 import api from "../../../utils/api";
 import { FilterSet, FilterSetting } from "../../../models/paged_items";
@@ -16,7 +16,6 @@ import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models
 import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
 import { notifyError, notifySuccess } from "../../../modules/notification/actions";
 import { useQueryParamsForPagedItems } from "../../../models/hooks";
-import { PanelProps } from "antd/lib/splitter/interface";
 
 const MAX_SELECTION = 1000
 
@@ -73,6 +72,7 @@ export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
     }, [samples])
 
     const [riskAccepted, setRiskAccepted] = useState<boolean | undefined>(undefined)
+
     const [defaultSelection, setDefaultSelection] = useState(false)
     const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
     const sampleSelectionCount = defaultSelection ? samplesTableState.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
@@ -84,51 +84,56 @@ export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
         }
     }), [])
 
-    const [sizes, setSizes] = useState<NonNullable<PanelProps['size']>[]>(['100%', '0%'])
+    const [open, setOpen] = useState(false)
     const expandRightPanel = useCallback(() => {
-        setSizes(['75%', '25%'])
+        setOpen(true)
+        // setRiskAccepted(true)
     }, [])
     const collapseRightPanel = useCallback(() => {
-        setSizes(['100%', '0%'])
+        setOpen(false)
+        setRiskAccepted(undefined)
     }, [])
+
+
+    // console.info({
+    //     open,
+    //     sampleSelectionCount,
+    //     riskAccepted
+    // })
 
     return (
         <>
-            <Splitter onResize={setSizes}>
-                <Splitter.Panel collapsible defaultSize={"100%"} min={"25%"} size={sizes[0]}>
-                    <div style={{ paddingRight: '1rem' }}>
-                        <PagedItemsTable<ObjectWithSample>
-                            getDataObjectsByID={mapSampleIDs}
-                            pagedItems={samplesTableState}
-                            columns={columns}
-                            usingFilters={true}
-                            initialLoad={false}
-                            selection={selection}
-                            paginationProps={{
-                                simple: true,
-                                showTotal(total) {
-                                    return <>
-                                        <>{`${total} items.`}</>
-                                        <>{' '}</>
-                                        <b style={{ color: '#1890ff' }}>{`${sampleSelectionCount} selected`}</b>
-                                        .
-                                    </>
-                                }
-                            }}
-                            {...samplesTableCallbacks}
-                            setFilterCallback={setFilterCallback}
-                            clearFiltersCallback={clearFiltersCallback}
-                        />
-                    </div>
-                </Splitter.Panel>
-                <Splitter.Panel collapsible size={sizes[1]}>
-                    {sampleSelectionCount <= MAX_SELECTION || riskAccepted === true ? (
-                        <div style={{ paddingLeft: '1rem' }}>
-                            <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
-                        </div>
-                    ) : null}
-                </Splitter.Panel>
-            </Splitter>
+            <PagedItemsTable<ObjectWithSample>
+                getDataObjectsByID={mapSampleIDs}
+                pagedItems={samplesTableState}
+                columns={columns}
+                usingFilters={true}
+                initialLoad={false}
+                selection={selection}
+                topBarExtra={<Button onClick={expandRightPanel} disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
+                paginationProps={{simple: true}}
+                {...samplesTableCallbacks}
+                setFilterCallback={setFilterCallback}
+                clearFiltersCallback={clearFiltersCallback}
+            />
+            <Modal
+                open={open && sampleSelectionCount > MAX_SELECTION && riskAccepted === undefined }
+                title={"Warning"}
+                onOk={() => setRiskAccepted(true)}
+                onCancel={collapseRightPanel}
+            >
+                {`Are you sure you want to queue/dequeue ${sampleSelectionCount} samples? It might take a while to load options.`}
+            </Modal>
+            <Drawer
+                title="Labwork Actions"
+                placement="right"
+                size="large"
+                onClose={collapseRightPanel}
+                open={open && (sampleSelectionCount <= MAX_SELECTION || riskAccepted === true)}
+                destroyOnClose={true}
+            >
+                <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
+            </Drawer>
         </>
     )
 }
