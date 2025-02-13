@@ -1,6 +1,6 @@
-import { Checkbox, Pagination, Table, TableProps } from 'antd'
+import { Checkbox, Pagination, PaginationProps, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
@@ -20,6 +20,7 @@ export interface PagedItemsActionsCallbacks {
 	setFilterCallback: (value: FilterValue, description: FilterDescription) => Promise<void>
 	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => Promise<void>
 	clearFiltersCallback: () => Promise<void>
+	clearFixedFiltersCallback: () => Promise<void>
 	setSortByCallback: (sortByList: SortBy[]) => Promise<void>
 	setPageSizeCallback: (pageSize: number) => Promise<void>
 	resetPagedItemsCallback: () => Promise<void>
@@ -49,9 +50,10 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	expandable?: TableProps<T>['expandable']
 	initialLoad?: boolean
 
-	topBarExtra?: React.ReactNode[]
+	topBarExtra?: React.ReactNode
 
 	scroll?: TableProps<T>['scroll']
+	paginationProps?: PaginationProps
 }
 
 interface TableDataState<T> {
@@ -77,6 +79,7 @@ function PagedItemsTable<T extends object>({
 	expandable,
 	topBarExtra,
 	scroll = { x: '100%', y: '70vh' },
+	paginationProps,
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
@@ -139,27 +142,48 @@ function PagedItemsTable<T extends object>({
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
 	const onSelectAll = useCallback(() => {
-		const newSelectedItems = []
-		const newSelectAll = !allIsSelected
+		const newExceptedItems = []
+		const newDefaultSelection = !allIsSelected
 
-		setExceptedItems(newSelectedItems)
-		setDefaultSelection(newSelectAll)
+		setExceptedItems(newExceptedItems)
+		setDefaultSelection(newDefaultSelection)
 		if (selection)
-			selection.onSelectionChanged(newSelectedItems, newSelectAll)
+			selection.onSelectionChanged(newExceptedItems, newDefaultSelection)
 	}, [allIsSelected, selection])
 	const onSelectSingle = useCallback((record: T) => {
 		const key = getRowKeyForDataObject(record)
-		let newSelectedItems = exceptedItems
+		let newExceptedItems = exceptedItems
 		if (exceptedItems.includes(key)) {
-			newSelectedItems = exceptedItems.filter((id) => id !== key)
+			newExceptedItems = exceptedItems.filter((id) => id !== key)
 		} else {
-			newSelectedItems = [...exceptedItems, key]
+			newExceptedItems = [...exceptedItems, key]
 		}
-		setExceptedItems(newSelectedItems)
+		setExceptedItems(newExceptedItems)
 		if (selection) {
-			selection.onSelectionChanged(newSelectedItems, defaultSelection)
+			selection.onSelectionChanged(newExceptedItems, defaultSelection)
 		}
 	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
+	const onSelectMultiple = useCallback((keys: React.Key[]) => {
+		if (pagedItems.page?.pageNumber !== undefined && pagedItems.page.limit !== undefined) {
+			const offset = (pagedItems.page.pageNumber - 1) * pagedItems.page.limit
+			const keysOnPage = pagedItems.items.slice(offset, offset + pagedItems.page.limit).map((id) => id.toString() as React.Key)
+			const missingKeys = keysOnPage.filter((key) => !keys.includes(key))
+			const newExceptedItems = defaultSelection
+				// if defaultSelection is true, we want to remove items in keys from exceptedItems to select them
+				? exceptedItems.filter((key) => !keys.includes(key))
+				// if defaultSelection is false, we want to add new items to exceptedItems to select them
+				: [...exceptedItems, ...keys]
+			console.info('onSelectMultiple', {
+				keys,
+				keysOnPage,
+				missingKeys,
+			})
+			setExceptedItems(newExceptedItems)
+			if (selection) {
+				selection.onSelectionChanged(newExceptedItems, defaultSelection)
+			}
+		}
+	}, [defaultSelection, exceptedItems, pagedItems.items, pagedItems?.page?.limit, pagedItems?.page?.pageNumber, selection])
 	const selectedRowKeys = useMemo(() =>
 		defaultSelection
 			? pagedItems.items.map((id) => id.toString()).filter((key) => !exceptedItems.includes(key))
@@ -175,6 +199,10 @@ function PagedItemsTable<T extends object>({
 					if (info.type === 'all') {
 						onSelectAll()
 					}
+					if (info.type === 'multiple') {
+						// shift is held
+						onSelectMultiple(selectedRowKeys)
+					}
 				},
 				onSelect: onSelectSingle,
 				columnTitle: (
@@ -187,7 +215,7 @@ function PagedItemsTable<T extends object>({
 			}
 		}
 		return undefined
-	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, selectedRowKeys, selection])
+	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, onSelectMultiple, selectedRowKeys, selection])
 
 	// avoid dilema selectAll and selectedItems logic
 	useEffect(() => {
@@ -251,13 +279,13 @@ function PagedItemsTable<T extends object>({
 					<Pagination
 						className="ant-table-pagination"
 						showSizeChanger={true}
-						showQuickJumper={true}
 						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
 						current={pagedItems.page?.pageNumber ?? 0}
 						pageSize={pagedItems.page?.limit ?? 0}
 						total={pagedItems.totalCount}
 						onChange={listPageCallback}
 						onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
+						{...paginationProps}
 					/>
 				</>
 			)}
