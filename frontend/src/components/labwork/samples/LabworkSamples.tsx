@@ -26,7 +26,7 @@ interface LabworkSamplesProps {
 export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters, fixedFilters } = samplesTableState
-    const wholeFilters = { ...filters, ...fixedFilters }
+    const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     useEffect(() => {
