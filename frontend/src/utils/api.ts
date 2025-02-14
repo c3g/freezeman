@@ -267,7 +267,7 @@ const api = {
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
-    removeList: (sampleIDs: FMSId[], study: FMSStudy['id'], stepOrder: number) => post<JsonResponse<{ details: boolean }>>(`/sample-next-step-by-study/destroy_list/`, { sample_ids: sampleIDs, study, step_order: stepOrder }),
+    removeList: (sampleIDs: FMSId[], study: FMSStudy['id'], stepOrder: number) => post<JsonResponse<{ details: Record<FMSSample['id'], boolean> }>>(`/sample-next-step-by-study/destroy_list/`, { sample_ids: sampleIDs, study, step_order: stepOrder }),
     list: (options, abort?: boolean) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },
 
