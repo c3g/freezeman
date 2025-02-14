@@ -1,5 +1,7 @@
-import { FMSId, FMSProject } from '../../models/fms_api_models'
-import { AppDispatch } from '../../store'
+import { FMSId, FMSPagedResultsReponse, FMSProject } from '../../models/fms_api_models'
+import { Project } from '../../models/frontend_models'
+import { selectProjectsByID } from '../../selectors'
+import { AppDispatch, RootState } from '../../store'
 import { NetworkActionThunk, createNetworkActionTypes, networkAction } from '../../utils/actions'
 import api from '../../utils/api'
 
@@ -29,9 +31,16 @@ export const update = (id: FMSId, project: Partial<FMSProject>): NetworkActionTh
 	return dispatch(networkAction(UPDATE, api.projects.update(project), { meta: { id, ignoreError: 'APIError' } }))
 }
 
-export const list = (options: object) : NetworkActionThunk<any> => async (dispatch) => {
-	const params = { limit: 100000, ...options }
-	return dispatch(networkAction(LIST, api.projects.list(params), { meta: params }))
+export const list = (options: object) => {
+	return async (dispatch: AppDispatch, getState: () => RootState): Promise<FMSPagedResultsReponse<Project>> => {
+		const params = { limit: 100000, ...options }
+		const response = await dispatch(networkAction(LIST, api.projects.list(params), { meta: params }))
+		const projectsByID = selectProjectsByID(getState())
+		return {
+			...response,
+			results: response.results.map((p) => projectsByID[p.id])
+		}
+	}
 }
 
 export const summary = () => (dispatch: AppDispatch) => dispatch(networkAction(SUMMARY, api.projects.summary()))
