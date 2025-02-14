@@ -1,6 +1,6 @@
 import React from "react";
-import AppPageHeader from "../../AppPageHeader";
-import PageContent from "../../PageContent";
+import AppPageHeader from "../AppPageHeader";
+import PageContent from "../PageContent";
 import { LabworkSamples } from "./LabworkSamples";
 
 export function LabworkSamplesPage() {

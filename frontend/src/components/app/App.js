@@ -1,6 +1,7 @@
 import {
   AuditOutlined,
   BarcodeOutlined,
+  CarryOutOutlined,
   DashboardOutlined,
   ExperimentOutlined,
   FileZipOutlined,
@@ -9,6 +10,7 @@ import {
   InfoCircleOutlined,
   LogoutOutlined,
   ProjectOutlined,
+  RetweetOutlined,
   SettingOutlined,
   SyncOutlined,
   TableOutlined,
@@ -57,6 +59,7 @@ import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
 import { Reports } from "../reports/Reports";
+import { LabworkSamplesPage } from "../management/LabworkSamplesPage";
 
 
 const { Title } = Typography;
@@ -110,6 +113,19 @@ const MENU_ITEMS = [
     icon: <ProjectOutlined />,
     text: "Projects",
     key: "projects",
+  },
+  {
+    icon: <CarryOutOutlined />,
+    text: "Management",
+    key: "management",
+    children: [
+      {
+        url: "/management/workflow-samples",
+        icon: <RetweetOutlined />,
+        text: "Workflow Samples",
+        key: "workflow-samples",
+      },
+    ]
   },
   {
     url: "/containers",
@@ -368,6 +384,11 @@ const App = ({userID, usersByID, logOut, get}) => {
             <Route path="/lab-work/*" element={
               <PrivateNavigate>
                 <LabworkPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/management/workflow-samples" element={
+              <PrivateNavigate>
+                <LabworkSamplesPage />
               </PrivateNavigate>
             } />
             <Route path="/indices/*" element={

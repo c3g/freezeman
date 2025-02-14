@@ -1,21 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../../hooks";
-import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../../selectors";
-import { usePagedItemsActionsCallbacks } from "../../pagedItemsTable/usePagedItemsActionCallbacks";
-import SamplesTableActions from '../../../modules/samplesTable/actions'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../../samples/SampleTableColumns'
-import { useFilteredColumns } from "../../pagedItemsTable/useFilteredColumns";
-import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../../pagedItemsTable/PagedItemsTable";
-import { Project, Sample, Step, Study, Workflow } from "../../../models/frontend_models";
-import { SampleAndLibrary } from "../../WorkflowSamplesTable/ColumnSets";
 import { Button, Collapse, Drawer, Flex, Modal, Popover, Select, Spin } from "antd";
-import { fetchProjects, fetchSamples, fetchWorkflows } from "../../../modules/cache/cache";
-import api from "../../../utils/api";
-import { FilterSet, FilterSetting } from "../../../models/paged_items";
-import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../../models/fms_api_models";
-import serializeFilterParamsWithDescriptions from "../../pagedItemsTable/serializeFilterParamsTS";
-import { notifyError, notifySuccess } from "../../../modules/notification/actions";
-import { useQueryParamsForPagedItems } from "../../../models/hooks";
+import { fetchProjects, fetchSamples, fetchWorkflows } from "../../modules/cache/cache";
+import { FilterSet, FilterSetting } from "../../models/paged_items";
+import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../models/fms_api_models";
+import { notifyError, notifySuccess } from "../../modules/notification/actions";
+import { Project, Sample, Step, Study, Workflow } from "../../models/frontend_models";
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../samples/SampleTableColumns'
+import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
+import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../selectors";
+import { useAppDispatch, useAppSelector } from "../../hooks";
+import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
+import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
+import { useQueryParamsForPagedItems } from "../../models/hooks";
+import api from "../../utils/api";
+import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable";
+import SamplesTableActions from '../../modules/samplesTable/actions'
+import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeFilterParamsTS";
 
 const MAX_SELECTION = 960
 
