@@ -355,8 +355,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
+        start = datetime.datetime.now()
         self.queryset = self.filter_queryset(self.get_queryset())
+        queryset_end = datetime.datetime.now()
+        print(f"Time to get queryset : {queryset_end - start}")
         serialized_data = self.fetch_export_data()
+        end = datetime.datetime.now()
+        print(f"Total execution time : {end - start}.")
         return Response(serialized_data)
 
     @action(detail=False, methods=["get"])
