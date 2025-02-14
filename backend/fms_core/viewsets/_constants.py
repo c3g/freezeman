@@ -95,6 +95,7 @@ _sample_filterset_fields: FiltersetFields = {
     "derived_samples__biosample__collection_site": FREE_TEXT_FILTERS,
     "derived_samples__id": PK_FILTERS,
     **_prefix_keys("container__", _container_filterset_fields),
+    "container__location__barcode": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("derived_by_samples__project__", _project_minimal_filterset_fields),
     **_prefix_keys("derived_samples__biosample__individual__", _individual_filterset_fields),
     **_prefix_keys("derived_samples__sample_kind__", _sample_kind_filterset_fields),
