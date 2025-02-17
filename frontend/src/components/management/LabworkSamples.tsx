@@ -371,8 +371,8 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                                 exceptedSampleIDs,
                                 serializeFilterParamsWithDescriptions(filters)
                             ))).data
-                            const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data.details
-                            const samplesRemovedCount = Object.values(removed).filter((r) => r).length
+                            const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data
+                            const samplesRemovedCount = removed.length
                             dispatch(notifySuccess({
                                 id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
                                 title: "Samples dequeued from workflow",

@@ -68,29 +68,36 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         sample_ids = request.data.get("sample_ids", [])
         study = request.data.get("study", None)
         stepOrder = request.data.get("step_order", None)
-        if not sample_ids:
+        if sample_ids == []:
             return HttpResponseBadRequest("No sample IDs provided.")
-        if not study:
+        if study is None:
             return HttpResponseBadRequest("No study ID provided.")
-        if not stepOrder:
+        if stepOrder is None:
             return HttpResponseBadRequest("No step order provided.")
         queryset = self.get_queryset().filter(sample_next_step__sample__id__in=sample_ids, study=study, step_order__order=stepOrder)
         values_list = queryset.values_list("sample_next_step__sample", "study", "step_order__order")
         errors = []
         removed = {}
         try:
+            sample_by_id: dict[int, Sample] = {sample_id: None for sample_id, _, _ in values_list}
+            study_by_id: dict[int, Study] = {study_id: None for _, study_id, _ in values_list}
+            for sample_id, study_id, order in values_list:
+                if sample_by_id[sample_id] is None:
+                    sample_by_id[sample_id] = Sample.objects.get(id=sample_id)
+                if study_by_id[study_id] is None:
+                    study_by_id[study_id] = Study.objects.get(id=study_id)
             with transaction.atomic():
                 for sample_id, study_id, order in values_list:
-                    sample = Sample.objects.get(id=sample_id)
-                    study = Study.objects.get(id=study_id)
+                    sample = sample_by_id[sample_id]
+                    study = study_by_id[study_id]
                     newremoved, newerrors, _ = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample, study, order)
                     errors.extend(newerrors)
                     removed[sample_id] = newremoved
                 if errors:
                     raise IntegrityError(errors, removed)
-        except IntegrityError as err:
+        except Exception as err:
             return ValidationError(err)
-        return Response(data={"details": removed}, status=status.HTTP_200_OK)
+        return Response(data=[int(k) for k in removed], status=status.HTTP_200_OK)
 
    
     @action(detail=False, methods=["get"])    
