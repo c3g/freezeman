@@ -150,12 +150,7 @@ interface LanePanelProps {
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
 	const dispatch = useAppDispatch()
   const datasetsById = useAppSelector(selectDatasetsByID)
-	const [datasets, setDatasets] = useState<Dataset[]>([])
-
-  useEffect(() => {
-    const refreshedDatasets = lane.datasets.map((dataset) => datasetsById[dataset.datasetID])
-    setDatasets(refreshedDatasets as Dataset[])
-	}, [datasetsById])
+	const [datasets, setDatasets] = useState<Dataset[]>(lane.datasets.map((dataset) => datasetsById[dataset.datasetID]))
 
   useEffect(() => {
     Promise.all(lane.datasets.map(async (dataset) => {
