@@ -1,5 +1,5 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
@@ -9,8 +9,6 @@ import { addArchivedComment, get } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
-import { Dataset } from '../../models/frontend_models'
-import api from '../../utils/api'
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography
@@ -149,17 +147,8 @@ interface LanePanelProps {
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
 	const dispatch = useAppDispatch()
-  const datasetsById = useAppSelector(selectDatasetsByID)
-	const [datasets, setDatasets] = useState<Dataset[]>(lane.datasets.map((dataset) => datasetsById[dataset.datasetID]))
-
-  useEffect(() => {
-    Promise.all(lane.datasets.map(async (dataset) => {
-      const response = await dispatch(api.datasets.get(dataset.datasetID))
-      return response.data
-    }))
-    .then((values) => {
-      setDatasets(values as Dataset[])})
-	}, [dispatch, lane.datasets])
+	const datasetsById = useAppSelector(selectDatasetsByID)
+	const datasets = useMemo(() => lane.datasets.map((dataset) => datasetsById[dataset.datasetID]), [datasetsById, lane.datasets])
 
   const handleAddComment = useCallback(
     (id, comment) => {
