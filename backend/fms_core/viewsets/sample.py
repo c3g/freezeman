@@ -416,17 +416,19 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["post"])
     def add_samples_to_study(self, request, pk=None):
+        excepted_sample_ids = request.data.get("excepted_sample_ids")
         default_selection = request.data.get("default_selection", False)
-        excepted_sample_ids = request.data.get("excepted_sample_ids", [])
         project_id = request.data.get("project_id")
         study_letter = request.data.get("study_letter")
         step_order = request.data.get("step_order", None)
 
         samples = self.filter_queryset(self.get_queryset())
-        samples = defaultSelection_exceptedIDs(samples, default_selection, excepted_sample_ids)
-        samples = samples.filter(derived_by_samples__project=project_id)
 
+        samples = (samples.filter(derived_by_samples__project=project_id, id__in=excepted_sample_ids)
+                   if not default_selection
+                   else samples.filter(derived_by_samples__project=project_id).exclude(id__in=excepted_sample_ids)).all()
         project = Project.objects.get(id=project_id)
+
         errors = defaultdict(list)
         with transaction.atomic():
             rollback = False
