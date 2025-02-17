@@ -59,7 +59,7 @@ import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
 import { Reports } from "../reports/Reports";
-import { LabworkSamplesPage } from "../management/LabworkSamplesPage";
+import { WorkflowAssigmentPage } from "../management/WorkflowAssigmentPage";
 
 
 const { Title } = Typography;
@@ -388,7 +388,7 @@ const App = ({userID, usersByID, logOut, get}) => {
             } />
             <Route path="/management/workflow-samples" element={
               <PrivateNavigate>
-                <LabworkSamplesPage />
+                <WorkflowAssigmentPage />
               </PrivateNavigate>
             } />
             <Route path="/indices/*" element={

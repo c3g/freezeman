@@ -23,7 +23,7 @@ interface LabworkSamplesProps {
     fixedFilter?: FilterSetting
 }
 
-export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
+export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters, fixedFilters } = samplesTableState
     const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
@@ -121,7 +121,7 @@ export function LabworkSamples({ fixedFilter }: LabworkSamplesProps) {
                 open={open}
                 destroyOnClose={true}
             >
-                <LabworkSampleActions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
+                <WorkflowOptions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
             </Drawer>
         </>
     )
@@ -132,7 +132,7 @@ interface LabworkSampleActionsProps {
     exceptedSampleIDs: Sample['id'][]
     filters: FilterSet
 }
-function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
+function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
     const dispatch = useAppDispatch()
 
     const [isFetching, setIsFetching] = useState(false)

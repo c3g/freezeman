@@ -1,13 +1,13 @@
 import React from "react";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { LabworkSamples } from "./LabworkSamples";
+import { WorkflowAssignment } from "./WorkflowAssignment";
 
-export function LabworkSamplesPage() {
+export function WorkflowAssigmentPage() {
   return (<>
         <AppPageHeader title="Queue/Dequeue Samples and Libraries to Workflow Step" />
         <PageContent>
-            <LabworkSamples />
+            <WorkflowAssignment />
         </PageContent>
   </>)
 }
