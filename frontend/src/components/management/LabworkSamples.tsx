@@ -162,7 +162,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
     const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<StudyWorkflow>()
 
     const refreshActions = useCallback(async () => {
-        const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
+        const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_and_excepted_ids(
             defaultSelection,
             exceptedSampleIDs,
             serializeFilterParamsWithDescriptions(filters)
@@ -366,7 +366,7 @@ function LabworkSampleActions({ defaultSelection, exceptedSampleIDs, filters }: 
                         if (!selectedProject) return
                         const project = projectByID[selectedProject]
                         try {
-                            const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_excepted_ids(
+                            const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_and_excepted_ids(
                                 defaultSelection,
                                 exceptedSampleIDs,
                                 serializeFilterParamsWithDescriptions(filters)

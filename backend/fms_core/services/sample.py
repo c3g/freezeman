@@ -1050,23 +1050,3 @@ def can_remove_sample(sample: Sample) -> Tuple[bool, List[str], List[str]]:
         is_removable = not is_child and not is_parent and not was_processed
 
     return is_removable, errors, warnings
-
-T = TypeVar("T")
-def defaultSelection_exceptedIDs(queryset: QuerySet[T], default_selection: bool, excepted_ids: list[int]) -> QuerySet[T]:
-    """
-    Filter a queryset based on the default_selection and excepted_ids.
-    If default_selection is True, the queryset will exclude the excepted_ids.
-    If default_selection is False, the queryset will filter the excepted_ids.
-
-    Args:
-        `queryset`: Queryset to be filtered.
-        `default_selection`: Boolean to determine the filtering.
-        `excepted_ids`: List of ids to be filtered.
-
-    Returns:
-        Filtered queryset.
-    """
-    if default_selection:
-        return queryset.exclude(id__in=excepted_ids)
-    else:
-        return queryset.filter(id__in=excepted_ids)

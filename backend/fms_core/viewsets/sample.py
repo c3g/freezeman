@@ -11,7 +11,6 @@ from ..utils import RE_SEPARATOR
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata, Coordinate, Project
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 from fms_core.services.project import add_sample_to_study
-from fms_core.services.sample import defaultSelection_exceptedIDs
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
@@ -446,11 +445,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             return Response(status=204)
 
     @action(detail=False, methods=["post"])
-    def sample_ids_by_default_selection_excepted_ids(self, request):
+    def sample_ids_by_default_selection_and_excepted_ids(self, request):
         default_selection = request.data.get("default_selection", False)
         excepted_sample_ids = request.data.get("excepted_sample_ids", [])
 
         samples = self.filter_queryset(self.get_queryset())
-        samples = defaultSelection_exceptedIDs(samples, default_selection, excepted_sample_ids)
+        if default_selection:
+            samples = samples.exclude(id__in=excepted_sample_ids)
+        else:
+            samples = samples.filter(id__in=excepted_sample_ids)
 
         return Response(samples.values_list("id", flat=True))
