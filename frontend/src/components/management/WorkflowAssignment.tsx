@@ -136,7 +136,7 @@ interface LabworkSampleActionsProps {
 function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
     const dispatch = useAppDispatch()
 
-    const [isFetching, setIsFetching] = useState(false)
+    const [isFetching, setIsFetching] = useState<string | undefined>()
     interface ActionInfo {
         study: Pick<FMSStudy, 'id' | 'letter'>
         workflow: FMSWorkflow['name']
@@ -163,7 +163,8 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
     const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<StudyWorkflow>()
 
     const refreshActions = useCallback(async () => {
-        const samples = await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(defaultSelection, exceptedSampleIDs, filters))
+        setIsFetching("Loading samples...")
+        const samples = await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(defaultSelection, exceptedSampleIDs, serializeFilterParamsWithDescriptions(filters)))
         const sampleIDs = samples.map(sample => sample.id)
 
         if (samples.length === 0) {
@@ -171,14 +172,13 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             setDequeueActions([])
             setStudyWorkflowsByProject({})
             setCommonProjects([])
-            setIsFetching(false)
+            setIsFetching(undefined)
             setSelectedProject(undefined)
             setSelectedStudyWorkflow(undefined)
             return
         }
 
-        setIsFetching(true)
-
+        setIsFetching("Loading pools...")
         const pooledSamples = (await dispatch(api.pooledSamples.list({ sample__id__in: sampleIDs.join(',') }))).data.results
         const projectsBySample = [...samples, ...pooledSamples].reduce<Record<Sample['id'], Set<Project['id']>>>((acc, sample) => {
             if ('pool_id' in sample) {
@@ -199,6 +199,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             return acc
         }, {})
 
+        setIsFetching("Loading common steps...")
         type StudyStepKey = `${Study['id']}-${Step['name']}`
         const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples(sampleIDs))).data.results
         const studyStepCount: Record<string, number> = {}
@@ -217,7 +218,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         }
         type StudyStepPair = [Study['id'], Step['name']]
         const commonStudySteps = Object.entries(studyStepCount).reduce<StudyStepPair[]>((acc, [key, count]) => {
-            if (count === sampleIDs.length) {
+            if (count > 0) {
                 const [study, stepName] = key.split('-')
                 acc.push([parseInt(study), stepName])
             }
@@ -225,6 +226,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         }, [])
         // console.info({ sampleIDs, sampleNextSteps, studyStepCount, sampleIDsByStudyStep, commonStudySteps })
 
+        setIsFetching("Loading projects...")
         const countByProjectID = Object.values(projectsBySample).reduce<Record<Project['id'], number>>((acc, projects) => {
             for (const project of projects) {
                 acc[project] = (acc[project] ?? 0) + 1
@@ -239,6 +241,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         // console.info({ projectsBySample, countByProjectID, commonProjects })
         setCommonProjects(commonProjects)
 
+        setIsFetching("Loading studies and workflows...")
         const studyByID = projectIDs.length === 0 ? [] : (await dispatch(api.studies.list({ project__id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
             acc[study.id] = study
             return acc
@@ -296,7 +299,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         }, []))
 
         setStudyWorkflowsByProject(studyWorkflowsByProject)
-        setIsFetching(false)
+        setIsFetching(undefined)
     }, [defaultSelection, dispatch, exceptedSampleIDs, filters])
 
     useEffect(() => {
@@ -315,7 +318,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
 
     const result = useMemo(() => {
         const result: JSX.Element[] = []
-        if (isFetching) return <Spin />
+        if (isFetching) return <Spin>{isFetching}</Spin>
         if (!defaultSelection && exceptedSampleIDs.length === 0) return <div>{`Please select samples to queue/dequeue.`}</div>
         if (commonProjects.length === 0) return <div>{`The selected samples don't share any project.`}</div>
         result.push(
@@ -366,7 +369,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                             const sampleIDs = (await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(
                                 defaultSelection,
                                 exceptedSampleIDs,
-                                filters
+                                serializeFilterParamsWithDescriptions(filters)
                             ))).map(sample => sample.id)
                             const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data
                             const samplesRemovedCount = removed.length
