@@ -67,6 +67,7 @@ class ContainerFilter(GenericFilter):
         }
 
 class SampleFilter(GenericFilter):
+    id__not__in = django_filters.CharFilter(method="id_not_in_filter")
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
@@ -74,6 +75,10 @@ class SampleFilter(GenericFilter):
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     is_pooled = django_filters.CharFilter(method="is_pooled_filter")
     metadata = django_filters.CharFilter(method="metadata_filter")
+
+    def id_not_in_filter(self, queryset, name, value):
+        ids = value.split(',')
+        return queryset.exclude(id__in=ids)
 
     def process_measurement_properties_filter(self, queryset, name, value):
         property_values = PropertyValue.objects.filter(property_type__name='qPCR Status')

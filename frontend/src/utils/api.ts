@@ -230,9 +230,6 @@ const api = {
       request: (options, template) => filteredpost(`/samples/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/samples/search/", { q }),
-    sample_ids_by_default_selection_and_excepted_ids(defaultSelection: boolean, exceptedSampleIDs: Array<FMSSample['id']>, queryParams?: QueryParams) {
-      return filteredpost<JsonResponse<Array<FMSSample['id']>>>('/samples/sample_ids_by_default_selection_and_excepted_ids/', queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection })
-    }
   },
 
   sampleMetadata: {

@@ -445,16 +445,3 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             raise ValidationError(errors)
         else:
             return Response(status=204)
-
-    @action(detail=False, methods=["post"])
-    def sample_ids_by_default_selection_and_excepted_ids(self, request):
-        default_selection = request.data.get("default_selection", False)
-        excepted_sample_ids = request.data.get("excepted_sample_ids", [])
-
-        samples = self.filter_queryset(self.get_queryset())
-        if default_selection:
-            samples = samples.exclude(id__in=excepted_sample_ids)
-        else:
-            samples = samples.filter(id__in=excepted_sample_ids)
-
-        return Response(samples.values_list("id", flat=True))

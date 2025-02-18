@@ -16,6 +16,7 @@ import api from "../../utils/api";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable";
 import SamplesTableActions from '../../modules/samplesTable/actions'
 import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeFilterParamsTS";
+import { fetchSamplesByDefaultSelectionAndExceptedIDs } from "../pagedItemsTable/functions";
 
 const MAX_SELECTION = 960
 
@@ -162,13 +163,10 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
     const [selectedStudyWorkflow, setSelectedStudyWorkflow] = useState<StudyWorkflow>()
 
     const refreshActions = useCallback(async () => {
-        const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_and_excepted_ids(
-            defaultSelection,
-            exceptedSampleIDs,
-            serializeFilterParamsWithDescriptions(filters)
-        ))).data
+        const samples = await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(defaultSelection, exceptedSampleIDs, filters))
+        const sampleIDs = samples.map(sample => sample.id)
 
-        if (sampleIDs.length === 0) {
+        if (samples.length === 0) {
             setQueueActions([])
             setDequeueActions([])
             setStudyWorkflowsByProject({})
@@ -181,9 +179,8 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
 
         setIsFetching(true)
 
-        const nonPooledSamples = (await fetchSamples(sampleIDs))
         const pooledSamples = (await dispatch(api.pooledSamples.list({ sample__id__in: sampleIDs.join(',') }))).data.results
-        const projectsBySample = [...nonPooledSamples, ...pooledSamples].reduce<Record<Sample['id'], Set<Project['id']>>>((acc, sample) => {
+        const projectsBySample = [...samples, ...pooledSamples].reduce<Record<Sample['id'], Set<Project['id']>>>((acc, sample) => {
             if ('pool_id' in sample) {
                 // handle pooled samples
                 if (!acc[sample.pool_id]) {
@@ -366,11 +363,11 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                         if (!selectedProject) return
                         const project = projectByID[selectedProject]
                         try {
-                            const sampleIDs = (await dispatch(api.samples.sample_ids_by_default_selection_and_excepted_ids(
+                            const sampleIDs = (await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(
                                 defaultSelection,
                                 exceptedSampleIDs,
-                                serializeFilterParamsWithDescriptions(filters)
-                            ))).data
+                                filters
+                            ))).map(sample => sample.id)
                             const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data
                             const samplesRemovedCount = removed.length
                             dispatch(notifySuccess({
