@@ -175,6 +175,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             setIsFetching(undefined)
             setSelectedProject(undefined)
             setSelectedStudyWorkflow(undefined)
+            setIsFetching(undefined)
             return
         }
 
@@ -200,31 +201,28 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         }, {})
 
         setIsFetching("Loading common steps...")
-        type StudyStepKey = `${Study['id']}-${Step['name']}`
-        const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples(sampleIDs))).data.results
+        type StudyStepOrderKey = `${FMSSampleNextStepByStudy['study']}-${FMSSampleNextStepByStudy['step_order']}`
+        const sampleNextStepByStudyList = (await dispatch(api.sampleNextStepByStudy.getStudySamples({ sample_next_step__sample__id__in: sampleIDs.join(','), limit: 10000 }))).data.results
         const studyStepCount: Record<string, number> = {}
-        const sampleIDsByStudyStep: Record<StudyStepKey, Set<Sample['id']>> = {}
-        for (const sampleNextStep of sampleNextSteps) {
-            for (const study of sampleNextStep.studies) {
-                const key: StudyStepKey = `${study}-${sampleNextStep.step.name}`
+        const sampleIDsByStudyStep: Record<StudyStepOrderKey, Set<Sample['id']>> = {}
+        for (const { study, step_order, sample } of sampleNextStepByStudyList) {
+            const key: StudyStepOrderKey = `${study}-${step_order}`
 
-                studyStepCount[key] = (studyStepCount[key] ?? 0) + 1
+            studyStepCount[key] = (studyStepCount[key] ?? 0) + 1
 
-                if (!sampleIDsByStudyStep[key]) {
-                    sampleIDsByStudyStep[key] = new Set()
-                }
-                sampleIDsByStudyStep[key].add(sampleNextStep.sample)
+            if (!sampleIDsByStudyStep[key]) {
+                sampleIDsByStudyStep[key] = new Set()
             }
+            sampleIDsByStudyStep[key].add(sample)
         }
-        type StudyStepPair = [Study['id'], Step['name']]
+        type StudyStepPair = [FMSSampleNextStepByStudy['study'], FMSSampleNextStepByStudy['step_order']]
         const commonStudySteps = Object.entries(studyStepCount).reduce<StudyStepPair[]>((acc, [key, count]) => {
             if (count > 0) {
-                const [study, stepName] = key.split('-')
-                acc.push([parseInt(study), stepName])
+                const [study, stepOrder] = key.split('-')
+                acc.push([parseInt(study), parseInt(stepOrder)])
             }
             return acc
         }, [])
-        // console.info({ sampleIDs, sampleNextSteps, studyStepCount, sampleIDsByStudyStep, commonStudySteps })
 
         setIsFetching("Loading projects...")
         const countByProjectID = Object.values(projectsBySample).reduce<Record<Project['id'], number>>((acc, projects) => {
@@ -257,10 +255,10 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         // console.info({ studyByID, workflowByID })
 
         setDequeueActions(
-            commonStudySteps.reduce<ActionInfo[]>((dequeueActions, [studyID, stepName]) => {
+            commonStudySteps.reduce<ActionInfo[]>((dequeueActions, [studyID, stepOrder]) => {
                 const workflow = workflowByID[studyByID[studyID].workflow_id]
-                const stepOrder = workflow.steps_order.find(stepOrder => stepOrder.step_name === stepName)?.order
-                if (stepOrder === undefined) return dequeueActions
+                const stepName = workflow.steps_order.find(s => s.order === stepOrder)?.step_name
+                if (stepName === undefined) return dequeueActions
                 dequeueActions.push({
                     study: studyByID[studyID],
                     workflow: workflow.name,
@@ -308,13 +306,6 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
 
     const projectByID = useAppSelector(selectProjectsByID)
     const sampleByID = useAppSelector(selectSamplesByID)
-
-    // console.info({
-    //     commonProjects,
-    //     studyWorkflowsByProject,
-    //     selectedProject,
-    //     selectedStudyWorkflow,
-    // })
 
     const result = useMemo(() => {
         const result: JSX.Element[] = []
@@ -418,11 +409,11 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                             }))
                             await refreshActions()
                         } catch (error) {
-                            const errors = error.data['queue_sample_to_study_workflow']
+                            const errors: string[] | undefined = error.data?.['queue_sample_to_study_workflow']
                             dispatch(notifyError({
                                 id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
                                 title: "Error queuing samples to workflow",
-                                description: `${errors[0]}${errors[0].endsWith('.') ? '' : '.'}${errors.length > 1 ? ' And ' + (errors.length - 1) + ' more errors...' : ''}`,
+                                description: errors ? `${errors[0]}${errors[0].endsWith('.') ? '' : '.'}${errors.length > 1 ? ' And ' + (errors.length - 1) + ' more errors...' : ''}` : `Could not queue samples to study ${action.study.letter} at step "${action.step}" for project ${project.name}".`,
                                 duration: 5
                             }))
                         }

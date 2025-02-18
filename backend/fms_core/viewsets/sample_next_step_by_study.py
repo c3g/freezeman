@@ -79,15 +79,15 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         errors = []
         removed = {}
         try:
-            sample_by_id: dict[int, Sample] = {sample_id: None for sample_id, _, _ in values_list}
-            study_by_id: dict[int, Study] = {study_id: None for _, study_id, _ in values_list}
+            sample_by_id: dict[int, Sample] = {}
+            study_by_id: dict[int, Study] = {}
             for sample_id, study_id, order in values_list:
-                if sample_by_id[sample_id] is None:
+                if sample_by_id.get(sample_id) is None:
                     sample_by_id[sample_id] = Sample.objects.get(id=sample_id)
-                if study_by_id[study_id] is None:
+                if study_by_id.get(study_id) is None:
                     study_by_id[study_id] = Study.objects.get(id=study_id)
             with transaction.atomic():
-                for sample_id, study_id, order in values_list:
+                for sample_id, study_id, order in zip(sample_by_id, study_by_id):
                     sample = sample_by_id[sample_id]
                     study = study_by_id[study_id]
                     newremoved, newerrors, _ = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample, study, order)

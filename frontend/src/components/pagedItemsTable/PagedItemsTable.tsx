@@ -165,25 +165,17 @@ function PagedItemsTable<T extends object>({
 	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
 	const onSelectMultiple = useCallback((keys: React.Key[]) => {
 		if (pagedItems.page?.pageNumber !== undefined && pagedItems.page.limit !== undefined) {
-			const offset = (pagedItems.page.pageNumber - 1) * pagedItems.page.limit
-			const keysOnPage = pagedItems.items.slice(offset, offset + pagedItems.page.limit).map((id) => id.toString() as React.Key)
-			const missingKeys = keysOnPage.filter((key) => !keys.includes(key))
 			const newExceptedItems = defaultSelection
 				// if defaultSelection is true, we want to remove items in keys from exceptedItems to select them
 				? exceptedItems.filter((key) => !keys.includes(key))
 				// if defaultSelection is false, we want to add new items to exceptedItems to select them
 				: [...exceptedItems, ...keys]
-			console.info('onSelectMultiple', {
-				keys,
-				keysOnPage,
-				missingKeys,
-			})
 			setExceptedItems(newExceptedItems)
 			if (selection) {
 				selection.onSelectionChanged(newExceptedItems, defaultSelection)
 			}
 		}
-	}, [defaultSelection, exceptedItems, pagedItems.items, pagedItems?.page?.limit, pagedItems?.page?.pageNumber, selection])
+	}, [defaultSelection, exceptedItems, pagedItems.page?.limit, pagedItems.page?.pageNumber, selection])
 	const selectedRowKeys = useMemo(() =>
 		defaultSelection
 			? pagedItems.items.map((id) => id.toString()).filter((key) => !exceptedItems.includes(key))
