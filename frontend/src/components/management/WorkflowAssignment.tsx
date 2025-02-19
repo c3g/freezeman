@@ -11,12 +11,11 @@ import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../..
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { usePagedItemsActionsCallbacks } from "../pagedItemsTable/usePagedItemsActionCallbacks";
-import { useQueryParamsForPagedItems } from "../../models/hooks";
 import api from "../../utils/api";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable";
 import SamplesTableActions from '../../modules/samplesTable/actions'
 import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeFilterParamsTS";
-import { fetchSamplesByDefaultSelectionAndExceptedIDs } from "../pagedItemsTable/functions";
+import { fetchSamplesByDefaultSelectionAndExceptedIDs, useQueryParamsForPagedItems } from "../pagedItemsTable/functions";
 
 const MAX_SELECTION = 960
 
@@ -289,7 +288,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                     workflow: workflow.name,
                     step: stepOrder.step_name,
                     stepOrder: stepOrder.order,
-                    alreadyQueued: [...sampleIDsByStudyStep[`${study.id}-${stepOrder.step_name}`] ?? []]
+                    alreadyQueued: [...sampleIDsByStudyStep[`${study.id}-${stepOrder.id}`] ?? []]
                 })
             }
             return queueActions
