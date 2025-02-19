@@ -120,10 +120,10 @@ const MENU_ITEMS = [
     key: "management",
     children: [
       {
-        url: "/management/workflow-samples",
+        url: "/management/workflow-assignment",
         icon: <RetweetOutlined />,
-        text: "Workflow Samples",
-        key: "workflow-samples",
+        text: "Workflow Assignment",
+        key: "workflow-assignment",
       },
     ]
   },
@@ -386,7 +386,7 @@ const App = ({userID, usersByID, logOut, get}) => {
                 <LabworkPage />
               </PrivateNavigate>
             } />
-            <Route path="/management/workflow-samples" element={
+            <Route path="/management/workflow-assignment" element={
               <PrivateNavigate>
                 <WorkflowAssigmentPage />
               </PrivateNavigate>

@@ -71,7 +71,7 @@ const ContainersDetailContent = () => {
           !isLoaded ? null :
             <Space>
               <Button onClick={() => navigate(
-                `/lab-work/samples?${(container?.children.length ?? 0) > 0 ? 'container__location__barcode=' : 'container__barcode='}${container?.barcode}`
+                `/management/workflow-assignment?${(container?.children.length ?? 0) > 0 ? 'container__location__barcode=' : 'container__barcode='}${container?.barcode}`
               )}>Manage Workflow</Button>
               <EditButton url={`/containers/${id}/update`} />
             </Space>

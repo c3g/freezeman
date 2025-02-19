@@ -5,7 +5,7 @@ import { WorkflowAssignment } from "./WorkflowAssignment";
 
 export function WorkflowAssigmentPage() {
   return (<>
-        <AppPageHeader title="Queue/Dequeue Samples and Libraries to Workflow Step" />
+        <AppPageHeader title="Manage Assignment of Samples to Study Workflows" />
         <PageContent>
             <WorkflowAssignment />
         </PageContent>
