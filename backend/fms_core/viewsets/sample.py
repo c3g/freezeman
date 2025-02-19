@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from django.db.models import Q, When, Case, BooleanField, Prefetch, Count, Subquery, OuterRef
 from django.core.exceptions import ValidationError
 from django.db import transaction
-import datetime
 
 from ..utils import RE_SEPARATOR
 
@@ -344,24 +343,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         return Response(serialized_data[0] if serialized_data else {})
 
     def list(self, _request, *args, **kwargs):
-        start = datetime.datetime.now()
         self.queryset = self.filter_queryset(self.get_queryset())
-        queryset_end = datetime.datetime.now()
-        print(f"Time to get queryset : {queryset_end - start}")
         serialized_data, count = self.fetch_data()
-        end = datetime.datetime.now()
-        print(f"Total execution time : {end - start}.")
         return Response({"results": serialized_data, "count": count})
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        start = datetime.datetime.now()
         self.queryset = self.filter_queryset(self.get_queryset())
-        queryset_end = datetime.datetime.now()
-        print(f"Time to get queryset : {queryset_end - start}")
         serialized_data = self.fetch_export_data()
-        end = datetime.datetime.now()
-        print(f"Total execution time : {end - start}.")
         return Response(serialized_data)
 
     @action(detail=False, methods=["get"])

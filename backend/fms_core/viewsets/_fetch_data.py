@@ -3,20 +3,13 @@ import json
 import datetime
 from typing import List, Tuple
 from collections import defaultdict
-from django.db.models import Q, ExpressionWrapper, BooleanField, QuerySet, Subquery, OuterRef, Func, F
+from django.db.models import Q, ExpressionWrapper, BooleanField
 
 from fms.settings import REST_FRAMEWORK
 from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement, SampleMetadata, DerivedBySample, Project
 from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
 from ..utils import decimal_rounded_to_precision
-
-def count_derived_by_sample(queryset: QuerySet) -> QuerySet:
-    return queryset.annotate(count_derived_by_sample=Subquery(
-        DerivedBySample.objects
-            .filter(sample=OuterRef("pk"))
-            .annotate(derivedbysample_count=Func(F('id'), function='Count'))
-            .values('derivedbysample_count')[:1]))
 
 class FetchData:
     """
@@ -89,42 +82,11 @@ class FetchSampleData(FetchData):
         Returns:
             Returns a tuple of a list of serialized data dictionary (samples) and the count before pagination
         """
-        fetch_start = datetime.datetime.now()
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
-        init_end = datetime.datetime.now()
-        print(f"Init time : {init_end - fetch_start}.")
         self.queryset = self.queryset.values('id')
 
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
-        count_end = datetime.datetime.now()
-        print(f"Time to count : {count_end - fetch_start}.")
 
-        """
-        self.queryset = count_derived_by_sample(self.filter_queryset(self.get_queryset()))
-        self.queryset = self.queryset.values(
-            'id',
-            'name',
-            'container_id',
-            'coordinate_id',
-            'volume',
-            'concentration',
-            'fragment_size',
-            'creation_date',
-            'quality_flag',
-            'quantity_flag',
-            'depleted',
-            'comment',
-            'count_derived_samples',
-            'first_derived_sample',
-            'first_project_id',
-            'created_by',
-            'created_at',
-            'updated_by',
-            'updated_at',
-            'deleted',
-            'count_derived_by_sample',
-        )
-        """
         self.queryset = self.filter_queryset(self.get_queryset())
         self.queryset = self.queryset.values(
             'id',
@@ -149,15 +111,10 @@ class FetchSampleData(FetchData):
         if self.fetch_limit is not None and self.fetch_offset is not None:
             self.queryset = self.queryset[self.fetch_offset:self.fetch_offset+self.fetch_limit] # page the queryset
 
-        main_query_end = datetime.datetime.now()
-        print(f"Time to main query : {main_query_end - fetch_start}.")
-
         if not self.queryset:
             return ([], 0) # Do not lose time processing data for an empty queryset
         else:
             samples = {s["id"]: s for s in self.queryset}
-            temp_end = datetime.datetime.now()
-            print(f"Time to temp : {temp_end - fetch_start}.")
             samples_ids = samples.keys() 
             derived_by_sample_values_queryset = (
                 DerivedBySample.objects
@@ -179,13 +136,9 @@ class FetchSampleData(FetchData):
                 )
             )
 
-            derived_end = datetime.datetime.now()
-            print(f"Time to derived : {derived_end - fetch_start}.")
-
             derived_by_samples = defaultdict(list)
             for dbs in derived_by_sample_values_queryset:
                 derived_by_samples[dbs["sample_id"]].append(dbs)
-            print(derived_by_samples)
 
             # Building subquery Process measurement
             pms = ProcessMeasurement.objects.filter(source_sample_id__in=samples_ids).values("source_sample_id", "id")
@@ -200,22 +153,15 @@ class FetchSampleData(FetchData):
             for sample_parent in samples_parent:
                 childs_of[sample_parent["child_id"]] = sample_parent["parent_id"]
 
-            child_end = datetime.datetime.now()
-            print(f"Time to child : {child_end - fetch_start}.")
-
             # Checking for extracted_from
             samples_extracted_from = samples_parent.filter(process_measurement__process__protocol__name="Extraction")
             extract_by_sample = {}
             for extracted in samples_extracted_from:
                 extract_by_sample[extracted["child_id"]] = extracted["parent_id"]
 
-            extracted_end = datetime.datetime.now()
-            print(f"Time to extracted : {extracted_end - fetch_start}.")
-
             serialized_data = []
             for sample in samples.values():
                 derived_by_sample = derived_by_samples[sample["id"]][0]
-                print(derived_by_sample)
                 is_pool = len(derived_by_samples[sample["id"]]) > 1
                 is_library = derived_by_sample["is_library"]
                 process_measurements = pms_by_sample[sample["id"]]
@@ -269,7 +215,6 @@ class FetchSampleData(FetchData):
         Returns:
             Returns a list of serialized data dictionary (samples)
         """
-        fetch_start = datetime.datetime.now()
         super().fetch_export_data(ids) # Initialize queryset by calling base abstract function
 
         # full location
@@ -341,9 +286,6 @@ class FetchSampleData(FetchData):
             'comment',
         )
         samples = {s["id"]: s for s in self.queryset}
-
-        main_query_end = datetime.datetime.now()
-        print(f"Time to main query : {main_query_end - fetch_start}.")
 
         samples_ids = samples.keys() 
         derived_by_sample_values_queryset = (
@@ -603,12 +545,11 @@ class FetchLibraryData(FetchData):
             serialized_data = []
             for sample in samples.values():
                 derived_by_sample = derived_by_samples[sample["id"]][0]
-                print(derived_by_sample)
                 is_pool = len(derived_by_samples[sample["id"]]) > 1
                 concentration_nm = None
                 if sample["concentration"] is not None:
                     concentration_nm, _, _ = convert_library_concentration_from_ngbyul_to_nm(Sample.objects.get(id=sample["id"]),
-                                                                                            sample["concentration"])
+                                                                                             sample["concentration"])
                 data = {
                     'id': sample["id"],
                     'biosample_id': derived_by_sample["derived_sample__biosample_id"] if not is_pool else None,
