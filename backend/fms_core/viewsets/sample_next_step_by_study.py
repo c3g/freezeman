@@ -76,6 +76,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
             return HttpResponseBadRequest("No step order provided.")
         queryset = self.get_queryset().filter(sample_next_step__sample__id__in=sample_ids, study=study, step_order__order=stepOrder)
         values_list = queryset.values_list("sample_next_step__sample", "study", "step_order__order")
+        values_list = list(values_list)
         errors = []
         removed = {}
         try:
@@ -87,7 +88,7 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
                 if study_by_id.get(study_id) is None:
                     study_by_id[study_id] = Study.objects.get(id=study_id)
             with transaction.atomic():
-                for sample_id, study_id, order in zip(sample_by_id, study_by_id):
+                for sample_id, study_id, order in values_list:
                     sample = sample_by_id[sample_id]
                     study = study_by_id[study_id]
                     newremoved, newerrors, _ = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample, study, order)

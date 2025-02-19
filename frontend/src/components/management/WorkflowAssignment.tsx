@@ -172,7 +172,6 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             setDequeueActions([])
             setStudyWorkflowsByProject({})
             setCommonProjects([])
-            setIsFetching(undefined)
             setSelectedProject(undefined)
             setSelectedStudyWorkflow(undefined)
             setIsFetching(undefined)
@@ -215,8 +214,8 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             }
             sampleIDsByStudyStep[key].add(sample)
         }
-        type StudyStepPair = [FMSSampleNextStepByStudy['study'], FMSSampleNextStepByStudy['step_order']]
-        const commonStudySteps = Object.entries(studyStepCount).reduce<StudyStepPair[]>((acc, [key, count]) => {
+        type StudyStepOrderPair = [FMSSampleNextStepByStudy['study'], FMSSampleNextStepByStudy['step_order']]
+        const commonStudySteps = Object.entries(studyStepCount).reduce<StudyStepOrderPair[]>((acc, [key, count]) => {
             if (count > 0) {
                 const [study, stepOrder] = key.split('-')
                 acc.push([parseInt(study), parseInt(stepOrder)])
@@ -255,15 +254,15 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         // console.info({ studyByID, workflowByID })
 
         setDequeueActions(
-            commonStudySteps.reduce<ActionInfo[]>((dequeueActions, [studyID, stepOrder]) => {
+            commonStudySteps.reduce<ActionInfo[]>((dequeueActions, [studyID, stepOrderID]) => {
                 const workflow = workflowByID[studyByID[studyID].workflow_id]
-                const stepName = workflow.steps_order.find(s => s.order === stepOrder)?.step_name
-                if (stepName === undefined) return dequeueActions
+                const workflowStepOrder = workflow.steps_order.find(s => s.id === stepOrderID)
+                if (workflowStepOrder == undefined) return dequeueActions
                 dequeueActions.push({
                     study: studyByID[studyID],
                     workflow: workflow.name,
-                    step: stepName,
-                    stepOrder: stepOrder,
+                    step: workflowStepOrder.step_name,
+                    stepOrder: workflowStepOrder.order,
                     alreadyQueued: [],
                 })
                 return dequeueActions
@@ -357,12 +356,14 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                         if (!selectedProject) return
                         const project = projectByID[selectedProject]
                         try {
+                            setIsFetching(`Dequeuing samples...`)
                             const sampleIDs = (await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(
                                 defaultSelection,
                                 exceptedSampleIDs,
                                 serializeFilterParamsWithDescriptions(filters)
                             ))).map(sample => sample.id)
                             const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data
+                            setIsFetching(undefined)
                             const samplesRemovedCount = removed.length
                             dispatch(notifySuccess({
                                 id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
@@ -401,12 +402,14 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                         if (!selectedProject) return
                         const project = projectByID[selectedProject]
                         try {
+                            setIsFetching(`Queueing samples...`)
                             await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, selectedProject, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
                             dispatch(notifySuccess({
                                 id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
                                 title: "Samples queued to workflow",
                                 description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${project.name}"`
                             }))
+                            setIsFetching(undefined)
                             await refreshActions()
                         } catch (error) {
                             const errors: string[] | undefined = error.data?.['queue_sample_to_study_workflow']
