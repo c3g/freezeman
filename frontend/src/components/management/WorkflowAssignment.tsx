@@ -353,7 +353,6 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                             serializeFilterParamsWithDescriptions(filters)
                         ))).map(sample => sample.id)
                         const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data
-                        setIsFetching(undefined)
                         const samplesRemovedCount = removed.length
                         dispatch(notifySuccess({
                             id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
@@ -367,6 +366,8 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                             title: "Error dequeuing samples from workflow",
                             description: `Failed to dequeue samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}".`
                         }))
+                    } finally {
+                        setIsFetching(undefined)
                     }
                 }} type="primary">{`${action.stepOrder}-${action.step}`}</Button>
             })
@@ -387,7 +388,6 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                                 title: "Samples queued to workflow",
                                 description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${project.name}"`
                             }))
-                            setIsFetching(undefined)
                             await refreshActions()
                         } catch (error) {
                             const errors: string[] | undefined = error.data?.['queue_sample_to_study_workflow']
@@ -397,6 +397,8 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                                 description: errors ? `${errors[0]}${errors[0].endsWith('.') ? '' : '.'}${errors.length > 1 ? ' And ' + (errors.length - 1) + ' more errors...' : ''}` : `Could not queue samples to study ${action.study.letter} at step "${action.step}" for project ${project.name}".`,
                                 duration: 5
                             }))
+                        } finally {
+                            setIsFetching(undefined)
                         }
                     }} type="primary">{`${action.stepOrder}-${action.step}`}</Button>
                 return action.alreadyQueued.length > 0 ? <Popover
