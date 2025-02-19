@@ -234,7 +234,6 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             id: project.id,
             name: project.name
         }))
-        // console.info({ projectsBySample, countByProjectID, commonProjects })
         setCommonProjects(commonProjects)
 
         setIsFetching("Loading studies and workflows...")
@@ -250,7 +249,6 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             acc[workflow.id] = workflow
             return acc
         }, {})
-        // console.info({ studyByID, workflowByID })
 
         setDequeueActions(
             commonStudySteps.reduce<ActionInfo[]>((dequeueActions, [studyID, stepOrderID]) => {
