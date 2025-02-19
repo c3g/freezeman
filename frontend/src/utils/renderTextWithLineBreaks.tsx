@@ -3,7 +3,7 @@ import { Typography } from "antd"
 
 const { Paragraph } = Typography
 
-export default function renderTextWithLineBreaks (text: string, ellipsis: boolean=false) {
+export default function renderTextWithLineBreaks(text: string, ellipsis = false) {
   return (
     <div style={{ whiteSpace: 'pre-wrap' }}>
       <Paragraph ellipsis={ellipsis ? { rows: 2, expandable: true, symbol: "more" } : false}>
