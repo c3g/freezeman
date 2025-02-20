@@ -77,7 +77,7 @@ export default function LibariesListContent() {
 
 	// Tweak the column definitions a bit for this table.
 	const tweakedColumns = useMemo(() => {
-		const MEDIUM_COLUMN_WIDTH = 150
+		const MEDIUM_COLUMN_WIDTH = 170
 		const LARGE_COLUMN_WIDTH = 270
 
 		// Set the widths of selected columns in this table.

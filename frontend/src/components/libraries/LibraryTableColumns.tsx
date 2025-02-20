@@ -9,6 +9,7 @@ import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
 import { QCFlag } from '../QCFlag'
 import { Depletion } from '../Depletion'
+import { Typography } from 'antd'
 
 /*
 	Defines a set of Ant Table column descriptors for library fields. Each column
@@ -54,9 +55,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		columnID: LibraryColumnID.CONCENTRATION_NM,
 		title: 'Conc. (nM)',
 		dataIndex: ['library', 'concentration_nm'],
-		align: 'right',
-		className: 'table-column-numbers',
-		render: (conc) => isNullish(conc) ? '' : parseFloat(conc).toFixed(3),
+		render: (conc) => isNullish(conc) ? '' : <Typography className='table-column-numbers' style={{float: 'right'}}>{parseFloat(conc).toFixed(3)}</Typography>,
 		sorter: { multiple: 1 }
 	},
 
@@ -84,9 +83,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		columnID: LibraryColumnID.LIBRARY_SIZE,
 		title: 'Library Size',
 		dataIndex: ['library', 'library_size'],
-		align: 'right',
-		className: 'table-column-numbers',
-		render: (library_size) => library_size && <span>{library_size}</span>,
+		render: (library_size) => library_size && <Typography className='table-column-numbers' style={{float: 'right'}}>{library_size}</Typography>,
 		sorter: { multiple: 1 }
 	},
 
@@ -132,9 +129,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		columnID: LibraryColumnID.NA_QUANTITY,
 		title: 'NA Qty (ng)',
 		dataIndex: ['library', 'quantity_ng'],
-		align: 'right',
-		className: 'table-column-numbers',
-		render: (qty) => qty && parseFloat(qty).toFixed(3),
+		render: (qty) => qty && <Typography className='table-column-numbers' style={{float: 'right'}}>{parseFloat(qty).toFixed(3)}</Typography>,
 		sorter: { multiple: 1 }
 	},
 
@@ -213,8 +208,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		columnID: LibraryColumnID.VOLUME,
 		title: 'Vol. (µL)',
 		dataIndex: ['library', 'volume'],
-		align: 'right',
-		className: 'table-column-numbers',
+    render: (_, { library }) => library && !isNullish(library.volume) && <Typography className='table-column-numbers' style={{float: 'right'}}>{library.volume}</Typography>,
 		sorter: { multiple: 1 }
 	},
 
@@ -222,9 +216,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		columnID: LibraryColumnID.CONCENTRATION,
 		title: 'Conc. (ng/µL)',
 		dataIndex: ['library', 'concentration'],
-		align: 'right',
-		className: 'table-column-numbers',
-		render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
+		render: (conc) => (conc !== null ? <Typography className='table-column-numbers' style={{float: 'right'}}>{parseFloat(conc).toFixed(3)}</Typography> : null),
 		sorter: { multiple: 1 }
 	},
 
