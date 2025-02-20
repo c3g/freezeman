@@ -141,6 +141,19 @@ function PagedItemsTable<T extends object>({
 	const allIsSelected = (!defaultSelection && exceptedItems.length === pagedItems.totalCount) || (defaultSelection && exceptedItems.length === 0)
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
+	const setDefaultSelectionAndExceptedItems = useCallback((defaultSelection: boolean, exceptedItems: React.Key[]) => {
+		if (defaultSelection && exceptedItems.length === pagedItems.totalCount) {
+			setDefaultSelection(false)
+			setExceptedItems([])
+		} else if (!defaultSelection && exceptedItems.length === pagedItems.totalCount) {
+			setDefaultSelection(true)
+			setExceptedItems([])
+		} else {
+			setDefaultSelection(defaultSelection)
+			setExceptedItems(exceptedItems)
+		}
+	}, [pagedItems.totalCount])
+
 	const onSelectAll = useCallback(() => {
 		const newExceptedItems = []
 		const newDefaultSelection = !allIsSelected
@@ -158,24 +171,33 @@ function PagedItemsTable<T extends object>({
 		} else {
 			newExceptedItems = [...exceptedItems, key]
 		}
-		setExceptedItems(newExceptedItems)
+		setDefaultSelectionAndExceptedItems(defaultSelection, newExceptedItems)
 		if (selection) {
 			selection.onSelectionChanged(newExceptedItems, defaultSelection)
 		}
-	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
+	}, [getRowKeyForDataObject, exceptedItems, setDefaultSelectionAndExceptedItems, defaultSelection, selection])
 	const onSelectMultiple = useCallback((keys: React.Key[]) => {
-		if (pagedItems.page?.pageNumber !== undefined && pagedItems.page.limit !== undefined) {
-			const newExceptedItems = defaultSelection
-				// if defaultSelection is true, we want to remove items in keys from exceptedItems to select them
-				? exceptedItems.filter((key) => !keys.includes(key))
-				// if defaultSelection is false, we want to add new items to exceptedItems to select them
-				: [...exceptedItems, ...keys]
-			setExceptedItems(newExceptedItems)
-			if (selection) {
-				selection.onSelectionChanged(newExceptedItems, defaultSelection)
-			}
+		const newExceptedItems: React.Key[] = []
+		const pageItems = pagedItems.items.map((id) => id.toString() as React.Key)
+		if (defaultSelection) {
+			const exceptedItemSet = new Set(exceptedItems)
+			const currentlySelectedItemsInPage = pageItems.filter((id) => exceptedItemSet.has(id))
+			const removedItems = currentlySelectedItemsInPage.filter((id) => keys.includes(id))
+			const addedItems = keys.filter((id) => !currentlySelectedItemsInPage.includes(id))
+			newExceptedItems.push(...exceptedItems.filter((id) => !addedItems.includes(id)))
+			newExceptedItems.push(...removedItems)
+		} else {
+			const currentlySelectedItemsInPage = exceptedItems.filter((id) => pageItems.includes(id))
+			const removedItems = currentlySelectedItemsInPage.filter((id) => !keys.includes(id))
+			const addedItems = keys.filter((id) => !currentlySelectedItemsInPage.includes(id))
+			newExceptedItems.push(...exceptedItems.filter((id) => !removedItems.includes(id)))
+			newExceptedItems.push(...addedItems)
 		}
-	}, [defaultSelection, exceptedItems, pagedItems.page?.limit, pagedItems.page?.pageNumber, selection])
+		setDefaultSelectionAndExceptedItems(defaultSelection, newExceptedItems)
+		if (selection) {
+			selection.onSelectionChanged(newExceptedItems, defaultSelection)
+		}
+	}, [defaultSelection, exceptedItems, pagedItems.items, selection, setDefaultSelectionAndExceptedItems])
 	const selectedRowKeys = useMemo(() =>
 		defaultSelection
 			? pagedItems.items.map((id) => id.toString()).filter((key) => !exceptedItems.includes(key))
