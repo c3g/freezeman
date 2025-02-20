@@ -239,7 +239,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.VOLUME,
 		title: 'Vol. (µL)',
 		dataIndex: ['sample', 'volume'],
-    render: (_, { sample }) => sample && sample.volume!==undefined && <Typography className='table-column-numbers' style={{float: 'right'}}>{sample.volume}</Typography>,
+    render: (_, { sample }) => sample && !isNullish(sample.volume) && <Typography className='table-column-numbers' style={{float: 'right'}}>{sample.volume}</Typography>,
 		width: MEDIUM_COLUMN_WIDTH,
 		sorter: { multiple: 1 },
 	},

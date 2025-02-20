@@ -208,7 +208,7 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		columnID: LibraryColumnID.VOLUME,
 		title: 'Vol. (µL)',
 		dataIndex: ['library', 'volume'],
-    render: (_, { library }) => library && library.volume!==undefined && <Typography className='table-column-numbers' style={{float: 'right'}}>{library.volume}</Typography>,
+    render: (_, { library }) => library && !isNullish(library.volume) && <Typography className='table-column-numbers' style={{float: 'right'}}>{library.volume}</Typography>,
 		sorter: { multiple: 1 }
 	},
 
