@@ -34,6 +34,9 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
             samplesTableCallbacks.clearFixedFiltersCallback()
             samplesTableCallbacks.setFixedFilterCallback(fixedFilter)
             samplesTableCallbacks.refreshPageCallback()
+            return () => {
+                samplesTableCallbacks.clearFixedFiltersCallback()
+            }
         }
     }, [fixedFilter, samplesTableCallbacks])
 
