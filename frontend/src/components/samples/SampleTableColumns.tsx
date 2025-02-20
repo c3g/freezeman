@@ -333,6 +333,9 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		},
 	},
 }
+for (const columnID in SAMPLE_COLUMN_DEFINITIONS) {
+	SAMPLE_COLUMN_DEFINITIONS[columnID as keyof typeof SAMPLE_COLUMN_DEFINITIONS].showSorterTooltip = false
+}
 
 /**
  * Defines the set of filters that can be applied to sample columns.

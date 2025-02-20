@@ -122,7 +122,7 @@ const MENU_ITEMS = [
       {
         url: "/management/workflow-assignment",
         icon: <RetweetOutlined />,
-        text: "Workflow Assignment",
+        text: "Assign Workflow",
         key: "workflow-assignment",
       },
     ]
