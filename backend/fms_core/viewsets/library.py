@@ -1,11 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery, IntegerField
-from collections import Counter, defaultdict
+from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery
+from collections import defaultdict
 
 from fms_core.filters import LibraryFilter
-from fms_core.models import Sample, Container, DerivedBySample, LibraryType, Library
+from fms_core.models import Sample, Container, DerivedBySample
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
 from fms_core.templates import ( EXPERIMENT_MGI_TEMPLATE,
@@ -29,57 +29,7 @@ from ._fetch_data import FetchLibraryData
 from ._constants import _library_filterset_fields
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchLibraryData):
-    queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
-    queryset = queryset.annotate(
-        qc_flag=Case(
-            When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
-            When(Q(quality_flag=True) | Q(quantity_flag=True), then=True),
-            default=None,
-            output_field=BooleanField()
-        )
-    )
-    queryset = queryset.annotate(
-        count_derived_samples=Count("derived_samples")
-    )
-    queryset = queryset.annotate(
-        quantity_ng=F('concentration')*F('volume')
-    )
-    queryset = queryset.annotate(
-        first_volume_ratio=Subquery(
-            DerivedBySample.objects
-            .filter(sample=OuterRef("pk"))
-            .values_list("volume_ratio", flat=True)[:1]
-        )
-    )
-    queryset = queryset.annotate(
-        first_project_id=Subquery(
-            DerivedBySample.objects
-            .filter(sample=OuterRef("pk"))
-            .values_list("project_id", flat=True)[:1]
-        )
-    )
-    queryset = queryset.annotate(
-        is_pooled=Case(
-            When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
-            default=False,
-            output_field=BooleanField()
-        )
-    )
-    queryset = queryset.annotate(
-        sample_strandedness=Case(
-            When(Q(is_pooled__exact=True), then=None),
-            When(Q(is_pooled__exact=False), then=F('derived_samples__library__strandedness')),
-            default=None,
-            output_field=CharField())
-    )
-    queryset = queryset.annotate(
-        first_derived_sample=Subquery(
-            DerivedBySample.objects
-            .filter(sample=OuterRef("pk"))
-            .values_list("derived_sample", flat=True)[:1]
-        )
-    )
-
+    queryset = Sample.objects.none() # Should not be called directly
     serializer_class = LibrarySerializer
 
     ordering_fields = (
@@ -153,6 +103,57 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     ]
 
     def get_queryset(self):
+        self.queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
+        self.queryset = self.queryset.annotate(
+            qc_flag=Case(
+                When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
+                When(Q(quality_flag=True) | Q(quantity_flag=True), then=True),
+                default=None,
+                output_field=BooleanField()
+            )
+        )
+        self.queryset = self.queryset.annotate(
+            count_derived_samples=Count("derived_samples")
+        )
+        self.queryset = self.queryset.annotate(
+            quantity_ng=F('concentration')*F('volume')
+        )
+        self.queryset = self.queryset.annotate(
+            first_volume_ratio=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("volume_ratio", flat=True)[:1]
+            )
+        )
+        self.queryset = self.queryset.annotate(
+            first_project_id=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("project_id", flat=True)[:1]
+            )
+        )
+        self.queryset = self.queryset.annotate(
+            is_pooled=Case(
+                When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
+                default=False,
+                output_field=BooleanField()
+            )
+        )
+        self.queryset = self.queryset.annotate(
+            sample_strandedness=Case(
+                When(Q(is_pooled__exact=True), then=None),
+                When(Q(is_pooled__exact=False), then=F('derived_samples__library__strandedness')),
+                default=None,
+                output_field=CharField())
+        )
+        self.queryset = self.queryset.annotate(
+            first_derived_sample=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("derived_sample", flat=True)[:1]
+            )
+        )
+
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
@@ -214,6 +215,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         Returns summary statistics about the current set of libraries in the
         database.
         """
+        self.queryset = self.filter_queryset(self.get_queryset())
         pooled_libraries = self.queryset.filter(is_pooled=True).values('id')
         count_pooled = pooled_libraries.count()
         non_pooled_libraries = self.queryset.filter(is_pooled=False)

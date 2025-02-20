@@ -26,48 +26,7 @@ from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchSampleData):
-    queryset = Sample.objects.select_related("container").all().distinct()
-     # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
-    derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
-    queryset = queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
-
-    queryset = queryset.annotate(
-        qc_flag=Case(
-            When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
-            When(Q(quality_flag=True) | Q(quantity_flag=True), then=True),
-            default=None,
-            output_field=BooleanField()
-        )
-    )
-    queryset = queryset.annotate(count_derived_samples=Count('derived_samples'))
-    queryset = queryset.annotate(
-        first_volume_ratio=Subquery(
-            DerivedBySample.objects
-            .filter(sample=OuterRef("pk"))
-            .values_list("volume_ratio", flat=True)[:1]
-        )
-    )
-    queryset = queryset.annotate(
-        first_project_id=Subquery(
-            DerivedBySample.objects
-            .filter(sample=OuterRef("pk"))
-            .values_list("project_id", flat=True)[:1]
-        )
-    )
-    queryset = queryset.annotate(
-        is_pooled=Case(
-            When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
-            default=False,
-            output_field=BooleanField()
-        )
-    )
-    queryset = queryset.annotate(
-        first_derived_sample=Subquery(
-            DerivedBySample.objects
-            .filter(sample=OuterRef("pk"))
-            .values_list("derived_sample", flat=True)[:1]
-        )
-    )
+    queryset = Sample.objects.none() # Should not be called directly
     serializer_class = SampleSerializer
 
     ordering_fields = (
@@ -170,6 +129,48 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     ]
     
     def get_queryset(self):
+        self.queryset = Sample.objects.select_related("container").all().distinct()
+          # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
+        derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
+        self.queryset = self.queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
+
+        self.queryset = self.queryset.annotate(
+            qc_flag=Case(
+                When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
+                When(Q(quality_flag=True) | Q(quantity_flag=True), then=True),
+                default=None,
+                output_field=BooleanField()
+            )
+        )
+        self.queryset = self.queryset.annotate(count_derived_samples=Count('derived_samples'))
+        self.queryset = self.queryset.annotate(
+            first_volume_ratio=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("volume_ratio", flat=True)[:1]
+            )
+        )
+        self.queryset = self.queryset.annotate(
+            first_project_id=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("project_id", flat=True)[:1]
+            )
+        )
+        self.queryset = self.queryset.annotate(
+            is_pooled=Case(
+                When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
+                default=False,
+                output_field=BooleanField()
+            )
+        )
+        self.queryset = self.queryset.annotate(
+            first_derived_sample=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("derived_sample", flat=True)[:1]
+            )
+        )
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name

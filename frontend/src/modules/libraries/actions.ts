@@ -1,3 +1,4 @@
+import { AppDispatch } from "../../store";
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 
@@ -15,10 +16,10 @@ export const get = id => async (dispatch, getState) => {
     return await dispatch(networkAction(GET, api.libraries.get(id), { meta: { id } }));
 };
 
-export const list = (options) => async (dispatch, getState) => {
+export const list = (options, abort = false) => async (dispatch: AppDispatch, getState) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
-        api.libraries.list(params),
+        api.libraries.list(params, abort),
         { meta: params }
     ));
 };
