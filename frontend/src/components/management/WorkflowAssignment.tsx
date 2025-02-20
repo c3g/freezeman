@@ -150,7 +150,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
     const [queueActions, setQueueActions] = useState<ActionInfo[]>([])
 
     interface StudyWorkflow {
-        study: Study['letter']
+        study: Pick<Study, 'id' | 'letter'>
         workflow: Workflow['name']
     }
     const [studyWorkflowsByProject, setStudyWorkflowsByProject] = useState<Record<Project['id'], StudyWorkflow[]>>({})
@@ -279,7 +279,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             const workflow = workflowByID[study.workflow_id]
 
             const studyWorkflows = studyWorkflowsByProject[study.project_id] ?? []
-            studyWorkflows.push({ study: study.letter, workflow: workflow.name })
+            studyWorkflows.push({ study: study, workflow: workflow.name })
             studyWorkflowsByProject[study.project_id] = studyWorkflows
 
             for (const stepOrder of workflow.steps_order) {
@@ -331,23 +331,22 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         result.push(<Select
             key={'study-workflow-select'}
             placeholder="Select Study-Workflow"
-            value={selectedStudyWorkflow?.study}
-            options={selectedProject ? studyWorkflowsByProject[selectedProject].map(({ study, workflow }) => ({ label: `Study ${study} - ${workflow}`, value: study })) : []}
+            value={selectedStudyWorkflow?.study.id}
+            options={selectedProject ? studyWorkflowsByProject[selectedProject].map(({ study, workflow }) => ({ label: `Study ${study} - ${workflow}`, value: study.letter })) : []}
             onChange={(value) => {
                 if (selectedProject) {
-                    setSelectedStudyWorkflow(studyWorkflowsByProject[selectedProject].find(({ study }) => study === value))
+                    setSelectedStudyWorkflow(studyWorkflowsByProject[selectedProject].find(({ study }) => study.id === value))
                 }
             }}
         />)
         if (selectedProject && selectedStudyWorkflow) {
             const projectDequeueActions = dequeueActions.filter(action =>
-                selectedStudyWorkflow && action.study.letter === selectedStudyWorkflow.study
+                action.study.id === selectedStudyWorkflow.study.id
             ).map(action => {
                 return <Button
                     className="left-aligned-ant-btn"
                     key={`${action.study.id}-${action.stepOrder}-dequeue`}
                     onClick={async () => {
-                        if (!selectedProject) return
                         const project = projectByID[selectedProject]
                         try {
                             setIsFetching(`Dequeuing samples...`)
@@ -378,7 +377,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                 >{`${action.stepOrder.toString().padEnd(2, ' ')} - ${action.step}`}</Button>
             })
             const projectQueueActions = queueActions.filter(action =>
-                selectedStudyWorkflow && action.study.letter === selectedStudyWorkflow.study
+                selectedStudyWorkflow && action.study.id === selectedStudyWorkflow.study.id
             ).map(action => {
                 const button = <Button
                     className="left-aligned-ant-btn"
