@@ -29,7 +29,7 @@ from ._fetch_data import FetchLibraryData
 from ._constants import _library_filterset_fields
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchLibraryData):
-    queryset = Sample.objects.all()
+    queryset = Sample.objects.none() # Should not be called directly
     serializer_class = LibrarySerializer
 
     ordering_fields = (

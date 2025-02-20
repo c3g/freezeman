@@ -26,7 +26,7 @@ from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchSampleData):
-    queryset = Sample.objects.all()
+    queryset = Sample.objects.none() # Should not be called directly
     serializer_class = SampleSerializer
 
     ordering_fields = (
