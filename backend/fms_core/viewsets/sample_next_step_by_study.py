@@ -2,8 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, QueryDict
 from django.db.models import Count, F, Case, When, Q, BooleanField
 from fms_core.models.step_order import StepOrder
 from fms_core.filters import SampleNextStepByStudyFilter
@@ -61,6 +62,43 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
             return Response(data={"details": removed}, status=status.HTTP_200_OK)
         else:
             return HttpResponseBadRequest(errors or f"Missing sample-next-step-by-study ID to delete.")
+
+    @action(detail=False, methods=["post"])
+    def destroy_list(self, request):
+        sample_ids = request.data.get("sample_ids", [])
+        study = request.data.get("study", None)
+        stepOrder = request.data.get("step_order", None)
+        if sample_ids == []:
+            return HttpResponseBadRequest("No sample IDs provided.")
+        if study is None:
+            return HttpResponseBadRequest("No study ID provided.")
+        if stepOrder is None:
+            return HttpResponseBadRequest("No step order provided.")
+        queryset = self.get_queryset().filter(sample_next_step__sample__id__in=sample_ids, study=study, step_order__order=stepOrder)
+        values_list = queryset.values_list("sample_next_step__sample", "study", "step_order__order")
+        values_list = list(values_list)
+        errors = []
+        removed = {}
+        try:
+            sample_by_id: dict[int, Sample] = {}
+            study_by_id: dict[int, Study] = {}
+            for sample_id, study_id, order in values_list:
+                if sample_by_id.get(sample_id) is None:
+                    sample_by_id[sample_id] = Sample.objects.get(id=sample_id)
+                if study_by_id.get(study_id) is None:
+                    study_by_id[study_id] = Study.objects.get(id=study_id)
+            with transaction.atomic():
+                for sample_id, study_id, order in values_list:
+                    sample = sample_by_id[sample_id]
+                    study = study_by_id[study_id]
+                    newremoved, newerrors, _ = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample, study, order)
+                    errors.extend(newerrors)
+                    removed[sample_id] = newremoved
+                if errors:
+                    raise IntegrityError(errors, removed)
+        except Exception as err:
+            return ValidationError(err)
+        return Response(data=[int(k) for k in removed], status=status.HTTP_200_OK)
 
    
     @action(detail=False, methods=["get"])    

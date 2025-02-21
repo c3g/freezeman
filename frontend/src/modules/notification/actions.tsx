@@ -57,7 +57,7 @@ export const closeNotification = (id: NotificationID) => (dispatch: AppDispatch,
 
     // notification has onClose config which dispatches closeNotification.
     // Closing after dispatch should prevent duplicate remove action.
-    notification.close(id)
+    notification.destroy(id)
 }
 
 const withNotificationType = (type: NotificationProps['type']) => (props: Omit<NotifyProps, 'type'>) => notify({...props, type})

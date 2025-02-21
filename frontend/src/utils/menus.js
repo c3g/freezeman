@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 	* key: string,
 	* icon: JSX.Element,
 	* text: string,
-	* url: string,
+	* url?: string,
 	* onClick: () => void,
 	* children: BadMenuItem[],
 	* style: React.CSSProperties,
