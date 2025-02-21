@@ -302,6 +302,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                 })
             }
         }
+        queueActions.sort((a, b) => a.stepOrder - b.stepOrder)
         setQueueActions(queueActions)
         setStudyWorkflowsByProject(studyWorkflowsByProject)
 
