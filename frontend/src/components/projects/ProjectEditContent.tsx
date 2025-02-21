@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import moment from "moment";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
@@ -21,6 +20,7 @@ import ProjectsTableActions from '../../modules/projectsTable/actions'
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { selectProjectsByID } from "../../selectors"
+import dayjs from "dayjs";
 
 
 const ProjectEditContent = () => {
@@ -197,7 +197,7 @@ function deserialize(values) {
     newValues.status = true
 
   if (newValues.targeted_end_date)
-    newValues.targeted_end_date = moment(newValues.targeted_end_date)
+    newValues.targeted_end_date = dayjs(newValues.targeted_end_date)
   return newValues
 }
 
