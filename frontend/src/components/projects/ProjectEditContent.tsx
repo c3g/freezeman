@@ -197,7 +197,7 @@ function deserialize(values) {
     newValues.status = true
 
   if (newValues.targeted_end_date)
-    newValues.targeted_end_date = moment(newValues.targeted_end_date, 'YYYY-MM-DD')
+    newValues.targeted_end_date = moment(newValues.targeted_end_date)
   return newValues
 }
 
