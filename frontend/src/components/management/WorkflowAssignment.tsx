@@ -110,7 +110,9 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
                 usingFilters={true}
                 initialLoad={false}
                 selection={selection}
-                topBarExtra={<Button onClick={maybeExpandRightPanel} disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
+                topBarExtra={<Button
+                    onClick={maybeExpandRightPanel}
+                    disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
                 paginationProps={{simple: true}}
                 {...samplesTableCallbacks}
                 setFilterCallback={setFilterCallback}
@@ -138,7 +140,7 @@ interface LabworkSampleActionsProps {
 function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: LabworkSampleActionsProps) {
     const dispatch = useAppDispatch()
 
-    const [isFetching, setIsFetching] = useState<string | undefined>()
+    const [isFetching, setIsFetching] = useState<string | null>(null)
     interface ActionInfo {
         study: Pick<FMSStudy, 'id' | 'letter'>
         workflow: FMSWorkflow['name']
@@ -176,7 +178,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             setCommonProjects([])
             setSelectedProject(undefined)
             setSelectedStudyWorkflow(undefined)
-            setIsFetching(undefined)
+            setIsFetching(null)
             return
         }
 
@@ -204,20 +206,20 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         setIsFetching("Loading common steps...")
         type StudyStepOrderKey = `${FMSSampleNextStepByStudy['study']}-${FMSSampleNextStepByStudy['step_order']}`
         const sampleNextStepByStudyList = (await dispatch(api.sampleNextStepByStudy.getStudySamples({ sample_next_step__sample__id__in: sampleIDs.join(','), limit: 10000 }))).data.results
-        const studyStepCount: Record<string, number> = {}
-        const sampleIDsByStudyStep: Record<StudyStepOrderKey, Set<Sample['id']>> = {}
+        const countByStudyStepOrder: Record<StudyStepOrderKey, number> = {}
+        const sampleIDsByStudyStepOrder: Record<StudyStepOrderKey, Set<Sample['id']>> = {}
         for (const { study, step_order, sample } of sampleNextStepByStudyList) {
             const key: StudyStepOrderKey = `${study}-${step_order}`
 
-            studyStepCount[key] = (studyStepCount[key] ?? 0) + 1
+            countByStudyStepOrder[key] = (countByStudyStepOrder[key] ?? 0) + 1
 
-            if (!sampleIDsByStudyStep[key]) {
-                sampleIDsByStudyStep[key] = new Set()
+            if (!sampleIDsByStudyStepOrder[key]) {
+                sampleIDsByStudyStepOrder[key] = new Set()
             }
-            sampleIDsByStudyStep[key].add(sample)
+            sampleIDsByStudyStepOrder[key].add(sample)
         }
         type StudyStepOrderPair = [FMSSampleNextStepByStudy['study'], FMSSampleNextStepByStudy['step_order']]
-        const commonStudySteps = Object.entries(studyStepCount).reduce<StudyStepOrderPair[]>((acc, [key, count]) => {
+        const studyStepOrderPairs = Object.entries(countByStudyStepOrder).reduce<StudyStepOrderPair[]>((acc, [key, count]) => {
             if (count > 0) {
                 const [study, stepOrder] = key.split('-')
                 acc.push([parseInt(study), parseInt(stepOrder)])
@@ -232,15 +234,25 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             }
             return acc
         }, {})
-        const projectIDs = Object.keys(countByProjectID).map((id) => parseInt(id))
-        const commonProjects = (await fetchProjects(projectIDs)).map((project) => ({
+        const commonProjectIDs = Object.entries(countByProjectID).reduce<Array<Project['id']>>((acc, [projectID, count]) => {
+            if (count === samples.length) {
+                acc.push(parseInt(projectID))
+            }
+            return acc
+        }, [])
+        if (commonProjectIDs.length === 0) {
+            setCommonProjects([])
+            setIsFetching(null)
+            return
+        }
+        const commonProjects = (await fetchProjects(commonProjectIDs)).map((project) => ({
             id: project.id,
             name: project.name
         }))
         setCommonProjects(commonProjects)
 
         setIsFetching("Loading studies and workflows...")
-        const studyByID = projectIDs.length === 0 ? [] : (await dispatch(api.studies.list({ project__id__in: projectIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
+        const studyByID = commonProjectIDs.length === 0 ? [] : (await dispatch(api.studies.list({ project__id__in: commonProjectIDs.join(',') }))).data.results.reduce<Record<FMSStudy['id'], FMSStudy>>((acc, study) => {
             acc[study.id] = study
             return acc
         }, {})
@@ -253,29 +265,26 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             return acc
         }, {})
 
-        setDequeueActions(
-            commonStudySteps.reduce<ActionInfo[]>((dequeueActions, [studyID, stepOrderID]) => {
-                const workflow = workflowByID[studyByID[studyID].workflow_id]
-                const workflowStepOrder = workflow.steps_order.find(s => s.id === stepOrderID)
-                if (workflowStepOrder == undefined) return dequeueActions
-                dequeueActions.push({
-                    study: studyByID[studyID],
-                    workflow: workflow.name,
-                    step: workflowStepOrder.step_name,
-                    stepOrder: workflowStepOrder.order,
-                    alreadyQueued: [],
-                })
-                return dequeueActions
-            }, []).sort((a, b) => a.stepOrder - b.stepOrder)
-        )
-
-        const studyWorkflowsByProject: Record<Project['id'], StudyWorkflow[]> = {}
-        for (const project of commonProjects) {
-            studyWorkflowsByProject[project.id] = []
+        const dequeueActions: ActionInfo[] = []
+        for (const [studyID, stepOrderID] of studyStepOrderPairs) {
+            const workflow = workflowByID[studyByID[studyID].workflow_id]
+            const workflowStepOrder = workflow.steps_order.find(s => s.id === stepOrderID)
+            if (workflowStepOrder == undefined) continue
+            dequeueActions.push({
+                study: studyByID[studyID],
+                workflow: workflow.name,
+                step: workflowStepOrder.step_name,
+                stepOrder: workflowStepOrder.order,
+                alreadyQueued: [],
+            })
         }
+        dequeueActions.sort((a, b) => a.stepOrder - b.stepOrder)
+        setDequeueActions(dequeueActions)
 
-        setQueueActions(Object.values(studyByID).reduce<ActionInfo[]>((queueActions, study) => {
-            if (!commonProjects.find(project => project.id === study.project_id)) return queueActions
+        const queueActions: ActionInfo[] = []
+        const studyWorkflowsByProject: Record<Project['id'], StudyWorkflow[]> = {}
+        for (const study of Object.values(studyByID)) {
+            if (!commonProjects.find(project => project.id === study.project_id)) continue
             const workflow = workflowByID[study.workflow_id]
 
             const studyWorkflows = studyWorkflowsByProject[study.project_id] ?? []
@@ -289,14 +298,14 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                     workflow: workflow.name,
                     step: stepOrder.step_name,
                     stepOrder: stepOrder.order,
-                    alreadyQueued: [...sampleIDsByStudyStep[`${study.id}-${stepOrder.id}`] ?? []]
+                    alreadyQueued: [...sampleIDsByStudyStepOrder[`${study.id}-${stepOrder.id}`] ?? []]
                 })
             }
-            return queueActions
-        }, []))
-
+        }
+        setQueueActions(queueActions)
         setStudyWorkflowsByProject(studyWorkflowsByProject)
-        setIsFetching(undefined)
+
+        setIsFetching(null)
     }, [defaultSelection, dispatch, exceptedSampleIDs, filters])
 
     useEffect(() => {
@@ -310,6 +319,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         const result: JSX.Element[] = []
         if (isFetching) return <Spin>{isFetching}</Spin>
         if (!defaultSelection && exceptedSampleIDs.length === 0) return <div>{`Please select samples to queue/dequeue.`}</div>
+
         if (commonProjects.length === 0) return <div>{`The selected samples don't share any project.`}</div>
         result.push(
             <Select
@@ -323,6 +333,7 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
                 disabled={commonProjects.length === 0}
             />
         )
+
         if (!selectedProject) return result
         if (studyWorkflowsByProject[selectedProject].length === 0) {
             result.push(<div key={'3'}>{`The selected project doesn't have any study workflows.`}</div>)
@@ -332,108 +343,109 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             key={'study-workflow-select'}
             placeholder="Select Study-Workflow"
             value={selectedStudyWorkflow?.study.id}
-            options={selectedProject ? studyWorkflowsByProject[selectedProject].map(({ study, workflow }) => ({ label: `Study ${study} - ${workflow}`, value: study.letter })) : []}
+            options={studyWorkflowsByProject[selectedProject].map(({ study, workflow }) => ({ label: `Study ${study.letter} - ${workflow}`, value: study.id }))}
             onChange={(value) => {
                 if (selectedProject) {
                     setSelectedStudyWorkflow(studyWorkflowsByProject[selectedProject].find(({ study }) => study.id === value))
                 }
             }}
         />)
-        if (selectedProject && selectedStudyWorkflow) {
-            const projectDequeueActions = dequeueActions.filter(action =>
-                action.study.id === selectedStudyWorkflow.study.id
-            ).map(action => {
-                return <Button
-                    className="left-aligned-ant-btn"
-                    key={`${action.study.id}-${action.stepOrder}-dequeue`}
-                    onClick={async () => {
-                        const project = projectByID[selectedProject]
-                        try {
-                            setIsFetching(`Dequeuing samples...`)
-                            const sampleIDs = (await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(
-                                defaultSelection,
-                                exceptedSampleIDs,
-                                serializeFilterParamsWithDescriptions(filters)
-                            ))).map(sample => sample.id)
-                            const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data
-                            const samplesRemovedCount = removed.length
-                            dispatch(notifySuccess({
-                                id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                title: "Samples dequeued from workflow",
-                                description: `Successfully dequeued ${samplesRemovedCount} samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}."`
-                            }))
-                            await refreshActions()
-                        } catch (error) {
-                            dispatch(notifyError({
-                                id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                title: "Error dequeuing samples from workflow",
-                                description: `Failed to dequeue samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}".`
-                            }))
-                        } finally {
-                            setIsFetching(undefined)
-                        }
-                    }}
-                    type="primary"
-                >{`${action.stepOrder.toString().padEnd(2, ' ')} - ${action.step}`}</Button>
-            })
-            const projectQueueActions = queueActions.filter(action =>
-                selectedStudyWorkflow && action.study.id === selectedStudyWorkflow.study.id
-            ).map(action => {
-                const button = <Button
-                    className="left-aligned-ant-btn"
-                    disabled={action.alreadyQueued.length > 0}
-                    key={`${action.study.id}-${action.stepOrder}-queue`}
-                    onClick={async () => {
-                        if (!selectedProject) return
-                        const project = projectByID[selectedProject]
-                        try {
-                            setIsFetching(`Queueing samples...`)
-                            await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, selectedProject, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
-                            dispatch(notifySuccess({
-                                id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                title: "Samples queued to workflow",
-                                description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${project.name}"`
-                            }))
-                            await refreshActions()
-                        } catch (error) {
-                            const errors: string[] | undefined = error.data?.['queue_sample_to_study_workflow']
-                            dispatch(notifyError({
-                                id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
-                                title: "Error queuing samples to workflow",
-                                description: errors ? `${errors[0]}${errors[0].endsWith('.') ? '' : '.'}${errors.length > 1 ? ' And ' + (errors.length - 1) + ' more errors...' : ''}` : `Could not queue samples to study ${action.study.letter} at step "${action.step}" for project ${project.name}".`,
-                                duration: 5
-                            }))
-                        } finally {
-                            setIsFetching(undefined)
-                        }}}
-                        type="primary"
-                >{`${action.stepOrder.toString().padEnd(2, ' ')} - ${action.step}`}</Button>
-                return action.alreadyQueued.length > 0 ? <Popover
-                    key={`${action.study.id}-${action.stepOrder}-queue`}
-                    content={<div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(', ')}`}</div>}
-                    placement={'left'}
-                    style={{ padding: '1em' }}
-                >
-                    {button}
-                </Popover> : button
-            })
-            result.push(
-                <Collapse key={'actions'} accordion items={[
-                    {
-                        key: 'dequeue',
-                        label: `Dequeue Options (${projectDequeueActions.length})`,
-                        children: <Flex gap={"small"} vertical>{projectDequeueActions}</Flex>,
-                        classNames: { body: 'labwork-samples-actions' },
-                    },
-                    {
-                        key: 'queue',
-                        label: `Queue Options (${projectQueueActions.length})`,
-                        children: <Flex gap={"small"} vertical>{projectQueueActions}</Flex>,
-                        classNames: { body: 'labwork-samples-actions' },
+
+        if (!(selectedProject && selectedStudyWorkflow)) return result
+        const projectDequeueActions = dequeueActions.filter(action =>
+            action.study.id === selectedStudyWorkflow.study.id
+        ).map(action => {
+            return <Button
+                className="left-aligned-ant-btn"
+                key={`${action.study.id}-${action.stepOrder}-dequeue`}
+                onClick={async () => {
+                    const project = projectByID[selectedProject]
+                    try {
+                        setIsFetching(`Dequeuing samples...`)
+                        const sampleIDs = (await dispatch(fetchSamplesByDefaultSelectionAndExceptedIDs(
+                            defaultSelection,
+                            exceptedSampleIDs,
+                            serializeFilterParamsWithDescriptions(filters)
+                        ))).map(sample => sample.id)
+                        const removed = (await dispatch(api.sampleNextStepByStudy.removeList(sampleIDs, action.study.id, action.stepOrder))).data
+                        const samplesRemovedCount = removed.length
+                        dispatch(notifySuccess({
+                            id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                            title: "Samples dequeued from workflow",
+                            description: `Successfully dequeued ${samplesRemovedCount} samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}."`
+                        }))
+                        await refreshActions()
+                    } catch (error) {
+                        dispatch(notifyError({
+                            id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                            title: "Error dequeuing samples from workflow",
+                            description: `Failed to dequeue samples from study ${action.study.letter} at step "${action.step}" for project ${project.name}".`
+                        }))
+                    } finally {
+                        setIsFetching(null)
                     }
-                ]}/>
-            )
-        }
+                }}
+                type="primary"
+            >{`${action.stepOrder.toString().padEnd(2, ' ')} - ${action.step}`}</Button>
+        })
+        const projectQueueActions = queueActions.filter(action =>
+            action.study.id === selectedStudyWorkflow.study.id
+        ).map(action => {
+            const key = `${action.study.id}-${action.stepOrder}-queue`
+            const button = <Button
+                className="left-aligned-ant-btn"
+                disabled={action.alreadyQueued.length > 0}
+                key={key}
+                onClick={async () => {
+                    if (!selectedProject) return
+                    const project = projectByID[selectedProject]
+                    try {
+                        setIsFetching(`Queueing samples...`)
+                        await dispatch(api.samples.addSamplesToStudy(exceptedSampleIDs, defaultSelection, selectedProject, action.study.letter, action.stepOrder, serializeFilterParamsWithDescriptions(filters)))
+                        dispatch(notifySuccess({
+                            id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                            title: "Samples queued to workflow",
+                            description: `Successfully queued samples to study ${action.study.letter} at step "${action.step} for project ${project.name}"`
+                        }))
+                        await refreshActions()
+                    } catch (error) {
+                        const errors: string[] | undefined = error.data?.['queue_sample_to_study_workflow']
+                        dispatch(notifyError({
+                            id: `LabworkSamples_${action.study.id}_${action.stepOrder}`,
+                            title: "Error queuing samples to workflow",
+                            description: errors ? `${errors[0]}${errors[0].endsWith('.') ? '' : '.'}${errors.length > 1 ? ' And ' + (errors.length - 1) + ' more errors...' : ''}` : `Could not queue samples to study ${action.study.letter} at step "${action.step}" for project ${project.name}".`,
+                            duration: 5
+                        }))
+                    } finally {
+                        setIsFetching(null)
+                    }}}
+                    type="primary"
+            >{`${action.stepOrder.toString().padEnd(2, ' ')} - ${action.step}`}</Button>
+            return action.alreadyQueued.length > 0 ? <Popover
+                key={key}
+                content={<div>{`${action.alreadyQueued.length} Sample(s) already queued to the study workflow step: ${action.alreadyQueued.map((s) => sampleByID[s].name).join(', ')}`}</div>}
+                placement={'left'}
+                style={{ padding: '1em' }}
+            >
+                {button}
+            </Popover> : button
+        })
+        result.push(
+            <Collapse key={'actions'} accordion items={[
+                {
+                    key: 'dequeue',
+                    label: `Dequeue Options (${projectDequeueActions.length})`,
+                    children: <Flex gap={"small"} vertical>{projectDequeueActions}</Flex>,
+                    classNames: { body: 'labwork-samples-actions' },
+                },
+                {
+                    key: 'queue',
+                    label: `Queue Options (${projectQueueActions.length})`,
+                    children: <Flex gap={"small"} vertical>{projectQueueActions}</Flex>,
+                    classNames: { body: 'labwork-samples-actions' },
+                }
+            ]}/>
+        )
         return result
     }, [commonProjects, defaultSelection, dequeueActions, dispatch, exceptedSampleIDs, filters, isFetching, projectByID, queueActions, refreshActions, sampleByID, selectedProject, selectedStudyWorkflow, studyWorkflowsByProject])
 
