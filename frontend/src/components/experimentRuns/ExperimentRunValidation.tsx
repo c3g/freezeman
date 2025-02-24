@@ -61,7 +61,7 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 	}, [experimentRunName, experimentRunLanesState])
 
 	const updateLane = useCallback((lane: LaneInfo) => {
-		Promise.allSettled(lane.datasets.map(async (dataset) => await dispatch(get(dataset.datasetID)))).finally(() => {
+		Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() => {
 			dispatch(setRunLaneValidationTime(lane)).finally(() => {
 			  setIsValidationInProgress(false)
 			})
