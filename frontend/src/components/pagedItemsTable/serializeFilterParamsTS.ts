@@ -31,12 +31,20 @@ export default function serializeFilterParamsWithDescriptions(filters: FilterSet
     if (description === undefined) return
 
     switch (description.type) {
-      case FILTER_TYPE.DATE_RANGE:
-      case FILTER_TYPE.RANGE: {
+      case FILTER_TYPE.DATE_RANGE: {
         if (isRangeFilterValue(value)) {
           const dayAfterLast = dayjs(value.max).add(1, 'day').format('YYYY-MM-DD')
           params[key + '__gte'] = value.min
           params[key + '__lt'] = dayAfterLast
+        }
+
+        break
+      }
+
+      case FILTER_TYPE.RANGE: {
+        if (isRangeFilterValue(value)) {
+          params[key + '__gte'] = value.min
+          params[key + '__lte'] = value.max
         }
 
         break
