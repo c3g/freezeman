@@ -282,7 +282,10 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
         setDequeueActions(dequeueActions)
 
         const queueActions: ActionInfo[] = []
-        const studyWorkflowsByProject: Record<Project['id'], StudyWorkflow[]> = {}
+        const studyWorkflowsByProject: Record<Project['id'], StudyWorkflow[]> = commonProjects.reduce((acc, project) => {
+            acc[project.id] = []
+            return acc
+        }, {})
         for (const study of Object.values(studyByID)) {
             if (!commonProjects.find(project => project.id === study.project_id)) continue
             const workflow = workflowByID[study.workflow_id]
