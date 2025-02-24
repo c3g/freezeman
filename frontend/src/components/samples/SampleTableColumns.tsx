@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { Typography } from 'antd'
 import { FILTER_TYPE } from '../../constants'
 import { Sample } from '../../models/frontend_models'
 import { FilterDescription } from '../../models/paged_items'
@@ -238,8 +239,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.VOLUME,
 		title: 'Vol. (µL)',
 		dataIndex: ['sample', 'volume'],
-		align: 'right',
-		className: 'table-column-numbers',
+    render: (_, { sample }) => sample && !isNullish(sample.volume) && <Typography className='table-column-numbers' style={{float: 'right'}}>{sample.volume}</Typography>,
 		width: MEDIUM_COLUMN_WIDTH,
 		sorter: { multiple: 1 },
 	},
@@ -248,9 +248,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.CONCENTRATION,
 		title: 'Conc. (ng/µL)',
 		dataIndex: ['sample', 'concentration'],
-		align: 'right',
-		className: 'table-column-numbers',
-		render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
+		render: (conc) => (conc !== null ? <Typography className='table-column-numbers' style={{float: 'right'}}>{parseFloat(conc).toFixed(3)}</Typography> : null),
 		width: MEDIUM_COLUMN_WIDTH,
 		sorter: { multiple: 1 },
 	},
