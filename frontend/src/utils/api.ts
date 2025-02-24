@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 
@@ -155,7 +155,7 @@ const api = {
   },
 
   pooledSamples: {
-    list: (options, abort?: boolean) => get("/pooled-samples/", options, { abort }),
+    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, { abort }),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
   },
 
@@ -181,7 +181,7 @@ const api = {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
-    list: (options, abort?: boolean) => get("/projects/", options, { abort }),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSProject>>>("/projects/", options, { abort }),
     listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
     summary: () => get("/projects/summary/"),
     template: {
@@ -242,6 +242,7 @@ const api = {
   },
 
   sampleNextStep: {
+    listSamples: (sampleIDs: FMSId[]) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/', {sample__id__in: sampleIDs.join(','), limit: 100000}),
     getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
     executeAutomation: (stepId, additionalData, options) => filteredpost(`/sample-next-step/execute_automation/`, {...options}, form({step_id: stepId, additional_data: additionalData, ...options}),),
     labworkSummary: () => get('/sample-next-step/labwork_info/'),
@@ -263,6 +264,7 @@ const api = {
     getStudySamplesForStepOrder: (studyId, stepOrderID, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__id__in : stepOrderID }),
     countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-next-step-by-study/${sampleNextStepByStudyId}/`),
+    removeList: (sampleIDs: FMSId[], study: FMSStudy['id'], stepOrder: number) => post<JsonResponse<Array<FMSSample['id']>>>(`/sample-next-step-by-study/destroy_list/`, { sample_ids: sampleIDs, study, step_order: stepOrder }),
     list: (options, abort?: boolean) => get("/sample-next-step-by-study/", { limit: 100000, ...options }, { abort }),
   },
 
@@ -288,7 +290,7 @@ const api = {
     get: studyId => get<JsonResponse<FMSStudy>>(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
-    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies', options, {abort}),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies/', options, {abort}),
     listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
@@ -313,7 +315,7 @@ const api = {
 
   workflows: {
     get: (workflowId: FMSWorkflow['id']) => get<JsonResponse<FMSWorkflow>>(`/workflows/${workflowId}/`),
-    list: (options, abort?: boolean) => get('/workflows/', options, { abort })
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSWorkflow>>>('/workflows/', options, { abort })
   },
 
   groups: {
@@ -339,10 +341,16 @@ const api = {
 
 export default api;
 
-type WithTokenFn<R extends ResponseWithData<any>, GetState extends (() => AuthTokensAccess) = (() => RootState)> = (...args: any[]) => (dispatch: Dispatch<AnyAction>, getState: GetState) => Promise<R>
-export function withToken<R extends ResponseWithData<any>>(token: string | undefined, fn: WithTokenFn<R>) {
+type AuthTokensAccess = Partial<Omit<RootState, 'auth'>> & Pick<RootState, 'auth'>
+
+export function dispatchForApi<T>(token: string | undefined, thunk: (_: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => T): T {
+  return thunk(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { isFetching: false, error: null, currentUserID: null, tokens: { access: token, refresh: null }, _persist: { version: 0, rehydrated: false } } }))
+}
+
+type WithTokenFn<R extends ResponseWithData<any>, Args extends any[]> = (...args: Args) => (dispatch: Dispatch<AnyAction>, getState: () => AuthTokensAccess) => Promise<R>
+export function withToken<R extends ResponseWithData<any>, Args extends any[]>(token: string | undefined, fn: WithTokenFn<R, Args>) {
     // dispatch is hopefully not used in the fn function
-    return (...args: Parameters<typeof fn>) => fn(...args)(undefined as unknown as Dispatch<AnyAction>, () => ({ auth: { tokens: { access: token } } } as RootState))
+    return (...args: Parameters<typeof fn>) => dispatchForApi(token, fn(...args))
 }
 
 const ongoingRequests: Record<string, AbortController> = {}
@@ -351,14 +359,13 @@ type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
     abort?: boolean
 }
-interface AuthTokensAccess { auth: { tokens: { access: string | null | undefined } } }
 
 export const ABORT_ERROR_NAME = 'AbortError'
 
-function apiFetch<R extends ResponseWithData<any>, GetState extends (() => AuthTokensAccess) = (() => RootState)>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
+function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
     const baseRoute = getPathname(route)
 
-    return (_: Dispatch<AnyAction>, getState: GetState) => {
+    return (_: Dispatch<AnyAction>, getState: (() => AuthTokensAccess)) => {
 
         const accessToken = getState().auth.tokens.access;
 

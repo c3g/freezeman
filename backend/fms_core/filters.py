@@ -39,6 +39,8 @@ from .viewsets._constants import (
 from .viewsets._utils import _prefix_keys
 
 class GenericFilter(django_filters.FilterSet):
+    id__not__in = django_filters.NumberFilter(method="id_not_in_filter")
+
     def batch_filter(self, queryset, name, value):
         query = Q()
         for v in value.split(" "):
@@ -53,6 +55,9 @@ class GenericFilter(django_filters.FilterSet):
         query_set = queryset.filter(query)
         return query_set
 
+    def id_not_in_filter(self, queryset, name, value):
+        ids = value.split(',')
+        return queryset.exclude(id__in=ids)
 
 class ContainerFilter(GenericFilter):
     barcode = django_filters.CharFilter(field_name="barcode", method="batch_filter")

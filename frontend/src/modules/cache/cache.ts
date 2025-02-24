@@ -1,17 +1,18 @@
 import { Dispatch } from "redux"
 import { FMSId, FMSSample, FMSStudy, FMSTrackedModel } from "../../models/fms_api_models"
-import { Container, ItemsByID, Library, Process, ProcessMeasurement, PropertyValue, Readset, Sample, Study, User, Workflow } from "../../models/frontend_models"
-import { selectContainersByID, selectLibrariesByID, selectProcessMeasurementsByID, selectProcessesByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
+import { Container, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Readset, Sample, Study, User, Workflow } from "../../models/frontend_models"
+import { selectContainersByID, selectLibrariesByID, selectProcessMeasurementsByID, selectProcessesByID, selectProjectsByID, selectPropertyValuesByID, selectSamplesByID, selectStudiesByID, selectUsersByID, selectWorkflowsByID } from "../../selectors"
 import store from "../../store"
 import { list as listContainers } from '../containers/actions'
-import { listPropertyValues } from "../experimentRuns/actions"
 import { list as listLibraries } from '../libraries/actions'
-import { list as listProcessMeasurements } from "../processMeasurements/actions"
 import { list as listProcesses } from "../processes/actions"
+import { list as listProcessMeasurements } from "../processMeasurements/actions"
+import { list as listProjects } from "../projects/actions"
 import { list as listSamples } from "../samples/actions"
 import { list as listStudies } from '../studies/actions'
 import { list as listUsers } from "../users/actions"
 import { list as listWorkflows } from '../workflows/actions'
+import { listPropertyValues } from "../experimentRuns/actions"
 import { isDefined } from "../../utils/functions"
 
 
@@ -36,10 +37,10 @@ function isResultAnArray<T>(result: ListReturnType<T>): result is T[] {
 
 function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 	itemsByIDSelector: (state: any) => ItemsByID<ItemType>,
-	listFunc: ListFunction<ItemType>
+	listFunc: ListFunction<ItemType>,
 ) {
 
-	async function fetchItemsByID(ids: FMSId[], abort = false): Promise<ItemType[]> {
+	async function fetchItemsByID(ids: readonly FMSId[], abort = false): Promise<ItemType[]> {
 
 		const fetchedItems: ItemType[] = []
  		const itemsByID: ItemsByID<ItemType> = itemsByIDSelector(store.getState())
@@ -76,7 +77,7 @@ function createFetchItemsByID<ItemType extends FMSTrackedModel>(
 				} else if (isResultAnArray(reply)) {
 					fetchedItems.push(...reply)
 				} else {
-					console.error('Cache received unsupported reply from a list api call', JSON.stringify(reply))
+					console.error('Cache received unsupported reply from a list api call', itemsByIDSelector, itemsToFetch, reply)
 					throw new Error('Cache received unexpected reply from list api call')
 				}
 			}
@@ -93,6 +94,7 @@ export const fetchLibraries = createFetchItemsByID<Library>(selectLibrariesByID,
 export const fetchLibrariesForSamples = createFetchItemsByID<Library>(selectLibrariesByID, listLibraries)
 export const fetchProcesses = createFetchItemsByID<Process>(selectProcessesByID, listProcesses)
 export const fetchProcessMeasurements = createFetchItemsByID<ProcessMeasurement>(selectProcessMeasurementsByID, listProcessMeasurements)
+export const fetchProjects = createFetchItemsByID<Project>(selectProjectsByID, listProjects)
 export const fetchPropertyValues = createFetchItemsByID<PropertyValue>(selectPropertyValuesByID, listPropertyValues)
 export const fetchSamples = createFetchItemsByID<Sample | FMSSample>(selectSamplesByID, listSamples)
 export const fetchStudies = createFetchItemsByID<FMSStudy>(selectStudiesByID, listStudies)

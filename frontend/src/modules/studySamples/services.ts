@@ -78,8 +78,8 @@ export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowSte
 	}
 }
 
-export async function fetchSamplesAndLibraries(sampleList: number[]) {
-	if (sampleList.length > 0) {
+export async function fetchSamplesAndLibraries(sampleList: number[], forceFetch = false) {
+	if (sampleList.length > 0 || forceFetch) {
 		const samples = await fetchSamples(sampleList, false)
 		if (samples.length > 0) {
 			const sampleIDs = samples.filter(sample => sample.is_library).map(sample => sample.id)
