@@ -22,7 +22,7 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
 
     const [form] = Form.useForm()
 
-    const handleNextDataset = () => {
+    const handleNextComment = () => {
         if (commentIndex > 0) {
             setCommentIndex(commentIndex - 1)
         }
@@ -115,6 +115,9 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
             setCurrentComment(comments[comments.length - 1])
             setCommentIndex(0)
         }
+        else {
+          setCurrentComment(undefined)
+        }
     }, [comments])
 
     useEffect(() => {
@@ -129,12 +132,12 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
     return (
         <Card
             style={{ width: "100%", height: "100%", minHeight: "100%", boxSizing: "border-box" }}
-            bodyStyle={{ height: "480px", padding: "5px", overflow: "auto" }}
+            styles={{ body: {height: "480px", padding: "5px", overflow: "auto"}}}
 
             actions={[
                 <Tooltip title="Previous Comment"><LeftCircleOutlined style={{ fontSize: "24px" }} key="previous" onClick={handlePreviousComment} /></Tooltip>,
                 <Tooltip title="Add Comment"><PlusCircleOutlined style={{ fontSize: "24px" }} key="add" onClick={handleAddCommentForm} />{addCommentForm}</Tooltip>,
-                <Tooltip title="Next Comment"><RightCircleOutlined style={{ fontSize: "24px" }} key="next" onClick={handleNextDataset} /></Tooltip>,
+                <Tooltip title="Next Comment"><RightCircleOutlined style={{ fontSize: "24px" }} key="next" onClick={handleNextComment} /></Tooltip>,
             ]}
         >
             <Card.Meta
@@ -153,7 +156,7 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
                             </Flex>
                         }
                     </div>}
-                description={currentComment && renderTextWithLineBreaks(currentComment.comment)}
+                description={currentComment ? renderTextWithLineBreaks(currentComment.comment) : ""}
             />
         </Card>
     )

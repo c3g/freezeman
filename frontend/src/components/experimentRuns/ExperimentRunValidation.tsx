@@ -1,6 +1,7 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
+import { shallowEqual } from 'react-redux'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
@@ -149,7 +150,15 @@ interface LanePanelProps {
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
 	const dispatch = useAppDispatch()
-  const datasetsById = useAppSelector(selectDatasetsByID)
+  const datasetsById = useAppSelector((state) => lane.datasets.map((dataset) => {
+    const datasetSelector = selectDatasetsByID(state)[dataset.datasetID]
+    return datasetSelector}).reduce((selectors, dataset) => {
+      if (dataset) {
+        selectors[dataset.id] = dataset;
+      }
+      return selectors;  
+    }, {}), shallowEqual
+  )
 	const [datasets, setDatasets] = useState<Dataset[]>([])
 
   useEffect(() => {
