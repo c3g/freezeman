@@ -58,21 +58,19 @@ const InputFilter = ({ value, options, description, filterKey, setFilter, setFil
                 onKeyDown={onKeyDown}
             />
             <Flex justify={"space-evenly"} style={{ marginTop: 8 }}>
-                <Tooltip title="Match exactly from the start of the text.">
-                    <Switch
-                        size={"default"}
-                        checkedChildren="Starts With"
-                        unCheckedChildren="Starts With"
-                        checked={options?.startsWith ?? false}
-                        disabled={(options?.recursiveMatch ?? false) || (options?.exactMatch ?? false)}
-                        onChange={e => onToggleSwitch('startsWith', e)}
-                    />
-                </Tooltip>
+                <Switch
+                    size={"default"}
+                    checkedChildren="Starts with"
+                    unCheckedChildren="Starts with"
+                    checked={options?.startsWith ?? false}
+                    disabled={(options?.recursiveMatch ?? false) || (options?.exactMatch ?? false)}
+                    onChange={e => onToggleSwitch('startsWith', e)}
+                />
                 <Tooltip title="Match against the entire text.">
                     <Switch
                         size={"default"}
-                        checkedChildren="Exact Match"
-                        unCheckedChildren="Exact Match"
+                        checkedChildren="Exact"
+                        unCheckedChildren="Exact"
                         checked={options?.exactMatch ?? false}
                         disabled={(options?.recursiveMatch ?? false) || (options?.startsWith ?? false)}
                         onChange={e => onToggleSwitch('exactMatch', e)}
