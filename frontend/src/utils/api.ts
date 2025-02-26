@@ -291,7 +291,7 @@ const api = {
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
     list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSStudy>>>('/studies/', options, {abort}),
-    listProjectStudies: projectId => get('/studies/', { project__id: projectId}),
+    listProjectStudies: projectId => get('/studies/', { project_id: projectId}),
     remove: (studyId) => remove(`/studies/${studyId}/`)
   },
 
