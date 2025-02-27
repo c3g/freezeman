@@ -121,15 +121,14 @@ export function paramsForFilterKeyAndSetting(key: string, value: FilterValue, de
 }
 
 export default function serializeFilterParamsWithDescriptions(filters: FilterSet) {
-    const params: NonNullable<QueryParams> = {}
-
-    Object.keys(filters).forEach((key) => {
+    const params = Object.keys(filters).reduce<NonNullable<QueryParams>>((params, key) => {
         const setting = filters[key]
         if (setting.value && setting.description) {
             const paramsForFilterKey = paramsForFilterKeyAndSetting(key, setting.value, setting.description, setting.options)
             Object.assign(params, paramsForFilterKey)
         }
-    })
+        return params
+    }, {})
 
     return params
 }
