@@ -113,7 +113,7 @@ export function paramsForFilterKeyAndSetting(key: string, value: FilterValue, de
         }
 
         default: {
-            throw new Error('Invalid filter type')
+            throw new Error(`Invalid filter type: ${description.type}`)
         }
     }
 
