@@ -39,7 +39,7 @@ CONTACT_EMAIL = "info@computationalgenomics.ca"
 COPYRIGHT_YEARS = str(datetime.datetime.now().year)
 REPOSITORY = "https://github.com/c3g/freezeman"
 
-VERSION_PATH = Path(__file__).parent.parent / "VERSION"
+VERSION_PATH = Path(__file__).parent.parent.parent / "VERSION"
 
 with open(VERSION_PATH, "r") as vf:
     VERSION = vf.read().strip()
