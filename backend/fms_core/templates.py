@@ -571,7 +571,7 @@ SAMPLE_POOLING_PLANNING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_12_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
@@ -585,7 +585,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
       },
       {
           "name": "PoolSubmission",
-          "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Barcode",
+          "headers": ["Pool Name", "Pool Volume", "Reception (YYYY-MM-DD)", "Container Kind", "Container Barcode",
                       "Container Name", "Pool Coord", "Location Kind", "Location Barcode", "Location Name",
                       "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
