@@ -75,6 +75,7 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
         SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
         SAMPLE_COLUMN_DEFINITIONS.PROJECT,
+        SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
     ], [])
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
