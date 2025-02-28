@@ -57,7 +57,17 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
     }, [fixedFilter, samplesTableCallbacks, searchParams])
 
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => {
-        const fixedFilterColumnIDs = [...searchParams.keys()].map((key) => key.toUpperCase())
+        const fixedFilterColumnIDs = Object.values(fixedFilters).reduce<SampleColumnID[]>((acc, filter) => {
+            if (filter.description?.key) {
+                const columnID = Object.entries(SAMPLE_FILTER_KEYS).find(([key, filterKey]) => filterKey === filter.description?.key)?.[0] as SampleColumnID
+                if (columnID) {
+                    acc.push(columnID)
+                } else {
+                    console.error(`Could not find column ID for filter key: ${filter.description?.key}`)
+                }
+            }
+            return acc
+        }, [])
         return [
             SAMPLE_COLUMN_DEFINITIONS.NAME,
             SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
@@ -66,9 +76,9 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
             SAMPLE_COLUMN_DEFINITIONS.PROJECT,
             SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
         ].filter((column) => {
-            return !fixedFilterColumnIDs.includes(column.columnID)
+            return !fixedFilterColumnIDs.includes(column.columnID as SampleColumnID)
         })
-    }, [searchParams])
+    }, [fixedFilters])
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
