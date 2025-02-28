@@ -137,7 +137,7 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
             {Object.keys(fixedFilters).length > 0 && (
                 <>
                     <b>Fixed Filters:</b>
-                    <ul>
+                    <ul style={{ marginTop: 3 }}>
                         {Object.values(fixedFilters).map((setting, index) => (
                             <li key={setting.description?.key ?? index}><b>{`${setting.description?.label}`}</b>{': '}{`${setting.value}`}</li>
                         ))}
