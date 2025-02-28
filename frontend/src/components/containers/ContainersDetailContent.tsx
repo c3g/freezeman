@@ -17,6 +17,7 @@ import { selectContainerKindsByID, selectContainersByID, selectCoordinatesByID }
 import { Container } from "../../models/frontend_models";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 import { isNullish } from "../../utils/functions";
+import { SampleColumnID } from "../samples/SampleTableColumns";
 
 const pageStyle = {
   padding: 0,
@@ -71,7 +72,9 @@ const ContainersDetailContent = () => {
           !isLoaded ? null :
             <Space>
               <Button onClick={() => navigate(
-                `/management/workflow-assignment?${(container?.children.length ?? 0) > 0 ? 'container__location__barcode=' : 'container__barcode='}${container?.barcode}`
+                '/management/workflow-assignment?'
+                + ((container?.children.length ?? 0) > 0 ? SampleColumnID.PARENT_CONTAINER : SampleColumnID.CONTAINER_BARCODE)
+                + `=${container?.barcode}`
               )}>Manage Workflow</Button>
               <EditButton url={`/containers/${id}/update`} />
             </Space>
