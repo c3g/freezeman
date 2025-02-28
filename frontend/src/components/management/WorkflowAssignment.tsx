@@ -27,7 +27,6 @@ interface LabworkSamplesProps {
 export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters, fixedFilters } = samplesTableState
-    const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     const [searchParams] = useSearchParams()
@@ -83,7 +82,7 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
-        wholeFilters,
+        filters,
         samplesTableCallbacks.setFilterCallback,
         samplesTableCallbacks.setFilterOptionsCallback
     )
@@ -131,9 +130,11 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         setOpen(false)
     }, [])
 
+    const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
+
     return (
         <>
-            {Object.keys(wholeFilters).length > 0 && (
+            {Object.keys(fixedFilters).length > 0 && (
                 <>
                     <b>Fixed Filters:</b>
                     <ul>
