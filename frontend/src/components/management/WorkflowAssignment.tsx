@@ -56,34 +56,26 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         }
     }, [fixedFilter, samplesTableCallbacks, searchParams])
 
-    const setFilterCallback: typeof samplesTableCallbacks.setFilterCallback = useCallback((value, description) => {
-        if (description.key !== Object.keys(fixedFilters).find(key => fixedFilters[key]?.description?.key)) {
-            return samplesTableCallbacks.setFilterCallback(value, description)
-        }
-        return Promise.resolve()
-    }, [fixedFilters, samplesTableCallbacks])
-    const setFilterOptions: typeof samplesTableCallbacks.setFilterOptionsCallback = useCallback((description, options) => {
-        if (description.key !== Object.keys(fixedFilters).find(key => fixedFilters[key]?.description?.key)) {
-            return samplesTableCallbacks.setFilterOptionsCallback(description, options)
-        }
-        return Promise.resolve()
-    }, [fixedFilters, samplesTableCallbacks])
-
-    const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
-        SAMPLE_COLUMN_DEFINITIONS.NAME,
-        SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
-        SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
-        SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
-        SAMPLE_COLUMN_DEFINITIONS.PROJECT,
-        SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
-    ], [])
+    const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => {
+        const fixedFilterColumnIDs = [...searchParams.keys()].map((key) => key.toUpperCase())
+        return [
+            SAMPLE_COLUMN_DEFINITIONS.NAME,
+            SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
+            SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
+            SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
+            SAMPLE_COLUMN_DEFINITIONS.PROJECT,
+            SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
+        ].filter((column) => {
+            return !fixedFilterColumnIDs.includes(column.columnID)
+        })
+    }, [searchParams])
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
         wholeFilters,
-        setFilterCallback,
-        setFilterOptions
+        samplesTableCallbacks.setFilterCallback,
+        samplesTableCallbacks.setFilterOptionsCallback
     )
 
     const [samples, setSamples] = useState<ObjectWithSample[]>([])
@@ -129,7 +121,6 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         setOpen(false)
     }, [])
 
-    console.info(fixedFilters)
     return (
         <>
             {Object.keys(wholeFilters).length > 0 && (
@@ -137,7 +128,7 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
                     <b>Fixed Filters:</b>
                     <ul>
                         {Object.values(fixedFilters).map((setting, index) => (
-                            <li key={setting.description?.key ?? index}>{`${setting.description?.label}: ${setting.value}`}</li>
+                            <li key={setting.description?.key ?? index}><b>{`${setting.description?.label}`}</b>{': '}{`${setting.value}`}</li>
                         ))}
                     </ul>
                 </>
