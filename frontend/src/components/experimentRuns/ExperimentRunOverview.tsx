@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import { useAppSelector } from '../../hooks'
 import { selectInstrumentsByID, selectRunTypesByID } from '../../selectors'
 import TrackingFieldsContent from '../TrackingFieldsContent'
-import moment from 'moment'
+import dayjs from 'dayjs'
 
 interface ExperimentRunOverviewProps {
 	experimentRun: ExperimentRun
@@ -16,7 +16,7 @@ interface ExperimentRunOverviewProps {
 function formatDate(dateString : string | undefined) {
 	if (dateString) {
 		const date = new Date(Date.parse(dateString))
-		return moment(date).format("YYYY-MM-DD LT")
+		return dayjs(date).format("YYYY-MM-DD LT")
 	}
 	return undefined
 }
