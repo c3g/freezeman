@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import moment from 'moment'
 import { Button, Col, Row, Space, Spin, Typography } from 'antd'
 import { CheckOutlined, CloseOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons"
 
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers"
 import {launchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
+import dayjs from 'dayjs'
 
 const { Text } = Typography
 
@@ -97,7 +97,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         return getLaunchPanelContents()
       } else {
         const launchDate = experimentRun.run_processing_launch_time ?
-          moment(experimentRun.run_processing_launch_time).format("YYYY-MM-DD LT")
+          dayjs(experimentRun.run_processing_launch_time).format("YYYY-MM-DD LT")
           : 'Not launched'
         return (
           <Text>{launchDate}</Text>

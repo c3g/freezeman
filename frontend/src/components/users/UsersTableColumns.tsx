@@ -4,11 +4,14 @@ import { User } from "../../models/frontend_models"
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters"
 import { Tag } from "antd"
-import moment from "moment";
 import { useAppSelector } from "../../hooks"
 import { selectGroupsByID } from "../../selectors"
 import { FilterDescription } from "../../models/paged_items"
 import { FILTER_TYPE } from "../../constants"
+import dayjs from "dayjs"
+
+import relativeTime from "dayjs/plugin/relativeTime"
+dayjs.extend(relativeTime);
 
 export interface ObjectWithUser {
 	user: User
@@ -78,7 +81,7 @@ export const USER_COLUMN_DEFINITIONS : {[key in UserColumnID] : Readonly<UserCol
 		columnID: UserColumnID.DATE_JOINED,
 		title: 'Date Joined',
 		dataIndex: ['user', 'date_joined'],
-		render: date => moment(date).fromNow(),
+		render: date => dayjs(date).fromNow(),
 	},
 	[UserColumnID.STAFF]: {
 		columnID: UserColumnID.STAFF,
