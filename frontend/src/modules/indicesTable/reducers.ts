@@ -2,6 +2,6 @@ import { createPagedItems } from "../../models/paged_items"
 import { createPagedItemsActionTypes, createPagedItemsReducer } from "../../models/paged_items_factory"
 
 
-export const actionTypes = createPagedItemsActionTypes('INDICES_TABLE')
+export const PREFIX = 'INDICES_TABLE'
 const initialState = createPagedItems()
 export const indicesTable = createPagedItemsReducer(actionTypes, initialState)
