@@ -85,6 +85,8 @@ const SampleEditContent = ({ sample, isAdding}) => {
 
   const token = useAppSelector(selectAuthTokenAccess)
   const sampleKinds = useAppSelector(selectSampleKindsState)
+  const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
+
   const containerKinds = useAppSelector(selectContainerKindsByID);
 
   const [form] = Form.useForm()
@@ -203,8 +205,6 @@ const SampleEditContent = ({ sample, isAdding}) => {
       setCoordinateOptions(coordinates.map(Options.renderCoordinate))
     })
   }, [token])
-
-  const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
 
   const onValuesChange = (values) => {
     const key = Object.keys(values)[0];
