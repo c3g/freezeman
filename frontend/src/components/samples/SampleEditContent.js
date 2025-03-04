@@ -286,6 +286,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
           <Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}
             extra="Biosample nature." >
             <Select
+              showSearch
               options={sampleKindOptions}
               onSearch={onSearchSampleKind}
               onFocus={onFocusSampleKind}
@@ -294,6 +295,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
           <Item label="Tissue Source" {...props("tissue_source")}
             extra="Sample kind before extraction." >
             <Select
+              showSearch
               allowClear
               disabled={!isTissueEnabled}
               options={tissueSourceOptions}
@@ -383,6 +385,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
           <Item label="Collection Site" {...props("collection_site")}
             extra="Location of the sample collection." >
             <AutoComplete
+              showSearch
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
