@@ -51,6 +51,7 @@ export interface FilterSetting {
 	value: FilterValue
 	options?: FilterOptions
 	description?: FilterDescription		// Include filter description in redux state for filter serialization.
+	fixed: boolean
 }
 
 export interface FilterSet {
@@ -80,7 +81,6 @@ export interface PagedItems {
 	readonly items: readonly FMSId[]
 	readonly totalCount: number
 	readonly filters: FilterSet
-	readonly fixedFilters: FilterSet
 	readonly sortByList: SortBy[]
 	readonly page?: {
 		readonly pageNumber?: number
@@ -99,12 +99,11 @@ export interface PagedItemsByID<T extends PagedItem> extends PagedItems {
 }
 
 // Create a PagedItems instance, with all properties set to defaults.
-export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
+export function createPagedItems() : PagedItems {
 	const DEFAULT_PAGED_ITEMS: PagedItems = {
 		isFetching: false,
 		items: [],
 		totalCount: 0,
-		fixedFilters: fixedFilters ?? {},
 		filters: {},
 		sortByList: [],
 		page: {
@@ -118,22 +117,10 @@ export function createPagedItems(fixedFilters?: FilterSet) : PagedItems {
 }
 
 // Create a PagedItemsByID instance, with all properties set to defaults.
-export function createPagedItemsByID<T extends PagedItem>(fixedFilters?: FilterSet): PagedItemsByID<T> {
+export function createPagedItemsByID<T extends PagedItem>(): PagedItemsByID<T> {
 	return {
 		itemsByID: {},
-		...createPagedItems(fixedFilters)
-	}
-}
-
-// Create a FilterSetting object for a fixed filter, from a key and a value.
-export function createFixedFilter(filterType: string, filterKey: string, value: FilterValue): FilterSetting {
-	return {
-		value,
-		description: {
-			type: filterType,
-			key: filterKey,
-			label: ''
-		}
+		...createPagedItems()
 	}
 }
 
