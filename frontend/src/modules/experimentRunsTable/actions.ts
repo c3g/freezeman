@@ -2,7 +2,7 @@
 import { createPagedItemsActions } from "../../models/paged_items_factory"
 import { selectExperimentRunsTable } from "../../selectors"
 import { list } from '../experimentRuns/actions'
-import { actionTypes } from "./reducers"
+import { PREFIX } from "./reducers"
 
-const actions = createPagedItemsActions(actionTypes, selectExperimentRunsTable, list)
+const actions = createPagedItemsActions(PREFIX, selectExperimentRunsTable, list)
 export default actions

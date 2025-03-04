@@ -165,7 +165,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
     }, [currentProjectID, dispatch])
 
     const projectSamplesTable = useAppSelector(selectProjectSamplesTable)
-    const { pagedItems } = projectSamplesTable
+    const pagedItems = projectSamplesTable
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
 
@@ -216,7 +216,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
 
     const sampleCount = defaultSelection ? pagedItems.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
 
-    const filters = useMemo(() => ({ ...pagedItems.fixedFilters, ...pagedItems.filters }), [pagedItems.filters, pagedItems.fixedFilters])
+    const filters = useMemo(() => pagedItems.filters, [pagedItems.filters])
 
     const selection: NonNullable<PagedItemsTableProps<ObjectWithSample>['selection']> = useMemo(() => ({
         onSelectionChanged: (selectedItems, selectAll) => {

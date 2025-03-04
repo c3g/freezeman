@@ -30,7 +30,6 @@ import { IndividualDetailsById } from './modules/individualDetails/models'
 import { LabworkStepSummaryState } from './modules/labworkSteps/models'
 import { LabworkSummaryState } from './modules/labwork/reducers'
 import { LabworkStepsState } from './modules/labworkSteps/models'
-import { ProjectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { StudySamplesByID, StudySamplesState, StudySettingsByID } from './modules/studySamples/models'
 import { RootState } from './store'
 
@@ -97,7 +96,7 @@ export const selectPageSize = (state: RootState) => state.pagination.pageSize
 export const selectProcessesByID = (state: RootState) => state.processes.itemsByID as ItemsByID<Process>
 export const selectProcessMeasurementsByID = (state: RootState) => state.processMeasurements.itemsByID as ItemsByID<ProcessMeasurement>
 export const selectProcessMeasurementTemplateActions = (state: RootState) => state.processMeasurementTemplateActions
-export const selectProjectSamplesTable = (state: RootState) => state.projectSamplesTable as ProjectSamplesTable
+export const selectProjectSamplesTable = (state: RootState) => state.projectSamplesTable as PagedItems
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
 export const selectProjectsOfSamples = (state: RootState) => state.projectsOfSamples
 export const selectProjectsState = (state: RootState) => state.projects
