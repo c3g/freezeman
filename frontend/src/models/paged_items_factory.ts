@@ -1,8 +1,6 @@
-import { AnyAction, Reducer } from "redux"
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../components/pagedItemsTable/serializeFilterParamsTS"
 import { selectPageSize } from "../selectors"
 import { AppDispatch, RootState } from "../store"
-import { NetworkActionTypes, createNetworkActionTypes } from "../utils/actions"
 import { createPagedItems, FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
 import { FMSResponse } from "../utils/api"
 import { FMSPagedResultsReponse, FMSTrackedModel } from "./fms_api_models"
@@ -11,16 +9,14 @@ import { ObjectId } from "./frontend_models"
 
 export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
 
-
 export interface PagedItemsActions {
 	listPage: (pageNumber: number) => FreezemanAsyncThunk<void>
 	refreshPage: () => FreezemanAsyncThunk<void>
-	setFixedFilter: (key: string, filter: FilterSetting) => AnyAction
 	setFilter: (value: FilterValue, description: FilterDescription) => FreezemanAsyncThunk<void>
 	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<void>
+    setFilterFixed: (description: FilterDescription, fixed: boolean) => FreezemanAsyncThunk<void>
 	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<void>
 	clearFilters: () => FreezemanAsyncThunk<void>
-    clearFixedFilters: () => FreezemanAsyncThunk<void>
 	setSortBy: (sortByList: SortBy[]) => FreezemanAsyncThunk<void>
 	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
     resetPagedItems: () => FreezemanAsyncThunk<void>
@@ -39,9 +35,9 @@ type ListType<T> = (option: any) => (dispatch: AppDispatch, getState: () => Root
 // then a custom function will need to be implemented by the component that uses the state.
 export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
-export function createPagedItemsActions<Prefix extends string, M extends FMSTrackedModel>(prefix: Prefix, selectPagedItems: SelectPagedItemsFunc, list: ListType<M>): PagedItemsActions {
-    const actions = createPagedItemsSlice(prefix).actions
-
+export function createPagedItemsActions(prefix: string, selectPagedItems: SelectPagedItemsFunc, list: ListType<FMSTrackedModel>): PagedItemsActions {
+    const actions = slice.actions
+    
     const listPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {
 		const pagedItems = selectPagedItems(getState())
 		// If the page is already loaded then ignore this action. This protects against
@@ -67,17 +63,18 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
      * @returns 
      */
     const _fetchPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {     
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
 
         const pagedItems = selectPagedItems(getState())
 
         // Dispatch the LIST_PAGE.REQUEST action
-        dispatch(actions.listRequest())
+        prefixedDispatch(actions.listRequest())
         
         const limit = pagedItems.page?.limit ?? selectPageSize(getState())
         const offset = limit * (pageNumber - 1)
-        const { filters, fixedFilters, sortByList } = pagedItems
+        const { filters, sortByList } = pagedItems
 
-        const serializedFilters = serializeFilterParamsWithDescriptions({ ...fixedFilters, ...filters })
+        const serializedFilters = serializeFilterParamsWithDescriptions({ ...filters })
 		const ordering = serializeSortByParams(sortByList)
 
         const params = {
@@ -103,9 +100,9 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
                 pageNumber: pageNumber,
                 pageSize: limit
 			}
-            dispatch(actions.listReceive(data))
+            prefixedDispatch(actions.listReceive(data))
         } catch(error) {
-            dispatch(actions.listError(error))
+            prefixedDispatch(actions.listError(error))
             return
         }
     }
@@ -115,76 +112,86 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         return await dispatch(_fetchPage(pagedItems.page?.pageNumber ?? 1))
     }
 
-    const setFixedFilter: PagedItemsActions['setFixedFilter'] = (key: string, filter: FilterSetting) => {
-        return actions.setFixedFilter({
-            key,
-            setting: filter
-        })
-    }
-
     const setFilter: PagedItemsActions['setFilter'] = (value, description) => async (dispatch) => {
-        dispatch(actions.setFilter({
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        prefixedDispatch(actions.setFilter({
             key: description.key,
             setting: {
                 value,
-                description
+                description,
+                fixed: false
             }
         }))
 
         return await dispatch(_fetchPage(1))
     }
 
-    const setFilterOptions: PagedItemsActions['setFilterOptions'] = (description, options) => async (dispatch) => {
-        dispatch(actions.setFilterOptions({
-            key: description.key,
-            options
-        }))
+    const setFilterOptions: PagedItemsActions['setFilterOptions'] = ({ key }, options) => async (dispatch, getState) => {
+        const setting = selectPagedItems(getState()).filters[key]
+        if (setting) {
+            const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+            prefixedDispatch(actions.setFilter({
+                key: key,
+                setting: {
+                    ...setting,
+                    options
+                }
+            }))
+        }
         return await dispatch(_fetchPage(1))
     }
 
-    const removeFilter: PagedItemsActions['removeFilter'] = (description) => async (dispatch) => {
-        dispatch(description.key)
+    const setFilterFixed: PagedItemsActions['setFilterFixed'] = ({ key }, fixed) => async (dispatch, getState) => {
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        const setting = selectPagedItems(getState()).filters[key]
+        if (setting) {
+            prefixedDispatch(actions.setFilterFixed({ key, fixed }))
+        }
+    }
+
+    const removeFilter: PagedItemsActions['removeFilter'] = ({ key }) => async (dispatch) => {
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        prefixedDispatch(actions.removeFilter(key))
         return await dispatch(_fetchPage(1))
     }
 
     const clearFilters: PagedItemsActions['clearFilters'] = () => async (dispatch) => {
-        dispatch(actions.clearFilters())
-        return await dispatch(_fetchPage(1))
-    }
-
-    const clearFixedFilters: PagedItemsActions['clearFixedFilters'] = () => async (dispatch) => {
-        dispatch(actions.clearFixedFilters())
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        prefixedDispatch(actions.clearFilters())
         return await dispatch(_fetchPage(1))
     }
 
     const setSortBy: PagedItemsActions['setSortBy'] = (sortByList) => async (dispatch) => {
-        dispatch(actions.setSortBy(sortByList))
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        prefixedDispatch(actions.setSortBy(sortByList))
 
         return await dispatch(_fetchPage(1))
     }
 
     const setPageSize: PagedItemsActions['setPageSize'] = (pageSize) => async (dispatch) => {
-        dispatch(actions.setPageSize(pageSize))
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        prefixedDispatch(actions.setPageSize(pageSize))
         return await dispatch(_fetchPage(1))
     }
 
     const resetPagedItems: PagedItemsActions['resetPagedItems'] = () => async (dispatch) => {
-        dispatch(actions.reset())
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        prefixedDispatch(actions.reset())
     }
 
     const setStale: PagedItemsActions['setStale'] = (stale) => async (dispatch) => {
-        dispatch(actions.setStale(stale))
+        const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
+        prefixedDispatch(actions.setStale(stale))
     }
 
     return {
         listPage,
         refreshPage,
-        setFixedFilter,
         setFilter,
         setFilterOptions,
+        setFilterFixed,
         removeFilter,
         clearFilters,
-        clearFixedFilters,
         setSortBy,
         setPageSize,
         resetPagedItems,
@@ -192,77 +199,77 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
     }
 }
 
-export function createPagedItemsReducer<Prefix extends string>(prefix: Prefix) {
-    const slice = createPagedItemsSlice(prefix)
-    return slice.reducer
+export function createPagedItemsReducer(prefix: string, initialState?: PagedItems) {
+    const reducer = slice.reducer
+    const prefixedReducer: typeof reducer = (state, action) => {
+        const prefixWithSlash = `${prefix}/`
+        if (action.type.startsWith(prefixWithSlash)) {
+            const localAction: typeof action = { ...action, type: action.type.slice(prefixWithSlash.length) }
+            return reducer(state, localAction)
+        }
+        return state ?? initialState ?? createPagedItems()
+    }
+    return prefixedReducer
 }
 
-export function createPagedItemsSlice<Prefix extends string>(prefix: Prefix) {
-    const slice = createSlice({
-        name: prefix,
-        initialState: createPagedItems(),
-        reducers: {
-            listRequest(state) {
-                state.isFetching = true
-                state.error = undefined
-            },
-            listReceive(state, action: PayloadAction<ReduceListReceiveType>) {
-                state.isFetching = false
-                state.error = undefined
-                state.items = action.payload.items
-                state.totalCount = action.payload.totalCount
-                state.page = {
-                    pageNumber: action.payload.pageNumber,
-                    limit: action.payload.pageSize
-                }
-            },
-            listError(state, action: PayloadAction<any>) {
-                state.isFetching = false
-                state.error = action.payload
-            },
-            setFixedFilter(state, action: PayloadAction<{ key: string, setting: FilterSetting }>) {
-                const { key, setting: filter } = action.payload
-                state.fixedFilters[key] = filter
-            },
-            setFilter(state, action: PayloadAction<{ key: string, setting: FilterSetting }>) {
-                const { key, setting } = action.payload
-                state.filters[key] = setting
-            },
-            setFilterOptions(state, action: PayloadAction<{ key: string, options: FilterOptions }>) {
-                const { key, options } = action.payload
-                const setting = state.filters[key]
-                if (setting) {
-                    setting.options = options
-                }
-            },
-            removeFilter(state, action: PayloadAction<string>) {
-                delete state.filters[action.payload]
-            },
-            clearFilters(state) {
-                state.filters = {}
-            },
-            clearFixedFilters(state) {
-                state.fixedFilters = {}
-            },
-            setSortBy(state, action: PayloadAction<SortBy[]>) {
-                state.sortByList = action.payload
-            },
-            setPageSize(state, action: PayloadAction<number>) {
-                if (state.page) {
-                    state.page.limit = action.payload
-                }
-            },
-            reset(state) {
-                const defaultPagedItems = createPagedItems()
-                Object.assign(state, defaultPagedItems)
-            },
-            setStale(state, action: PayloadAction<boolean>) {
-                state.stale = action.payload
+const slice = createSlice({
+    name: 'PagedItems',
+    initialState: createPagedItems(),
+    reducers: {
+        listRequest(state) {
+            state.isFetching = true
+            state.error = undefined
+        },
+        listReceive(state, action: PayloadAction<ReduceListReceiveType>) {
+            state.isFetching = false
+            state.error = undefined
+            state.items = action.payload.items
+            state.totalCount = action.payload.totalCount
+            state.page = {
+                pageNumber: action.payload.pageNumber,
+                limit: action.payload.pageSize
             }
+        },
+        listError(state, action: PayloadAction<any>) {
+            state.isFetching = false
+            state.error = action.payload
+        },
+        setFilter(state, action: PayloadAction<{ key: string, setting: FilterSetting }>) {
+            const { key, setting } = action.payload
+            if (state.filters[key]?.fixed !== true) {
+                state.filters[key] = setting
+            }
+        },
+        setFilterFixed(state, action: PayloadAction<{ key: string, fixed: boolean }>) {
+            const { key, fixed } = action.payload
+            const setting = state.filters[key]
+            if (setting) {
+                setting.fixed = fixed
+            }
+        },
+        removeFilter(state, action: PayloadAction<string>) {
+            delete state.filters[action.payload]
+        },
+        clearFilters(state) {
+            state.filters = {}
+        },
+        setSortBy(state, action: PayloadAction<SortBy[]>) {
+            state.sortByList = action.payload
+        },
+        setPageSize(state, action: PayloadAction<number>) {
+            if (state.page) {
+                state.page.limit = action.payload
+            }
+        },
+        reset(state) {
+            const defaultPagedItems = createPagedItems()
+            Object.assign(state, defaultPagedItems)
+        },
+        setStale(state, action: PayloadAction<boolean>) {
+            state.stale = action.payload
         }
-    })
-    return slice
-}
+    }
+})
 
 type ReduceListReceiveType = {
     items: ObjectId[],
