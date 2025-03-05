@@ -124,6 +124,7 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
                     if (studyLetter && stepOrder) {
                         tags.push(
                             <Popover
+                                key={studyStep.id}
                                 content={
                                     <>
                                         <div>
@@ -134,20 +135,20 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
                                         </div>
                                     </>
                                 }
-                                destroyTooltipOnHide={{ keepParent: false }}
+                                destroyTooltipOnHide
                             >
                                 <Tag>{studyLetter}-{stepOrder.order}</Tag>
                             </Popover>
                         )
                     } else {
-                        tags.push(<>...</>)
+                        tags.push(<span key={studyStep.id}>...</span>)
                     }
                     return tags
                 }, [])
-                ?? [<></>]
+                ?? []
             return tags
         } else {
-            return [<></>]
+            return []
         }
     }, [stepOrderByStepOrderID, studiesByID, studyStepsBySampleID])
 
