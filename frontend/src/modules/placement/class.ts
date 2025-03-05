@@ -1,5 +1,5 @@
 import { CellIdentifier, ParentContainerIdentifier, ParentContainerState, PlacementState, RealParentContainerIdentifier, RealParentContainerState, SampleDetail, SampleIdentifier } from "./models";
-import { initialState, LoadContainerPayload, LoadParentContainerPayload, selectParentContainer } from "./helpers";
+import { initialState, LoadContainerPayload, LoadParentContainerPayload, MouseOnCellPayload, selectParentContainer } from "./helpers";
 
 class Placement {
     state: PlacementState
@@ -22,6 +22,9 @@ class Placement {
         return container
     }
     getRealParentContainer(location: RealParentContainerIdentifier) {
+        if (location.parentContainer === null) {
+            throw new Error(`Placement.getRealParentContainer: location arg must have a non-null parent container name`)
+        }
         const container = this.getParentContainer(location)
         return container
     }
@@ -29,6 +32,7 @@ class Placement {
         const container = this.getParentContainer({ parentContainer: null })
         return container
     }
+
     loadContainer(payload: LoadContainerPayload) {
         const parentContainer = this.#getOrCreateParentContainer(
             payload.parentContainerName ? initialParentContainerState(payload) : { name: null, existingSamples: [] }
@@ -65,8 +69,26 @@ class Placement {
                     volume: payload.volume,
                 }
             }
+
+            parentContainer.getOrCreateExistingSample(payloadSample)
+        }
+
+        // Prune samples
+        parentContainer.pruneExistingSamples(...payloadSampleIDs)
+    }
+    setPlacementType(type: PlacementState['placementType']) {
+        this.state.placementType = type
+    }
+    setPlacementDirection(direction: PlacementState['placementDirection']) {
+        this.state.placementDirection = direction
+    }
+    clickCell(clickedLocation: MouseOnCellPayload) {
+        const { sourceParentContainer, destinationParentContainer } = clickedLocation.context
+        if (clickedLocation.parentContainer === destinationParentContainer) {
+            
         }
     }
+
     #getOrCreateParentContainer(parentContainer: ParentContainerState) {
         const foundContainer = this.selectParentContainer({ parentContainer: parentContainer.name })
         if (foundContainer) {
@@ -144,6 +166,10 @@ class ParentContainer {
             }
             return sample
         }
+    }
+    pruneExistingSamples(...existingSamples: Array<SampleDetail['id']>) {
+        const existingSampleIDs = new Set(existingSamples)
+        this.state.existingSamples = this.state.existingSamples.filter((s) => existingSampleIDs.has(s.id))
     }
 }
 
