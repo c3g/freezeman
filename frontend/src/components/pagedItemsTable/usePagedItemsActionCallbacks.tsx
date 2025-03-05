@@ -18,53 +18,17 @@ import { PagedItemsActionsCallbacks } from './PagedItemsTable'
  */
 export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsActions): PagedItemsActionsCallbacks {
 	const dispatch = useAppDispatch()
-	return useMemo(() => {
-		const listPageCallback = (pageNumber: number) => {
-			return dispatch(pagedItemActions.listPage(pageNumber))
-		}
-
-		const setFilterCallback = (value: FilterValue, description: FilterDescription) => {
-			return dispatch(pagedItemActions.setFilter(value, description))
-		}
-
-		const setFilterOptionsCallback = (description: FilterDescription, options: FilterOptions) => {
-			return dispatch(pagedItemActions.setFilterOptions(description, options))
-		}
-
-		const clearFiltersCallback = () => {
-			return dispatch(pagedItemActions.clearFilters())
-		}
-
-		const setSortByCallback = (sortByList: SortBy[]) => {
-			return dispatch(pagedItemActions.setSortBy(sortByList))
-		}
-
-		const setPageSizeCallback =(pageSize: number) => {
-			return dispatch(pagedItemActions.setPageSize(pageSize))
-		}
-
-		const resetPagedItemsCallback = () => {
-			return dispatch(pagedItemActions.resetPagedItems())
-		}
-
-		const setStaleCallback = (stale: boolean) => {
-			return dispatch(pagedItemActions.setStale(stale))
-		}
-
-		const refreshPageCallback = () => {
-			return dispatch(pagedItemActions.refreshPage())
-		}
-
-		return {
-			listPageCallback,
-			setFilterCallback,
-			setFilterOptionsCallback,
-			clearFiltersCallback,
-			setSortByCallback,
-			setPageSizeCallback,
-			resetPagedItemsCallback,
-			setStaleCallback,
-			refreshPageCallback,	
-		}
-	}, [dispatch, pagedItemActions])
+	return useMemo(() => ({
+		listPageCallback: (pagedNumber: number) => dispatch(pagedItemActions.listPage(pagedNumber)),
+		setFilterCallback: (filterID: string, value: FilterValue, description: FilterDescription) => dispatch(pagedItemActions.setFilter(filterID, value, description)),
+		setFilterOptionsCallback: (filterID: string, options: FilterOptions) => dispatch(pagedItemActions.setFilterOptions(filterID, options)),
+		setFilterFixed: (filterID: string, fixed: boolean) => dispatch(pagedItemActions.setFilterFixed(filterID, fixed)),
+		removeFilterCallback: (filterID: string) => dispatch(pagedItemActions.removeFilter(filterID)),
+		clearFiltersCallback: () => dispatch(pagedItemActions.clearFilters()),
+		setSortByCallback: (sortByList: SortBy[]) => dispatch(pagedItemActions.setSortBy(sortByList)),
+		setPageSizeCallback: (pageSize: number) => dispatch(pagedItemActions.setPageSize(pageSize)),
+		resetPagedItemsCallback: () => dispatch(pagedItemActions.resetPagedItems()),
+		setStaleCallback: (stale: boolean) => dispatch(pagedItemActions.setStale(stale)),
+		refreshPageCallback: () => dispatch(pagedItemActions.refreshPage()),
+	}), [dispatch, pagedItemActions])
 }

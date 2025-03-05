@@ -1,6 +1,6 @@
 import { Checkbox, Pagination, PaginationProps, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
@@ -16,14 +16,16 @@ export interface PagedItemTableSelection {
 // This is the set of possible callbacks for the paged items table.
 export interface PagedItemsActionsCallbacks {
 	listPageCallback: (pagedNumber: number) => Promise<void>
-	setFilterCallback: (columnID: string, value: FilterValue, description: FilterDescription) => Promise<void>
-	setFilterOptionsCallback: (columnID: string, options: FilterOptions, description: FilterDescription) => Promise<void>
+	refreshPageCallback: () => Promise<void>
+	setFilterCallback: (filterID: string, value: FilterValue, description: FilterDescription) => Promise<void>
+	setFilterOptionsCallback: (filterID: string, options: FilterOptions) => Promise<void>
+	setFilterFixed: (filterID: string, fixed: boolean) => void
+	removeFilterCallback: (filterID: string) => Promise<void>
 	clearFiltersCallback: () => Promise<void>
 	setSortByCallback: (sortByList: SortBy[]) => Promise<void>
 	setPageSizeCallback: (pageSize: number) => Promise<void>
 	resetPagedItemsCallback: () => Promise<void>
 	setStaleCallback: (stale: boolean) => Promise<void>
-	refreshPageCallback: () => Promise<void>
 }
 
 export interface DataObjectsByID<T> {
@@ -39,6 +41,7 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	pagedItems: PagedItems
 
 	columns: IdentifiedTableColumnType<T>[]
+	fixedFilter?: FilterSetting
 
 	// If true, a FiltersBar component is rendered with the table.
 	usingFilters: boolean
