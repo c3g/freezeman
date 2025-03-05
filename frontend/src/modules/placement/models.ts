@@ -32,12 +32,12 @@ export interface PlacementGroupOptions {
 export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
 /* Sample Detail */
-// Shared state of samples (unique by id)
 
 interface SampleDetailBase {
     readonly name: Sample['name']
     readonly project: Project['name']
     readonly id: Sample['id']
+    readonly volume: number
     highlight: boolean
 }
 export interface SampleDetailWithoutParent extends SampleDetailBase {
@@ -52,18 +52,16 @@ export interface SampleDetailWithParent extends SampleDetailBase {
 }
 export type SampleDetail = SampleDetailWithoutParent | SampleDetailWithParent
 export type SampleIdentifier = SampleDetail['id']
-// container specific sample data (including for tubes without parent)
 
 /* Placement Sample */
 
 interface PlacementSampleBase {
     readonly id: SampleIdentifier
     selected: boolean
+    volume: number
 }
 export interface PlacementSampleWithoutParent extends PlacementSampleBase {}
-export interface PlacementSampleWithParent extends PlacementSampleBase, CellIdentifier {
-    volume: string
-}
+export interface PlacementSampleWithParent extends PlacementSampleBase {}
 export type PlacementSample = PlacementSampleWithParent | PlacementSampleWithoutParent
 
 /* Placement Cell State */
@@ -71,6 +69,7 @@ export type PlacementSample = PlacementSampleWithParent | PlacementSampleWithout
 export interface CellState {
     coordinates: PlacementCoordinates
     preview: boolean
+    sample: PlacementSampleWithParent | null
 }
 
 /* Parent Container State */
@@ -82,10 +81,9 @@ export interface TubesWithoutParentState extends ParentContainerStateBase {
 }
 export interface RealParentContainerState extends ParentContainerStateBase {
     readonly name: Container['name']
+    existingSamples: Array<PlacementSampleWithParent>
     readonly spec: CoordinateSpec
     cells: CellState[]
-    existingSamples: Array<PlacementSampleWithParent>
-    placedSamples: Array<PlacementSampleWithParent>
 }
 export type ParentContainerState = TubesWithoutParentState | RealParentContainerState
 

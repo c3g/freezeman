@@ -18,14 +18,14 @@ export const initialState: PlacementState = {
 export interface LoadParentContainerPayload {
     parentContainerName: string
     spec: CoordinateSpec
-    cells: { coordinates: string, sample: SampleIdentifier, name: string, projectName: string }[]
+    cells: { container: string, coordinates: string, sample: SampleIdentifier, name: string, projectName: string }[]
 }
 export interface LoadTubesWithoutParentPayload {
     parentContainerName: null
-    cells: { coordinates?: undefined, sample: SampleIdentifier, name: string, projectName: string }[]
+    cells: { container: string, coordinates?: undefined, sample: SampleIdentifier, name: string, projectName: string }[]
 }
 
-export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
+export type LoadContainerPayload = (LoadParentContainerPayload | LoadTubesWithoutParentPayload) & { volume: number }
 export interface MouseOnCellPayload extends CellIdentifier {
     context: {
         sourceParentContainer?: ParentContainerState['name'] | null
@@ -92,9 +92,10 @@ export function loadContainerHelper(state: Draft<PlacementState>, payload: LoadC
                 project: payloadCell.projectName,
                 id: payloadCell.sample,
                 parentContainer: payloadCell.name,
-                container: 'unknown-container',
+                container: payloadCell.container,
                 coordinates: payloadCell.coordinates,
                 highlight: false,
+                volume: payload.volume,
             }
         } else {
             // without parent container
@@ -103,9 +104,10 @@ export function loadContainerHelper(state: Draft<PlacementState>, payload: LoadC
                 project: payloadCell.projectName,
                 id: payloadCell.sample,
                 parentContainer: null,
-                container: 'unknown-container',
+                container: payloadCell.container,
                 coordinates: null,
                 highlight: false,
+                volume: payload.volume,
             }
         }
 
@@ -116,8 +118,8 @@ export function loadContainerHelper(state: Draft<PlacementState>, payload: LoadC
     }
 
     // Remove samples that have disappeared
-    const disappearedSamples = new Set(state.samples.filter((s) => s.parentContainer === payload.parentContainerName && !payloadSampleIDs.has(s.id)))
-    removeSamples(state, ...disappearedSamples)
+    const disappearedSamples = state.samples.filter((s) => s.parentContainer === payload.parentContainerName && !payloadSampleIDs.has(s.id))
+    removeSamples(state, ...disappearedSamples.map((s) => s.id))
 }
 
 export function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnCellPayload) {
@@ -604,21 +606,19 @@ function getOrCreateExistingSample(state: Draft<PlacementState>, sample: SampleD
         const container = getParentContainer(state, { parentContainer: sample.parentContainer })
         if (container.name !== null) {
             if (!sample.coordinates) {
-                throw new Error('Sample must have coordinates if it has a parent container')
+                throw new Error(`Sample ${sample.name} must have coordinates if it has a parent container`)
             }
             container.existingSamples.push({
                 id: sample.id,
                 selected: false,
-                parentContainer: container.name,
-                coordinates: sample.coordinates,
-                volume: '0',
+                volume: sample.volume,
             })
         } else if (container.name === null) {
             const container = getTubesWithoutParent(state)
             container.existingSamples.push({
                 id: sample.id,
                 selected: false,
-                volume: '0'
+                volume: sample.volume,
             })
         }
         return sample
