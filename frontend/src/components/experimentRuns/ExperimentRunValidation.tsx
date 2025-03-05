@@ -12,6 +12,7 @@ import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
 import { Dataset } from '../../models/frontend_models'
 import api from '../../utils/api'
+import { CollapseProps } from 'antd/lib'
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography
@@ -104,29 +105,28 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 
 	return (
 		runLanes && runLanes.lanes.length > 0 ?
-			<Collapse onChange={setLaneExpansionState} activeKey={expandedLaneKeys}>{
-				runLanes.lanes.map(lane => {
-					return (
-						<Collapse.Panel 
-							key={createLaneKey(lane)}
-							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
-							extra={<Space direction={'horizontal'}>
-								<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
-								{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
-							</Space>}
-						>
-							<LanePanel 
-								lane={lane}
-								canReset={isStaff} 
-								canValidate={isStaff || lane.validationStatus === ValidationStatus.AVAILABLE}
-								isValidationInProgress={isValidationInProgress} 
-								setAvailable={setAvailable} 
-								setPassed={setPassed} 
-								setFailed={setFailed}/>
-						</Collapse.Panel>
-					)
-				})
-			}</Collapse>
+			<Collapse
+				onChange={setLaneExpansionState}
+				activeKey={expandedLaneKeys}
+				items={runLanes.lanes.map(function (lane): NonNullable<CollapseProps['items']>[0] {
+					return {
+						key: createLaneKey(lane),
+						label: `Lane ${lane.laneNumber}`,
+						extra: <Space direction={'horizontal'}>
+							<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
+							{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
+						</Space>,
+						children: <LanePanel 
+						lane={lane}
+						canReset={isStaff} 
+						canValidate={isStaff || lane.validationStatus === ValidationStatus.AVAILABLE}
+						isValidationInProgress={isValidationInProgress} 
+						setAvailable={setAvailable} 
+						setPassed={setPassed} 
+						setFailed={setFailed}/>
+					}
+				})}
+			/>
 		:
 			<Text italic style={{paddingLeft: '1em'}}>No datasets for this experiment are available for this experiment yet.</Text>
 	)
