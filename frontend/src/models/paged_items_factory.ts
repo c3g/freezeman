@@ -6,16 +6,17 @@ import { FMSResponse } from "../utils/api"
 import { FMSPagedResultsReponse, FMSTrackedModel } from "./fms_api_models"
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { ObjectId } from "./frontend_models"
+import { UNDEFINED_FILTER_KEY } from "../components/pagedItemsTable/PagedItemsFilters"
 
 export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
 
 export interface PagedItemsActions {
 	listPage: (pageNumber: number) => FreezemanAsyncThunk<void>
 	refreshPage: () => FreezemanAsyncThunk<void>
-	setFilter: (value: FilterValue, description: FilterDescription) => FreezemanAsyncThunk<void>
-	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<void>
-    setFilterFixed: (description: FilterDescription, fixed: boolean) => FreezemanAsyncThunk<void>
-	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<void>
+	setFilter: (filterID: string, value: FilterValue, description: FilterDescription) => FreezemanAsyncThunk<void>
+	setFilterOptions: (filterID: string, options: FilterOptions) => FreezemanAsyncThunk<void>
+    setFilterFixed: (filterID: string, fixed: boolean) => FreezemanAsyncThunk<void>
+	removeFilter: (filterID: string) => FreezemanAsyncThunk<void>
 	clearFilters: () => FreezemanAsyncThunk<void>
 	setSortBy: (sortByList: SortBy[]) => FreezemanAsyncThunk<void>
 	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
@@ -112,10 +113,10 @@ export function createPagedItemsActions(prefix: string, selectPagedItems: Select
         return await dispatch(_fetchPage(pagedItems.page?.pageNumber ?? 1))
     }
 
-    const setFilter: PagedItemsActions['setFilter'] = (value, description) => async (dispatch) => {
+    const setFilter: PagedItemsActions['setFilter'] = (filterID, value, description) => async (dispatch) => {
         const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
         prefixedDispatch(actions.setFilter({
-            key: description.key,
+            filterID,
             setting: {
                 value,
                 description,
@@ -126,12 +127,16 @@ export function createPagedItemsActions(prefix: string, selectPagedItems: Select
         return await dispatch(_fetchPage(1))
     }
 
-    const setFilterOptions: PagedItemsActions['setFilterOptions'] = ({ key }, options) => async (dispatch, getState) => {
-        const setting = selectPagedItems(getState()).filters[key]
+    const setFilterOptions: PagedItemsActions['setFilterOptions'] = (filterID, options) => async (dispatch, getState) => {
+        if (filterID === UNDEFINED_FILTER_KEY) {
+            console.error(`Attempted to setFilterOptions for the UNDEFINED_FILTER_KEY, which will not work.`)
+            return
+        }
+        const setting = selectPagedItems(getState()).filters[filterID]
         if (setting) {
             const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
             prefixedDispatch(actions.setFilter({
-                key: key,
+                filterID,
                 setting: {
                     ...setting,
                     options
@@ -141,17 +146,17 @@ export function createPagedItemsActions(prefix: string, selectPagedItems: Select
         return await dispatch(_fetchPage(1))
     }
 
-    const setFilterFixed: PagedItemsActions['setFilterFixed'] = ({ key }, fixed) => async (dispatch, getState) => {
+    const setFilterFixed: PagedItemsActions['setFilterFixed'] = (filterID, fixed) => async (dispatch, getState) => {
         const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
-        const setting = selectPagedItems(getState()).filters[key]
+        const setting = selectPagedItems(getState()).filters[filterID]
         if (setting) {
-            prefixedDispatch(actions.setFilterFixed({ key, fixed }))
+            prefixedDispatch(actions.setFilterFixed({ filterID, fixed }))
         }
     }
 
-    const removeFilter: PagedItemsActions['removeFilter'] = ({ key }) => async (dispatch) => {
+    const removeFilter: PagedItemsActions['removeFilter'] = (filterID) => async (dispatch) => {
         const prefixedDispatch: typeof dispatch = (action) => dispatch({ ...action, type: `${prefix}/${action.type}` })
-        prefixedDispatch(actions.removeFilter(key))
+        prefixedDispatch(actions.removeFilter({ filterID }))
         return await dispatch(_fetchPage(1))
     }
 
@@ -234,21 +239,21 @@ const slice = createSlice({
             state.isFetching = false
             state.error = action.payload
         },
-        setFilter(state, action: PayloadAction<{ key: string, setting: FilterSetting }>) {
-            const { key, setting } = action.payload
-            if (state.filters[key]?.fixed !== true) {
-                state.filters[key] = setting
+        setFilter(state, action: PayloadAction<{ filterID: string, setting: FilterSetting }>) {
+            const { filterID, setting } = action.payload
+            if (state.filters[filterID]?.fixed !== true) {
+                state.filters[filterID] = setting
             }
         },
-        setFilterFixed(state, action: PayloadAction<{ key: string, fixed: boolean }>) {
-            const { key, fixed } = action.payload
-            const setting = state.filters[key]
+        setFilterFixed(state, action: PayloadAction<{ filterID: string, fixed: boolean }>) {
+            const { filterID, fixed } = action.payload
+            const setting = state.filters[filterID]
             if (setting) {
                 setting.fixed = fixed
             }
         },
-        removeFilter(state, action: PayloadAction<string>) {
-            delete state.filters[action.payload]
+        removeFilter(state, action: PayloadAction<{ filterID: string }>) {
+            delete state.filters[action.payload.filterID]
         },
         clearFilters(state) {
             state.filters = {}

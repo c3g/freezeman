@@ -55,7 +55,7 @@ export interface FilterSetting {
 }
 
 export interface FilterSet {
-	[key: string]: FilterSetting | undefined
+	[filterID: string]: FilterSetting | undefined
 }
 
 export interface SortBy {

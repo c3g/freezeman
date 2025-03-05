@@ -16,11 +16,9 @@ export interface PagedItemTableSelection {
 // This is the set of possible callbacks for the paged items table.
 export interface PagedItemsActionsCallbacks {
 	listPageCallback: (pagedNumber: number) => Promise<void>
-	setFixedFilterCallback: (filter: FilterSetting) => void
-	setFilterCallback: (value: FilterValue, description: FilterDescription) => Promise<void>
-	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => Promise<void>
+	setFilterCallback: (columnID: string, value: FilterValue, description: FilterDescription) => Promise<void>
+	setFilterOptionsCallback: (columnID: string, options: FilterOptions, description: FilterDescription) => Promise<void>
 	clearFiltersCallback: () => Promise<void>
-	clearFixedFiltersCallback: () => Promise<void>
 	setSortByCallback: (sortByList: SortBy[]) => Promise<void>
 	setPageSizeCallback: (pageSize: number) => Promise<void>
 	resetPagedItemsCallback: () => Promise<void>
@@ -41,7 +39,6 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	pagedItems: PagedItems
 
 	columns: IdentifiedTableColumnType<T>[]
-	fixedFilter?: FilterSetting
 
 	// If true, a FiltersBar component is rendered with the table.
 	usingFilters: boolean
@@ -64,7 +61,6 @@ interface TableDataState<T> {
 function PagedItemsTable<T extends object>({
 	getDataObjectsByID,
 	listPageCallback,
-	setFixedFilterCallback,
 	clearFiltersCallback,
 	setSortByCallback,
 	setPageSizeCallback,
@@ -72,7 +68,6 @@ function PagedItemsTable<T extends object>({
 	setStaleCallback,
 	pagedItems,
 	columns,
-	fixedFilter,
 	usingFilters,
 	selection,
 	initialLoad = true,
@@ -90,10 +85,6 @@ function PagedItemsTable<T extends object>({
 		() => {
 			if (!initialLoad) return;
 
-			// If this table uses a fixed filter then set it before loading any items.
-			if (fixedFilter && fixedFilter.description) {
-				setFixedFilterCallback(fixedFilter)
-			}
 			// If a page isn't already loaded in redux then request page 1
 			if (!pagedItems.page?.pageNumber) {
 				listPageCallback(1)
@@ -236,7 +227,7 @@ function PagedItemsTable<T extends object>({
 		setDefaultSelection(false)
 		setExceptedItems([])
 		selection?.onSelectionChanged([], false)
-	}, [pagedItems.filters, pagedItems.fixedFilters, selection])
+	}, [pagedItems.filters, selection])
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.
 	// We build the list of data objects and put them in `tableData`, which is passed to the ant table.

@@ -23,10 +23,6 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 			return dispatch(pagedItemActions.listPage(pageNumber))
 		}
 
-		const setFixedFilterCallback = (filter: FilterSetting) => {
-			return dispatch(pagedItemActions.setFixedFilter(filter))
-		}
-
 		const setFilterCallback = (value: FilterValue, description: FilterDescription) => {
 			return dispatch(pagedItemActions.setFilter(value, description))
 		}
@@ -37,10 +33,6 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 
 		const clearFiltersCallback = () => {
 			return dispatch(pagedItemActions.clearFilters())
-		}
-
-		const clearFixedFiltersCallback = () => {
-			return dispatch(pagedItemActions.clearFixedFilters())
 		}
 
 		const setSortByCallback = (sortByList: SortBy[]) => {
@@ -65,11 +57,9 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 
 		return {
 			listPageCallback,
-			setFixedFilterCallback,
 			setFilterCallback,
 			setFilterOptionsCallback,
 			clearFiltersCallback,
-			clearFixedFiltersCallback,
 			setSortByCallback,
 			setPageSizeCallback,
 			resetPagedItemsCallback,

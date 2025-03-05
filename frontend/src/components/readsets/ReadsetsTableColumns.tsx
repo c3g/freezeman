@@ -17,6 +17,7 @@ export enum ReadsetColumnID {
     LIBRARY_TYPE = 'LIBRARY_TYPE',
     INDEX = 'INDEX',
     NUMBER_READS = 'NUMBER_READS',
+    DATASET_ID = "DATASET_ID",
 }
 
 function defaultRenderReleaseStatus(value: any, record: ObjectWithReadset, index: number) {
@@ -77,6 +78,15 @@ export function useReadsetColumnDefinitions({ renderReleaseStatus = defaultRende
                 return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric)} </div> : ''
             }
         },
+        [ReadsetColumnID.DATASET_ID]: {
+            columnID: ReadsetColumnID.DATASET_ID,
+            title: "Dataset ID",
+            dataIndex: ['readset', 'id'],
+            sorter: true,
+            render: () => {
+                throw new Error("Not implemented")
+            }
+        },
     }), [renderReleaseStatus])
 }
 
@@ -87,6 +97,7 @@ export enum ReadsetFilterID {
     LIBRARY_TYPE = ReadsetColumnID.LIBRARY_TYPE,
     INDEX = ReadsetColumnID.INDEX,
     NUMBER_READS = ReadsetColumnID.NUMBER_READS,
+    DATASET_ID = ReadsetColumnID.DATASET_ID,
 }
 
 export const READSET_COLUMN_FILTERS: { [key in ReadsetFilterID]: FilterDescription } = {
@@ -122,6 +133,11 @@ export const READSET_COLUMN_FILTERS: { [key in ReadsetFilterID]: FilterDescripti
         key: UNDEFINED_FILTER_KEY,
         label: "Number of Reads",
     },
+    [ReadsetFilterID.DATASET_ID]: {
+        type: FILTER_TYPE.INPUT_OBJECT_ID,
+        key: UNDEFINED_FILTER_KEY,
+        label: "Dataset ID",
+    }
 }
 
 export const READSET_FILTER_KEYS: { [key in ReadsetFilterID]: string } = {
@@ -131,4 +147,5 @@ export const READSET_FILTER_KEYS: { [key in ReadsetFilterID]: string } = {
     [ReadsetFilterID.LIBRARY_TYPE]: 'derived_sample__library__library_type__name',
     [ReadsetFilterID.INDEX]: 'derived_sample__library__index__name',
     [ReadsetFilterID.NUMBER_READS]: 'number_reads',
+    [ReadsetFilterID.DATASET_ID]: 'dataset__id',
 }

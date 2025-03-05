@@ -14,8 +14,7 @@ import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
 import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
 import { Button, Popconfirm, Popover, Spin, Tooltip } from "antd";
 import { ValidationStatus } from "../../modules/experimentRunLanes/models";
-import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons";
-import { createFixedFilter, FilterSet } from "../../models/paged_items";
+import { FilterSet } from "../../models/paged_items";
 import { FILTER_TYPE } from "../../constants";
 import { setColumnWidths } from "../pagedItemsTable/tableColumnUtilities";
 import { ReleaseStatus } from "../../models/fms_api_models";
@@ -64,7 +63,8 @@ const ReadsetsListContent = ({ dataset, laneValidationStatus, refreshDataset }: 
     // and has to flush the state.
     useEffect(() => {
         dispatch(ReadsetTableActions.resetPagedItems())
-        dispatch(ReadsetTableActions.setFixedFilter(createFixedFilter(FILTER_TYPE.INPUT_OBJECT_ID, 'dataset__id', dataset.id.toString())))
+        dispatch(ReadsetTableActions.setFilter(READSET_FILTER_KEYS[ReadsetColumnID.DATASET_ID], dataset.id.toString(), READSET_COLUMN_FILTERS[ReadsetColumnID.DATASET_ID]))
+        dispatch(ReadsetTableActions.setFilterFixed(READSET_FILTER_KEYS[ReadsetColumnID.DATASET_ID], true))
         dispatch(ReadsetTableActions.listPage(1))
     }, [dataset.id, dispatch])
 
