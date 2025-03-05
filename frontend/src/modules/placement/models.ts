@@ -4,7 +4,6 @@ import { Container, Project, Sample } from "../../models/frontend_models"
 /* Placement State */
 
 export interface PlacementState {
-    samples: SampleDetail[]
     parentContainers: ParentContainerState[]
 
     placementType: PlacementOptions['type']
@@ -55,33 +54,30 @@ export type SampleIdentifier = SampleDetail['id']
 
 /* Placement Sample */
 
-interface PlacementSampleBase {
+interface PlacedSample {
     readonly id: SampleIdentifier
     selected: boolean
     volume: number
 }
-export interface PlacementSampleWithoutParent extends PlacementSampleBase {}
-export interface PlacementSampleWithParent extends PlacementSampleBase {}
-export type PlacementSample = PlacementSampleWithParent | PlacementSampleWithoutParent
 
 /* Placement Cell State */
 
 export interface CellState {
     coordinates: PlacementCoordinates
     preview: boolean
-    sample: PlacementSampleWithParent | null
+    placedSamples: PlacedSample[]
 }
 
 /* Parent Container State */
 
-interface ParentContainerStateBase {}
+interface ParentContainerStateBase {
+    existingSamples: SampleDetail[]
+}
 export interface TubesWithoutParentState extends ParentContainerStateBase {
     readonly name: null
-    existingSamples: Array<PlacementSampleWithoutParent>
 }
 export interface RealParentContainerState extends ParentContainerStateBase {
     readonly name: Container['name']
-    existingSamples: Array<PlacementSampleWithParent>
     readonly spec: CoordinateSpec
     cells: CellState[]
 }

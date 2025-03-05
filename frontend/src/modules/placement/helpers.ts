@@ -222,25 +222,29 @@ export function flushContainersHelper(state: Draft<PlacementState>, parentContai
 
 /* Selectors Helpers */
 
-export function selectParentContainer(state: PlacementState, location: ParentContainerIdentifier) {
+type MaybeDraft<S, T> = S extends Draft<PlacementState> ? Draft<T> : T
+
+export function selectParentContainer<S extends PlacementState>(state: S, location: ParentContainerIdentifier): undefined | MaybeDraft<S, ParentContainerState> {
     return state.parentContainers.find((c) => c.name === location.parentContainer)
 }
-export function getParentContainer(state: PlacementState, location: ParentContainerIdentifier) {
+export function getParentContainer<S extends PlacementState>(state: S, location: ParentContainerIdentifier) {
     const container = selectParentContainer(state, location)
     if (!container)
         throw new Error(`Container not loaded: "${JSON.stringify(location)}"`)
     return container
 }
-export function getRealParentContainer(state: PlacementState, location: RealParentContainerIdentifier) {
+export function getRealParentContainer<S extends PlacementState>(state: S, location: RealParentContainerIdentifier) {
     const container = getParentContainer(state, location)
-    if (!container.name)
-        throw new Error('location.parentContainer must be in a parent container')
+    if (container.name === null) {
+        throw new Error(`Container ${JSON.stringify(location)} has missing name.`)
+    }
     return container
 }
-export function getTubesWithoutParent(state: PlacementState) {
+export function getTubesWithoutParent<S extends PlacementState>(state: S) {
     const container = getParentContainer(state, { parentContainer: null })
-    if (container.name !== null)
-        throw new Error('Tubes without parent must be in a container')
+    if (container.name !== null) {
+        throw new Error(`Tubes wihout parent has a name for some reason.`)
+    }
     return container
 }
 
