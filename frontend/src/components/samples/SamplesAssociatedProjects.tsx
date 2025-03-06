@@ -55,7 +55,6 @@ const SamplesAssociatedProjects = ({
   const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, project => {return { project }})
 
   return (
-    // Don't render until the sample fixed filter is set, or you will get all of the projects.
       <PagedItemsTable
         columns={columns}
         getDataObjectsByID={mapProjectIDs}

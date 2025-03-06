@@ -9,7 +9,7 @@ import FilterContainer from './FilterContainer'
 type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
 type SetFilterOptionCallback = (description: FilterDescription, options: FilterOptions) => void
 
-interface FilterPanelProps {
+export interface FilterPanelProps {
 	descriptions: FilterDescription[]
 	setFilter: SetFilterCallback
 	setFilterOption: SetFilterOptionCallback

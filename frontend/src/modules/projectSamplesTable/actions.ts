@@ -4,7 +4,7 @@ import { Project } from "../../models/frontend_models"
 import { FreezemanAsyncThunk, createPagedItemsActions } from "../../models/paged_items_factory"
 import { selectProjectSamplesTable } from "../../selectors"
 import { list as listSamples } from '../samples/actions'
-import { PREFIX, reducer } from "./reducers"
+import { PREFIX } from "./reducers"
 
 const pagedItemsActions = createPagedItemsActions(PREFIX, selectProjectSamplesTable, (option) => listSamples(option, true))
 
@@ -20,11 +20,12 @@ const setProject: (projectID: Project['id']) => FreezemanAsyncThunk<void> = (pro
 
     await dispatch(pagedItemsActions.resetPagedItems())
     
-    dispatch(pagedItemsActions.setFilter(
+    await dispatch(pagedItemsActions.setFilter(
+        PROJECT_FILTER_KEY,
         projectID.toString(),
         PROJECT_FILTER_DESCRIPTION,
     ))
-    dispatch(pagedItemsActions.setFilterFixed(PROJECT_FILTER_DESCRIPTION, true))
+    await dispatch(pagedItemsActions.setFilterFixed(PROJECT_FILTER_KEY, true))
 
     return await dispatch(pagedItemsActions.listPage(1))
 }

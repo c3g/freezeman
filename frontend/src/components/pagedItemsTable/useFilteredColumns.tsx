@@ -27,14 +27,14 @@ export function useFilteredColumns<T>(
 
 	const wrappedSetFilterCallback = useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
-			setFilterCallback(value, description)
+			setFilterCallback(filterKey, value, description)
 		},
 		[setFilterCallback]
 	)
 
 	const wrappedSetFilterOptionsCallback = useCallback(
-		(filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => {
-			setFilterOptionsCallback(description, { [propertyName]: value })
+		(filterKey: string, propertyName: string, value: boolean) => {
+			setFilterOptionsCallback(filterKey, { [propertyName]: value })
 		},
 		[setFilterOptionsCallback]
 	)

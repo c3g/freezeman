@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useAppSelector } from '../../hooks'
 import { Container } from '../../models/frontend_models'
 import ContainersTableActions from '../../modules/containersTable/actions'
@@ -10,7 +10,7 @@ import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import FilterPanel from '../filters/filterPanel/FilterPanel'
+import FilterPanel, { FilterPanelProps } from '../filters/filterPanel/FilterPanel'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
 import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
@@ -62,6 +62,13 @@ export default function ContainersListContent() {
 		containersTableCallbacks.setFilterOptionsCallback
 	)
 
+	const setFilterCallback: FilterPanelProps['setFilter'] = useCallback((value, description) => {
+		return containersTableCallbacks.setFilterCallback(description.key, value, description)
+	}, [containersTableCallbacks])
+	const setFilterOptionCallback: FilterPanelProps['setFilterOption'] = useCallback((description, options) => {
+		return containersTableCallbacks.setFilterOptionsCallback(description.key, options)
+	}, [containersTableCallbacks])
+
 	const mapContainerIDs = useItemsByIDToDataObjects(selectContainersByID, wrapContainer)
 
 	return (
@@ -76,8 +83,8 @@ export default function ContainersListContent() {
 				<FilterPanel 
 					descriptions={[commentFilter]}
 					filters={filters}
-					setFilter={containersTableCallbacks.setFilterCallback}
-					setFilterOption={containersTableCallbacks.setFilterOptionsCallback}
+					setFilter={setFilterCallback}
+					setFilterOption={setFilterOptionCallback}
 				/>
 				<FiltersBar filters={filters} clearFilters={containersTableCallbacks.clearFiltersCallback}/>
 				<PagedItemsTable<ObjectWithContainer>
