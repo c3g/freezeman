@@ -1,11 +1,11 @@
-import React from "react";
+import React, { Fragment } from "react";
 import {connect} from "react-redux";
 
 import {Typography, List} from "antd";
 import {withSample} from "../../utils/withItem";
 import {Link} from "react-router-dom";
 import {CheckCircleTwoTone, CloseCircleTwoTone} from "@ant-design/icons";
-const {Text, Title} = Typography;
+const {Text} = Typography;
 
 import {list as listProcessMeasurements} from "../../modules/processMeasurements/actions";
 
@@ -34,12 +34,12 @@ const renderProcessMeasurement = (processMeasurement) =>
 const renderListHeader = (container) => {
   return (
       <>
-        <Title level={5}>
+        <Text strong>
             Samples inside container <Link to={`/containers/${container.id}`}> {container.name} </Link>
-        </Title>
-        <Title level={5} style={{textAlign: 'right'}}>
+        </Text>
+        <Text strong style={{ display: 'block', textAlign: 'right' }}>
             Volume used
-        </Title>
+        </Text>
       </>
   )
 }
@@ -72,10 +72,10 @@ const ExperimentRunsSamples = ({
 
   const renderPMsForSampleID = (sampleID) => {
       if (isProcessMeasurementsLoaded && sampleID && processMeasurements) {
-          return processMeasurements.filter(pm => pm.child_sample == sampleID).map(pm => renderProcessMeasurement(pm))
+          return processMeasurements.filter(pm => pm.child_sample == sampleID).map(pm => <Fragment key={pm.id}>{renderProcessMeasurement(pm)}</Fragment>)
       }
       else
-          return [<></>]
+          return [<Fragment key={""}></Fragment>]
   }
 
   return (
@@ -87,8 +87,7 @@ const ExperimentRunsSamples = ({
           renderItem={sampleId => {
             const id = withSample(samplesByID, sampleId, sample => sample.id, 'Loading...')
             const sample = samplesByID[id]
-            return (
-              <List.Item>
+            return <List.Item key={sampleId}>
                 <div>
                   {sample ?
                       renderSample(sample, sampleKindsByID[sample.sample_kind]?.name) :
@@ -104,8 +103,7 @@ const ExperimentRunsSamples = ({
                     {renderPMsForSampleID(sampleId)}
                 </div>
 
-              </List.Item>
-            )
+            </List.Item>
           }}
         />
       </>

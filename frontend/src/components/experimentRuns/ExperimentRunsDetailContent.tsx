@@ -1,5 +1,5 @@
-import { Tabs } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Tabs, TabsProps } from 'antd'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
@@ -21,8 +21,6 @@ import ExperimentRunOverview from './ExperimentRunOverview'
 import ExperimentRunValidation from './ExperimentRunValidation'
 import ExperimentRunsSamples from './ExperimentRunsSamples'
 import DatasetTable from '../datasets/DatasetTable'
-
-const { TabPane } = Tabs
 
 const pageStyle = {
 	padding: 0,
@@ -121,48 +119,69 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const processesByID = useAppSelector(selectProcessesByID)
 
+	const tabs = useMemo(() => {
+		const tabs: NonNullable<TabsProps['items']> = []
+		tabs.push({
+			key: 'overview',
+			label: 'Overview',
+			children: <ExperimentRunOverview experimentRun={experimentRun} container={container} process={process} />,
+		})
+		tabs.push({
+			key: 'steps',
+			label: 'Steps',
+			children: [
+				<ProcessProperties
+					propertyIDs={process.children_properties}
+					protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
+					key={process.id}
+				/>,
+				...(experimentRun.children_processes ?? []).map((id) => {
+					const process = processesByID[id]
+					return (
+						process && (
+							<>
+								<ProcessProperties
+									key={process.id}
+									propertyIDs={process.children_properties}
+									protocolName={protocolsByID[process.protocol]?.name}
+								/>
+							</>
+						)
+					)
+				})
+			]
+		})
+		tabs.push({
+			key: 'samples',
+			label: `Samples (${container ? container.samples.length : ''})`,
+			children: <ExperimentRunsSamples container={container} experimentRun={experimentRun} />,
+		})
+		tabs.push({
+			key: 'validation',
+			label: 'Validation',
+			children: <ExperimentRunValidation experimentRunName={experimentRun.name} />,
+		})
+		tabs.push({
+			key: 'datasets',
+			label: 'Datasets',
+			children: <DatasetTable run_name={experimentRun.name} scroll={{ x: '100%', y: '60vh' }} />,
+		})
+		return tabs
+	}, [container, experimentRun, process, processesByID, protocolsByID])
+
 	return (
 		<>
 			<AppPageHeader title={`Experiment ${experimentRun.id}`} />
 
 			<PageContent loading={false} style={pageStyle} tabs={true}>
-				<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={{padding: "1em"}}>
-					<TabPane tab="Overview" key="overview">
-						<ExperimentRunOverview experimentRun={experimentRun} container={container} process={process}/>
-					</TabPane>
-
-					<TabPane tab="Steps" key="steps">
-						<ProcessProperties
-							propertyIDs={process.children_properties}
-							protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
-						/>
-						{experimentRun.children_processes?.map((id) => {
-							const process = processesByID[id]
-							return (
-								process && (
-									<>
-										<ProcessProperties
-											propertyIDs={process.children_properties}
-											protocolName={protocolsByID[process.protocol]?.name}
-										/>
-									</>
-								)
-							)
-						})}
-					</TabPane>
-
-					<TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="samples">
-						<ExperimentRunsSamples container={container} experimentRun={experimentRun} />
-					</TabPane>
-
-					<TabPane tab={'Validation'} key="validation">
-						<ExperimentRunValidation experimentRunName={experimentRun.name} />
-					</TabPane>
-
-					<TabPane tab={'Datasets'} key="datasets">
-						<DatasetTable run_name={experimentRun.name} scroll={{ x: '100%', y: '60vh' }}/>
-					</TabPane>
-				</Tabs>
+				<Tabs
+					activeKey={activeKey}
+					onChange={setActiveKey}
+					size="large"
+					type="card"
+					style={{padding: "1em"}}
+					items={tabs}
+				/>
 			</PageContent>
 		</>
 	)
