@@ -69,12 +69,41 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	}
 
 	// If Hide Empty Steps then don't render steps with no ready or completed samples.
-	let renderedSteps: StudySampleStep[] = []
+	const renderedSteps: StudySampleStep[] = useMemo(() => {
+		let renderedSteps = [...studySamples.steps]
+		if (hideEmptySteps) {
+			renderedSteps = renderedSteps.filter((step) => step.ready.count > 0 || step.completed.count > 0)
+		}
+		return renderedSteps
+	}, [hideEmptySteps, studySamples.steps])
 
-	renderedSteps = [...studySamples.steps]
-	if (hideEmptySteps) {
-		renderedSteps = renderedSteps.filter((step) => step.ready.count > 0 || step.completed.count > 0)
-	}
+
+	const items = useMemo(() => renderedSteps.map(function (step): NonNullable<CollapseProps['items']>[0] {
+		const countString = `${step.completed.count + step.removed.count} / ${step.ready.count + step.completed.count + step.removed.count}`
+		const countTitle = `${step.completed.count + step.removed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`					
+		const removedTitle = step.removed.count === 1 ? `1 sample was removed from study after completing this step` : `${step.removed.count} samples were removed from study after completing this step`
+
+		return {
+			key: step.stepOrderID.toString(),
+			label: <Space align="baseline">
+				<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
+				<Title level={5}>{step.stepName}</Title>
+			</Space>,
+			showArrow: true,
+			style: { backgroundColor: 'white' },
+			extra: <>
+				<Space>
+					{step.removed.count > 0 && <WarningOutlined style={{color: 'red'}} title={removedTitle}/>}
+					<Title level={4} style={{ margin: '0' }} title={countTitle}>
+						{countString}
+					</Title>
+				</Space>
+			</>,
+			children: (
+				<StepTabs step={step} studyID={studyID} uxSettings={uxSettings?.stepSettings[step.stepOrderID]} removedTitle={removedTitle} />
+			)
+		}
+	}), [renderedSteps, studyID, uxSettings?.stepSettings])
 
 	return (
 		<>
@@ -98,32 +127,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 				bordered={true}
 				onChange={handleExpand}
 				activeKey={expandedPanelKeys}
-				items={renderedSteps.map(function (step): NonNullable<CollapseProps['items']>[0] {
-					const countString = `${step.completed.count + step.removed.count} / ${step.ready.count + step.completed.count + step.removed.count}`
-					const countTitle = `${step.completed.count + step.removed.count} of ${step.ready.count + step.completed.count + step.removed.count} samples are completed`					
-					const removedTitle = step.removed.count === 1 ? `1 sample was removed from study after completing this step` : `${step.removed.count} samples were removed from study after completing this step`
-
-					return {
-						key: step.stepOrderID.toString(),
-						label: <Space align="baseline">
-							<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
-							<Title level={5}>{step.stepName}</Title>
-						</Space>,
-						showArrow: true,
-						style: { backgroundColor: 'white' },
-						extra: <>
-							<Space>
-								{step.removed.count > 0 && <WarningOutlined style={{color: 'red'}} title={removedTitle}/>}
-								<Title level={4} style={{ margin: '0' }} title={countTitle}>
-									{countString}
-								</Title>
-							</Space>
-						</>,
-						children: (
-							<StepTabs step={step} studyID={studyID} uxSettings={uxSettings?.stepSettings[step.stepOrderID]} removedTitle={removedTitle} />
-						)
-					}
-				})}
+				items={items}
 			/>
 		</>
 	)

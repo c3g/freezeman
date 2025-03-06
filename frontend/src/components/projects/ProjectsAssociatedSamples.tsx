@@ -1,4 +1,4 @@
-import React, { ReactElement, useCallback, useEffect, useMemo, useState } from "react";
+import React, { Fragment, ReactElement, useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable, selectStudiesByID } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
@@ -141,7 +141,7 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
                             </Popover>
                         )
                     } else {
-                        tags.push(<span key={studyStep.id}>...</span>)
+                        tags.push(<Fragment key={studyStep.id}>...</Fragment>)
                     }
                     return tags
                 }, [])

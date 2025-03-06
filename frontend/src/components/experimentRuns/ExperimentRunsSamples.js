@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect } from "react";
 import {connect} from "react-redux";
 
 import {Typography, List} from "antd";
@@ -64,8 +64,11 @@ const ExperimentRunsSamples = ({
 
   const isProcessMeasurementsLoaded = experimentRun && Object.values(processMeasurementsByID).some(pm => pm.process == experimentRun.process)
 
-  if (experimentRun && !isProcessMeasurementsLoaded)
-    listProcessMeasurements({process: experimentRun.process})
+  useEffect(() => {
+    if (experimentRun && !isProcessMeasurementsLoaded) {
+      listProcessMeasurements({process: experimentRun.process})
+    }
+  }, [experimentRun, isProcessMeasurementsLoaded, listProcessMeasurements])
 
   const processMeasurements =
     isProcessMeasurementsLoaded ? Object.values(processMeasurementsByID).filter(pm => pm.process == experimentRun.process) : undefined

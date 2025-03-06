@@ -1,5 +1,5 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { shallowEqual } from 'react-redux'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -103,32 +103,34 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		}
 	}
 
+	const collapseItems = useMemo(() => (runLanes?.lanes ?? []).map(function (lane): NonNullable<CollapseProps['items']>[0] {
+		return {
+			key: createLaneKey(lane),
+			label: `Lane ${lane.laneNumber}`,
+			extra: (<Space direction={'horizontal'}>
+					<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
+					{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
+				</Space>),
+			children: (<LanePanel 
+				lane={lane}
+				canReset={isStaff} 
+				canValidate={isStaff || lane.validationStatus === ValidationStatus.AVAILABLE}
+				isValidationInProgress={isValidationInProgress} 
+				setAvailable={setAvailable} 
+				setPassed={setPassed} 
+				setFailed={setFailed}
+				/>)
+		}
+	}), [isStaff, isValidationInProgress, runLanes?.lanes, setAvailable, setFailed, setPassed])
+
 	return (
-		runLanes && runLanes.lanes.length > 0 ?
-			<Collapse
+		runLanes && runLanes.lanes.length > 0
+		? <Collapse
 				onChange={setLaneExpansionState}
 				activeKey={expandedLaneKeys}
-				items={runLanes.lanes.map(function (lane): NonNullable<CollapseProps['items']>[0] {
-					return {
-						key: createLaneKey(lane),
-						label: `Lane ${lane.laneNumber}`,
-						extra: <Space direction={'horizontal'}>
-							<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
-							{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
-						</Space>,
-						children: <LanePanel 
-						lane={lane}
-						canReset={isStaff} 
-						canValidate={isStaff || lane.validationStatus === ValidationStatus.AVAILABLE}
-						isValidationInProgress={isValidationInProgress} 
-						setAvailable={setAvailable} 
-						setPassed={setPassed} 
-						setFailed={setFailed}/>
-					}
-				})}
+				items={collapseItems}
 			/>
-		:
-			<Text italic style={{paddingLeft: '1em'}}>No datasets for this experiment are available for this experiment yet.</Text>
+		: <Text italic style={{paddingLeft: '1em'}}>No datasets for this experiment are available for this experiment yet.</Text>
 	)
 }
 

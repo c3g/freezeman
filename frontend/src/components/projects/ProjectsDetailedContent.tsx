@@ -18,8 +18,6 @@ import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { get as getProject } from '../../modules/projects/actions'
 import { FMSId } from '../../models/fms_api_models'
 
-const { TabPane } = Tabs
-
 const ProjectsDetailedContentRoute = () => {
 	const projectID = useIDParam('id')
 	const dispatch = useAppDispatch()
