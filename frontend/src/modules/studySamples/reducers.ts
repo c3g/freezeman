@@ -1,5 +1,4 @@
-import { produce } from 'immer'
-import { WritableDraft } from 'immer/dist/types/types-external'
+import { Draft, produce } from 'immer'
 import { AnyAction } from 'redux'
 import { createNetworkActionTypes } from '../../utils/actions'
 import { StudySampleList, StudySamplesState, StudyStepSamplesTabSelection, StudyUXSettings } from './models'
@@ -67,7 +66,7 @@ export function studySamples(inputState: StudySamplesState = INITIAL_STATE, acti
 	})
 }
 
-export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, action: AnyAction): StudySamplesState => {
+export const studySamplesReducer = (state: Draft<StudySamplesState>, action: AnyAction): StudySamplesState => {
 	switch (action.type) {
 		case GET_STUDY_SAMPLES.REQUEST: {
 			const { studyID } = action.meta

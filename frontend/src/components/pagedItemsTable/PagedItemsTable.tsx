@@ -41,7 +41,6 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	pagedItems: PagedItems
 
 	columns: IdentifiedTableColumnType<T>[]
-	fixedFilter?: FilterSetting
 
 	// If true, a FiltersBar component is rendered with the table.
 	usingFilters: boolean
