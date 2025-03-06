@@ -22,12 +22,12 @@ export function fetchSamplesByDefaultSelectionAndExceptedIDs(defaultSelection: b
 export function useQueryParamsForPagedItems(
     columnFilters: Record<string, FilterDescription>,
     filterKeys: Record<string, string>,
-    setFilter: (value: FilterValue, description: FilterDescription) => Promise<void>,
-    clearFilters: () => Promise<void>
+    setFilter: PagedItemsActionsCallbacks['setFilterCallback'],
+    clearFilters: PagedItemsActionsCallbacks['clearFiltersCallback']
 ): Pick<PagedItemsActionsCallbacks, 'setFilterCallback' | 'clearFiltersCallback'> {
         const [searchParams, setSearchParams] = useSearchParams()
 
-        const setFilterCallback: PagedItemsActionsCallbacks['setFilterCallback']  = useCallback((value, description) => {
+        const setFilterCallback: typeof setFilter = useCallback((filterID, value, description) => {
             const newSearchParams = new URLSearchParams(searchParams)
             const columnID = Object.entries(columnFilters).find(([_, v]) => v.label === description.label)?.[0] as string
             newSearchParams.set(filterKeys[columnID], value?.toString() ?? '')
@@ -35,7 +35,7 @@ export function useQueryParamsForPagedItems(
             return Promise.resolve()
         }, [columnFilters, filterKeys, searchParams, setSearchParams])
 
-        const clearFiltersCallback = useCallback(() => {
+        const clearFiltersCallback: typeof clearFilters = useCallback(() => {
             setSearchParams('')
             clearFilters()
             return Promise.resolve()
@@ -45,6 +45,7 @@ export function useQueryParamsForPagedItems(
             for (const [filterKey, value] of searchParams.entries()) {
                 const columnID = Object.entries(filterKeys).find(([_, v]) => v === filterKey)?.[0] as string
                 setFilter(
+                    filterKey,
                     value as unknown as FilterValue,
                     {
                         ...columnFilters[columnID],

@@ -25,17 +25,24 @@ interface LabworkSamplesProps {
 
 export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
-    const { filters, fixedFilters } = samplesTableState
-    const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
+    const { filters } = samplesTableState
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     useEffect(() => {
-        if (fixedFilter) {
-            samplesTableCallbacks.clearFixedFiltersCallback()
-            samplesTableCallbacks.setFixedFilterCallback(fixedFilter)
-            samplesTableCallbacks.refreshPageCallback()
+        const description = fixedFilter?.description
+        if (fixedFilter && description) {
+            (async () => {
+                await samplesTableCallbacks.clearFiltersCallback()
+                await samplesTableCallbacks.setFilterCallback(
+                    description.key,
+                    fixedFilter.value,
+                    description
+                )
+                await samplesTableCallbacks.setFilterFixed(description.key, true)
+                await samplesTableCallbacks.refreshPageCallback()
+            })
             return () => {
-                samplesTableCallbacks.clearFixedFiltersCallback()
+                samplesTableCallbacks.clearFiltersCallback()
             }
         }
     }, [fixedFilter, samplesTableCallbacks])
@@ -53,7 +60,7 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
-        wholeFilters,
+        filters,
         setFilterCallback,
         samplesTableCallbacks.setFilterOptionsCallback
     )
@@ -126,7 +133,7 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
                 open={open}
                 destroyOnClose={true}
             >
-                <WorkflowOptions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={wholeFilters} />
+                <WorkflowOptions defaultSelection={defaultSelection} exceptedSampleIDs={exceptedSampleIDs} filters={filters} />
             </Drawer>
         </>
     )
