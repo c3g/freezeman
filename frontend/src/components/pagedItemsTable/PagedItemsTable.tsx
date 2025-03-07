@@ -17,11 +17,11 @@ export interface PagedItemTableSelection {
 export interface PagedItemsActionsCallbacks {
 	listPageCallback: (pagedNumber: number) => Promise<void>
 	refreshPageCallback: () => Promise<void>
-	setFilterCallback: (filterID: string, value: FilterValue, description: FilterDescription) => Promise<void>
-	setFilterOptionsCallback: (filterID: string, options: FilterOptions) => Promise<void>
+	setFilterCallback: (filterID: string, value: FilterValue, description: FilterDescription, fetch?: boolean) => Promise<void>
+	setFilterOptionsCallback: (filterID: string, options: FilterOptions, fetch?: boolean) => Promise<void>
 	setFilterFixed: (filterID: string, fixed: boolean) => Promise<void>
-	removeFilterCallback: (filterID: string) => Promise<void>
-	clearFiltersCallback: () => Promise<void>
+	removeFilterCallback: (filterID: string, fetch?: boolean) => Promise<void>
+	clearFiltersCallback: (fetch?: boolean) => Promise<void>
 	setSortByCallback: (sortByList: SortBy[]) => Promise<void>
 	setPageSizeCallback: (pageSize: number) => Promise<void>
 	resetPagedItemsCallback: () => Promise<void>
