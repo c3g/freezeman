@@ -1,6 +1,6 @@
 import { Radio } from 'antd'
-import React, { useCallback } from 'react'
-import { FilterSet, FilterSetting, SetFixedFilterFunc } from '../../models/paged_items'
+import React from 'react'
+import { FilterSetting } from '../../models/paged_items'
 import { FILTER_TYPE } from '../../constants'
 
 /**
@@ -36,33 +36,25 @@ export function getSampleCategoryFilterSetting(category: SampleCategory, isPoole
 			key: isPooledFilterKey,
 			label: 'Pooled Samples',
 			type: FILTER_TYPE.SELECT
-		}
+		},
+		fixed: true
 	}
 	return filterSetting
 }
 
 interface SampleCategoryChooserProps {
 	disabled: boolean
-	filters: FilterSet
-	setFixedFilter: SetFixedFilterFunc
 	sampleCategory: SampleCategory
 	onChange: (category: SampleCategory) => void
 	samplesLabel?: string		// Used to override the "Samples" radio button name for Libraries
-	isPooledFilterKey?: string
 }
 
 function SampleCategoryChooser({
-	disabled, setFixedFilter, sampleCategory, onChange, samplesLabel, isPooledFilterKey = 'is_pooled'
+	disabled, sampleCategory, onChange, samplesLabel
 }: SampleCategoryChooserProps) {
 
-	const handleSampleCategoryChange = useCallback((category: SampleCategory) => {
-		const filterSetting = getSampleCategoryFilterSetting(category, isPooledFilterKey)
-		setFixedFilter(filterSetting)
-		onChange(category)
-	}, [isPooledFilterKey, onChange, setFixedFilter])
-
 	return (
-		<Radio.Group disabled={disabled} value={sampleCategory} onChange={evt => {handleSampleCategoryChange(evt.target.value)}}>
+		<Radio.Group disabled={disabled} value={sampleCategory} onChange={evt => {onChange(evt.target.value)}}>
          <Radio.Button value={SampleCategory.SAMPLES}> {samplesLabel ?? 'Samples'} </Radio.Button>
          <Radio.Button value={SampleCategory.POOLS}> Pools </Radio.Button>
          <Radio.Button value={SampleCategory.ALL}> All </Radio.Button>

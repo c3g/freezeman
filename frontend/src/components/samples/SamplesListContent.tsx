@@ -24,6 +24,8 @@ import Flexbar from '../shared/Flexbar'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
+import { FilterDescription } from '../../models/paged_items'
+import { Radio } from 'antd'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
@@ -61,11 +63,13 @@ function SamplesListContent() {
 	const prefills = useAppSelector(selectSamplePrefillTemplates)
 
 	let initialCategory = SampleCategory.ALL
-	const isPooledFilter = filters['is_pooled']?.fixed
-	if (isPooledFilter === true) {
-		initialCategory = SampleCategory.POOLS
-	} else if (isPooledFilter === false) {
-		initialCategory = SampleCategory.SAMPLES
+	const isPooledFilter = filters['is_pooled']
+	if (isPooledFilter) {
+		if (isPooledFilter.fixed) {
+			initialCategory = SampleCategory.POOLS
+		} else {
+			initialCategory = SampleCategory.SAMPLES
+		}
 	}
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(initialCategory)
 
@@ -81,10 +85,11 @@ function SamplesListContent() {
 	// filters are cleared. Do we still want that to happen?
 	const clearFiltersAndCategory = useCallback(async () => {
 		const setting = getSampleCategoryFilterSetting(SampleCategory.ALL)
-		await samplesTableCallbacks.clearFiltersCallback()
-		if (setting.description) {
-			await samplesTableCallbacks.setFilterCallback(setting.description.key, setting.value, setting.description)
-		}
+		await samplesTableCallbacks.setFilterFixedCallback('is_pooled', false)
+		await samplesTableCallbacks.setFilterCallback('is_pooled', setting.value, setting.description as FilterDescription, false)
+		await samplesTableCallbacks.setFilterFixedCallback('is_pooled', false)
+		await samplesTableCallbacks.clearFiltersCallback(false)
+		await samplesTableCallbacks.listPageCallback(1)
 	}, [samplesTableCallbacks])
 
 	// Tweak the columns to customize them for this table.
@@ -114,6 +119,13 @@ function SamplesListContent() {
 	const onSampleCategoryChange = useCallback(
 		(sampleCategory: SampleCategory) => {
 			setSampleCategory(sampleCategory)
+			const isPooledFilterKey = 'is_pooled'
+			const filterSetting = getSampleCategoryFilterSetting(sampleCategory, isPooledFilterKey)
+			if (filterSetting.description) {
+				samplesTableCallbacks.setFilterFixedCallback(isPooledFilterKey, false)
+				samplesTableCallbacks.setFilterCallback(isPooledFilterKey, filterSetting.value, filterSetting.description, false)
+				samplesTableCallbacks.setFilterFixedCallback(isPooledFilterKey, true)
+			}
 			samplesTableCallbacks.refreshPageCallback()
 		}
 	, [samplesTableCallbacks])
@@ -136,8 +148,6 @@ function SamplesListContent() {
 				<Flexbar style={{alignItems: 'center'}}>
 					<SampleCategoryChooser
 						disabled={isFetching}
-						filters={fixedFilters}
-						setFixedFilter={samplesTableCallbacks.setFixedFilterCallback}
 						sampleCategory={sampleCategory}
 						onChange={onSampleCategoryChange}
 					/>

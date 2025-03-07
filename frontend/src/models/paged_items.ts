@@ -1,3 +1,4 @@
+import { PagedItemsActionsCallbacks } from "../components/pagedItemsTable/PagedItemsTable"
 import { FMSId, FMSTrackedModel } from "./fms_api_models"
 import { FetchedObject, ItemsByID } from "./frontend_models"
 
@@ -34,11 +35,10 @@ export type MetadataFilterValue = { name: string, value?: string }[]
 export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilterValue | MetadataFilterValue | undefined
 
 // Callback function definitions for functions that are passed to filter components.
-export type SetFilterFunc = (filterKey: string, value: FilterValue, description: FilterDescription) => void
-export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
-export type SetFixedFilterFunc = (filter: FilterSetting) => void
+export type SetFilterFunc = PagedItemsActionsCallbacks['setFilterCallback']
+export type SetFilterOptionFunc = PagedItemsActionsCallbacks['setFilterOptionsCallback']
 export type FilterValidationFunc = (string: string) => boolean
-export type SetSortByFunc = (sortByList: SortBy[]) => void
+export type SetSortByFunc = PagedItemsActionsCallbacks['setSortByCallback']
 
 export interface FilterOptions {
 	[key: string]: boolean

@@ -1,13 +1,14 @@
 import { Collapse } from 'antd'
-import React, { useCallback } from 'react'
+import React from 'react'
 
-import { FilterDescription, FilterOptions, FilterSet, FilterSetting, FilterValue } from '../../../models/paged_items'
+import { FilterDescription, FilterSet, FilterSetting } from '../../../models/paged_items'
 import { getFilterComponent } from '../getFilterComponent'
 import FilterContainer from './FilterContainer'
+import { PagedItemsActionsCallbacks } from '../../pagedItemsTable/PagedItemsTable'
 
 // TODO: Clean up the setFilter function definition and define this in one place.
-type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
-type SetFilterOptionCallback = (description: FilterDescription, options: FilterOptions) => void
+type SetFilterCallback = PagedItemsActionsCallbacks['setFilterCallback']
+type SetFilterOptionCallback = PagedItemsActionsCallbacks['setFilterOptionsCallback']
 
 export interface FilterPanelProps {
 	descriptions: FilterDescription[]
@@ -17,23 +18,6 @@ export interface FilterPanelProps {
   withCollapsible?: boolean
 }
 
-function useLegacySetFilterCallback(setFilter: SetFilterCallback) {
-	return useCallback(
-		(filterKey: string, value: FilterValue, description: FilterDescription) => {
-			setFilter(value, description)
-		},
-		[setFilter]
-	)
-}
-
-function useLegacySetFilterOptionCallback(setFilterOption: SetFilterOptionCallback) {
-	return useCallback(
-		(filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => {
-			setFilterOption(description, { [propertyName]: value })
-		},
-		[setFilterOption]
-	)
-}
 /**
  * FilterPanel displays a set of filters used in the 'advanced filters' sections of our tables.
  * These are filters that are not associated with any columns in the table.
@@ -42,13 +26,9 @@ function useLegacySetFilterOptionCallback(setFilterOption: SetFilterOptionCallba
  */
 const FilterPanel = ({ descriptions, filters, setFilter, setFilterOption, withCollapsible = true}: FilterPanelProps) => {
 
-	// TODO is this necessary anymore?
-	const legacySetFilter = useLegacySetFilterCallback(setFilter)
-	const legacySetFilterOption = useLegacySetFilterOptionCallback(setFilterOption)
-
 	function createFilterContainer(description: FilterDescription) {
 		const filterSetting: FilterSetting | undefined = filters[description.key]
-		const filterComponent = getFilterComponent(description, filterSetting, legacySetFilter, legacySetFilterOption)
+		const filterComponent = getFilterComponent(description, filterSetting, setFilter, setFilterOption)
 		if (filterComponent) {
 			return (
 				<FilterContainer key={`FILTER_GROUP:${description.key}`} label={description.label}>
