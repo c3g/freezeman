@@ -2,7 +2,7 @@ import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "..
 import { selectPageSize } from "../selectors"
 import { AppDispatch, RootState } from "../store"
 import { createPagedItems, FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItems, SortBy } from "./paged_items"
-import { FMSResponse } from "../utils/api"
+import { ABORT_ERROR_NAME, FMSResponse } from "../utils/api"
 import { FMSPagedResultsReponse, FMSTrackedModel } from "./fms_api_models"
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { ObjectId } from "./frontend_models"
@@ -104,7 +104,9 @@ export function createPagedItemsActions(prefix: string, selectPagedItems: Select
 			}
             prefixedDispatch(actions.listReceive(data))
         } catch(error) {
-            prefixedDispatch(actions.listError(error))
+            if (error.name !== ABORT_ERROR_NAME) {
+                prefixedDispatch(actions.listError(error))
+            }
             return
         }
     }
