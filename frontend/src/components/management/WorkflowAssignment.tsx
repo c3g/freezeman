@@ -32,17 +32,25 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         const description = fixedFilter?.description
         if (fixedFilter && description) {
             (async () => {
-                await samplesTableCallbacks.clearFiltersCallback()
+                await samplesTableCallbacks.clearFiltersCallback(false)
                 await samplesTableCallbacks.setFilterCallback(
                     description.key,
                     fixedFilter.value,
-                    description
+                    description,
+                    false
+                )
+                await samplesTableCallbacks.setFilterOptionsCallback(
+                    description.key,
+                    {
+                        startsWith: true,
+                    },
+                    false
                 )
                 await samplesTableCallbacks.setFilterFixed(description.key, true)
                 await samplesTableCallbacks.refreshPageCallback()
-            })
+            })()
             return () => {
-                samplesTableCallbacks.clearFiltersCallback()
+                samplesTableCallbacks.clearFiltersCallback(false)
             }
         }
     }, [fixedFilter, samplesTableCallbacks])
