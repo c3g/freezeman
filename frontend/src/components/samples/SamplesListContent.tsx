@@ -84,12 +84,10 @@ function SamplesListContent() {
 	// Special clearFilters callback that also sets the sample category back to ALL whenever
 	// filters are cleared. Do we still want that to happen?
 	const clearFiltersAndCategory = useCallback(async () => {
-		const setting = getSampleCategoryFilterSetting(SampleCategory.ALL)
+		setSampleCategory(SampleCategory.ALL)
 		await samplesTableCallbacks.setFilterFixedCallback('is_pooled', false)
-		await samplesTableCallbacks.setFilterCallback('is_pooled', setting.value, setting.description as FilterDescription, false)
-		await samplesTableCallbacks.setFilterFixedCallback('is_pooled', false)
-		await samplesTableCallbacks.clearFiltersCallback(false)
-		await samplesTableCallbacks.listPageCallback(1)
+		await samplesTableCallbacks.clearFiltersCallback()
+		await samplesTableCallbacks.listPageCallback(1, true)
 	}, [samplesTableCallbacks])
 
 	// Tweak the columns to customize them for this table.
@@ -126,7 +124,7 @@ function SamplesListContent() {
 				samplesTableCallbacks.setFilterCallback(isPooledFilterKey, filterSetting.value, filterSetting.description, false)
 				samplesTableCallbacks.setFilterFixedCallback(isPooledFilterKey, true)
 			}
-			samplesTableCallbacks.refreshPageCallback()
+			samplesTableCallbacks.listPageCallback(1, true)
 		}
 	, [samplesTableCallbacks])
 

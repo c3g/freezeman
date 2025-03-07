@@ -19,7 +19,7 @@ import { PagedItemsActionsCallbacks } from './PagedItemsTable'
 export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsActions): PagedItemsActionsCallbacks {
 	const dispatch = useAppDispatch()
 	return useMemo(() => ({
-		listPageCallback: (pagedNumber: number) => dispatch(pagedItemActions.listPage(pagedNumber)),
+		listPageCallback: (pagedNumber: number, forceFetch?: boolean) => dispatch(pagedItemActions.listPage(pagedNumber, forceFetch)),
 		setFilterCallback: (filterID: string, value: FilterValue, description: FilterDescription, fetch = true) => dispatch(pagedItemActions.setFilter(filterID, value, description, fetch)),
 		setFilterOptionsCallback: (filterID: string, options: FilterOptions, fetch = true) => dispatch(pagedItemActions.setFilterOptions(filterID, options, fetch)),
 		setFilterFixedCallback: (filterID: string, fixed: boolean) => dispatch(pagedItemActions.setFilterFixed(filterID, fixed)),

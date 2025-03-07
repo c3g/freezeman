@@ -15,7 +15,7 @@ export interface PagedItemTableSelection {
 
 // This is the set of possible callbacks for the paged items table.
 export interface PagedItemsActionsCallbacks {
-	listPageCallback: (pagedNumber: number) => Promise<void>
+	listPageCallback: (pagedNumber: number, forceFetch?: boolean) => Promise<void>
 	refreshPageCallback: () => Promise<void>
 	setFilterCallback: (filterID: string, value: FilterValue, description: FilterDescription, fetch?: boolean) => Promise<void>
 	setFilterOptionsCallback: (filterID: string, options: FilterOptions, fetch?: boolean) => Promise<void>
@@ -254,6 +254,10 @@ function PagedItemsTable<T extends object>({
 		retrieveItems([...items])
 	}, [getDataObjectsByID, items])
 
+	const onPageChange: NonNullable<PaginationProps['onChange']> = useCallback((page, pageSize) => {
+		return listPageCallback(page)
+	}, [listPageCallback])
+
 	return (
 		<>
 			{columns && (
@@ -290,7 +294,7 @@ function PagedItemsTable<T extends object>({
 						current={pagedItems.page?.pageNumber ?? 0}
 						pageSize={pagedItems.page?.limit ?? 0}
 						total={pagedItems.totalCount}
-						onChange={listPageCallback}
+						onChange={onPageChange}
 						onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
 						{...paginationProps}
 					/>

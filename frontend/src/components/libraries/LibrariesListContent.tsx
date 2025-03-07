@@ -48,30 +48,32 @@ function wrapLibrary(library: Library) {
 export default function LibariesListContent() {
 
 	const librariesTableState = useAppSelector(selectLibrariesTable)
-	const { filters, fixedFilters, sortByList, totalCount, isFetching } = librariesTableState
+	const { filters, sortByList, totalCount, isFetching } = librariesTableState
 	const templateActions = useAppSelector(selectLibraryTemplateActions)
 	const prefills = useAppSelector(selectLibraryPrefillTemplates)
 
 	let initialCategory = SampleCategory.ALL
-	const isPooledFilter = fixedFilters['is_pooled']
+	const isPooledFilter = filters['is_pooled']
 	if (isPooledFilter) {
-		if (isPooledFilter.value === 'true') {
+		if (isPooledFilter.fixed) {
 			initialCategory = SampleCategory.POOLS
-		} else if (isPooledFilter.value === 'false') {
+		} else {
 			initialCategory = SampleCategory.SAMPLES
 		}
 	}
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(initialCategory)
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.libraries.prefill.request, {...filters, ...fixedFilters}, sortByList)
+	const prefillTemplate = usePrefilledTemplateCallback(api.libraries.prefill.request, filters, sortByList)
 
-	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortByList)
+	const listExport = useListExportCallback(api.libraries.listExport, filters, sortByList)
 
 	const librariesTableCallbacks = usePagedItemsActionsCallbacks(LibrariesTableActions)
 
 	const clearFiltersAndCategory = useCallback(async () => {
-		librariesTableCallbacks.setFixedFilterCallback(getSampleCategoryFilterSetting(SampleCategory.ALL))
-		await librariesTableCallbacks.clearFiltersCallback()
+		setSampleCategory(SampleCategory.ALL)
+		await librariesTableCallbacks.setFilterFixedCallback('is_pooled', false)
+		await librariesTableCallbacks.clearFiltersCallback(false)
+		await librariesTableCallbacks.listPageCallback(1, true)
 	}, [librariesTableCallbacks])
 
 
@@ -130,7 +132,14 @@ export default function LibariesListContent() {
 	const onSampleCategoryChange = useCallback(
 		(sampleCategory: SampleCategory) => {
 			setSampleCategory(sampleCategory)
-			librariesTableCallbacks.refreshPageCallback()
+			const isPooledFilterKey = 'is_pooled'
+			const filterSetting = getSampleCategoryFilterSetting(sampleCategory, isPooledFilterKey)
+			if (filterSetting.description) {
+				librariesTableCallbacks.setFilterFixedCallback(isPooledFilterKey, false)
+				librariesTableCallbacks.setFilterCallback(isPooledFilterKey, filterSetting.value, filterSetting.description, false)
+				librariesTableCallbacks.setFilterFixedCallback(isPooledFilterKey, true)
+			}
+			librariesTableCallbacks.listPageCallback(1, true)
 		}
 	, [librariesTableCallbacks])
 
@@ -150,8 +159,6 @@ export default function LibariesListContent() {
 				<FlexBar style={{alignItems: 'center'}}>
 					<SampleCategoryChooser
 						disabled={isFetching}
-						filters={fixedFilters}
-						setFixedFilter={librariesTableCallbacks.setFixedFilterCallback}
 						sampleCategory={sampleCategory}
 						onChange={onSampleCategoryChange}
 						samplesLabel='Libraries'

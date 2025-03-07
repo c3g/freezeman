@@ -12,7 +12,7 @@ export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => Roo
 export type FreezemanThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => T
 
 export interface PagedItemsActions {
-	listPage: (pageNumber: number) => FreezemanAsyncThunk<void>
+	listPage: (pageNumber: number, forceFetch?: boolean) => FreezemanAsyncThunk<void>
 	refreshPage: () => FreezemanAsyncThunk<void>
 	setFilter: (filterID: string, value: FilterValue, description: FilterDescription, fetch?: boolean) => FreezemanAsyncThunk<void>
 	setFilterOptions: (filterID: string, options: FilterOptions, fetch?: boolean) => FreezemanAsyncThunk<void>
@@ -40,12 +40,12 @@ export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 export function createPagedItemsActions(prefix: string, selectPagedItems: SelectPagedItemsFunc, list: ListType<FMSTrackedModel>): PagedItemsActions {
     const actions = slice.actions
     
-    const listPage: PagedItemsActions['listPage'] = (pageNumber) => async (dispatch, getState) => {
+    const listPage: PagedItemsActions['listPage'] = (pageNumber, forceFetch = false) => async (dispatch, getState) => {
 		const pagedItems = selectPagedItems(getState())
 		// If the page is already loaded then ignore this action. This protects against
 		// components that go into an infinite loop of requesting items. If the items need to be
 		// refreshed then the refreshPage() action should be used.
-		if (pagedItems.page?.pageNumber) {
+		if (pagedItems.page?.pageNumber && !forceFetch) {
 			if (pagedItems.page.pageNumber === pageNumber) {
 				console.warn(`Ignored listPage action as page ${pageNumber} is already loaded.`)
 				return
