@@ -8,24 +8,25 @@ import { PREFIX } from "./reducers"
 
 const pagedItemsActions = createPagedItemsActions(PREFIX, selectProjectSamplesTable, (option) => listSamples(option, true))
 
-const PROJECT_FILTER_KEY = SAMPLE_FILTER_KEYS[SampleColumnID.PROJECT]
-const PROJECT_FILTER_DESCRIPTION = SAMPLE_COLUMN_FILTERS[SampleColumnID.PROJECT]
+const SAMPLE_FILTER_KEY = SAMPLE_FILTER_KEYS[SampleColumnID.PROJECT_ID]
+const SAMPLE_FILTER_DESCRIPTION = SAMPLE_COLUMN_FILTERS[SampleColumnID.PROJECT_ID]
 
 const setProject: (projectID: Project['id']) => FreezemanAsyncThunk<void> = (projectID: Project['id']) => async (dispatch, getState) =>  {    
     const state = selectProjectSamplesTable(getState())
-    const filter = state.filters[PROJECT_FILTER_KEY]
+    const filter = state.filters[SAMPLE_FILTER_KEY]
     if (filter && filter.value === projectID) {
         return
     }
 
     await dispatch(pagedItemsActions.resetPagedItems())
-    
+
     await dispatch(pagedItemsActions.setFilter(
-        PROJECT_FILTER_KEY,
+        SAMPLE_FILTER_KEY,
         projectID.toString(),
-        PROJECT_FILTER_DESCRIPTION,
+        SAMPLE_FILTER_DESCRIPTION,
+        false
     ))
-    await dispatch(pagedItemsActions.setFilterFixed(PROJECT_FILTER_KEY, true))
+    await dispatch(pagedItemsActions.setFilterFixed(SAMPLE_FILTER_KEY, true))
 
     return await dispatch(pagedItemsActions.listPage(1))
 }

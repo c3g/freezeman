@@ -46,6 +46,7 @@ export enum SampleColumnID {
 	CREATION_DATE = 'CREATION_DATE',
 	DEPLETED = 'DEPLETED',
 	PROJECT = 'PROJECT',
+	PROJECT_ID = 'PROJECT_ID',
 	COHORT = 'COHORT',
 	SAMPLE_COUNT = 'SAMPLE_COUNT',
 }
@@ -460,6 +461,11 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		label: 'Project',
 		batch: true,
 	},
+	[SampleColumnID.PROJECT_ID]: {
+		type: FILTER_TYPE.INPUT_OBJECT_ID,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Project ID',
+	},
 	[SampleColumnID.COHORT]: {
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
@@ -492,6 +498,7 @@ export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.DEPLETED]: 'depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'derived_by_samples__project__name',
+	[SampleColumnID.PROJECT_ID]: 'derived_by_samples__project__id',
 	[SampleColumnID.COHORT]: 'derived_samples__biosample__individual__cohort',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
@@ -512,6 +519,7 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.DEPLETED]: 'sample__depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'project_name',
+	[SampleColumnID.PROJECT_ID]: '',
 	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
@@ -532,6 +540,7 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: s
 	[SampleColumnID.DEPLETED]: 'sample_next_step__sample__depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'sample_next_step__sample__derived_by_samples__project__name',
+	[SampleColumnID.PROJECT_ID]: 'sample_next_step__sample__derived_by_samples__project__id',
 	[SampleColumnID.COHORT]: 'sample_next_step__sample__derived_samples__biosample__individual__cohort',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
