@@ -38,6 +38,8 @@ interface SampleDetailBase {
     readonly id: Sample['id']
     readonly volume: number
     highlight: boolean
+    selected: boolean
+    placedAt: CellIdentifier[]
 }
 export interface SampleDetailWithoutParent extends SampleDetailBase {
     readonly parentContainer: null
@@ -56,6 +58,7 @@ export type SampleIdentifier = SampleDetail['id']
 
 interface PlacedSample {
     readonly id: SampleIdentifier
+    readonly origin?: CellIdentifier
     selected: boolean
     volume: number
 }

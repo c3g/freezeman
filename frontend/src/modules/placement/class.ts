@@ -54,6 +54,7 @@ class Placement {
                     container: payloadCell.container,
                     coordinates: payloadCell.coordinates,
                     highlight: false,
+                    selected: false,
                     volume: payload.volume,
                 }
             } else {
@@ -66,6 +67,7 @@ class Placement {
                     container: payloadCell.container,
                     coordinates: null,
                     highlight: false,
+                    selected: false,
                     volume: payload.volume,
                 }
             }
@@ -84,8 +86,15 @@ class Placement {
     }
     clickCell(clickedLocation: MouseOnCellPayload) {
         const { sourceParentContainer, destinationParentContainer } = clickedLocation.context
-        if (clickedLocation.parentContainer === destinationParentContainer) {
-            
+        const clickedContainer = this.getRealParentContainer(clickedLocation)
+        if (sourceParentContainer && sourceParentContainer === clickedContainer.name) {
+            // source
+            const existingSampleAtLocation = clickedContainer.selectExistingSampleByLocation(clickedLocation)
+            if (existingSampleAtLocation) {
+
+            }
+        } else if (destinationParentContainer && destinationParentContainer === clickedContainer.name) {
+            // destination
         }
     }
 
@@ -126,11 +135,14 @@ class ParentContainer {
         }
         return cell
     }
-    selectExistingSample(sampleID: SampleIdentifier) {
+    selectExistingSampleByID(sampleID: SampleIdentifier) {
         return this.state.existingSamples.find((s) => s.id === sampleID)
     }
+    selectExistingSampleByLocation(location: CellIdentifier) {
+        return this.state.existingSamples.find((s) => s.coordinates === location.coordinates)
+    }
     getOrCreateExistingSample(sample: SampleDetail) {
-        const foundSample = this.selectExistingSample(sample.id)
+        const foundSample = this.selectExistingSampleByID(sample.id)
         if (foundSample) {
             return foundSample
         } else {
@@ -173,8 +185,6 @@ class ParentContainer {
     }
 }
 
-const placement = new Placement(initialState)
-const container = placement.selectParentContainer({ parentContainer: null })
 
 function initialParentContainerState(payload: LoadParentContainerPayload): RealParentContainerState {
     const cellsFinal: RealParentContainerState['cells'] = []
