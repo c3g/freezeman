@@ -20,7 +20,7 @@ import {
 	reduceSetSortBy,
     reduceSetStale,
 } from './paged_items_reducers'
-import { FMSResponse } from "../utils/api"
+import { ABORT_ERROR_NAME, FMSResponse } from "../utils/api"
 import { FMSPagedResultsReponse, FMSTrackedModel } from "./fms_api_models"
 
 export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
@@ -177,11 +177,13 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
                 extra
             })
         } catch(error) {
-            dispatch({
-                type: LIST_PAGE.ERROR,
-                error,
-                extra
-            })
+            if (error.name !== ABORT_ERROR_NAME) {
+                dispatch({
+                    type: LIST_PAGE.ERROR,
+                    error,
+                    extra
+                })
+            }
             return
         }
     }
