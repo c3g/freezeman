@@ -56,8 +56,6 @@ export const networkAction = <Prefix extends string, T>(types: NetworkActionType
         .catch(error => {
             if (error.name !== ABORT_ERROR_NAME) {
                 dispatch({ type: types.ERROR, error, meta })
-            } else {
-                console.warn('Request aborted:', error)
             }
             return Promise.reject(error)
         });
