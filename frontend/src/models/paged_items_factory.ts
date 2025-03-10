@@ -183,6 +183,8 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
                     error,
                     extra
                 })
+            } else {
+                console.error('List page request aborted:', error)
             }
             return
         }
