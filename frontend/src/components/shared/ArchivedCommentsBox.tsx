@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useCallback } from "react"
 import { Card, Typography, Form, Modal, FormItemProps, FormProps, Input, Tooltip, Space, Flex } from 'antd'
-import { LeftCircleOutlined, PlusCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
+import { PlusCircleOutlined } from "@ant-design/icons"
 import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
 import renderTextWithLineBreaks from "../../utils/renderTextWithLineBreaks"
