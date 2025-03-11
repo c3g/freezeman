@@ -36,7 +36,7 @@ const InputFilter = ({ value, options, description, filterKey, setFilter, setFil
 
     const onChangeRecursive: SwitchProps['onChange'] = checked => {
         onToggleSwitch('recursiveMatch', checked)
-        setFilterOption(filterKey, 'startsWith', checked, description)
+        setFilterOption(filterKey, 'exactMatch', checked, description)
     }
 
     useEffect(() => {
