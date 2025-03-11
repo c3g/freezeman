@@ -16,7 +16,7 @@ interface ExperimentRunOverviewProps {
 function formatDate(dateString : string | undefined) {
 	if (dateString) {
 		const date = new Date(Date.parse(dateString))
-		return dayjs(date).format("YYYY-MM-DD LT")
+		return dayjs(date).format("YYYY-MM-DD")
 	}
 	return undefined
 }

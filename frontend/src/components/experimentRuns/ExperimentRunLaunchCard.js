@@ -97,7 +97,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         return getLaunchPanelContents()
       } else {
         const launchDate = experimentRun.run_processing_launch_time ?
-          dayjs(experimentRun.run_processing_launch_time).format("YYYY-MM-DD LT")
+          dayjs(experimentRun.run_processing_launch_time).format("YYYY-MM-DD")
           : 'Not launched'
         return (
           <Text>{launchDate}</Text>

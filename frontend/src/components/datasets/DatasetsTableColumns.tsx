@@ -84,7 +84,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		title: "Latest Release Status Update",
 		dataIndex: ['dataset', 'latest_release_update'],
 		render: (_, {dataset}) => {
-			return dataset.latest_release_update ? dayjs(dataset.latest_release_update).format("YYYY-MM-DD LT") : ""
+			return dataset.latest_release_update ? dayjs(dataset.latest_release_update).format("YYYY-MM-DD") : ""
 		}
 	},
 	[DatasetColumnID.LATEST_VALIDATION_UPDATE]: {
@@ -92,7 +92,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		title: "Latest Validation Status Update",
 		dataIndex: ['dataset', 'latest_validation_update'],
 		render: (_, {dataset}) => {
-			return dataset.latest_validation_update ? dayjs(dataset.latest_validation_update).format("YYYY-MM-DD LT") : ""
+			return dataset.latest_validation_update ? dayjs(dataset.latest_validation_update).format("YYYY-MM-DD") : ""
 		}
 	}
 }
