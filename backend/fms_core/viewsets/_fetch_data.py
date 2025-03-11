@@ -30,7 +30,8 @@ class FetchData:
                 Returns (None, None), overload to get a list and count
         """
         # No special filtering for empty ids list otherwise get only the selected ids objects
-        self.queryset = self.queryset.filter(id__in=ids)
+        if len(ids) > 0:
+            self.queryset = self.queryset.filter(id__in=ids)
         # pagination params
         self.fetch_limit = int(self.request.query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
         self.fetch_offset = int(self.request.query_params.get('offset', 0))
@@ -49,7 +50,8 @@ class FetchData:
             Returns None, overload to get a list
         """
          # No special filtering for empty ids list otherwise get only the selected ids objects
-        self.queryset = self.queryset.filter(id__in=ids)
+        if len(ids) > 0:
+            self.queryset = self.queryset.filter(id__in=ids)
 
         return None # abstract function, must be overloaded. call base function for initialization
 
