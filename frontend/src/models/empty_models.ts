@@ -2,6 +2,7 @@
  * Empty model objects that are used by forms to create new items.
  */
 
+import { FMSSample } from "./fms_api_models"
 
 export const container = {
     kind: null,
@@ -15,25 +16,25 @@ export const container = {
     samples: [],
   } as const
   
-  export const sample = {
-    id: null,
-    name: "",
-    alias: "",
-    sample_kind: null,
-    volume: null, //
-    concentration: null,
-    depleted: false,
-    experimental_group: null, // string[]
-    collection_site: "", // string(200)
-    tissue_source: null,
-    creation_date: null, // date
-    comment: "", // string(200)
-    coordinate: null, // coordinate.id
-    individual: null, // individual.id
-    container: null, // container.id
-    extracted_from: null, // sample.id
-    project: null // project.id
-  } as const
+export const sample = {
+  id: null,
+  name: "",
+  alias: "",
+  sample_kind: null,
+  volume: null, //
+  concentration: null,
+  depleted: false,
+  experimental_group: null, // string[]
+  collection_site: "", // string(200)
+  tissue_source: null,
+  creation_date: null, // date
+  comment: "", // string(200)
+  coordinate: null, // coordinate.id
+  individual: null, // individual.id
+  container: null, // container.id
+  extracted_from: null, // sample.id
+  project: null // project.id
+} as const
   
   export const individual = {
     name: "",

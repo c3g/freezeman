@@ -1,3 +1,4 @@
+import { FMSSample, FMSSampleUpdate } from "../../models/fms_api_models";
 import { AppDispatch } from "../../store";
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
@@ -28,7 +29,7 @@ export const add = sample => async (dispatch, getState) => {
         ADD, api.samples.add(sample), { meta: { ignoreError: 'APIError' } }));
 };
 
-export const update = (id, sample) => async (dispatch, getState) => {
+export const update = (id: FMSSample['id'], sample: FMSSampleUpdate) => async (dispatch, getState) => {
     if (getState().samples.itemsByID[id].isFetching)
         return;
 

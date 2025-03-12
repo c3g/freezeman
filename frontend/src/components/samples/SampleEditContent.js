@@ -209,7 +209,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const onValuesChange = (values) => {
     const key = Object.keys(values)[0];
     if (key == "sample_kind") {
-      if (!sampleKind(values[key]).is_extracted) {
+      if (!sampleKind(values[key])?.is_extracted) {
         form.setFieldValue('tissue_source', '')
         setisTissueEnabled(false)
       } else {
@@ -256,7 +256,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
     }
 
 
-  const [isTissueEnabled, setisTissueEnabled] = useState((form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind')).is_extracted) || (!isAdding && sampleKind(sample.sample_kind).is_extracted))
+  const [isTissueEnabled, setisTissueEnabled] = useState((form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind'))?.is_extracted) || (!isAdding && sampleKind(sample.sample_kind)?.is_extracted))
   const [isCoordRequired, setIsCoordRequired] = useState(form.getFieldValue('container') || !isAdding)
 
   return (
