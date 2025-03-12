@@ -99,6 +99,7 @@ _sample_filterset_fields: FiltersetFields = {
     **_prefix_keys("derived_by_samples__project__", _project_minimal_filterset_fields),
     **_prefix_keys("derived_samples__biosample__individual__", _individual_filterset_fields),
     **_prefix_keys("derived_samples__sample_kind__", _sample_kind_filterset_fields),
+    "sample_next_steps__step__name": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _sample_minimal_filterset_fields: FiltersetFields = {

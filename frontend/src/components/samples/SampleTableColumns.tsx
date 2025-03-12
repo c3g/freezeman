@@ -48,6 +48,7 @@ export enum SampleColumnID {
 	PROJECT = 'PROJECT',
 	COHORT = 'COHORT',
 	SAMPLE_COUNT = 'SAMPLE_COUNT',
+	QUEUED_STEPS = 'QUEUED_STEPS',
 }
 
 const SMALL_COLUMN_WIDTH = 110
@@ -330,6 +331,9 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			)
 		},
 	},
+	[SampleColumnID.QUEUED_STEPS]: {
+		columnID: SampleColumnID.QUEUED_STEPS,
+	}
 }
 for (const columnID in SAMPLE_COLUMN_DEFINITIONS) {
 	SAMPLE_COLUMN_DEFINITIONS[columnID as keyof typeof SAMPLE_COLUMN_DEFINITIONS].showSorterTooltip = false
@@ -469,6 +473,11 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: "Samples in pool",
+	},
+	[SampleColumnID.QUEUED_STEPS]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Queued Steps',
 	}
 }
 
@@ -493,6 +502,7 @@ export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'derived_by_samples__project__name',
 	[SampleColumnID.COHORT]: 'derived_samples__biosample__individual__cohort',
+	[SampleColumnID.QUEUED_STEPS]: 'sample_next_steps__step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
@@ -513,6 +523,7 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'project_name',
 	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.QUEUED_STEPS]: 'step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
@@ -533,6 +544,7 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: s
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'sample_next_step__sample__derived_by_samples__project__name',
 	[SampleColumnID.COHORT]: 'sample_next_step__sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.QUEUED_STEPS]: 'sample_next_step__step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
