@@ -1,6 +1,6 @@
 import { AnyAction } from '@reduxjs/toolkit';
 import { AppDispatch, RootState } from '../store';
-import { FMSResponse } from './api';
+import { ABORT_ERROR_NAME, FMSResponse } from './api';
 
 export interface NetworkActionTypes<Prefix extends string> {
     REQUEST: `${Prefix}.REQUEST`
@@ -54,7 +54,9 @@ export const networkAction = <Prefix extends string, T>(types: NetworkActionType
             return response.data;
         })
         .catch(error => {
-            dispatch({ type: types.ERROR, error, meta });
+            if (error.name !== ABORT_ERROR_NAME) {
+                dispatch({ type: types.ERROR, error, meta })
+            }
             return Promise.reject(error)
         });
 };
