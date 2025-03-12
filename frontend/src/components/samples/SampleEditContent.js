@@ -11,7 +11,6 @@ import {
   Switch,
 } from "antd";
 import { CheckSquareFilled, CloseSquareFilled } from '@ant-design/icons';
-import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -28,6 +27,7 @@ import * as Options from "../../utils/options";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { fetchContainers, fetchSamples } from "../../modules/cache/cache";
+import dayjs from "dayjs";
 
 export const AddSampleRoute = () => {
   const [sample] = useState({...EMPTY_SAMPLE})
@@ -453,7 +453,7 @@ function deserialize(values) {
     newValues.experimental_group = []
 
   if (newValues.creation_date)
-    newValues.creation_date = moment(newValues.creation_date, 'YYYY-MM-DD')
+    newValues.creation_date = dayjs(newValues.creation_date, 'YYYY-MM-DD')
 
   return newValues
 }

@@ -2,13 +2,13 @@ import React from 'react'
 import { Link } from "react-router-dom"
 import { Dataset } from "../../models/frontend_models"
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns"
-import moment from 'moment'
 import { FilterDescription } from '../../models/paged_items'
 import { FILTER_TYPE } from '../../constants'
 import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
 import { Button } from 'antd'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { ValidationStatus } from '../../models/fms_api_models'
+import dayjs from 'dayjs'
 
 
 export interface ObjectWithDataset {
@@ -84,7 +84,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		title: "Latest Release Status Update",
 		dataIndex: ['dataset', 'latest_release_update'],
 		render: (_, {dataset}) => {
-			return dataset.latest_release_update ? moment(dataset.latest_release_update).format("YYYY-MM-DD LT") : ""
+			return dataset.latest_release_update ? dayjs(dataset.latest_release_update).format("YYYY-MM-DD") : ""
 		}
 	},
 	[DatasetColumnID.LATEST_VALIDATION_UPDATE]: {
@@ -92,7 +92,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		title: "Latest Validation Status Update",
 		dataIndex: ['dataset', 'latest_validation_update'],
 		render: (_, {dataset}) => {
-			return dataset.latest_validation_update ? moment(dataset.latest_validation_update).format("YYYY-MM-DD LT") : ""
+			return dataset.latest_validation_update ? dayjs(dataset.latest_validation_update).format("YYYY-MM-DD") : ""
 		}
 	}
 }
