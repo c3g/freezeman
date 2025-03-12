@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useCallback } from "react"
 import { Card, Typography, Form, Modal, FormItemProps, FormProps, Input, Tooltip, Space, Flex } from 'antd'
-import { LeftCircleOutlined, PlusCircleOutlined, RightCircleOutlined } from "@ant-design/icons"
+import { PlusCircleOutlined } from "@ant-design/icons"
 import { FMSArchivedComment } from "../../models/fms_api_models"
 import dateToString from "../../utils/dateToString"
 import renderTextWithLineBreaks from "../../utils/renderTextWithLineBreaks"
@@ -15,24 +15,10 @@ interface CommentBoxProps {
 }
 
 export default function ArchivedCommentsBox({ comments, handleAddComment }: CommentBoxProps) {
-    const [commentIndex, setCommentIndex] = useState<number>(0)
-    const [currentComment, setCurrentComment] = useState<FMSArchivedComment>()
     const [openAddCommentForm, setOpenAddCommentForm] = useState<boolean>(false)
     const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
     const [form] = Form.useForm()
-
-    const handleNextComment = () => {
-        if (commentIndex > 0) {
-            setCommentIndex(commentIndex - 1)
-        }
-    }
-
-    const handlePreviousComment = () => {
-        if (comments && commentIndex < (comments?.length - 1)) {
-            setCommentIndex(commentIndex + 1)
-        }
-    }
 
     const returnFormData = useCallback(() => {
         const fieldValues = form.getFieldsValue()
@@ -110,22 +96,6 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
         </Modal>
     )
 
-    useEffect(() => {
-        if (comments && comments.length > 0) {
-            setCurrentComment(comments[comments.length - 1])
-            setCommentIndex(0)
-        }
-        else {
-          setCurrentComment(undefined)
-        }
-    }, [comments])
-
-    useEffect(() => {
-        if (comments && comments.length > 0) {
-            setCurrentComment(comments[comments.length - commentIndex - 1])
-        }
-    }, [commentIndex, comments])
-
 
     const usersByID = useAppSelector(selectUsersByID)
 
@@ -135,29 +105,24 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
             styles={{ body: {height: "480px", padding: "5px", overflow: "auto"}}}
 
             actions={[
-                <Tooltip title="Previous Comment"><LeftCircleOutlined style={{ fontSize: "24px" }} key="previous" onClick={handlePreviousComment} /></Tooltip>,
                 <Tooltip title="Add Comment"><PlusCircleOutlined style={{ fontSize: "24px" }} key="add" onClick={handleAddCommentForm} />{addCommentForm}</Tooltip>,
-                <Tooltip title="Next Comment"><RightCircleOutlined style={{ fontSize: "24px" }} key="next" onClick={handleNextComment} /></Tooltip>,
             ]}
         >
-            <Card.Meta
-                title={
-                    <div>
-                        {currentComment &&
-                            <Flex justify={"space-between"}>
-                                <Space direction={"horizontal"}>
-                                    <Text strong>Added at:</Text>
-                                    {dateToString(new Date(currentComment.updated_at), "compact")}
-                                </Space>
-                                <Space direction={"horizontal"}>
-                                    <Text strong>By:</Text>
-                                    {usersByID[currentComment.created_by]?.username}
-                                </Space>
-                            </Flex>
-                        }
-                    </div>}
-                description={currentComment ? renderTextWithLineBreaks(currentComment.comment) : ""}
-            />
+            {(comments ?? []).sort((a, b) => b.id - a.id).map((comment) => {
+                return <div key={comment.id}>
+                    <Flex justify={"space-between"}>
+                        <Space direction={"horizontal"}>
+                                <Text strong>Added at:</Text>
+                                {dateToString(new Date(comment.updated_at), "compact")}
+                        </Space>
+                        <Space direction={"horizontal"}>
+                                <Text strong>By:</Text>
+                                {usersByID[comment.created_by]?.username}
+                        </Space>
+                    </Flex>
+                    {renderTextWithLineBreaks(comment.comment)}
+                </div>
+            })}
         </Card>
     )
 }
