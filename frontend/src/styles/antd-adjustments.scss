@@ -240,3 +240,11 @@ div.ant-collapse-item  {
   text-align: left;
   display: unset;
 }
+
+.ant-timeline .ant-timeline-item {
+  padding-bottom: 0;
+}
+
+.ant-timeline .ant-timeline-item-last > .ant-timeline-item-content {
+  min-height: unset;
+}
