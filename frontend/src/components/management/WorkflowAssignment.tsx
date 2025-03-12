@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Collapse, Drawer, Flex, Modal, Popover, Select, Spin } from "antd";
+import { Button, Collapse, Drawer, Flex, List, Modal, Popover, Select, Spin, Typography } from "antd";
 import { fetchProjects, fetchSamples, fetchWorkflows } from "../../modules/cache/cache";
 import { FilterSet, FilterSetting } from "../../models/paged_items";
 import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../models/fms_api_models";
 import { notifyError, notifySuccess } from "../../modules/notification/actions";
 import { Project, Sample, Step, Study, Workflow } from "../../models/frontend_models";
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample, SampleColumnID } from '../samples/SampleTableColumns'
 import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
 import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../selectors";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -15,7 +15,8 @@ import api from "../../utils/api";
 import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable";
 import SamplesTableActions from '../../modules/samplesTable/actions'
 import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeFilterParamsTS";
-import { fetchSamplesByDefaultSelectionAndExceptedIDs, useQueryParamsForPagedItems } from "../pagedItemsTable/functions";
+import { fetchSamplesByDefaultSelectionAndExceptedIDs } from "../pagedItemsTable/functions";
+import { useSearchParams } from "react-router-dom";
 
 const MAX_SELECTION = 960
 
@@ -26,35 +27,63 @@ interface LabworkSamplesProps {
 export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters, fixedFilters } = samplesTableState
-    const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
+    const [searchParams] = useSearchParams()
     useEffect(() => {
-        if (fixedFilter) {
-            samplesTableCallbacks.clearFixedFiltersCallback()
-            samplesTableCallbacks.setFixedFilterCallback(fixedFilter)
-            samplesTableCallbacks.refreshPageCallback()
-            return () => {
-                samplesTableCallbacks.clearFixedFiltersCallback()
+        samplesTableCallbacks.clearFixedFiltersCallback()
+        for (const [columnID, value] of searchParams.entries()) {
+            const COLUMN_ID = columnID.toUpperCase()
+            const description = {
+                ...SAMPLE_COLUMN_FILTERS[COLUMN_ID],
+                key: SAMPLE_FILTER_KEYS[COLUMN_ID],
             }
+            samplesTableCallbacks.setFixedFilterCallback(
+                {
+                    description,
+                    value,
+                    options: { exactMatch: true }
+                },
+            )
         }
-    }, [fixedFilter, samplesTableCallbacks])
+        if (fixedFilter) {
+            samplesTableCallbacks.setFixedFilterCallback(fixedFilter)
+        }
+        samplesTableCallbacks.refreshPageCallback()
+        return () => {
+            samplesTableCallbacks.clearFixedFiltersCallback()
+        }
+    }, [fixedFilter, samplesTableCallbacks, searchParams])
 
-    const { setFilterCallback, clearFiltersCallback } = useQueryParamsForPagedItems(SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, samplesTableCallbacks.setFilterCallback, samplesTableCallbacks.clearFiltersCallback)
-
-    const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => [
-        SAMPLE_COLUMN_DEFINITIONS.NAME,
-        SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
-        SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
-        SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
-        SAMPLE_COLUMN_DEFINITIONS.PROJECT,
-    ], [])
+    const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => {
+        const fixedFilterColumnIDs = Object.values(fixedFilters).reduce<SampleColumnID[]>((acc, filter) => {
+            if (filter.description?.key) {
+                const columnID = Object.entries(SAMPLE_FILTER_KEYS).find(([key, filterKey]) => filterKey === filter.description?.key)?.[0] as SampleColumnID
+                if (columnID) {
+                    acc.push(columnID)
+                } else {
+                    console.error(`Could not find column ID for filter key: ${filter.description?.key}`)
+                }
+            }
+            return acc
+        }, [])
+        return [
+            SAMPLE_COLUMN_DEFINITIONS.NAME,
+            SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
+            SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
+            SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
+            SAMPLE_COLUMN_DEFINITIONS.PROJECT,
+            SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
+        ].filter((column) => {
+            return !fixedFilterColumnIDs.includes(column.columnID as SampleColumnID)
+        })
+    }, [fixedFilters])
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
         SAMPLE_FILTER_KEYS,
-        wholeFilters,
-        setFilterCallback,
+        filters,
+        samplesTableCallbacks.setFilterCallback,
         samplesTableCallbacks.setFilterOptionsCallback
     )
 
@@ -101,8 +130,20 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
         setOpen(false)
     }, [])
 
+    const wholeFilters = useMemo(() => ({ ...filters, ...fixedFilters }), [filters, fixedFilters])
+
     return (
         <>
+            {Object.keys(fixedFilters).length > 0 && (
+                <>
+                    <b>Fixed Filters:</b>
+                    <ul style={{ marginTop: 3 }}>
+                        {Object.values(fixedFilters).map((setting, index) => (
+                            <li key={setting.description?.key ?? index}><b>{`${setting.description?.label}`}</b>{': '}{`${setting.value}`}</li>
+                        ))}
+                    </ul>
+                </>
+            )}
             <PagedItemsTable<ObjectWithSample>
                 getDataObjectsByID={mapSampleIDs}
                 pagedItems={samplesTableState}
@@ -115,8 +156,6 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
                     disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
                 paginationProps={{simple: true}}
                 {...samplesTableCallbacks}
-                setFilterCallback={setFilterCallback}
-                clearFiltersCallback={clearFiltersCallback}
             />
             <Drawer
                 title="Queue/Dequeue Samples"
