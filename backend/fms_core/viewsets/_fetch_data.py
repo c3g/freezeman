@@ -30,9 +30,7 @@ class FetchData:
                 Returns (None, None), overload to get a list and count
         """
         # No special filtering for empty ids list otherwise get only the selected ids objects
-        if len(ids) == 1:
-            self.queryset = self.queryset.filter(id=ids[0])
-        elif len(ids) > 1:
+        if len(ids) > 0:
             self.queryset = self.queryset.filter(id__in=ids)
         # pagination params
         self.fetch_limit = int(self.request.query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
@@ -52,9 +50,7 @@ class FetchData:
             Returns None, overload to get a list
         """
          # No special filtering for empty ids list otherwise get only the selected ids objects
-        if len(ids) == 1:
-            self.queryset = self.queryset.filter(id=ids[0])
-        elif len(ids) > 1:
+        if len(ids) > 0:
             self.queryset = self.queryset.filter(id__in=ids)
 
         return None # abstract function, must be overloaded. call base function for initialization
@@ -88,6 +84,9 @@ class FetchSampleData(FetchData):
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
 
         self.queryset = self.filter_queryset(self.get_queryset())
+        if len(ids) > 0:
+            self.queryset = self.queryset.filter(id__in=ids)
+
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -266,6 +265,9 @@ class FetchSampleData(FetchData):
         site_by_sample = {sample.id: sample.site_name for sample in samples_with_site }
 
         self.queryset = self.filter_queryset(self.get_queryset())
+        if len(ids) > 0:
+            self.queryset = self.queryset.filter(id__in=ids)
+
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -498,6 +500,9 @@ class FetchLibraryData(FetchData):
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
         
         self.queryset = self.filter_queryset(self.get_queryset())
+        if len(ids) > 0:
+            self.queryset = self.queryset.filter(id__in=ids)
+
         self.queryset = self.queryset.values(
             'id',
             'name',
