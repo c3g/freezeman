@@ -21,7 +21,7 @@ import { useSearchParams } from "react-router-dom";
 const MAX_SELECTION = 960
 
 interface LabworkSamplesProps {
-    fixedFilter?: FilterSetting
+    fixedFilter?: Required<FilterSetting>
 }
 
 export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
@@ -31,42 +31,43 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     const [searchParams] = useSearchParams()
     useEffect(() => {
-        samplesTableCallbacks.clearFixedFiltersCallback()
+        samplesTableCallbacks.clearFiltersCallback()
         for (const [columnID, value] of searchParams.entries()) {
             const COLUMN_ID = columnID.toUpperCase()
             const description = {
                 ...SAMPLE_COLUMN_FILTERS[COLUMN_ID],
                 key: SAMPLE_FILTER_KEYS[COLUMN_ID],
             }
-            samplesTableCallbacks.setFixedFilterCallback(
+            samplesTableCallbacks.setFilterCallback(
+                value,
+                description
+            )
+            samplesTableCallbacks.setFilterOptionsCallback(
+                description,
                 {
-                    description,
-                    value,
-                    options: { exactMatch: true }
-                },
+                    exactMatch: true,
+                }
             )
         }
         if (fixedFilter) {
-            samplesTableCallbacks.setFixedFilterCallback(fixedFilter)
+            samplesTableCallbacks.setFilterCallback(
+                fixedFilter.value,
+                fixedFilter.description
+            )
+            samplesTableCallbacks.setFilterOptionsCallback(
+                fixedFilter.description,
+                {
+                    exactMatch: true,
+                }
+            )
         }
         samplesTableCallbacks.refreshPageCallback()
         return () => {
-            samplesTableCallbacks.clearFixedFiltersCallback()
+            samplesTableCallbacks.clearFiltersCallback()
         }
     }, [fixedFilter, samplesTableCallbacks, searchParams])
 
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => {
-        const fixedFilterColumnIDs = Object.values(fixedFilters).reduce<SampleColumnID[]>((acc, filter) => {
-            if (filter.description?.key) {
-                const columnID = Object.entries(SAMPLE_FILTER_KEYS).find(([key, filterKey]) => filterKey === filter.description?.key)?.[0] as SampleColumnID
-                if (columnID) {
-                    acc.push(columnID)
-                } else {
-                    console.error(`Could not find column ID for filter key: ${filter.description?.key}`)
-                }
-            }
-            return acc
-        }, [])
         return [
             SAMPLE_COLUMN_DEFINITIONS.NAME,
             SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
@@ -74,10 +75,8 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
             SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
             SAMPLE_COLUMN_DEFINITIONS.PROJECT,
             SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
-        ].filter((column) => {
-            return !fixedFilterColumnIDs.includes(column.columnID as SampleColumnID)
-        })
-    }, [fixedFilters])
+        ]
+    }, [])
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
