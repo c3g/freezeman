@@ -5,29 +5,25 @@ export enum PlacementType {
     PATTERN,
     GROUP,
 }
-export interface PlacementPatternOptions {}
+export interface PlacementPatternOptions {
+    type: PlacementType.PATTERN
+}
 export enum PlacementDirections {
     ROW,
     COLUMN
 }
 export interface PlacementGroupOptions {
+    type: PlacementType.GROUP
     direction: PlacementDirections
 }
-export interface PlacementOptions {
-    type: PlacementType,
-    patternOptions: PlacementPatternOptions
-    groupOptions: PlacementGroupOptions
-    stickySelection: boolean
-}
-export type PlacementOption =
-    { type: PlacementType.GROUP }   & PlacementGroupOptions |
-    { type: PlacementType.PATTERN } & PlacementPatternOptions
+export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
 export type CellState = CellWithParentState | CellWithoutParentState
 export type ContainerState = ParentContainerState | TubesWithoutParentState
 export interface PlacementState {
     containers: ContainerState[]
-    options: PlacementOptions
+    placementType: PlacementOptions['type']
+    placementDirection: PlacementGroupOptions['direction']
     error?: string
 }
 
@@ -36,12 +32,12 @@ interface CellStateBase {
     sample: Sample['id'] | null
     name: string
     projectName: string
-    placedAt: CellWithParentIdentifier[]
+    placedAt: null | CellWithParentIdentifier
 }
 export interface CellWithParentState extends CellStateBase {
     readonly parentContainerName: string
     readonly coordinates: string
-    placedFrom: CellIdentifier[]
+    placedFrom: null | CellIdentifier
     preview: boolean
 }
 export interface CellWithoutParentState extends CellStateBase {

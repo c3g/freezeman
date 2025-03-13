@@ -1,7 +1,7 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOption, PlacementOptions, PlacementPatternOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
+import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
 import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
@@ -38,12 +38,8 @@ export interface PlaceAllSourcePayload {
 
 const initialState: PlacementState = {
     containers: [] as PlacementState['containers'],
-    options: {
-        type: PlacementType.GROUP,
-        patternOptions: {},
-        groupOptions: { direction: PlacementDirections.COLUMN },
-        stickySelection: false
-    }
+    placementType: PlacementType.GROUP,
+    placementDirection: PlacementDirections.COLUMN,
 } as const
 
 const slice = createSlice({
@@ -81,8 +77,8 @@ const slice = createSlice({
                         projectName: payloadCell.projectName,
                         selected: false,
                         preview: false,
-                        placedAt: [],
-                        placedFrom: []
+                        placedAt: null,
+                        placedFrom: null
                     }
                     payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = index
                 } else if (payloadContainerState.name === null) {
@@ -94,7 +90,7 @@ const slice = createSlice({
                         name: payloadCell.name,
                         projectName: payloadCell.projectName,
                         selected: false,
-                        placedAt: []
+                        placedAt: null
                     })
                 }
             }
@@ -124,7 +120,7 @@ const slice = createSlice({
                 containerState.cells = containerState.cells.filter((currentCell) => {
                     if (currentCell.sample && !(currentCell.sample in payloadContainerState.cellsIndexBySampleID)) {
                         // sample has disappeared
-                        undoCellPlacement(state, currentCell, currentCell.sample)
+                        undoCellPlacement(state, currentCell)
                         // no point in setting sample to null if the cell gets removed
                         return false
                     }
@@ -149,10 +145,10 @@ const slice = createSlice({
             }
         }),
         setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
-            state.options.type = action.payload
+            state.placementType = action.payload
         },
         setPlacementDirection(state, action: PayloadAction<PlacementGroupOptions['direction']>) {
-            state.options.groupOptions.direction = action.payload
+            state.placementDirection = action.payload
         },
         clickCell: reducerWithThrows(clickCellHelper),
         placeAllSource: reducerWithThrows((state, payload: PlaceAllSourcePayload) => {
@@ -165,7 +161,9 @@ const slice = createSlice({
             placeCellsHelper(state, sourceCells, getCellWithParent(state, {
                 parentContainerName: payload.destination,
                 coordinates: axisRow[0] + axisCol[0]
-            }), { type: PlacementType.PATTERN })
+            }), {
+                type: PlacementType.PATTERN
+            })
         }),
         multiSelect: reducerWithThrows(multiSelectHelper),
         onCellEnter: reducerWithThrows((state, payload: MouseOnCellPayload) => {
@@ -245,14 +243,8 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
     }
 }
 
-function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>, sample: Sample['id']) {
+function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>) {
     cell.selected = false
-    cell.placedAt = cell.placedAt.filter((c) => {
-        if (c.sample === sample) {
-            const destCell = getCell(state, c)
-            destCell.placedFrom = destCell.placedFrom?.filter((source) => selectCell(state)(source) != cell)
-        }
-    })
     if (cell.placedAt) {
         const destCell = getCell(state, cell.placedAt)
         destCell.placedFrom = null
@@ -495,7 +487,7 @@ function cellSelectable(state: PlacementState, id: CellIdentifier, isSource: boo
     }
 }
 
-function placeCellsHelper(state: Draft<PlacementState>, sources: Draft<CellState>[], destination: Draft<CellWithParentState>, option: PlacementOption) {
+function placeCellsHelper(state: Draft<PlacementState>, sources: Draft<CellState>[], destination: Draft<CellWithParentState>, placementOptions: PlacementOptions) {
     if (sources.length > 0) {
         // relying on placeCell to do error checking
 
@@ -510,10 +502,10 @@ function placeCellsHelper(state: Draft<PlacementState>, sources: Draft<CellState
     }
 }
 
-function getPlacementOption(state: PlacementState): PlacementOption {
-    return state.options.type === PlacementType.PATTERN
-        ? { type: PlacementType.PATTERN, ...state.options.patternOptions }
-        : { type: PlacementType.GROUP, ...state.options.groupOptions }
+function getPlacementOption(state: PlacementState): PlacementOptions {
+    return state.placementType === PlacementType.PATTERN
+        ? { type: PlacementType.PATTERN }
+        : { type: PlacementType.GROUP, direction: state.placementDirection }
 }
 
 function clickCellHelper(state: Draft<PlacementState>, clickedLocation: MouseOnCellPayload) {
