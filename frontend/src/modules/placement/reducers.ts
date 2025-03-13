@@ -82,7 +82,7 @@ const slice = createSlice({
                         selected: false,
                         preview: false,
                         placedAt: [],
-                        placedFrom: null
+                        placedFrom: []
                     }
                     payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = index
                 } else if (payloadContainerState.name === null) {
@@ -124,7 +124,7 @@ const slice = createSlice({
                 containerState.cells = containerState.cells.filter((currentCell) => {
                     if (currentCell.sample && !(currentCell.sample in payloadContainerState.cellsIndexBySampleID)) {
                         // sample has disappeared
-                        undoCellPlacement(state, currentCell)
+                        undoCellPlacement(state, currentCell, currentCell.sample)
                         // no point in setting sample to null if the cell gets removed
                         return false
                     }
