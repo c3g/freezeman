@@ -42,15 +42,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
       await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
     }, [dispatch, activeDestinationContainer, cells])
 
-    const isPlacementComplete = useMemo(() => {
-      if (!activeDestinationContainer) return false
-      if (!cells) return false
-      const [Rows = [] as const, Columns = [] as const] = activeDestinationContainer.spec
-      const containerSize = Rows.length * Columns.length
-      const placedCells = cells.reduce((acc, cur) => {return cur.placedFrom ? ++acc : acc}, 0)
-      return placedCells === containerSize
-    }, [activeDestinationContainer, cells])
-
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
             ...sourceContainers.reduce((list, c) => {
@@ -187,7 +178,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
                         </Col>
                         {usesSamplesheet && <Col span={3} >
-                            <Button onClick={handleGetSamplesheet} disabled={!isPlacementComplete}>Get Samplesheet</Button>
+                            <Button onClick={handleGetSamplesheet}>Get Samplesheet</Button>
                         </Col>}
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
