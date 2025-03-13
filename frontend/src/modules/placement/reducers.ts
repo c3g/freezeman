@@ -298,12 +298,12 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
     }
 }
 
-interface LoadParentContainerPayload {
+ export interface LoadParentContainerPayload {
     parentContainerName: string
     spec: CoordinateSpec
     cells: { coordinates: string, sample: Sample['id'], name: string, projectName: string }[]
 }
-interface LoadTubesWithoutParentPayload {
+export interface LoadTubesWithoutParentPayload {
     parentContainerName: null
     cells: { coordinates?: undefined, sample: Sample['id'], name: string, projectName: string }[]
 }

@@ -25,8 +25,14 @@ export type PlacementOption =
 
 export type CellState = CellWithParentState | CellWithoutParentState
 export type ContainerState = ParentContainerState | TubesWithoutParentState
+export interface PlacementSampleState extends Pick<Sample, 'id' | 'name'> {
+    project: Project['name']
+    location: CellIdentifier
+    placedAt: CellWithParentIdentifier[]
+}
 export interface PlacementState {
     containers: ContainerState[]
+    samples: PlacementSampleState[]
     options: PlacementOptions
     error?: string
 }
@@ -45,7 +51,7 @@ export interface CellWithoutParentState extends CellStateBase {
     sample: Sample['id']
 }
 
-export type CellWithParentIdentifier = Pick<CellWithParentState, 'parentContainerName' | 'coordinates'>
+export type CellWithParentIdentifier = Pick<CellWithParentState, 'parentContainerName' | 'coordinates'> | Pick<CellWithParentState, 'sample'>
 export type CellWithoutParentIdentifier = Pick<CellWithoutParentState, 'sample'>
 export type CellIdentifier = CellWithParentIdentifier | CellWithoutParentIdentifier
 
@@ -61,9 +67,3 @@ export interface TubesWithoutParentState extends BaseParentContainerState {
     cells: CellWithoutParentState[]
 }
 export type ContainerIdentifier = Pick<ContainerState, 'name'>
-
-export interface PlacementSample extends Pick<Sample, 'id' | 'name'> {
-    project: Project['name']
-    location: CellIdentifier
-    placedAt: CellWithParentIdentifier[]
-}
