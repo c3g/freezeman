@@ -187,12 +187,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
                         </Col>
                         {usesSamplesheet && <Col span={3} >
-                            <Button
-                            onClick={handleGetSamplesheet}
-                            // disabled={!isPlacementComplete}
-                            >
-                                Get Samplesheet
-                            </Button>
+                            <Button onClick={handleGetSamplesheet} disabled={!isPlacementComplete}>Get Samplesheet</Button>
                         </Col>}
                     </Row>
                     <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
