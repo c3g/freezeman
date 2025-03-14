@@ -396,6 +396,29 @@ export interface FMSSample extends FMSTrackedModel {
     derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
+export interface FMSSampleUpdate {
+    id: FMSId
+    // sample_data
+    name: string
+    volume: number
+    concentration: number | null
+    depleted: boolean | null
+    creation_date: string
+    container: FMSId
+    coordinate: FMSId | null
+    comment: string | null
+    quality_flag: boolean | null
+    quantity_flag: boolean | null
+    // derived_sample_data
+    sample_kind: FMSId
+    tissue_source: FMSId | null
+    experimental_group: string[] | null
+    // biosample_data
+    alias: string
+    individual: FMSId | null
+    collection_site: string | null
+}
+
 export interface FMSSampleKind extends FMSTrackedModel {
     name: string                        // Sample kind name
     is_extracted: boolean               // Indicator to identify kinds that were extracted. Sample will have tissue source.
