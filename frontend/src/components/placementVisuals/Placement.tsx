@@ -42,6 +42,15 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
       await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
     }, [dispatch, activeDestinationContainer, cells])
 
+    const isPlacementComplete = useMemo(() => {
+      if (!activeDestinationContainer) return false
+      if (!cells) return false
+      const [Rows = [] as const, Columns = [] as const] = activeDestinationContainer.spec
+      const containerSize = Rows.length * Columns.length
+      const placedCells = cells.reduce((acc, cur) => {return cur.placedFrom ? ++acc : acc}, 0)
+      return placedCells === containerSize
+    }, [activeDestinationContainer, cells])
+
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
             ...sourceContainers.reduce((list, c) => {
