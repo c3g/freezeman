@@ -1,6 +1,6 @@
 import { Sample } from "../../models/frontend_models";
-import { CellIdentifier, CellWithParentIdentifier, ContainerIdentifier, ParentContainerState, RealParentContainerState, PlacementSampleState, PlacementState, TubesWithoutParentState, RealParentContainerIdentifier, SampleIdentifier } from "./models";
-import { LoadContainerPayload, LoadParentContainerPayload, LoadTubesWithoutParentPayload } from "./reducers";
+import { CellIdentifier, CellWithParentIdentifier, ContainerIdentifier, ParentContainerState, RealParentContainerState, PlacementSampleState, PlacementState, TubesWithoutParentState, RealParentContainerIdentifier, SampleIdentifier, CellState } from "./models";
+import { LoadContainerPayload, LoadParentContainerPayload, LoadTubesWithoutParentPayload, MouseOnCellPayload } from "./reducers";
 
 class PlacementClass {
     placement: PlacementState
@@ -88,6 +88,28 @@ class SampleClass {
     }
 }
 
+class CellClass {
+    placement: PlacementClass
+    cell: CellState
+    constructor(placement: PlacementClass, cell: CellState) {
+        this.placement = placement
+        this.cell = cell
+    }
+    get sample() {
+        return this.cell.sample
+    }
+    getCellState() {
+        return this.cell
+    }
+    isSelectable(isSource: boolean) {
+        if (isSource) {
+            return this.cell.sample !== null
+        } else {
+            return this.cell.sample === null && this.placement.getPlacementState().samples.find(s => s.placedAt.find(p => p.parentContainerName === this.cell.parentContainerName && p.coordinates === this.cell.coordinates))
+        }
+    }
+}
+
 class ParentContainerClass {
     placement: PlacementClass
     constructor(state: PlacementState) {
@@ -105,10 +127,14 @@ class ParentContainerClass {
     }
     findCell(identifier: CellIdentifier) {
         const containerState = this.getContainerState()
+        let cell: CellState | undefined
         if ('parentContainerName' in identifier) {
-            return containerState.cells.find(c => c.parentContainerName === identifier.parentContainerName && c.coordinates === identifier.coordinates)
+            cell = containerState.cells.find(c => c.parentContainerName === identifier.parentContainerName && c.coordinates === identifier.coordinates)
         } else {
-            return containerState.cells.find(c => c.sample === identifier.sample)
+            cell = containerState.cells.find(c => c.sample === identifier.sample)
+        }
+        if (cell) {
+            return new CellClass(this.placement, cell)
         }
     }
     static fromPayload(placement: PlacementClass, payload: LoadContainerPayload) {
@@ -141,7 +167,9 @@ class ParentContainerClass {
             placementState.containers.forEach(container => {
                 container.cells.forEach(cell => {
                     cell.placedFrom = cell.placedFrom.filter(id => id !== sample.id)
-                    cell.selected = false
+                    if (cell.placedFrom.length === 0) {
+                        cell.selected = false
+                    }
                 })
             })
             return false
@@ -157,6 +185,9 @@ class RealParentContainerClass extends ParentContainerClass {
     }
     getContainerState() {
         return this.container
+    }
+    clickCell(clickedLocation: MouseOnCellPayload) {
+        const 
     }
     static fromPayload(placement: PlacementClass, payload: LoadParentContainerPayload) {
         const containerState: RealParentContainerState = {
@@ -191,11 +222,6 @@ class TubesWithoutParentClass extends ParentContainerClass {
     }
     getContainerState() {
         return this.container
-    }
-    findCell(identifier: CellIdentifier) {
-        if ('sample' in identifier) {
-            return this.container.cells.find(c => c.sample === identifier.sample)
-        }
     }
     static fromPayload(placement: PlacementClass, payload: LoadTubesWithoutParentPayload) {
         const containerState: TubesWithoutParentState = {
