@@ -24,14 +24,14 @@ export type PlacementOption =
     { type: PlacementType.PATTERN } & PlacementPatternOptions
 
 export type CellState = CellWithParentState | CellWithoutParentState
-export type ContainerState = ParentContainerState | TubesWithoutParentState
+export type ParentContainerState = RealParentContainerState | TubesWithoutParentState
 export interface PlacementSampleState extends Pick<Sample, 'id' | 'name'> {
     project: Project['name']
     location: CellIdentifier
     placedAt: CellWithParentIdentifier[]
 }
 export interface PlacementState {
-    containers: ContainerState[]
+    containers: ParentContainerState[]
     samples: PlacementSampleState[]
     options: PlacementOptions
     error?: string
@@ -48,22 +48,28 @@ export interface CellWithParentState extends CellStateBase {
     sample: Sample['id'] | null
 }
 export interface CellWithoutParentState extends CellStateBase {
+    readonly parentContainerName: null
+    readonly coordinates?: undefined
     sample: Sample['id']
 }
+export type SampleIdentifier = Pick<PlacementSampleState, 'id'>
 
-export type CellWithParentIdentifier = Pick<CellWithParentState, 'parentContainerName' | 'coordinates'> | Pick<CellWithParentState, 'sample'>
+export type CellWithParentIdentifier = Pick<CellWithParentState, 'parentContainerName' | 'coordinates' | 'sample'>
 export type CellWithoutParentIdentifier = Pick<CellWithoutParentState, 'sample'>
 export type CellIdentifier = CellWithParentIdentifier | CellWithoutParentIdentifier
 
-interface BaseParentContainerState {}
-export interface ParentContainerState extends BaseParentContainerState {
+interface ParentContainerBaseState {}
+export interface RealParentContainerState extends ParentContainerBaseState {
     readonly name: string
     readonly spec: CoordinateSpec
     cells: CellWithParentState[]
 }
-export interface TubesWithoutParentState extends BaseParentContainerState {
+export interface TubesWithoutParentState extends ParentContainerBaseState {
     readonly name: null
-    readonly spec: []
+    readonly spec: never[]
     cells: CellWithoutParentState[]
 }
-export type ContainerIdentifier = Pick<ContainerState, 'name'>
+
+export type RealParentContainerIdentifier = Pick<RealParentContainerState, 'name'>
+export type TubesWithoutParentIdentifier = Pick<TubesWithoutParentState, 'name'>
+export type ContainerIdentifier = Pick<ParentContainerState, 'name'>

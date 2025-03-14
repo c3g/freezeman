@@ -1,39 +1,39 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
+import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ParentContainerState, RealParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
 import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellWithParentIdentifier {
     context: {
-        source?: ContainerState['name']
+        source?: ParentContainerState['name']
     }
 }
 export type MultiSelectPayload = {
     forcedSelectedValue?: boolean
     context: {
-        source?: ContainerState['name']
+        source?: ParentContainerState['name']
     }
 } & ({
-    parentContainer: ParentContainerState['name']
+    parentContainer: RealParentContainerState['name']
     type: 'row'
     row: number
 } | {
-    parentContainer: ParentContainerState['name']
+    parentContainer: RealParentContainerState['name']
     type: 'column'
     column: number
 } | {
-    parentContainer: ContainerState['name']
+    parentContainer: ParentContainerState['name']
     type: 'all'
 } | {
-    parentContainer: ContainerState['name']
+    parentContainer: ParentContainerState['name']
     type: 'sample-ids' // also checks cell.placedFrom
     sampleIDs: Array<Sample['id']>
 })
 export interface PlaceAllSourcePayload {
     source: ContainerIdentifier['name']
-    destination: ParentContainerState['name']
+    destination: RealParentContainerState['name']
 }
 
 const initialState: PlacementState = {
@@ -194,7 +194,7 @@ const slice = createSlice({
                 undoCellPlacement(state, cell)
             }
         }),
-        flushContainers(state, action: PayloadAction<Array<ContainerState['name']>>) {
+        flushContainers(state, action: PayloadAction<Array<ParentContainerState['name']>>) {
             const deletedContainerNames = new Set(action.payload ?? state.containers.map((c) => c.name))
             for (const parentContainer of state.containers) {
                 for (const cell of parentContainer.cells) {
@@ -261,10 +261,10 @@ function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>)
     }
 }
 
-function initialParentContainerState(payload: LoadParentContainerPayload): ParentContainerState {
-    const cells: ParentContainerState['cells'] = []
+function initialParentContainerState(payload: LoadParentContainerPayload): RealParentContainerState {
+    const cells: RealParentContainerState['cells'] = []
     const { parentContainerName, spec } = payload
-    const cellsIndexByCoordinates: ParentContainerState['cellsIndexByCoordinates'] = {}
+    const cellsIndexByCoordinates: RealParentContainerState['cellsIndexByCoordinates'] = {}
     if (parentContainerName && spec) {
         const [axisRow = [] as const, axisColumn = [] as const] = spec
         for (const row of axisRow) {
@@ -322,7 +322,7 @@ export const selectContainer = (state: PlacementState) => (location: ContainerId
 
     return state.containers.find((c) => c.name === containerName)
 }
-function getContainer(state: Draft<PlacementState>, location: ContainerIdentifier | CellIdentifier): Draft<ContainerState> {
+function getContainer(state: Draft<PlacementState>, location: ContainerIdentifier | CellIdentifier): Draft<ParentContainerState> {
     const container = selectContainer(state)(location)
     if (!container)
         throw new Error(`Container not loaded: "${JSON.stringify(location)}"`)

@@ -1,5 +1,5 @@
 import { Sample } from "../../models/frontend_models";
-import { CellIdentifier, CellWithParentIdentifier, ContainerState, ParentContainerState, PlacementSampleState, PlacementState, TubesWithoutParentState } from "./models";
+import { CellIdentifier, CellWithParentIdentifier, ContainerIdentifier, ParentContainerState, RealParentContainerState, PlacementSampleState, PlacementState, TubesWithoutParentState, RealParentContainerIdentifier, SampleIdentifier } from "./models";
 import { LoadContainerPayload, LoadParentContainerPayload, LoadTubesWithoutParentPayload } from "./reducers";
 
 class PlacementClass {
@@ -10,73 +10,55 @@ class PlacementClass {
     getPlacementState() {
         return this.placement
     }
-    findParentContainer(name: string | null) {
-        const container = this.placement.containers.find(c => c.name === name)
+    findParentContainer(id: ContainerIdentifier) {
+        const container = this.placement.containers.find(c => c.name === id.name)
         if (container) {
             return ParentContainerClass.instantiate(this.placement, container)
         }
     }
-    getParentContainer(name: string | null) {
-        const container = this.findParentContainer(name)
+    getParentContainer(id: ContainerIdentifier) {
+        const container = this.findParentContainer(id)
         if (!container) {
-            throw new Error(`Parent container ${name} not found`)
+            throw new Error(`Parent container ${id} not found`)
         }
         return container
     }
-    findRealParentContainer(name: string) {
-        const container = this.findParentContainer(name)
+    findRealParentContainer(id: RealParentContainerIdentifier) {
+        const container = this.findParentContainer(id)
         if (container instanceof RealParentContainerClass) {
             return container
         }
     }
     findTubesWithoutParent() {
-        const container = this.findParentContainer(null)
+        const container = this.findParentContainer({ name: null })
         if (container instanceof TubesWithoutParentClass) {
             return container
         }
     }
-    findSample(id: Sample['id']) {
-        const sample = this.placement.samples.find(s => s.id === id)
+    findSample(id: SampleIdentifier) {
+        const sample = this.placement.samples.find(s => s.id === id.id)
         if (sample) {
-            return new SampleClass(sample)
+            return new SampleClass(this, sample)
         }
     }
 
     loadContainerFromPayload(payload: LoadContainerPayload) {
         return ParentContainerClass.fromPayload(this, payload)
     }
-    loadSampleFromPayload(parentContainerName: string | null, payload: LoadContainerPayload['cells'][number]) {
-        return SampleClass.fromPayload(this, parentContainerName, payload)
-    }
-    removeDisappearedSamples(parentContainerName: string | null) {
-        this.placement.samples = this.placement.samples.filter(sample => {
-            const container = this.findParentContainer(parentContainerName)
-            if (!container) {
-                return true
-            }
-            const cell = container.findCell(sample.location)
-            if (!cell) {
-                return false
-            }
-            if (cell.sample !== sample.id) {
-                return false
-            }
-            return true
-        })
-    }
 }
 
 class SampleClass {
     placement: PlacementClass
     sample: PlacementSampleState
-    constructor(sample: PlacementSampleState) {
+    constructor(placement: PlacementClass, sample: PlacementSampleState) {
+        this.placement = placement
         this.sample = sample
     }
     getSampleState() {
         return this.sample
     }
-    static fromPayload(placement: PlacementClass, parentContainerName: string | null, payload: LoadContainerPayload['cells'][number]) {
-        const existingSample = placement.findSample(payload.sample)
+    static fromPayload(placement: PlacementClass, parentContainerID: ContainerIdentifier, payload: LoadContainerPayload['cells'][number]) {
+        const existingSample = placement.findSample({ id: payload.sample })
         if (existingSample) {
             return existingSample
         }
@@ -84,11 +66,17 @@ class SampleClass {
             id: payload.sample,
             name: payload.name,
             project: payload.projectName,
-            location: parentContainerName && payload.coordinates ? { parentContainerName, coordinates: payload.coordinates } : { sample: payload.sample },
+            location: parentContainerID.name !== null && payload.coordinates !== undefined ? {
+                parentContainerName: parentContainerID.name,
+                coordinates: payload.coordinates,
+                sample: payload.sample
+            } : {
+                sample: payload.sample
+            },
             placedAt: [],
         }
         placement.getPlacementState().samples.push(samplePayload)
-        return new SampleClass(samplePayload)
+        return new SampleClass(placement, samplePayload)
     }
 }
 
@@ -97,19 +85,27 @@ class ParentContainerClass {
     constructor(state: PlacementState) {
         this.placement = new PlacementClass(state)
     }
-    getContainerState(): ContainerState {
+    getContainerState(): ParentContainerState {
         throw new Error('Must be implemented by subclass')
     }
-    static instantiate(placement: PlacementState, container: ContainerState) {
+    static instantiate(placement: PlacementState, container: ParentContainerState) {
         if (container.name !== null) {
             return new RealParentContainerClass(placement, container)
         } else {
             return new TubesWithoutParentClass(placement, container)
         }
     }
+    findCell(identifier: CellIdentifier) {
+        const containerState = this.getContainerState()
+        if ('parentContainerName' in identifier) {
+            return containerState.cells.find(c => c.parentContainerName === identifier.parentContainerName && c.coordinates === identifier.coordinates)
+        } else {
+            return containerState.cells.find(c => c.sample === identifier.sample)
+        }
+    }
     static fromPayload(placement: PlacementClass, payload: LoadContainerPayload) {
         payload.cells.forEach((cell) => {
-            placement.loadSampleFromPayload(payload.parentContainerName, cell)
+            SampleClass.fromPayload(placement, { name: payload.parentContainerName }, cell)
         })
         let container: ParentContainerClass
         if (payload.parentContainerName !== null) {
@@ -117,28 +113,65 @@ class ParentContainerClass {
         } else {
             container = TubesWithoutParentClass.fromPayload(placement, payload)
         }
-        placement.removeDisappearedSamples(payload.parentContainerName)
+        container.#removeDisappearedSamples()
+    }
+    #removeDisappearedSamples() {
+        const placementState = this.placement.getPlacementState()
+        const containerState = this.getContainerState()
+        placementState.samples = placementState.samples.filter(sample => {
+            if ('parentContainerName' in sample.location) {
+                if (sample.location.parentContainerName === containerState.name) {
+                    return true
+                }
+            } else if (containerState.name !== null) {
+                return true
+            }
+            const cell = this.findCell(sample.location)
+            if (cell?.sample === sample.id) {
+                return true
+            }
+            placementState.containers.forEach(container => {
+                container.cells.forEach(cell => {
+                    cell.placedFrom = cell.placedFrom.filter(id => id !== sample.id)
+                    cell.selected = false
+                })
+            })
+            return false
+        })
     }
 }
 
 class RealParentContainerClass extends ParentContainerClass {
-    container: ParentContainerState
-    constructor(state: PlacementState, container: ParentContainerState) {
+    container: RealParentContainerState
+    constructor(state: PlacementState, container: RealParentContainerState) {
         super(state)
         this.container = container
     }
     getContainerState() {
         return this.container
     }
-    findCell(identifier: CellWithParentIdentifier) {
-        if ('sample' in identifier) {
-            return this.container.cells.find(c => c.sample === identifier.sample)
-        } else {
-            return this.container.cells.find(c => c.parentContainerName === identifier.parentContainerName && c.coordinates === identifier.coordinates)
-        }
-    }
     static fromPayload(placement: PlacementClass, payload: LoadParentContainerPayload) {
-
+        const containerState: RealParentContainerState = {
+            name: payload.parentContainerName,
+            spec: payload.spec,
+            cells: payload.cells.map(cell => ({
+                parentContainerName: payload.parentContainerName,
+                coordinates: cell.coordinates,
+                sample: cell.sample,
+                selected: false,
+                preview: false,
+                placedFrom: [],
+            }))
+        }
+        const existingContainer = placement.findRealParentContainer({ name: payload.parentContainerName })
+        if (existingContainer) {
+            const state = existingContainer.getContainerState()
+            state.cells = containerState.cells
+            return existingContainer
+        } else {
+            placement.getPlacementState().containers.push(containerState)
+            return new RealParentContainerClass(placement.getPlacementState(), containerState)
+        }
     }
 }
 
@@ -157,16 +190,23 @@ class TubesWithoutParentClass extends ParentContainerClass {
         }
     }
     static fromPayload(placement: PlacementClass, payload: LoadTubesWithoutParentPayload) {
-        let containerState = placement.findTubesWithoutParent()?.getContainerState()
-        if (!containerState) {
-            containerState = {
-                name: null,
-                spec: [],
-                cells: payload.cells.map(cell => ({
-                    selected: false,
-                    sample: cell.sample,
-                }))
-            }
+        const containerState: TubesWithoutParentState = {
+            name: null,
+            spec: [],
+            cells: payload.cells.map(cell => ({
+                parentContainerName: null,
+                selected: false,
+                sample: cell.sample,
+            }))
+        }
+        const existingContainer = placement.findTubesWithoutParent()
+        if (existingContainer) {
+            const state = existingContainer.getContainerState()
+            state.cells = containerState.cells
+            return existingContainer
+        } else {
+            placement.getPlacementState().containers.push(containerState)
+            return new TubesWithoutParentClass(placement.getPlacementState(), containerState)
         }
     }
 }
