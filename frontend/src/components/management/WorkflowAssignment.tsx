@@ -120,16 +120,6 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
 
     return (
         <>
-            {Object.keys(fixedFilters).length > 0 && (
-                <>
-                    <b>Fixed Filters:</b>
-                    <ul style={{ marginTop: 3 }}>
-                        {Object.values(fixedFilters).map((setting, index) => (
-                            <li key={setting.description?.key ?? index}><b>{`${setting.description?.label}`}</b>{': '}{`${setting.value}`}</li>
-                        ))}
-                    </ul>
-                </>
-            )}
             <PagedItemsTable<ObjectWithSample>
                 getDataObjectsByID={mapSampleIDs}
                 pagedItems={samplesTableState}
