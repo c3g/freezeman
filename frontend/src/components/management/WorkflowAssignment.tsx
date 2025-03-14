@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Collapse, Drawer, Flex, List, Modal, Popover, Select, Spin, Typography } from "antd";
+import { Button, Collapse, Drawer, Flex, Modal, Popover, Select, Spin } from "antd";
 import { fetchProjects, fetchSamples, fetchWorkflows } from "../../modules/cache/cache";
-import { FilterSet, FilterSetting } from "../../models/paged_items";
+import { FilterSet } from "../../models/paged_items";
 import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../models/fms_api_models";
 import { notifyError, notifySuccess } from "../../modules/notification/actions";
 import { Project, Sample, Step, Study, Workflow } from "../../models/frontend_models";
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample, SampleColumnID } from '../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../samples/SampleTableColumns'
 import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
 import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../selectors";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -21,10 +21,9 @@ import { useSearchParams } from "react-router-dom";
 const MAX_SELECTION = 960
 
 interface LabworkSamplesProps {
-    fixedFilter?: Required<FilterSetting>
 }
 
-export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
+export function WorkflowAssignment(props: LabworkSamplesProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters, fixedFilters } = samplesTableState
 
@@ -49,23 +48,11 @@ export function WorkflowAssignment({ fixedFilter }: LabworkSamplesProps) {
                 }
             )
         }
-        if (fixedFilter) {
-            samplesTableCallbacks.setFilterCallback(
-                fixedFilter.value,
-                fixedFilter.description
-            )
-            samplesTableCallbacks.setFilterOptionsCallback(
-                fixedFilter.description,
-                {
-                    exactMatch: true,
-                }
-            )
-        }
         samplesTableCallbacks.refreshPageCallback()
         return () => {
             samplesTableCallbacks.clearFiltersCallback()
         }
-    }, [fixedFilter, samplesTableCallbacks, searchParams])
+    }, [samplesTableCallbacks, searchParams])
 
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => {
         return [
