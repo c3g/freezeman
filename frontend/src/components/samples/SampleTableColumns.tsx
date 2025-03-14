@@ -333,6 +333,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 	},
 	[SampleColumnID.QUEUED_STEPS]: {
 		columnID: SampleColumnID.QUEUED_STEPS,
+		// purposefully left empty
+		// see WorkflowAssigment.tsx for implementation
 	}
 }
 for (const columnID in SAMPLE_COLUMN_DEFINITIONS) {

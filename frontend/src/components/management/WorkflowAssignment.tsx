@@ -87,6 +87,7 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
                     return <DropdownListItems listItems={sampleNextSteps.map(s => s.step.name)} />
                 },
                 sorter: { multiple: 1 },
+                width: 175
             } as SampleColumn
         ]
     }, [sampleNextStepsBySampleID])
