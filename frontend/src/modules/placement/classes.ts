@@ -60,6 +60,14 @@ class SampleClass {
     static fromPayload(placement: PlacementClass, parentContainerID: ContainerIdentifier, payload: LoadContainerPayload['cells'][number]) {
         const existingSample = placement.findSample({ id: payload.sample })
         if (existingSample) {
+            const state = existingSample.getSampleState()
+            state.location = parentContainerID.name !== null && payload.coordinates !== undefined ? {
+                parentContainerName: parentContainerID.name,
+                coordinates: payload.coordinates,
+                sample: payload.sample
+            } : {
+                sample: payload.sample
+            }
             return existingSample
         }
         const samplePayload: PlacementSampleState = {
