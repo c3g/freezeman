@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Collapse, Drawer, Flex, Modal, Popover, Select, Spin } from "antd";
 import { fetchProjects, fetchSamples, fetchWorkflows } from "../../modules/cache/cache";
 import { FilterSet } from "../../models/paged_items";
-import { FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../models/fms_api_models";
+import { FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } from "../../models/fms_api_models";
 import { notifyError, notifySuccess } from "../../modules/notification/actions";
 import { Project, Sample, Step, Study, Workflow } from "../../models/frontend_models";
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample } from '../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample, SampleColumnID } from '../samples/SampleTableColumns'
 import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
 import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../selectors";
 import { useAppDispatch, useAppSelector } from "../../hooks";
@@ -17,6 +17,7 @@ import SamplesTableActions from '../../modules/samplesTable/actions'
 import serializeFilterParamsWithDescriptions from "../pagedItemsTable/serializeFilterParamsTS";
 import { fetchSamplesByDefaultSelectionAndExceptedIDs } from "../pagedItemsTable/functions";
 import { useSearchParams } from "react-router-dom";
+import DropdownListItems from "../DropdownListItems";
 
 const MAX_SELECTION = 960
 
@@ -54,6 +55,19 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
         }
     }, [samplesTableCallbacks, searchParams])
 
+    const [sampleNextStepsBySampleID, setSampleNextStepsBySampleID] = useState<Record<Sample['id'], FMSSampleNextStep[]>>([])
+    const dispatch = useAppDispatch()
+    useEffect(() => {
+        (async () => {
+            const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples([...samplesTableState.items]))).data.results
+            setSampleNextStepsBySampleID(sampleNextSteps.reduce<Record<Sample['id'], FMSSampleNextStep[]>>((acc, sampleNextStep) => {
+                acc[sampleNextStep.sample] ??= []
+                acc[sampleNextStep.sample].push(sampleNextStep) 
+                return acc
+            }, {}))
+        })()
+    }, [dispatch, samplesTableState.items])
+
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => {
         return [
             SAMPLE_COLUMN_DEFINITIONS.NAME,
@@ -62,8 +76,22 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
             SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
             SAMPLE_COLUMN_DEFINITIONS.PROJECT,
             SAMPLE_COLUMN_DEFINITIONS.QC_FLAG,
+            {
+                columnID: SampleColumnID.QUEUED_STEPS,
+                title: 'Queued Steps',
+                dataIndex: ['sample', 'id'],
+                render: (_, { sample }) => {
+                    if (!sample) return null
+                    const sampleNextSteps = sampleNextStepsBySampleID[sample.id]
+                    if (!sampleNextSteps || sampleNextSteps.length === 0) return null
+                    return <DropdownListItems listItems={sampleNextSteps.map(s => s.step.name)} />
+                },
+                sorter: { multiple: 1 },
+                width: 175
+            } as SampleColumn
         ]
-    }, [])
+    }, [sampleNextStepsBySampleID])
+
     const columns = useFilteredColumns<ObjectWithSample>(
         SAMPLES_TABLE_COLUMNS,
         SAMPLE_COLUMN_FILTERS,
