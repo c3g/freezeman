@@ -59,6 +59,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
 		columnID: 'Action',
 		title: 'Action',
 		dataIndex: ['sample', 'id'],
+    width: 100,
 		render: (_: any, { sample }: SampleAndLibrary) => {
 			return <Popconfirm
 				title={`Are you sure you want to remove sample '${sample?.name ?? 'Loading...'}' from step '${step.stepName}'?`}
