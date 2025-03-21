@@ -70,12 +70,12 @@ class PoolsRowHandler(GenericRowHandler):
                         for derived_sample in sample["Source Sample"].derived_samples.all():
                             indices.append(derived_sample.library.index)
                             samples_name.append(sample_name)
-                    results, _, _ = validate_indices(indices=indices,
-                                                     index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
-                                                     index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
-                                                     threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
+                    results, self.errors["invalid_index"], _ = validate_indices(indices=indices,
+                                                                                index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
+                                                                                index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
+                                                                                threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
 
-                    if not results["is_valid"]:
+                    if not results["is_valid"] and results.get("distances", None) is not None:
                         index_errors = []
                         index_warnings = []
                         for i, index_ref in enumerate(indices):

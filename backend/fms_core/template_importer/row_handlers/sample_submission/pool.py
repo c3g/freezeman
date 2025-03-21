@@ -52,12 +52,12 @@ class PoolsRowHandler(GenericRowHandler):
                         sample_name = sample["alias"]
                         indices.append(sample["library"].index)
                         samples_name.append(sample_name)
-                    results, _, _ = validate_indices(indices=indices,
-                                                     index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
-                                                     index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
-                                                     threshold=INDEX_COLLISION_THRESHOLD)
+                    results, self.errors["invalid_index"], _ = validate_indices(indices=indices,
+                                                                                index_read_direction_5_prime=instrument_type_obj.index_read_5_prime,
+                                                                                index_read_direction_3_prime=instrument_type_obj.index_read_3_prime,
+                                                                                threshold=INDEX_COLLISION_THRESHOLD)
 
-                    if not results["is_valid"]:
+                    if not results["is_valid"] and results.get("distances", None) is not None:
                         # Verify first for direct collision (raise error in this case)
                         index_errors = []
                         for i, index_ref in enumerate(indices):
@@ -69,7 +69,7 @@ class PoolsRowHandler(GenericRowHandler):
                                                         f"for index validation length ({results['validation_length_3prime']}, "
                                                         f"{results['validation_length_5prime']}).")
                         self.errors["index_collision"] = index_errors
-                    else:
+                    elif results["is_valid"]:
                       # Verify then for near near collision for distances not higher than the default threshold (raise warning in this case)
                       is_valid, collisions = validate_distance_matrix(results["distances"], DEFAULT_INDEX_VALIDATION_THRESHOLD)
                       if not is_valid:

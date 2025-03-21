@@ -119,12 +119,13 @@ class SamplePoolingPlanningImporter(GenericImporter):
         for pool_name, pool in indices_by_pool.items():
             indices = pool["indices"]
             samples_name = pool["samples_name"]
-            results, _, _ = validate_indices(indices=indices,
-                                              index_read_direction_5_prime=INDEX_READ_FORWARD,
-                                              index_read_direction_3_prime=INDEX_READ_FORWARD,
-                                              threshold=INDEX_COLLISION_THRESHOLD)
+            results, invalid_index_errors, _ = validate_indices(indices=indices,
+                                                                index_read_direction_5_prime=INDEX_READ_FORWARD,
+                                                                index_read_direction_3_prime=INDEX_READ_FORWARD,
+                                                                threshold=INDEX_COLLISION_THRESHOLD)
+            self.base_errors.extend(invalid_index_errors)
 
-            if not results["is_valid"]:
+            if not results["is_valid"] and results.get("distances", None) is not None:
                 # Verify first for direct collision (raise error in this case)
                 index_errors = []
                 for i, index_ref in enumerate(indices):
