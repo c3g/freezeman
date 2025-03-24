@@ -199,12 +199,15 @@ const slice = createSlice({
             const deletedContainerNames = new Set(action.payload ?? state.containers.map((c) => c.name))
             for (const parentContainer of state.containers) {
                 for (const cell of parentContainer.cells) {
-                    if (
-                        (cell.placedAt?.parentContainerName !== undefined && deletedContainerNames.has(cell.placedAt.parentContainerName))
-                        ||
-                        (cell.placedFrom?.parentContainerName !== undefined && deletedContainerNames.has(cell.placedFrom.parentContainerName))
-                    ) {
-                        undoCellPlacement(state, cell)
+                    for (const placedAt of cell.placedAt) {
+                        if (deletedContainerNames.has(placedAt.parentContainerName) && placedAt.sample) {
+                            undoCellPlacement(state, cell, placedAt.sample)
+                        }
+                    }
+                    for (const placedFrom of cell.placedFrom) {
+                        if (deletedContainerNames.has(placedFrom.parentContainerName) && placedFrom.sample) {
+                            undoCellPlacement(state, cell, placedFrom.sample)
+                        }
                     }
                 }
             }
@@ -246,19 +249,14 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
 
 function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>, sampleID?: Sample['id']) {
     cell.selected = false
-    if (cell.placedAt.length > 0) {
-        const destCell = getCell(state, cell.placedAt)
-        destCell.placedFrom = null
-        destCell.selected = false
-
-        cell.placedAt = null
-    }
-    if (cell.placedFrom) {
-        const sourceCell = getCell(state, cell.placedFrom)
-        sourceCell.placedAt = null
-        sourceCell.selected = false
-
-        cell.placedFrom = null
+    if (sampleID !== undefined) {
+        cell.placedAt = cell.placedAt.filter((c) => c.sample !== sampleID)
+        cell.placedFrom = cell.placedFrom.filter((c) => c.sample !== sampleID)
+        cell.selected = (cell.placedAt.length + cell.placedFrom.length) > 0 || cell.sample ? cell.selected : false
+    } else {
+        cell.placedAt = []
+        cell.placedFrom = []
+        cell.selected = false
     }
 }
 
@@ -279,8 +277,8 @@ function initialParentContainerState(payload: LoadParentContainerPayload): Paren
                     projectName: '',
                     preview: false,
                     selected: false,
-                    placedAt: null,
-                    placedFrom: null,
+                    placedAt: [],
+                    placedFrom: [],
                 })
             }
         }
@@ -366,19 +364,26 @@ function placeCell(sourceCell: Draft<CellState>, destCell: Draft<CellWithParentS
     if (!sourceCell.sample) {
         throw new Error(`Source container at "${atCellLocations(sourceCell)}" has no sample`)
     }
-    if (sourceCell.placedAt) {
-        throw new Error(`Source sample from ${atCellLocations(sourceCell)} already placed (at ${atCellLocations(sourceCell.placedAt)})`)
+    if (sourceCell.placedAt.find((c) => c.sample === sourceCell.sample)) {
+        throw new Error(`Source container at "${atCellLocations(sourceCell)}" already placed at destination`)
     }
 
-    if (destCell.placedFrom) {
-        throw new Error(`Destination container at ${atCellLocations(destCell)} already contains a sample from ${atCellLocations(destCell.placedFrom)}`)
-    }
     if (destCell.sample !== null) {
         throw new Error(`Destination container at ${atCellLocations(destCell)} already contains a sample that has not been placed elsewhere`)
     }
+    if (destCell.placedFrom.find((c) => c.sample === sourceCell.sample)) {
+        throw new Error(`Destination container at ${atCellLocations(destCell)} already placed from source`)
+    }
 
-    sourceCell.placedAt = destCell
-    destCell.placedFrom = sourceCell
+    sourceCell.placedAt.push({ parentContainerName: destCell.parentContainerName, coordinates: destCell.coordinates, sample: destCell.sample })
+    destCell.placedFrom.push(sourceCell.parentContainerName ? {
+        parentContainerName: sourceCell.parentContainerName,
+        coordinates: sourceCell.coordinates,
+        sample: sourceCell.sample
+    } : {
+        parentContainerName: null,
+        sample: sourceCell.sample
+    })
 }
 
 function placementDestinationLocations(state: PlacementState, sources: Draft<CellState>[], destination: Draft<CellWithParentState>, placementOptions: PlacementOptions): Draft<CellWithParentState>[] {
@@ -551,8 +556,13 @@ function multiSelectHelper(state: Draft<PlacementState>, payload: MultiSelectPay
         const sampleIDs = new Set(payload.sampleIDs)
         const cells = container.cells.reduce((cells, cell) => {
             let sample = cell.sample
-            if (!sample && cell.placedFrom) {
-                sample = getCell(state, cell.placedFrom).sample
+            if (!sample) {
+                for (const placedFrom of cell.placedFrom) {
+                    if (placedFrom.sample && sampleIDs.has(placedFrom.sample)) {
+                        sample = placedFrom.sample
+                        break
+                    }
+                }
             }
             if (sample && sampleIDs.has(sample)) {
                 cells.push(cell)
