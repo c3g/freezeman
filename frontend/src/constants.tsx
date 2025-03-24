@@ -47,6 +47,7 @@ export const requiredRules: Rule[] = [{ required: true, message: 'Missing field'
 export const externalIdRules: Rule[] = [{ pattern: /^P[0-9]{6}$/, message: 'Format: P000000' }] as const
 export const barcodeRules: Rule[] = [{ pattern: /^[\S]{1,200}$/, message: 'Space not allowed.' }] as const
 export const nameRules: Rule[] = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/, message: 'Characters allowed: [a-z], [A-Z], [0-9], or [ - ][ . ][ _ ].' }] as const
+export const nameWithoutDotRules: Rule[] = [{ pattern: /^[a-zA-Z0-9\-_]{1,200}$/, message: 'Characters allowed: [a-z], [A-Z], [0-9], or [ - ][ _ ].' }] as const
 export const emailRules: Rule[] = [{ type: "email", message: "The input is not valid E-mail" }] as const
 
 export const MAX_CONTAINER_BARCODE_LENGTH = 200

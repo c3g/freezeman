@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks";
 const { Item } = Form
 const { TextArea } = Input
 
-import { nameRules, requiredRules } from "../../constants";
+import { nameWithoutDotRules, requiredRules } from "../../constants";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import { add, summary, update } from "../../modules/samples/actions";
 import SamplesTableActions from '../../modules/samplesTable/actions'
@@ -274,12 +274,13 @@ const SampleEditContent = ({ sample, isAdding}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}
-            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
+          <Item label="Name" {...props("name")} rules={requiredRules.concat(nameWithoutDotRules)}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ]. Space not allowed."
             extra="Name given to a sample." >
             <Input />
           </Item>
-          <Item label="Alias" {...props("alias")}
+          <Item label="Alias" {...props("alias")} rules={nameWithoutDotRules}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ]. Space not allowed."
             extra="Name originally given by the client. Defaults to the name if left empty." >
             <Input />
           </Item>
