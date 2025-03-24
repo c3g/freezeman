@@ -3,6 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from typing import Optional
 
+from ._validators import name_validator_without_dot
 from .tracked_model import TrackedModel
 from .individual import Individual
 
@@ -14,7 +15,7 @@ __all__ = ["Biosample"]
 
 @reversion.register()
 class Biosample(TrackedModel):
-    alias = models.CharField(max_length=200, help_text="Alternative biosample name given by the collaborator or customer.")
+    alias = models.CharField(max_length=200, validators=[name_validator_without_dot], help_text="Alternative biosample name given by the collaborator or customer.")
     individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.PROTECT,
                                    related_name="biosamples", help_text="Individual associated with the biosample.")
     collection_site = models.CharField(null=True, blank=True, max_length=200, help_text="The facility designated for the collection of samples.")
