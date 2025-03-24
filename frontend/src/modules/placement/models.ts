@@ -32,18 +32,18 @@ interface CellStateBase {
     sample: Sample['id'] | null
     name: string
     projectName: string
-    placedAt: null | CellWithParentIdentifier
+    placedAt: CellWithParentIdentifier[]
 }
 export interface CellWithParentState extends CellStateBase {
     readonly parentContainerName: string
     readonly coordinates: string
-    placedFrom: null | CellIdentifier
+    placedFrom: CellIdentifier[]
     preview: boolean
 }
 export interface CellWithoutParentState extends CellStateBase {
     readonly parentContainerName: null
     readonly coordinates?: undefined
-    placedFrom?: null
+    placedFrom: []
     preview?: false
 }
 

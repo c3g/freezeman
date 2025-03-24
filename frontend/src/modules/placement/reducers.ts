@@ -77,8 +77,8 @@ const slice = createSlice({
                         projectName: payloadCell.projectName,
                         selected: false,
                         preview: false,
-                        placedAt: null,
-                        placedFrom: null
+                        placedAt: [],
+                        placedFrom: []
                     }
                     payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = index
                 } else if (payloadContainerState.name === null) {
@@ -90,7 +90,8 @@ const slice = createSlice({
                         name: payloadCell.name,
                         projectName: payloadCell.projectName,
                         selected: false,
-                        placedAt: null
+                        placedAt: [],
+                        placedFrom: [],
                     })
                 }
             }
@@ -194,7 +195,7 @@ const slice = createSlice({
                 undoCellPlacement(state, cell)
             }
         }),
-        flushContainers(state, action: PayloadAction<Array<ContainerState['name']>>) {
+        flushContainers(state, action: PayloadAction<Array<ContainerState['name']> | undefined>) {
             const deletedContainerNames = new Set(action.payload ?? state.containers.map((c) => c.name))
             for (const parentContainer of state.containers) {
                 for (const cell of parentContainer.cells) {
@@ -243,9 +244,9 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
     }
 }
 
-function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>) {
+function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>, sampleID?: Sample['id']) {
     cell.selected = false
-    if (cell.placedAt) {
+    if (cell.placedAt.length > 0) {
         const destCell = getCell(state, cell.placedAt)
         destCell.placedFrom = null
         destCell.selected = false
