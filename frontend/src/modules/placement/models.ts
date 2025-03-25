@@ -1,5 +1,5 @@
 import { CoordinateSpec } from "../../models/fms_api_models"
-import { Sample } from "../../models/frontend_models"
+import { Container, Sample } from "../../models/frontend_models"
 
 export enum PlacementType {
     PATTERN,
@@ -18,7 +18,6 @@ export interface PlacementGroupOptions {
 }
 export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
-export type CellState = CellWithParentState | CellWithoutParentState
 export type ContainerState = ParentContainerState | TubesWithoutParentState
 export interface PlacementState {
     containers: ContainerState[]
@@ -27,43 +26,37 @@ export interface PlacementState {
     error?: string
 }
 
-interface CellStateBase {
-    selected: boolean
-    sample: Sample['id'] | null
-    name: string
-    projectName: string
-    placedAt: null | CellWithParentIdentifier
+export enum CellState {
+    EMPTY,
+    OCCUPIED,
+    PREVIEW,
+    PARTIALLY_SELECTED,
+    FULLY_SELECTED,
+    ERROR,
+    HIGHLIGHTED,
 }
-export interface CellWithParentState extends CellStateBase {
-    readonly parentContainerName: string
-    readonly coordinates: string
-    placedFrom: null | CellIdentifier
-    preview: boolean
-}
-export interface CellWithoutParentState extends CellStateBase {
-    readonly parentContainerName: null
-    readonly coordinates?: undefined
-    placedFrom?: null
-    preview?: false
-}
-
-export type CellWithParentIdentifier = Pick<CellWithParentState, 'parentContainerName' | 'coordinates'> & { sample?: CellWithoutParentState['sample'] } // sample is just to stop typescript from whining
-export type CellWithoutParentIdentifier = Pick<CellWithoutParentState, 'parentContainerName' | 'coordinates' | 'sample'>
-export type CellIdentifier = CellWithParentIdentifier | CellWithoutParentIdentifier
 
 interface BaseParentContainerState {
-    cellsIndexBySampleID: Record<Sample['id'], number>
+    samples: SamplePlacement[]
 }
 export interface ParentContainerState extends BaseParentContainerState {
     readonly name: string
     readonly spec: CoordinateSpec
-    cells: CellWithParentState[]
-    readonly cellsIndexByCoordinates: Record<string, number> // this should never change after it's initialized
+    cells: Record<Coordinates, CellState>
 }
 export interface TubesWithoutParentState extends BaseParentContainerState {
     readonly name: null
-    readonly spec: []
-    cells: CellWithoutParentState[]
 }
 export type ContainerIdentifier = Pick<ContainerState, 'name'>
 
+export interface SamplePlacement {
+    existing: boolean
+    id: number
+    project: string
+    coordinates: string
+    selected: boolean
+    fromParentContainer: ContainerState['name']
+    fromCell: Coordinates | undefined // coordinates
+}
+
+type Coordinates = string
