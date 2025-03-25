@@ -52,7 +52,7 @@ export enum ContainerColumnID {
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
-const SMALL_COLUMN_WIDTH = 90
+const SMALL_COLUMN_WIDTH = 100
 const MEDIUM_COLUMN_WIDTH = 120
 const LARGE_COLUMN_WIDTH = 240
 
@@ -61,7 +61,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.ID,
 		title: 'ID',
 		dataIndex: ['container', 'id'],
-		sorter: true,
+		sorter: { multiple: 1 },
     	width: SMALL_COLUMN_WIDTH,
 		render: (_, {container}) => {
 			return container && <Link to={`/containers/${container.id}`}>{container.id}</Link>
@@ -71,14 +71,14 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.NAME,
 		title: 'Name',
 		dataIndex: ['container', 'name'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: LARGE_COLUMN_WIDTH,
 	},
 	[ContainerColumnID.BARCODE]: {
 		columnID: ContainerColumnID.BARCODE,
 		title: 'Barcode',
 		dataIndex: ['container', 'barcode'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: LARGE_COLUMN_WIDTH,
 		render: (_, {container}) => {
 			return container && <Link to={`/containers/${container.id}`}>{container.barcode}</Link>
@@ -88,6 +88,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.SAMPLES,
 		title: 'Sample(s)',
 		dataIndex: ['container', 'samples'],
+		sorter: false,
 		width: LARGE_COLUMN_WIDTH,
 		render: (samples, {container}) => {
 			return (
@@ -111,13 +112,13 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		title: 'Kind',
 		dataIndex: ['container', 'kind'],
 		width: MEDIUM_COLUMN_WIDTH,
-		sorter: true,
+		sorter: { multiple: 1 },
 	},
 	[ContainerColumnID.LOCATION]: {
 		columnID: ContainerColumnID.LOCATION,
 		title: 'Location',
 		dataIndex: ['container', 'location'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: LARGE_COLUMN_WIDTH,
 		render: location => (location &&
 			<Link to={`/containers/${location}`}>
@@ -128,7 +129,7 @@ export const CONTAINER_COLUMN_DEFINITIONS : {[key in ContainerColumnID] : Contai
 		columnID: ContainerColumnID.COORDINATE,
 		title: 'Coord.',
 		dataIndex: ['container', 'coordinate'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		width: SMALL_COLUMN_WIDTH,
 		render: (_, {container}) =>
 			container.coordinate &&

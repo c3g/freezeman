@@ -1,11 +1,12 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
+import { shallowEqual } from 'react-redux'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus } from '../../modules/experimentRunLanes/actions'
+import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
-import { addArchivedComment } from '../../modules/datasets/actions'
+import { addArchivedComment, get } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
@@ -59,33 +60,28 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 
 	}, [experimentRunName, experimentRunLanesState])
 
+	const updateLane = useCallback((lane: LaneInfo) => {
+		Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() => {
+			dispatch(setRunLaneValidationTime(lane)).finally(() => {
+			  setIsValidationInProgress(false)
+			})
+		})
+  }, [dispatch])
 
-	const setPassed = useCallback(
-		(lane: LaneInfo) => {
-			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED))
-				.finally(() => {setIsValidationInProgress(false)})
-		},
-		[dispatch]
-	)
+	const setPassed = useCallback((lane: LaneInfo) => {
+	  setIsValidationInProgress(true)
+	  dispatch(setRunLaneValidationStatus(lane, ValidationStatus.PASSED)).finally(() => updateLane(lane))
+	}, [dispatch, updateLane])
 
-	const setFailed = useCallback(
-		(lane: LaneInfo) => {
-			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED))
-				.finally(() => {setIsValidationInProgress(false)})
-		},
-		[dispatch]
-	)
+	const setFailed = useCallback((lane: LaneInfo) => {
+	  setIsValidationInProgress(true)
+	  dispatch(setRunLaneValidationStatus(lane, ValidationStatus.FAILED)).finally(() => updateLane(lane))
+	}, [dispatch, updateLane])
 
-	const setAvailable = useCallback(
-		(lane: LaneInfo) => {
-			setIsValidationInProgress(true)
-			dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE))
-				.finally(() => {setIsValidationInProgress(false)})
-		},
-		[dispatch]
-	)
+	const setAvailable = useCallback((lane: LaneInfo) => {
+		setIsValidationInProgress(true)
+		dispatch(setRunLaneValidationStatus(lane, ValidationStatus.AVAILABLE)).finally(() => updateLane(lane))
+	}, [dispatch, updateLane])
 
 	const setLaneExpansionState = useCallback((laneKeys: string | string[]) => {
 		if (runLanes) {
@@ -103,7 +99,6 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 			if (laneInfo) {
 				expandedLaneKeys.push(createLaneKey(laneInfo))
 			}
-
 		}
 	}
 
@@ -115,7 +110,10 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 						<Collapse.Panel 
 							key={createLaneKey(lane)}
 							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
-							extra={<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>}
+							extra={<Space direction={'horizontal'}>
+								<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
+								{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
+							</Space>}
 						>
 							<LanePanel 
 								lane={lane}
@@ -152,8 +150,21 @@ interface LanePanelProps {
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
 	const dispatch = useAppDispatch()
-  const datasetsById = useAppSelector(selectDatasetsByID)
+  const datasetsById = useAppSelector((state) => lane.datasets.map((dataset) => {
+    const datasetSelector = selectDatasetsByID(state)[dataset.datasetID]
+    return datasetSelector}).reduce((selectors, dataset) => {
+      if (dataset) {
+        selectors[dataset.id] = dataset;
+      }
+      return selectors;  
+    }, {}), shallowEqual
+  )
 	const [datasets, setDatasets] = useState<Dataset[]>([])
+
+  useEffect(() => {
+    const refreshedDatasets = lane.datasets.map((dataset) => datasetsById[dataset.datasetID])
+    setDatasets(refreshedDatasets as Dataset[])
+	}, [datasetsById])
 
   useEffect(() => {
     Promise.all(lane.datasets.map(async (dataset) => {
@@ -161,8 +172,8 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
       return response.data
     }))
     .then((values) => {
-      setDatasets(values)})
-	}, [datasetsById])
+      setDatasets(values as Dataset[])})
+	}, [dispatch, lane.datasets])
 
   const handleAddComment = useCallback(
     (id, comment) => {

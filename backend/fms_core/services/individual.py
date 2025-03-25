@@ -77,7 +77,7 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
             individual = Individual.objects.get(name=name)
             warnings.append(("Using existing individual '{0}'.", [individual.name]))
 
-            if sex and sex != individual.sex:
+            if sex and sex != Individual.SEX_UNKNOWN and sex != individual.sex:
                 errors.append(f"Provided sex {sex} does not match the individual sex {individual.sex} of the individual retrieved using the name {name}.")
             if taxon and taxon != individual.taxon:
                 errors.append(
@@ -97,9 +97,6 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
             if father and father != individual.father:
                 errors.append(
                     f"Provided father {father.name} does not match the individual father {individual.father.name if individual.father else ''} of the individual retrieved using the name {name}.")
-            if reference_genome and reference_genome != individual.reference_genome:
-                errors.append(
-                    f"Provided reference genome {reference_genome.assembly_name} does not match the individual reference genome {individual.reference_genome.assembly_name if individual.reference_genome else ''} of the individual retrieved using the name {name}.")
             if is_generic is not None and is_generic != individual.is_generic:
                 errors.append(f"Provided generic indicator '{is_generic}' does not match the individual generic indicator '{individual.is_generic}' of the individual retrieved using the name {name}.")
         except Individual.DoesNotExist:

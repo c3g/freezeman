@@ -11,14 +11,13 @@ import {
   Switch,
 } from "antd";
 import { CheckSquareFilled, CloseSquareFilled } from '@ant-design/icons';
-import moment from "moment";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 const { Item } = Form
 const { TextArea } = Input
 
-import { nameRules, requiredRules } from "../../constants";
+import { nameWithoutDotRules, requiredRules } from "../../constants";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import { add, summary, update } from "../../modules/samples/actions";
 import SamplesTableActions from '../../modules/samplesTable/actions'
@@ -28,6 +27,7 @@ import * as Options from "../../utils/options";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { fetchContainers, fetchSamples } from "../../modules/cache/cache";
+import dayjs from "dayjs";
 
 export const AddSampleRoute = () => {
   const [sample] = useState({...EMPTY_SAMPLE})
@@ -209,7 +209,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const onValuesChange = (values) => {
     const key = Object.keys(values)[0];
     if (key == "sample_kind") {
-      if (!sampleKind(values[key]).is_extracted) {
+      if (!sampleKind(values[key])?.is_extracted) {
         form.setFieldValue('tissue_source', '')
         setisTissueEnabled(false)
       } else {
@@ -256,7 +256,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
     }
 
 
-  const [isTissueEnabled, setisTissueEnabled] = useState((form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind')).is_extracted) || (!isAdding && sampleKind(sample.sample_kind).is_extracted))
+  const [isTissueEnabled, setisTissueEnabled] = useState((form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind'))?.is_extracted) || (!isAdding && sampleKind(sample.sample_kind)?.is_extracted))
   const [isCoordRequired, setIsCoordRequired] = useState(form.getFieldValue('container') || !isAdding)
 
   return (
@@ -274,12 +274,13 @@ const SampleEditContent = ({ sample, isAdding}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}
-            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ][ . ]. Space not allowed."
+          <Item label="Name" {...props("name")} rules={requiredRules.concat(nameWithoutDotRules)}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ]. Space not allowed."
             extra="Name given to a sample." >
             <Input />
           </Item>
-          <Item label="Alias" {...props("alias")}
+          <Item label="Alias" {...props("alias")} rules={nameWithoutDotRules}
+            tooltip="Use [a-z], [A-Z], [0-9], or [ - ][ _ ]. Space not allowed."
             extra="Name originally given by the client. Defaults to the name if left empty." >
             <Input />
           </Item>
@@ -453,7 +454,7 @@ function deserialize(values) {
     newValues.experimental_group = []
 
   if (newValues.creation_date)
-    newValues.creation_date = moment(newValues.creation_date, 'YYYY-MM-DD')
+    newValues.creation_date = dayjs(newValues.creation_date, 'YYYY-MM-DD')
 
   return newValues
 }

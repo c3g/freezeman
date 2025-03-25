@@ -17,6 +17,7 @@ import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { get as getProject } from '../../modules/projects/actions'
 import { FMSId } from '../../models/fms_api_models'
+import { SampleColumnID } from '../samples/SampleTableColumns'
 
 const { TabPane } = Tabs
 
@@ -94,7 +95,10 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 
 	return (
 		<>
-			<AppPageHeader title={title} extra={<EditButton url={`/projects/${`${project.id}`}/update`} />} />
+			<AppPageHeader title={title} extra={<>
+				<Button onClick={() => navigate(`/management/workflow-assignment?${SampleColumnID.PROJECT}=${project.name}`)}>Manage Workflow</Button>
+				<EditButton url={`/projects/${`${project.id}`}/update`} />
+				</>}/>
 			{project && (
 				<PageContent loading={false} style={undefined}>
 					{ project && 

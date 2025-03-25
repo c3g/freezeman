@@ -231,3 +231,20 @@ div.ant-collapse-item  {
 .ant-table-cells-short .ant-table-body .ant-table-cell {
   padding: 0 1em 0 1em !important
 }
+
+.labwork-samples-actions {
+  padding: 1em !important;
+}
+
+.left-aligned-ant-btn {
+  text-align: left;
+  display: unset;
+}
+
+.ant-timeline .ant-timeline-item {
+  padding-bottom: 0;
+}
+
+.ant-timeline .ant-timeline-item-last > .ant-timeline-item-content {
+  min-height: unset;
+}

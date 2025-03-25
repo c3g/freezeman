@@ -221,7 +221,7 @@ def validate_indices(indices, index_read_direction_5_prime=INDEX_READ_FORWARD, i
     # Make sure all indices exist and build a dict with the instances
     for index in indices:
         indices_dict[index.id] = {"obj": index}
-        
+
     if len(indices) == 0:
         warnings.append(("No indices were provided for validation.", []))
     else:
@@ -335,7 +335,7 @@ def validate_indices(indices, index_read_direction_5_prime=INDEX_READ_FORWARD, i
             results["validation_length_3prime"] = validation_length_3prime
             results["threshold"] = threshold
             results["header"] = [i.id for i in indices]
-            results["distances"] = [[None for i in indices] for j in indices]               
+            results["distances"] = [[None for i in indices] for j in indices]
 
             for reference_count, index_reference in enumerate(indices):
                 index_dict_reference = indices_dict[index_reference.id]

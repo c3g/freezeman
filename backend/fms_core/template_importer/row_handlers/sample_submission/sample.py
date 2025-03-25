@@ -76,7 +76,7 @@ class SampleRowHandler(GenericRowHandler):
                                          is_generic=is_generic)
 
             if not created and not self.errors['individual']:
-                self.warnings['individual'].append(('Individual already exists and was not created.', []))
+                self.warnings['individual'].append(('Individual already exists and was not created. Reference Genome may need to be updated separately.', []))
         else:
             self.warnings['individual'].append(('Sample is not tied to any individual.', []))
 

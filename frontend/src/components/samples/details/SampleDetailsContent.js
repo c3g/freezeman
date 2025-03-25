@@ -93,7 +93,7 @@ const SampleDetailsContent = () => {
   const error = sample.error?.name !== 'APIError' ? sample.error : undefined;
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
-  const sampleKind = sampleKindsByID[sample.sample_kind]?.name
+  const sampleKind = sampleKindsByID[sample.sample_kind]?.name ?? (sample.is_pool ? "Pool" : "")
   const tissueSource = sampleKindsByID[sample.tissue_source]?.name
   const volume = isNullish(sample.volume) ? '' : parseFloat(sample.volume).toFixed(3)
   const container = containersByID[sample.container]

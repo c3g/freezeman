@@ -264,7 +264,7 @@ export interface FMSPlatform extends FMSTrackedModel {
 export interface FMSPooledSample extends FMSTrackedModel {
     // Pooled sample is a flattened version of the pooled sample data returned by the endpoint.
     // The id is the ID of the pool's derived sample.
-    pooled_sample_id: number,           // The id of the parent sample pool containing this derived sample
+    pool_id: number,                    // The id of the parent sample pool containing this derived sample
     volume_ratio: number,               // Derived sample volume as a ratio of the total pool volume
 
     project_id: FMSId,                  // Project associated with the derived sample
@@ -394,6 +394,29 @@ export interface FMSSample extends FMSTrackedModel {
     quantity_flag?: boolean             // QC quantity flag
     comment: string                     // User comment
     derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
+}
+
+export interface FMSSampleUpdate {
+    id: FMSId
+    // sample_data
+    name: string
+    volume: number
+    concentration: number | null
+    depleted: boolean | null
+    creation_date: string
+    container: FMSId
+    coordinate: FMSId | null
+    comment: string | null
+    quality_flag: boolean | null
+    quantity_flag: boolean | null
+    // derived_sample_data
+    sample_kind: FMSId
+    tissue_source: FMSId | null
+    experimental_group: string[] | null
+    // biosample_data
+    alias: string
+    individual: FMSId | null
+    collection_site: string | null
 }
 
 export interface FMSSampleKind extends FMSTrackedModel {

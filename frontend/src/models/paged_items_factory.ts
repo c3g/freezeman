@@ -7,6 +7,7 @@ import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PagedItem
 import {
 	ReduceListReceiveType,
 	reduceClearFilters,
+	reduceClearFixedFilters,
 	reduceListError,
 	reduceListReceive,
 	reduceListRequest,
@@ -19,7 +20,7 @@ import {
 	reduceSetSortBy,
     reduceSetStale,
 } from './paged_items_reducers'
-import { FMSResponse } from "../utils/api"
+import { ABORT_ERROR_NAME, FMSResponse } from "../utils/api"
 import { FMSPagedResultsReponse, FMSTrackedModel } from "./fms_api_models"
 
 export type FreezemanAsyncThunk<T> = (dispatch: AppDispatch, getState: () => RootState) => Promise<T>
@@ -37,7 +38,8 @@ export interface PagedItemsActions {
 	setFilterOptions: (description: FilterDescription, options: FilterOptions) => FreezemanAsyncThunk<void>
 	removeFilter: (description: FilterDescription) => FreezemanAsyncThunk<void>
 	clearFilters: () => FreezemanAsyncThunk<void>
-	setSortBy: (sortBy: SortBy) => FreezemanAsyncThunk<void>
+    clearFixedFilters: () => FreezemanAsyncThunk<void>
+	setSortBy: (sortByList: SortBy[]) => FreezemanAsyncThunk<void>
 	setPageSize: (pageSize: number) => FreezemanAsyncThunk<void>
     resetPagedItems: () => FreezemanAsyncThunk<void>
     setStale: (stale: boolean) => FreezemanAsyncThunk<void>
@@ -57,6 +59,7 @@ interface PagedItemsActionTypes<Prefix extends string> {
 	SET_FILTER_OPTIONS: `${Prefix}.SET_FILTER_OPTIONS`
 	REMOVE_FILTER: `${Prefix}.REMOVE_FILTER`
 	CLEAR_FILTERS: `${Prefix}.CLEAR_FILTER`
+    CLEAR_FIXED_FILTERS: `${Prefix}.CLEAR_FIXED_FILTERS`
 	SET_SORT_BY: `${Prefix}.SET_SORT_BY`
 	SET_PAGE_SIZE: `${Prefix}.SET_PAGE_SIZE`
     RESET_PAGED_ITEMS: `${Prefix}.RESET_PAGED_ITEMS`
@@ -71,6 +74,7 @@ export function createPagedItemsActionTypes<Prefix extends string>(prefix: Prefi
         SET_FILTER_OPTIONS: `${prefix}.SET_FILTER_OPTIONS`,
         REMOVE_FILTER: `${prefix}.REMOVE_FILTER`,
         CLEAR_FILTERS: `${prefix}.CLEAR_FILTER`,
+        CLEAR_FIXED_FILTERS: `${prefix}.CLEAR_FIXED_FILTERS`,
         SET_SORT_BY: `${prefix}.SET_SORT_BY`,
         SET_PAGE_SIZE: `${prefix}.SET_PAGE_SIZE`,
         RESET_PAGED_ITEMS: `${prefix}.RESET_PAGED_ITEMS`,
@@ -87,7 +91,7 @@ export type SelectPagedItemsFunc = (state: RootState) => PagedItems
 
 export function createPagedItemsActions<Prefix extends string, M extends FMSTrackedModel>(actionTypes: PagedItemsActionTypes<Prefix>, selectPagedItems: SelectPagedItemsFunc, list: ListType<M>, extra?: object): PagedItemsActions {
 
-    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } =
+    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, CLEAR_FIXED_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } =
 		actionTypes
 
 
@@ -116,7 +120,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
 		}
 
         // If the page is not already loaded then fetch the page.
-        dispatch(_fetchPage(pageNumber))
+        await dispatch(_fetchPage(pageNumber))
 	}
 
     /**
@@ -139,10 +143,10 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         
         const limit = pagedItems.page?.limit ?? selectPageSize(getState())
         const offset = limit * (pageNumber - 1)
-        const { filters, fixedFilters, sortBy } = pagedItems
+        const { filters, fixedFilters, sortByList } = pagedItems
 
         const serializedFilters = serializeFilterParamsWithDescriptions({ ...fixedFilters, ...filters })
-		const ordering = serializeSortByParams(sortBy)
+		const ordering = serializeSortByParams(sortByList)
 
         const params = {
 			offset,
@@ -173,11 +177,15 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
                 extra
             })
         } catch(error) {
-            dispatch({
-                type: LIST_PAGE.ERROR,
-                error,
-                extra
-            })
+            if (error.name !== ABORT_ERROR_NAME) {
+                dispatch({
+                    type: LIST_PAGE.ERROR,
+                    error,
+                    extra
+                })
+            } else {
+                console.error('List page request aborted:', error)
+            }
             return
         }
     }
@@ -231,10 +239,15 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         return await dispatch(_fetchPage(1))
     }
 
-    const setSortBy: PagedItemsActions['setSortBy'] = (sortBy) => async (dispatch) => {
+    const clearFixedFilters: PagedItemsActions['clearFixedFilters'] = () => async (dispatch) => {
+        dispatch({ type: CLEAR_FIXED_FILTERS, extra })
+        return await dispatch(_fetchPage(1))
+    }
+
+    const setSortBy: PagedItemsActions['setSortBy'] = (sortByList) => async (dispatch) => {
         dispatch({
             type: SET_SORT_BY,
-            sortBy,
+            sortByList,
             extra
         })
 
@@ -273,6 +286,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
         setFilterOptions,
         removeFilter,
         clearFilters,
+        clearFixedFilters,
         setSortBy,
         setPageSize,
         resetPagedItems,
@@ -285,7 +299,7 @@ export function createPagedItemsActions<Prefix extends string, M extends FMSTrac
 
 // This reducer will support any state that extends PagedItems.
 export function createPagedItemsReducer<P extends PagedItems, Prefix extends string>(actionTypes: PagedItemsActionTypes<Prefix>, initialState: P): Reducer<P, AnyAction> {
-    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } = actionTypes
+    const { LIST_PAGE, SET_FIXED_FILTER, SET_FILTER, SET_FILTER_OPTIONS, REMOVE_FILTER, CLEAR_FILTERS, CLEAR_FIXED_FILTERS, SET_SORT_BY, SET_PAGE_SIZE, RESET_PAGED_ITEMS, SET_STALE } = actionTypes
 
     function reduce(state: P = initialState, action: AnyAction): P {
         switch (action.type) {
@@ -313,8 +327,11 @@ export function createPagedItemsReducer<P extends PagedItems, Prefix extends str
 			case CLEAR_FILTERS: {
 				return reduceClearFilters(state)
 			}
+            case CLEAR_FIXED_FILTERS: {
+                return reduceClearFixedFilters(state)
+            }
 			case SET_SORT_BY: {
-				return reduceSetSortBy(state, action.sortBy)
+				return reduceSetSortBy(state, action.sortByList)
 			}
 			case SET_PAGE_SIZE: {
 				return reduceSetPageSize(state, action.pageSize)

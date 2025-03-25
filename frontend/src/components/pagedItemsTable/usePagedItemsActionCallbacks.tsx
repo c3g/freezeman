@@ -20,43 +20,47 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 	const dispatch = useAppDispatch()
 	return useMemo(() => {
 		const listPageCallback = (pageNumber: number) => {
-			dispatch(pagedItemActions.listPage(pageNumber))
+			return dispatch(pagedItemActions.listPage(pageNumber))
 		}
 
 		const setFixedFilterCallback = (filter: FilterSetting) => {
-			dispatch(pagedItemActions.setFixedFilter(filter))
+			return dispatch(pagedItemActions.setFixedFilter(filter))
 		}
 
 		const setFilterCallback = (value: FilterValue, description: FilterDescription) => {
-			dispatch(pagedItemActions.setFilter(value, description))
+			return dispatch(pagedItemActions.setFilter(value, description))
 		}
 
 		const setFilterOptionsCallback = (description: FilterDescription, options: FilterOptions) => {
-			dispatch(pagedItemActions.setFilterOptions(description, options))
+			return dispatch(pagedItemActions.setFilterOptions(description, options))
 		}
 
 		const clearFiltersCallback = () => {
-			dispatch(pagedItemActions.clearFilters())
+			return dispatch(pagedItemActions.clearFilters())
 		}
 
-		const setSortByCallback = (sortBy: SortBy) => {
-				dispatch(pagedItemActions.setSortBy(sortBy))
+		const clearFixedFiltersCallback = () => {
+			return dispatch(pagedItemActions.clearFixedFilters())
+		}
+
+		const setSortByCallback = (sortByList: SortBy[]) => {
+			return dispatch(pagedItemActions.setSortBy(sortByList))
 		}
 
 		const setPageSizeCallback =(pageSize: number) => {
-			dispatch(pagedItemActions.setPageSize(pageSize))
+			return dispatch(pagedItemActions.setPageSize(pageSize))
 		}
 
 		const resetPagedItemsCallback = () => {
-			dispatch(pagedItemActions.resetPagedItems())
+			return dispatch(pagedItemActions.resetPagedItems())
 		}
 
 		const setStaleCallback = (stale: boolean) => {
-			dispatch(pagedItemActions.setStale(stale))
+			return dispatch(pagedItemActions.setStale(stale))
 		}
 
 		const refreshPageCallback = () => {
-			dispatch(pagedItemActions.refreshPage())
+			return dispatch(pagedItemActions.refreshPage())
 		}
 
 		return {
@@ -65,6 +69,7 @@ export function usePagedItemsActionsCallbacks(pagedItemActions: PagedItemsAction
 			setFilterCallback,
 			setFilterOptionsCallback,
 			clearFiltersCallback,
+			clearFixedFiltersCallback,
 			setSortByCallback,
 			setPageSizeCallback,
 			resetPagedItemsCallback,

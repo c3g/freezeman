@@ -28,7 +28,7 @@ export const INDIVIDUAL_COLUMN_DEFINITIONS: { [key in IndividualColumnID]: Indiv
 		columnID: IndividualColumnID.ID,
 		title: 'ID',
 		dataIndex: ['individual', 'id'],
-		sorter: true,
+		sorter: { multiple: 1 },
     width: 115,
 		render: (id, { individual }) => <Link to={`/individuals/${individual.id}`}>{id}</Link>,
 	},
@@ -36,7 +36,7 @@ export const INDIVIDUAL_COLUMN_DEFINITIONS: { [key in IndividualColumnID]: Indiv
 		columnID: IndividualColumnID.NAME,
 		title: 'Name',
 		dataIndex: ['individual', 'name'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		render: (name, { individual }) => (
 			<Link to={`/individuals/${individual.id}`}>
 				<div>{name}</div>
@@ -52,7 +52,7 @@ export const INDIVIDUAL_COLUMN_DEFINITIONS: { [key in IndividualColumnID]: Indiv
 		columnID: IndividualColumnID.TAXON,
 		title: 'Taxon',
 		dataIndex: ['individual', 'taxon'],
-		sorter: true,
+		sorter: { multiple: 1 },
 		// TODO: init options with dynamic filters
 		// options: Object.values(taxons.itemsByID).map(x => ({ label: x.name, value: x.name })), // for getFilterProps
 		// render: (_, {individual}) => <em>{(individual.taxon && withTaxon(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading..."))}</em>,
@@ -64,19 +64,19 @@ export const INDIVIDUAL_COLUMN_DEFINITIONS: { [key in IndividualColumnID]: Indiv
 		columnID: IndividualColumnID.SEX,
 		title: 'Sex',
 		dataIndex: ['individual', 'sex'],
-		sorter: true,
+		sorter: { multiple: 1 },
 	},
 	[IndividualColumnID.PEDIGREE]: {
 		columnID: IndividualColumnID.PEDIGREE,
 		title: 'Pedigree',
 		dataIndex: ['individual', 'pedigree'],
-		sorter: true,
+		sorter: { multiple: 1 },
 	},
 	[IndividualColumnID.COHORT]: {
 		columnID: IndividualColumnID.COHORT,
 		title: 'Cohort',
-		dataIndex: 'cohort',
-		sorter: true,
+		dataIndex: ['individual','cohort'],
+		sorter: { multiple: 1 },
 	},
 }
 

@@ -55,7 +55,11 @@ export function reduceSetFixedFilter<P extends PagedItems>(pagedItems: P, filter
     if (filter.description) {
         return {
             ...pagedItems,
-            fixedFilters: setFilterValue(pagedItems.fixedFilters, filter.description, filter.value),
+            fixedFilters: setFilterOptions(
+                setFilterValue(pagedItems.fixedFilters, filter.description, filter.value),
+                filter.description,
+                filter.options ?? {}
+            ),
         }
     } else {
         return pagedItems
@@ -90,10 +94,17 @@ export function reduceClearFilters<P extends PagedItems>(pagedItems: P): P {
     }
 }
 
-export function reduceSetSortBy<P extends PagedItems>(pagedItems: P, sortBy: SortBy): P {
+export function reduceClearFixedFilters<P extends PagedItems>(pagedItems: P): P {
     return {
         ...pagedItems,
-        sortBy
+        fixedFilters: clearFilters(pagedItems.fixedFilters)
+    }
+}
+
+export function reduceSetSortBy<P extends PagedItems>(pagedItems: P, sortByList: SortBy[]): P {
+    return {
+        ...pagedItems,
+        sortByList
     }
 }
 

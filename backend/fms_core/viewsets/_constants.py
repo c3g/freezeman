@@ -95,9 +95,11 @@ _sample_filterset_fields: FiltersetFields = {
     "derived_samples__biosample__collection_site": FREE_TEXT_FILTERS,
     "derived_samples__id": PK_FILTERS,
     **_prefix_keys("container__", _container_filterset_fields),
+    "container__location__barcode": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("derived_by_samples__project__", _project_minimal_filterset_fields),
     **_prefix_keys("derived_samples__biosample__individual__", _individual_filterset_fields),
     **_prefix_keys("derived_samples__sample_kind__", _sample_kind_filterset_fields),
+    "sample_next_steps__step__name": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _sample_minimal_filterset_fields: FiltersetFields = {
@@ -163,6 +165,7 @@ _project_filterset_fields: FiltersetFields = {
     "status": CATEGORICAL_FILTERS,
     "external_id": CATEGORICAL_FILTERS_LOOSE,
     "external_name": CATEGORICAL_FILTERS_LOOSE,
+    "targeted_end_date": DATE_FILTERS,
     **_prefix_keys("project_derived_by_samples__sample__", _sample_minimal_filterset_fields),
 }
 

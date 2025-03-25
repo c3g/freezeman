@@ -39,6 +39,8 @@ from .viewsets._constants import (
 from .viewsets._utils import _prefix_keys
 
 class GenericFilter(django_filters.FilterSet):
+    id__not__in = django_filters.NumberFilter(method="id_not_in_filter")
+
     def batch_filter(self, queryset, name, value):
         query = Q()
         for v in value.split(" "):
@@ -53,6 +55,9 @@ class GenericFilter(django_filters.FilterSet):
         query_set = queryset.filter(query)
         return query_set
 
+    def id_not_in_filter(self, queryset, name, value):
+        ids = value.split(',')
+        return queryset.exclude(id__in=ids)
 
 class ContainerFilter(GenericFilter):
     barcode = django_filters.CharFilter(field_name="barcode", method="batch_filter")
@@ -184,7 +189,11 @@ class IndexFilter(GenericFilter):
 class DatasetFilter(GenericFilter):
     release_flag = django_filters.NumberFilter(method="release_flag_filter")
     latest_release_update = django_filters.CharFilter(method="latest_release_update_filter")
+    latest_release_update__gte = django_filters.CharFilter(method="latest_release_update__gte_filter")
+    latest_release_update__lt = django_filters.CharFilter(method="latest_release_update__lt_filter")
     latest_validation_update = django_filters.CharFilter(method="latest_validation_update_filter")
+    latest_validation_update__gte = django_filters.CharFilter(method="latest_validation_update__gte_filter")
+    latest_validation_update__lt = django_filters.CharFilter(method="latest_validation_update__lt_filter")
 
     def release_flag_filter(self, queryset, name, value):
         return queryset.filter(release_flag=value)
@@ -194,10 +203,30 @@ class DatasetFilter(GenericFilter):
             latest_release_update=Max("readsets__release_status_timestamp")
         ).filter(latest_release_update__gt=value)
 
+    def latest_release_update__gte_filter(self, queryset, name, value):
+        return queryset.annotate(
+            latest_release_update=Max("readsets__release_status_timestamp")
+        ).filter(latest_release_update__gte=value)
+
+    def latest_release_update__lt_filter(self, queryset, name, value):
+        return queryset.annotate(
+            latest_release_update=Max("readsets__release_status_timestamp")
+        ).filter(latest_release_update__lt=value)
+
     def latest_validation_update_filter(self, queryset, name, value):
         return queryset.annotate(
             latest_validation_update=Max("readsets__validation_status_timestamp")
         ).filter(latest_validation_update__gt=value)
+
+    def latest_validation_update__gte_filter(self, queryset, name, value):
+        return queryset.annotate(
+            latest_validation_update=Max("readsets__validation_status_timestamp")
+        ).filter(latest_validation_update__gte=value)
+
+    def latest_validation_update__lt_filter(self, queryset, name, value):
+        return queryset.annotate(
+            latest_validation_update=Max("readsets__validation_status_timestamp")
+        ).filter(latest_validation_update__lt=value)
 
     class Meta:
         model = Dataset

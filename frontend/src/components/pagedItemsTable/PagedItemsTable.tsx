@@ -1,13 +1,12 @@
-import { Checkbox, Pagination, Space, Table, TableProps } from 'antd'
+import { Checkbox, Pagination, PaginationProps, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
-import { DataID, FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
+import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from './PagedItemsColumns'
 import { useRefreshWhenStale } from './useRefreshWhenStale'
-import { useDebounce } from '../filters/filterComponents/DebouncedInput'
 
 
 export interface PagedItemTableSelection {
@@ -16,16 +15,17 @@ export interface PagedItemTableSelection {
 
 // This is the set of possible callbacks for the paged items table.
 export interface PagedItemsActionsCallbacks {
-	listPageCallback: (pagedNumber: number) => void
+	listPageCallback: (pagedNumber: number) => Promise<void>
 	setFixedFilterCallback: (filter: FilterSetting) => void
-	setFilterCallback: (value: FilterValue, description: FilterDescription) => void
-	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => void
-	clearFiltersCallback: () => void
-	setSortByCallback: (sortBy: SortBy) => void
-	setPageSizeCallback: (pageSize: number) => void
-	resetPagedItemsCallback: () => void
-	setStaleCallback: (stale: boolean) => void
-	refreshPageCallback: () => void
+	setFilterCallback: (value: FilterValue, description: FilterDescription) => Promise<void>
+	setFilterOptionsCallback: (description: FilterDescription, options: FilterOptions) => Promise<void>
+	clearFiltersCallback: () => Promise<void>
+	clearFixedFiltersCallback: () => Promise<void>
+	setSortByCallback: (sortByList: SortBy[]) => Promise<void>
+	setPageSizeCallback: (pageSize: number) => Promise<void>
+	resetPagedItemsCallback: () => Promise<void>
+	setStaleCallback: (stale: boolean) => Promise<void>
+	refreshPageCallback: () => Promise<void>
 }
 
 export interface DataObjectsByID<T> {
@@ -50,7 +50,10 @@ export interface PagedItemsTableProps<T extends PageableData> extends PagedItems
 	expandable?: TableProps<T>['expandable']
 	initialLoad?: boolean
 
-	topBarExtra?: React.ReactNode[]
+	topBarExtra?: React.ReactNode
+
+	scroll?: TableProps<T>['scroll']
+	paginationProps?: PaginationProps
 }
 
 interface TableDataState<T> {
@@ -75,10 +78,12 @@ function PagedItemsTable<T extends object>({
 	initialLoad = true,
 	expandable,
 	topBarExtra,
+	scroll = { x: '100%', y: '70vh' },
+	paginationProps,
 }: PagedItemsTableProps<T>) {
 	const dispatch = useAppDispatch()
 
-	const { items, sortBy, stale } = pagedItems
+	const { items, stale } = pagedItems
 	const [tableDataState, setTableDataState] = useState<TableDataState<T>>({objectMap: {}, tableData: []})
 	// On initial load, trigger the fetch of one page of items
 	useEffect(
@@ -94,6 +99,7 @@ function PagedItemsTable<T extends object>({
 				listPageCallback(1)
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[
 			/* Only call once when the component is mounted*/
 		]
@@ -117,24 +123,6 @@ function PagedItemsTable<T extends object>({
 		[dispatch, setPageSizeCallback]
 	)
 
-	// We use this callback to respond when the user sorts a column
-	const sortByCallback: TableProps<any>['onChange'] = useCallback(
-		(pagination, filters, sorterResult) => {
-			if (!Array.isArray(sorterResult)) {
-				const sorter = sorterResult
-				const key = sorter.columnKey?.toString()
-				const order = sorter.order ?? undefined
-				if (key) {
-					if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
-						setSortByCallback({ key, order })
-					}
-				}
-			}
-		},
-		[sortBy, setSortByCallback]
-	)
-    const debouncedSortByCallback = useDebounce(sortByCallback)
-
 	// Return the ID that corresponds to the object displayed in a row of the table.
 	// We just find the object in the dataObjects map and return its corresponding
 	// key. This allows us to use data objects that don't have an explicit 'id' property.
@@ -153,28 +141,63 @@ function PagedItemsTable<T extends object>({
 	const allIsSelected = (!defaultSelection && exceptedItems.length === pagedItems.totalCount) || (defaultSelection && exceptedItems.length === 0)
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
-	const onSelectAll = useCallback(() => {
-		const newSelectedItems = []
-		const newSelectAll = !allIsSelected
+	const setDefaultSelectionAndExceptedItems = useCallback((defaultSelection: boolean, exceptedItems: React.Key[]) => {
+		if (defaultSelection && exceptedItems.length === pagedItems.totalCount) {
+			setDefaultSelection(false)
+			setExceptedItems([])
+		} else if (!defaultSelection && exceptedItems.length === pagedItems.totalCount) {
+			setDefaultSelection(true)
+			setExceptedItems([])
+		} else {
+			setDefaultSelection(defaultSelection)
+			setExceptedItems(exceptedItems)
+		}
+	}, [pagedItems.totalCount])
 
-		setExceptedItems(newSelectedItems)
-		setDefaultSelection(newSelectAll)
+	const onSelectAll = useCallback(() => {
+		const newExceptedItems = []
+		const newDefaultSelection = !allIsSelected
+
+		setExceptedItems(newExceptedItems)
+		setDefaultSelection(newDefaultSelection)
 		if (selection)
-			selection.onSelectionChanged(newSelectedItems, newSelectAll)
+			selection.onSelectionChanged(newExceptedItems, newDefaultSelection)
 	}, [allIsSelected, selection])
 	const onSelectSingle = useCallback((record: T) => {
 		const key = getRowKeyForDataObject(record)
-		let newSelectedItems = exceptedItems
+		let newExceptedItems = exceptedItems
 		if (exceptedItems.includes(key)) {
-			newSelectedItems = exceptedItems.filter((id) => id !== key)
+			newExceptedItems = exceptedItems.filter((id) => id !== key)
 		} else {
-			newSelectedItems = [...exceptedItems, key]
+			newExceptedItems = [...exceptedItems, key]
 		}
-		setExceptedItems(newSelectedItems)
+		setDefaultSelectionAndExceptedItems(defaultSelection, newExceptedItems)
 		if (selection) {
-			selection.onSelectionChanged(newSelectedItems, defaultSelection)
+			selection.onSelectionChanged(newExceptedItems, defaultSelection)
 		}
-	}, [getRowKeyForDataObject, defaultSelection, exceptedItems, selection])
+	}, [getRowKeyForDataObject, exceptedItems, setDefaultSelectionAndExceptedItems, defaultSelection, selection])
+	const onSelectMultiple = useCallback((keys: React.Key[]) => {
+		const newExceptedItems: React.Key[] = []
+		const pageItems = pagedItems.items.map((id) => id.toString() as React.Key)
+		if (defaultSelection) {
+			const exceptedItemSet = new Set(exceptedItems)
+			const currentlySelectedItemsInPage = pageItems.filter((id) => exceptedItemSet.has(id))
+			const removedItems = currentlySelectedItemsInPage.filter((id) => keys.includes(id))
+			const addedItems = keys.filter((id) => !currentlySelectedItemsInPage.includes(id))
+			newExceptedItems.push(...exceptedItems.filter((id) => !addedItems.includes(id)))
+			newExceptedItems.push(...removedItems)
+		} else {
+			const currentlySelectedItemsInPage = exceptedItems.filter((id) => pageItems.includes(id))
+			const removedItems = currentlySelectedItemsInPage.filter((id) => !keys.includes(id))
+			const addedItems = keys.filter((id) => !currentlySelectedItemsInPage.includes(id))
+			newExceptedItems.push(...exceptedItems.filter((id) => !removedItems.includes(id)))
+			newExceptedItems.push(...addedItems)
+		}
+		setDefaultSelectionAndExceptedItems(defaultSelection, newExceptedItems)
+		if (selection) {
+			selection.onSelectionChanged(newExceptedItems, defaultSelection)
+		}
+	}, [defaultSelection, exceptedItems, pagedItems.items, selection, setDefaultSelectionAndExceptedItems])
 	const selectedRowKeys = useMemo(() =>
 		defaultSelection
 			? pagedItems.items.map((id) => id.toString()).filter((key) => !exceptedItems.includes(key))
@@ -190,6 +213,10 @@ function PagedItemsTable<T extends object>({
 					if (info.type === 'all') {
 						onSelectAll()
 					}
+					if (info.type === 'multiple') {
+						// shift is held
+						onSelectMultiple(selectedRowKeys)
+					}
 				},
 				onSelect: onSelectSingle,
 				columnTitle: (
@@ -202,7 +229,7 @@ function PagedItemsTable<T extends object>({
 			}
 		}
 		return undefined
-	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, selectedRowKeys, selection])
+	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, onSelectMultiple, selectedRowKeys, selection])
 
 	// avoid dilema selectAll and selectedItems logic
 	useEffect(() => {
@@ -250,23 +277,29 @@ function PagedItemsTable<T extends object>({
 						dataSource={tableDataState.tableData}
 						columns={columns}
 						rowKey={getRowKeyForDataObject}
-						scroll={{ x: '100%', y: '70vh' }}
-						onChange={debouncedSortByCallback}
+						scroll={scroll}
 						pagination={false}
 						bordered={true}
 						loading={pagedItems.isFetching}
 						className={"ant-table-cells-short ant-table-header-short"}
+						onChange={(pagination, filters, sorter) => {
+							if (Array.isArray(sorter)) {
+								setSortByCallback(sorter.map(({ columnKey, order }) => ({ key: columnKey?.toString() ?? '', order: order === 'ascend' ? 'ascend' : 'descend' })))
+							} else {
+								setSortByCallback([{ key: sorter.columnKey?.toString() ?? '', order: sorter.order === 'ascend' ? 'ascend' : 'descend' }])
+							}
+						}}
 					/>
 					<Pagination
 						className="ant-table-pagination"
 						showSizeChanger={true}
-						showQuickJumper={true}
 						showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
 						current={pagedItems.page?.pageNumber ?? 0}
 						pageSize={pagedItems.page?.limit ?? 0}
 						total={pagedItems.totalCount}
 						onChange={listPageCallback}
 						onShowSizeChange={(current, newPageSize) => pageSizeCallback(newPageSize)}
+						{...paginationProps}
 					/>
 				</>
 			)}

@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from "react";
-import moment from "moment";
+import React from "react";
 import {connect} from "react-redux";
-import {useNavigate, useParams, useLocation} from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
 import {
   Descriptions,
   List,
@@ -11,14 +10,10 @@ import {
   Typography,
   Alert,
   Tooltip,
-  Button,
 } from "antd";
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Panel } = Collapse;
 
-import AppPageHeader from "../AppPageHeader";
-import PageContent from "../PageContent";
-import api, {withToken} from "../../utils/api";
 import {list} from "../../modules/indices/actions";
 
 function formatWarning({format, args}) {
@@ -74,7 +69,7 @@ const IndicesValidationResult = ({
         )
       }
     },
-    ...results?.header?.map((i) => {
+    ...(results?.header ?? []).map((i) => {
       return {
         title: () => {
           return (
@@ -105,7 +100,7 @@ const IndicesValidationResult = ({
   ]
 
   const data = [
-    ...results?.distances.map((row, i) => {
+    ...(results?.distances ?? []).map((row, i) => {
       const index1ID = results.header[i]
       const index1Name = indicesByID[index1ID]?.name
       let indexData = {

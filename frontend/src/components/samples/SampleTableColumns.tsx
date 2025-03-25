@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { Typography } from 'antd'
 import { FILTER_TYPE } from '../../constants'
 import { Sample } from '../../models/frontend_models'
 import { FilterDescription } from '../../models/paged_items'
@@ -47,10 +48,11 @@ export enum SampleColumnID {
 	PROJECT = 'PROJECT',
 	COHORT = 'COHORT',
 	SAMPLE_COUNT = 'SAMPLE_COUNT',
+	QUEUED_STEPS = 'QUEUED_STEPS',
 }
 
-const SMALL_COLUMN_WIDTH = 90
-const MEDIUM_COLUMN_WIDTH = 120
+const SMALL_COLUMN_WIDTH = 110
+const MEDIUM_COLUMN_WIDTH = 170
 const LARGE_COLUMN_WIDTH = 270
 
 export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
@@ -66,6 +68,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 					<div>{sample.id}</div>
 				</Link>
 			),
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.KIND]: {
@@ -74,6 +77,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		dataIndex: ['sample', 'sample_kind'],
     	width: SMALL_COLUMN_WIDTH,
 		render: (_, { sample }) => sample && <SampleKindTag sampleKindID={sample.sample_kind} />,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.NAME]: {
@@ -92,6 +96,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 					)}
 				</Link>
 			),
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.INDIVIDUAL]: {
@@ -112,6 +117,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.PARENT_CONTAINER]:  {
@@ -138,6 +144,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.PARENT_COORDINATES]: {
@@ -166,6 +173,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CONTAINER_NAME]: {
@@ -185,6 +193,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CONTAINER_BARCODE]: {
@@ -204,6 +213,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.COORDINATES]: {
@@ -223,25 +233,25 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				)
 			)
 		},
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.VOLUME]: {
 		columnID: SampleColumnID.VOLUME,
 		title: 'Vol. (µL)',
 		dataIndex: ['sample', 'volume'],
-		align: 'right',
-		className: 'table-column-numbers',
-		width: MEDIUM_COLUMN_WIDTH
+    render: (_, { sample }) => sample && !isNullish(sample.volume) && <Typography className='table-column-numbers' style={{float: 'right'}}>{sample.volume}</Typography>,
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CONCENTRATION]: {
 		columnID: SampleColumnID.CONCENTRATION,
 		title: 'Conc. (ng/µL)',
 		dataIndex: ['sample', 'concentration'],
-		align: 'right',
-		className: 'table-column-numbers',
-		render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
-		width: MEDIUM_COLUMN_WIDTH
+		render: (conc) => (conc !== null ? <Typography className='table-column-numbers' style={{float: 'right'}}>{parseFloat(conc).toFixed(3)}</Typography> : null),
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.QC_FLAG]: {
@@ -257,14 +267,16 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			}
 			return null
 		},
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.CREATION_DATE]: {
 		columnID: SampleColumnID.CREATION_DATE,
 		title: 'Creation Date',
 		dataIndex: ['sample', 'creation_date'],
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 },
 	},
 
 	[SampleColumnID.DEPLETED]: {
@@ -272,7 +284,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		title: 'Depleted',
 		dataIndex: ['sample', 'depleted'],
 		render: (depleted) => <Depletion depleted={depleted} />,
-		width: MEDIUM_COLUMN_WIDTH
+		width: MEDIUM_COLUMN_WIDTH,
+		sorter: { multiple: 1 }
 	},
 
 	[SampleColumnID.PROJECT]: {
@@ -295,7 +308,6 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.COHORT,
 		title: "Cohort",
 		dataIndex: ["derived_samples", "biosample", "individual", "cohort"],
-		sorter: true,
 		width: MEDIUM_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			const individual = sample?.individual
@@ -303,7 +315,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 				<Link to={`/individuals/${individual}`}>
 					<WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={""} />
 				</Link>)
-		}
+		},
+		sorter: { multiple: 1 },
 	},
 	[SampleColumnID.SAMPLE_COUNT]: {
 		columnID: SampleColumnID.SAMPLE_COUNT,
@@ -318,6 +331,14 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 			)
 		},
 	},
+	[SampleColumnID.QUEUED_STEPS]: {
+		columnID: SampleColumnID.QUEUED_STEPS,
+		// purposefully left empty
+		// see WorkflowAssigment.tsx for implementation
+	}
+}
+for (const columnID in SAMPLE_COLUMN_DEFINITIONS) {
+	SAMPLE_COLUMN_DEFINITIONS[columnID as keyof typeof SAMPLE_COLUMN_DEFINITIONS].showSorterTooltip = false
 }
 
 /**
@@ -454,6 +475,11 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		type: FILTER_TYPE.INPUT,
 		key: UNDEFINED_FILTER_KEY,
 		label: "Samples in pool",
+	},
+	[SampleColumnID.QUEUED_STEPS]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Queued Steps',
 	}
 }
 
@@ -478,6 +504,7 @@ export const SAMPLE_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'derived_by_samples__project__name',
 	[SampleColumnID.COHORT]: 'derived_samples__biosample__individual__cohort',
+	[SampleColumnID.QUEUED_STEPS]: 'sample_next_steps__step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
@@ -498,6 +525,7 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'project_name',
 	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.QUEUED_STEPS]: 'step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 
@@ -518,6 +546,7 @@ export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: s
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'sample_next_step__sample__derived_by_samples__project__name',
 	[SampleColumnID.COHORT]: 'sample_next_step__sample__derived_samples__biosample__individual__cohort',
+	[SampleColumnID.QUEUED_STEPS]: 'sample_next_step__step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',
 }
 

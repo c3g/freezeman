@@ -1,0 +1,52 @@
+{
+    "template_name": "Sample_QC_Template",
+    "template_version": "4.14.0",
+    "datasheets": {
+        "SampleQC": {
+            "headers": [
+                "Sample Name",
+                "Sample Kind",
+                "Sample Container Barcode",
+                "Sample Container Coord",
+                "Sample Parent Container Barcode",
+                "Sample Parent Container Coord",
+                "Current Volume (uL)",
+                "Measured Volume (uL)",
+                "Volume Used (uL)",
+                "Concentration (ng/uL)",
+                "NA Quantity (ng)",
+                "RIN (for RNA only)",
+                "Quality Instrument",
+                "Quality Flag",
+                "Quantity Instrument",
+                "Quantity Flag",
+                "QC Date (YYYY-MM-DD)",
+                "Comment",
+                "Workflow Action"
+             ],
+            "sheet_data": [
+                {
+                    "Sample Name": "", 
+                    "Sample Kind": "DNA",
+                    "Sample Container Barcode": "CONTAINER4SAMPLEQC",
+                    "Sample Container Coord": "",
+                    "Sample Parent Container Barcode": "",
+                    "Sample Parent Container Coord": "",
+                    "Current Volume (uL)": 100,
+                    "Measured Volume (uL)": 100,
+                    "Volume Used (uL)": 2,
+                    "Concentration (ng/uL)": 20,
+                    "NA Quantity (ng)": 1960,
+                    "RIN (for RNA only)": "",
+                    "Quality Instrument": "Agarose Gel",
+                    "Quality Flag": "Passed",
+                    "Quantity Instrument": "PicoGreen",
+                    "Quantity Flag": "Passed",
+                    "QC Date (YYYY-MM-DD)": "2021-12-21",
+                    "Comment": "",
+                    "Workflow Action": "Step complete - Move to next step"
+                }
+            ]
+        }
+    }
+}

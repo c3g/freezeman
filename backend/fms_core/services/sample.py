@@ -1,7 +1,8 @@
 from decimal import Decimal
-from typing import Tuple, List
+from typing import Tuple, List, TypeVar
 from datetime import datetime, date
 from django.db import Error
+from django.db.models import QuerySet
 from django.core.exceptions import ValidationError
 from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, ProcessMeasurement, SampleLineage,
                              Container, Process, Library, SampleMetadata, Coordinate)

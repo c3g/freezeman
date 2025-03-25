@@ -25,7 +25,7 @@ from .biosample import Biosample
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH, SINGLE_STRANDED, DOUBLE_STRANDED, SampleType
 from ._utils import add_error as _add_error
-from ._validators import name_validator
+from ._validators import name_validator_without_dot
 
 __all__ = ["Sample"]
 
@@ -34,7 +34,7 @@ __all__ = ["Sample"]
 class Sample(TrackedModel):
     """ Class to store information about the physical properties of a sample. """
 
-    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator], help_text="Sample name.")
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator_without_dot], help_text="Sample name.")
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL.")
     concentration = models.DecimalField("concentration in ng/µL", max_digits=20, decimal_places=3, null=True, blank=True,
                                         help_text="Concentration in ng/µL. Required for DNA).")
