@@ -91,7 +91,8 @@ class NormalizationRowHandler(GenericRowHandler):
 
                 # Create process measurement's properties
                 process_measurement_obj = ProcessMeasurement.objects.get(source_sample=source_sample_obj,
-                                                                         process=process_measurement['process'])
+                                                                         process=process_measurement['process'],
+                                                                         lineage__child=resulting_sample)
                 if process_measurement_obj:
                     properties_obj, self.errors['properties'], self.warnings[
                         'properties'] = create_process_measurement_properties(
