@@ -8,6 +8,11 @@ class PlacementContext {
     placement: PlacementClass
     sourceContainer: RealContainerParentClass | TubesWithoutParentClass
     destinationContainer: RealContainerParentClass
+
+    // allows reusing the same instances
+    containers: Record<number, ContainerClass> = {}
+    cells: Record<string, CellClass> = {}
+    samples: Record<number, SampleClass> = {}
 }
 
 class PlacementObject {
@@ -88,6 +93,15 @@ class ContainerClass extends PlacementObject {
             const bCell = this.getCell(b)    
         }
     }
+
+    static getOrInstantiate(context: PlacementContext, containerID: number): ContainerClass {
+        if (context.containers[containerID]) {
+            return context.containers[containerID]
+        }
+        const container = new ContainerClass()
+        context.containers[containerID] = container
+        return container
+    }
 }
 
 class RealContainerParentClass extends ContainerClass {
@@ -95,21 +109,6 @@ class RealContainerParentClass extends ContainerClass {
     name: string
     cells: CellClass[]
     spec: CoordinateSpec
-
-    findCell(cellID: SampleIdentifier) {
-        if ('id' in cellID) {
-            return this.cells.find(c => c.existingSample?.id === cellID.id)
-        } else {
-            return this.cells.find(c => c.coordinates === cellID.coordinates)
-        }
-    }
-    getCell(cellID: SampleIdentifier) {
-        const cell = this.findCell(cellID)
-        if (!cell) {
-            throw new Error(`Cell with coordinates ${cellID} not found in container ${this.id}`)
-        }
-        return cell
-    }
 
     toString() {
         return `RealContainerParentClass(id=${this.id}, name=${this.name})`
@@ -140,12 +139,12 @@ class CellClass extends PlacementObject {
             throw new Error(`Destination container is not the same as cell container.
                 ${this.context.destinationContainer} != ${this.fromContainer}`)
         }
-        if (this.fromContainer.isSource()) {
+        if (this.fromContainer == this.context.sourceContainer) {
             if (this.existingSample) {
                 this.fromContainer.toggleSelected(this.existingSample)
             }
-        } else if (this.fromContainer.isDestination()) {
-            if (this.sourceContainer.selectedSamples.length > 0) {
+        } else if (this.fromContainer == this.context.destinationContainer) {
+            if (this.context.sourceContainer.selectedSamples.size > 0) {
 
             } else {
                 this.fromContainer.toggleSelected(...this.placed)
@@ -250,6 +249,15 @@ class CellClass extends PlacementObject {
     toString() {
         return `Cell(coordinates=${this.coordinates}, container=${this.fromContainer})`
     }
+
+    static getOrInstantiate(context: PlacementContext, container: RealContainerParentClass, coordinates: string): CellClass {
+        if (context.cells[coordinates]) {
+            return context.cells[coordinates]
+        }
+        const cell = new CellClass()
+        context.cells[coordinates] = cell
+        return cell
+    }
 }
 
 class SampleClass extends PlacementObject {
@@ -261,6 +269,15 @@ class SampleClass extends PlacementObject {
 
     toString() {
         return `Sample(id=${this.id}, container=${this.fromContainer}, cell=${this.fromCell})`
+    }
+
+    static getOrInstantiate(context: PlacementContext, sampleID: SampleIdentifier): SampleClass {
+        if (context.samples[sampleID.id]) {
+            return context.samples[sampleID.id]
+        }
+        const sample = new SampleClass()
+        context.samples[sampleID.id] = sample
+        return sample
     }
 }
 
