@@ -1,5 +1,5 @@
 import { CoordinateSpec } from "../models/fms_api_models"
-import { CellState } from "../modules/placement/models"
+import { CellState, ContainerState, ParentContainerState, SampleEntry } from "../modules/placement/models"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -60,8 +60,8 @@ export function compareArray(a: readonly number[], b: readonly number[]): number
 }
 
 export function comparePlacementSamples<
-    S extends Pick<CellState, 'coordinates' | 'parentContainerName' | 'name' | 'projectName' | 'selected'>
->(a: S, b: S, spec?: CoordinateSpec): number {
+    S extends Pick<SampleEntry, 'currentCoordinates' | 'name' | 'project' | 'selected'>
+>(a: S, b: S, spec: ContainerState['spec']): number {
     const MAX = 128
 
     let orderA = MAX
@@ -70,10 +70,10 @@ export function comparePlacementSamples<
     if (a.selected) orderA -= MAX/2
     if (b.selected) orderB -= MAX/2
 
-    if (spec && a.coordinates && b.coordinates) {
+    if (spec && a.currentCoordinates && b.currentCoordinates) {
         // if both have coordinates, both have a parent container
-        const aOffsets = coordinatesToOffsets(spec, a.coordinates)
-        const bOffsets = coordinatesToOffsets(spec, b.coordinates)
+        const aOffsets = coordinatesToOffsets(spec, a.currentCoordinates)
+        const bOffsets = coordinatesToOffsets(spec, b.currentCoordinates)
         const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
         if (arrayComparison < 0) orderA -= MAX/4
         if (arrayComparison > 0) orderB -= MAX/4
@@ -82,8 +82,8 @@ export function comparePlacementSamples<
     if (a.name < b.name) orderA -= MAX/8
     if (a.name > b.name) orderB -= MAX/8
 
-    if (a.projectName < b.projectName) orderA -= MAX/16
-    if (a.projectName > b.projectName) orderB -= MAX/16
+    if (a.project < b.project) orderA -= MAX/16
+    if (a.project > b.project) orderB -= MAX/16
 
     return orderA - orderB
 

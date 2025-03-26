@@ -1,39 +1,39 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
 import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
+import { CellIdentifier, CellState, ContainerState, ParentContainerIdentifier, ParentContainerState, PlacementDirections, PlacementState, PlacementType, RealParentContainerIdentifier, TubesWithoutParentState } from "./models"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
-export interface MouseOnCellPayload extends CellWithParentIdentifier {
+export interface MouseOnCellPayload extends CellIdentifier {
     context: {
-        source?: ContainerState['name']
+        source?: ParentContainerIdentifier
     }
 }
 export type MultiSelectPayload = {
     forcedSelectedValue?: boolean
     context: {
-        source?: ContainerState['name']
+        source?: ParentContainerIdentifier
     }
 } & ({
-    parentContainer: ParentContainerState['name']
+    parentContainer: RealParentContainerIdentifier
     type: 'row'
     row: number
 } | {
-    parentContainer: ParentContainerState['name']
+    parentContainer: RealParentContainerIdentifier
     type: 'column'
     column: number
 } | {
-    parentContainer: ContainerState['name']
+    parentContainer: ParentContainerIdentifier
     type: 'all'
 } | {
-    parentContainer: ContainerState['name']
+    parentContainer: ParentContainerIdentifier
     type: 'sample-ids' // also checks cell.placedFrom
     sampleIDs: Array<Sample['id']>
 })
 export interface PlaceAllSourcePayload {
-    source: ContainerIdentifier['name']
-    destination: ParentContainerState['name']
+    source: ParentContainerIdentifier
+    destination: ParentContainerIdentifier
 }
 
 const initialState: PlacementState = {
@@ -55,48 +55,44 @@ const slice = createSlice({
                     ? initialParentContainerState(payload)
                     : ({
                         name: null,
-                        spec: [],
                         cells: [],
-                        cellsIndexBySampleID: {},
+                        samples: [],
                     } as TubesWithoutParentState)
             )
 
             // create container state based only on payload
             const payloadContainerState = payload.parentContainerName
                 ? initialParentContainerState(payload)
-                : ({ name: null, cells: [], cellsIndexBySampleID: {}, spec: [] } as TubesWithoutParentState)
+                : ({ name: null, cells: [], samples: [] } as TubesWithoutParentState)
             for (const payloadCell of payload.cells) {
                 if (payloadContainerState.name && payloadCell.coordinates) {
                     // with parent container
-                    const index = payloadContainerState.cellsIndexByCoordinates[payloadCell.coordinates]
-                    payloadContainerState.cells[index] = {
-                        parentContainerName: payloadContainerState.name,
-                        coordinates: payloadCell.coordinates,
-                        sample: payloadCell.sample,
+                    payloadContainerState.cells[payloadCell.coordinates] = {}
+                    payloadContainerState.samples.push({
+                        id: payloadCell.sample,
                         name: payloadCell.name,
-                        projectName: payloadCell.projectName,
+                        project: payloadCell.projectName,
+                        coordinates: payloadCell.coordinates,
                         selected: false,
-                        preview: false,
-                        placedAt: null,
-                        placedFrom: null
-                    }
-                    payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = index
+                        fromParentContainer: payloadContainerState.name,
+                        fromCell: payloadCell.coordinates
+                    })
                 } else if (payloadContainerState.name === null) {
                     // without parent container
-                    payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = payloadContainerState.cells.length
-                    payloadContainerState.cells.push({
-                        parentContainerName: null,
-                        sample: payloadCell.sample,
+                    payloadContainerState.samples.push({
+                        id: payloadCell.sample,
                         name: payloadCell.name,
-                        projectName: payloadCell.projectName,
+                        project: payloadCell.projectName,
                         selected: false,
-                        placedAt: null
                     })
                 }
             }
 
+            // sort with all selections false
+            payloadContainerState.samples.sort((a, b) => comparePlacementSamples(a, b, containerState.spec))
+
             // merge cells between payload and current state
-            if (containerState.name) {
+            if (containerState.name && payloadContainerState.name) {
                 // with parent container
                 // cells are assumed to be sorted by coordinates and of the same spec
                 for (const index in containerState.cells) {
@@ -112,6 +108,18 @@ const slice = createSlice({
                         currentCell.projectName = payloadCell.projectName
                         if (payloadCell.sample)
                             containerState.cellsIndexBySampleID[payloadCell.sample] = Number(index)
+                    }
+                }
+                let mainIndex = 0, payloadIndex = 0
+                while (
+                    mainIndex < containerState.samples.length &&
+                    payloadIndex < payloadContainerState.samples.length
+                ) {
+                    const sampleFromMain = containerState.samples[mainIndex]
+                    const sampleFromPayload = payloadContainerState.samples[payloadIndex]
+                    if (sampleFromMain.id === sampleFromPayload.id) {
+                        mainIndex++
+                        payloadIndex++
                     }
                 }
             } else if (containerState.name === null) {
@@ -262,39 +270,23 @@ function undoCellPlacement(state: Draft<PlacementState>, cell: Draft<CellState>)
 }
 
 function initialParentContainerState(payload: LoadParentContainerPayload): ParentContainerState {
-    const cells: ParentContainerState['cells'] = []
+    const cells: ParentContainerState['cells'] = {}
     const { parentContainerName, spec } = payload
-    const cellsIndexByCoordinates: ParentContainerState['cellsIndexByCoordinates'] = {}
     if (parentContainerName && spec) {
         const [axisRow = [] as const, axisColumn = [] as const] = spec
         for (const row of axisRow) {
             for (const col of axisColumn) {
                 const coordinates = row + col
-                cells.push({
-                    parentContainerName,
-                    coordinates,
-                    sample: null,
-                    name: '',
-                    projectName: '',
-                    preview: false,
-                    selected: false,
-                    placedAt: null,
-                    placedFrom: null,
-                })
+                cells[coordinates] = {}
             }
         }
     }
-    cells.sort((a, b) => comparePlacementSamples(a, b, spec))
-    cells.forEach((cell, index) => {
-        cellsIndexByCoordinates[cell.coordinates] = index
-    })
 
     return {
         name: parentContainerName,
         spec,
         cells,
-        cellsIndexByCoordinates,
-        cellsIndexBySampleID: {}
+        samples: []
     }
 }
 
@@ -312,8 +304,8 @@ function atCellLocations(...ids: CellIdentifier[]) {
     return ids.map((id) => [id.sample, id.parentContainerName, id.coordinates].filter((x) => x).join('@')).join(',')
 }
 
-export const selectContainer = (state: PlacementState) => (location: ContainerIdentifier | CellIdentifier) => {
-    let containerName: ContainerIdentifier['name'] = null
+export const selectContainer = (state: PlacementState) => (location: ParentContainerIdentifier | CellIdentifier) => {
+    let containerName: ParentContainerIdentifier['name'] = null
     if ('parentContainerName' in location) {
         containerName = location.parentContainerName
     } else if ('name' in location) {
@@ -322,13 +314,13 @@ export const selectContainer = (state: PlacementState) => (location: ContainerId
 
     return state.containers.find((c) => c.name === containerName)
 }
-function getContainer(state: Draft<PlacementState>, location: ContainerIdentifier | CellIdentifier): Draft<ContainerState> {
+function getContainer(state: Draft<PlacementState>, location: ParentContainerIdentifier | CellIdentifier): Draft<ContainerState> {
     const container = selectContainer(state)(location)
     if (!container)
         throw new Error(`Container not loaded: "${JSON.stringify(location)}"`)
     return container
 }
-function getParentContainer(state: Draft<PlacementState>, location: ContainerIdentifier | CellIdentifier) {
+function getParentContainer(state: Draft<PlacementState>, location: ParentContainerIdentifier | CellIdentifier) {
     const container = getContainer(state, location)
     if (container.name === null)
         throw new Error(`getExistingParentContainer was called with location: ${JSON.stringify(location)}`)
