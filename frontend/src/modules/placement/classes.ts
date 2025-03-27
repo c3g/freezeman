@@ -58,17 +58,9 @@ class PlacementClass extends PlacementObject {
 }
 
 class ContainerClass extends PlacementObject {
+    selections: Set<PlacedSample> // tubes without parent samples will have undefined coordinates
     existingSamples: Set<SampleClass> // necessary for tubes without parent
-    selectedSamples: Set<SampleClass> // includes existing and placed samples
 
-    isSampleSelected(sampleID: SampleIdentifier): boolean {
-        for (const sample of this.selectedSamples) {
-            if (sample.id === sampleID.id) {
-                return true
-            }
-        }
-        return false
-    }
     reduceAllSamples<T>(f: (acc: T, sample: SampleClass) => T, initial: T) {
         let acc = initial
         for (const sample of this.existingSamples) {
@@ -83,20 +75,39 @@ class ContainerClass extends PlacementObject {
         }
         return acc
     }
-    selectSamples(sampleID: SampleIdentifier) {
-        if (!this.isSampleSelected(sampleID)) {
+    isSampleSelected(entry: PlacedSampleIdentifier): boolean {
+        for (const selection of this.selections) {
+            if (selection.sample.id === entry.sample.id && selection.cell?.coordinates === entry.coordinates) {
+                return true
+            }
+        }
+        return false
+    }
+    selectSamples(entry: PlacedSampleIdentifier) {
+        if (!this.isSampleSelected(entry)) {
             this.reduceAllSamples((acc, sample) => {
-                if (sample.id === sampleID.id) {
-                    this.selectedSamples.add(sample)
+                if (sample.id === entry.sample.id) {
+                    this.selections.add({
+                        sample: sample,
+                        cell: this instanceof RealContainerParentClass && entry.coordinates ? CellClass.getOrInstantiate(this.context, this, entry.coordinates) : undefined
+                    })
                 }
                 return acc
             }, undefined)
         }
     }
-    unSelectSamples(sampleID: SampleIdentifier) {
-        this.selectedSamples = new Set([...this.selectedSamples].filter(s => s.id !== sampleID.id))
+    unSelectSamples(sampleID: PlacedSampleIdentifier) {
+        this.selections = new Set([...this.selections].filter(s => {
+            if (s.sample.id === sampleID.sample.id) {
+                if (this instanceof RealContainerParentClass && sampleID.coordinates) {
+                    return s.cell?.coordinates !== sampleID.coordinates
+                }
+                return false
+            }
+            return true
+        }))
     }
-    toggleSelected(...sampleIDs: SampleIdentifier[]) {
+    toggleSelected(...sampleIDs: PlacedSampleIdentifier[]) {
         const allSelected = sampleIDs.every(s => this.isSampleSelected(s))
         if (allSelected) {
             sampleIDs.forEach(id => this.unSelectSamples(id))
@@ -146,6 +157,15 @@ class RealContainerParentClass extends ContainerClass {
     cells: CellClass[]
     spec: CoordinateSpec
 
+    isSampleSelected(entry: PlacedSample): boolean {
+        for (const selection of this.selections) {
+            if (selection.sample.id === entry.sample.id && selection.cell.coordinates === entry.cell.coordinates) {
+                return true
+            }
+        }
+        return false
+    }
+
     toString() {
         return `RealContainerParentClass(id=${this.id}, name=${this.name})`
     }
@@ -159,6 +179,7 @@ class RealContainerParentClass extends ContainerClass {
 }
 
 class TubesWithoutParentClass extends ContainerClass {
+
     toString() {
         return `TubesWithoutParent()`
     }
@@ -194,7 +215,7 @@ class CellClass extends PlacementObject {
                 this.fromContainer.toggleSelected(this.existingSample)
             }
         } else if (this.fromContainer == this.context.destinationContainer) {
-            if (this.context.sourceContainer.selectedSamples.size > 0) {
+            if (this.context.sourceContainer.selections.size > 0) {
 
             } else {
                 this.fromContainer.toggleSelected(...this.placed)
@@ -212,7 +233,7 @@ class CellClass extends PlacementObject {
             throw new Error(`${this} is not in a destination container`)
         }
 
-        const sourceSamples = [...this.context.sourceContainer.selectedSamples]
+        const sourceSamples = [...this.context.sourceContainer.selections]
         if (sourceSamples.length === 0) {
             return []
         }
@@ -331,7 +352,11 @@ class SampleClass extends PlacementObject {
     }
 }
 
+type Coordinates = string
+
 interface SampleIdentifier { id: number }
 interface ContainerIdentifier { id?: number }
-interface PlacedSample { sample: SampleIdentifier, cell: CellIdentifier }
-interface CellIdentifier { containerID: number, coordinates: string }
+interface CellIdentifier { containerID: number, coordinates: Coordinates }
+
+interface PlacedSample { sample: SampleClass, cell?: CellClass }
+interface PlacedSampleIdentifier { sample: SampleIdentifier, coordinates?: Coordinates }
