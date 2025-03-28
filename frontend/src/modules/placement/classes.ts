@@ -1,6 +1,6 @@
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
-import { compareArray, coordinatesToOffsets } from "../../utils/functions"
-import { PlacementDirections, PlacementType } from "./models"
+import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
+import { CellState, PlacementDirections, PlacementType } from "./models"
 
 class PlacementContext {
     // these fields are not set by default
@@ -58,97 +58,7 @@ class PlacementClass extends PlacementObject {
 }
 
 class ContainerClass extends PlacementObject {
-    selections: Set<MaybePlacedSample> // tubes without parent samples will have undefined coordinates
-    existingSamples: Set<SampleClass> // necessary for tubes without parent
-
-    reduceAllSamples<T>(f: (acc: T, sample: MaybePlacedSample) => T, initial: T) {
-        let acc = initial
-        for (const sample of this.existingSamples) {
-            acc = f(acc, { sample, cell: sample.fromCell ?? undefined })
-        }
-        if (this instanceof RealContainerParentClass) {
-            for (const cell of this.cells) {
-                for (const sample of cell.placed) {
-                    acc = f(acc, { sample, cell })
-                }
-            }
-        }
-        return acc
-    }
-    isSampleSelected(entry: MaybePlacedSampleIdentifier): boolean {
-        for (const selection of this.selections) {
-            if (selection.sample.id === entry.sample.id && selection.cell?.coordinates === entry.coordinates) {
-                return true
-            }
-        }
-        return false
-    }
-    selectSamples(entry: MaybePlacedSampleIdentifier) {
-        if (!this.isSampleSelected(entry)) {
-            this.reduceAllSamples((acc, e) => {
-                if (e.sample.id === entry.sample.id) {
-                    this.selections.add({
-                        sample: e.sample,
-                        cell: this instanceof RealContainerParentClass && entry.coordinates
-                            ? CellClass.getOrInstantiate(this.context, this, entry.coordinates)
-                            : undefined
-                    })
-                }
-                return acc
-            }, undefined)
-        }
-    }
-    unSelectSamples(entry: MaybePlacedSampleIdentifier) {
-        this.selections = new Set([...this.selections].filter(e => {
-            if (e.sample.id === entry.sample.id) {
-                if (this instanceof RealContainerParentClass && entry.coordinates) {
-                    return e.cell?.coordinates !== entry.coordinates
-                }
-                return false
-            }
-            return true
-        }))
-    }
-    toggleSelected(...sampleIDs: MaybePlacedSampleIdentifier[]) {
-        const allSelected = sampleIDs.every(s => this.isSampleSelected(s))
-        if (allSelected) {
-            sampleIDs.forEach(id => this.unSelectSamples(id))
-        } else {
-            sampleIDs.forEach(id => this.selectSamples(id))
-        }
-    }
-
-    compareSamples(a: MaybePlacedSample, b: MaybePlacedSample) {
-        const MAX = 128
-
-        let orderA = MAX
-        let orderB = MAX
-        
-        if (this.isSampleSelected(a)) orderA -= MAX/2
-        if (this.isSampleSelected(b)) orderB -= MAX/2
-
-        if (a.cell && b.cell) {
-            if (a.cell.fromContainer != b.cell.fromContainer) {
-                throw new Error(`Can't compare coordinates of samples that are not in the same container`)
-            }
-
-            const aOffsets = coordinatesToOffsets(a.cell.fromContainer.spec, a.cell.coordinates)
-            const bOffsets = coordinatesToOffsets(b.cell.fromContainer.spec, b.cell.coordinates)
-            const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
-            if (arrayComparison < 0) orderA -= MAX/4
-            if (arrayComparison > 0) orderB -= MAX/4
-        }
-
-        if (a.sample.name < b.sample.name) orderA -= MAX/8
-        if (a.sample.name > b.sample.name) orderB -= MAX/8
-    
-        if (a.sample.projectName < b.sample.projectName) orderA -= MAX/16
-        if (a.sample.projectName > b.sample.projectName) orderB -= MAX/16
-    
-        return orderA - orderB
-    }
-
-    static get(context: PlacementContext, containerID: number | null): ContainerClass {
+    static get(context: PlacementContext, containerID: number | null) {
         if (containerID === null) {
             return TubesWithoutParentClass.get(context)
         } else {
@@ -160,16 +70,88 @@ class ContainerClass extends PlacementObject {
 class RealContainerParentClass extends ContainerClass {
     id: number
     name: string
-    cells: CellClass[]
+    cells: Record<PlacedSampleIdentifier['coordinates'], CellClass>
+    selections: Record<`${PlacedSampleIdentifier['sample']['id']}-${PlacedSampleIdentifier['coordinates']}`, PlacedSample>
     spec: CoordinateSpec
 
-    isSampleSelected(entry: MaybePlacedSample): boolean {
-        for (const selection of this.selections) {
-            if (selection.sample.id === entry.sample.id && selection.cell?.coordinates === entry.cell?.coordinates) {
-                return true
+    getCell(coordinates: string): CellClass {
+        const cell = this.cells[coordinates]
+        if (!cell) {
+            throw new Error(`Cell ${coordinates} not found in container ${this.name}`)
+        }
+        return cell
+    }
+    getPlacedSample(id: PlacedSampleIdentifier): PlacedSample {
+        const cell = this.getCell(id.coordinates)
+        if (!cell) {
+            throw new Error(`Cell ${id.coordinates} not found in container ${this.name}`)
+        }
+        const sample = cell.placed.find(s => s.id === id.sample.id)
+        if (!sample) {
+            throw new Error(`Sample ${id.sample.id} not found in cell ${cell.coordinates}`)
+        }
+        return { sample, cell }
+    }
+    isSampleSelected(entry: PlacedSampleIdentifier | PlacedSample) {
+        if ('coordinates' in entry) {
+            return `${entry.sample.id}-${entry.coordinates}` in this.selections
+        } else {
+            return this.selections[`${entry.sample.id}-${entry.cell.coordinates}`] !== undefined
+        }
+    }
+    selectSamples(...entries: (PlacedSampleIdentifier | PlacedSample)[]) {
+        for (const entry of entries) {
+            if ('coordinates' in entry) {
+                this.selections[`${entry.sample.id}-${entry.coordinates}`] = this.getPlacedSample(entry)
+            } else {
+                this.selections[`${entry.sample.id}-${entry.cell.coordinates}`] = entry
             }
         }
-        return false
+    }
+    unSelectSamples(...entries: (PlacedSampleIdentifier | PlacedSample)[]) {
+        for (const entry of entries) {
+            let key: string
+            if ('coordinates' in entry) {
+                key = `${entry.sample.id}-${entry.coordinates}`
+            } else {
+                key = `${entry.sample.id}-${entry.cell.coordinates}`
+            }
+            if (key in this.selections) {
+                delete this.selections[key]
+            }
+        }
+    }
+    toggleSelections(...entries: (PlacedSampleIdentifier | PlacedSample)[]) {
+        const allSelected = entries.every(s => this.isSampleSelected(s))
+        if (allSelected) {
+            this.unSelectSamples(...entries)
+        } else {
+            this.selectSamples(...entries)
+        }
+    }
+
+    compareSamples(a: PlacedSample, b: PlacedSample) {
+        const MAX = 128
+
+        let orderA = MAX
+        let orderB = MAX
+        
+        if (this.isSampleSelected(a)) orderA -= MAX/2
+        if (this.isSampleSelected(b)) orderB -= MAX/2
+
+        const aOffsets = coordinatesToOffsets(a.cell.fromContainer.spec, a.cell.coordinates)
+        const bOffsets = coordinatesToOffsets(b.cell.fromContainer.spec, b.cell.coordinates)
+        const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
+        if (arrayComparison < 0) orderA -= MAX/4
+        if (arrayComparison > 0) orderB -= MAX/4
+
+        if (a.sample.name < b.sample.name) orderA -= MAX/8
+        if (a.sample.name > b.sample.name) orderB -= MAX/8
+    
+        if (a.sample.projectName < b.sample.projectName) orderA -= MAX/16
+        if (a.sample.projectName > b.sample.projectName) orderB -= MAX/16
+    
+        return orderA - orderB
     }
 
     toString() {
@@ -177,6 +159,10 @@ class RealContainerParentClass extends ContainerClass {
     }
 
     static get(context: PlacementContext, containerID: number): RealContainerParentClass {
+        if (containerID <= 0) {
+            throw new Error(`Container ID must be greater than 0`)
+        }
+        // TODO: create container from redux state if not exists
         if (context.containers[containerID]) {
             return context.containers[containerID] as RealContainerParentClass
         }
@@ -185,14 +171,68 @@ class RealContainerParentClass extends ContainerClass {
 }
 
 class TubesWithoutParentClass extends ContainerClass {
+    existingSamples: Record<SampleIdentifier['id'], SampleClass>
+    selections: Record<SampleIdentifier['id'], SampleClass>
+
+    getSample(sampleID: SampleIdentifier): SampleClass {
+        if (sampleID.id in this.existingSamples) {
+            return this.existingSamples[sampleID.id]
+        }
+        throw new Error(`Sample ${sampleID.id} not found in tubes without parent`)
+    }
+    isSampleSelected(sampleID: SampleIdentifier) {
+        return sampleID.id in this.selections
+    }
+    selectSamples(...sampleIDs: SampleIdentifier[]) {
+        for (const sampleID of sampleIDs) {
+            const sample = this.getSample(sampleID)
+            this.selections[sampleID.id] = sample
+        }
+    }
+    unSelectSamples(...sampleIDs: SampleIdentifier[]) {
+        for (const sampleID of sampleIDs) {
+            if (sampleID.id in this.selections) {
+                delete this.selections[sampleID.id]
+            }
+        }
+    }
+    toggleSelections(...sampleIDs: SampleIdentifier[]) {
+        const allSelected = sampleIDs.every(s => this.isSampleSelected(s))
+        if (allSelected) {
+            this.unSelectSamples(...sampleIDs)
+        } else {
+            this.selectSamples(...sampleIDs)
+        }
+    }
+
+    compareSamples(a: SampleClass, b: SampleClass) {
+        const MAX = 128
+
+        let orderA = MAX
+        let orderB = MAX
+        
+        if (this.isSampleSelected(a)) orderA -= MAX/2
+        if (this.isSampleSelected(b)) orderB -= MAX/2
+
+        if (a.name < b.name) orderA -= MAX/8
+        if (a.name > b.name) orderB -= MAX/8
+    
+        if (a.projectName < b.projectName) orderA -= MAX/16
+        if (a.projectName > b.projectName) orderB -= MAX/16
+    
+        return orderA - orderB
+    }
 
     toString() {
         return `TubesWithoutParent()`
     }
 
     static get(context: PlacementContext): TubesWithoutParentClass {
-        if (context.containers[-1]) {
-            return context.containers[-1] as TubesWithoutParentClass
+        const TUBES_WITHOUT_PARENT_ID = 0
+
+        // TODO: create container from redux state if not exists
+        if (context.containers[TUBES_WITHOUT_PARENT_ID]) {
+            return context.containers[TUBES_WITHOUT_PARENT_ID] as TubesWithoutParentClass
         }
         throw new Error(`Tubes without parent not found`)
     }
@@ -206,57 +246,66 @@ class CellClass extends PlacementObject {
     preview: boolean
 
     click() {
-        if (!this.context.sourceContainer) {
+        const sourceContainer = this.context.sourceContainer
+        if (!sourceContainer) {
             throw new Error(`Source container is not set`)
         }
-        if (!this.context.destinationContainer) {
-            throw new Error(`Destination container is not set`)
-        }
-        if (this.context.destinationContainer != this.fromContainer) {
-            throw new Error(`Destination container is not the same as cell container.
-                ${this.context.destinationContainer} != ${this.fromContainer}`)
-        }
-        if (this.fromContainer == this.context.sourceContainer) {
+        const destinationContainer = this.context.destinationContainer
+        if (this.fromContainer == sourceContainer) {
             if (this.existingSample) {
-                this.fromContainer.toggleSelected(this.existingSample)
+                this.fromContainer.toggleSelections({ sample: this.existingSample, cell: this })
             }
-        } else if (this.fromContainer == this.context.destinationContainer) {
-            if (this.context.sourceContainer.selections.size > 0) {
-
+        } else if (this.fromContainer == destinationContainer) {
+            if (!destinationContainer) {
+                throw new Error(`Destination container is not set`)
+            }
+            if (destinationContainer != this.fromContainer) {
+                throw new Error(`Destination container is not the same as cell's container.
+                    ${destinationContainer} != ${this.fromContainer}`)
+            }    
+            if (Object.keys(sourceContainer.selections).length > 0) {
+                // #placementDestinations obtains current selections,
+                // source container and destination container
+                // from context
+                const destinationCells = this.#placementDestinations()
+                for (let i = 0; i < destinationCells.length; i++) {
+                    const cell = destinationCells[i]
+                    const sample = sourceContainer.selections[i].sample
+                    cell.placed.push(sample)
+                    sample.placedAt.push(cell)
+                }
             } else {
-                this.fromContainer.toggleSelected(...this.placed)
+                this.fromContainer.toggleSelections(
+                    ...this.placed.map(s => ({ sample: s, cell: this }))
+                )
             }
         }
 
     }
 
-    #placementDestinations(
-        sourceContainer: RealContainerParentClass | TubesWithoutParentClass,
-        destinationContainer: RealContainerParentClass,
-        startingCoordinates: string
-    ) {
-        if (destinationContainer != this.fromContainer) {
+    #placementDestinations() {
+        if (this.context.destinationContainer != this.fromContainer) {
             throw new Error(`${this} is not in a destination container`)
         }
-
-        const sourceSamples = [...this.context.sourceContainer.selections]
-        if (sourceSamples.length === 0) {
-            return []
-        }
+        const destinationContainer = this.context.destinationContainer
 
         const [axisRow, axisCol] = destinationContainer.spec
         const height = axisRow?.length ?? 1
         const width = axisCol?.length ?? 1
 
         const newOffsetsList: number[][] = []
-        const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, startingCoordinates)
+        const destinationStartingOffsets = coordinatesToOffsets(destinationContainer.spec, this.coordinates)
 
         switch (this.context.placement.placementType) {
             case PlacementType.PATTERN: {
-                const sourceOffsetsList = sourceSamples.map((source) => {
-                    if (!source.fromCell)
-                        throw new Error(`For pattern placement, source sample ${source.id} must have a cell origin`)
-                    return coordinatesToOffsets(source.fromCell.fromContainer.spec, source.fromCell.coordinates)
+                const sourceContainer = this.context.sourceContainer
+                if (sourceContainer instanceof TubesWithoutParentClass) {
+                    throw new Error(`Pattern placement is not supported for tubes without parent`)
+                }
+                const selections = Object.values(sourceContainer.selections)
+
+                const sourceOffsetsList = selections.map(({ cell }) => {
+                    return coordinatesToOffsets(cell.fromContainer.spec, cell.coordinates)
                 })
 
                 // find top left corner that tightly bounds all of the selections
@@ -264,28 +313,30 @@ class CellClass extends PlacementObject {
                     return offsets.map((_, index) => offsets[index] < minOffsets[index] ? offsets[index] : minOffsets[index])
                 }, sourceOffsetsList[0])
     
-    
-                newOffsetsList.push(
-                    ...sourceOffsetsList.map(
-                        (sourceOffsets) => destinationContainer.spec.map(
+                for (const sourceOffsets of sourceOffsetsList) {
+                    newOffsetsList.push(
+                        destinationContainer.spec.map(
                             (_: CoordinateAxis, index: number) => sourceOffsets[index] - minOffsets[index] + destinationStartingOffsets[index]
                         )
                     )
-                )
+                }
     
                 break
             }
             case PlacementType.GROUP: {
-                const relativeOffsetByIndices = [...sourceSamples.keys()].sort((indexA, indexB) => {
+                const sourceContainer = this.context.sourceContainer
+                const sourceSamples = sourceContainer.selections
+
+                const relativeOffsetByIndices = Object.keys(sourceSamples).sort((indexA, indexB) => {
                     const a = sourceSamples[indexA]
                     const b = sourceSamples[indexB]
-                    return comparePlacementSamples(a, b, getContainer(state, a).spec)
+                    return sourceContainer.compareSamples(a, b)
                 }).reduce<Record<number, number>>((relativeOffsetByIndices, sortedIndex, index) => {
                     relativeOffsetByIndices[sortedIndex] = index
                     return relativeOffsetByIndices
                 }, {})
 
-                for (const sourceIndex in sources) {
+                for (const sourceIndex in sourceSamples) {
                     const relativeOffset = relativeOffsetByIndices[sourceIndex]
                     const [startingRow, startingCol] = destinationStartingOffsets
 
@@ -295,14 +346,14 @@ class CellClass extends PlacementObject {
                         [COLUMN]: startingCol
                     }
 
-                    if (placementOptions.direction === PlacementDirections.ROW) {
+                    if (this.context.placement.placementDirection === PlacementDirections.ROW) {
                         finalOffsets[COLUMN] += relativeOffset
                         const finalColBeforeWrap = finalOffsets[1]
                         if (finalColBeforeWrap >= width) {
                             finalOffsets[COLUMN] = finalColBeforeWrap % width
                             finalOffsets[ROW] += Math.floor(finalColBeforeWrap / width)
                         }
-                    } else if (placementOptions.direction === PlacementDirections.COLUMN) {
+                    } else if (this.context.placement.placementDirection === PlacementDirections.COLUMN) {
                         finalOffsets[ROW] += relativeOffset
                         const finalRowBeforeWrap = finalOffsets[0]
                         if (finalRowBeforeWrap >= height) {
@@ -316,10 +367,20 @@ class CellClass extends PlacementObject {
                 break
             }
         }
+
+        const results: CellClass[] = []
+        for (const offsets of newOffsetsList) {
+            try {
+                results.push(destinationContainer[offsetsToCoordinates(offsets, destinationContainer.spec)])
+            } catch (e) {
+                this.context.placement.error ??= e.message
+            }
+        }
+        return results
     }
 
     toString() {
-        return `Cell(coordinates=${this.coordinates}, container=${this.fromContainer})`
+        return `Cell(coordinates=${this.coordinates}, container=${this.fromContainer}, existingSample=${this.existingSample})`
     }
 
     static getOrInstantiate(context: PlacementContext, container: RealContainerParentClass, coordinates: string): CellClass {
@@ -364,5 +425,5 @@ interface SampleIdentifier { id: number }
 interface ContainerIdentifier { id?: number }
 interface CellIdentifier { containerID: number, coordinates: Coordinates }
 
-interface MaybePlacedSample { sample: SampleClass, cell?: CellClass }
-interface MaybePlacedSampleIdentifier { sample: SampleIdentifier, coordinates?: Coordinates }
+interface PlacedSample { sample: SampleClass, cell: CellClass }
+interface PlacedSampleIdentifier { sample: SampleIdentifier, coordinates: Coordinates }
