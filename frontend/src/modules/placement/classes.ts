@@ -1,12 +1,13 @@
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
-import { PlacementDirections, PlacementType } from "./models"
+import { CellIdentifier, ContainerID, ContainerIdentifier, Coordinates, PlacedSampleIdentifier, PlacementDirections, PlacementState, PlacementType, SampleIdentifier } from "./models"
+import { LoadContainerPayload } from "./reducers"
 
 class PlacementContext {
     // these fields are not set by default
     // so they need to be set ASAP
     placement: PlacementClass
-    _sourceContainer: RealContainerParentClass | TubesWithoutParentClass
+    _sourceContainer: RealParentContainerClass | TubesWithoutParentClass
 
     // allows reusing the same instances
     // to allow comparing by reference
@@ -34,18 +35,42 @@ class PlacementObject {
 }
 
 class PlacementClass extends PlacementObject {
-    containers: ContainerClass[]
-    placementType: PlacementType
-    placementDirection: PlacementDirections
-    error: string | null | undefined
+    state: PlacementState
 
     static instantiate() {
         const placement = new PlacementClass()
-        placement.containers = []
-        placement.placementType = PlacementType.GROUP
-        placement.placementDirection = PlacementDirections.COLUMN
         placement.context = new PlacementContext(placement)
         return placement
+    }
+
+    loadContainerPayload(payload: LoadContainerPayload) {
+        if (payload.parentContainerName == null) {
+            this.state.containers
+        } else {
+
+        }
+    }
+
+    getContainer(containerID: ContainerIdentifier) {
+    }
+
+    get placementType() {
+        return this.state.placementType
+    }
+    set placementType(type: PlacementType) {
+        this.state.placementType = type
+    }
+    get placementDirection() {
+        return this.state.placementDirection
+    }
+    set placementDirection(direction: PlacementDirections) {
+        this.state.placementDirection = direction
+    }
+    get error() {
+        return this.state.error
+    }
+    set error(error) {
+        this.state.error = error
     }
 }
 
@@ -54,12 +79,12 @@ class ContainerClass extends PlacementObject {
         if (containerID.id === undefined) {
             return TubesWithoutParentClass.get(context)
         } else {
-            return RealContainerParentClass.get(context, containerID)
+            return RealParentContainerClass.get(context, containerID)
         }
     }
 }
 
-class RealContainerParentClass extends ContainerClass {
+class RealParentContainerClass extends ContainerClass {
     id: number
     name: string
     cells: Record<Coordinates, CellClass>
@@ -87,7 +112,7 @@ class RealContainerParentClass extends ContainerClass {
     }
     placeSample(samplePlacement: PlacedSampleIdentifier | PlacedSample) {
         const cell = this.getCell(samplePlacement.cell.coordinates)
-        const placedSample = SampleClass.getOrInstantiate(this.context, samplePlacement.sample)
+        const placedSample = SampleClass.get(this.context, samplePlacement.sample)
         placedSample.placedAt[`${this.id}-${cell.coordinates}`] = cell
     }
     placeAllSamples(containerID: ContainerIdentifier) {
@@ -96,7 +121,7 @@ class RealContainerParentClass extends ContainerClass {
         if (sourceContainer instanceof TubesWithoutParentClass) {
             samples.push(...Object.values(sourceContainer.existingSamples))
             samples.sort((a, b) => sourceContainer.compareSamples(a, b))
-        } else if (sourceContainer instanceof RealContainerParentClass) {
+        } else if (sourceContainer instanceof RealParentContainerClass) {
             samples.push(
                 ...Object.values(sourceContainer.selections)
                     .sort((a, b) => sourceContainer.compareSamples(a, b))
@@ -286,7 +311,7 @@ class RealContainerParentClass extends ContainerClass {
         return `RealContainerParentClass(id=${this.id}, name=${this.name})`
     }
 
-    static get(context: PlacementContext, containerID: ContainerIdentifier): RealContainerParentClass {
+    static get(context: PlacementContext, containerID: ContainerIdentifier): RealParentContainerClass {
         if (!containerID.id) {
             throw new Error(`Container ID is not set`)
         }
@@ -295,14 +320,14 @@ class RealContainerParentClass extends ContainerClass {
         }
         // TODO: create container from redux state if not exists
         if (context.containers[containerID.id]) {
-            return context.containers[containerID.id] as RealContainerParentClass
+            return context.containers[containerID.id] as RealParentContainerClass
         }
         throw new Error(`Container ${containerID.id} not found`)
     }
 
     #normalizePlacedSampleParam(placedSample: PlacedSample | PlacedSampleIdentifier): PlacedSample {
         const cell = this.getCell(placedSample.cell.coordinates)
-        const sample = SampleClass.getOrInstantiate(this.context, placedSample.sample)
+        const sample = SampleClass.get(this.context, placedSample.sample)
         return { sample, cell }
     }
 }
@@ -377,7 +402,7 @@ class TubesWithoutParentClass extends ContainerClass {
 }
 
 class CellClass extends PlacementObject {
-    fromContainer: RealContainerParentClass
+    fromContainer: RealParentContainerClass
     coordinates: string
     existingSample: SampleClass | null
     placedFrom: Record<SampleIdentifier['id'], SampleClass>
@@ -437,7 +462,7 @@ class CellClass extends PlacementObject {
         return `Cell(coordinates=${this.coordinates}, container=${this.fromContainer}, existingSample=${this.existingSample})`
     }
 
-    static getOrInstantiate(context: PlacementContext, container: RealContainerParentClass, coordinates: string): CellClass {
+    static get(context: PlacementContext, container: RealParentContainerClass, coordinates: string): CellClass {
         const key = `${container.id}-${coordinates}`
         if (context.cells[key]) {
             return context.cells[key]
@@ -460,7 +485,7 @@ class SampleClass extends PlacementObject {
         return `Sample(id=${this.id}, container=${this.fromCell?.fromContainer}, cell=${this.fromCell})`
     }
 
-    static getOrInstantiate(context: PlacementContext, sampleID: SampleIdentifier): SampleClass {
+    static get(context: PlacementContext, sampleID: SampleIdentifier): SampleClass {
         if (context.samples[sampleID.id]) {
             return context.samples[sampleID.id]
         }
@@ -471,12 +496,4 @@ class SampleClass extends PlacementObject {
     }
 }
 
-type Coordinates = string
 interface PlacedSample { sample: SampleClass, cell: CellClass }
-type ContainerID = number
-
-interface ContainerIdentifier { id?: ContainerID }
-interface SampleIdentifier { id: number }
-interface CellIdentifier { fromContainer: Required<ContainerIdentifier>, coordinates: Coordinates }
-interface PlacedSampleIdentifier { sample: SampleIdentifier, cell: Pick<CellIdentifier, 'coordinates'> }
-
