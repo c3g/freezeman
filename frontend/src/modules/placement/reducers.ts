@@ -1,7 +1,7 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, ContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
+import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, RealParentContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
 import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
@@ -32,7 +32,7 @@ export type MultiSelectPayload = {
     sampleIDs: Array<Sample['id']>
 })
 export interface PlaceAllSourcePayload {
-    source: ContainerIdentifier['name']
+    source: RealParentContainerIdentifier['name']
     destination: ParentContainerState['name']
 }
 
@@ -312,8 +312,8 @@ function atCellLocations(...ids: CellIdentifier[]) {
     return ids.map((id) => [id.sample, id.parentContainerName, id.coordinates].filter((x) => x).join('@')).join(',')
 }
 
-export const selectContainer = (state: PlacementState) => (location: ContainerIdentifier | CellIdentifier) => {
-    let containerName: ContainerIdentifier['name'] = null
+export const selectContainer = (state: PlacementState) => (location: RealParentContainerIdentifier | CellIdentifier) => {
+    let containerName: RealParentContainerIdentifier['name'] = null
     if ('parentContainerName' in location) {
         containerName = location.parentContainerName
     } else if ('name' in location) {
@@ -322,13 +322,13 @@ export const selectContainer = (state: PlacementState) => (location: ContainerId
 
     return state.containers.find((c) => c.name === containerName)
 }
-function getContainer(state: Draft<PlacementState>, location: ContainerIdentifier | CellIdentifier): Draft<ContainerState> {
+function getContainer(state: Draft<PlacementState>, location: RealParentContainerIdentifier | CellIdentifier): Draft<ContainerState> {
     const container = selectContainer(state)(location)
     if (!container)
         throw new Error(`Container not loaded: "${JSON.stringify(location)}"`)
     return container
 }
-function getParentContainer(state: Draft<PlacementState>, location: ContainerIdentifier | CellIdentifier) {
+function getParentContainer(state: Draft<PlacementState>, location: RealParentContainerIdentifier | CellIdentifier) {
     const container = getContainer(state, location)
     if (container.name === null)
         throw new Error(`getExistingParentContainer was called with location: ${JSON.stringify(location)}`)
