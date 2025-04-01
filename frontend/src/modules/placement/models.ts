@@ -3,7 +3,9 @@ import { CoordinateSpec } from "../../models/fms_api_models"
 export interface PlacementState {
     placementType: PlacementOptions['type']
     placementDirection: PlacementGroupOptions['direction']
-    containers: Record<ContainerName, ContainerState>
+    tubesWithoutParentContainer: TubesWithoutParentContainerState | undefined
+    realParentContainers: Record<ContainerName, RealParentContainerState | undefined>
+    samples: Record<SampleID, SampleState>
     error?: string
 }
 
@@ -24,36 +26,38 @@ export interface PlacementGroupOptions {
 }
 export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
-type ContainerState = RealParentContainerState | TubesWithoutParentContainerState
-
-export interface RealParentContainerState extends Required<ContainerIdentifier> {
+export interface RealParentContainerState extends RealParentContainerIdentifier {
     cells: Record<Coordinates, CellState>
-    selections: PlacedSampleIdentifier[]
-    spec: CoordinateSpec
 }
 
 export interface CellState extends CellIdentifier {
-    existingSample: SampleState | null
-    placedFrom: CellIdentifier[]
+    samples: Record<SampleID, {
+        // undefined if existing sample
+        // null if from tubes without parent container,
+        fromCell?: CellIdentifier | null
+        selected: boolean
+    }>
     preview: boolean
 }
 
 export interface TubesWithoutParentContainerState {
-    existingSamples: SampleState[]
-    selections: SampleIdentifier[]
+    samples: Record<SampleID, {
+        selected: boolean
+    }>
 }
 
 export interface SampleState extends SampleIdentifier {
-    projectName: string
-    fromCell: CellIdentifier | null // null if from tubes without parent container
+    containerName: ContainerName, // can be the name of a tube or container of the well
+    name: SampleName
+    fromCell: CellIdentifier | null
     placedAt: CellIdentifier[]
 }
 
 export type ContainerName = string
 export type SampleName = string
+export type SampleID = number
 export type Coordinates = string
 
-export interface ContainerIdentifier { name?: ContainerName }
-export interface SampleIdentifier { name: string }
-export interface CellIdentifier { fromContainer: Required<ContainerIdentifier>, coordinates: Coordinates }
-export interface PlacedSampleIdentifier { sample: SampleIdentifier, cell: Pick<CellIdentifier, 'coordinates'> }
+export interface RealParentContainerIdentifier { name: ContainerName }
+export interface SampleIdentifier { id: SampleID }
+export interface CellIdentifier { fromContainer: RealParentContainerIdentifier, coordinates: Coordinates }
