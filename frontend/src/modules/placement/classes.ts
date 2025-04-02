@@ -1,20 +1,25 @@
 import { TUBES_WIHOUT_PARENT_NAME } from "../../constants"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
-import { CellIdentifier, RealParentContainerIdentifier, ContainerName, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, SampleName, TubesWithoutParentContainerState } from "./models"
+import { CellIdentifier, RealParentContainerIdentifier, ContainerName, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, SampleName, TubesWithoutParentContainerState, CellState, SampleState } from "./models"
 import { LoadContainerPayload } from "./reducers"
 
 class PlacementContext {
+    placementState: PlacementState
+
     // these fields are not set by default
-    // so they need to be set ASAP
     _sourceContainer: RealParentContainerClass | TubesWithoutParentClass
     _destinationContainer: RealParentContainerClass
 
+    constructor(state: PlacementState) {
+        this.placementState = state
+    }
+
     setSourceContainer(containerID?: RealParentContainerIdentifier) {
-        this._sourceContainer = containerID ? RealParentContainerClass.get(this, containerID) : TubesWithoutParentClass.get(this)
+        this._sourceContainer = containerID ? new RealParentContainerClass(this, containerID) : new TubesWithoutParentClass(this)
     }
     setDestinationContainer(containerID: RealParentContainerIdentifier) {
-        this._destinationContainer = RealParentContainerClass.get(this, containerID)
+        this._destinationContainer = new RealParentContainerClass(this, containerID)
     }
 
     get sourceContainer() {
@@ -35,14 +40,16 @@ type CellKey = `${ContainerName}-${Coordinates}`
 class PlacementObject {
     context: PlacementContext
     placementState: PlacementState
+
+    constructor(state: PlacementState, context?: PlacementContext) {
+        this.placementState = state
+        this.context = context ?? new PlacementContext(state)
+    }
 }
 
-class PlacementClass extends PlacementObject {
-    static instantiate(state: PlacementState) {
-        const placement = new PlacementClass()
-        placement.context = new PlacementContext()
-        placement.placementState = state
-        return placement
+export class PlacementClass extends PlacementObject {
+    constructor(state: PlacementState) {
+        super(state)
     }
 
     loadContainerPayload(payload: LoadContainerPayload) {
@@ -98,7 +105,8 @@ class PlacementClass extends PlacementObject {
                 }
                 container = this.placementState.realParentContainers[payload.parentContainerName] = {
                     name: payload.parentContainerName,
-                    cells
+                    cells,
+                    spec: payload.spec
                 }
             }
             const existingSampleIDs = new Set<SampleID>(payload.cells.map(c => c.sample))
@@ -154,84 +162,72 @@ class PlacementClass extends PlacementObject {
     }
 }
 
-class RealParentContainerClass extends PlacementObject {
-    readonly containerID: RealParentContainerIdentifier
-    constructor(containerID: RealParentContainerIdentifier) {
-        super()
-        this.containerID = containerID
+export class RealParentContainerClass extends PlacementObject {
+    readonly state: RealParentContainerState
+
+    constructor(context: PlacementContext, containerID: RealParentContainerIdentifier) {
+        super(context.placementState, context)
+        const state = context.placementState.realParentContainers[containerID.name]
+        if (!state) {
+            throw new Error(`Container ${containerID.name} not found in state`)
+        }
+        this.state = state
     }
 
-    getCell(coordinates: CellIdentifier['coordinates']): CellClass {
-        return CellClass.get(this.placementState, this, coordinates)
+    getCell(cellID: Pick<CellIdentifier, 'coordinates'>): CellClass {
+        return new CellClass(this.context, { fromContainer: this, coordinates: cellID.coordinates })
     }
 
-    getPlacedSample(id: PlacedSampleIdentifier): PlacedSample {
-        const cell = this.getCell(id.cell.coordinates)
-        if (!cell) {
-            throw new Error(`Cell ${id.cell.coordinates} not found in container ${this.name}`)
-        }
-        const sample = cell.placedFrom[id.sample.name]
-        if (!sample) {
-            throw new Error(`Sample ${id.sample.name} not found in cell ${cell.coordinates}`)
-        }
-        return { sample, cell }
+    placeSample(placement: SamplePlacementIdentifier) {
+        const cell = this.getCell(placement.cell)
+        new SampleClass(this.context, placement.sample).placeAtCell(cell)
     }
-    placeSample(samplePlacement: PlacedSampleIdentifier | PlacedSample) {
-        const cell = this.getCell(samplePlacement.cell.coordinates)
-        const placedSample = SampleClass.get(this.context, samplePlacement.sample)
-        placedSample.placedAt[`${this.id}-${cell.coordinates}`] = cell
-    }
-    placeAllSamples(containerID: RealParentContainerIdentifier) {
-        const samples: SampleClass[] = []
-        const sourceContainer = ContainerClass.get(this.context, containerID)
+    placeAllSamples() {
+        const sourceSamples: SampleClass[] = []
+        const sourceContainer = this.context.sourceContainer
         if (sourceContainer instanceof TubesWithoutParentClass) {
-            samples.push(...Object.values(sourceContainer.existingSamples))
-            samples.sort((a, b) => sourceContainer.compareSamples(a, b))
+            sourceSamples.push(...sourceContainer.getSortedSamples(true))
         } else if (sourceContainer instanceof RealParentContainerClass) {
-            samples.push(
-                ...Object.values(sourceContainer.selections)
-                    .sort((a, b) => sourceContainer.compareSamples(a, b))
-                    .map(s => s.sample)
-            )
+            sourceSamples.push(...sourceContainer.getSortedPlacements(true))
         }
-        for (const sample of samples) {
-            const cell = this.getCell(sample.fromCell?.coordinates ?? '')
-            if (cell) {
-                this.placeSample({ sample, cell })
+
+        let sampleIndex = 0
+        const [ axisRow = [''], axisCol = [''] ] = this.spec
+        // populate by column first
+        for (const col of axisCol) {
+            for (const row of axisRow) {
+                const coordinates = `${row}${col}`
+                const cell = this.getCell({ coordinates })
+                if (sampleIndex >= sourceSamples.length) {
+                    break
+                }
+                const sample = sourceSamples[sampleIndex]
+                sample.placeAtCell(cell)
+                sampleIndex++
             }
         }
     }
-    unplaceSample(placedSample: PlacedSampleIdentifier | PlacedSample) {
-        const placedSample_ = this.#normalizePlacedSampleParam(placedSample)
-        const cell = placedSample_.cell
-        if (cell.fromContainer != this) {
-            throw new Error(`Cell ${cell.coordinates} is not in container ${this.name}`)
-        }
-        
-        const sample = placedSample_.sample
-        if (!placedSample) {
-            throw new Error(`Sample ${sample.id} not found in cell ${cell.coordinates}`)
-        }
-        delete cell.placedFrom[sample.id]
-        delete sample.placedAt[`${this.id}-${cell.coordinates}`]
+    unplaceSample(placedSample: SamplePlacementIdentifier) {
+        const cell = this.getCell(placedSample.cell)
+        new SampleClass(this.context, placedSample.sample).unplaceAtCell(cell, false)
     }
 
-    isSampleSelected(placedSample: PlacedSampleIdentifier | PlacedSample) {
-        const placedSample_ = this.#normalizePlacedSampleParam(placedSample)
+    isSampleSelected(placedSample: SamplePlacementIdentifier) {
+        const placedSample_ = this.#resolveSamplePlacementIdentifier(placedSample)
         return `${placedSample_.sample.id}-${placedSample_.cell.coordinates}` in this.selections
     }
-    selectSample(placedSample: PlacedSampleIdentifier | PlacedSample) {
-        const placedSample_ = this.#normalizePlacedSampleParam(placedSample)
+    selectSample(placedSample: SamplePlacementIdentifier) {
+        const placedSample_ = this.#resolveSamplePlacementIdentifier(placedSample)
         this.selections[`${placedSample.sample.name}-${placedSample.cell.coordinates}`] = placedSample_
     }
-    unSelectSample(placedSample: PlacedSampleIdentifier | PlacedSample) {
-        const placedSample_ = this.#normalizePlacedSampleParam(placedSample)
+    unSelectSample(placedSample: SamplePlacementIdentifier) {
+        const placedSample_ = this.#resolveSamplePlacementIdentifier(placedSample)
         const key = `${placedSample_.sample.id}-${placedSample_.cell.coordinates}`
         if (key in this.selections) {
             delete this.selections[key]
         }
     }
-    toggleSelections(...entries: (PlacedSampleIdentifier | PlacedSample)[]) {
+    toggleSelections(...entries: SamplePlacementIdentifier[]) {
         const allSelected = entries.every(s => this.isSampleSelected(s))
         if (allSelected) {
             for (const entry of entries) {
@@ -251,19 +247,22 @@ class RealParentContainerClass extends PlacementObject {
             }
         }
     }
-    setPreviews(...placedSamples: (PlacedSampleIdentifier | PlacedSample)[]) {
+    setPreviews(...placedSamples: SamplePlacementIdentifier[]) {
         this.clearPreviews()
         for (const placedSample of placedSamples) {
-            const placedSample_ = this.#normalizePlacedSampleParam(placedSample)
+            const placedSample_ = this.#resolveSamplePlacementIdentifier(placedSample)
             placedSample_.cell.preview = true
         }
     }
 
-    compareSamples(a: PlacedSample, b: PlacedSample) {
+    compareSamples(a_: SamplePlacementIdentifier, b_: SamplePlacementIdentifier) {
         const MAX = 128
 
         let orderA = MAX
         let orderB = MAX
+
+        const a = this.#resolveSamplePlacementIdentifier(a_)
+        const b = this.#resolveSamplePlacementIdentifier(b_)
 
         if (this.isSampleSelected(a)) orderA -= MAX / 2
         if (this.isSampleSelected(b)) orderB -= MAX / 2
@@ -283,7 +282,7 @@ class RealParentContainerClass extends PlacementObject {
         return orderA - orderB
     }
 
-    placementDestinations(selections: PlacedSample[], coordinates: Coordinates) {
+    placementDestinations(selections: SamplePlacement[], coordinates: Coordinates) {
         const [axisRow, axisCol] = this.spec
         const height = axisRow?.length ?? 1
         const width = axisCol?.length ?? 1
@@ -377,53 +376,68 @@ class RealParentContainerClass extends PlacementObject {
         return `RealContainerParentClass(id=${this.id}, name=${this.name})`
     }
 
-    static get(context: PlacementContext, containerID: RealParentContainerIdentifier): RealParentContainerClass {
-        let container = context.realParentContainers.get(containerID.name)
-        if (!container) {
-            container = new RealParentContainerClass(containerID)
-            container.context = context
-            context.realParentContainers.set(containerID.name, container)
-        }
-        return container
+    #resolveSamplePlacementIdentifier(placedSample: SamplePlacementIdentifier): SamplePlacement {
+        const cell = this.getCell(placedSample.cell)
+        const sample = new SampleClass(this.context, placedSample.sample)
+        return { sample, cell }
     }
 
-    #normalizePlacedSampleParam(placedSample: PlacedSample | PlacedSampleIdentifier): PlacedSample {
-        const cell = this.getCell(placedSample.cell.coordinates)
-        const sample = SampleClass.get(this.context, placedSample.sample)
-        return { sample, cell }
+    getSortedPlacements(onlySelected = false) {
+        return Object.values(this.state.cells)
+            .flatMap((cell) =>
+                Object.keys(cell.samples)
+                    .filter((id) => onlySelected ? cell.samples[Number(id)]?.selected : true)
+                    .map((id) => ({ sample: { id: Number(id) }, cell }))
+            )
+            .sort((a, b) => {
+                return this.compareSamples(a, b)
+            })
+            .map((id) => new SampleClass(this.context, { id: Number(id) }))
+    }
+
+    get name() {
+        return this.state.name
+    }
+    get spec() {
+        return this.state.spec
     }
 }
 
 class TubesWithoutParentClass extends PlacementObject {
-    getSample(sampleID: SampleIdentifier): SampleClass {
-        if (sampleID.name in this.existingSamples) {
-            return this.existingSamples[sampleID.name]
+    readonly state: TubesWithoutParentContainerState
+
+    constructor(context: PlacementContext) {
+        super(context.placementState, context)
+        const state = context.placementState.tubesWithoutParentContainer
+        if (!state) {
+            throw new Error(`Tubes without parent container not found in state`)
         }
-        throw new Error(`Sample ${sampleID.name} not found in tubes without parent`)
+        this.state = state
     }
 
     isSampleSelected(sampleID: SampleIdentifier) {
-        return sampleID.name in this.selections
+        return this.#getStateForSample(sampleID).selected
     }
-    selectSamples(...sampleIDs: SampleIdentifier[]) {
-        for (const sampleID of sampleIDs) {
-            const sample = this.getSample(sampleID)
-            this.selections[sampleID.name] = sample
+    selectSample(sampleID: SampleIdentifier) {
+        if (sampleID.id in this.state.samples) {
+            this.#getStateForSample(sampleID).selected = true
         }
     }
-    unSelectSamples(...sampleIDs: SampleIdentifier[]) {
-        for (const sampleID of sampleIDs) {
-            if (sampleID.name in this.selections) {
-                delete this.selections[sampleID.name]
-            }
+    unSelectSample(sampleID: SampleIdentifier) {
+        if (sampleID.id in this.state.samples) {
+            this.#getStateForSample(sampleID).selected = false
         }
     }
     toggleSelections(...sampleIDs: SampleIdentifier[]) {
         const allSelected = sampleIDs.every(s => this.isSampleSelected(s))
         if (allSelected) {
-            this.unSelectSamples(...sampleIDs)
+            for (const sampleID of sampleIDs) {
+                this.unSelectSample(sampleID)
+            }
         } else {
-            this.selectSamples(...sampleIDs)
+            for (const sampleID of sampleIDs) {
+                this.selectSample(sampleID)
+            }
         }
     }
 
@@ -449,18 +463,37 @@ class TubesWithoutParentClass extends PlacementObject {
         return `TubesWithoutParent()`
     }
 
-    static get(context: PlacementContext): TubesWithoutParentClass {
-        if (context.tubesWithoutParentContainer) {
-            return context.tubesWithoutParentContainer
+    #getStateForSample(sampleID: SampleIdentifier) {
+        const sample = this.state.samples[sampleID.id]
+        if (!sample) {
+            throw new Error(`Sample ${sampleID.id} not found in state`)
         }
-        const tubesWithoutParent = new TubesWithoutParentClass()
-        tubesWithoutParent.context = context
-        context.tubesWithoutParentContainer = tubesWithoutParent
-        return tubesWithoutParent
+        return sample
+    }
+
+
+    getSortedSamples(onlySelected = false) {
+        return Object.keys(this.state.samples)
+            .filter((id) => onlySelected ? this.state.samples[Number(id)]?.selected : true)
+            .map((id) => new SampleClass(this.context, { id: Number(id) }))
+            .sort((a, b) => {
+                return this.compareSamples(a, b)
+            })
     }
 }
 
 class CellClass extends PlacementObject {
+    readonly state: CellState
+
+    constructor(context: PlacementContext, cellID: CellIdentifier) {
+        super(context.placementState, context)
+        const state = context.placementState.realParentContainers[cellID.fromContainer.name]?.cells[cellID.coordinates]
+        if (!state) {
+            throw new Error(`Cell ${cellID.coordinates} not found in container ${cellID.fromContainer.name}`)
+        }
+        this.state = state
+    }
+
     click() {
         if (!this.context.sourceContainer) {
             throw new Error(`Source container is not set`)
@@ -473,7 +506,7 @@ class CellClass extends PlacementObject {
             return
         }
 
-        const selections: PlacedSample[] = Object.values(this.context.sourceContainer.selections)
+        const selections: SamplePlacement[] = Object.values(this.context.sourceContainer.selections)
         if (selections.length > 0) {
             // placement branch
             const destinationCells = this.fromContainer.placementDestinations(
@@ -504,7 +537,7 @@ class CellClass extends PlacementObject {
         if (this.fromContainer == this.context.sourceContainer) {
             return
         }
-        const selections: PlacedSample[] = Object.values(this.context.sourceContainer.selections)
+        const selections: SamplePlacement[] = Object.values(this.context.sourceContainer.selections)
         this.fromContainer.setPreviews(...selections)
     }
     exit() {
@@ -515,25 +548,82 @@ class CellClass extends PlacementObject {
         return `Cell(coordinates=${this.coordinates}, container=${this.fromContainer}, existingSample=${this.existingSample})`
     }
 
-    static get(state: PlacementState, container: RealParentContainerClass, coordinates: string): CellClass {
+    isSampleSelected(sampleID: SampleIdentifier) {
+        return sampleID.id in this.state.samples
+    }
+
+    placeSample(sampleID: SampleIdentifier, twoWayPlacement = true) {
+        if (!this.state.samples[sampleID.id]) {
+            this.state.samples[sampleID.id] = { selected: false }
+        }
+
+        if (twoWayPlacement) {
+            new SampleClass(this.context, sampleID).placeAtCell(this, false)
+        }
+    }
+    unplaceSample(sampleID: SampleIdentifier, twoWayPlacement = true) {
+        if (this.state.samples[sampleID.id]) {
+            delete this.state.samples[sampleID.id]
+        }
+
+        if (twoWayPlacement) {
+            new SampleClass(this.context, sampleID).unplaceAtCell(this, false)
+        }
+    }
+
+    get fromContainer() {
+        return new RealParentContainerClass(this.context, this.state.fromContainer)
+    }
+
+    get coordinates() {
+        return this.state.coordinates
     }
 }
 
 class SampleClass extends PlacementObject {
+    readonly state: SampleState
+
+    constructor(context: PlacementContext, sampleID: SampleIdentifier) {
+        super(context.placementState, context)
+        const state = context.placementState.samples[sampleID.id]
+        if (!state) {
+            throw new Error(`Sample ${sampleID.id} not found in state`)
+        }
+        this.state = state
+    }
+
+    placeAtCell(cellID: CellIdentifier, twoWayPlacement = true) {
+        if (!this.state.placedAt.find(cell => cell.coordinates === cellID.coordinates)) {
+            this.state.placedAt.push(cellID)
+        }
+        if (twoWayPlacement) {
+            new CellClass(this.context, cellID).placeSample(this, false)
+        }
+    }
+    unplaceAtCell(cellID: CellIdentifier, twoWayPlacement = true) {
+        const index = this.state.placedAt.findIndex(cell => cell.coordinates === cellID.coordinates)
+        if (index !== -1) {
+            this.state.placedAt.splice(index, 1)
+        }
+        if (twoWayPlacement) {
+            new CellClass(this.context, cellID).unplaceSample(this, false)
+        }
+    }
+
     toString() {
         return `Sample(id=${this.id}, container=${this.fromCell?.fromContainer}, cell=${this.fromCell})`
     }
 
-    static get(context: PlacementContext, sampleID: SampleIdentifier): SampleClass {
-        if (context.samples[sampleID.name]) {
-            return context.samples[sampleID.name]
-        }
-        const sample = new SampleClass()
-        sample.context = context
-        context.samples[sampleID.name] = sample
-        return sample
+    get id() {
+        return this.state.id
+    }
+    get name() {
+        return this.state.name
+    }
+    get projectName() {
+        return this.state.projectName
     }
 }
 
-interface PlacedSample { sample: SampleClass, cell: CellClass }
-interface PlacedSampleIdentifier { sample: SampleIdentifier, cell: Pick<CellIdentifier, 'coordinates'> }
+interface SamplePlacement { sample: SampleClass, cell: CellClass }
+interface SamplePlacementIdentifier { sample: SampleIdentifier, cell: Pick<CellIdentifier, 'coordinates'> }
