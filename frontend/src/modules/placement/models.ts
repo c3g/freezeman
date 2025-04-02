@@ -28,27 +28,26 @@ export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
 export interface RealParentContainerState extends RealParentContainerIdentifier {
     cells: Record<Coordinates, CellState>
+    spec: CoordinateSpec
 }
 
 export interface CellState extends CellIdentifier {
     samples: Record<SampleID, {
-        // undefined if existing sample
-        // null if from tubes without parent container,
-        fromCell?: CellIdentifier | null
         selected: boolean
-    }>
+    } | undefined>
     preview: boolean
 }
 
 export interface TubesWithoutParentContainerState {
     samples: Record<SampleID, {
         selected: boolean
-    }>
+    } | undefined>
 }
 
 export interface SampleState extends SampleIdentifier {
     containerName: ContainerName, // can be the name of a tube or container of the well
     name: SampleName
+    projectName: string
     fromCell: CellIdentifier | null
     placedAt: CellIdentifier[]
 }
