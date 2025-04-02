@@ -28,8 +28,6 @@ class SampleRowHandler(GenericRowHandler):
         if sample is not None:
             if sample["sample_kind"] is None:
                 self.errors['sample_kind'] = [f"Sample Kind is a required field."]
-            if sample["name"] is None:
-                self.errors['sample_name'] = [f"Sample Name is a required field."]
             if sample["volume"] is None:
                 self.errors['volume'] = [f"Volume (uL) is a required field."]
 
