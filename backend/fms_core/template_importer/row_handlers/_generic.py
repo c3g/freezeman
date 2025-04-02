@@ -8,7 +8,7 @@ from fms_core.utils import WarningType, serialize_warnings
     An object inheriting from RowHandler() should be created for each different 'type' of row 
     (the 'type' being determined by a unique combination of columns)
     validate_input (input):
-        verify that input provided by the user are compatible with the row handle operation.
+        verify that input provided by the user are compatible with the row handler operation.
         returns errors helpful to the user.
     process_row (input): 
         row data obtained from the Importer objects.
