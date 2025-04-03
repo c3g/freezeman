@@ -63,13 +63,13 @@ export class PlacementClass extends PlacementObject {
                 }
             }
             const payloadSampleIDs = new Set<SampleID>(payload.cells.map(c => c.sample))
-            for (const sampleID of Object.keys(tubesWithoutParent.samples).map(parseInt)) {
-                if (!payloadSampleIDs.has(sampleID)) {
-                    for (const cellID of this.placementState.samples[sampleID].placedAt) {
-                        delete this.placementState.realParentContainers[cellID.fromContainer.name]?.cells[cellID.coordinates].samples[sampleID]
+            for (const oldExistingSampleID of Object.keys(tubesWithoutParent.samples).map(parseInt)) {
+                if (!payloadSampleIDs.has(oldExistingSampleID)) {
+                    for (const cellID of this.placementState.samples[oldExistingSampleID].placedAt) {
+                        new CellClass(this.context, cellID).unplaceSample({ id: oldExistingSampleID })
                     }
-                    delete tubesWithoutParent.samples[sampleID]
-                    delete this.placementState.samples[sampleID]
+                    delete tubesWithoutParent.samples[oldExistingSampleID]
+                    delete this.placementState.samples[oldExistingSampleID]
                 }
             }
             for (const cell of payload.cells) {
@@ -116,10 +116,7 @@ export class PlacementClass extends PlacementObject {
             for (const sample of oldExistingSamples) {
                 if (!payloadSampleIDs.has(sample.id)) {
                     for (const cellPlacedAt of this.placementState.samples[sample.id].placedAt) {
-                        const container = this.placementState.realParentContainers[cellPlacedAt.fromContainer.name]
-                        if (container) {
-                            delete container.cells[cellPlacedAt.coordinates].samples[sample.id]
-                        }
+                        new CellClass(this.context, cellPlacedAt).unplaceSample(sample)
                     }
                     if (sample.fromCell) {
                         delete container.cells[sample.fromCell.coordinates].samples[sample.id]
@@ -242,25 +239,28 @@ export class RealParentContainerClass extends PlacementObject {
         const A = this.#resolveSamplePlacementIdentifier(a)
         const B = this.#resolveSamplePlacementIdentifier(b)
 
-        if (this.isPlacementSelected(A)) return -MAX / 2
-        if (this.isPlacementSelected(B)) return  MAX / 2
+        let orderA = MAX
+        let orderB = MAX
+
+        if (this.isPlacementSelected(A)) orderA -= MAX / 2
+        if (this.isPlacementSelected(B)) orderB -= MAX / 2
 
         const aOffsets = coordinatesToOffsets(A.cell.fromContainer.spec, A.cell.coordinates)
         const bOffsets = coordinatesToOffsets(B.cell.fromContainer.spec, B.cell.coordinates)
         const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
-        if (arrayComparison < 0) return -MAX / 4
-        if (arrayComparison > 0) return  MAX / 4
+        if (arrayComparison < 0) orderA -= MAX / 4
+        if (arrayComparison > 0) orderB -= MAX / 4
 
-        if (A.sample.name < B.sample.name) return -MAX / 8
-        if (A.sample.name > B.sample.name) return  MAX / 8
+        if (A.sample.name < B.sample.name) orderA -= MAX / 8
+        if (A.sample.name > B.sample.name) orderB -= MAX / 8
 
-        if (A.sample.containerName < B.sample.containerName) return -MAX / 16
-        if (A.sample.containerName > B.sample.containerName) return MAX / 16
+        if (A.sample.containerName < B.sample.containerName) orderA -= MAX / 16
+        if (A.sample.containerName > B.sample.containerName) orderB -= MAX / 16
 
-        if (A.sample.projectName < B.sample.projectName) return -MAX / 32
-        if (A.sample.projectName > B.sample.projectName) return  MAX / 32
+        if (A.sample.projectName < B.sample.projectName) orderA -= MAX / 32
+        if (A.sample.projectName > B.sample.projectName) orderB -= MAX / 32
 
-        return 0
+        return orderA - orderB
     }
 
     placementDestinations(samples: SampleIdentifier[], coordinates: Coordinates) {
@@ -438,8 +438,11 @@ class TubesWithoutParentClass extends PlacementObject {
         if (a.name < b.name) orderA -= MAX / 8
         if (a.name > b.name) orderB -= MAX / 8
 
-        if (a.projectName < b.projectName) orderA -= MAX / 16
-        if (a.projectName > b.projectName) orderB -= MAX / 16
+        if (a.containerName < b.containerName) orderA -= MAX / 16
+        if (a.containerName > b.containerName) orderB -= MAX / 16
+
+        if (a.projectName < b.projectName) orderA -= MAX / 32
+        if (a.projectName > b.projectName) orderB -= MAX / 32
 
         return orderA - orderB
     }
@@ -572,7 +575,7 @@ class CellClass extends PlacementObject {
         const sample = new SampleClass(this.context, sampleID)
 
         if (this.state.samples[sampleID.id]) {
-            if (sample.fromCell?.fromContainer?.name === this.fromContainer.name) {
+            if (sample.fromCell?.sameParentContainer(this)) {
                 throw new Error(`Sample ${sample} is already placed in this cell ${this}`)
             }
             delete this.state.samples[sampleID.id]
@@ -596,7 +599,11 @@ class CellClass extends PlacementObject {
     }
 
     findExistingSample() {
-        return this.getSamples().find(sample => sample.fromCell?.fromContainer?.name === this.fromContainer.name)
+        return this.getSamples().find(sample => sample.fromCell?.sameParentContainer(this))
+    }
+
+    sameParentContainer(cellID: CellIdentifier) {
+        return this.fromContainer.name === cellID.fromContainer.name
     }
 
     get fromContainer() {
@@ -629,7 +636,7 @@ class SampleClass extends PlacementObject {
         }
     }
     unplaceAtCell(cellID: CellIdentifier, twoWayPlacement = true) {
-        if (this.fromCell?.fromContainer?.name === cellID.fromContainer.name) {
+        if (this.fromCell?.sameParentContainer(cellID)) {
             throw new Error(`Sample ${this} is already placed in this cell ${new CellClass(this.context, cellID)}`)
         }
         const index = this.state.placedAt.findIndex(cell => cell.coordinates === cellID.coordinates)
