@@ -1,9 +1,9 @@
 import { CoordinateAxis } from "../../models/fms_api_models"
 import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
-import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState } from "./models"
+import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState, TubesWithoutParentContainerIdentifier } from "./models"
 import { LoadContainerPayload } from "./reducers"
 
-class PlacementContext {
+export class PlacementContext {
     placementState: PlacementState
     placementClass: PlacementClass
 
@@ -15,8 +15,8 @@ class PlacementContext {
         this.placementState = state
     }
 
-    setSourceContainer(containerID?: RealParentContainerIdentifier) {
-        this._sourceContainer = containerID ? new RealParentContainerClass(this, containerID) : new TubesWithoutParentClass(this)
+    setSourceContainer(containerID: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) {
+        this._sourceContainer = containerID.name ? new RealParentContainerClass(this, containerID) : new TubesWithoutParentClass(this)
     }
     setDestinationContainer(containerID: RealParentContainerIdentifier) {
         this._destinationContainer = new RealParentContainerClass(this, containerID)
@@ -36,7 +36,7 @@ class PlacementContext {
     }
 }
 
-class PlacementObject {
+export class PlacementObject {
     context: PlacementContext
 
     constructor(context: PlacementContext) {
@@ -49,9 +49,15 @@ class PlacementObject {
 }
 
 export class PlacementClass extends PlacementObject {
-    constructor(state: PlacementState) {
+    constructor(state: PlacementState, sourceContainer?: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier, destinationContainer?: RealParentContainerIdentifier) {
         super(new PlacementContext(state))
         this.context.placementClass = this
+        if (sourceContainer) {
+            this.context.setSourceContainer(sourceContainer)
+        }
+        if (destinationContainer) {
+            this.context.setDestinationContainer(destinationContainer)
+        }
     }
 
     loadContainerPayload(payload: LoadContainerPayload) {
@@ -144,6 +150,10 @@ export class PlacementClass extends PlacementObject {
             }
         }
     }
+
+    getRealParentContainer(containerID: RealParentContainerIdentifier) {
+        return new RealParentContainerClass(this.context, containerID)
+    }
 }
 
 export class RealParentContainerClass extends PlacementObject {
@@ -161,37 +171,55 @@ export class RealParentContainerClass extends PlacementObject {
     getCell(cellID: Pick<CellIdentifier, 'coordinates'>): CellClass {
         return new CellClass(this.context, { fromContainer: this, coordinates: cellID.coordinates })
     }
+    getCellsInRow(row: number): CellClass[] {
+        const [axisRow = [''], axisCol = ['']] = this.spec
+        if (row >= axisRow.length) {
+            throw new Error(`Row ${row} is out of bounds for container ${this}`)
+        }
+
+        const cells: CellClass[] = []
+        for (const col of axisCol) {
+            const coordinates = `${axisRow[row]}${col}`
+            cells.push(this.getCell({ coordinates }))
+        }
+
+        return cells
+    }
+    getCellsInCol(col: number): CellClass[] {
+        const [axisRow = [''], axisCol = ['']] = this.spec
+        if (col >= axisCol.length) {
+            throw new Error(`Column ${col} is out of bounds for container ${this}`)
+        }
+
+        const cells: CellClass[] = []
+        for (const row of axisRow) {
+            const coordinates = `${row}${axisCol[col]}`
+            cells.push(this.getCell({ coordinates }))
+        }
+
+        return cells
+    }
 
     placeSample(placement: SamplePlacementIdentifier) {
         this.getCell(placement.cell).placeSample(placement.sample)
     }
-    placeAllSamples(sourceContainer: RealParentContainerClass | TubesWithoutParentClass) {
-        if (sourceContainer instanceof TubesWithoutParentClass) {
-            const sourceSamples = sourceContainer.getSortedSamples(true)
-            const [ axisRow = [''], axisCol = [''] ] = this.spec
-            let sampleIndex = 0
-            // populate column-major order
-            for (const col of axisCol) {
-                for (const row of axisRow) {
-                    if (sampleIndex >= sourceSamples.length) {
-                        return
-                    }
-                    const coordinates = `${row}${col}`
-                    sourceSamples[sampleIndex].placeAtCell({ fromContainer: this, coordinates })
-                    sampleIndex++
-                }
-            }
-        } else if (sourceContainer instanceof RealParentContainerClass) {
-            // basically copy-paste samples from source container to destination container
-            const [ axisRow = [''], axisCol = [''] ] = sourceContainer.spec
-            for (const row of axisRow) {
-                for (const col of axisCol) {
-                    const coordinates = `${row}${col}`
-                    for (const sample of sourceContainer.getCell({ coordinates }).getSamples()) {
-                        sample.placeAtCell({ fromContainer: this, coordinates })
-                    }
-                }
-            }
+    placeAllSamples(sourceContainer: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) {
+        const samples: SampleClass[] = []
+        if (sourceContainer.name) {
+            samples.push(...new RealParentContainerClass(this.context, sourceContainer).getSortedPlacements(true))
+        } else {
+            samples.push(...new TubesWithoutParentClass(this.context).getSortedSamples(true))
+        }
+
+        const [axisRow = [''], axisCol = ['']] = this.spec
+        const placementLocations = this.placementDestinations(samples, `${axisRow[0]}${axisCol[0]}`, PlacementType.PATTERN)
+        if (placementLocations.length !== samples.length) {
+            throw new Error(`Placement locations length does not match samples length`)
+        }
+        for (let i = 0; i < placementLocations.length; i++) {
+            const sample = samples[i]
+            const destinationCell = placementLocations[i]
+            sample.placeAtCell(destinationCell)
         }
     }
     unplaceSample(placedSample: SamplePlacementIdentifier) {
@@ -263,15 +291,15 @@ export class RealParentContainerClass extends PlacementObject {
         return orderA - orderB
     }
 
-    placementDestinations(samples: SampleIdentifier[], coordinates: Coordinates) {
-        const [axisRow, axisCol] = this.spec
-        const height = axisRow?.length ?? 1
-        const width = axisCol?.length ?? 1
+    placementDestinations(samples: SampleIdentifier[], coordinates: Coordinates, placementType: PlacementType, placementDirection: PlacementDirections = PlacementDirections.COLUMN) {
+        const [axisRow = [''], axisCol = ['']] = this.spec
+        const height = axisRow.length
+        const width = axisCol.length
 
         const newOffsetsList: number[][] = []
         const destinationStartingOffsets = coordinatesToOffsets(this.spec, coordinates)
 
-        switch (this.context.placementState.placementType) {
+        switch (placementType) {
             case PlacementType.PATTERN: {
                 const sourceContainer = this.context.sourceContainer
                 if (sourceContainer instanceof TubesWithoutParentClass) {
@@ -323,14 +351,14 @@ export class RealParentContainerClass extends PlacementObject {
                         [COLUMN]: startingCol
                     }
 
-                    if (this.context.placementState.placementDirection === PlacementDirections.ROW) {
+                    if (placementDirection === PlacementDirections.ROW) {
                         finalOffsets[COLUMN] += relativeOffset
                         const finalColBeforeWrap = finalOffsets[1]
                         if (finalColBeforeWrap >= width) {
                             finalOffsets[COLUMN] = finalColBeforeWrap % width
                             finalOffsets[ROW] += Math.floor(finalColBeforeWrap / width)
                         }
-                    } else if (this.context.placementState.placementDirection === PlacementDirections.COLUMN) {
+                    } else if (placementDirection === PlacementDirections.COLUMN) {
                         finalOffsets[ROW] += relativeOffset
                         const finalRowBeforeWrap = finalOffsets[0]
                         if (finalRowBeforeWrap >= height) {
@@ -388,7 +416,7 @@ export class RealParentContainerClass extends PlacementObject {
     }
 }
 
-class TubesWithoutParentClass extends PlacementObject {
+export class TubesWithoutParentClass extends PlacementObject {
     readonly state: TubesWithoutParentContainerState
 
     constructor(context: PlacementContext) {
@@ -470,7 +498,7 @@ class TubesWithoutParentClass extends PlacementObject {
     }
 }
 
-class CellClass extends PlacementObject {
+export class CellClass extends PlacementObject {
     readonly state: CellState
 
     constructor(context: PlacementContext, cellID: CellIdentifier) {
@@ -506,7 +534,9 @@ class CellClass extends PlacementObject {
             // placement branch
             const destinationCells = this.fromContainer.placementDestinations(
                 selections,
-                this.coordinates
+                this.coordinates,
+                this.context.placementState.placementType,
+                this.context.placementState.placementDirection
             )
             if (destinationCells.length !== selections.length) {
                 throw new Error(`Destination cells length does not match selections length`)
@@ -539,7 +569,9 @@ class CellClass extends PlacementObject {
         }
         const destinations = this.fromContainer.placementDestinations(
             samples,
-            this.coordinates
+            this.coordinates,
+            this.context.placementState.placementType,
+            this.context.placementState.placementDirection
         )
         this.fromContainer.setPreviews(...destinations)
     }
@@ -615,7 +647,7 @@ class CellClass extends PlacementObject {
     }
 }
 
-class SampleClass extends PlacementObject {
+export class SampleClass extends PlacementObject {
     readonly state: SampleState
 
     constructor(context: PlacementContext, sampleID: SampleIdentifier) {

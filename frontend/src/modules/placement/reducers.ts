@@ -1,171 +1,82 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, CellState, CellWithParentIdentifier, CellWithParentState, RealParentContainerIdentifier, ContainerState, ParentContainerState, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, TubesWithoutParentState } from "./models"
-import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
+import { CellIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
+import { PlacementClass } from "./classes"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
-export interface MouseOnCellPayload extends CellWithParentIdentifier {
+export interface MouseOnCellPayload extends CellIdentifier {
     context: {
-        source?: ContainerState['name']
+        source: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
     }
 }
 export type MultiSelectPayload = {
     forcedSelectedValue?: boolean
     context: {
-        source?: ContainerState['name']
+        source?: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
     }
 } & ({
-    parentContainer: ParentContainerState['name']
+    parentContainer: RealParentContainerIdentifier
     type: 'row'
     row: number
 } | {
-    parentContainer: ParentContainerState['name']
+    parentContainer: RealParentContainerIdentifier
     type: 'column'
     column: number
 } | {
-    parentContainer: ContainerState['name']
+    parentContainer: RealParentContainerIdentifier
     type: 'all'
 } | {
-    parentContainer: ContainerState['name']
+    parentContainer: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
     type: 'sample-ids' // also checks cell.placedFrom
     sampleIDs: Array<Sample['id']>
 })
 export interface PlaceAllSourcePayload {
-    source: RealParentContainerIdentifier['name']
-    destination: ParentContainerState['name']
+    source: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
+    destination: RealParentContainerIdentifier
 }
 
 const initialState: PlacementState = {
-    containers: [] as PlacementState['containers'],
     placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.COLUMN,
+    tubesWithoutParentContainer: undefined,
+    realParentContainers: {},
+    samples: {},
+    error: undefined,
 } as const
 
 const slice = createSlice({
     name: 'PLACEMENT',
     initialState,
     reducers: {
-        loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) => {
-            const foundContainer = state.containers.find((container) => container.name === payload.parentContainerName)
-
-            // reuse or initialize container state
-            const containerState = foundContainer ?? (
-                payload.parentContainerName !== null
-                    ? initialParentContainerState(payload)
-                    : ({
-                        name: null,
-                        spec: [],
-                        cells: [],
-                        cellsIndexBySampleID: {},
-                    } as TubesWithoutParentState)
-            )
-
-            // create container state based only on payload
-            const payloadContainerState = payload.parentContainerName
-                ? initialParentContainerState(payload)
-                : ({ name: null, cells: [], cellsIndexBySampleID: {}, spec: [] } as TubesWithoutParentState)
-            for (const payloadCell of payload.cells) {
-                if (payloadContainerState.name && payloadCell.coordinates) {
-                    // with parent container
-                    const index = payloadContainerState.cellsIndexByCoordinates[payloadCell.coordinates]
-                    payloadContainerState.cells[index] = {
-                        parentContainerName: payloadContainerState.name,
-                        coordinates: payloadCell.coordinates,
-                        sample: payloadCell.sample,
-                        name: payloadCell.name,
-                        projectName: payloadCell.projectName,
-                        selected: false,
-                        preview: false,
-                        placedAt: null,
-                        placedFrom: null
-                    }
-                    payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = index
-                } else if (payloadContainerState.name === null) {
-                    // without parent container
-                    payloadContainerState.cellsIndexBySampleID[payloadCell.sample] = payloadContainerState.cells.length
-                    payloadContainerState.cells.push({
-                        parentContainerName: null,
-                        sample: payloadCell.sample,
-                        name: payloadCell.name,
-                        projectName: payloadCell.projectName,
-                        selected: false,
-                        placedAt: null
-                    })
-                }
-            }
-
-            // merge cells between payload and current state
-            if (containerState.name) {
-                // with parent container
-                // cells are assumed to be sorted by coordinates and of the same spec
-                for (const index in containerState.cells) {
-                    const payloadCell = payloadContainerState.cells[index]
-                    const currentCell = containerState.cells[index]
-                    // make current cell states match payload cell states
-                    if (payloadCell.sample !== currentCell.sample) {
-                        undoCellPlacement(state, currentCell)
-                        if (currentCell.sample)
-                            delete containerState.cellsIndexBySampleID[currentCell.sample]
-                        currentCell.sample = payloadCell.sample
-                        currentCell.name = payloadCell.name
-                        currentCell.projectName = payloadCell.projectName
-                        if (payloadCell.sample)
-                            containerState.cellsIndexBySampleID[payloadCell.sample] = Number(index)
-                    }
-                }
-            } else if (containerState.name === null) {
-                // without parent container
-                // remove stale samples
-                containerState.cells = containerState.cells.filter((currentCell) => {
-                    if (currentCell.sample && !(currentCell.sample in payloadContainerState.cellsIndexBySampleID)) {
-                        // sample has disappeared
-                        undoCellPlacement(state, currentCell)
-                        // no point in setting sample to null if the cell gets removed
-                        return false
-                    }
-                    return true
-                })
-                // add only new samples from payload
-                for (const payloadCell of payloadContainerState.cells) {
-                    if (payloadCell.sample && payloadCell.parentContainerName === null && !(payloadCell.sample in containerState.cellsIndexBySampleID)) {
-                        containerState.cells.push(payloadCell)
-                    }
-                }
-                // update cellsIndexBySampleID
-                containerState.cellsIndexBySampleID = {}
-                for (const [index, currentCell] of containerState.cells.entries()) {
-                    if (currentCell.sample)
-                        containerState.cellsIndexBySampleID[currentCell.sample] = index
-                }
-            }
-            if (!foundContainer) {
-                // this whole time we've been updating a new container state
-                state.containers.push(containerState)
-            }
-        }),
+        loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) =>
+            new PlacementClass(state).loadContainerPayload(payload)
+        ),
         setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
             state.placementType = action.payload
         },
         setPlacementDirection(state, action: PayloadAction<PlacementGroupOptions['direction']>) {
             state.placementDirection = action.payload
         },
-        clickCell: reducerWithThrows(clickCellHelper),
-        placeAllSource: reducerWithThrows((state, payload: PlaceAllSourcePayload) => {
-            const sourceCells = getContainer(state, { name: payload.source }).cells.filter((c) => c.sample)
-
-            const [axisRow, axisCol = [''] as const] = getParentContainer(state, { name: payload.destination }).spec
-            if (axisRow === undefined) return state
-
-            // use pattern placement to place all source starting from the top-left of destination
-            placeCellsHelper(state, sourceCells, getCellWithParent(state, {
-                parentContainerName: payload.destination,
-                coordinates: axisRow[0] + axisCol[0]
-            }), {
-                type: PlacementType.PATTERN
-            })
+        clickCell: reducerWithThrows((state, payload: MouseOnCellPayload) =>
+            new PlacementClass(state, payload.context.source)
+                .getRealParentContainer(payload.fromContainer)
+                .getCell(payload)
+                .click()
+        ),
+        placeAllSource: reducerWithThrows((state, payload: PlaceAllSourcePayload) =>
+            new PlacementClass(state, payload.source, payload.destination)
+                .getRealParentContainer(payload.destination)
+                .placeAllSamples(payload.source)
+        ),
+        multiSelect: reducerWithThrows((state, payload: MultiSelectPayload) => {
+            if (payload.type === 'all') {
+                const container = new PlacementClass(state).getRealParentContainer(payload.parentContainer)
+                container.togglePlacementSelections(
+                    container.cells.filter((c) => cellSelectable(state, c, payload.context.source))
+                )
+            }
         }),
-        multiSelect: reducerWithThrows(multiSelectHelper),
         onCellEnter: reducerWithThrows((state, payload: MouseOnCellPayload) => {
             const container = getParentContainer(state, payload)
             // must be destination
