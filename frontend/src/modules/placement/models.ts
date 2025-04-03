@@ -32,16 +32,12 @@ export interface RealParentContainerState extends RealParentContainerIdentifier 
 }
 
 export interface CellState extends CellIdentifier {
-    samples: Record<SampleID, {
-        selected: boolean
-    } | undefined>
+    samples: Record<SampleID, SampleEntry | undefined>
     preview: boolean
 }
 
 export interface TubesWithoutParentContainerState {
-    samples: Record<SampleID, {
-        selected: boolean
-    } | undefined>
+    samples: Record<SampleID, SampleEntry | undefined>
 }
 
 export interface SampleState extends SampleIdentifier {
@@ -50,6 +46,10 @@ export interface SampleState extends SampleIdentifier {
     projectName: string
     fromCell: CellIdentifier | null
     placedAt: CellIdentifier[]
+}
+
+export interface SampleEntry {
+    selected: boolean
 }
 
 export type ContainerName = string
