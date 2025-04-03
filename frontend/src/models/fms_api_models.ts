@@ -84,7 +84,7 @@ export enum ValidationStatus {
     FAILED = 2,
 }
 export interface FMSDataset extends FMSTrackedModel {
-    external_project_id: FMSId             // External (Hercules) project ID
+    external_project_id: string             // External (Hercules) project ID
     files: FMSId[]                          // List of dataset file ID's
     lane: number                            // Flowcell lane number of dataset
     latest_release_update?: string          // ?
