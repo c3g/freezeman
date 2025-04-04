@@ -75,7 +75,7 @@ const slice = createSlice({
         multiSelect: reducerWithThrows((state, payload: MultiSelectPayload) => {
             if (payload.parentContainer.name === null) {
                 const samples: SampleIdentifier[] = []
-                const container = new PlacementClass(state).getTubesWithoutParent()
+                const container = new PlacementClass(state, payload.context.source).getTubesWithoutParent()
                 if (payload.type === 'all') {
                     samples.push(...container.getSamples())
                 } else if (payload.type === 'sample-ids') {
@@ -92,7 +92,7 @@ const slice = createSlice({
                 }
             } else {
                 const samplePlacements: SamplePlacementIdentifier[] = []
-                const container = new PlacementClass(state).getRealParentContainer(payload.parentContainer)
+                const container = new PlacementClass(state, payload.context.source).getRealParentContainer(payload.parentContainer)
                 switch (payload.type) {
                     case 'all': {
                         samplePlacements.push(...container.getPlacements())
@@ -103,11 +103,11 @@ const slice = createSlice({
                         break
                     }
                     case 'column': {
-                        samplePlacements.push(...container.getCellsInCol(payload.column).flatMap((c) => c.getPlacements()))
+                        samplePlacements.push(...container.getCellsInCol(payload.column).flatMap((c) => c.getSamplePlacements()))
                         break
                     }
                     case 'row': {
-                        samplePlacements.push(...container.getCellsInRow(payload.row).flatMap((c) => c.getPlacements()))
+                        samplePlacements.push(...container.getCellsInRow(payload.row).flatMap((c) => c.getSamplePlacements()))
                         break
                     }
                 }
