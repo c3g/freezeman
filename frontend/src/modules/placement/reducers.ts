@@ -43,7 +43,7 @@ export interface PlaceAllSourcePayload {
 const initialState: PlacementState = {
     placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.COLUMN,
-    tubesWithoutParentContainer: undefined,
+    tubesWithoutParentContainer: { samples: {} },
     realParentContainers: {},
     samples: {},
     error: undefined,
@@ -133,15 +133,16 @@ const slice = createSlice({
                 p.cell.unplaceSample(p.sample)
             })
         }),
-        flushContainers(state, action: PayloadAction<Array<RealParentContainerIdentifier['name']>>) {
-            const deletedContainerNames = new Set(action.payload ?? Object.values(state.realParentContainers).reduce<string[]>((acc, container) => {
-                if (container?.name) {
-                    acc.push(container.name)
-                }
-                return acc
-            }, []))
+        flushContainers(state, action: PayloadAction<Array<RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier> | null>) {
+            if (action.payload === null) {
+                state.realParentContainers = {}
+                state.tubesWithoutParentContainer.samples = {}
+                state.samples = {}
+                return
+            }
+            const deletedContainerNames = new Set(action.payload)
             const placement = new PlacementClass(state)
-            deletedContainerNames.forEach((c) => placement.flushContainer({ name: c }))
+            deletedContainerNames.forEach((c) => c.name ? placement.flushContainer(c) : placement.flushTubesWithoutParent())
         },
         flushPlacement(state) {
             Object.assign(state, initialState)

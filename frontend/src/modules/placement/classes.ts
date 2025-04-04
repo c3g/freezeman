@@ -152,16 +152,31 @@ export class PlacementClass extends PlacementObject {
             throw new Error(`Container ${containerID.name} not found in state`)
         }
         for (const sample of Object.values(this.placementState.samples)) {
-            for (const cellID of sample.placedAt) {
-                if (cellID.fromContainer.name === containerID.name) {
+            if (sample.fromCell?.fromContainer.name === containerID.name) {
+                for (const cellID of sample.placedAt) {
                     new CellClass(this.context, cellID).unplaceSample(sample)
                 }
             }
-            if (sample.containerName === containerID.name) {
-                delete this.placementState.samples[sample.id]
-            }
+            delete this.placementState.samples[sample.id]
         }
         delete this.placementState.realParentContainers[containerID.name]
+    }
+
+    flushTubesWithoutParent() {
+        const tubesWithoutParent = this.placementState.tubesWithoutParentContainer
+        if (!tubesWithoutParent) {
+            throw new Error(`Tubes without parent container not found in state`)
+        }
+        for (const sample of Object.values(this.placementState.samples)) {
+            if (!sample.fromCell) {
+                for (const cellID of sample.placedAt) { {
+                        new CellClass(this.context, cellID).unplaceSample(sample)
+                    }
+                }
+                delete this.placementState.samples[sample.id]
+            }
+            this.placementState.tubesWithoutParentContainer.samples = {}
+        }
     }
 
     getCell(cellID: CellIdentifier) {
