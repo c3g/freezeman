@@ -3,7 +3,7 @@ import { CoordinateSpec } from "../../models/fms_api_models"
 export interface PlacementState {
     placementType: PlacementOptions['type']
     placementDirection: PlacementGroupOptions['direction']
-    tubesWithoutParentContainer: TubesWithoutParentContainerState | undefined
+    tubesWithoutParentContainer: TubesWithoutParentContainerState
     realParentContainers: Record<ContainerName, RealParentContainerState | undefined>
     samples: Record<SampleID, SampleState>
     error?: string
