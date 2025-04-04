@@ -5,7 +5,7 @@ export interface PlacementState {
     placementDirection: PlacementGroupOptions['direction']
     tubesWithoutParentContainer: TubesWithoutParentContainerState
     realParentContainers: Record<ContainerName, RealParentContainerState | undefined>
-    samples: Record<SampleID, SampleState>
+    samples: Record<SampleID, SampleState | undefined>
     error?: string
 }
 
