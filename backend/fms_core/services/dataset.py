@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from typing import List, Tuple, Union, TypedDict, NotRequired
 
 from fms_core.models.experiment_run import ExperimentRun
+from fms_core.models.project import Project
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
@@ -15,25 +16,21 @@ from fms_core.services.readset import create_readset
 from fms_core.services.metric import create_metrics_from_run_validation_data
 from fms_core.services.archived_comment import create_archived_comment_for_model, AUTOMATED_COMMENT_DATASET_VALIDATED, AUTOMATED_COMMENT_DATASET_NEW_DATA, AUTOMATED_COMMENT_DATASET_RESET
 
-def create_dataset(external_project_id: str,
-                   run_name: str,
+def create_dataset(project_id: int,
+                   experiment_run_id: int,
                    lane: int,
-                   project_name: str,
-                   experiment_run_id: int = None,
                    metric_report_url: str = None,
                    replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
-    Create a new dataset and return it. If an dataset exists already with the same natural key (external_project_id, run_name and lane),
+    Create a new dataset and return it. If an dataset exists already with the same natural key (project_id, experiment_run_id and lane),
     two options exist.
     Option replace (replace=True): the existing dataset is returned, but the connected datasetfiles are deleted (in order to recreate them). 
     Option ignore (replace=False): the existing dataset is returned.
 
     Args:
-        `external_project_id`: Project id from the external system that generate projects.
-        `run_name`: Name or id of the experiment run.
+        `project_id`: Project id from Freezeman.
+        `experiment_run_id`: Experiment run ID.
         `lane`: Lane (coordinate) on the experiment container.
-        `project_name`: Human readable name of the project.
-        `experiment_run_id`: Experiment run ID, None if not recorded on Freezeman.
         `metric_report_url`: Run processing report URL.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
 
@@ -50,25 +47,20 @@ def create_dataset(external_project_id: str,
 
     try:
         kwargs = dict(
-            external_project_id=external_project_id,
-            run_name=run_name,
+            project_id=project_id,
+            experiment_run_id=experiment_run_id,
             lane=lane,
         )
-        dataset, created = Dataset.objects.get_or_create(**kwargs,
-                                                         defaults={"project_name": project_name,
-                                                                   "experiment_run_id": experiment_run_id,
-                                                                   "metric_report_url": metric_report_url})
+        dataset, created = Dataset.objects.get_or_create(**kwargs, defaults={"metric_report_url": metric_report_url})
         if not created and replace:  # There is already a dataset with this signature but we replace it's content.
             reset_error, _ = reset_dataset_content(dataset)
             errors.extend(reset_error)
             # update optional content
-            dataset.project_name = project_name
-            dataset.experiment_run_id = experiment_run_id
             dataset.metric_report_url = metric_report_url
             dataset.save()
         elif not created:  # There is already a dataset with this signature and it is not expected
-            errors.append(f"There is already a dataset with external_project_id {kwargs['external_project_id']}, "
-                          f"run_name {kwargs['run_name']} and lane {kwargs['lane']}.")
+            errors.append(f"There is already a dataset with project_id {kwargs['project_id']}, "
+                          f"experiment_run_id {kwargs['experiment_run_id']} and lane {kwargs['lane']}.")
         else:
             create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_NEW_DATA())
     except ValidationError as e:
@@ -264,57 +256,61 @@ def ingest_run_validation_report(report_json):
         try:
             run_obj = ExperimentRun.objects.get(id=experiment_run_id)
         except ExperimentRun.DoesNotExist as err:
-            errors.append("Submitted run id does not exist.")
+            errors.append(f"Submitted run id {experiment_run_id} does not exist.")
         if run_obj is not None:
             run_obj.external_name = run_name
-            run_name = run_obj.name
             try:
                 run_obj.save()
             except Exception as err:
                 errors.append("Failed to save the run external name.")
-    metric_report_url = report_json["metrics_report_url"]
-    for readset_name, readset in report_json["readsets"].items():
-        project_name = readset["project_name"]
-        external_project_id = readset["external_project_id"]
-        dataset_key = (external_project_id, run_name, lane)
-        if dataset_key not in datasets:
-            dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
-                                                       run_name=run_name,
-                                                       lane=lane,
-                                                       project_name=project_name,
-                                                       experiment_run_id=experiment_run_id,
-                                                       metric_report_url=metric_report_url,
-                                                       replace=True)
-            if errors:
+        metric_report_url = report_json["metrics_report_url"]
+        for readset_name, readset in report_json["readsets"].items():
+            project_id = int(readset["project_obj_id"])
+            try:
+                Project.objects.get(id=project_id)
+            except Project.DoesNotExist as err:
+                errors.append(f"Submitted project id {project_id} does not exist.")
                 return (datasets, dataset_files, errors, warnings)
+            
+            dataset_key = (project_id, experiment_run_id, lane)
+            if dataset_key not in datasets:
+                dataset, errors, warnings = create_dataset(project_id=project_id,
+                                                           experiment_run_id=experiment_run_id,
+                                                           lane=lane,
+                                                           metric_report_url=metric_report_url,
+                                                           replace=True)
+                if errors:
+                    return (datasets, dataset_files, errors, warnings)
+                else:
+                    datasets[dataset_key] = dataset
             else:
-                datasets[dataset_key] = dataset
-        else:
-            dataset = datasets[dataset_key]
+                dataset = datasets[dataset_key]
 
-        sample_name = readset["sample_name"]
-        derived_sample_id = readset.get("derived_sample_obj_id", None)
-        readset_obj, errors, warnings = create_readset(dataset, readset_name, sample_name, derived_sample_id)
-        readset_by_name[readset_name] = readset_obj
-        for key in readset:
-            if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
-                file: DatasetFileReport = readset[key]
-                if file.get('final_path') is not None and file.get('size') is not None:
-                    dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
-                                                                               file_path=file['final_path'], size=file['size'])
-                    errors.extend(newerrors)
-                    warnings.extend(newwarnings)
+            sample_name = readset["sample_name"]
+            derived_sample_id = readset.get("derived_sample_obj_id", None)
+            readset_obj, errors, warnings = create_readset(dataset, readset_name, sample_name, derived_sample_id)
+            readset_by_name[readset_name] = readset_obj
+            for key in readset:
+                if key in ACCEPTED_DATASET_FILE_TYPES and readset[key]:
+                    file: DatasetFileReport = readset[key]
+                    if file.get('final_path') is not None and file.get('size') is not None:
+                        dataset_file, newerrors, newwarnings = create_dataset_file(readset=readset_obj,
+                                                                                  file_path=file['final_path'], size=file['size'])
+                        errors.extend(newerrors)
+                        warnings.extend(newwarnings)
 
-                    if errors:
-                        return (datasets, dataset_files, errors, warnings)
-                    else:
-                        dataset_files.append(dataset_file)
+                        if errors:
+                            return (datasets, dataset_files, errors, warnings)
+                        else:
+                            dataset_files.append(dataset_file)
 
-    for run_validation in report_json["run_validation"]:
-        readset_obj = readset_by_name[run_validation["sample"]]
-        _, newerrors, newwarnings = create_metrics_from_run_validation_data(readset=readset_obj,
-                                                                            run_validation_data=run_validation)
-        errors.extend(newerrors)
-        warnings.extend(newwarnings)
+        for run_validation in report_json["run_validation"]:
+            readset_obj = readset_by_name[run_validation["sample"]]
+            _, newerrors, newwarnings = create_metrics_from_run_validation_data(readset=readset_obj,
+                                                                                run_validation_data=run_validation)
+            errors.extend(newerrors)
+            warnings.extend(newwarnings)
+    else:
+        errors.append("Experiment run ID missing.")
 
     return (datasets, dataset_files, errors, warnings)
