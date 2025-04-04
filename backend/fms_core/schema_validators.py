@@ -107,7 +107,7 @@ RUN_PROCESSING_SCHEMA = {
     "properties": {
         "run": {"type": "string"},
         "lane": {"type": "string", "pattern": str(r"^([1-9][0-9]*|0)$")},
-        "run_obj_id": {"type": ["null", "number"]},
+        "run_obj_id": {"type": "number"},
         "metrics_report_url": {"type": "string"},
         "readsets": {
             "type": "object",
@@ -115,12 +115,13 @@ RUN_PROCESSING_SCHEMA = {
                 "^.*$": {
                     "type": "object",
                     "properties": {
+                        "project_obj_id": {"type": "string"},
                         "external_project_id": {"type": "string"},
                         "project_name": {"type": "string"},
                         "sample_name": {"type": "string"},
                         "derived_sample_id": {"type": ["null", "number"]},
                     },
-                    "required": ["sample_name", "external_project_id", "project_name"]
+                    "required": ["project_obj_id", "sample_name", "external_project_id", "project_name"]
                 },
             },
         },
@@ -178,7 +179,7 @@ RUN_PROCESSING_SCHEMA = {
             "minItems": 1,
         }
     },
-    "required": ["run", "lane", "metrics_report_url", "readsets", "run_validation"],
+    "required": ["run_obj_id", "run", "lane", "metrics_report_url", "readsets", "run_validation"],
 }
 
 RUN_PROCESSING_VALIDATOR = JsonSchemaValidator(RUN_PROCESSING_SCHEMA, formats=["date-time"])
