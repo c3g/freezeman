@@ -58,6 +58,6 @@ export type SampleID = number
 export type Coordinates = string
 
 export interface RealParentContainerIdentifier { name: ContainerName }
-export interface TubesWithoutParentContainerIdentifier { name: undefined }
+export interface TubesWithoutParentContainerIdentifier { name: null }
 export interface SampleIdentifier { id: SampleID }
 export interface CellIdentifier { fromContainer: RealParentContainerIdentifier, coordinates: Coordinates }
