@@ -2,7 +2,6 @@ import { merge } from "object-path-immutable";
 
 import { map } from "rambda";
 import { createFilterActionTypes } from "../../models/filter_set_actions";
-import { reduceClearFilters, reduceSetFilter, reduceSetFilterOptions } from "../../models/paged_items_reducers";
 import { createNetworkActionTypes } from "../../utils/actions";
 import mergeArray from "../../utils/mergeArray";
 import { indexByID } from "../../utils/objects";

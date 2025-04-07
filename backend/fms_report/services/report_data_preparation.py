@@ -51,8 +51,8 @@ def prepare_production_report_data(log):
     queryset = queryset.select_related("dataset__experiment_run__id")
     queryset = queryset.select_related("dataset__experiment_run__instrument__type__type")
     queryset = queryset.select_related("dataset__experiment_run__container__kind")
-    queryset = queryset.select_related("dataset__external_project_id")
-    queryset = queryset.select_related("dataset__project_name")
+    queryset = queryset.select_related("dataset__project__external_id")
+    queryset = queryset.select_related("dataset__project__name")
 
     # Derived sample based information
     queryset = queryset.select_related("derived_sample__biosample__id")
@@ -101,8 +101,8 @@ def prepare_production_report_data(log):
                                                                "dataset__lane",
                                                                "dataset__experiment_run__start_date",
                                                                "dataset__experiment_run__instrument__type__type",
-                                                               "dataset__external_project_id",
-                                                               "dataset__project_name",
+                                                               "dataset__project__external_id",
+                                                               "dataset__project__name",
                                                                "reads",
                                                                "bases")
     except Exception as exec_err:
@@ -126,8 +126,8 @@ def prepare_production_report_data(log):
                                           biosample_id=readset_data["derived_sample__biosample__id"],
                                           library_type=readset_data["derived_sample__library__library_type__name"],
                                           library_selection=readset_data["derived_sample__library__library_selection__target"],
-                                          project=readset_data["dataset__project_name"],
-                                          project_external_id=readset_data["dataset__external_project_id"],
+                                          project=readset_data["dataset__project__name"],
+                                          project_external_id=readset_data["dataset__project__external_id"],
                                           principal_investigator=investigator_by_external_id.get(readset_data["dataset__external_project_id"], None),
                                           taxon=readset_data["derived_sample__biosample__individual__taxon__name"],
                                           technology=readset_data["dataset__experiment_run__instrument__type__type"],
