@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from django.utils import timezone
 
-from fms_core.models import Readset, Dataset, Container, Platform, Instrument, InstrumentType, Protocol, Process, RunType, ExperimentRun, SampleKind
+from fms_core.models import Readset, Dataset, Container, Platform, Instrument, InstrumentType, Protocol, Process, RunType, ExperimentRun, SampleKind, Project
 from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
 from fms_report.models import ProductionData
 
@@ -11,9 +11,6 @@ from fms_core.tests.constants import create_container, create_fullsample
 
 class ProductionDataTest(TestCase):
     def setUp(self):
-        self.dataset = Dataset.objects.create(external_project_id="P000001", run_name="run", lane=1, project_name="test")
-        self.readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=self.dataset)
-
         self.today = timezone.now().date()
 
         self.start_date = "2021-06-22"
@@ -48,12 +45,17 @@ class ProductionDataTest(TestCase):
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
         self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
 
+        self.project = Project.objects.create(name="MY_NAME_IS_PROJECT", external_id="P031553", principal_investigator="MrPotato")
+
         self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
                                                            run_type=self.run_type,
                                                            container=self.container,
                                                            instrument=self.instrument,
                                                            process=self.process,
                                                            start_date=self.start_date)
+
+        self.dataset = Dataset.objects.create(project=self.project, experiment_run=self.experiment_run, lane=1)
+        self.readset = Readset.objects.create(name="My_Readset", sample_name="My", dataset=self.dataset)
 
 
     def test_production_data(self):
@@ -73,9 +75,9 @@ class ProductionDataTest(TestCase):
                                              biosample=library.biosample,
                                              library_type="PCR-free",
                                              library_selection=None,
-                                             project="Test",
-                                             project_external_id="P000013",
-                                             principal_investigator="MrPotato",
+                                             project=self.project.name,
+                                             project_external_id=self.project.external_id,
+                                             principal_investigator=self.project.principal_investigator,
                                              taxon="E.T.",
                                              technology="SeqEnhancer",
                                              reads=10,
@@ -96,9 +98,9 @@ class ProductionDataTest(TestCase):
         self.assertEqual(data.biosample, library.biosample)
         self.assertEqual(data.library_type, "PCR-free")
         self.assertIsNone(data.library_selection)
-        self.assertEqual(data.project, "Test")
-        self.assertEqual(data.project_external_id, "P000013")
-        self.assertEqual(data.principal_investigator, "MrPotato")
+        self.assertEqual(data.project, self.project.name)
+        self.assertEqual(data.project_external_id, self.project.external_id)
+        self.assertEqual(data.principal_investigator, self.project.principal_investigator)
         self.assertEqual(data.taxon, "E.T.")
         self.assertEqual(data.technology, "SeqEnhancer")
         self.assertEqual(data.reads, 10)
