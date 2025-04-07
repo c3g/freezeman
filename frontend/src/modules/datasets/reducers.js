@@ -3,7 +3,6 @@ import {map} from "rambda"
 
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
-import {resetTable} from "../../utils/reducers";
 
 import DATASETS from "./actions";
 

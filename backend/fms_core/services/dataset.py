@@ -139,12 +139,12 @@ def create_dataset_file(readset: Readset,
 
     return dataset_file, errors, warnings
 
-def set_experiment_run_lane_validation_status(run_name: str, lane: int, validation_status: ValidationStatus, validated_by: User):
+def set_experiment_run_lane_validation_status(experiment_run_id: int, lane: int, validation_status: ValidationStatus, validated_by: User):
     """
     Set validation_status for readsets of the given run and lane.
 
     Args:
-        `run_name`: The unique experiment run name.
+        `experiment_run_id`: Freezeman Run ID.
         `lane`: The integer that describe the lane being validated.
         `validation_status`: The validation status of the readset (choices : Available - 0 (default), Passed - 1, Failed - 2).
         `validated_by`: The user that set the validation status of the readset.
@@ -158,8 +158,8 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
 
     timestamp = timezone.now()
 
-    if not run_name:
-        errors.append(f"Missing run name.")
+    if not experiment_run_id:
+        errors.append(f"Missing run id.")
     if not lane:
         errors.append(f"Missing lane.")
     if validation_status not in [value for value, _ in ValidationStatus.choices]:
@@ -168,7 +168,7 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
         errors.append(f"Missing validated_by.")
 
     if not errors:
-        for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
+        for dataset in Dataset.objects.filter(experiment_run_id=experiment_run_id, lane=lane): # May be more than one dataset due to projects
             for readset in Readset.objects.filter(dataset=dataset).all():
                 readset.validation_status = validation_status
                 if validation_status == ValidationStatus.AVAILABLE:
@@ -185,12 +185,12 @@ def set_experiment_run_lane_validation_status(run_name: str, lane: int, validati
 
     return count_status, errors, warnings
 
-def get_experiment_run_lane_validation_status(run_name: str, lane: int):
+def get_experiment_run_lane_validation_status(experiment_run_id: int, lane: int):
     """
     Get validation_status for dataset_files of the given run and lane. All files are assumed to share the same status.
 
     Args:
-        `run_name`: The unique experiment run name.
+        `experiment_run_id`: Freezeman run id.
         `lane`: The integer that describe the lane.
     
     Returns:
@@ -200,15 +200,15 @@ def get_experiment_run_lane_validation_status(run_name: str, lane: int):
     errors = []
     warnings = []
 
-    if not run_name:
-        errors.append(f"Missing run name.")
+    if not experiment_run_id:
+        errors.append(f"Missing run id.")
     if not lane:
         errors.append(f"Missing lane.")
 
-    if not errors and Readset.objects.filter(dataset__run_name=run_name, dataset__lane=lane).exists():
-        validation_status = Readset.objects.filter(dataset__run_name=run_name, dataset__lane=lane).first().validation_status
+    if not errors and Readset.objects.filter(dataset__experiment_run_id=experiment_run_id, dataset__lane=lane).exists():
+        validation_status = Readset.objects.filter(dataset__experiment_run_id=experiment_run_id, dataset__lane=lane).first().validation_status
     else:
-        errors.append(f"No dataset file found matching the requested run name ({run_name}) and lane ({str(lane)}).")
+        errors.append(f"No dataset file found matching the requested run id ({str(experiment_run_id)}) and lane ({str(lane)}).")
 
     return validation_status, errors, warnings
 

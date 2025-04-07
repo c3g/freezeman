@@ -1,5 +1,5 @@
 import { AnyAction } from "redux"
-import { ExperimentRunLanes, ExperimentRunLanesState, ExperimentRunLanesUX, LaneInfo } from "./models"
+import { ExperimentRunLanes, ExperimentRunLanesState, ExperimentRunLanesUX } from "./models"
 import produce, { Draft } from "immer"
 
 export const SET_EXPERIMENT_LANES = 'EXPERIMENT_RUN_LANES:SET_EXPERIMENT_LANES'
@@ -29,13 +29,13 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 		case SET_EXPERIMENT_LANES: {
 			const lanes : ExperimentRunLanes = action.lanes
 			lanes.lanes.sort((a, b) => a.laneNumber - b.laneNumber)
-			state.runs[lanes.experimentRunName] = lanes
+			state.runs[lanes.experimentRunId] = lanes
 			break
 		}
 
 		case SET_READS_PER_SAMPLE: {
-			const { experimentRunName, lane, readsPerSample } = action
-			const experimentRunLanes = state.runs[experimentRunName] as ExperimentRunLanes
+			const { experimentRunId, lane, readsPerSample } = action
+			const experimentRunLanes = state.runs[experimentRunId] as ExperimentRunLanes
 			if (experimentRunLanes) {
 				const readsLane = experimentRunLanes.lanes.find(x => x.laneNumber === lane)
 				if (readsLane) {
@@ -46,8 +46,8 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 		}
 
 		case SET_LANE_VALIDATION_STATUS: {
-			const { experimentRunName, laneNumber, status} = action
-			const experimentRunLanes = state.runs[experimentRunName] as ExperimentRunLanes
+			const { experimentRunId, laneNumber, status} = action
+			const experimentRunLanes = state.runs[experimentRunId] as ExperimentRunLanes
 			if (experimentRunLanes) {
 				const lane = experimentRunLanes.lanes.find(x => x.laneNumber === laneNumber)
 				if (lane) {
@@ -58,8 +58,8 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
 		}
 
     case SET_LANE_VALIDATION_TIME: {
-      const { experimentRunName, laneNumber, validationTime} = action
-      const experimentRunLanes = state.runs[experimentRunName] as ExperimentRunLanes
+      const { experimentRunId, laneNumber, validationTime} = action
+      const experimentRunLanes = state.runs[experimentRunId] as ExperimentRunLanes
       if (experimentRunLanes) {
         const lane = experimentRunLanes.lanes.find(x => x.laneNumber === laneNumber)
         if (lane) {
@@ -70,23 +70,23 @@ function reducers(state: Draft<ExperimentRunLanesState>, action: AnyAction): Exp
     }
 
 		case FLUSH_EXPERIMENT_LANES: {
-			const { experimentRunName } = action
-			delete state.runs[experimentRunName]
+			const { experimentRunId } = action
+			delete state.runs[experimentRunId]
 			break
 		}
 
 		case SET_EXPANDED_LANES: {
 			// Update the expansion state of the lanes, given the list of currently expanded lanes
-			const { experimentRunName, expandedLaneNumbers } = action
-			let experimentLanesUX = state.ux[experimentRunName] as ExperimentRunLanesUX
+			const { experimentRunId, expandedLaneNumbers } = action
+			let experimentLanesUX = state.ux[experimentRunId] as ExperimentRunLanesUX
 			if (!experimentLanesUX) {
 				experimentLanesUX = {
-					experimentRunName: experimentRunName,
+					experimentRunId,
 					expandedLanes: []
 				}
 			}
 			experimentLanesUX.expandedLanes = expandedLaneNumbers
-			state.ux[experimentRunName] = experimentLanesUX
+			state.ux[experimentRunId] = experimentLanesUX
 			break 
 		}
 	}

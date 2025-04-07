@@ -2,7 +2,7 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {READSET_FILTERS, DATASET_FILTERS} from "../../components/filters/descriptions";
+import {DATASET_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET                   = createNetworkActionTypes("DATASETS.GET");
