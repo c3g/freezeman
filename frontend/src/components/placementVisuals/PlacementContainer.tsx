@@ -15,36 +15,36 @@ interface PlacementContainerProps {
 const PlacementContainer = ({ container: containerName }: PlacementContainerProps) => {
     const dispatch = useAppDispatch()
     const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
-    const [axisRow = [] as const, axisColumn = [] as const] = container?.spec ?? [[], []] as const
+    const [axisRow = [] as const, axisColumn = [] as const] = container.spec ?? [[], []] as const
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length
 
     const selectColumn = useCallback((column: number) => {
         return () => containerName && dispatch(multiSelect({
-            parentContainer: containerName,
+            parentContainer: { name: containerName},
             type: 'column',
             column,
             context: {
-                source: selectActiveSourceContainer(store.getState())?.name
+                source: selectActiveSourceContainer(store.getState())
             }
         }))
     }, [containerName, dispatch])
     const selectRow = useCallback((row: number) => {
         return () => containerName && dispatch(multiSelect({
-            parentContainer: containerName,
+            parentContainer: { name: containerName },
             type: 'row',
             row,
             context: {
-                source: selectActiveSourceContainer(store.getState())?.name
+                source: selectActiveSourceContainer(store.getState())
             }
         }))
     }, [containerName, dispatch])
     const selectAll = useCallback(() => {
         dispatch(multiSelect({
-            parentContainer: containerName,
+            parentContainer: { name: containerName },
             type: 'all',
             context: {
-                source: selectActiveSourceContainer(store.getState())?.name
+                source: selectActiveSourceContainer(store.getState())
             }
         }))
     }, [containerName, dispatch])

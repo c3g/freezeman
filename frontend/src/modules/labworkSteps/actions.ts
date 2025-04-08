@@ -523,7 +523,7 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 	}
 }
 
-export function fetchSamplesheet (activeDestinationContainer: LabworkStepPlacementParentContainer, cells: CellWithParentState[]){
+export function fetchSamplesheet (activeDestinationContainer: LabworkStepPlacementParentContainer){
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
     type PlacementData = {
         coordinates: string,

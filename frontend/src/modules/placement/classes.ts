@@ -547,6 +547,10 @@ export class TubesWithoutParentClass extends PlacementObject {
     get name() {
         return null
     }
+
+    get spec() {
+        return undefined
+    }
 }
 
 export class CellClass extends PlacementObject {
@@ -675,17 +679,17 @@ export class CellClass extends PlacementObject {
         }
     }
 
-    getSamples() {
+    getSamples(includeExistinSamples = true): SampleClass[] {
         return Object.keys(this.state.samples)
             .map(id => new SampleClass(this.context, { id: Number(id) }))
-    }
-    getSamplePlacements(includeExistingSamples = true): SamplePlacement[] {
-        return this.getSamples()
-            .map((sample) => ({ sample, cell: this }))
-            .filter(({ sample }) => includeExistingSamples
+            .filter((sample) => includeExistinSamples
                 ? true
                 : !sample.fromCell?.equals(this)
             )
+    }
+    getSamplePlacements(includeExistingSamples = true): SamplePlacement[] {
+        return this.getSamples(includeExistingSamples)
+            .map((sample) => ({ sample, cell: this }))
     }
     getSampleEntryState(sampleID: SampleIdentifier) {
         const entry = this.state.samples[sampleID.id]
@@ -768,6 +772,23 @@ export class SampleClass extends PlacementObject {
     }
     get fromCell() {
         return this.state.fromCell ? new CellClass(this.context, this.state.fromCell) : null
+    }
+    get placedAt(): Record<number, CellClass | undefined> {
+        const proxy = new Proxy({}, {
+            get: (target, prop: string) => {
+                const index = parseInt(prop)
+                if (index < this.state.placedAt.length) {
+                    const cell = this.state.placedAt[index]
+                    return new CellClass(this.context, cell)
+                }
+                return undefined
+            },
+            ownKeys: () => {
+                // return the keys of the placedAt array
+                return Reflect.ownKeys(this.state.placedAt)
+            }
+        }) as Record<number, CellClass>
+        return proxy
     }
 }
 

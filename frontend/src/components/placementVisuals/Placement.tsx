@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch} from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -12,7 +12,6 @@ import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/la
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { batch } from "react-redux"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { selectContainer} from "../../modules/placement/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
@@ -36,20 +35,11 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
     const step = useAppSelector((state) => selectStepsByID(state)[stepID])
     const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
-    const cells = useAppSelector((state) =>  activeDestinationContainer?.name !== undefined ? selectContainer(state)({ name: activeDestinationContainer.name })?.cells : undefined)
 
     const handleGetSamplesheet = useCallback(async () => {
-      await dispatch(fetchSamplesheet(activeDestinationContainer, cells))
-    }, [dispatch, activeDestinationContainer, cells])
-
-    const isPlacementComplete = useMemo(() => {
-      if (!activeDestinationContainer) return false
-      if (!cells) return false
-      const [Rows = [] as const, Columns = [] as const] = activeDestinationContainer.spec
-      const containerSize = Rows.length * Columns.length
-      const placedCells = cells.reduce((acc, cur) => {return cur.placedFrom ? ++acc : acc}, 0)
-      return placedCells === containerSize
-    }, [activeDestinationContainer, cells])
+        if (!activeDestinationContainer) return
+        await dispatch(fetchSamplesheet(activeDestinationContainer))
+    }, [dispatch, activeDestinationContainer])
 
     const loadedContainers: AddPlacementContainerProps['existingContainers'] = useMemo(() => {
         return [
@@ -78,7 +68,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const changeSourceContainer = useCallback((direction: number) => {
         const currentIndex = sourceContainers.findIndex((x) => x.name === activeSourceContainer?.name)
-	const newIndex = currentIndex + direction
+        const newIndex = currentIndex + direction
         if (currentIndex < 0 || newIndex < 0 || newIndex >= sourceContainers.length) {
             return
         }
@@ -87,7 +77,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const changeDestinationContainer = useCallback((direction: number) => {
         const currentIndex = destinationContainers.findIndex((x) => x.name === activeDestinationContainer?.name)
-	const newIndex = currentIndex + direction
+        const newIndex = currentIndex + direction
         if (currentIndex < 0 || newIndex < 0 || newIndex >= destinationContainers.length) {
             return
         }
@@ -97,7 +87,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {
             containerNames.sort()
-	    if (containerNames.length > 0)
+            if (containerNames.length > 0)
                 dispatch(setActiveSourceContainer(containerNames[0]))
         })
     }, [dispatch, sampleIDs, stepID])
@@ -144,33 +134,33 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const transferAllSamples = useCallback(() => {
         if (activeSourceContainer && activeDestinationContainer)
-            dispatch(placeAllSource({ source: activeSourceContainer.name, destination: activeDestinationContainer.name }))
+            dispatch(placeAllSource({ source: activeSourceContainer, destination: activeDestinationContainer }))
     }, [activeDestinationContainer, activeSourceContainer, dispatch])
 
     const clearSelection = useCallback(() => {
         batch(() => {
             for (const parentContainer of sourceContainers) {
                 dispatch(multiSelect({
-                    parentContainer: parentContainer.name,
+                    parentContainer: parentContainer,
                     type: 'all',
                     forcedSelectedValue: false,
                     context: {
-                        source: activeSourceContainer?.name
+                        source: activeSourceContainer
                     }
                 }))
             }
             for (const parentContainer of destinationContainers) {
                 dispatch(multiSelect({
-                    parentContainer: parentContainer.name,
+                    parentContainer: parentContainer,
                     type: 'all',
                     forcedSelectedValue: false,
                     context: {
-                        source: activeSourceContainer?.name
+                        source: activeSourceContainer
                     }
                 }))
             }
         })
-    }, [activeSourceContainer?.name, destinationContainers, dispatch, sourceContainers])
+    }, [activeSourceContainer, destinationContainers, dispatch, sourceContainers])
 
     const removeSelectedCells = useCallback(() => {
         if (activeDestinationContainer) {
@@ -188,7 +178,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         </Col>
                         {usesSamplesheet && <Col span={3} >
                             <Button
-                            onClick={handleGetSamplesheet}
+                                onClick={handleGetSamplesheet}
                             // disabled={!isPlacementComplete}
                             >
                                 Get Samplesheet
