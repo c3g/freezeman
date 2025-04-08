@@ -1,14 +1,14 @@
 import { CoordinateAxis } from "../../models/fms_api_models"
 import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
-import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState, TubesWithoutParentContainerIdentifier } from "./models"
+import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState, TubesWithoutParentContainerIdentifier, SampleEntry } from "./models"
 import { LoadContainerPayload } from "./reducers"
 
 export class PlacementContext {
     placementState: PlacementState
-    placementClass: PlacementClass
-
-    // these fields are not set by default
+    
+    // these fields are not set by default, they should be set ASAP
     _sourceContainer: RealParentContainerClass | TubesWithoutParentClass
+    placementClass: PlacementClass
 
     constructor(state: PlacementState) {
         this.placementState = state
@@ -43,7 +43,7 @@ export class PlacementObject {
 }
 
 export class PlacementClass extends PlacementObject {
-    constructor(state: PlacementState, sourceContainer?: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) {
+    constructor(state: PlacementState, sourceContainer: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier | undefined) {
         super(new PlacementContext(state))
         this.context.placementClass = this
         if (sourceContainer) {
@@ -53,8 +53,10 @@ export class PlacementClass extends PlacementObject {
 
     loadContainerPayload(payload: LoadContainerPayload) {
         if (payload.parentContainerName == null) {
+            // find existing tubes without parent container
             let tubesWithoutParent = this.placementState.tubesWithoutParentContainer
             if (!tubesWithoutParent) {
+                // create new tubes without parent container
                 tubesWithoutParent = this.placementState.tubesWithoutParentContainer = {
                     samples: {}
                 }
@@ -67,6 +69,7 @@ export class PlacementClass extends PlacementObject {
                 }
                 return acc
             }, [])
+            // prune out samples that are not in the payload
             for (const sample of oldExistingSamples) {
                 if (!payloadSampleIDs.has(sample.id)) {
                     for (const cellID of sample.placedAt) {
@@ -76,6 +79,7 @@ export class PlacementClass extends PlacementObject {
                     delete this.placementState.samples[sample.id]
                 }
             }
+            // add new or update existing samples
             for (const cell of payload.cells) {
                 const sampleID = cell.sample
                 const sample: SampleState = this.placementState.samples[sampleID] ?? {
@@ -87,15 +91,15 @@ export class PlacementClass extends PlacementObject {
                     placedAt: []
                 }
                 this.placementState.samples[sampleID] = sample
-                const cellSample = tubesWithoutParent.samples[sampleID] ?? {
-                    selected: false
+                const cellSample: SampleEntry = tubesWithoutParent.samples[sampleID] ?? {
+                    selected: false,
                 }
                 tubesWithoutParent.samples[sampleID] = cellSample
             }
-
-            return
         } else {
+            // find existing real parent container
             let container = this.placementState.realParentContainers[payload.parentContainerName]
+            // create new real parent container if it doesn't exist
             if (!container) {
                 const [ axisRow = [''], axisCol = [''] ] = payload.spec
                 const payloadCells: RealParentContainerState['cells'] = {}
@@ -124,6 +128,7 @@ export class PlacementClass extends PlacementObject {
                 }
                 return acc
             }, [])
+            // prune out samples that are not in the payload
             for (const sample of oldExistingSamples) {
                 if (!payloadSampleIDs.has(sample.id)) {
                     for (const cellPlacedAt of sample.placedAt) {
@@ -135,10 +140,11 @@ export class PlacementClass extends PlacementObject {
                     delete this.placementState.samples[sample.id]
                 }
             }
+            // add new or update existing samples
             for (const cell of payload.cells) {
                 const sampleID = cell.sample
                 const sample = this.placementState.samples[sampleID] ?? {
-                    containerName: payload.parentContainerName, // TODO: use the name of the tube if it's in a tube
+                    containerName: "TODO: use the name of the tube if it's in a tube",
                     id: sampleID,
                     name: cell.name,
                     projectName: cell.projectName,
@@ -149,8 +155,8 @@ export class PlacementClass extends PlacementObject {
                     placedAt: []
                 }
                 this.placementState.samples[sampleID] = sample
-                const cellSample = container.cells[cell.coordinates].samples[sampleID] ?? {
-                    selected: false
+                const cellSample: SampleEntry = container.cells[cell.coordinates].samples[sampleID] ?? {
+                    selected: false,
                 }
                 container.cells[cell.coordinates].samples[sampleID] = cellSample
             }
@@ -226,12 +232,7 @@ export class RealParentContainerClass extends PlacementObject {
             throw new Error(`Row ${row} is out of bounds for container ${this}`)
         }
 
-        const cells: CellClass[] = []
-        for (const col of axisCol) {
-            const coordinates = `${axisRow[row]}${col}`
-            cells.push(this.getCell({ coordinates }))
-        }
-
+        const cells = axisCol.map((col) => this.getCell({ coordinates: `${axisRow[row]}${col}` }))
         return cells
     }
     getCellsInCol(col: number): CellClass[] {
@@ -239,23 +240,18 @@ export class RealParentContainerClass extends PlacementObject {
         if (col >= axisCol.length) {
             throw new Error(`Column ${col} is out of bounds for container ${this}`)
         }
-
-        const cells: CellClass[] = []
-        for (const row of axisRow) {
-            const coordinates = `${row}${axisCol[col]}`
-            cells.push(this.getCell({ coordinates }))
-        }
-
+    
+        const cells = axisRow.map((row) => this.getCell({ coordinates: `${row}${axisCol[col]}` }))
         return cells
     }
 
     placeAllSamples(sourceContainer: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) {
         const samples: SampleClass[] = []
         if (sourceContainer.name) {
-            // source containers should have no new placements
-            samples.push(...new RealParentContainerClass(this.context, sourceContainer).getSortedPlacements(true).map((s) => s.sample))
+            // source containers should have no new placements, only existing samples
+            samples.push(...new RealParentContainerClass(this.context, sourceContainer).getSortedPlacements().map((s) => s.sample))
         } else {
-            samples.push(...new TubesWithoutParentClass(this.context).getSortedSamples(true))
+            samples.push(...new TubesWithoutParentClass(this.context).getSortedSamples())
         }
 
         const [axisRow = [''], axisCol = ['']] = this.spec
@@ -479,16 +475,16 @@ export class TubesWithoutParentClass extends PlacementObject {
     }
 
     isSampleSelected(sampleID: SampleIdentifier) {
-        return this.#getStateForSample(sampleID).selected
+        return this.#getSampleEntry(sampleID).selected
     }
     selectSample(sampleID: SampleIdentifier) {
         if (sampleID.id in this.state.samples) {
-            this.#getStateForSample(sampleID).selected = true
+            this.#getSampleEntry(sampleID).selected = true
         }
     }
     unSelectSample(sampleID: SampleIdentifier) {
         if (sampleID.id in this.state.samples) {
-            this.#getStateForSample(sampleID).selected = false
+            this.#getSampleEntry(sampleID).selected = false
         }
     }
     toggleSelections(...sampleIDs: SampleIdentifier[]) {
@@ -529,7 +525,7 @@ export class TubesWithoutParentClass extends PlacementObject {
         return `TubesWithoutParent()`
     }
 
-    #getStateForSample(sampleID: SampleIdentifier) {
+    #getSampleEntry(sampleID: SampleIdentifier) {
         const sample = this.state.samples[sampleID.id]
         if (!sample) {
             throw new Error(`Sample ${sampleID.id} not found in state`)

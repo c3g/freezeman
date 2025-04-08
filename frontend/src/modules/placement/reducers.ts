@@ -54,7 +54,7 @@ const slice = createSlice({
     initialState,
     reducers: {
         loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) =>
-            new PlacementClass(state).loadContainerPayload(payload)
+            new PlacementClass(state, undefined).loadContainerPayload(payload)
         ),
         setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
             state.placementType = action.payload
@@ -129,7 +129,7 @@ const slice = createSlice({
             new PlacementClass(state, payload.context.source).getCell(payload).exit()
         }),
         undoSelectedSamples: reducerWithThrows((state, parentContainer: Container['name']) => {
-            new PlacementClass(state).getRealParentContainer({ name: parentContainer }).getPlacements(true).forEach((p) => {
+            new PlacementClass(state, undefined).getRealParentContainer({ name: parentContainer }).getPlacements(true).forEach((p) => {
                 p.cell.unplaceSample(p.sample)
             })
         }),
@@ -141,7 +141,7 @@ const slice = createSlice({
                 return
             }
             const deletedContainerNames = new Set(action.payload)
-            const placement = new PlacementClass(state)
+            const placement = new PlacementClass(state, undefined)
             deletedContainerNames.forEach((c) => c.name ? placement.flushContainer(c) : placement.flushTubesWithoutParent())
         },
         flushPlacement(state) {
