@@ -58,11 +58,12 @@ def create_dataset(project_id: int,
             # update optional content
             dataset.metric_report_url = metric_report_url
             dataset.save()
+            create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_NEW_DATA()) # Set comment now for incomming data
         elif not created:  # There is already a dataset with this signature and it is not expected
             errors.append(f"There is already a dataset with project_id {kwargs['project_id']}, "
                           f"experiment_run_id {kwargs['experiment_run_id']} and lane {kwargs['lane']}.")
         else:
-            create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_NEW_DATA())
+            create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_NEW_DATA()) # Set comment now for incomming data
     except ValidationError as e:
         # the validation error messages should be readable
         errors.extend(e.messages)
