@@ -1,6 +1,6 @@
 import { CoordinateAxis } from "../../models/fms_api_models"
 import { compareArray, coordinatesToOffsets, offsetsToCoordinates } from "../../utils/functions"
-import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState, TubesWithoutParentContainerIdentifier, SampleEntry } from "./models"
+import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState, TubesWithoutParentContainerIdentifier, SampleEntry, ParentContainerIdentifier } from "./models"
 import { LoadContainerPayload } from "./reducers"
 
 export class PlacementContext {
@@ -14,7 +14,7 @@ export class PlacementContext {
         this.placementState = state
     }
 
-    setSourceContainer(containerID: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) {
+    setSourceContainer(containerID: ParentContainerIdentifier) {
         this._sourceContainer = containerID.name ? new RealParentContainerClass(this, containerID) : new TubesWithoutParentClass(this)
     }
 
@@ -43,7 +43,7 @@ export class PlacementObject {
 }
 
 export class PlacementClass extends PlacementObject {
-    constructor(state: PlacementState, sourceContainer: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier | undefined) {
+    constructor(state: PlacementState, sourceContainer: ParentContainerIdentifier | undefined) {
         super(new PlacementContext(state))
         this.context.placementClass = this
         if (sourceContainer) {
@@ -245,7 +245,7 @@ export class RealParentContainerClass extends PlacementObject {
         return cells
     }
 
-    placeAllSamples(sourceContainer: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) {
+    placeAllSamples(sourceContainer: ParentContainerIdentifier) {
         const samples: SampleClass[] = []
         if (sourceContainer.name) {
             // source containers should have no new placements, only existing samples
@@ -432,13 +432,13 @@ export class RealParentContainerClass extends PlacementObject {
     #resolveSamplePlacementIdentifier(placedSample: SamplePlacementIdentifier): SamplePlacement {
         const cell = this.getCell(placedSample.cell)
         const sample = new SampleClass(this.context, placedSample.sample)
-        return { sample, cell }
+        return new SamplePlacement(this.context, { sample, cell })
     }
 
     getPlacements(onlySelected = false): SamplePlacement[] {
         return Object.values(this.state.cells)
             .flatMap((cell) =>
-                Object.keys(cell.samples).map((id) => ({
+                Object.keys(cell.samples).map((id) => new SamplePlacement(this.context, {
                     sample: new SampleClass(this.context, { id: Number(id) }),
                     cell: new CellClass(this.context, cell)
                 }))
@@ -450,7 +450,7 @@ export class RealParentContainerClass extends PlacementObject {
         return this.getPlacements(onlySelected).sort((a, b) => this.compareSamples(a, b))
     }
 
-    equals(containerID: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) {
+    sameContainerAs(containerID: ParentContainerIdentifier) {
         return this.name === containerID.name
     }
 
@@ -569,7 +569,7 @@ export class CellClass extends PlacementObject {
         if (!this.context.sourceContainer) {
             throw new Error(`Source container is not set`)
         }
-        if (this.fromContainer.equals(this.context.sourceContainer)) {
+        if (this.fromContainer.sameContainerAs(this.context.sourceContainer)) {
             // toggle selection in source container branch
             const existingSample = this.findExistingSample()
             if (existingSample) {
@@ -613,7 +613,7 @@ export class CellClass extends PlacementObject {
         if (!this.context.sourceContainer) {
             throw new Error(`Source container is not set`)
         }
-        if (this.fromContainer.equals(this.context.sourceContainer)) {
+        if (this.fromContainer.sameContainerAs(this.context.sourceContainer)) {
             return
         }
         const samples: SampleClass[] = []
@@ -644,7 +644,7 @@ export class CellClass extends PlacementObject {
     }
     setSelection(sampleID: SampleIdentifier, selected: boolean) {
         const sample = this.placement.getSample(sampleID)
-        if (!this.fromContainer.equals(this.context.sourceContainer) && sample.fromCell && sample.fromCell.equals(this)) {
+        if (!this.fromContainer.sameContainerAs(this.context.sourceContainer) && sample.fromCell && sample.fromCell.sameCellAs(this)) {
             // don't do selection if the sample is already existing in the destination container
             this.getSampleEntryState(sampleID).selected = false
             return
@@ -668,7 +668,7 @@ export class CellClass extends PlacementObject {
         const sample = new SampleClass(this.context, sampleID)
 
         if (this.state.samples[sampleID.id]) {
-            if (sample.fromCell?.equals(this)) {
+            if (sample.fromCell?.sameCellAs(this)) {
                 throw new Error(`Sample ${sample} is an existing sample in this cell ${this}`)
             }
             delete this.state.samples[sampleID.id]
@@ -684,12 +684,12 @@ export class CellClass extends PlacementObject {
             .map(id => new SampleClass(this.context, { id: Number(id) }))
             .filter((sample) => includeExistinSamples
                 ? true
-                : !sample.fromCell?.equals(this)
+                : !sample.fromCell?.sameCellAs(this)
             )
     }
     getSamplePlacements(includeExistingSamples = true): SamplePlacement[] {
         return this.getSamples(includeExistingSamples)
-            .map((sample) => ({ sample, cell: this }))
+            .map((sample) => new SamplePlacement(this.context, { sample, cell: this }))
     }
     getSampleEntryState(sampleID: SampleIdentifier) {
         const entry = this.state.samples[sampleID.id]
@@ -700,10 +700,10 @@ export class CellClass extends PlacementObject {
     }
 
     findExistingSample() {
-        return this.getSamples().find((sample) => sample.fromCell && sample.fromCell.equals(this))
+        return this.getSamples().find((sample) => sample.fromCell && sample.fromCell.sameCellAs(this))
     }
 
-    sameParentContainer(cellID: CellIdentifier) {
+    sameParentContainerAs(cellID: Pick<CellIdentifier, 'fromContainer'>) {
         return this.fromContainer.name === cellID.fromContainer.name
     }
 
@@ -715,7 +715,11 @@ export class CellClass extends PlacementObject {
         return this.state.coordinates
     }
 
-    equals(cellID: CellIdentifier) {
+    get preview() {
+        return this.state.preview
+    }
+
+    sameCellAs(cellID: CellIdentifier) {
         return this.state.fromContainer.name === cellID.fromContainer.name &&
             this.state.coordinates === cellID.coordinates
     }
@@ -742,7 +746,7 @@ export class SampleClass extends PlacementObject {
         }
     }
     unplaceAtCell(cellID: CellIdentifier, twoWayPlacement = true) {
-        if (this.fromCell?.equals(cellID)) {
+        if (this.fromCell?.sameCellAs(cellID)) {
             throw new Error(`Sample ${this} is an existing sample in this cell ${new CellClass(this.context, cellID)}`)
         }
         const index = this.state.placedAt.findIndex(cell => cell.coordinates === cellID.coordinates)
@@ -756,6 +760,10 @@ export class SampleClass extends PlacementObject {
 
     toString() {
         return `Sample(id=${this.id}, name=${this.name}, container=${this.fromCell?.fromContainer ?? new TubesWithoutParentClass(this.context)}, cell=${this.fromCell})`
+    }
+
+    sameSampleAs(sampleID: SampleIdentifier) {
+        return this.state.id === sampleID.id
     }
 
     get id() {
@@ -792,5 +800,18 @@ export class SampleClass extends PlacementObject {
     }
 }
 
-export interface SamplePlacement { sample: SampleClass, cell: CellClass }
-export interface SamplePlacementIdentifier { sample: SampleIdentifier, cell: Pick<CellIdentifier, 'coordinates'> }
+export class SamplePlacement extends PlacementObject {
+    sample: SampleClass
+    cell: CellClass
+
+    constructor(context: PlacementContext, { sample, cell }: SamplePlacementIdentifier) {
+        super(context)
+        this.sample = new SampleClass(context, sample)
+        this.cell = new CellClass(context, cell)
+    }
+
+    get selected() {
+        return this.cell.isSampleSelected(this.sample)
+    }
+}
+export interface SamplePlacementIdentifier { sample: SampleIdentifier, cell: CellIdentifier }

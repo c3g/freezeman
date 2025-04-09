@@ -1,19 +1,19 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Container, Sample } from "../../models/frontend_models"
 import { CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
+import { CellIdentifier, ParentContainerIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
 import { PlacementClass, SamplePlacementIdentifier } from "./classes"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellIdentifier {
     context: {
-        source: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
+        source: ParentContainerIdentifier
     }
 }
 export type MultiSelectPayload = {
     forcedSelectedValue?: boolean
     context: {
-        source?: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
+        source?: ParentContainerIdentifier
     }
 } & ({
     parentContainer: RealParentContainerIdentifier
@@ -24,7 +24,7 @@ export type MultiSelectPayload = {
     type: 'column'
     column: number
 } | {
-    parentContainer: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
+    parentContainer: ParentContainerIdentifier
     type: 'all'
 } | {
     parentContainer: RealParentContainerIdentifier
@@ -36,7 +36,7 @@ export type MultiSelectPayload = {
     samples: Array<SampleIdentifier>
 })
 export interface PlaceAllSourcePayload {
-    source: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
+    source: ParentContainerIdentifier
     destination: RealParentContainerIdentifier
 }
 
@@ -133,7 +133,7 @@ const slice = createSlice({
                 p.cell.unplaceSample(p.sample)
             })
         }),
-        flushContainers(state, action: PayloadAction<Array<RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier> | null>) {
+        flushContainers(state, action: PayloadAction<Array<ParentContainerIdentifier> | null>) {
             if (action.payload === null) {
                 state.realParentContainers = {}
                 state.tubesWithoutParentContainer.samples = {}

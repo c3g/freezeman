@@ -29,7 +29,7 @@ interface PlacementSample {
 const PlacementSamplesTable = ({ container: containerName, showContainerColumn }: PlacementSamplesTableProps) => {
     const dispatch = useAppDispatch()
     // TODO: use sorted selected items instead when the field is defined in the labwork-refactor
-    const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
+    const container = useAppSelector((state) => selectContainer(state)({ name: containerName }).)
     const samplesByID = useAppSelector(selectSamplesByID)
     const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
     const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
@@ -40,7 +40,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
     useEffect(() => {
         const missingSamples: FMSId[] = []
         const samples = container
-            ? container.cells.reduce<PlacementSample[]>(
+            ? container.reduce<PlacementSample[]>(
                 (samples, cell) => {
                     // don't show cells that are not loaded or already placed
                     if (!cell || cell.placedAt) return samples

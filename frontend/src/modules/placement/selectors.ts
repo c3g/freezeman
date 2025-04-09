@@ -1,10 +1,10 @@
 import { RootState } from "../../store";
 import { PlacementClass } from "./classes";
-import { CellIdentifier, PlacementState, RealParentContainerIdentifier, TubesWithoutParentContainerIdentifier } from "./models";
+import { CellIdentifier, ParentContainerIdentifier, PlacementState } from "./models";
 
 export const selectPlacementState = (state: RootState) => state.placement
 export const selectContainer = selectorWrapper((placement) => {
-    return (containerID: RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier) => {
+    return (containerID: ParentContainerIdentifier) => {
         if (containerID.name === null) {
             return new PlacementClass(placement, containerID).getTubesWithoutParent()
         } else {

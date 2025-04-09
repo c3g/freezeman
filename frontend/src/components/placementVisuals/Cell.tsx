@@ -5,9 +5,10 @@ import { clickCell, onCellEnter, onCellExit } from "../../modules/placement/redu
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Popover } from "antd"
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
-import { selectCell } from "../../modules/placement/selectors"
+import { selectCell, selectPlacementState } from "../../modules/placement/selectors"
 import { RootState } from "../../store"
-import { CellState } from "../../modules/placement/models"
+import { CellIdentifier, ParentContainerIdentifier } from "../../modules/placement/models"
+import { PlacementClass } from "../../modules/placement/classes"
 
 export interface CellProps {
     container: string
@@ -55,7 +56,6 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
         return activeDestinationContainer?.name === fromContainer.name
     })
     const [popOverOpen, setPopOverOpen] = useState(false)
-    const thereIsError = !!useAppSelector((state) => state.placement.error)
 
     const onClick = useCallback(() => {
         if (!activeSourceContainer) return
@@ -93,6 +93,8 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     }, [activeSourceContainer, dispatch, fromContainer, coordinates])
 
 
+    const cellColor = useAppSelector((state) => selectCellColor(state, { fromContainer, coordinates }, activeSourceContainer))
+
     return (
         <Popover
             content={<>
@@ -110,32 +112,32 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                style={{ backgroundColor: getColor(cell, isSource, isDestination, thereIsError) }}
+                style={{ backgroundColor: cellColor }}
             />
         </Popover>
     )
 }
+export default Cell
 
-function getColor(cell: CellState, isSource: boolean, isDestination: boolean, thereIsError: boolean) {
-    if (cell.selected) {
-        return "#86ebc1"
-    }
-    if (cell.preview) {
-        return cell.sample || cell.placedFrom || thereIsError ? "pink" : "#74bbfc"
-    }
+function selectCellColor(state: RootState, cellID: CellIdentifier, sourceContainer?: ParentContainerIdentifier) {
+    if (!sourceContainer) return "white"
 
-    if (isSource && cell.sample) {
-        return cell.placedAt ? "grey" : "#1890ff"
-    }
+    const placementState = selectPlacementState(state)
+    const placement = new PlacementClass(placementState, undefined)
+    const cell = placement.getCell(cellID)
+    const placements = cell.getSamplePlacements(true)
+    const existingSample = cell.findExistingSample()
+    const selections = placements.filter((sample) => sample.selected)
 
-    if (isDestination && cell.sample) {
-        return "grey"
-    }
-    if (isDestination && cell.placedFrom) {
-        return "#1890ff"
-    }
-
+    if (selections.length > 0) return "#86ebc1"
+    if (cell.preview) return placementState.error ? "pink" : "#74bbfc"
+    const isSource = cellID.fromContainer.name === sourceContainer?.name
+    if (
+        (isSource && existingSample) ||
+        (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample)))
+    ) return "#1890ff"
+    if (!isSource && existingSample) return "grey"
     return "white"
 }
 
-export default Cell
+

@@ -59,5 +59,6 @@ export type Coordinates = string
 
 export interface RealParentContainerIdentifier { name: ContainerName }
 export interface TubesWithoutParentContainerIdentifier { name: null }
+export type ParentContainerIdentifier = RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
 export interface SampleIdentifier { id: SampleID }
 export interface CellIdentifier { fromContainer: RealParentContainerIdentifier, coordinates: Coordinates }
