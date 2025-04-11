@@ -5,7 +5,7 @@ import { multiSelect } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import store from "../../store"
 import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
-import { selectContainer } from "../../modules/placement/selectors"
+import { selectParentContainer } from "../../modules/placement/selectors"
 
 interface PlacementContainerProps {
     container: string | null
@@ -14,7 +14,7 @@ interface PlacementContainerProps {
 //component is used to visually represent the container, and its rows and columns of cells
 const PlacementContainer = ({ container: containerName }: PlacementContainerProps) => {
     const dispatch = useAppDispatch()
-    const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
+    const container = useAppSelector((state) => selectParentContainer(state)({ name: containerName }))
     const [axisRow = [] as const, axisColumn = [] as const] = container.spec ?? [[], []] as const
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length

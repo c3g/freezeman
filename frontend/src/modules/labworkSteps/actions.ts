@@ -1,6 +1,6 @@
 import { notification } from "antd"
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
-import { FMSContainer, FMSId, FMSPagedResultsReponse, FMSSampleNextStep, LabworkStepInfo } from "../../models/fms_api_models"
+import { FMSContainer, FMSId, LabworkStepInfo } from "../../models/fms_api_models"
 import { Step } from "../../models/frontend_models"
 import { FilterDescription, FilterOptions, FilterValue, SortBy } from "../../models/paged_items"
 import { selectAuthTokenAccess, selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectLabworkStepSummaryState, selectContainerKindsByID } from "../../selectors"
@@ -9,13 +9,12 @@ import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { flushContainers as flushPlacementContainers, loadContainer as loadPlacementContainer } from "../placement/reducers"
 import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
-import { CellWithParentState } from "../placement/models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES, loadSourceContainer, flushContainers as flushLabworkStepPlacementContainers, LabworkStepPlacementParentContainer } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
 import { downloadFromFile } from "../../utils/download"
 import { fetchSamples } from "../cache/cache"
 import { selectDestinationContainers, selectSourceContainers } from "./selectors"
-import { selectCell, selectContainer } from "../placement/selectors"
+import { selectRealParentContainer } from "../placement/selectors"
 
 
 // Initialize the redux state for samples at step
@@ -412,29 +411,29 @@ function receiveSortedSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 }
 
 export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) {
-    return async (dispatch: AppDispatch, getState: () => RootState) => {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const oldContainerNames = selectSourceContainers(getState()).map((c) => c.name)
 		const newContainerNames: (string | null)[] = []
 
-        const containerKinds = selectContainerKindsByID(getState())
-        const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", {}, sampleIDs))).data
-        const containerGroups = values.results.samples.groups
+		const containerKinds = selectContainerKindsByID(getState())
+		const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", {}, sampleIDs))).data
+		const containerGroups = values.results.samples.groups
 		for (const containerGroup of containerGroups) {
 			// Handles containers like 'tubes without container'. It assumes there isn't a container named like that.
 			const [containerDetail] = await dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
 			if (containerDetail) {
-                const spec = containerKinds[containerDetail.kind].coordinate_spec
+				const spec = containerKinds[containerDetail.kind].coordinate_spec
 				dispatch(loadPlacementContainer({
 					parentContainerName: containerDetail.name,
 					spec,
 					cells: containerGroup.sample_locators.map((locator) => {
-                        return {
-                            sample: locator.sample_id,
+						return {
+							sample: locator.sample_id,
 							name: locator.sample_name,
 							projectName: locator.project_name,
-                            coordinates: locator.contextual_coordinates
-                        }
-                    })
+							coordinates: locator.contextual_coordinates
+						}
+					})
 				}))
 				dispatch(loadSourceContainer({
 					name: containerDetail.name,
@@ -443,32 +442,32 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 					kind: containerDetail.kind
 				}))
 				newContainerNames.push(containerDetail.name)
-            } else {
+			} else {
 				dispatch(loadPlacementContainer({
 					parentContainerName: null,
 					cells: containerGroup.sample_locators.map((locator) => {
-                        return {
-                            sample: locator.sample_id,
+						return {
+							sample: locator.sample_id,
 							name: locator.sample_name,
 							projectName: locator.project_name,
-                        }
-                    })
+						}
+					})
 				}))
 				dispatch(loadSourceContainer({
 					name: null,
 					spec: []
 				}))
 				newContainerNames.push(null)
-            }
+			}
 		}
 
 		// remove outdated containers in placement
 		const toFlushContainers = oldContainerNames.filter((n) => !newContainerNames.includes(n))
-		dispatch(flushPlacementContainers(toFlushContainers))
+		dispatch(flushPlacementContainers(toFlushContainers.map((n) => ({ name: n }))))
 		dispatch(flushLabworkStepPlacementContainers(toFlushContainers))
 
 		return newContainerNames
-    }
+	}
 }
 
 export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, step: Step, prefillData: { [column: string]: any }) {
@@ -481,22 +480,20 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 				container_kind: string
 			}[]
 		}
-		
+
 		let placementData: PlacementData = {}
 		try {
 			const destinationContainers = selectDestinationContainers(getState())
 
 			placementData = destinationContainers.reduce((placementData, destinationContainer) => {
-				const cells = selectContainer(getState())({ name: destinationContainer.name })?.cells
-				if (!cells) throw new Error(`Could not find destination container in placement for '${destinationContainer.name}'`)
-				for (const destinationCell of cells) {
-					if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
-					const sourceCell = selectCell(getState())(destinationCell.placedFrom)
-					if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-					if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-					placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
-					placementData[sourceCell.sample].push({
-						coordinates: destinationCell.coordinates,
+				const container = selectRealParentContainer(getState())(destinationContainer)
+				for (const { sample, cell } of container.getPlacements()) {
+					if (sample.fromCell && sample.fromCell.sameCellAs(cell))
+						// skip if the sample is existing in the cell
+						continue
+					placementData[sample.id] ??= []
+					placementData[sample.id].push({
+						coordinates: cell.coordinates,
 						container_name: destinationContainer.name,
 						container_barcode: destinationContainer.barcode as string,
 						container_kind: destinationContainer.kind as string
@@ -523,48 +520,46 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 	}
 }
 
-export function fetchSamplesheet (activeDestinationContainer: LabworkStepPlacementParentContainer){
+export function fetchSamplesheet(activeDestinationContainer: LabworkStepPlacementParentContainer) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
-    type PlacementData = {
-        coordinates: string,
-        sample_id: FMSId,
-      }[]
+		type PlacementData = {
+			coordinates: string,
+			sample_id: FMSId,
+		}[]
 
-    if (!activeDestinationContainer) return
-    const placementData: PlacementData = []
-    try {
-      if (!cells) throw new Error(`Could not find active destination container in placement for '${activeDestinationContainer.name}'`)
-      for (const destinationCell of cells) {
-        if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
-        const sourceCell = selectCell(getState())(destinationCell.placedFrom)
-        if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-        if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-        placementData.push({
-          coordinates: destinationCell.coordinates,
-          sample_id: sourceCell.sample,
-        })
-      }
-    } catch (e) {
-      notification.error({
-        message: e.message,
-        key: 'LabworkStep.Placement.GetSamplesheet',
-        duration: 20
-      })
-    }
+		const placementData: PlacementData = []
+		try {
+			const container = selectRealParentContainer(getState())(activeDestinationContainer)
+			for (const { sample, cell } of container.getPlacements()) {
+				if (sample.fromCell && sample.fromCell.sameCellAs(cell))
+					// skip if the sample is existing in the cell
+					continue
+				placementData.push({
+					coordinates: cell.coordinates,
+					sample_id: sample.id,
+				})
+			}
+		} catch (e) {
+			notification.error({
+				message: e.message,
+				key: 'LabworkStep.Placement.GetSamplesheet',
+				duration: 20
+			})
+		}
 
-    try{
-      const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
+		try {
+			const fileData = await dispatch(api.samplesheets.getSamplesheet(activeDestinationContainer.barcode, activeDestinationContainer.kind, placementData))
 
-      if (fileData && fileData.ok) {
-        downloadFromFile(fileData.filename, fileData.data)
-      }
-    }
-    catch (e){
-      notification.error({
-        message: e.data,
-        key: 'LabworkStep.Placement.GetSamplesheet',
-        duration: 20
-      })
-    }
-  }
+			if (fileData && fileData.ok) {
+				downloadFromFile(fileData.filename, fileData.data)
+			}
+		}
+		catch (e) {
+			notification.error({
+				message: e.data,
+				key: 'LabworkStep.Placement.GetSamplesheet',
+				duration: 20
+			})
+		}
+	}
 }

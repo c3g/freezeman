@@ -43,7 +43,7 @@ export interface PlaceAllSourcePayload {
 const initialState: PlacementState = {
     placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.COLUMN,
-    tubesWithoutParentContainer: { samples: {} },
+    tubesWithoutParentContainer: { name: null, samples: {} },
     realParentContainers: {},
     samples: {},
     error: undefined,

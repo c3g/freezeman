@@ -58,6 +58,7 @@ export class PlacementClass extends PlacementObject {
             if (!tubesWithoutParent) {
                 // create new tubes without parent container
                 tubesWithoutParent = this.placementState.tubesWithoutParentContainer = {
+                    name: null,
                     samples: {}
                 }
             }
@@ -141,24 +142,24 @@ export class PlacementClass extends PlacementObject {
                 }
             }
             // add new or update existing samples
-            for (const cell of payload.cells) {
-                const sampleID = cell.sample
+            for (const payloadCell of payload.cells) {
+                const sampleID = payloadCell.sample
                 const sample = this.placementState.samples[sampleID] ?? {
                     containerName: "TODO: use the name of the tube if it's in a tube",
                     id: sampleID,
-                    name: cell.name,
-                    projectName: cell.projectName,
+                    name: payloadCell.name,
+                    projectName: payloadCell.projectName,
                     fromCell: {
                         fromContainer: { name: payload.parentContainerName },
-                        coordinates: cell.coordinates
+                        coordinates: payloadCell.coordinates
                     },
                     placedAt: []
                 }
                 this.placementState.samples[sampleID] = sample
-                const cellSample: SampleEntry = container.cells[cell.coordinates].samples[sampleID] ?? {
+                const cellSample: SampleEntry = container.cells[payloadCell.coordinates].samples[sampleID] ?? {
                     selected: false,
                 }
-                container.cells[cell.coordinates].samples[sampleID] = cellSample
+                container.cells[payloadCell.coordinates].samples[sampleID] = cellSample
             }
         }
     }

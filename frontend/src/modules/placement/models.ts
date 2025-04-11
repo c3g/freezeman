@@ -36,7 +36,7 @@ export interface CellState extends CellIdentifier {
     preview: boolean
 }
 
-export interface TubesWithoutParentContainerState {
+export interface TubesWithoutParentContainerState extends TubesWithoutParentContainerIdentifier {
     samples: Record<SampleID, SampleEntry | undefined>
 }
 
