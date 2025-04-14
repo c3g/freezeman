@@ -295,23 +295,23 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const localClearFilters = useCallback((refresh: boolean = true) => {
 		if (clearFilters)
 			dispatch(clearFilters(step.id, refresh))
-	}, [step, step.id])
+	}, [dispatch, step.id])
 
 	const onTabChange = useCallback((tabKey) => {
 		setSelectedTab(tabKey)
-	}, [step.id])
+	}, [])
 
 	useEffect(() => {
 		if (stepSamples.selectedSamples.items.length === 0) {
 			// ensures there are no left over samples from containers that have no selection
 			// because of the abrupt disable of placement tab
 			const sourceContainers = selectSourceContainers(store.getState()).map((c) => c.name)
-			dispatch(flushPlacementContainers(sourceContainers))
+			dispatch(flushPlacementContainers(sourceContainers.map(c => ({ name: c }))))
 			dispatch(flushLabworkStepPlacementContainers(sourceContainers))
 
 			onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
-	}, [onTabChange, stepSamples.selectedSamples.items.length])
+	}, [dispatch, onTabChange, stepSamples.selectedSamples.items.length])
 
 	const onPrefillOpen = useCallback(() => {
 	}, [])

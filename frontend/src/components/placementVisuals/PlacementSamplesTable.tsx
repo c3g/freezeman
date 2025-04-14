@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useMemo } from "react"
 import { Table, TableProps } from "antd";
 import { ColumnsType, SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
 import { FMSId } from "../../models/fms_api_models";
@@ -24,6 +24,10 @@ interface PlacementSample {
     coordinates: string | undefined
 }
 
+function rowKey(sample: PlacementSample): string {
+    return `${sample.id}-${sample.coordinates}`
+}
+
 //component used to display and select samples in a table format for plate visualization placement
 const PlacementSamplesTable = ({ container: containerName, showContainerColumn }: PlacementSamplesTableProps) => {
     const containerID: ParentContainerIdentifier = useMemo(() => ({ name: containerName }), [containerName])
@@ -33,20 +37,19 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
     const samplesByID = useAppSelector((state) => selectPlacementState(state).samples)
     const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
     const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
-    const isSource = containerName === activeSourceContainer?.name
     const isDestination = containerName === activeDestinationContainer?.name
 
-    const [samples, setSamples] = useState<PlacementSample[]>([])
-    useEffect(() => {
+    const samples = useMemo(() => {
         const samples: PlacementSample[] = []
         if (container.name === null) {
+            // handle tubes without parents
             for (const sampleID in container.samples) {
                 const entry = container.samples[sampleID]
                 const sample = samplesByID[sampleID]
                 if (sample && entry) {
                     samples.push({
                         id: parseInt(sampleID),
-                        selected: entry?.selected,
+                        selected: Boolean(entry?.selected),
                         name: sample.name,
                         projectName: sample.projectName,
                         containerName: sample.containerName,
@@ -56,6 +59,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                 }
             }
         } else {
+            // handle real parent container
             for (const cellID in container.cells) {
                 const entries = container.cells[cellID].samples
                 for (const sampleID in entries) {
@@ -64,7 +68,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                     if (sample && entry) {
                         samples.push({
                             id: parseInt(sampleID),
-                            selected: entry?.selected,
+                            selected: Boolean(entry?.selected),
                             name: sample.name,
                             projectName: sample.projectName,
                             containerName: sample.containerName,
@@ -103,17 +107,12 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
 
             return orderA - orderB
         })
-        setSamples(samples)
-    }, [container, isDestination, isSource, samplesByID])
+        return samples
+    }, [container, samplesByID])
 
     const selectedRowKeys = useMemo(
-        () => container ? samples.reduce((sampleIDs, s) => {
-            if (s.selected && s.id) {
-                sampleIDs.push(s.id)
-            }
-            return sampleIDs
-        }, [] as FMSId[]) : [],
-        [container, samples]
+        () => samples.filter((s) => s.selected && s.id).map(rowKey),
+        [samples]
     )
     const onChange: NonNullable<TableRowSelection<PlacementSample>['onChange']> = useCallback((keys, selectedRows, info) => {
         if (info.type === 'all') {
@@ -212,7 +211,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         <Table<PlacementSample>
             dataSource={samples}
             columns={columns}
-            rowKey={obj => `${obj.id}-${obj.coordinates}` }
+            rowKey={rowKey}
             rowSelection={selectionProps}
             pagination={paginationProps}
         />

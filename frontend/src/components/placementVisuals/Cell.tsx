@@ -44,10 +44,6 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
         }
         return undefined
     })
-    console.info({
-        placedFrom,
-        placedAt,
-    })
     const sample = useAppSelector((state) => {
         // TODO: handle multiple samples
         const cell = mySelectCell(state)
@@ -86,8 +82,8 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 source: activeSourceContainer
             }
         }))
-        setPopOverOpen(sample?.name !== '')
-    }, [activeSourceContainer, dispatch, fromContainer, coordinates, sample?.name])
+        setPopOverOpen(Boolean(sample && sample.name !== ''))
+    }, [activeSourceContainer, dispatch, fromContainer, coordinates, sample])
 
     const onMouseLeave = useCallback(() => {
         if (!activeSourceContainer) return

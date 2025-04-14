@@ -137,31 +137,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             dispatch(placeAllSource({ source: activeSourceContainer, destination: activeDestinationContainer }))
     }, [activeDestinationContainer, activeSourceContainer, dispatch])
 
-    const clearSelection = useCallback(() => {
-        batch(() => {
-            for (const parentContainer of sourceContainers) {
-                dispatch(multiSelect({
-                    parentContainer: parentContainer,
-                    type: 'all',
-                    forcedSelectedValue: false,
-                    context: {
-                        source: activeSourceContainer
-                    }
-                }))
-            }
-            for (const parentContainer of destinationContainers) {
-                dispatch(multiSelect({
-                    parentContainer: parentContainer,
-                    type: 'all',
-                    forcedSelectedValue: false,
-                    context: {
-                        source: activeSourceContainer
-                    }
-                }))
-            }
-        })
-    }, [activeSourceContainer, destinationContainers, dispatch, sourceContainers])
-
     const removeSelectedCells = useCallback(() => {
         if (activeDestinationContainer) {
             dispatch(undoSelectedSamples(activeDestinationContainer.name))
@@ -246,7 +221,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         </Col>
                         <Col span={8}>
                             <Button onClick={transferAllSamples} disabled={!canTransferAllSamples}>Place All Source</Button>
-                            <Button onClick={clearSelection}>Deselect All</Button>
                             <Popconfirm
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
                                 onConfirm={removeSelectedCells}
