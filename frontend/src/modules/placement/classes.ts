@@ -263,7 +263,7 @@ export class RealParentContainerClass extends PlacementObject {
         for (let i = 0; i < placementLocations.length; i++) {
             const sample = samples[i]
             const destinationCell = placementLocations[i]
-            sample.placeAtCell(destinationCell)
+            sample.placeAtCell(destinationCell.rawIdentifier())
         }
     }
 
@@ -461,6 +461,12 @@ export class RealParentContainerClass extends PlacementObject {
     get spec() {
         return this.state.spec
     }
+
+    rawIdentifier(): RealParentContainerIdentifier {
+        return {
+            name: this.state.name
+        }
+    }
 }
 
 export class TubesWithoutParentClass extends PlacementObject {
@@ -552,6 +558,12 @@ export class TubesWithoutParentClass extends PlacementObject {
     get spec() {
         return undefined
     }
+
+    rawIdentifier(): TubesWithoutParentContainerIdentifier {
+        return {
+            name: null
+        }
+    }
 }
 
 export class CellClass extends PlacementObject {
@@ -599,7 +611,7 @@ export class CellClass extends PlacementObject {
                 throw new Error(`Destination cells length does not match selections length`)
             }
             for (let i = 0; i < destinationCells.length; i++) {
-                selections[i].placeAtCell(destinationCells[i])
+                selections[i].placeAtCell(destinationCells[i].rawIdentifier())
             }
             this.fromContainer.clearPreviews()
         } else {
@@ -662,7 +674,7 @@ export class CellClass extends PlacementObject {
         }
 
         if (twoWayPlacement) {
-            new SampleClass(this.context, sampleID).placeAtCell(this, false)
+            new SampleClass(this.context, sampleID).placeAtCell(this.rawIdentifier(), false)
         }
     }
     unplaceSample(sampleID: SampleIdentifier, twoWayPlacement = true) {
@@ -676,7 +688,7 @@ export class CellClass extends PlacementObject {
         }
 
         if (twoWayPlacement) {
-            sample.unplaceAtCell(this, false)
+            sample.unplaceAtCell(this.rawIdentifier(), false)
         }
     }
 
@@ -724,6 +736,13 @@ export class CellClass extends PlacementObject {
         return this.state.fromContainer.name === cellID.fromContainer.name &&
             this.state.coordinates === cellID.coordinates
     }
+
+    rawIdentifier(): CellIdentifier {
+        return {
+            fromContainer: { name: this.fromContainer.name },
+            coordinates: this.coordinates
+        }
+    }
 }
 
 export class SampleClass extends PlacementObject {
@@ -739,11 +758,11 @@ export class SampleClass extends PlacementObject {
     }
 
     placeAtCell(cellID: CellIdentifier, twoWayPlacement = true) {
-        if (!this.state.placedAt.find(cell => cell.coordinates === cellID.coordinates)) {
+        if (!this.state.placedAt.find(placedAt => placedAt.fromContainer.name === cellID.fromContainer.name && placedAt.coordinates === cellID.coordinates)) {
             this.state.placedAt.push(cellID)
         }
         if (twoWayPlacement) {
-            new CellClass(this.context, cellID).placeSample(this, false)
+            new CellClass(this.context, cellID).placeSample(this.rawIdentifier(), false)
         }
     }
     unplaceAtCell(cellID: CellIdentifier, twoWayPlacement = true) {
@@ -755,7 +774,7 @@ export class SampleClass extends PlacementObject {
             this.state.placedAt.splice(index, 1)
         }
         if (twoWayPlacement) {
-            new CellClass(this.context, cellID).unplaceSample(this, false)
+            new CellClass(this.context, cellID).unplaceSample(this.rawIdentifier(), false)
         }
     }
 
@@ -782,22 +801,11 @@ export class SampleClass extends PlacementObject {
     get fromCell() {
         return this.state.fromCell ? new CellClass(this.context, this.state.fromCell) : null
     }
-    get placedAt(): Record<number, CellClass | undefined> {
-        const proxy = new Proxy({}, {
-            get: (target, prop: string) => {
-                const index = parseInt(prop)
-                if (index < this.state.placedAt.length) {
-                    const cell = this.state.placedAt[index]
-                    return new CellClass(this.context, cell)
-                }
-                return undefined
-            },
-            ownKeys: () => {
-                // return the keys of the placedAt array
-                return Reflect.ownKeys(this.state.placedAt)
-            }
-        }) as Record<number, CellClass>
-        return proxy
+
+    rawIdentifier(): SampleIdentifier {
+        return {
+            id: this.state.id
+        }
     }
 }
 
@@ -813,6 +821,13 @@ export class SamplePlacement extends PlacementObject {
 
     get selected() {
         return this.cell.isSampleSelected(this.sample)
+    }
+
+    rawIdentifier(): SamplePlacementIdentifier {
+        return {
+            sample: this.sample.rawIdentifier(),
+            cell: this.cell.rawIdentifier()
+        }
     }
 }
 export interface SamplePlacementIdentifier { sample: SampleIdentifier, cell: CellIdentifier }

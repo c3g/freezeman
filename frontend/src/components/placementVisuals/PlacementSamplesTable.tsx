@@ -212,7 +212,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         <Table<PlacementSample>
             dataSource={samples}
             columns={columns}
-            rowKey={obj => obj.id}
+            rowKey={obj => `${obj.id}-${obj.coordinates}` }
             rowSelection={selectionProps}
             pagination={paginationProps}
         />
