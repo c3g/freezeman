@@ -173,7 +173,7 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
         } catch (error) {
             const originalState = original(state) ?? initialState
             Object.assign(state, originalState)
-            state.error = error.message
+            state.error = `${error.message}\n${error.stack}`
         }
     }
 }

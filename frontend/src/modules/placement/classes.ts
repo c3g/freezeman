@@ -374,9 +374,22 @@ export class RealParentContainerClass extends PlacementObject {
                 const sourceContainer = this.context.sourceContainer
 
                 const relativeOffsetByIndices = Object.keys(samples).sort((indexA, indexB) => {
-                    const a = samples[indexA]
-                    const b = samples[indexB]
-                    return sourceContainer.compareSamples(a, b)
+                    const a = samples[parseInt(indexA)]
+                    const b = samples[parseInt(indexB)]
+
+                    if (sourceContainer instanceof TubesWithoutParentClass) {
+                        return sourceContainer.compareSamples({ sample: a }, { sample: b })
+                    } else {
+                        const aCell = this.placement.getSample(a).fromCell
+                        const bCell = this.placement.getSample(b).fromCell
+                        if (!aCell || !bCell) {
+                            throw new Error(`Sample ${a.id} or ${b.id} do not exist in the source container`)
+                        }
+                        return sourceContainer.compareSamples(
+                            { sample: a, cell: aCell },
+                            { sample: b, cell: bCell }
+                        )
+                    }
                 }).reduce<Record<number, number>>((relativeOffsetByIndices, sortedIndex, index) => {
                     relativeOffsetByIndices[sortedIndex] = index
                     return relativeOffsetByIndices
@@ -507,23 +520,26 @@ export class TubesWithoutParentClass extends PlacementObject {
         }
     }
 
-    compareSamples(a: SampleClass, b: SampleClass) {
+    compareSamples(a: Pick<SamplePlacementIdentifier, 'sample'>, b: Pick<SamplePlacementIdentifier, 'sample'>) {
         const MAX = 128
 
         let orderA = MAX
         let orderB = MAX
 
-        if (this.isSampleSelected(a)) orderA -= MAX / 2
-        if (this.isSampleSelected(b)) orderB -= MAX / 2
+        const A = this.placement.getSample(a.sample)
+        const B = this.placement.getSample(b.sample)
 
-        if (a.name < b.name) orderA -= MAX / 8
-        if (a.name > b.name) orderB -= MAX / 8
+        if (this.isSampleSelected(A)) orderA -= MAX / 2
+        if (this.isSampleSelected(B)) orderB -= MAX / 2
 
-        if (a.containerName < b.containerName) orderA -= MAX / 16
-        if (a.containerName > b.containerName) orderB -= MAX / 16
+        if (A.name < B.name) orderA -= MAX / 8
+        if (A.name > B.name) orderB -= MAX / 8
 
-        if (a.projectName < b.projectName) orderA -= MAX / 32
-        if (a.projectName > b.projectName) orderB -= MAX / 32
+        if (A.containerName < B.containerName) orderA -= MAX / 16
+        if (A.containerName > B.containerName) orderB -= MAX / 16
+
+        if (A.projectName < B.projectName) orderA -= MAX / 32
+        if (A.projectName > B.projectName) orderB -= MAX / 32
 
         return orderA - orderB
     }
@@ -548,7 +564,7 @@ export class TubesWithoutParentClass extends PlacementObject {
     getSortedSamples(onlySelected = false) {
         return this.getSamples()
             .filter((s) => onlySelected ? this.state.samples[s.id]?.selected : true)
-            .sort((a, b) => this.compareSamples(a, b))
+            .sort((a, b) => this.compareSamples({ sample: a }, { sample: b }))
     }
 
     get name() {
@@ -579,9 +595,6 @@ export class CellClass extends PlacementObject {
     }
 
     click() {
-        if (!this.context.sourceContainer) {
-            throw new Error(`Source container is not set`)
-        }
         if (this.fromContainer.sameContainerAs(this.context.sourceContainer)) {
             // toggle selection in source container branch
             const existingSample = this.findExistingSample()
@@ -623,9 +636,6 @@ export class CellClass extends PlacementObject {
     }
 
     enter() {
-        if (!this.context.sourceContainer) {
-            throw new Error(`Source container is not set`)
-        }
         if (this.fromContainer.sameContainerAs(this.context.sourceContainer)) {
             return
         }
