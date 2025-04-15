@@ -111,7 +111,7 @@ export class PlacementClass extends PlacementObject {
                             fromContainer: { name: payload.parentContainerName },
                             coordinates,
                             samples: {},
-                            preview: false
+                            preview: null
                         }
                     }
                 }
@@ -291,14 +291,16 @@ export class RealParentContainerClass extends PlacementObject {
 
     clearPreviews() {
         for (const cellKey in this.state.cells) {
-            this.state.cells[cellKey].preview = false
+            this.state.cells[cellKey].preview = null
         }
     }
-    setPreviews(...cellIDs: CellIdentifier[]) {
+    setPreviews(sources: Pick<CellIdentifier, 'coordinates'>[], destinations: CellIdentifier[]) {
         this.clearPreviews()
-        for (const cellID of cellIDs) {
-            const cell = this.getCell(cellID)
-            cell.state.preview = true
+        for (let index = 0; index < sources.length; index++) {
+            const source = sources[index]
+            const destination = destinations[index]
+            const cell = this.getCell(destination)
+            cell.state.preview = source.coordinates ?? ''
         }
     }
 
@@ -652,7 +654,7 @@ export class CellClass extends PlacementObject {
             this.context.placementState.placementType,
             this.context.placementState.placementDirection
         )
-        this.fromContainer.setPreviews(...destinations)
+        this.fromContainer.setPreviews(samples.map((s) => s.fromCell?.rawIdentifier() ?? { coordinates: '' }), destinations)
     }
     exit() {
         this.fromContainer.clearPreviews()

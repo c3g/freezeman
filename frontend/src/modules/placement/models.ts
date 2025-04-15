@@ -33,7 +33,7 @@ export interface RealParentContainerState extends RealParentContainerIdentifier 
 
 export interface CellState extends CellIdentifier {
     samples: Record<SampleID, SampleEntry | undefined>
-    preview: boolean
+    preview: Coordinates | null // empty string for tubes without parent
 }
 
 export interface TubesWithoutParentContainerState extends TubesWithoutParentContainerIdentifier {

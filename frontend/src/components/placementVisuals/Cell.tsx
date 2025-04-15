@@ -118,8 +118,9 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 onMouseLeave={onMouseLeave}
                 style={{ backgroundColor: cellColor }}
             >
-                {placedAt.length > 0 ? placedAt.length : ''}
-                {placedFrom.length > 0 ? placedFrom.length : ''}
+                {cell.preview ? cell.preview : ''}
+                {!cell.preview && placedAt.length > 0 ? placedAt.length : ''}
+                {!cell.preview && placedFrom.length > 0 ? placedFrom.length : ''}
             </div>
         </Popover>
     )
