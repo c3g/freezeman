@@ -116,8 +116,8 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
     const updatePlacementDirection = useCallback((event: RadioChangeEvent) => {
         dispatch(setPlacementDirection(event.target.value))
     }, [dispatch])
-    const updatePlacementType = useCallback((checked: boolean) => {
-        dispatch(setPlacementType(checked ? PlacementType.PATTERN : PlacementType.GROUP))
+    const updatePlacementType = useCallback((e: RadioChangeEvent) => {
+        dispatch(setPlacementType(e.target.value))
     }, [dispatch])
 
     const canTransferAllSamples = useMemo(() => {
@@ -207,12 +207,16 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         </Col>
                     </Row>
                     <Row justify="end" style={{ padding: "10px" }}>
-                        <Col span={3}>
-                            <Switch checkedChildren="Pattern" unCheckedChildren="Group" checked={placementType === PlacementType.PATTERN} onChange={updatePlacementType}></Switch>
+                        <Col span={5}>
+                            <Radio.Group onChange={updatePlacementType} value={placementType}>
+                                <Radio.Button value={PlacementType.PATTERN}> Pattern </Radio.Button>
+                                <Radio.Button value={PlacementType.GROUP}> Group </Radio.Button>
+                                <Radio.Button value={PlacementType.POOL}> Pool </Radio.Button>
+                            </Radio.Group>
                         </Col>
                         <Col span={5}>
                             <Radio.Group
-                                disabled={placementType === PlacementType.PATTERN}
+                                disabled={placementType !== PlacementType.GROUP}
                                 value={placementDirection}
                                 onChange={updatePlacementDirection}>
                                 <Radio.Button value={PlacementDirections.ROW}> row </Radio.Button>

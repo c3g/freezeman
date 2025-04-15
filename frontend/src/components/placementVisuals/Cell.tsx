@@ -136,7 +136,7 @@ function selectCellColor(state: RootState, cellID: CellIdentifier, sourceContain
     const selections = placements.filter((sample) => sample.selected)
 
     if (selections.length > 0) return "#86ebc1"
-    if (cell.preview) return placementState.error ? "pink" : "#74bbfc"
+    if (cell.preview !== null) return placementState.error ? "pink" : "#74bbfc"
     const isSource = cellID.fromContainer.name === sourceContainer?.name
     if (
         (isSource && existingSample) ||

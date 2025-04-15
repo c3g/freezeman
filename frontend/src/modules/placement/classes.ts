@@ -296,7 +296,7 @@ export class RealParentContainerClass extends PlacementObject {
     }
     setPreviews(sources: Pick<CellIdentifier, 'coordinates'>[], destinations: CellIdentifier[]) {
         this.clearPreviews()
-        for (let index = 0; index < sources.length; index++) {
+        for (let index = 0; index < sources.length && index < destinations.length; index++) {
             const source = sources[index]
             const destination = destinations[index]
             const cell = this.getCell(destination)
@@ -426,6 +426,12 @@ export class RealParentContainerClass extends PlacementObject {
                     newOffsetsList.push([finalOffsets[ROW], finalOffsets[COLUMN]])
                 }
                 break
+            }
+            case PlacementType.POOL: {
+                const offsets = coordinatesToOffsets(this.spec, coordinates)
+                for (const _ of samples) {
+                    newOffsetsList.push(offsets)
+                }
             }
         }
 
@@ -654,7 +660,12 @@ export class CellClass extends PlacementObject {
             this.context.placementState.placementType,
             this.context.placementState.placementDirection
         )
-        this.fromContainer.setPreviews(samples.map((s) => s.fromCell?.rawIdentifier() ?? { coordinates: '' }), destinations)
+        this.fromContainer.setPreviews(
+            this.context.placementState.placementType === PlacementType.POOL
+                ? samples.map(() => ({ coordinates: '' }))
+                : samples.map((s) => s.fromCell?.rawIdentifier() ?? { coordinates: '' }),
+            destinations
+        )
     }
     exit() {
         this.fromContainer.clearPreviews()
