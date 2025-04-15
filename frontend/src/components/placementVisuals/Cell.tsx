@@ -7,7 +7,7 @@ import { Popover } from "antd"
 import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
 import { selectCell, selectPlacementState } from "../../modules/placement/selectors"
 import { RootState } from "../../store"
-import { CellIdentifier, ParentContainerIdentifier } from "../../modules/placement/models"
+import { CellIdentifier, ParentContainerIdentifier, SampleState } from "../../modules/placement/models"
 import { PlacementClass } from "../../modules/placement/classes"
 
 export interface CellProps {
@@ -21,44 +21,43 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     const fromContainer = useMemo(() => ({ name: container }), [container])
     const dispatch = useAppDispatch()
     const activeSourceContainer = useAppSelector((state) => selectActiveSourceContainer(state))
+    
+    const cell = useAppSelector((state) => selectCell(state)({ fromContainer, coordinates }).state)
+    const samplesByID = useAppSelector((state) => selectPlacementState(state).samples)
 
-    const mySelectCell = (state: RootState) => selectCell(state)({ fromContainer, coordinates })
-    const placedFrom = useAppSelector((state) => {
-        const samplePlacements = mySelectCell(state).getSamplePlacements(false)
-        if (samplePlacements.length > 0) {
-            // TODO: handle multiple samples
-            return samplePlacements[0].sample.fromCell?.state
-        }
-        return undefined
-    })
-    const placedAt = useAppSelector((state) => {
-        const samplePlacements = mySelectCell(state).getSamplePlacements(false)
-        if (samplePlacements.length > 0) {
-            // TODO: handle multiple samples
-            const placedAt = samplePlacements[0].sample.state.placedAt
-            if (placedAt.length > 0) {
-                return placedAt[0]
-            } else {
-                return undefined
+    const samples = useMemo(() => {
+        const samples: SampleState[] = []
+        for (const sampleID in cell.samples) {
+            const sampleState = samplesByID[sampleID]
+            if (sampleState) {
+                samples.push(sampleState)
             }
         }
-        return undefined
-    })
-    const sample = useAppSelector((state) => {
-        // TODO: handle multiple samples
-        const cell = mySelectCell(state)
-        const existingSample = cell.findExistingSample()
-        if (existingSample) {
-            return existingSample.state
-        } else {
-            const samples = cell.getSamples(false)
-            if (samples.length > 0) {
-                return samples[0].state
-            } else {
-                return undefined
+        return samples
+    }, [cell.samples, samplesByID])
+
+    const placedFrom = useMemo(() => {
+        const placedFrom: (CellIdentifier | string)[] = []
+        for (const sample of samples) {
+            if (sample.fromCell?.fromContainer.name !== container || sample?.fromCell?.coordinates !== coordinates) {
+                placedFrom.push(sample.fromCell
+                    ? {
+                        fromContainer: sample.fromCell?.fromContainer,
+                        coordinates: sample.fromCell?.coordinates
+                    }
+                    : sample.containerName)
             }
         }
-    })
+        return placedFrom
+    }, [container, coordinates, samples])
+    const placedAt: CellIdentifier[] = useMemo(() => {
+        for (const sample of samples) {
+            if (sample.fromCell?.fromContainer.name === container && sample?.fromCell?.coordinates === coordinates) {
+                return sample.placedAt
+            }
+        }
+        return []
+    }, [container, coordinates, samples])
 
     const [popOverOpen, setPopOverOpen] = useState(false)
 
@@ -82,8 +81,8 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 source: activeSourceContainer
             }
         }))
-        setPopOverOpen(Boolean(sample && sample.name !== ''))
-    }, [activeSourceContainer, dispatch, fromContainer, coordinates, sample])
+        setPopOverOpen(samples.length > 0)
+    }, [activeSourceContainer, dispatch, fromContainer, coordinates, samples])
 
     const onMouseLeave = useCallback(() => {
         if (!activeSourceContainer) return
@@ -103,10 +102,10 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     return (
         <Popover
             content={<>
-                <div>{`Sample: ${sample?.name}`}</div>
+                <div>{`Sample(s): ${samples.map((s) => s.name).join(", ")}`}</div>
                 <div>{`Coords: ${coordinates}`}</div>
-                {placedFrom && <div>{'From: '}{placedFrom.fromContainer.name}{'@'}{placedFrom.coordinates}</div>}
-                {placedAt && <div>{`At: ${placedAt.fromContainer.name}@${placedAt.coordinates}`}</div>}
+                {placedFrom.length > 0 ? <div>{'From: '}{placedFrom.map((placedFrom) => typeof placedFrom === 'object' ? `${placedFrom.fromContainer.name}@${placedFrom.coordinates}` : placedFrom).join(", ")}</div> : undefined}
+                {placedAt.length > 0 ? <div>{'At: '}{placedAt.map((placedAt) => `${placedAt.fromContainer.name}@${placedAt.coordinates}`).join(", ")}</div> : undefined}
             </>}
             destroyTooltipOnHide={{ keepParent: false }}
             open={popOverOpen}
@@ -118,7 +117,10 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 style={{ backgroundColor: cellColor }}
-            />
+            >
+                {placedAt.length > 0 ? placedAt.length : ''}
+                {placedFrom.length > 0 ? placedFrom.length : ''}
+            </div>
         </Popover>
     )
 }
