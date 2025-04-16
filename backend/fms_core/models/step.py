@@ -21,6 +21,7 @@ class Step(TrackedModel):
     type = models.CharField(choices=StepType.choices, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Type of step.")
     needs_placement = models.BooleanField(default=True, help_text="Samples on this step need a destination container and coordinates assigned.")
     needs_planning = models.BooleanField(default=False, help_text="Step has a planning template to fill before the main template.")
+    use_web_form = models.BooleanField(default=False, help_text="Step uses a custom web form to build a json template.")
 
     def __str__(self):
         return self.name

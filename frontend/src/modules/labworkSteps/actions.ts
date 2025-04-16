@@ -8,7 +8,7 @@ import { AppDispatch, RootState } from "../../store"
 import { networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import { flushContainers as flushPlacementContainers, loadContainer as loadPlacementContainer } from "../placement/reducers"
-import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor } from "./models"
+import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor, PlacementData } from "./models"
 import { CellWithParentState } from "../placement/models"
 import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SELECTED_SAMPLES_SORT_DIRECTION, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE, GET_LABWORK_STEP_SUMMARY, SELECT_SAMPLES_IN_GROUPS, REFRESH_SELECTED_SAMPLES, loadSourceContainer, flushContainers as flushLabworkStepPlacementContainers, LabworkStepPlacementParentContainer } from "./reducers"
 import { getCoordinateOrderingParams, refreshSelectedSamplesAtStep } from "./services"
@@ -471,46 +471,42 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
     }
 }
 
+export function getPlacementData(getState: () => RootState) {
+  let placementData: PlacementData = {}
+  try {
+    const destinationContainers = selectDestinationContainers(getState())
+
+    placementData = destinationContainers.reduce((placementData, destinationContainer) => {
+      const cells = selectContainer(getState())({ name: destinationContainer.name })?.cells
+      if (!cells) throw new Error(`Could not find destination container in placement for '${destinationContainer.name}'`)
+      for (const destinationCell of cells) {
+        if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
+        const sourceCell = selectCell(getState())(destinationCell.placedFrom)
+        if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+        if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
+        placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
+        placementData[sourceCell.sample].push({
+          coordinates: destinationCell.coordinates,
+          container_name: destinationContainer.name,
+          container_barcode: destinationContainer.barcode as string,
+          container_kind: destinationContainer.kind as string
+        })
+      }
+      return placementData
+    }, {} as PlacementData)
+  } catch (e) {
+    notification.error({
+      message: e.message,
+      key: 'LabworkStep.Placement.GetPlacementData-Failed',
+      duration: 20
+    })
+  }
+  return placementData
+}
+
 export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, step: Step, prefillData: { [column: string]: any }) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
-		type PlacementData = {
-			[key in FMSId]: {
-				coordinates: string,
-				container_name: string,
-				container_barcode: string,
-				container_kind: string
-			}[]
-		}
-		
-		let placementData: PlacementData = {}
-		try {
-			const destinationContainers = selectDestinationContainers(getState())
-
-			placementData = destinationContainers.reduce((placementData, destinationContainer) => {
-				const cells = selectContainer(getState())({ name: destinationContainer.name })?.cells
-				if (!cells) throw new Error(`Could not find destination container in placement for '${destinationContainer.name}'`)
-				for (const destinationCell of cells) {
-					if (!destinationCell.placedFrom) continue // cell does not contain sample placed from any source container
-					const sourceCell = selectCell(getState())(destinationCell.placedFrom)
-					if (!sourceCell) throw new Error(`Could not find cell at  ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-					if (!sourceCell.sample) throw new Error(`There is no sample in source cell at ${destinationCell.placedFrom.coordinates}@${destinationCell.placedFrom.parentContainerName}`)
-					placementData[sourceCell.sample] = placementData[sourceCell.sample] ? placementData[sourceCell.sample] : []
-					placementData[sourceCell.sample].push({
-						coordinates: destinationCell.coordinates,
-						container_name: destinationContainer.name,
-						container_barcode: destinationContainer.barcode as string,
-						container_kind: destinationContainer.kind as string
-					})
-				}
-				return placementData
-			}, {} as PlacementData)
-		} catch (e) {
-			notification.error({
-				message: e.message,
-				key: 'LabworkStep.Placement.Prefilling-Failed',
-				duration: 20
-			})
-		}
+		const placementData = getPlacementData(getState)
 
 		try {
 			const result = await dispatch(requestPrefilledTemplate(template.id, step.id, prefillData, placementData))
