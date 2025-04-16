@@ -12,35 +12,19 @@ import {
 
 import { fetchListedData, fetchSummariesData } from "../../modules/shared/actions";
 
+import { TemplateForm } from "../templateForms/TemplateForm";
 import { UploadStep } from "./steps/UploadStep";
 import { ReviewStep } from "./steps/ReviewStep";
 import { ConfirmationStep } from "./steps/ConfirmationStep";
-
-
-const STEPS = [
-  {
-    title: "Upload File",
-    description: uploadText => uploadText || "Upload the provided template.",
-    content: UploadStep,
-  },
-  {
-    title: "Review Submission",
-    description: () => "Review and fix any warnings or errors before saving to the database.",
-    content: ReviewStep,
-  },
-  {
-    title: "Confirmation",
-    description: () => "See a report of what was submitted to the database.",
-    content: ConfirmationStep,
-  },
-]
-STEPS.UPLOAD = 0
-STEPS.REVIEW = 1
-STEPS.CONFIRM = 2
+import { useParams } from "react-router-dom";
+import { useAppSelector } from "../../hooks";
+import { selectStepsByID } from '../../selectors'
 
 const actionCreators = { fetchListedData, fetchSummariesData };
 
 const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
+  const { stepID: workflowStepId } = useParams(selectStepsByID)
+  const workflowStep = useAppSelector(selectStepsByID)[workflowStepId]
   const [step, setStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
@@ -51,6 +35,39 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
   const [submitResult, setSubmitResult] = useState(null);
 
   const { action, actionIndex, checkRequest, submitRequest } = props;
+
+  const UPLOAD = { 
+    title: "Upload File",
+    description: uploadText => uploadText || "Upload the provided template.",
+    content: UploadStep,
+  }
+
+  const WEB_FORM = {
+    title: "Fill Form",
+    description: () => "Complete the form with required information.",
+    content: TemplateForm,
+  }
+
+  
+  const STEP_UPLOAD = 0
+  const STEP_REVIEW = 1
+  const STEP_CONFIRM = 2
+
+  const STEPS = [
+    (step === STEP_UPLOAD && workflowStep.use_web_form) ? WEB_FORM : UPLOAD,
+    {
+      title: "Review Submission",
+      description: () => "Review and fix any warnings or errors before saving to the database.",
+      content: ReviewStep,
+    },
+    {
+      title: "Confirmation",
+      description: () => "See a report of what was submitted to the database.",
+      content: ConfirmationStep,
+    },
+  ]
+  
+
   const StepContent = STEPS[step].content;
 
   if (file && !isChecked && !isChecking) {
@@ -153,12 +170,12 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
       <Col flex="1"></Col>
       <Col>
         {
-          step === STEPS.UPLOAD &&
+          step === STEP_UPLOAD &&
           <Button
             type="primary"
             disabled={
               step === STEPS.length - 1 ||
-              (step === STEPS.UPLOAD && !file)
+              (step === STEP_UPLOAD && !file)
             }
             onClick={() => setStep(step + 1)}
           >
@@ -166,7 +183,7 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
           </Button>
         }
         {
-          step === STEPS.REVIEW &&
+          step === STEP_REVIEW &&
           <Button
             type="primary"
             disabled={!checkResult || !checkResult.valid}

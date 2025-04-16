@@ -45,6 +45,15 @@ export interface LabworkStepSamples {
 
 type LabworkStepInfoGroup = LabworkStepInfo["results"]["samples"]["groups"][number]
 
+export type PlacementData = {
+  [key in FMSId]: {
+    coordinates: string,
+    container_name: string,
+    container_barcode: string,
+    container_kind: string
+  }[]
+}
+
 export interface LabworkStepSamplesGroup extends Pick<LabworkStepInfoGroup, 'name' | 'count'> {
   containers: any
   sample_locators: Record<FMSId, SampleLocator | undefined>

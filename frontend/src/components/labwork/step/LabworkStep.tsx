@@ -346,7 +346,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					Manage Workflow
 				</Button>
 			</Link>
-			{!isAutomationStep &&
+      {!isAutomationStep && step.use_web_form && <Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Fill Template Form'>Fill Template Form</Button>}
+			{!isAutomationStep && !step.use_web_form &&
 				<>
 					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
 					<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a template'>Submit Template</Button>
