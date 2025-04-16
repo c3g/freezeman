@@ -133,16 +133,17 @@ const slice = createSlice({
                 p.cell.unplaceSample(p.sample)
             })
         }),
-        flushContainers(state, action: PayloadAction<Array<ParentContainerIdentifier> | null>) {
+        flushContainers(state, action: PayloadAction<Array<ParentContainerIdentifier> | undefined>) {
             if (action.payload === null) {
                 state.realParentContainers = {}
                 state.tubesWithoutParentContainer.samples = {}
                 state.samples = {}
                 return
             }
-            const deletedContainerNames = new Set(action.payload)
             const placement = new PlacementClass(state, undefined)
-            deletedContainerNames.forEach((c) => c.name ? placement.flushContainer(c) : placement.flushTubesWithoutParent())
+            action.payload?.forEach((c) => c.name
+                ? placement.flushRealParentContainer(c)
+                : placement.flushTubesWithoutParent())
         },
         flushPlacement(state) {
             Object.assign(state, initialState)

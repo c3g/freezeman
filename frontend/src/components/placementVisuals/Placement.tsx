@@ -85,9 +85,10 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {
-            containerNames.sort()
-            if (containerNames.length > 0)
+            if (containerNames.length > 0) {
+                containerNames.sort()
                 dispatch(setActiveSourceContainer(containerNames[0]))
+            }
         })
     }, [dispatch, sampleIDs, stepID])
 
