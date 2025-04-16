@@ -42,10 +42,11 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
             if (sample.fromCell?.fromContainer.name !== container || sample?.fromCell?.coordinates !== coordinates) {
                 placedFrom.push(sample.fromCell
                     ? {
-                        fromContainer: sample.fromCell?.fromContainer,
-                        coordinates: sample.fromCell?.coordinates
+                        fromContainer: sample.fromCell.fromContainer,
+                        coordinates: sample.fromCell.coordinates
                     }
-                    : sample.containerName)
+                    : sample.containerName
+                )
             }
         }
         return placedFrom
@@ -104,7 +105,9 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
             content={<>
                 <div>{`Sample(s): ${samples.map((s) => s.name).join(", ")}`}</div>
                 <div>{`Coords: ${coordinates}`}</div>
-                {placedFrom.length > 0 ? <div>{'From: '}{placedFrom.map((placedFrom) => typeof placedFrom === 'object' ? `${placedFrom.fromContainer.name}@${placedFrom.coordinates}` : placedFrom).join(", ")}</div> : undefined}
+                {placedFrom.length > 0 ? <div>{'From: '}{placedFrom.map((placedFrom) => typeof placedFrom === 'object'
+                    ? `${placedFrom.fromContainer.name}@${placedFrom.coordinates}`
+                    : placedFrom).join(", ")}</div> : undefined}
                 {placedAt.length > 0 ? <div>{'At: '}{placedAt.map((placedAt) => `${placedAt.fromContainer.name}@${placedAt.coordinates}`).join(", ")}</div> : undefined}
             </>}
             destroyTooltipOnHide={{ keepParent: false }}

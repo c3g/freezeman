@@ -416,7 +416,9 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 		const newContainerNames: (string | null)[] = []
 
 		const containerKinds = selectContainerKindsByID(getState())
-		const values: LabworkStepInfo = (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", {}, sampleIDs))).data
+		const values: LabworkStepInfo = sampleIDs.length > 0
+			? (await dispatch(api.sampleNextStep.labworkStepSummary(stepID, "ordering_container_name", {}, sampleIDs))).data
+			: { results: { step_id: stepID, samples: { grouping_column: "ordering_container_name", groups: [] } } }
 		const containerGroups = values.results.samples.groups
 		for (const containerGroup of containerGroups) {
 			// Handles containers like 'tubes without container'. It assumes there isn't a container named like that.
