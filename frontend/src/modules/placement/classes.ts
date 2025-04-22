@@ -54,7 +54,7 @@ export class PlacementClass extends PlacementObject {
     }
 
     loadContainerPayload(payload: LoadContainerPayload) {
-        if (payload.parentContainerName == null) {
+        if (payload.parentContainerName === null) {
             // find existing tubes without parent container
             let tubesWithoutParent = this.placementState.tubesWithoutParentContainer
             if (!tubesWithoutParent) {
@@ -126,7 +126,7 @@ export class PlacementClass extends PlacementObject {
             const payloadSampleIDs = new Set<SampleID>(payload.cells.map(c => c.sample))
             const oldExistingSamples = Object.values(this.placementState.samples).reduce<SampleState[]>((acc, sample) => {
                 if (!sample) return acc
-                if (sample.containerName === payload.parentContainerName) {
+                if (sample.fromCell?.fromContainer.name === payload.parentContainerName) {
                     acc.push(sample)
                 }
                 return acc
@@ -135,9 +135,11 @@ export class PlacementClass extends PlacementObject {
             for (const sample of oldExistingSamples) {
                 if (!payloadSampleIDs.has(sample.id)) {
                     for (const cellPlacedAt of sample.placedAt) {
+                        // clear all placements of the sample
                         this.placement.getCell(cellPlacedAt).unplaceSample(sample)
                     }
                     if (sample.fromCell) {
+                        // remove sample reference from its original cell
                         delete container.cells[sample.fromCell.coordinates].samples[sample.id]
                     }
                     delete this.placementState.samples[sample.id]

@@ -141,7 +141,7 @@ const slice = createSlice({
                 return
             }
             const placement = new PlacementClass(state, undefined)
-            action.payload?.forEach((c) => c.name
+            action.payload?.forEach((c) => c.name !== null
                 ? placement.flushRealParentContainer(c)
                 : placement.flushTubesWithoutParent())
         },

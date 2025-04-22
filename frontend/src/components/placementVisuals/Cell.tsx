@@ -39,7 +39,7 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     const placedFrom = useMemo(() => {
         const placedFrom: (CellIdentifier | string)[] = []
         for (const sample of samples) {
-            if (sample.fromCell?.fromContainer.name !== container || sample?.fromCell?.coordinates !== coordinates) {
+            if (!(sample.fromCell?.fromContainer.name === container && sample?.fromCell?.coordinates === coordinates)) {
                 placedFrom.push(sample.fromCell
                     ? {
                         fromContainer: sample.fromCell.fromContainer,
@@ -134,19 +134,24 @@ function selectCellColor(state: RootState, cellID: CellIdentifier, sourceContain
     const placementState = selectPlacementState(state)
     const placement = new PlacementClass(placementState, undefined)
     const cell = placement.getCell(cellID)
-    const placements = cell.getSamplePlacements(true)
-    const existingSample = cell.findExistingSample()
-    const selections = placements.filter((sample) => sample.selected)
+    try {
+        const placements = cell.getSamplePlacements(true)
+        const existingSample = cell.findExistingSample()
+        const selections = placements.filter((sample) => sample.selected)
 
-    if (selections.length > 0) return "#86ebc1"
-    if (cell.preview !== null) return placementState.error ? "pink" : "#74bbfc"
-    const isSource = cellID.fromContainer.name === sourceContainer?.name
-    if (
-        (isSource && existingSample) ||
-        (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample)))
-    ) return "#1890ff"
-    if (!isSource && existingSample) return "grey"
-    return "white"
+        if (selections.length > 0) return "#86ebc1"
+        if (cell.preview !== null) return placementState.error ? "pink" : "#74bbfc"
+        const isSource = cellID.fromContainer.name === sourceContainer?.name
+        if (
+            (isSource && existingSample) ||
+            (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample)))
+        ) return "#1890ff"
+        if (!isSource && existingSample) return "grey"
+        return "white"
+    } catch (e) {
+        console.info(cell.state, e)
+        return "red"
+    }
 }
 
 

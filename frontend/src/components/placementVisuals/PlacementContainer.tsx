@@ -14,8 +14,8 @@ interface PlacementContainerProps {
 //component is used to visually represent the container, and its rows and columns of cells
 const PlacementContainer = ({ container: containerName }: PlacementContainerProps) => {
     const dispatch = useAppDispatch()
-    const container = useAppSelector((state) => selectParentContainer(state)({ name: containerName }))
-    const [axisRow = [] as const, axisColumn = [] as const] = container.spec ?? [[], []] as const
+    const container = useAppSelector((state) => selectParentContainer(state)({ name: containerName }).state)
+    const [axisRow = [] as const, axisColumn = [] as const] = 'spec' in container ? container.spec : [[], []]
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length
 

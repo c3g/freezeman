@@ -10,7 +10,7 @@ import { ParentContainerIdentifier } from "../../modules/placement/models";
 import { compareArray, coordinatesToOffsets } from "../../utils/functions";
 
 export interface PlacementSamplesTableProps {
-    container: string | null
+    parentContainerName: string | null
     showContainerColumn?: boolean
 }
 
@@ -20,7 +20,7 @@ interface PlacementSample {
     name: string
     projectName: string
     containerName: string
-    parentContainerName: string
+    parentContainerName: string | null
     coordinates: string | undefined
 }
 
@@ -28,16 +28,13 @@ function rowKey(sample: PlacementSample): string {
     return `${sample.id}-${sample.coordinates}`
 }
 
-//component used to display and select samples in a table format for plate visualization placement
-const PlacementSamplesTable = ({ container: containerName, showContainerColumn }: PlacementSamplesTableProps) => {
-    const containerID: ParentContainerIdentifier = useMemo(() => ({ name: containerName }), [containerName])
+const PlacementSamplesTable = ({ parentContainerName, showContainerColumn }: PlacementSamplesTableProps) => {
+    const parentContainerID: ParentContainerIdentifier = useMemo(() => ({ name: parentContainerName }), [parentContainerName])
     const dispatch = useAppDispatch()
-    // TODO: use sorted selected items instead when the field is defined in the labwork-refactor
-    const container = useAppSelector((state) => selectParentContainer(state)(containerID).state)
+    const container = useAppSelector((state) => selectParentContainer(state)(parentContainerID).state)
     const samplesByID = useAppSelector((state) => selectPlacementState(state).samples)
     const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
     const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
-    const isDestination = containerName === activeDestinationContainer?.name
 
     const samples = useMemo(() => {
         const samples: PlacementSample[] = []
@@ -49,11 +46,11 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                 if (sample && entry) {
                     samples.push({
                         id: parseInt(sampleID),
-                        selected: Boolean(entry?.selected),
+                        selected: Boolean(entry.selected),
                         name: sample.name,
                         projectName: sample.projectName,
                         containerName: sample.containerName,
-                        parentContainerName: sample.fromCell?.fromContainer?.name ?? '',
+                        parentContainerName: sample.fromCell?.fromContainer?.name ?? null,
                         coordinates: sample.fromCell?.coordinates ?? undefined,
                     })
                 }
@@ -118,23 +115,23 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         if (info.type === 'all') {
             dispatch(multiSelect({
                 type: 'all',
-                parentContainer: containerID,
+                parentContainer: parentContainerID,
                 context: {
                     source: activeSourceContainer
                 }
             }))
         }
-    }, [activeSourceContainer, containerID, dispatch])
+    }, [activeSourceContainer, parentContainerID, dispatch])
     const onSelect: SelectionSelectFn<PlacementSample> = useCallback((sample, selected) => {
         if (!activeSourceContainer) return
-        if (containerID.name === null) {
+        if (parentContainerID.name === null) {
             dispatch(multiSelect({
                 forcedSelectedValue: selected,
                 context: {
                     source: activeSourceContainer
                 },
                 type: 'sample-ids',
-                parentContainer: containerID,
+                parentContainer: parentContainerID,
                 samples: [sample],
             }))
         } else {
@@ -145,20 +142,24 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
                     source: activeSourceContainer
                 },
                 type: 'samples-placements',
-                parentContainer: containerID,
-                samples: [{ sample, cell: { fromContainer: containerID, coordinates: sample.coordinates } }],
+                parentContainer: parentContainerID,
+                samples: [{ sample, cell: { fromContainer: parentContainerID, coordinates: sample.coordinates } }],
             }))
         }
-    }, [activeSourceContainer, containerID, dispatch])
+    }, [activeSourceContainer, parentContainerID, dispatch])
     const selectionProps: TableRowSelection<PlacementSample> = useMemo(() =>  ({
         selectedRowKeys,
         onChange,
         onSelect,
         getCheckboxProps: (sample) => ({
             // disable checkbox if the sample is already placed in the destination container
-            disabled: isDestination && sample.parentContainerName === containerName
+            disabled:
+                // is current parent container the active destination container
+                parentContainerName === activeDestinationContainer?.name &&
+                // is the sample already placed in the destination container
+                sample.parentContainerName === parentContainerName
         })
-    }), [selectedRowKeys, onChange, onSelect, isDestination, containerName])
+    }), [selectedRowKeys, onChange, onSelect, parentContainerName, activeDestinationContainer?.name])
 
     const paginationProps: NonNullable<TableProps<PlacementSample>['pagination']> = useMemo(() => ({
         showSizeChanger: true,
@@ -195,7 +196,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
             key: 'name',
         })
 
-        if (containerName !== null) {
+        if (parentContainerName !== null) {
             columns.push({
                 title: 'Coords',
                 dataIndex: 'coordinates',
@@ -205,7 +206,7 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
         }
 
         return columns
-    }, [containerName, showContainerColumn])
+    }, [parentContainerName, showContainerColumn])
 
     return (
         <Table<PlacementSample>

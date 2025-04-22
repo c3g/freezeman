@@ -27,11 +27,12 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const containerKinds = useAppSelector(selectContainerKindsByID)
 
-    const labworkStepPlacement = useAppSelector(selectLabworkStepPlacement)
-    const sourceContainers = labworkStepPlacement.sourceContainers
-    const destinationContainers = labworkStepPlacement.destinationContainers
-    const activeSourceContainer = labworkStepPlacement.activeSourceContainer
-    const activeDestinationContainer = labworkStepPlacement.activeDestinationContainer
+    const {
+        sourceContainers,
+        destinationContainers,
+        activeSourceContainer,
+        activeDestinationContainer
+    } = useAppSelector(selectLabworkStepPlacement)
     const step = useAppSelector((state) => selectStepsByID(state)[stepID])
     const usesSamplesheet = step.name === EXPERIMENT_RUN_ILLUMINA_STEP
 
@@ -236,10 +237,10 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     </Row>
                     <Row justify="space-evenly" style={{ padding: "10px" }}>
                         <Col span={10}>
-                            {activeSourceContainer !== undefined && <PlacementSamplesTable container={activeSourceContainer.name} />}
+                            {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name} />}
                         </Col>
                         <Col span={10}>
-                            {activeDestinationContainer !== undefined && <PlacementSamplesTable container={activeDestinationContainer.name} showContainerColumn />}
+                            {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name} showContainerColumn />}
                         </Col>
                     </Row>
                 </PageContent>
