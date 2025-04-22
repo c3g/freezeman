@@ -85,6 +85,10 @@ def reset_dataset_content(dataset: Dataset):
     warnings = []
     try:
         for readset in Readset.objects.filter(dataset=dataset).all():
+            for data in readset.production_data.all():
+                data.delete()
+            for tracking in readset.production_tracking.all():
+                tracking.delete()
             for metric in readset.metrics.all():
                 metric.delete()
             for dataset_file in readset.files.all():
