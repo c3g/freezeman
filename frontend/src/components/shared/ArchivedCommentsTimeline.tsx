@@ -1,14 +1,11 @@
 import React from "react"
-import { Row, Col, Timeline, Empty, Typography } from "antd"
+import { Row, Col, Timeline, Empty } from "antd"
 import { FMSArchivedComment } from "../../models/fms_api_models"
-import dateToString from "../../utils/dateToString"
 import useTimeline from "../../utils/useTimeline"
+import dayjs from "dayjs"
 import renderTextWithLineBreaks from "../../utils/renderTextWithLineBreaks"
 import { useAppSelector } from "../../hooks"
 import { selectUsersByID } from "../../selectors"
-import * as humanReadableTime from "../../utils/humanReadableTime";
-
-const { Paragraph } = Typography
 interface commentsTimelineProps {
   comments: FMSArchivedComment[]
 }
@@ -23,9 +20,9 @@ export default function ArchivedCommentsTimeline({ comments } : commentsTimeline
       <Col span={orderedComments.length > 0 ? 24 : 1}>
         <div ref={timelineRef} style={{ paddingTop: "1rem" }}>
           {comments.length > 0 ?
-            <Timeline mode={"left"} style={{ marginLeft: timelineMarginLeft}}>
+            <Timeline mode={"left"} style={{marginLeft: timelineMarginLeft}}>
               {orderedComments.map(comment => 
-                <Timeline.Item key={comment.id} label={`${humanReadableTime.full(new Date(comment.created_at))} (${usersByID[comment.created_by]?.username})`}>
+                <Timeline.Item key={comment.id} label={`${(dayjs(comment.created_at).format("YYYY-MM-DD HH:mm"))} (${usersByID[comment.created_by]?.username})`}>
                   {renderTextWithLineBreaks(comment.comment, true)}
                 </Timeline.Item>)}
             </Timeline>
