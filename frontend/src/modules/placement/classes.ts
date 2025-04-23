@@ -75,7 +75,7 @@ export class PlacementClass extends PlacementObject {
             // prune out samples that are not in the payload
             for (const sample of oldExistingSamples) {
                 if (!payloadSampleIDs.has(sample.id)) {
-                    for (const cellID of sample.placedAt) {
+                    for (const cellID of Object.values(sample.placedAt)) {
                         this.placement.getCell(cellID).unplaceSample(sample)
                     }
                     delete tubesWithoutParent.samples[sample.id]
@@ -134,7 +134,7 @@ export class PlacementClass extends PlacementObject {
             // prune out samples that are not in the payload
             for (const sample of oldExistingSamples) {
                 if (!payloadSampleIDs.has(sample.id)) {
-                    for (const cellPlacedAt of sample.placedAt) {
+                    for (const cellPlacedAt of Object.values(sample.placedAt)) {
                         // clear all placements of the sample
                         this.placement.getCell(cellPlacedAt).unplaceSample(sample)
                     }
@@ -168,28 +168,28 @@ export class PlacementClass extends PlacementObject {
         }
     }
 
-    flushRealParentContainer(containerID: RealParentContainerIdentifier) {
-        const container = this.placementState.realParentContainers[containerID.name]
+    flushRealParentContainer(flushedContainerID: RealParentContainerIdentifier) {
+        const container = this.placementState.realParentContainers[flushedContainerID.name]
         if (!container) {
-            throw new Error(`Container ${containerID.name} not found in state`)
+            throw new Error(`Container ${flushedContainerID.name} not found in state`)
         }
         for (const sampleID of Object.keys(this.placementState.samples)) {
             const sample = this.placement.getSample({ id: Number(sampleID) })
-            if (sample.fromCell?.fromContainer.sameContainerAs(containerID)) {
-                for (const cellID of sample.state.placedAt) {
+            if (sample.fromCell?.fromContainer.sameContainerAs(flushedContainerID)) {
+                for (const cellID of Object.values(sample.state.placedAt)) {
                     sample.unplaceAtCell(cellID)
                 }
             }
             delete this.placementState.samples[sample.id]
         }
-        delete this.placementState.realParentContainers[containerID.name]
+        delete this.placementState.realParentContainers[flushedContainerID.name]
     }
 
     flushTubesWithoutParent() {
         for (const sampleID of Object.keys(this.placementState.samples)) {
             const sample = this.placement.getSample({ id: Number(sampleID) })
             if (!sample.fromCell) {
-                for (const cellID of sample.state.placedAt) {
+                for (const cellID of Object.values(sample.state.placedAt)) {
                     sample.unplaceAtCell(cellID)
                 }
                 delete this.placementState.samples[sample.id]
@@ -795,7 +795,10 @@ export class SampleClass extends PlacementObject {
         if (this.fromCell?.sameCellAs(cellID)) {
             throw new Error(`Sample ${this} is an existing sample in this cell ${this.placement.getCell(cellID)}`)
         }
-        const index = this.state.placedAt.findIndex(cell => cell.coordinates === cellID.coordinates)
+        const index = this.state.placedAt.findIndex(cell =>
+            cell.fromContainer.name === cellID.fromContainer.name &&
+            cell.coordinates === cellID.coordinates
+        )
         if (index !== -1) {
             this.state.placedAt.splice(index, 1)
         }
