@@ -430,12 +430,6 @@ export class RealParentContainerClass extends PlacementObject {
                 }
                 break
             }
-            case PlacementType.POOL: {
-                const offsets = coordinatesToOffsets(this.spec, coordinates)
-                samples.forEach(() => {
-                    newOffsetsList.push(offsets)
-                })
-            }
         }
 
         const results: CellClass[] = []
@@ -664,9 +658,7 @@ export class CellClass extends PlacementObject {
             this.context.placementState.placementDirection
         )
         this.fromContainer.setPreviews(
-            this.context.placementState.placementType === PlacementType.POOL
-                ? samples.map(() => ({ coordinates: '' }))
-                : samples.map((s) => s.fromCell?.rawIdentifier() ?? { coordinates: '' }),
+            samples.map((s) => s.fromCell?.rawIdentifier() ?? { coordinates: '' }),
             destinations
         )
     }

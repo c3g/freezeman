@@ -12,7 +12,6 @@ export interface PlacementState {
 export enum PlacementType {
     PATTERN,
     GROUP,
-    POOL,
 }
 export interface PlacementPatternOptions {
     type: PlacementType.PATTERN
@@ -25,10 +24,7 @@ export interface PlacementGroupOptions {
     type: PlacementType.GROUP
     direction: PlacementDirections
 }
-export interface PlacementPoolOptions {
-    type: PlacementType.POOL
-}
-export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions | PlacementPoolOptions
+export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
 export interface RealParentContainerState extends RealParentContainerIdentifier {
     cells: Record<Coordinates, CellState>

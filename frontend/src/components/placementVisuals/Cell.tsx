@@ -123,7 +123,7 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
             >
                 {cell.preview ? cell.preview : ''}
                 {!cell.preview && placedAt.length > 0 ? placedAt.length : ''}
-                {!cell.preview && placedFrom.length > 0 ? placedFrom.length : ''}
+                {!cell.preview && placedFrom.length > 1 ? placedFrom.length : ''}
             </div>
         </Popover>
     )

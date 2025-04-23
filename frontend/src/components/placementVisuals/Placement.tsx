@@ -212,7 +212,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             <Radio.Group onChange={updatePlacementType} value={placementType}>
                                 <Radio.Button value={PlacementType.PATTERN}> Pattern </Radio.Button>
                                 <Radio.Button value={PlacementType.GROUP}> Group </Radio.Button>
-                                <Radio.Button value={PlacementType.POOL}> Pool </Radio.Button>
                             </Radio.Group>
                         </Col>
                         <Col span={5}>
