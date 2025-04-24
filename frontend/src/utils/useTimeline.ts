@@ -1,6 +1,6 @@
 import {useRef, useEffect, useState} from "react";
 
-const OFFSET = 350
+const OFFSET = 450
 
 export default function useTimeline() {
 
