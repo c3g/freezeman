@@ -11,7 +11,7 @@ import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { loadContainer as loadPlacementContainer, placeAllSource, setPlacementDirection, setPlacementType, undoSelectedSamples } from "../../modules/placement/reducers"
+import { loadContainer as loadPlacementContainer, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 
@@ -138,9 +138,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             dispatch(placeAllSource({ source: activeSourceContainer, destination: activeDestinationContainer }))
     }, [activeDestinationContainer, activeSourceContainer, dispatch])
 
-    const removeSelectedCells = useCallback(() => {
+    const undoPlacementsCallback = useCallback(() => {
         if (activeDestinationContainer) {
-            dispatch(undoSelectedSamples(activeDestinationContainer.name))
+            dispatch(undoPlacements(activeDestinationContainer.name))
         }
     }, [activeDestinationContainer, dispatch])
 
@@ -227,7 +227,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             <Button onClick={transferAllSamples} disabled={!canTransferAllSamples}>Place All Source</Button>
                             <Popconfirm
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
-                                onConfirm={removeSelectedCells}
+                                onConfirm={undoPlacementsCallback}
                                 placement={'bottomRight'}
                             >
                                 <Button> Undo Placement</Button>

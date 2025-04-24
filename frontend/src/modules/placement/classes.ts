@@ -269,6 +269,15 @@ export class RealParentContainerClass extends PlacementObject {
             sample.placeAtCell(destinationCell.rawIdentifier())
         }
     }
+    undoPlacements() {
+        let placements = this.getPlacements(true).filter((s) => !s.sample.fromCell?.fromContainer?.sameContainerAs(this))
+        if (placements.length === 0) {
+            placements = this.getPlacements(false).filter((s) => !s.sample.fromCell?.fromContainer?.sameContainerAs(this))
+        }
+        for (const selection of placements) {
+            selection.cell.unplaceSample(selection.sample)
+        }
+    }
 
     isPlacementSelected(placedSample: SamplePlacementIdentifier) {
         return this.getCell(placedSample.cell).isSampleSelected(placedSample.sample)
@@ -304,6 +313,9 @@ export class RealParentContainerClass extends PlacementObject {
             const destination = destinations[index]
             const cell = this.getCell(destination)
             cell.state.preview = source.coordinates ?? ''
+            if (cell.getSamples(true).length > 0) {
+                this.placementState.error ??= `Sample ${cell.getSamples(true)[0].name} already exists in cell ${cell.coordinates}`
+            }
         }
     }
 
@@ -454,6 +466,7 @@ export class RealParentContainerClass extends PlacementObject {
         return new SamplePlacement(this.context, { sample, cell })
     }
 
+    // TODO: use dictionary parameter
     getPlacements(onlySelected = false): SamplePlacement[] {
         return Object.values(this.state.cells)
             .flatMap((cell) =>
@@ -465,6 +478,7 @@ export class RealParentContainerClass extends PlacementObject {
             .filter((id) => onlySelected ? this.isPlacementSelected(id) : true)
     }
 
+    // TODO: use dictionary parameter
     getSortedPlacements(onlySelected = false): SamplePlacement[] {
         return this.getPlacements(onlySelected).sort((a, b) => this.compareSamples(a, b))
     }
@@ -687,6 +701,9 @@ export class CellClass extends PlacementObject {
     }
 
     placeSample(sampleID: SampleIdentifier, twoWayPlacement = true) {
+        if (Object.keys(this.state.samples).length > 0) {
+            throw new Error(`Cell ${this} already has samples`)
+        }
         if (!this.state.samples[sampleID.id]) {
             this.state.samples[sampleID.id] = { selected: false }
         }
@@ -776,11 +793,14 @@ export class SampleClass extends PlacementObject {
     }
 
     placeAtCell(cellID: CellIdentifier, twoWayPlacement = true) {
-        if (!this.state.placedAt.find(placedAt => placedAt.fromContainer.name === cellID.fromContainer.name && placedAt.coordinates === cellID.coordinates)) {
-            this.state.placedAt.push(cellID)
-        }
+        // do backward placement first because it's easier to test
+        // for sample already existing or placed in cell from the
+        // cell's point of view
         if (twoWayPlacement) {
             this.placement.getCell(cellID).placeSample(this.rawIdentifier(), false)
+        }
+        if (!this.state.placedAt.find(placedAt => placedAt.fromContainer.name === cellID.fromContainer.name && placedAt.coordinates === cellID.coordinates)) {
+            this.state.placedAt.push(cellID)
         }
     }
     unplaceAtCell(cellID: CellIdentifier, twoWayPlacement = true) {

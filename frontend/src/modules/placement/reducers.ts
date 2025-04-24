@@ -128,10 +128,8 @@ const slice = createSlice({
         onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) => {
             new PlacementClass(state, payload.context.source).getCell(payload).exit()
         }),
-        undoSelectedSamples: reducerWithThrows((state, parentContainer: Container['name']) => {
-            new PlacementClass(state, undefined).getRealParentContainer({ name: parentContainer }).getPlacements(true).forEach((p) => {
-                p.cell.unplaceSample(p.sample)
-            })
+        undoPlacements: reducerWithThrows((state, parentContainer: Container['name']) => {
+            new PlacementClass(state, undefined).getRealParentContainer({ name: parentContainer }).undoPlacements()
         }),
         flushContainers(state, action: PayloadAction<Array<ParentContainerIdentifier> | undefined>) {
             if (action.payload === null) {
@@ -160,7 +158,7 @@ export const {
     onCellEnter,
     onCellExit,
     multiSelect,
-    undoSelectedSamples,
+    undoPlacements,
     flushContainers,
     flushPlacement,
 } = slice.actions
