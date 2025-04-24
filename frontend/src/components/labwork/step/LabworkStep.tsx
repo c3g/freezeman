@@ -301,8 +301,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	useEffect(() => {
 		if (stepSamples.selectedSamples.items.length === 0) {
-			dispatch(flushPlacement())
-			dispatch(flushLabworkStepPlacementContainers())
 			onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
 	}, [dispatch, onTabChange, stepSamples.selectedSamples.items.length])
