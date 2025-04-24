@@ -128,7 +128,7 @@ def prepare_production_report_data(log):
                                           library_selection=readset_data["derived_sample__library__library_selection__target"],
                                           project=readset_data["dataset__project__name"],
                                           project_external_id=readset_data["dataset__project__external_id"],
-                                          principal_investigator=investigator_by_external_id.get(readset_data["dataset__external_project_id"], None),
+                                          principal_investigator=investigator_by_external_id.get(readset_data["dataset__project__external_id"], None),
                                           taxon=readset_data["derived_sample__biosample__individual__taxon__name"],
                                           technology=readset_data["dataset__experiment_run__instrument__type__type"],
                                           reads=readset_data["reads"],

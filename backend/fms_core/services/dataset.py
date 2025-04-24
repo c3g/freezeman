@@ -9,6 +9,8 @@ from fms_core.models.project import Project
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
+from fms_report.models.production_data import ProductionData
+from fms_report.models.production_tracking import ProductionTracking
 from fms_core.models._constants import ValidationStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
@@ -84,6 +86,10 @@ def reset_dataset_content(dataset: Dataset):
     errors = []
     warnings = []
     try:
+        for data in ProductionData.objects.filter(readset__dataset=dataset).all():
+            data.delete()
+        for tracking in ProductionTracking.objects.filter(extracted_readset__dataset=dataset).all():
+            tracking.delete()
         for readset in Readset.objects.filter(dataset=dataset).all():
             for metric in readset.metrics.all():
                 metric.delete()
