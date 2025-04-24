@@ -354,6 +354,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
+			<a href={`/management/workflow-assignment?${SampleColumnID.QUEUED_STEPS}=${step.name}`}>
+				<Button type='default' title={"Queue or Dequeue samples with respect to different steps"}>
+					Manage Workflow
+				</Button>
+			</a>
 			{!isAutomationStep &&
 				<>
 					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
