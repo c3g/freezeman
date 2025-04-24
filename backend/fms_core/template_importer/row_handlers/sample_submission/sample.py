@@ -20,6 +20,15 @@ class SampleRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
+    def validate_row_input(self, **kwargs):
+        super().validate_row_input(**kwargs)
+
+        sample = kwargs["sample"]
+        # make sure all required values are present. WIP.
+        if sample["sample_kind"] is None:
+            self.errors['sample_kind'] = [f"Sample Kind is a required field."]
+        if sample["volume"] is None:
+            self.errors['volume'] = [f"Volume (uL) is a required field."]
 
     def process_row_inner(self, sample, library, container, project, parent_container, individual, sample_kind_objects_by_name, defined_pools):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.now(timezone.utc).isoformat()}Z"
