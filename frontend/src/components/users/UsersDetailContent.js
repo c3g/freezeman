@@ -22,23 +22,15 @@ import {
 } from "@ant-design/icons";
 
 import dateToString from "../../utils/dateToString";
-import itemRender from "../../utils/breadcrumbItemRender";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
 import { listRevisions, listVersions, get } from "../../modules/users/actions";
-import routes from "./routes";
 import useTimeline from "../../utils/useTimeline";
 import { useIsStaff } from "./useIsStaff";
 
 const { Title, Text } = Typography;
-
-
-const route = {
-  path: "/user",
-  breadcrumbName: "User",
-};
 
 const columns = [
   { title: 'Model', dataIndex: ['content_type', 'model'], key: 'model', width: 80 },
@@ -79,7 +71,6 @@ const ReportsUserContent = ({ isFetching, usersError, usersByID, groupsByID, get
     <>
       <AppPageHeader
         title="User"
-        breadcrumb={{ routes: routes.concat(route), itemRender }}
         extra={canEdit ?
           <EditButton url={`/users/${id}/update`} /> : undefined
         }
