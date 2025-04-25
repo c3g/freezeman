@@ -43,7 +43,7 @@ function ExperimentRunListContent() {
 
     return (
         <>
-            <Flexbar style={{alignItems: 'center', paddingBottom: "10px"}}>
+            <Flexbar style={{alignItems: 'center', paddingLeft: "0.5em", paddingTop: "0.5em", paddingBottom: "0.5em"}}>
                 <FilterPanel descriptions={detachedFilters}
                     filters={experimentRunsTableState.filters}
                     setFilter={callbacks.setFilterCallback}

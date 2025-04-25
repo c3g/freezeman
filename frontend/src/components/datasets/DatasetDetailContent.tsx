@@ -27,7 +27,7 @@ const DatasetDetailContent = () => {
 
     useEffect(() => {
         async function fetchLaneValidationStatus(dataset: Dataset) {
-            const status = await dispatch(api.experimentRuns.getLaneValidationStatus(dataset.run_name, dataset.lane))
+            const status = await dispatch(api.experimentRuns.getLaneValidationStatus(dataset.experiment_run_id, dataset.lane))
             return status.data
         }
 

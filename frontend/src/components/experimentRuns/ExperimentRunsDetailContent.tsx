@@ -156,7 +156,7 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 					</TabPane>
 
 					<TabPane tab={'Validation'} key="validation">
-						<ExperimentRunValidation experimentRunName={experimentRun.name} />
+						<ExperimentRunValidation experimentRunId={experimentRun.id} />
 					</TabPane>
 
 					<TabPane tab={'Datasets'} key="datasets">

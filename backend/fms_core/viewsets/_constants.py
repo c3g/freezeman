@@ -225,12 +225,13 @@ _library_filterset_fields: FiltersetFields = {
 
 _dataset_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "run_name": CATEGORICAL_FILTERS_LOOSE,
-    "external_project_id": CATEGORICAL_FILTERS_LOOSE,
-    "lane": CATEGORICAL_FILTERS,
-    "project_name": CATEGORICAL_FILTERS_LOOSE,
-    "metric_report_url": CATEGORICAL_FILTERS_LOOSE,
+    "project": FK_FILTERS,
+    "project__external_id": CATEGORICAL_FILTERS_LOOSE,
+    "project__name": CATEGORICAL_FILTERS_LOOSE,
     "experiment_run": FK_FILTERS,
+    "experiment_run__name": CATEGORICAL_FILTERS_LOOSE,
+    "lane": CATEGORICAL_FILTERS,
+    "metric_report_url": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _experiment_run_filterset_fields: FiltersetFields = {
@@ -361,9 +362,9 @@ _metric_filterset_fields: FiltersetFields = {
     "value_numeric": SCALAR_FILTERS,
     "value_string": CATEGORICAL_FILTERS_LOOSE,
     "readset__sample_name": CATEGORICAL_FILTERS_LOOSE,
-    "readset__derived_sample_id": PK_FILTERS,
-    "readset__dataset__id": PK_FILTERS,
-    "readset__dataset__experiment_run_id": PK_FILTERS,
-    "readset__dataset__run_name": CATEGORICAL_FILTERS_LOOSE,
+    "readset__derived_sample_id": FK_FILTERS,
+    "readset__dataset__id": FK_FILTERS,
+    "readset__dataset__experiment_run_id": FK_FILTERS,
+    "readset__dataset__experiment_run__name": CATEGORICAL_FILTERS_LOOSE,
     "readset__dataset__lane": CATEGORICAL_FILTERS,
 }

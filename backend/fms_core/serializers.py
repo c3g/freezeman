@@ -603,10 +603,13 @@ class DatasetSerializer(serializers.ModelSerializer):
     validation_status = serializers.SerializerMethodField()
     latest_validation_update = serializers.SerializerMethodField()
     validated_by = serializers.SerializerMethodField()
+    external_project_id = serializers.CharField(read_only=True, source="project.external_id")
+    project_name = serializers.CharField(read_only=True, source="project.name")
+    run_name = serializers.CharField(read_only=True, source="experiment_run.name")
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "released_by", "validated_by", "latest_validation_update", "run_name", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
+        fields = ("id", "external_project_id", "released_by", "validated_by", "latest_validation_update", "run_name", "experiment_run_id", "lane", "files", "released_status_count", "blocked_status_count", "latest_release_update", "validation_status", "project_name", "metric_report_url", "readset_count", "archived_comments")
 
     def get_files(self, obj):
         return DatasetFile.objects.filter(readset__dataset=obj.id).values_list("id", flat=True)
@@ -939,7 +942,7 @@ class MetricSerializer(serializers.ModelSerializer):
     readset_id = serializers.IntegerField(read_only=True)
     sample_name = serializers.CharField(read_only=True, source='readset.sample_name')
     derived_sample_id = serializers.IntegerField(read_only=True, source='readset.derived_sample_id')
-    run_name = serializers.CharField(read_only=True, source='readset.dataset.run_name')
+    run_name = serializers.CharField(read_only=True, source='readset.dataset.experiment_run.name')
     experiment_run_id = serializers.IntegerField(read_only=True, source='readset.dataset.exeriment_run_id')
     lane = serializers.IntegerField(read_only=True, source='readset.dataset.lane')
 

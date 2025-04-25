@@ -3,13 +3,60 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
-from fms_core.models import Readset, Dataset, Container, Sample
 from fms_core.models._constants import ValidationStatus, ReleaseStatus
-from fms_core.tests.constants import create_sample, create_sample_container
+from fms_core.tests.constants import create_sample, create_sample_container, create_container
+
+from fms_core.models import (
+    RunType,
+    Container,
+    Instrument,
+    Platform,
+    InstrumentType,
+    Process,
+    Protocol,
+    ExperimentRun,
+    Project,
+    Dataset,
+    Readset,
+    Sample
+)
+from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
 
 class ReadsetTest(TestCase):
     def setUp(self):
-        self.dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane=1, project_name="test")
+        self.start_date = "2025-04-07"
+        self.experiment_name = "test_run"
+        self.run_type_name = "Illumina"
+        self.run_type, _ = RunType.objects.get_or_create(name=self.run_type_name)
+
+        self.container, _ = Container.objects.get_or_create(**create_container(name="Flowcell1212testtest", barcode="Flowcell1212testtest", kind="illumina-novaseq-s4 flowcell"))
+        self.container_invalid_kind, _ = Container.objects.get_or_create(**create_container(name="NotAFlowcell", barcode="NotAFlowcell", kind="96-well plate"))
+
+        platform, _ = Platform.objects.get_or_create(name="PlatformTest")
+        instrument_type, _ = InstrumentType.objects.get_or_create(type="InstrumentTypeTest",
+                                                                  platform=platform,
+                                                                  index_read_5_prime=INDEX_READ_FORWARD,
+                                                                  index_read_3_prime=INDEX_READ_REVERSE)
+        self.instrument_name = "Instrument1"
+        self.instrument, _ = Instrument.objects.get_or_create(name=self.instrument_name,
+                                                              type=instrument_type,
+                                                              serial_id="Test101")
+
+        self.protocol_name = "MyProtocolTest"
+        self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)
+        self.process = Process.objects.create(protocol=self.protocol, comment="Process test for ExperimentRun")
+
+        self.project = Project.objects.create(name="test", external_id="P031553")
+
+        self.experiment_run = ExperimentRun.objects.create(name=self.experiment_name,
+                                                           run_type=self.run_type,
+                                                           container=self.container,
+                                                           instrument=self.instrument,
+                                                           process=self.process,
+                                                           start_date=self.start_date)
+
+
+        self.dataset = Dataset.objects.create(project=self.project, experiment_run=self.experiment_run, lane="1")
         self.currentuser = User.objects.get(username="biobankadmin")
 
     def test_readset(self):

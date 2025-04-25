@@ -84,7 +84,7 @@ export enum ValidationStatus {
     FAILED = 2,
 }
 export interface FMSDataset extends FMSTrackedModel {
-    external_project_id: FMSId             // External (Hercules) project ID
+    external_project_id: string             // External (Hercules) project ID
     files: FMSId[]                          // List of dataset file ID's
     lane: number                            // Flowcell lane number of dataset
     latest_release_update?: string          // ?
@@ -94,6 +94,7 @@ export interface FMSDataset extends FMSTrackedModel {
     validation_status: ValidationStatus
     latest_validation_update?: string       // Retrieves the latest validation status update timestamp from the readset level
     validated_by?: string                   // Validated_by returns a username if there is
+    experiment_run_id: FMSId                // Freezeman run ID 
     run_name: string                        // The name of the experiment run that generated this dataset
     project_name: string                    // Human readable name for the project
     metric_report_url?: string              // An external url to a report containing metrics for the dataset run

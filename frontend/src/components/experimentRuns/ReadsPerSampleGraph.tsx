@@ -27,7 +27,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 
 	useEffect(() => {
 		if (!lane.readsPerSample) {
-			dispatch(loadReadsPerSample(lane.runName, lane.laneNumber))
+			dispatch(loadReadsPerSample(lane.experimentRunId, lane.laneNumber))
 		}
 	}, [lane, dispatch])
 
