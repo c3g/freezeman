@@ -84,7 +84,6 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
                     if (!sample) return null
                     const sampleNextSteps = sampleNextStepsBySampleID[sample.id]
                     if (!sampleNextSteps) return <Spin size={"small"} />
-                    if (sampleNextSteps.length === 0) return null
                     return <DropdownListItems listItems={sampleNextSteps.map(s => s.step.name)} />
                 },
                 sorter: { multiple: 1 },

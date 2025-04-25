@@ -1,6 +1,6 @@
 import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
@@ -354,11 +354,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<a href={`/management/workflow-assignment?${SampleColumnID.QUEUED_STEPS}=${step.name}`}>
-				<Button type='default' title={"Queue or Dequeue samples with respect to different steps"}>
+			<Link to={`/management/workflow-assignment?${SampleColumnID.QUEUED_STEPS}=${step.name}`}>
+				<Button type='default' title={"Manage sample queueing to the current step."}>
 					Manage Workflow
 				</Button>
-			</a>
+			</Link>
 			{!isAutomationStep &&
 				<>
 					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
