@@ -96,6 +96,7 @@ export interface FMSDataset extends FMSTrackedModel {
     validated_by?: string                   // Validated_by returns a username if there is
     experiment_run_id: FMSId                // Freezeman run ID 
     run_name: string                        // The name of the experiment run that generated this dataset
+    project_id: FMSId                       // The project ID of the dataset
     project_name: string                    // Human readable name for the project
     metric_report_url?: string              // An external url to a report containing metrics for the dataset run
     readset_count: number
