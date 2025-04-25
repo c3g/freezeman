@@ -236,19 +236,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return mergedSelection
 	}
 
-	const handleClearSelection = useCallback(
-		() => {
-			dispatch(clearSelectedSamples(step.id))
-			onTabChange(GROUPED_SAMPLES_TAB_KEY)
-		}
-		, [step, dispatch])
-	// Selection handler for sample selection checkboxes
-	const onSelectChange = useCallback((selectedSamples) => {
-		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
-		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples.items, stepSamples.displayedSamples, displayedSelection)
-		dispatch(setSelectedSamples(step.id, mergedSelection))
-	}, [step, stepSamples, dispatch])
-
 	const getIdsFromSelectedSamples = useCallback((selectedSamples) => {
 		const ids = selectedSamples.reduce((acc, selected) => {
 			if (selected.sample) {
@@ -258,6 +245,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}, [] as FMSId[])
 		return ids;
 	}, [])
+
+	const handleClearSelection = useCallback(() => dispatch(clearSelectedSamples(step.id)), [step.id, dispatch])
+	// Selection handler for sample selection checkboxes
+	const onSelectChange = useCallback((selectedSamples) => {
+		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
+		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples.items, stepSamples.displayedSamples, displayedSelection)
+		dispatch(setSelectedSamples(step.id, mergedSelection))
+	}, [getIdsFromSelectedSamples, stepSamples.selectedSamples.items, stepSamples.displayedSamples, dispatch, step.id])
 
 	// Selection handler for sample selection checkboxes
 	const selectionProps = useCallback((onSelectionChangeCallback) => {
