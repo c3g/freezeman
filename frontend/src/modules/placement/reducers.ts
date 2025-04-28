@@ -128,8 +128,8 @@ const slice = createSlice({
         onCellExit: reducerWithThrows((state, payload: MouseOnCellPayload) => {
             new PlacementClass(state, payload.context.source).getCell(payload).exit()
         }),
-        undoPlacements: reducerWithThrows((state, parentContainer: Container['name']) => {
-            new PlacementClass(state, undefined).getRealParentContainer({ name: parentContainer }).undoPlacements()
+        undoPlacements: reducerWithThrows((state, parentContainer: RealParentContainerIdentifier) => {
+            new PlacementClass(state, undefined).getRealParentContainer(parentContainer).undoPlacements()
         }),
         flushContainers(state, action: PayloadAction<Array<ParentContainerIdentifier> | undefined>) {
             if (action.payload === null) {

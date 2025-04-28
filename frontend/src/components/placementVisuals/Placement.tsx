@@ -140,7 +140,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
 
     const undoPlacementsCallback = useCallback(() => {
         if (activeDestinationContainer) {
-            dispatch(undoPlacements(activeDestinationContainer.name))
+            dispatch(undoPlacements(activeDestinationContainer))
         }
     }, [activeDestinationContainer, dispatch])
 
