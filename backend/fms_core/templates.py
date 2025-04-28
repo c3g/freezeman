@@ -129,7 +129,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
   "identity": {"description": "Template to add Infinium experiments",
-               "file": static("submission_templates/Experiment_run_Infinium_v4_13_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_Infinium_v5_0_0.xlsx"),
                "protocol": "Illumina Infinium Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]

@@ -26,6 +26,29 @@ def set_dataset_project_fk_using_project_name(apps, schema_editor):
             dataset.save()
             reversion.add_to_revision(dataset)
 
+def update_infinium_property_types(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+    PropertyType = apps.get_model("fms_core", "PropertyType")
+
+    admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+    protocol_content_type = ContentType.objects.get_for_model(Protocol)
+
+    with reversion.create_revision(manage_manually=True):
+        reversion.set_comment("Remove two property types from infinium experiment templates.")
+        reversion.set_user(admin_user)
+
+        protocol_hybridization = Protocol.objects.get(name="Infinium: Hybridization")
+        pt1 = PropertyType.objects.get(name="Hybridization Chip Barcodes", object_id=protocol_hybridization.id, content_type_id=protocol_content_type.id)
+        pt1.delete(requester_id=admin_user.id)
+        reversion.add_to_revision(pt1)
+
+        protocol_scan_prep = Protocol.objects.get(name="Infinium: Scan Preparation")
+        pt2 = PropertyType.objects.get(name="SentrixBarcode_A", object_id=protocol_scan_prep.id, content_type_id=protocol_content_type.id)
+        pt2.delete(requester_id=admin_user.id)
+        reversion.add_to_revision(pt2)
+
 
 class Migration(migrations.Migration):
 
@@ -72,5 +95,9 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='dataset',
             constraint=models.UniqueConstraint(fields=('project', 'experiment_run', 'lane'), name='dataset_project_experimentrun_lane_key'),
+        ),
+        migrations.RunPython(
+            update_infinium_property_types,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
