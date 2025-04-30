@@ -16,6 +16,7 @@ from ._update_index import update_index
 from ._delete_individual import delete_individual
 from ._delete_container import delete_container
 from ._delete_sample import delete_sample
+from ._delete_datasetfile import delete_datasetfile
 from ._create_entity import create_entity
 
 # This curation module can be called using manage.py :
@@ -30,6 +31,7 @@ ACTION_UPDATE_INDEX = "update_index"
 ACTION_DELETE_INDIVIDUAL = "delete_individual"
 ACTION_DELETE_CONTAINER = "delete_container"
 ACTION_DELETE_SAMPLE = "delete_sample"
+ACTION_DELETE_DATASETFILE = "delete_datasetfile"
 ACTION_CREATE_ENTITY = "create_entity"
 
 # Curation params template
@@ -53,6 +55,7 @@ class Command(BaseCommand):
         ACTION_DELETE_INDIVIDUAL: delete_individual,
         ACTION_DELETE_CONTAINER: delete_container,
         ACTION_DELETE_SAMPLE: delete_sample,
+        ACTION_DELETE_DATASETFILE: delete_datasetfile,
         ACTION_CREATE_ENTITY: create_entity,
     }
 
