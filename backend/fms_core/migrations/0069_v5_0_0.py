@@ -29,6 +29,7 @@ def set_dataset_project_fk_using_project_name(apps, schema_editor):
 def update_infinium_property_types(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "Protocol")
     PropertyType = apps.get_model("fms_core", "PropertyType")
+    PropertyValue = apps.get_model("fms_core", "PropertyValue")
 
     admin_user = User.objects.get(username=ADMIN_USERNAME)
 
@@ -41,13 +42,16 @@ def update_infinium_property_types(apps, schema_editor):
 
         protocol_hybridization = Protocol.objects.get(name="Infinium: Hybridization")
         pt1 = PropertyType.objects.get(name="Hybridization Chip Barcodes", object_id=protocol_hybridization.id, content_type_id=protocol_content_type.id)
+        # remove property values tied to that property type
+        for pv in PropertyValue.objects.filter(property_type_id=pt1.id).all():
+            pv.delete()
         pt1.delete()
-        reversion.add_to_revision(pt1)
 
         protocol_scan_prep = Protocol.objects.get(name="Infinium: Scan Preparation")
         pt2 = PropertyType.objects.get(name="SentrixBarcode_A", object_id=protocol_scan_prep.id, content_type_id=protocol_content_type.id)
+        for pv in PropertyValue.objects.filter(property_type_id=pt2.id).all():
+            pv.delete()
         pt2.delete()
-        reversion.add_to_revision(pt2)
 
 
 class Migration(migrations.Migration):
