@@ -38,7 +38,7 @@ const DatasetDetailContent = () => {
         }
     }, [dataset, laneValidationStatus, dispatch])
 
-    const loading = (value: any) => {
+    const loading = <T,>(value: T) => {
         return value ?? "Loading..."
     }
 
