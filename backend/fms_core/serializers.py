@@ -604,7 +604,6 @@ class DatasetSerializer(serializers.ModelSerializer):
     latest_validation_update = serializers.SerializerMethodField()
     validated_by = serializers.SerializerMethodField()
     external_project_id = serializers.CharField(read_only=True, source="project.external_id")
-    project_id = serializers.IntegerField(read_only=True, source="project.id")
     project_name = serializers.CharField(read_only=True, source="project.name")
     run_name = serializers.CharField(read_only=True, source="experiment_run.name")
 
