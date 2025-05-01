@@ -86,7 +86,7 @@ export class PlacementClass extends PlacementObject {
             for (const cell of payload.cells) {
                 const sampleID = cell.sample
                 const sample: SampleState = this.placementState.samples[sampleID] ?? {
-                    containerName: 'TODO: get the name of the tube',
+                    containerName: cell.containerName,
                     id: sampleID,
                     name: cell.name,
                     projectName: cell.projectName,
@@ -149,7 +149,7 @@ export class PlacementClass extends PlacementObject {
             for (const payloadCell of payload.cells) {
                 const sampleID = payloadCell.sample
                 const sample = this.placementState.samples[sampleID] ?? {
-                    containerName: "TODO: use the name of the tube if it's in a tube",
+                    containerName: payloadCell.containerName,
                     id: sampleID,
                     name: payloadCell.name,
                     projectName: payloadCell.projectName,

@@ -422,28 +422,29 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 		const containerGroups = values.results.samples.groups
 		for (const containerGroup of containerGroups) {
 			// Handles containers like 'tubes without container'. It assumes there isn't a container named like that.
-			const [containerDetail] = await dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
-			if (containerDetail) {
-				const spec = containerKinds[containerDetail.kind].coordinate_spec
+			const [parentContainerDetail] = await dispatch(api.containers.list({ name: containerGroup.name })).then(container => container.data.results as ([FMSContainer] | []))
+			if (parentContainerDetail) {
+				const spec = containerKinds[parentContainerDetail.kind].coordinate_spec
 				dispatch(loadPlacementContainer({
-					parentContainerName: containerDetail.name,
+					parentContainerName: parentContainerDetail.name,
 					spec,
 					cells: containerGroup.sample_locators.map((locator) => {
 						return {
 							sample: locator.sample_id,
 							name: locator.sample_name,
+							containerName: locator.container_name,
 							projectName: locator.project_name,
 							coordinates: locator.contextual_coordinates
 						}
 					})
 				}))
 				dispatch(loadSourceContainer({
-					name: containerDetail.name,
+					name: parentContainerDetail.name,
 					spec,
-					barcode: containerDetail.barcode,
-					kind: containerDetail.kind
+					barcode: parentContainerDetail.barcode,
+					kind: parentContainerDetail.kind
 				}))
-				newContainerNames.push(containerDetail.name)
+				newContainerNames.push(parentContainerDetail.name)
 			} else {
 				dispatch(loadPlacementContainer({
 					parentContainerName: null,
@@ -451,6 +452,7 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 						return {
 							sample: locator.sample_id,
 							name: locator.sample_name,
+							containerName: locator.container_name,
 							projectName: locator.project_name,
 						}
 					})

@@ -422,9 +422,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         # Get all samples on the steps with the grouping field
         grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id) \
             .annotate(sample_name=F("sample__name")) \
+            .annotate(container_name=F("sample__container__name")) \
             .values_list(
                 "sample_id",
                 "sample_name",
+                "container_name",
                 "project_name",
                 grouping_column,
                 "ordering_container_barcode",
@@ -433,10 +435,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         groups = defaultdict(list)
         # Extract the locators from the entries
-        for sample_id, sample_name, project_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
+        for sample_id, sample_name, container_name, project_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
             groups[group_column].append({
                 "sample_id": sample_id,
                 "sample_name": sample_name,
+                "container_name": container_name,
                 "project_name": project_name,
                 "contextual_container_barcode": container_barcode,
                 "contextual_coordinates": container_coordinates

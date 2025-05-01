@@ -184,10 +184,10 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
 interface LoadParentContainerPayload {
     parentContainerName: string
     spec: CoordinateSpec
-    cells: { coordinates: string, sample: Sample['id'], name: string, projectName: string }[]
+    cells: { coordinates: string, sample: Sample['id'], name: string, containerName: string, projectName: string }[]
 }
 interface LoadTubesWithoutParentPayload {
     parentContainerName: null
-    cells: { coordinates?: undefined, sample: Sample['id'], name: string, projectName: string }[]
+    cells: { coordinates?: undefined, sample: Sample['id'], name: string, containerName: string, projectName: string }[]
 }
 
