@@ -73,7 +73,7 @@ const DatasetDetailContent = () => {
                     </Descriptions.Item>
                     <Descriptions.Item label={"Run Metrics Report"} span={2}>
                         {dataset?.metric_report_url ?
-                            <Link to={dataset.metric_report_url} rel="external noopener noreferrer" target="_blank">View Run Metrics</Link>
+                            <a href={dataset.metric_report_url} rel="external noopener noreferrer" target="_blank">View Run Metrics</a>
                             :
                             <span>Unavailable</span>
                         }
