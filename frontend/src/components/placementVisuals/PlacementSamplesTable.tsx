@@ -7,7 +7,7 @@ import { multiSelect } from "../../modules/placement/reducers";
 import { selectParentContainer, selectPlacementState } from "../../modules/placement/selectors";
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
 import { ParentContainerIdentifier } from "../../modules/placement/models";
-import { compareArray, coordinatesToOffsets } from "../../utils/functions";
+import { comparePlacementSamples } from "../../utils/functions";
 
 export interface PlacementSamplesTableProps {
     parentContainerName: string | null
@@ -76,34 +76,7 @@ const PlacementSamplesTable = ({ parentContainerName, showContainerColumn }: Pla
                 }
             }
         }
-        samples.sort((a, b) => {
-            const MAX = 128
-
-            let orderA = MAX
-            let orderB = MAX
-
-            if (a.selected) orderA -= MAX / 2
-            if (b.selected) orderB -= MAX / 2
-
-            if (container.name !== null && a.coordinates && b.coordinates)  {
-                const aOffsets = coordinatesToOffsets(container.spec, a.coordinates)
-                const bOffsets = coordinatesToOffsets(container.spec, b.coordinates)
-                const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
-                if (arrayComparison < 0) orderA -= MAX / 4
-                if (arrayComparison > 0) orderB -= MAX / 4
-            }
-
-            if (a.name < b.name) orderA -= MAX / 8
-            if (a.name > b.name) orderB -= MAX / 8
-
-            if (a.containerName < b.containerName) orderA -= MAX / 16
-            if (a.containerName > b.containerName) orderB -= MAX / 16
-
-            if (a.projectName < b.projectName) orderA -= MAX / 32
-            if (a.projectName > b.projectName) orderB -= MAX / 32
-
-            return orderA - orderB
-        })
+        samples.sort((a, b) => comparePlacementSamples(a, b, 'spec' in container ? container.spec : undefined))
         return samples
     }, [container, samplesByID])
 

@@ -1,5 +1,5 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
-import { Container, Sample } from "../../models/frontend_models"
+import { Sample } from "../../models/frontend_models"
 import { CoordinateSpec } from "../../models/fms_api_models"
 import { CellIdentifier, ParentContainerIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
 import { PlacementClass, SamplePlacementIdentifier } from "./classes"
@@ -132,16 +132,20 @@ const slice = createSlice({
             new PlacementClass(state, undefined).getRealParentContainer(parentContainer).undoPlacements()
         }),
         flushContainers(state, action: PayloadAction<Array<ParentContainerIdentifier> | undefined>) {
-            if (action.payload === null) {
+            if (!action.payload) {
                 state.realParentContainers = {}
                 state.tubesWithoutParentContainer.samples = {}
                 state.samples = {}
                 return
             }
             const placement = new PlacementClass(state, undefined)
-            action.payload?.forEach((c) => c.name !== null
-                ? placement.flushRealParentContainer(c)
-                : placement.flushTubesWithoutParent())
+            for (const c of action.payload) {
+                if (c.name === null) {
+                    placement.flushTubesWithoutParent()
+                } else {
+                    placement.flushRealParentContainer(c)
+                }
+            }
         },
         flushPlacement(state) {
             Object.assign(state, initialState)

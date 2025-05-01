@@ -1,4 +1,5 @@
-import { CoordinateSpec } from "../models/fms_api_models"
+import { CoordinateSpec, FMSId } from "../models/fms_api_models"
+import { ContainerKind } from "../models/frontend_models"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -56,4 +57,42 @@ export function compareArray(a: readonly number[], b: readonly number[]): number
     if (a.length < b.length) return -1
     if (a.length > b.length) return 1
     return 0
+}
+
+export interface PlacementSample {
+    id: FMSId
+    selected: boolean
+    name: string
+    projectName: string
+    containerName: string
+    parentContainerName: string | null
+    coordinates: string | undefined
+}
+export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, spec?: ContainerKind['coordinate_spec']) {
+    const MAX = 1
+
+    let orderA = MAX
+    let orderB = MAX
+
+    if (a.selected) orderA -= MAX / 2
+    if (b.selected) orderB -= MAX / 2
+
+    if (spec && a.coordinates && b.coordinates)  {
+        const aOffsets = coordinatesToOffsets(spec, a.coordinates)
+        const bOffsets = coordinatesToOffsets(spec, b.coordinates)
+        const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
+        if (arrayComparison < 0) orderA -= MAX / 4
+        if (arrayComparison > 0) orderB -= MAX / 4
+    }
+
+    if (a.name < b.name) orderA -= MAX / 8
+    if (a.name > b.name) orderB -= MAX / 8
+
+    if (a.containerName < b.containerName) orderA -= MAX / 16
+    if (a.containerName > b.containerName) orderB -= MAX / 16
+
+    if (a.projectName < b.projectName) orderA -= MAX / 32
+    if (a.projectName > b.projectName) orderB -= MAX / 32
+
+    return orderA - orderB
 }
