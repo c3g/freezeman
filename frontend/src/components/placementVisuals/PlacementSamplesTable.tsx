@@ -1,47 +1,36 @@
 import React, { useCallback, useMemo } from "react"
 import { Table, TableProps } from "antd";
 import { ColumnsType, SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
-import { FMSId } from "../../models/fms_api_models";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { multiSelect } from "../../modules/placement/reducers";
 import { selectParentContainer, selectPlacementState } from "../../modules/placement/selectors";
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
 import { ParentContainerIdentifier } from "../../modules/placement/models";
-import { comparePlacementSamples } from "../../utils/functions";
+import { comparePlacementSamples, PlacementSample } from "../../utils/functions";
 
 export interface PlacementSamplesTableProps {
     parentContainerName: string | null
-    showContainerColumn?: boolean
 }
 
-interface PlacementSample {
-    id: FMSId
-    selected: boolean
-    name: string
-    projectName: string
-    containerName: string
-    parentContainerName: string | null
-    coordinates: string | undefined
-}
-
-function rowKey(sample: PlacementSample): string {
+function rowKey(sample: Pick<PlacementSample, 'id' | 'coordinates'>): string {
     return `${sample.id}-${sample.coordinates}`
 }
 
-const PlacementSamplesTable = ({ parentContainerName, showContainerColumn }: PlacementSamplesTableProps) => {
+const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTableProps) => {
     const parentContainerID: ParentContainerIdentifier = useMemo(() => ({ name: parentContainerName }), [parentContainerName])
     const dispatch = useAppDispatch()
-    const container = useAppSelector((state) => selectParentContainer(state)(parentContainerID).state)
+    const parentContainer = useAppSelector((state) => selectParentContainer(state)(parentContainerID).state)
     const samplesByID = useAppSelector((state) => selectPlacementState(state).samples)
     const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
     const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
+    const sourceOrDestination = parentContainerName === activeSourceContainer?.name ? 'source' : 'destination'
 
     const samples = useMemo(() => {
         const samples: PlacementSample[] = []
-        if (container.name === null) {
+        if (parentContainer.name === null) {
             // handle tubes without parents
-            for (const sampleID in container.samples) {
-                const entry = container.samples[sampleID]
+            for (const sampleID in parentContainer.samples) {
+                const entry = parentContainer.samples[sampleID]
                 const sample = samplesByID[sampleID]
                 if (sample && entry) {
                     samples.push({
@@ -50,15 +39,14 @@ const PlacementSamplesTable = ({ parentContainerName, showContainerColumn }: Pla
                         name: sample.name,
                         projectName: sample.projectName,
                         containerName: sample.containerName,
-                        parentContainerName: sample.fromCell?.fromContainer?.name ?? null,
-                        coordinates: sample.fromCell?.coordinates ?? undefined,
+                        fromCell: sample.fromCell
                     })
                 }
             }
         } else {
             // handle real parent container
-            for (const cellID in container.cells) {
-                const entries = container.cells[cellID].samples
+            for (const cellID in parentContainer.cells) {
+                const entries = parentContainer.cells[cellID].samples
                 for (const sampleID in entries) {
                     const entry = entries[sampleID]
                     const sample = samplesByID[sampleID]
@@ -69,16 +57,16 @@ const PlacementSamplesTable = ({ parentContainerName, showContainerColumn }: Pla
                             name: sample.name,
                             projectName: sample.projectName,
                             containerName: sample.containerName,
-                            parentContainerName: sample.fromCell?.fromContainer?.name ?? '',
                             coordinates: cellID,
+                            fromCell: sample.fromCell
                         })
                     }
                 }
             }
         }
-        samples.sort((a, b) => comparePlacementSamples(a, b, 'spec' in container ? container.spec : undefined))
+        samples.sort((a, b) => comparePlacementSamples(a, b, 'spec' in parentContainer ? parentContainer.spec : undefined))
         return samples
-    }, [container, samplesByID])
+    }, [parentContainer, samplesByID])
 
     const selectedRowKeys = useMemo(
         () => samples.filter((s) => s.selected && s.id).map(rowKey),
@@ -130,7 +118,7 @@ const PlacementSamplesTable = ({ parentContainerName, showContainerColumn }: Pla
                 // is current parent container the active destination container
                 parentContainerName === activeDestinationContainer?.name &&
                 // is the sample already placed in the destination container
-                sample.parentContainerName === parentContainerName
+                sample.fromCell?.fromContainer?.name === parentContainerName
         })
     }), [selectedRowKeys, onChange, onSelect, parentContainerName, activeDestinationContainer?.name])
 
@@ -148,38 +136,49 @@ const PlacementSamplesTable = ({ parentContainerName, showContainerColumn }: Pla
 
     const columns = useMemo(() => {
         const columns: ColumnsType<PlacementSample> = []
-
-        columns.push({
-                title: 'Project',
-                dataIndex: 'projectName',
-                key: 'projectName',
-        })
-
-        if (showContainerColumn) {
+        if (sourceOrDestination === 'source') {
             columns.push({
-                title: 'Src Container',
-                dataIndex: 'parentContainerName',
-                key: 'parentContainerName',
+                title: 'Sample',
+                dataIndex: 'name',
+                key: 'name',
             })
-        }
-
-        columns.push({
-            title: 'Sample',
-            dataIndex: 'name',
-            key: 'name',
-        })
-
-        if (parentContainerName !== null) {
             columns.push({
-                title: 'Coords',
-                dataIndex: 'coordinates',
+                title: 'Container',
+                dataIndex: 'containerName',
+                key: 'containerName',
+            })
+            if (parentContainer.name !== null) {
+                columns.push({
+                    title: 'Src Coords',
+                    dataIndex: 'coordinates',
+                    key: 'coordinates',
+                })
+            }
+        } else {
+            columns.push({
+                title: 'Sample',
+                dataIndex: 'name',
+                key: 'name'
+            })
+            columns.push({
+                title: 'Src Container (Coords)',
+                key: 'src-container-coords',
+                render: (sample: PlacementSample) => {
+                    if (sample.fromCell?.fromContainer?.name !== parentContainer.name) {
+                        return sample.fromCell
+                            ? `${sample.fromCell.fromContainer.name} (${sample.fromCell.coordinates})`
+                            : `${sample.containerName} (—)`
+                    }
+                }
+            })
+            columns.push({
+                title: 'Dst Coords',
                 key: 'coordinates',
-                width: `5rem`,
+                dataIndex: 'coordinates'
             })
         }
-
         return columns
-    }, [parentContainerName, showContainerColumn])
+    }, [parentContainer.name, sourceOrDestination])
 
     return (
         <Table<PlacementSample>

@@ -102,6 +102,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                 sample: sample.id,
                 name: sample.name,
                 projectName: sample.project,
+                containerName: 'THIS IS NOT SHOWN IN THE UI',
             }))
         }))
         const nextContainer = {
@@ -236,10 +237,10 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                     </Row>
                     <Row justify="space-evenly" style={{ padding: "10px" }}>
                         <Col span={10}>
-                            {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name} />}
+                            {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name}/>}
                         </Col>
                         <Col span={10}>
-                            {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name} showContainerColumn />}
+                            {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name}/>}
                         </Col>
                     </Row>
                 </PageContent>

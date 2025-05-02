@@ -1,5 +1,6 @@
 import { CoordinateSpec, FMSId } from "../models/fms_api_models"
 import { ContainerKind } from "../models/frontend_models"
+import { CellIdentifier } from "../modules/placement/models"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -65,8 +66,8 @@ export interface PlacementSample {
     name: string
     projectName: string
     containerName: string
-    parentContainerName: string | null
-    coordinates: string | undefined
+    coordinates?: string // only for real parent containers
+    fromCell: CellIdentifier | null // null for tubes without parent
 }
 export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, spec?: ContainerKind['coordinate_spec']) {
     const MAX = 1
