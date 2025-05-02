@@ -143,7 +143,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                 key: 'name',
             })
             columns.push({
-                title: 'Container',
+                title: 'Src Container',
                 dataIndex: 'containerName',
                 key: 'containerName',
             })
