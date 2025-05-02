@@ -25,15 +25,15 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
     const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
     const sourceOrDestination = parentContainerName === activeSourceContainer?.name ? 'source' : 'destination'
 
-    const samples = useMemo(() => {
-        const samples: PlacementSample[] = []
+    const placementSamples = useMemo(() => {
+        const placementSamples: PlacementSample[] = []
         if (parentContainer.name === null) {
             // handle tubes without parents
             for (const sampleID in parentContainer.samples) {
                 const entry = parentContainer.samples[sampleID]
                 const sample = samplesByID[sampleID]
                 if (sample && entry) {
-                    samples.push({
+                    placementSamples.push({
                         id: parseInt(sampleID),
                         selected: Boolean(entry.selected),
                         name: sample.name,
@@ -51,7 +51,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                     const entry = entries[sampleID]
                     const sample = samplesByID[sampleID]
                     if (sample && entry) {
-                        samples.push({
+                        placementSamples.push({
                             id: parseInt(sampleID),
                             selected: Boolean(entry?.selected),
                             name: sample.name,
@@ -64,13 +64,13 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                 }
             }
         }
-        samples.sort((a, b) => comparePlacementSamples(a, b, 'spec' in parentContainer ? parentContainer.spec : undefined))
-        return samples
+        placementSamples.sort((a, b) => comparePlacementSamples(a, b, 'spec' in parentContainer ? parentContainer.spec : undefined))
+        return placementSamples
     }, [parentContainer, samplesByID])
 
     const selectedRowKeys = useMemo(
-        () => samples.filter((s) => s.selected && s.id).map(rowKey),
-        [samples]
+        () => placementSamples.filter((s) => s.selected && s.id).map(rowKey),
+        [placementSamples]
     )
     const onChange: NonNullable<TableRowSelection<PlacementSample>['onChange']> = useCallback((keys, selectedRows, info) => {
         if (info.type === 'all') {
@@ -83,7 +83,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
             }))
         }
     }, [activeSourceContainer, parentContainerID, dispatch])
-    const onSelect: SelectionSelectFn<PlacementSample> = useCallback((sample, selected) => {
+    const onSelect: SelectionSelectFn<PlacementSample> = useCallback((placementSample, selected) => {
         if (!activeSourceContainer) return
         if (parentContainerID.name === null) {
             dispatch(multiSelect({
@@ -93,10 +93,10 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                 },
                 type: 'sample-ids',
                 parentContainer: parentContainerID,
-                samples: [sample],
+                samples: [placementSample],
             }))
         } else {
-            if (!sample.coordinates) return
+            if (!placementSample.coordinates) return
             dispatch(multiSelect({
                 forcedSelectedValue: selected,
                 context: {
@@ -104,7 +104,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                 },
                 type: 'samples-placements',
                 parentContainer: parentContainerID,
-                samples: [{ sample, cell: { fromContainer: parentContainerID, coordinates: sample.coordinates } }],
+                samples: [{ sample: placementSample, cell: { fromContainer: parentContainerID, coordinates: placementSample.coordinates } }],
             }))
         }
     }, [activeSourceContainer, parentContainerID, dispatch])
@@ -182,7 +182,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
 
     return (
         <Table<PlacementSample>
-            dataSource={samples}
+            dataSource={placementSamples}
             columns={columns}
             rowKey={rowKey}
             rowSelection={selectionProps}
