@@ -47,9 +47,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		dataIndex: ['dataset', 'run_name'],
 		sorter: { multiple: 1 },
 		render: (_, {dataset}) => {
-			return <Link to={`/experiment-runs/${dataset.experiment_run_id}`}>
-					<div>{dataset.run_name}</div>
-				</Link>
+			return <Link to={`/experiment-runs/${dataset.experiment_run_id}`}>{dataset.run_name}</Link>
 		}
 	},
 	[DatasetColumnID.PROJECT]: {
@@ -58,9 +56,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		dataIndex: ['dataset', 'project_name'],
 		sorter: { multiple: 1 },
 		render: (_, {dataset}) => {
-			return <Link to={`/projects/${dataset.project_id}`}>
-					<div>{dataset.project_name}</div>
-				</Link>
+			return <Link to={`/projects/${dataset.project_id}`}>{dataset.project_name}</Link>
 		}
 	},
 	[DatasetColumnID.LANE]: {
