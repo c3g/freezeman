@@ -242,7 +242,7 @@ def validate_indices(indices, index_read_direction_5_prime=INDEX_READ_FORWARD, i
             min_5prime_index_length = 0
             max_5prime_index_length = STANDARD_SEQUENCE_FIELD_LENGTH * 2 # Assuming max size index and flanker
             index_dict["actual_5prime_sequences"] = []
-            for sequence_5prime in index_dict["obj"].list_5prime_sequences:
+            for sequence_5prime in (index_dict["obj"].list_5prime_sequences or [""]):
                 if index_read_direction_5_prime == INDEX_READ_FORWARD:
                     actual_5prime_sequence = sequence_5prime + flanker_5_prime
                 else:
@@ -256,7 +256,7 @@ def validate_indices(indices, index_read_direction_5_prime=INDEX_READ_FORWARD, i
             min_3prime_index_length = 0
             max_3prime_index_length = STANDARD_SEQUENCE_FIELD_LENGTH * 2 # Assuming max size index and flanker
             index_dict["actual_3prime_sequences"] = []
-            for sequence_3prime in index_dict["obj"].list_3prime_sequences:
+            for sequence_3prime in (index_dict["obj"].list_3prime_sequences or [""]):
                 if index_read_direction_3_prime == INDEX_READ_FORWARD:
                     actual_3prime_sequence = sequence_3prime + flanker_3_prime
                 else:
@@ -293,19 +293,17 @@ def validate_indices(indices, index_read_direction_5_prime=INDEX_READ_FORWARD, i
             target_min_5prime_length = length_5_prime
             target_min_3prime_length = length_3_prime
 
-        # Error if the minimal required index length for some indices is larger than the maximal permitted length for other indices
-        indices_in_error = []
+        # Warning if the minimal required index length for some indices is larger than the maximal permitted length for other indices
         # some indices do not support 5 prime index of this size (or at all).
         if target_min_5prime_length > target_max_5prime_length:
             # identify and list the problematic indices
-            indices_in_error = list(filter(lambda x: x[1] < target_min_5prime_length, zip(indices, max_5prime_lengths)))
-            errors.append(f"Indices in this list {[i.id for i, _ in indices_in_error]} do not support 5 primes index of the required length ({target_min_5prime_length}).")
+            indices_in_warning = list(filter(lambda x: x[1] < target_min_5prime_length, zip(indices, max_5prime_lengths)))
+            warnings.append(f"Indices in this list {[i.id for i, _ in indices_in_warning]} do not support 5 primes index of the required length ({target_min_5prime_length}).")
         # some indices do not support 3 prime index of this size (or at all).
-        indices_in_error = []
         if target_min_3prime_length > target_max_3prime_length:
             # identify and list the problematic indices
-            indices_in_error = list(filter(lambda x: x[1] < target_min_3prime_length, zip(indices, max_3prime_lengths)))
-            errors.append(f"Indices in this list {[i.id for i, _ in indices_in_error]} do not support 3 primes index of the required length ({target_min_3prime_length}).")
+            indices_in_warning = list(filter(lambda x: x[1] < target_min_3prime_length, zip(indices, max_3prime_lengths)))
+            warnings.append(f"Indices in this list {[i.id for i, _ in indices_in_warning]} do not support 3 primes index of the required length ({target_min_3prime_length}).")
 
         # warning if the minimal required index length for some indices is larger than the requested index length : sub-optimal validation
         indices_in_warning = list(filter(lambda x: x[1] > target_min_5prime_length, zip(indices, min_5prime_lengths)))
