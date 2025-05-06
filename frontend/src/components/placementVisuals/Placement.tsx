@@ -11,7 +11,7 @@ import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { loadContainer as loadPlacementContainer, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
+import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 
@@ -72,6 +72,14 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         if (currentIndex < 0 || newIndex < 0 || newIndex >= sourceContainers.length) {
             return
         }
+        dispatch(multiSelect({
+            type: "all",
+            parentContainer: sourceContainers[currentIndex],
+            forcedSelectedValue: false,
+            context: {
+                source: sourceContainers[currentIndex]
+            }
+        }))
         dispatch(setActiveSourceContainer(sourceContainers[newIndex]?.name))
     }, [activeSourceContainer?.name, dispatch, sourceContainers])
 
@@ -81,8 +89,18 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         if (currentIndex < 0 || newIndex < 0 || newIndex >= destinationContainers.length) {
             return
         }
+        if (activeSourceContainer) {
+            dispatch(multiSelect({
+                type: "all",
+                parentContainer: destinationContainers[currentIndex],
+                forcedSelectedValue: false,
+                context: {
+                    source: activeSourceContainer,
+                }
+            }))
+        }
         dispatch(setActiveDestinationContainer(destinationContainers[newIndex].name))
-    }, [activeDestinationContainer?.name, destinationContainers, dispatch])
+    }, [activeDestinationContainer?.name, activeSourceContainer, destinationContainers, dispatch])
 
     useEffect(() => {
         dispatch(fetchAndLoadSourceContainers(stepID, sampleIDs)).then((containerNames) => {

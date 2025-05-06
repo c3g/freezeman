@@ -2,7 +2,7 @@ import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Sample } from "../../models/frontend_models"
 import { CoordinateSpec } from "../../models/fms_api_models"
 import { CellIdentifier, ParentContainerIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
-import { PlacementClass, SamplePlacementIdentifier } from "./classes"
+import { PlacementClass, SamplePlacement, SamplePlacementIdentifier } from "./classes"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
 export interface MouseOnCellPayload extends CellIdentifier {
@@ -13,7 +13,7 @@ export interface MouseOnCellPayload extends CellIdentifier {
 export type MultiSelectPayload = {
     forcedSelectedValue?: boolean
     context: {
-        source?: ParentContainerIdentifier
+        source: ParentContainerIdentifier
     }
 } & ({
     parentContainer: RealParentContainerIdentifier
@@ -73,33 +73,35 @@ const slice = createSlice({
                 .placeAllSamples(payload.source)
         ),
         multiSelect: reducerWithThrows((state, payload: MultiSelectPayload) => {
+            const placement = new PlacementClass(state, payload.context?.source)
+
             if (payload.parentContainer.name === null) {
                 const samples: SampleIdentifier[] = []
-                const container = new PlacementClass(state, payload.context.source).getTubesWithoutParent()
+                const container = placement.getTubesWithoutParent()
+
                 if (payload.type === 'all') {
                     samples.push(...container.getSamples())
                 } else if (payload.type === 'sample-ids') {
                     samples.push(...payload.samples)
                 }
                 if (payload.forcedSelectedValue !== undefined) {
-                    if (payload.forcedSelectedValue) {
-                        samples.forEach((s) => container.selectSample(s))
-                    } else {
-                        samples.forEach((s) => container.unSelectSample(s))
+                    for (const sample of samples) {
+                        container.setSelectionOfSample(sample, payload.forcedSelectedValue)
                     }
                 } else {
                     container.toggleSelections(...samples)
                 }
             } else {
-                const samplePlacements: SamplePlacementIdentifier[] = []
-                const container = new PlacementClass(state, payload.context.source).getRealParentContainer(payload.parentContainer)
+                const samplePlacements: SamplePlacement[] = []
+                const container = placement.getRealParentContainer(payload.parentContainer)
+
                 switch (payload.type) {
                     case 'all': {
                         samplePlacements.push(...container.getPlacements())
                         break
                     }
                     case 'samples-placements': {
-                        samplePlacements.push(...payload.samples)
+                        samplePlacements.push(...payload.samples.map((p) => placement.getPlacement(p)))
                         break
                     }
                     case 'column': {
@@ -112,10 +114,8 @@ const slice = createSlice({
                     }
                 }
                 if (payload.forcedSelectedValue !== undefined) {
-                    if (payload.forcedSelectedValue) {
-                        samplePlacements.forEach((s) => container.selectPlacement(s))
-                    } else {
-                        samplePlacements.forEach((s) => container.unSelectPlacement(s))
+                    for (const samplePlacement of samplePlacements) {
+                        container.setSelectionOfPlacement(samplePlacement, payload.forcedSelectedValue)
                     }
                 } else {
                     container.togglePlacementSelections(...samplePlacements)
