@@ -19,7 +19,7 @@ import IndicesValidationResult from "./IndicesValidationResult";
 import * as Options from "../../utils/options";
 import api, { withToken } from "../../utils/api";
 import { list, validate } from "../../modules/indices/actions";
-import { requiredRules } from "../../constants";
+import { requiredRules, positiveIntegerRules } from "../../constants";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectToken } from "../../selectors";
 
@@ -271,7 +271,7 @@ const IndicesValidate = () => {
               label="Threshold"
               {...props("threshold")}
               extra="Allowed read errors at sequencing time."
-              rules={requiredRules}
+              rules={positiveIntegerRules.concat(requiredRules)}
             >
               <InputNumber step={1} />
             </Form.Item>
