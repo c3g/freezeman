@@ -1,133 +1,126 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useMemo } from "react"
 import { Table, TableProps } from "antd";
 import { ColumnsType, SelectionSelectFn, TableRowSelection } from "antd/lib/table/interface";
-import { FMSId } from "../../models/fms_api_models";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { multiSelect } from "../../modules/placement/reducers";
-import { selectSamplesByID } from "../../selectors";
-import { fetchSamples } from "../../modules/cache/cache";
-import { selectCell, selectContainer } from "../../modules/placement/selectors";
+import { selectParentContainer, selectPlacementState } from "../../modules/placement/selectors";
 import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors";
-import store from "../../store";
-import { comparePlacementSamples } from "../../utils/functions";
+import { ParentContainerIdentifier } from "../../modules/placement/models";
+import { comparePlacementSamples, PlacementSample } from "../../utils/functions";
 
 export interface PlacementSamplesTableProps {
-    container: string | null
-    showContainerColumn?: boolean
+    parentContainerName: string | null
 }
 
-interface PlacementSample {
-    id: FMSId
-    selected: boolean
-    name: string
-    projectName: string
-    parentContainerName: string
-    coordinates: string | undefined
+function rowKey(sample: Pick<PlacementSample, 'id' | 'coordinates'>): string {
+    return `${sample.id}-${sample.coordinates}`
 }
 
-//component used to display and select samples in a table format for plate visualization placement
-const PlacementSamplesTable = ({ container: containerName, showContainerColumn }: PlacementSamplesTableProps) => {
+const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTableProps) => {
+    const parentContainerID: ParentContainerIdentifier = useMemo(() => ({ name: parentContainerName }), [parentContainerName])
     const dispatch = useAppDispatch()
-    // TODO: use sorted selected items instead when the field is defined in the labwork-refactor
-    const container = useAppSelector((state) => selectContainer(state)({ name: containerName }))
-    const samplesByID = useAppSelector(selectSamplesByID)
+    const parentContainer = useAppSelector((state) => selectParentContainer(state)(parentContainerID).state)
+    const samplesByID = useAppSelector((state) => selectPlacementState(state).samples)
     const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
     const activeDestinationContainer = useAppSelector(selectActiveDestinationContainer)
-    const isSource = containerName === activeSourceContainer?.name
-    const isDestination = containerName === activeDestinationContainer?.name
+    const sourceOrDestination = parentContainerName === activeSourceContainer?.name ? 'source' : 'destination'
 
-    const [samples, setSamples] = useState<PlacementSample[]>([])
-    useEffect(() => {
-        const missingSamples: FMSId[] = []
-        const samples = container
-            ? container.cells.reduce<PlacementSample[]>(
-                (samples, cell) => {
-                    // don't show cells that are not loaded or already placed
-                    if (!cell || cell.placedAt) return samples
-
-                    let sample = cell.sample
-                    let project = cell.projectName
-                    let originalContainer = cell.parentContainerName
-
-                    // if the cell is a destination, show the source sample
-                    if (isDestination && cell.placedFrom) {
-                        const otherCell = selectCell(store.getState())(cell.placedFrom)
-                        if (!otherCell) {
-                            console.error(`Cell at location '${cell.placedFrom.parentContainerName}@${cell.placedFrom.coordinates}' is not loaded`)
-                            return samples
-                        }
-                        sample = otherCell.sample
-                        project = otherCell.projectName
-                        originalContainer = otherCell.parentContainerName
-                    }
-
-                    // if the cell has no sample, don't show it
-                    if (!sample) return samples
-
-                    // if the sample is not loaded, fetch it and later show it
-                    if (!samplesByID[sample]) {
-                        missingSamples.push(sample)
-                        return samples
-                    }
-
-                    const name = samplesByID[sample].name
-                    samples.push({
-                        id: sample,
-                        selected: cell.selected,
-                        name,
-                        projectName: project,
-                        parentContainerName: originalContainer ?? 'Tubes without parent',
-                        coordinates: cell.coordinates,
+    const placementSamples = useMemo(() => {
+        const placementSamples: PlacementSample[] = []
+        if (parentContainer.name === null) {
+            // handle tubes without parents
+            for (const sampleID in parentContainer.samples) {
+                const entry = parentContainer.samples[sampleID]
+                const sample = samplesByID[sampleID]
+                if (sample && entry) {
+                    placementSamples.push({
+                        id: parseInt(sampleID),
+                        selected: Boolean(entry.selected),
+                        name: sample.name,
+                        projectName: sample.projectName,
+                        containerName: sample.containerName,
+                        fromCell: sample.fromCell
                     })
-                    return samples
-                }, [])
-            : []
-        samples.sort((a, b) => comparePlacementSamples(a, b, container?.spec))
-        setSamples(samples)
-        if (missingSamples.length > 0)
-            fetchSamples(missingSamples)
-    }, [container, isDestination, isSource, samplesByID])
+                }
+            }
+        } else {
+            // handle real parent container
+            for (const cellID in parentContainer.cells) {
+                const entries = parentContainer.cells[cellID].samples
+                for (const sampleID in entries) {
+                    const entry = entries[sampleID]
+                    const sample = samplesByID[sampleID]
+                    if (sample && entry) {
+                        placementSamples.push({
+                            id: parseInt(sampleID),
+                            selected: Boolean(entry?.selected),
+                            name: sample.name,
+                            projectName: sample.projectName,
+                            containerName: sample.containerName,
+                            coordinates: cellID,
+                            fromCell: sample.fromCell
+                        })
+                    }
+                }
+            }
+        }
+        placementSamples.sort((a, b) => comparePlacementSamples(a, b, 'spec' in parentContainer ? parentContainer.spec : undefined))
+        return placementSamples
+    }, [parentContainer, samplesByID])
 
     const selectedRowKeys = useMemo(
-        () => container ? samples.reduce((sampleIDs, s) => {
-            if (s.selected && s.id) {
-                sampleIDs.push(s.id)
-            }
-            return sampleIDs
-        }, [] as FMSId[]) : [],
-        [container, samples]
+        () => placementSamples.filter((s) => s.selected && s.id).map(rowKey),
+        [placementSamples]
     )
     const onChange: NonNullable<TableRowSelection<PlacementSample>['onChange']> = useCallback((keys, selectedRows, info) => {
         if (info.type === 'all') {
             dispatch(multiSelect({
                 type: 'all',
-                parentContainer: containerName,
+                parentContainer: parentContainerID,
                 context: {
-                    source: activeSourceContainer?.name
+                    source: activeSourceContainer
                 }
             }))
         }
-    }, [activeSourceContainer?.name, containerName, dispatch])
-    const onSelect: SelectionSelectFn<PlacementSample> = useCallback((sample, selected) => {
-        dispatch(multiSelect({
-            type: 'sample-ids',
-            parentContainer: containerName,
-            sampleIDs: [sample.id],
-            forcedSelectedValue: selected,
-            context: {
-                source: activeSourceContainer?.name
-            }
-        }))
-    }, [activeSourceContainer?.name, containerName, dispatch])
+    }, [activeSourceContainer, parentContainerID, dispatch])
+    const onSelect: SelectionSelectFn<PlacementSample> = useCallback((placementSample, selected) => {
+        if (!activeSourceContainer) return
+        if (parentContainerID.name === null) {
+            dispatch(multiSelect({
+                forcedSelectedValue: selected,
+                context: {
+                    source: activeSourceContainer
+                },
+                type: 'sample-ids',
+                parentContainer: parentContainerID,
+                samples: [placementSample],
+            }))
+        } else {
+            if (!placementSample.coordinates) return
+            dispatch(multiSelect({
+                forcedSelectedValue: selected,
+                context: {
+                    source: activeSourceContainer
+                },
+                type: 'samples-placements',
+                parentContainer: parentContainerID,
+                samples: [{ sample: placementSample, cell: { fromContainer: parentContainerID, coordinates: placementSample.coordinates } }],
+            }))
+        }
+    }, [activeSourceContainer, parentContainerID, dispatch])
     const selectionProps: TableRowSelection<PlacementSample> = useMemo(() =>  ({
         selectedRowKeys,
         onChange,
         onSelect,
         getCheckboxProps: (sample) => ({
             // disable checkbox if the sample is already placed in the destination container
-            disabled: isDestination && sample.parentContainerName === containerName
+            disabled:
+                // is current parent container the active destination container
+                parentContainerName === activeDestinationContainer?.name &&
+                // is the sample already placed in the destination container
+                sample.fromCell?.fromContainer?.name === parentContainerName
         })
-    }), [selectedRowKeys, onChange, onSelect, isDestination, containerName])
+    }), [selectedRowKeys, onChange, onSelect, parentContainerName, activeDestinationContainer?.name])
 
     const paginationProps: NonNullable<TableProps<PlacementSample>['pagination']> = useMemo(() => ({
         showSizeChanger: true,
@@ -143,44 +136,55 @@ const PlacementSamplesTable = ({ container: containerName, showContainerColumn }
 
     const columns = useMemo(() => {
         const columns: ColumnsType<PlacementSample> = []
-
-        columns.push({
-                title: 'Project',
-                dataIndex: 'projectName',
-                key: 'projectName',
-        })
-
-        if (showContainerColumn) {
+        if (sourceOrDestination === 'source') {
+            columns.push({
+                title: 'Sample',
+                dataIndex: 'name',
+                key: 'name',
+            })
             columns.push({
                 title: 'Src Container',
-                dataIndex: 'parentContainerName',
-                key: 'parentContainerName',
+                dataIndex: 'containerName',
+                key: 'containerName',
             })
-        }
-
-        columns.push({
-            title: 'Sample',
-            dataIndex: 'name',
-            key: 'name',
-        })
-
-        if (containerName !== null) {
+            if (parentContainer.name !== null) {
+                columns.push({
+                    title: 'Src Coords',
+                    dataIndex: 'coordinates',
+                    key: 'coordinates',
+                })
+            }
+        } else {
             columns.push({
-                title: 'Coords',
-                dataIndex: 'coordinates',
+                title: 'Sample',
+                dataIndex: 'name',
+                key: 'name'
+            })
+            columns.push({
+                title: 'Src Container (Coords)',
+                key: 'src-container-coords',
+                render: (sample: PlacementSample) => {
+                    if (sample.fromCell?.fromContainer?.name !== parentContainer.name) {
+                        return sample.fromCell
+                            ? `${sample.fromCell.fromContainer.name} (${sample.fromCell.coordinates})`
+                            : `${sample.containerName} (—)`
+                    }
+                }
+            })
+            columns.push({
+                title: 'Dst Coords',
                 key: 'coordinates',
-                width: `5rem`,
+                dataIndex: 'coordinates'
             })
         }
-
         return columns
-    }, [containerName, showContainerColumn])
+    }, [parentContainer.name, sourceOrDestination])
 
     return (
         <Table<PlacementSample>
-            dataSource={samples}
+            dataSource={placementSamples}
             columns={columns}
-            rowKey={obj => obj.id}
+            rowKey={rowKey}
             rowSelection={selectionProps}
             pagination={paginationProps}
         />

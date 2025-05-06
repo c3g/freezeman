@@ -1,5 +1,6 @@
-import { CoordinateSpec } from "../models/fms_api_models"
-import { CellState } from "../modules/placement/models"
+import { CoordinateSpec, FMSId } from "../models/fms_api_models"
+import { ContainerKind } from "../models/frontend_models"
+import { CellIdentifier } from "../modules/placement/models"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -59,32 +60,40 @@ export function compareArray(a: readonly number[], b: readonly number[]): number
     return 0
 }
 
-export function comparePlacementSamples<
-    S extends Pick<CellState, 'coordinates' | 'parentContainerName' | 'name' | 'projectName' | 'selected'>
->(a: S, b: S, spec?: CoordinateSpec): number {
-    const MAX = 128
+export interface PlacementSample {
+    id: FMSId
+    selected: boolean
+    name: string
+    projectName: string
+    containerName: string
+    coordinates?: string // only for real parent containers
+    fromCell: CellIdentifier | null // null for tubes without parent
+}
+export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, spec?: ContainerKind['coordinate_spec']) {
+    const MAX = 1
 
     let orderA = MAX
     let orderB = MAX
 
-    if (a.selected) orderA -= MAX/2
-    if (b.selected) orderB -= MAX/2
+    if (a.selected) orderA -= MAX / 2
+    if (b.selected) orderB -= MAX / 2
 
-    if (spec && a.coordinates && b.coordinates) {
-        // if both have coordinates, both have a parent container
+    if (spec && a.coordinates && b.coordinates)  {
         const aOffsets = coordinatesToOffsets(spec, a.coordinates)
         const bOffsets = coordinatesToOffsets(spec, b.coordinates)
         const arrayComparison = compareArray(aOffsets.reverse(), bOffsets.reverse())
-        if (arrayComparison < 0) orderA -= MAX/4
-        if (arrayComparison > 0) orderB -= MAX/4
+        if (arrayComparison < 0) orderA -= MAX / 4
+        if (arrayComparison > 0) orderB -= MAX / 4
     }
 
-    if (a.name < b.name) orderA -= MAX/8
-    if (a.name > b.name) orderB -= MAX/8
+    if (a.name < b.name) orderA -= MAX / 8
+    if (a.name > b.name) orderB -= MAX / 8
 
-    if (a.projectName < b.projectName) orderA -= MAX/16
-    if (a.projectName > b.projectName) orderB -= MAX/16
+    if (a.containerName < b.containerName) orderA -= MAX / 16
+    if (a.containerName > b.containerName) orderB -= MAX / 16
+
+    if (a.projectName < b.projectName) orderA -= MAX / 32
+    if (a.projectName > b.projectName) orderB -= MAX / 32
 
     return orderA - orderB
-
 }

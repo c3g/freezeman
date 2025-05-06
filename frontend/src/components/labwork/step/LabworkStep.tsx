@@ -6,7 +6,7 @@ import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortByList, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
+import { clearFilters, clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestAutomationExecution, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortByList, setSelectedSamples, prefillTemplate } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { setPageSize } from '../../../modules/pagination'
 import AppPageHeader from '../../AppPageHeader'
@@ -21,10 +21,8 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } f
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import LabworkSelection from './LabworkSelection'
 import Placement from '../../placementVisuals/Placement'
-import { flushPlacement, flushContainers as flushPlacementContainers } from '../../../modules/placement/reducers'
+import { flushPlacement } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
-import { selectSourceContainers } from '../../../modules/labworkSteps/selectors'
-import store from '../../../store'
 
 const { Text } = Typography
 
@@ -238,19 +236,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return mergedSelection
 	}
 
-	const handleClearSelection = useCallback(
-		() => {
-			dispatch(clearSelectedSamples(step.id))
-			onTabChange(GROUPED_SAMPLES_TAB_KEY)
-		}
-		, [step, dispatch])
-	// Selection handler for sample selection checkboxes
-	const onSelectChange = useCallback((selectedSamples) => {
-		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
-		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples.items, stepSamples.displayedSamples, displayedSelection)
-		dispatch(setSelectedSamples(step.id, mergedSelection))
-	}, [step, stepSamples, dispatch])
-
 	const getIdsFromSelectedSamples = useCallback((selectedSamples) => {
 		const ids = selectedSamples.reduce((acc, selected) => {
 			if (selected.sample) {
@@ -260,6 +245,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}, [] as FMSId[])
 		return ids;
 	}, [])
+
+	const handleClearSelection = useCallback(() => dispatch(clearSelectedSamples(step.id)), [step.id, dispatch])
+	// Selection handler for sample selection checkboxes
+	const onSelectChange = useCallback((selectedSamples) => {
+		const displayedSelection = getIdsFromSelectedSamples(selectedSamples)
+		const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples.items, stepSamples.displayedSamples, displayedSelection)
+		dispatch(setSelectedSamples(step.id, mergedSelection))
+	}, [getIdsFromSelectedSamples, stepSamples.selectedSamples.items, stepSamples.displayedSamples, dispatch, step.id])
 
 	// Selection handler for sample selection checkboxes
 	const selectionProps = useCallback((onSelectionChangeCallback) => {
@@ -295,23 +288,17 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const localClearFilters = useCallback((refresh: boolean = true) => {
 		if (clearFilters)
 			dispatch(clearFilters(step.id, refresh))
-	}, [step, step.id])
+	}, [dispatch, step.id])
 
 	const onTabChange = useCallback((tabKey) => {
 		setSelectedTab(tabKey)
-	}, [step.id])
+	}, [])
 
 	useEffect(() => {
 		if (stepSamples.selectedSamples.items.length === 0) {
-			// ensures there are no left over samples from containers that have no selection
-			// because of the abrupt disable of placement tab
-			const sourceContainers = selectSourceContainers(store.getState()).map((c) => c.name)
-			dispatch(flushPlacementContainers(sourceContainers))
-			dispatch(flushLabworkStepPlacementContainers(sourceContainers))
-
 			onTabChange(GROUPED_SAMPLES_TAB_KEY)
 		}
-	}, [onTabChange, stepSamples.selectedSamples.items.length])
+	}, [dispatch, onTabChange, stepSamples.selectedSamples.items.length])
 
 	const onPrefillOpen = useCallback(() => {
 	}, [])
