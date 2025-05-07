@@ -154,9 +154,9 @@ RUN_PROCESSING_SCHEMA = {
                     "blast": {
                         "type": "object",
                         "properties": {
-                            "1st_hit": {"type": "string"},
-                            "2nd_hit": {"type": "string"},
-                            "3rd_hit": {"type": "string"},
+                            "1st_hit": {"type": ["string", "null"]},
+                            "2nd_hit": {"type": ["string", "null"]},
+                            "3rd_hit": {"type": ["string", "null"]},
                         },
                     },
                     "alignment": {
