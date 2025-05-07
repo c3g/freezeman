@@ -255,7 +255,7 @@ class Sample(TrackedModel):
 
             #  - Validate that parent can hold samples
             if not parent_spec.sample_holding:
-                add_error("container", f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
+                add_error("container", f"Container kind {parent_spec.container_kind_id} cannot hold samples")
 
             #  - Validate coordinates against parent container spec
             if not errors.get("container"):
@@ -267,9 +267,9 @@ class Sample(TrackedModel):
                         except CoordinateError as e:
                             add_error("coordinate", str(e))
                     else:
-                        add_error("container", f"Parent container of kind {self.container.kind} requires coordinates.")
+                        add_error("container", f"Container of kind {self.container.kind} requires coordinates.")
                 elif self.coordinate is not None:
-                    add_error("container", f"Parent container of kind {self.container.kind} does not require coordinates.")   
+                    add_error("container", f"Container of kind {self.container.kind} does not require coordinates.")   
 
             # TODO: This isn't performant for bulk ingestion
             # - Check for coordinate overlap with existing child containers of the parent

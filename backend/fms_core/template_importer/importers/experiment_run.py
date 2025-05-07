@@ -92,7 +92,7 @@ class ExperimentRunImporter(GenericImporter):
             # Allows for submission of both numeric lanes (1, 2, 3, ...) and coordinates
             lane_or_experiment_container_coordinates = str_cast_and_normalize(row_data['Experiment Container Coordinates (Lane)'])
             # Convert internally to alphanumerical coordinates
-            experiment_container_coordinates = lane_or_experiment_container_coordinates if not lane_or_experiment_container_coordinates.isnumeric() else "A" + lane_or_experiment_container_coordinates.zfill(2)
+            experiment_container_coordinates = lane_or_experiment_container_coordinates if lane_or_experiment_container_coordinates is None or not lane_or_experiment_container_coordinates.isnumeric() else "A" + lane_or_experiment_container_coordinates.zfill(2)
             sample = {'experiment_name': str_cast_and_normalize(row_data['Experiment Name']),
                       'volume_used': load_all_or_float_to_decimal_and_none(row_data['Source Sample Volume Used (uL)']),
                       'experiment_container_coordinates': experiment_container_coordinates,
