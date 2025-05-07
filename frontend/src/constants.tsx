@@ -44,6 +44,7 @@ export const TOGGLE_OPTIONS = {
 // Validation constants
 
 export const requiredRules: Rule[] = [{ required: true, message: 'Missing field' }] as const
+export const positiveIntegerRules: Rule[] = [{ pattern: /^(0|[1-9][0-9]*)$/, message: 'Only integers greater than or equal to zero.' }] as const
 export const externalIdRules: Rule[] = [{ pattern: /^P[0-9]{6}$/, message: 'Format: P000000' }] as const
 export const barcodeRules: Rule[] = [{ pattern: /^[\S]{1,200}$/, message: 'Space not allowed.' }] as const
 export const nameRules: Rule[] = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/, message: 'Characters allowed: [a-z], [A-Z], [0-9], or [ - ][ . ][ _ ].' }] as const

@@ -13,6 +13,7 @@ from fms_core.templates import INDEX_CREATION_TEMPLATE
 from fms_core.utils import serialize_warnings
 
 from ._utils import TemplateActionsMixin, _list_keys
+from ..utils import blank_str_to_none
 from ._constants import _index_filterset_fields
 
 from fms_core.filters import IndexFilter
@@ -89,7 +90,7 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             form_errors["length_3prime"].append(f"Validation length for index at 3 prime end cannot be negative.")
 
         threshold = _request.GET.get("threshold", "").strip()
-        threshold = int(threshold) if threshold else None
+        threshold = int(threshold) if blank_str_to_none(threshold) is not None else None
         if threshold and threshold < 0:
             form_errors["threshold"].append(f"Distance threshold cannot be negative.")
         if not form_errors:
@@ -99,6 +100,8 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                                                          length_5prime,
                                                          length_3prime,
                                                          threshold)
+            
+            results["instrument_type"] = instrument_type.type
         else:
             raise ValidationError(form_errors)
         data = {"form_errors": form_errors,
