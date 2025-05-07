@@ -1,7 +1,7 @@
 from django.db import models
 
 from fms_core.models._constants import STANDARD_NAME_FIELD_LENGTH
-from fms_core.models import ExperimentRun, DerivedSample, Process, Biosample, Readset
+from fms_core.models import ExperimentRun, DerivedSample, Process, Biosample, Readset, Project
 
 __all__ = ["ProductionData"]
 
@@ -14,16 +14,13 @@ class ProductionData(models.Model):
     experiment_run = models.ForeignKey(ExperimentRun, on_delete=models.PROTECT, related_name="production_data", help_text="Experiment run for current data row.")
     experiment_container_kind = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Flowcell type used for the experiment.")
     lane = models.PositiveIntegerField(help_text="Sequencing run lane.")
-    sample_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Sample name.")
     library = models.ForeignKey(DerivedSample, on_delete=models.PROTECT, related_name="production_data", help_text="Derived sample that defines a library.")
     library_batch = models.ForeignKey(Process, null=True, blank=True, on_delete=models.PROTECT, related_name="production_data", help_text="Process that generated the library.")
     is_internal_library = models.BooleanField(default=False, help_text="Flag that indicates that a library was created locally.")
     biosample = models.ForeignKey(Biosample, on_delete=models.PROTECT, related_name="production_data", help_text="Biosample used to generate the library.")
     library_type = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the library type.")
     library_selection = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the library selection protocol.")
-    project = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the project.")
-    project_external_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project ID.")
-    principal_investigator = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Principal investigator of the project.")
+    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.PROTECT, related_name="production_data", help_text="Project for the sample.")
     taxon = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Taxon scientific name.")
     technology = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Sequencing instrument type.")
     reads = models.BigIntegerField(help_text="Number of reads generated during sequencing.")
