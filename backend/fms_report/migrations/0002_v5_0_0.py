@@ -14,6 +14,19 @@ def set_productiondata_project_fk_using_project_name(apps, schema_editor):
         readsetData.project_id = project
         readsetData.save()
 
+def set_field_source(apps, schema_editor):
+    MetricField = apps.get_model("fms_report", "MetricField")
+
+    FK_METRICS = {"project": "project__name",
+                  "project_external_id": "project__external_id",
+                  "principal_investigator": "project__principal_investigator",
+                  "sample_name": "biosample__alias"}
+
+    for metric_field in MetricField.objects.filter(name__in=FK_METRICS.keys()):
+        metric_field.source = FK_METRICS[metric_field.name]
+        metric_field.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -56,5 +69,14 @@ class Migration(migrations.Migration):
             model_name='productiondata',
             old_name='project_id',
             new_name='project'
+        ),
+        migrations.AddField(
+            model_name='metricfield',
+            name='source',
+            field=models.CharField(blank=True, help_text='Source of the field on another model for annotation.', max_length=100, null=True),
+        ),
+        migrations.RunPython(
+            set_field_source,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

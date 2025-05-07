@@ -276,6 +276,7 @@ def _get_queryset(report_name: str, start_date: str, end_date: str, time_window:
             ordering_fields = ["time_window", "date_field"]
             ordering_fields.extend(custom_fields)
             detailed_fields = ["time_window"]
+            fields_definition = MetricField.objects.filter(report__name=report_name).values_list("name", "source")
             detailed_fields.extend(MetricField.objects.filter(report__name=report_name).values_list("name", flat=True))
             queryset = queryset.values(*detailed_fields)
             queryset = queryset.order_by(*ordering_fields)
@@ -299,7 +300,7 @@ def _get_queryset(report_name: str, start_date: str, end_date: str, time_window:
                         aggregate = Min(F(name))
                 annotation = { f"{name}": aggregate}
                 queryset = queryset.annotate(**annotation)
-                queryset = queryset.order_by(*extended_grouped_by)
+            queryset = queryset.order_by(*extended_grouped_by)
     else:
         queryset = None
 

@@ -20,7 +20,7 @@ class ProductionData(models.Model):
     biosample = models.ForeignKey(Biosample, on_delete=models.PROTECT, related_name="production_data", help_text="Biosample used to generate the library.")
     library_type = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the library type.")
     library_selection = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the library selection protocol.")
-    project = models.ForeignKey(Project, null=True, blank=True, on_delete=models.PROTECT, related_name="production_data", help_text="Project for the sample.")
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name="production_data", help_text="Project for the sample.")
     taxon = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Taxon scientific name.")
     technology = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Sequencing instrument type.")
     reads = models.BigIntegerField(help_text="Number of reads generated during sequencing.")
