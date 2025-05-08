@@ -1,10 +1,8 @@
 from rest_framework import viewsets
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from django.contrib.auth.models import User
-from django.http import QueryDict, HttpResponseServerError, HttpResponseBadRequest, HttpResponse
+from django.http import QueryDict, HttpResponse
 
 from ..services.report import list_reports, list_report_information, get_report, get_report_as_excel, TimeWindow
 
