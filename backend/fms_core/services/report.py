@@ -6,7 +6,7 @@ from typing import TypedDict, Union
 
 import pandas as pd
 from django.apps import apps
-from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions, QuerySet
+from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions, QuerySet, Value
 
 from io import BytesIO
 from openpyxl import Workbook
@@ -177,7 +177,7 @@ def list_report_information(report_name: str) -> ReportInfo:
     Returns:
         Report info dictionary with important information to define requested report.
     """
-    queryset = MetricField.objects.filter(report__name=report_name).all()
+    queryset = MetricField.objects.filter(report__name=report_name).all().order_by("display_name")
     groups = [{"name": field.name, "display_name": field.display_name} for field in queryset if field.is_group]
     time_windows = [TimeWindow.DAILY.label, TimeWindow.WEEKLY.label, TimeWindow.MONTHLY.label, TimeWindow.ANNUALLY.label]
     report_info = {"report": Report.objects.filter(name=report_name).values("name", "display_name").first(),
@@ -194,21 +194,19 @@ def get_report(report_name: str, grouped_by: List[str], time_window: TimeWindow,
     for entry in queryset:
         current_row = {key: value for key, value in entry.items() if not key=="time_window"}
         report_by_time_window[entry["time_window"]].append(current_row)
-  
     # Creating header
-    fields = [field.name for field in queryset.model._meta.get_fields()]
     if len(grouped_by) == 0:
-        headers = [{**field, "aggregation": None} for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "data_type")]
+        headers = [{**field, "aggregation": None} for field in MetricField.objects.filter(report__name=report_name).values("name", "display_name", "field_order", "data_type")]
     else:
         field_ordering_dict = {}
-        for field in MetricField.objects.filter(name__in=fields).values("name", "display_name", "field_order", "aggregation", "data_type"):
+        for field in MetricField.objects.filter(report__name=report_name).values("name", "display_name", "field_order", "aggregation", "data_type"):
             field_ordering_dict[field["name"]] = field
         # order for grouping fields
         for i, name in enumerate(grouped_by, start=1):
             field_ordering_dict[name]["field_order"] = i
             headers.append(field_ordering_dict[name])
         # order for value fields
-        aggregate_fields = MetricField.objects.filter(name__in=fields).filter(aggregation__isnull=False).values("name", "display_name", "field_order", "aggregation").order_by("field_order")
+        aggregate_fields = MetricField.objects.filter(report__name=report_name).filter(aggregation__isnull=False).values("name", "display_name", "field_order", "aggregation").order_by("field_order")
         for i, field in enumerate(aggregate_fields, start=len(grouped_by)+1):
             field_ordering_dict[field["name"]]["field_order"] = i
             field_ordering_dict[field["name"]]["data_type"] = FieldDataType.NUMBER # Convert data types to numbers for aggregated columns
@@ -272,32 +270,43 @@ def _get_queryset(report_name: str, start_date: str, end_date: str, time_window:
         
         if (len(grouped_by) == 0):
             # detailed fields
-            custom_fields = ["run_name", "lane", "project"]
+            custom_fields = ["run_name", "lane", "project_name", "sample_name"]
             ordering_fields = ["time_window", "date_field"]
             ordering_fields.extend(custom_fields)
             detailed_fields = ["time_window"]
             fields_definition = MetricField.objects.filter(report__name=report_name).values_list("name", "source")
-            detailed_fields.extend(MetricField.objects.filter(report__name=report_name).values_list("name", flat=True))
+            # build annotation definition from fields
+            for field_name, field_source in fields_definition:
+                if field_source is not None:
+                    annotation = {f"{field_name}": F(f"{field_source}")}
+                    queryset = queryset.annotate(**annotation)
+            detailed_fields.extend([field_name for field_name, _ in fields_definition])
             queryset = queryset.values(*detailed_fields)
             queryset = queryset.order_by(*ordering_fields)
         else:
+            # annotate fk groups
+            groups_definition = MetricField.objects.filter(report__name=report_name).filter(name__in=grouped_by).filter(aggregation__isnull=True).values_list("name", "source")
+            for group_name, group_source in groups_definition:
+                if group_source is not None:
+                    annotation = {f"{group_name}": F(f"{group_source}")}
+                    queryset = queryset.annotate(**annotation)
             # grouping definition
             extended_grouped_by = ["time_window"]
             extended_grouped_by.extend(grouped_by)
             queryset = queryset.values(*extended_grouped_by)
             # aggregated fields
-            aggregate_fields = MetricField.objects.filter(report__name=report_name).filter(aggregation__isnull=False).values_list("name", "aggregation")
-            for name, aggregation in aggregate_fields:
+            fields_definition = MetricField.objects.filter(report__name=report_name).filter(aggregation__isnull=False).values_list("name", "source", "aggregation")
+            for name, source, aggregation in fields_definition:
                 aggregate = None
                 match aggregation:
                     case AggregationType.COUNT:
-                        aggregate = Count(F(name), distinct=True)
+                        aggregate = Count(F(source or name), distinct=True)
                     case AggregationType.SUM:
-                        aggregate = Sum(F(name))
+                        aggregate = Sum(F(source or name))
                     case AggregationType.MAX:
-                        aggregate = Max(F(name))
+                        aggregate = Max(F(source or name))
                     case AggregationType.MIN:
-                        aggregate = Min(F(name))
+                        aggregate = Min(F(source or name))
                 annotation = { f"{name}": aggregate}
                 queryset = queryset.annotate(**annotation)
             queryset = queryset.order_by(*extended_grouped_by)

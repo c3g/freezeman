@@ -11,7 +11,7 @@ def set_productiondata_project_fk_using_project_name(apps, schema_editor):
             project = Project.objects.get(name=readsetData.project)
         except:
             project = Project.objects.get(name__startswith=readsetData.project)
-        readsetData.project_id = project
+        readsetData.project_fk = project
         readsetData.save()
 
 def set_field_source(apps, schema_editor):
@@ -24,6 +24,9 @@ def set_field_source(apps, schema_editor):
 
     for metric_field in MetricField.objects.filter(name__in=FK_METRICS.keys()):
         metric_field.source = FK_METRICS[metric_field.name]
+        # change name for project to project_name to disambiguate
+        if metric_field.name == "project":
+            metric_field.name = "project_name"
         metric_field.save()
 
 
@@ -37,7 +40,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='productiondata',
-            name='project_id',
+            name='project_fk',
             field=models.ForeignKey(blank=True, help_text='Project for the sample.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='production_data', to='fms_core.project'),
         ),
         migrations.RunPython(
@@ -46,7 +49,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='productiondata',
-            name='project_id',
+            name='project_fk',
             field=models.ForeignKey(help_text='Project for the sample.', on_delete=django.db.models.deletion.PROTECT, related_name='production_data', to='fms_core.project'),
         ),
         migrations.RemoveField(
@@ -67,7 +70,7 @@ class Migration(migrations.Migration):
         ),
         migrations.RenameField(
             model_name='productiondata',
-            old_name='project_id',
+            old_name='project_fk',
             new_name='project'
         ),
         migrations.AddField(
