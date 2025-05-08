@@ -3,7 +3,6 @@ from fms_report.models.production_tracking import ProductionTracking
 
 from fms_core.models._constants import ValidationStatus
 from fms_core.models.readset import Readset
-from fms_core.models.project import Project
 from fms_core.models.sample import Sample
 from fms_core.models.process import Process
 

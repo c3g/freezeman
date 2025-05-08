@@ -6,7 +6,7 @@ from typing import TypedDict, Union
 
 import pandas as pd
 from django.apps import apps
-from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions, QuerySet, Value
+from django.db.models import F, Count,  Sum, Max, Min, TextChoices, functions, QuerySet
 
 from io import BytesIO
 from openpyxl import Workbook
