@@ -6,13 +6,13 @@ def set_productiondata_project_fk_using_project_name(apps, schema_editor):
     Project = apps.get_model("fms_core", "Project")
     ProductionData = apps.get_model("fms_report", "ProductionData")
 
-    for readsetData in ProductionData.objects.all():
+    for readset_data in ProductionData.objects.all():
         try:
-            project = Project.objects.get(name=readsetData.project)
+            project = Project.objects.get(name=readset_data.project)
         except:
-            project = Project.objects.get(name__startswith=readsetData.project)
-        readsetData.project_fk = project
-        readsetData.save()
+            project = Project.objects.get(name__startswith=readset_data.project)
+        readset_data.project_fk = project
+        readset_data.save()
 
 def set_field_source(apps, schema_editor):
     MetricField = apps.get_model("fms_report", "MetricField")
