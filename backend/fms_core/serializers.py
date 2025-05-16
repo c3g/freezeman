@@ -4,7 +4,10 @@ from fms_core.services.taxon import can_edit_taxon
 from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from django.db.models import Max, F, Sum
+from django.db import models
+from django.db.models import Max, F, Sum, Subquery, OuterRef, Q, Value
+from django.db.models.functions import Concat
+from django.contrib.postgres.aggregates import ArrayAgg
 from fms_core.services.study import can_remove_study
 from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
 from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
@@ -365,6 +368,40 @@ class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
         model = ProcessMeasurement
         fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
+class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        process_measurements = data.all() if isinstance(data, models.Manager) else data
+
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+
+        property_types = PropertyType.objects\
+            .filter(object_id=OuterRef("process__protocol__pk"), content_type=protocol_content_type)\
+            .annotate(process_id=OuterRef("process__pk"))\
+            .annotate(process_measurement_id=OuterRef("pk"))
+        property_values = PropertyValue.objects\
+            .filter(property_type=OuterRef("pk"))\
+            .filter(Q(object_id=OuterRef("process_id")) | Q(object_id=OuterRef("process_measurement_id")))
+        process_measurements = process_measurements.annotate(
+            properties=Subquery(
+                property_types.annotate(value=Subquery(
+                    property_values.values_list("value")[:1]
+                )).annotate(name_value=Concat(
+                    F("name"), Value("="), F("value"), output_field=models.CharField()
+                )).values(
+                    "name_value"
+                ).annotate(
+                    name_value_agg=ArrayAgg("name_value", distinct=True, default=Value([]))
+                ).values_list("name_value_agg")[:1]
+            )
+        )
+
+        data = []
+        for process_measurement in process_measurements:
+            datum = self.child.to_representation(process_measurement)
+            for property in process_measurement.properties:
+                datum[property.name] = property.value
+            data.append(datum)
+        return data
 
 class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializer):
     DEFAULT_META_FIELDS = ( 'process_measurement_id',
@@ -394,20 +431,12 @@ class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializ
 
     class Meta:
         model = ProcessMeasurement
+        list_serializer_class = ProcessMeasurementWithPropertiesExportListSerializer
         fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
     def list_property_types(self, obj):
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
         return PropertyType.objects.filter(object_id=obj[0].process.protocol.id, content_type=protocol_content_type)
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        for property_type in self.property_types:
-            pm_property_value = PropertyValue.objects.filter(object_id=instance.id, property_type=property_type)
-            p_property_value = PropertyValue.objects.filter(object_id=instance.process.id, property_type=property_type)
-            property_value = pm_property_value.union(p_property_value).first() # union between cases : process or process measurement property value
-            data[property_type.name] = property_value.value if property_value else None # manually insert the property values in the column
-        return data
 
 
 class PropertyTypeSerializer(serializers.ModelSerializer):
