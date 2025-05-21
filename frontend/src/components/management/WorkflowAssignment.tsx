@@ -481,13 +481,13 @@ function WorkflowOptions({ defaultSelection, exceptedSampleIDs, filters }: Labwo
             <Collapse key={'actions'} accordion items={[
                 {
                     key: 'dequeue',
-                    label: `Dequeue Options (${projectDequeueActions.length})`,
+                    label: `Dequeue From Step (${projectDequeueActions.length})`,
                     children: <Flex gap={"small"} vertical>{projectDequeueActions}</Flex>,
                     classNames: { body: 'labwork-samples-actions' },
                 },
                 {
                     key: 'queue',
-                    label: `Queue Options (${projectQueueActions.length})`,
+                    label: `Queue To Step (${projectQueueActions.length})`,
                     children: <Flex gap={"small"} vertical>{projectQueueActions}</Flex>,
                     classNames: { body: 'labwork-samples-actions' },
                 }
