@@ -53,6 +53,17 @@ def update_infinium_property_types(apps, schema_editor):
             pv.delete()
         pt2.delete()
 
+def add_stool_sample_kind(apps, schema_editor):
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+
+    admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+    with reversion.create_revision(manage_manually=True):
+        reversion.set_comment("Add STOOL as valid sample kind.")
+        reversion.set_user(admin_user)
+
+        stool_sample_kind = SampleKind.objects.create(name="STOOL", is_extracted=False, created_by_id=admin_user.id, updated_by_id=admin_user.id)
+        reversion.add_to_revision(stool_sample_kind)
 
 class Migration(migrations.Migration):
 
@@ -102,6 +113,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             update_infinium_property_types,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            add_stool_sample_kind,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
