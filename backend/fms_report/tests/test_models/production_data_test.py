@@ -68,16 +68,13 @@ class ProductionDataTest(TestCase):
                                              experiment_run=self.experiment_run,
                                              experiment_container_kind=self.container.kind,
                                              lane=1,
-                                             sample_name=self.sample.name,
                                              library=library,
                                              library_batch=self.process,
                                              is_internal_library=True,
                                              biosample=library.biosample,
                                              library_type="PCR-free",
                                              library_selection=None,
-                                             project=self.project.name,
-                                             project_external_id=self.project.external_id,
-                                             principal_investigator=self.project.principal_investigator,
+                                             project=self.project,
                                              taxon="E.T.",
                                              technology="SeqEnhancer",
                                              reads=10,
@@ -91,16 +88,16 @@ class ProductionDataTest(TestCase):
         self.assertEqual(data.experiment_run, self.experiment_run)
         self.assertEqual(data.experiment_container_kind, self.container.kind)
         self.assertEqual(data.lane, 1)
-        self.assertEqual(data.sample_name, self.sample.name)
+        self.assertEqual(data.biosample.alias, library.biosample.alias)
         self.assertEqual(data.library, library)
         self.assertEqual(data.library_batch, self.process)
         self.assertTrue(data.is_internal_library)
         self.assertEqual(data.biosample, library.biosample)
         self.assertEqual(data.library_type, "PCR-free")
         self.assertIsNone(data.library_selection)
-        self.assertEqual(data.project, self.project.name)
-        self.assertEqual(data.project_external_id, self.project.external_id)
-        self.assertEqual(data.principal_investigator, self.project.principal_investigator)
+        self.assertEqual(data.project.name, self.project.name)
+        self.assertEqual(data.project.external_id, self.project.external_id)
+        self.assertEqual(data.project.principal_investigator, self.project.principal_investigator)
         self.assertEqual(data.taxon, "E.T.")
         self.assertEqual(data.technology, "SeqEnhancer")
         self.assertEqual(data.reads, 10)
