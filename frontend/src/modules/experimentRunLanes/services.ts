@@ -1,11 +1,10 @@
-import { FMSMetric } from "../../models/fms_api_models"
-import { Dataset } from "../../models/frontend_models"
+import { FMSId, FMSMetric } from "../../models/fms_api_models"
 import store, { AppDispatch } from "../../store"
 import api from "../../utils/api"
 import { DatasetInfo, ExperimentRunLanes, NumberOfReads, ReadsPerSample, ValidationStatus } from "./models"
 
 
-export function loadExperimentRunLanes(experimentRunName: string) {
+export function loadExperimentRunLanes(experimentRunId: FMSId) {
     return async (dispatch: AppDispatch) => {
         /*
             Request all the datasets associated with the experiment run.
@@ -16,7 +15,7 @@ export function loadExperimentRunLanes(experimentRunName: string) {
         */
         // Request all of the datasets associated with the experiment run
         const datasetOptions = {
-            run_name: experimentRunName
+            experiment_run: experimentRunId
         }
         const response = await dispatch(api.datasets.list(datasetOptions))
         const datasets = response.data.results
@@ -38,13 +37,13 @@ export function loadExperimentRunLanes(experimentRunName: string) {
 
 
         const experimentRunLanes: ExperimentRunLanes = {
-            experimentRunName,
+            experimentRunId,
             lanes: []
         }
         // Process each lane
         for (const [laneNumber, datasets] of datasetsByLane) {
             // Request the validation status for the lane
-            const validationResponse = await store.dispatch(api.experimentRuns.getLaneValidationStatus(experimentRunName, laneNumber))
+            const validationResponse = await store.dispatch(api.experimentRuns.getLaneValidationStatus(experimentRunId, laneNumber))
             const status = validationResponse.data as number
             
             let validationStatus = ValidationStatus.AVAILABLE
@@ -64,7 +63,7 @@ export function loadExperimentRunLanes(experimentRunName: string) {
 
             // Create an ExperimentRunLane instance
             experimentRunLanes.lanes.push({
-                runName: experimentRunName,
+                experimentRunId,
                 laneNumber,
                 validationStatus,
                 validationTime,
@@ -76,8 +75,8 @@ export function loadExperimentRunLanes(experimentRunName: string) {
     }
 }
 
-export async function fetchReadsPerSample(runName : string, lane: number): Promise<ReadsPerSample> {
-    const response = await store.dispatch(api.metrics.getReadsPerSampleForLane(runName, lane))
+export async function fetchReadsPerSample(experimentRunId : FMSId, lane: number): Promise<ReadsPerSample> {
+    const response = await store.dispatch(api.metrics.getReadsPerSampleForLane(experimentRunId, lane))
     if (response.ok) {
        const metrics = response.data.results as FMSMetric[]
        const sampleReads : NumberOfReads[] = metrics.map(metric => {
@@ -90,6 +89,6 @@ export async function fetchReadsPerSample(runName : string, lane: number): Promi
        })  
        return {sampleReads}
     } else {
-        throw new Error(`Failed to load reads per sample for lane ${lane} of run ${runName}`)
+        throw new Error(`Failed to load reads per sample for lane ${lane} of run ${experimentRunId}`)
     }
 }

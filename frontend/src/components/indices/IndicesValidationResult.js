@@ -13,7 +13,7 @@ import {
 } from "antd";
 const { Title } = Typography;
 const { Panel } = Collapse;
-
+import { isNullish } from "../../utils/functions"
 import {list} from "../../modules/indices/actions";
 
 function formatWarning({format, args}) {
@@ -135,7 +135,7 @@ const IndicesValidationResult = ({
       <Title level={3}> Validation Summary </Title>
       <Descriptions column={2} bordered={true}>
         <Descriptions.Item label="Instrument Type">{results.instrument_type}</Descriptions.Item>
-        <Descriptions.Item label="Threshold">{results.threshold ? results.threshold : '2'}</Descriptions.Item>
+        <Descriptions.Item label="Threshold">{!isNullish(results.threshold) ? results.threshold : '2'}</Descriptions.Item>
         <Descriptions.Item label="Validation Length 3 Prime">{results.validation_length_3prime}</Descriptions.Item>
         <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_5prime}</Descriptions.Item>
         <Descriptions.Item label="Validation status">

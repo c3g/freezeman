@@ -12,20 +12,21 @@ import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
 import { Dataset } from '../../models/frontend_models'
 import api from '../../utils/api'
+import { FMSId } from '../../models/fms_api_models'
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography
 
 
 interface ExperimentRunValidationProps {
-	experimentRunName: string
+	experimentRunId: FMSId
 }
 
 function createLaneKey(lane: LaneInfo) {
 	return `LANE: ${lane.laneNumber}`
 }
 
-function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationProps) {
+function ExperimentRunValidation({ experimentRunId }: ExperimentRunValidationProps) {
 	const dispatch = useAppDispatch()
 
 	const [initialized, setInitialized] = useState<boolean>(false)
@@ -42,23 +43,23 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 
 	useEffect(() => {
 		if (!initialized) {
-			dispatch(initExperimentRunLanes(experimentRunName))
+			dispatch(initExperimentRunLanes(experimentRunId))
 			setInitialized(true)
 		}
-	}, [dispatch, experimentRunName, initialized])
+	}, [dispatch, experimentRunId, initialized])
 
 	useEffect(() => {
 		// Flush redux state when the component is unmounted
-		return () => {dispatch(flushExperimentRunLanes(experimentRunName))}
-	}, [dispatch, experimentRunName])
+		return () => {dispatch(flushExperimentRunLanes(experimentRunId))}
+	}, [dispatch, experimentRunId])
 
 	useEffect(() => {
-		const experimentRunLanes = experimentRunLanesState.runs[experimentRunName]
+		const experimentRunLanes = experimentRunLanesState.runs[experimentRunId]
 		if (experimentRunLanes) {
 			setRunLanes(experimentRunLanes)
 		}
 
-	}, [experimentRunName, experimentRunLanesState])
+	}, [experimentRunId, experimentRunLanesState])
 
 	const updateLane = useCallback((lane: LaneInfo) => {
 		Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() => {
@@ -87,12 +88,12 @@ function ExperimentRunValidation({ experimentRunName }: ExperimentRunValidationP
 		if (runLanes) {
 			const keys = (typeof laneKeys === 'string') ? [laneKeys] : laneKeys
 			const expandedLanes = runLanes.lanes.filter(lane => keys.includes(createLaneKey(lane)))
-			dispatch(setExpandedLanes(runLanes.experimentRunName, expandedLanes.map(lane => lane.laneNumber)))
+			dispatch(setExpandedLanes(runLanes.experimentRunId, expandedLanes.map(lane => lane.laneNumber)))
 		}
 	}, [dispatch, runLanes])
 
 	const expandedLaneKeys: string[] = []
-	const lanesUX = experimentRunLanesState.ux[experimentRunName]
+	const lanesUX = experimentRunLanesState.ux[experimentRunId]
 	if (lanesUX && runLanes) {
 		for (const laneNumber of lanesUX.expandedLanes) {
 			const laneInfo = runLanes.lanes.find(lane => lane.laneNumber === laneNumber)

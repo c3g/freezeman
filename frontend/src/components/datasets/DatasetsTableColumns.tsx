@@ -45,13 +45,19 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		columnID: DatasetColumnID.RUN,
 		title: 'Run',
 		dataIndex: ['dataset', 'run_name'],
-		sorter: { multiple: 1 }
+		sorter: { multiple: 1 },
+		render: (_, {dataset}) => {
+			return <Link to={`/experiment-runs/${dataset.experiment_run_id}`}>{dataset.run_name}</Link>
+		}
 	},
 	[DatasetColumnID.PROJECT]: {
 		columnID: DatasetColumnID.PROJECT,
 		title: 'Project',
 		dataIndex: ['dataset', 'project_name'],
-		sorter: { multiple: 1 }
+		sorter: { multiple: 1 },
+		render: (_, {dataset}) => {
+			return <Link to={`/projects/${dataset.project_id}`}>{dataset.project_name}</Link>
+		}
 	},
 	[DatasetColumnID.LANE]: {
 		columnID: DatasetColumnID.LANE,
@@ -142,14 +148,14 @@ export const DATASET_FILTER_DEFINITIONS : {[key in DatasetFilterID]: FilterDescr
 // Special filter for datasets table that is filtered by a particular project.
 export const DATASET_EXTERNAL_PROJECT_FILTER : FilterDescription = {
 	type: FILTER_TYPE.INPUT,
-	key: 'external_project_id',
+	key: 'project__external_id',
 	label: 'External Project ID'
 }
 
 export const DATASET_FILTER_KEYS: {[key in DatasetFilterID]: string} = {
 	[DatasetFilterID.ID]: 'id',
-	[DatasetFilterID.RUN]: 'run_name',
-	[DatasetFilterID.PROJECT]: 'project_name',
+	[DatasetFilterID.RUN]: 'experiment_run__name',
+	[DatasetFilterID.PROJECT]: 'project__name',
 	[DatasetFilterID.LANE]: 'lane',
 	[DatasetFilterID.LATEST_RELEASE_UPDATE]: 'latest_release_update',
 	[DatasetFilterID.LATEST_VALIDATION_UPDATE]: 'latest_validation_update'

@@ -16,7 +16,7 @@ from fms_core.services.project import create_project
 class ExperimentRunInfiniumTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_Infinium_v4_13_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_Infinium_v5_0_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "EQ00539851"
@@ -117,27 +117,24 @@ class ExperimentRunInfiniumTestCase(TestCase):
 
         cp1_4 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Hybridization')
         cp1_4_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
-                                             property_type__name='Hybridization Chip Barcodes')
-        cp1_4_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
                                              property_type__name='Hybridization Chamber Barcode')
-        cp1_4_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+        cp1_4_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
                                              property_type__name='Reagent PB2 Barcode')
-        cp1_4_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+        cp1_4_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
                                              property_type__name='Reagent XC4 Barcode Hybridization')
-        cp1_4_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+        cp1_4_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
                                              property_type__name='Incubation time In Hybridization')
-        cp1_4_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+        cp1_4_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
                                              property_type__name='Incubation time Out Hybridization')
-        cp1_4_p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+        cp1_4_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
                                              property_type__name='Comment Hybridization')
         # Check property values for Hybridization sub-process
-        self.assertEqual(cp1_4_p1.value, 'HybrBarcodeValue')
-        self.assertEqual(cp1_4_p2.value, 'HCBarcode')
-        self.assertEqual(cp1_4_p3.value, 'PB2Barcode')
-        self.assertEqual(cp1_4_p4.value, 'XC4HyBarcode')
-        self.assertEqual(cp1_4_p5.value, '02:00:00')
-        self.assertEqual(cp1_4_p6.value, '02:20:00')
-        self.assertEqual(cp1_4_p7.value, 'my comment')
+        self.assertEqual(cp1_4_p1.value, 'HCBarcode')
+        self.assertEqual(cp1_4_p2.value, 'PB2Barcode')
+        self.assertEqual(cp1_4_p3.value, 'XC4HyBarcode')
+        self.assertEqual(cp1_4_p4.value, '02:00:00')
+        self.assertEqual(cp1_4_p5.value, '02:20:00')
+        self.assertEqual(cp1_4_p6.value, 'my comment')
 
         cp1_5 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Wash Beadchip')
         cp1_5_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_5.id,
@@ -186,15 +183,12 @@ class ExperimentRunInfiniumTestCase(TestCase):
 
         cp1_7 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Scan Preparation')
         cp1_7_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id,
-                                             property_type__name='SentrixBarcode_A')
-        cp1_7_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id,
                                              property_type__name='Scan Chip Rack Barcode')
-        cp1_7_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id,
+        cp1_7_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id,
                                              property_type__name='Comment Scan')
         # Check property values for Scan Preparation sub-process
-        self.assertEqual(cp1_7_p1.value, 'sentrixA')
-        self.assertEqual(cp1_7_p2.value, 'lastbarcode')
-        self.assertEqual(cp1_7_p3.value, 'bla bla bla')
+        self.assertEqual(cp1_7_p1.value, 'lastbarcode')
+        self.assertEqual(cp1_7_p2.value, 'bla bla bla')
 
 
 

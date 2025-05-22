@@ -1,6 +1,6 @@
 import { Descriptions, Spin } from "antd"
 import React, { useCallback, useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { get } from "../../modules/datasets/actions"
 import { selectDatasetsByID } from "../../selectors"
@@ -27,7 +27,7 @@ const DatasetDetailContent = () => {
 
     useEffect(() => {
         async function fetchLaneValidationStatus(dataset: Dataset) {
-            const status = await dispatch(api.experimentRuns.getLaneValidationStatus(dataset.run_name, dataset.lane))
+            const status = await dispatch(api.experimentRuns.getLaneValidationStatus(dataset.experiment_run_id, dataset.lane))
             return status.data
         }
 
@@ -38,7 +38,7 @@ const DatasetDetailContent = () => {
         }
     }, [dataset, laneValidationStatus, dispatch])
 
-    const loading = (value: string | number | undefined) => {
+    const loading = <T,>(value: T) => {
         return value ?? "Loading..."
     }
 
@@ -61,8 +61,12 @@ const DatasetDetailContent = () => {
             }}>
                 <Descriptions bordered={true} size={"small"} column={4}>
                     <Descriptions.Item label={"ID"} span={1}>{loading(dataset?.id)}</Descriptions.Item>
-                    <Descriptions.Item label={"Project"} span={1}>{loading(dataset?.project_name)}</Descriptions.Item>
-                    <Descriptions.Item label={"Run Name"} span={2}>{loading(dataset?.run_name)}</Descriptions.Item>
+                    <Descriptions.Item label={"Project"} span={1}>
+                        {dataset ? <Link to={`/projects/${dataset.project_id}`}>{dataset.project_name}</Link> : 'Loading...'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label={"Run Name"} span={2}>
+                        {dataset ? <Link to={`/experiment-runs/${dataset.experiment_run_id}`}>{dataset.run_name}</Link> : 'Loading...'}
+                    </Descriptions.Item>
                     <Descriptions.Item label={"Lane"} span={1}>{loading(dataset?.lane)}</Descriptions.Item>
                     <Descriptions.Item label={"Lane Validation Status"} span={1}>{laneValidationStatus !== undefined &&
                         <LaneValidationStatus validationStatus={laneValidationStatus} isValidationInProgress={false} />}

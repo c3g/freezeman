@@ -1,6 +1,5 @@
 import { FMSId } from "../../models/fms_api_models"
 
-type ExperimentRunName = string
 export type LaneNumber = number
 
 export enum ValidationStatus {
@@ -27,7 +26,7 @@ export interface ReadsPerSample {
 }
 
 export interface LaneInfo {
-  runName: string                       // Name of the run, for both freezeman and external runs
+  experimentRunId: FMSId                // Id of the run 
   laneNumber: LaneNumber                // The number of the lane
   validationStatus: ValidationStatus    // The validation status for the lane
   validationTime?: string               // The time at which the lane was last validated
@@ -36,21 +35,21 @@ export interface LaneInfo {
 }
 
 export interface ExperimentRunLanes {
-  experimentRunName : string,
+  experimentRunId : FMSId,
   lanes: LaneInfo[]
 }
 
 export interface ExperimentRunLanesUX {   // A place to store UX state (expanded lanes)
-  experimentRunName: string,
-  expandedLanes: number[]               // The lane numbers of lanes which are expanded in the UX.
+  experimentRunId: FMSId,
+  expandedLanes: LaneNumber[]             // The lane numbers of lanes which are expanded in the UX.
 }
 
 export interface ExperimentRunLanesState {
   runs: {
-    [key: ExperimentRunName] : ExperimentRunLanes
+    [key: FMSId] : ExperimentRunLanes
   }
   ux: {
-    [key: ExperimentRunName] : ExperimentRunLanesUX
+    [key: FMSId] : ExperimentRunLanesUX
   }
 }
 

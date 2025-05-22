@@ -1,5 +1,13 @@
 import { CoordinateSpec } from "../../models/fms_api_models"
-import { Sample } from "../../models/frontend_models"
+
+export interface PlacementState {
+    placementType: PlacementOptions['type']
+    placementDirection: PlacementGroupOptions['direction']
+    tubesWithoutParentContainer: TubesWithoutParentContainerState
+    realParentContainers: Record<ContainerName, RealParentContainerState | undefined>
+    samples: Record<SampleID, SampleState | undefined>
+    error?: string
+}
 
 export enum PlacementType {
     PATTERN,
@@ -18,52 +26,39 @@ export interface PlacementGroupOptions {
 }
 export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
 
-export type CellState = CellWithParentState | CellWithoutParentState
-export type ContainerState = ParentContainerState | TubesWithoutParentState
-export interface PlacementState {
-    containers: ContainerState[]
-    placementType: PlacementOptions['type']
-    placementDirection: PlacementGroupOptions['direction']
-    error?: string
+export interface RealParentContainerState extends RealParentContainerIdentifier {
+    cells: Record<Coordinates, CellState>
+    spec: CoordinateSpec
 }
 
-interface CellStateBase {
-    selected: boolean
-    sample: Sample['id'] | null
-    name: string
+export interface CellState extends CellIdentifier {
+    samples: Record<SampleID, SampleEntry | undefined>
+    preview: Coordinates | null // empty string for tubes without parent
+}
+
+export interface TubesWithoutParentContainerState extends TubesWithoutParentContainerIdentifier {
+    samples: Record<SampleID, SampleEntry | undefined>
+}
+
+export interface SampleState extends SampleIdentifier {
+    containerName: ContainerName, // can be the name of a tube or container of the well
+    name: SampleName
     projectName: string
-    placedAt: null | CellWithParentIdentifier
-}
-export interface CellWithParentState extends CellStateBase {
-    readonly parentContainerName: string
-    readonly coordinates: string
-    placedFrom: null | CellIdentifier
-    preview: boolean
-}
-export interface CellWithoutParentState extends CellStateBase {
-    readonly parentContainerName: null
-    readonly coordinates?: undefined
-    placedFrom?: null
-    preview?: false
+    fromCell: CellIdentifier | null
+    placedAt: CellIdentifier[]
 }
 
-export type CellWithParentIdentifier = Pick<CellWithParentState, 'parentContainerName' | 'coordinates'> & { sample?: CellWithoutParentState['sample'] } // sample is just to stop typescript from whining
-export type CellWithoutParentIdentifier = Pick<CellWithoutParentState, 'parentContainerName' | 'coordinates' | 'sample'>
-export type CellIdentifier = CellWithParentIdentifier | CellWithoutParentIdentifier
+export interface SampleEntry {
+    selected: boolean
+}
 
-interface BaseParentContainerState {
-    cellsIndexBySampleID: Record<Sample['id'], number>
-}
-export interface ParentContainerState extends BaseParentContainerState {
-    readonly name: string
-    readonly spec: CoordinateSpec
-    cells: CellWithParentState[]
-    readonly cellsIndexByCoordinates: Record<string, number> // this should never change after it's initialized
-}
-export interface TubesWithoutParentState extends BaseParentContainerState {
-    readonly name: null
-    readonly spec: []
-    cells: CellWithoutParentState[]
-}
-export type ContainerIdentifier = Pick<ContainerState, 'name'>
+export type ContainerName = string
+export type SampleName = string
+export type SampleID = number
+export type Coordinates = string
 
+export interface RealParentContainerIdentifier { name: ContainerName }
+export interface TubesWithoutParentContainerIdentifier { name: null }
+export type ParentContainerIdentifier = RealParentContainerIdentifier | TubesWithoutParentContainerIdentifier
+export interface SampleIdentifier { id: SampleID }
+export interface CellIdentifier { fromContainer: RealParentContainerIdentifier, coordinates: Coordinates }

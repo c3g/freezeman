@@ -12,17 +12,15 @@ from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_FILE_PATH_LENGTH, V
 @reversion.register()
 class Dataset(TrackedModel):
     """ Class to store information about the datasets of data deliveries. """
-    external_project_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project id.")
-    project_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Human readable project name.")
-    run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Run name.")
+    project = models.ForeignKey(help_text='Project of the dataset.', on_delete=models.PROTECT, related_name='datasets', to='fms_core.project')
+    experiment_run = models.ForeignKey(help_text='Experiment run matching the dataset.', on_delete=models.PROTECT, related_name='datasets', to='fms_core.experimentrun')
     lane = models.PositiveIntegerField(help_text="Coordinates of the lane in a container")
-    experiment_run = models.ForeignKey(blank=True, null=True, help_text='Experiment run matching the dataset.', on_delete=models.PROTECT, related_name='datasets', to='fms_core.experimentrun')
     metric_report_url = models.CharField(null=True, blank=True, max_length=STANDARD_FILE_PATH_LENGTH, help_text="URL to the run processing metrics report.")
     archived_comments = GenericRelation(ArchivedComment)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["external_project_id", "run_name", "lane"], name="dataset_externalprojectid_runname_lane_key")
+            models.UniqueConstraint(fields=["project", "experiment_run", "lane"], name="dataset_project_experimentrun_lane_key")
         ]
 
     @property

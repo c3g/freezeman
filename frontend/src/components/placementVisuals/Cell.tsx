@@ -4,10 +4,11 @@ import './Placement.scss'
 import { clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Popover } from "antd"
-import { selectActiveDestinationContainer, selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
-import { selectCell } from "../../modules/placement/selectors"
-import store from "../../store"
-import { CellState } from "../../modules/placement/models"
+import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
+import { selectCell, selectPlacementState } from "../../modules/placement/selectors"
+import { RootState } from "../../store"
+import { CellIdentifier, ParentContainerIdentifier, SampleState } from "../../modules/placement/models"
+import { PlacementClass } from "../../modules/placement/classes"
 
 export interface CellProps {
     container: string
@@ -16,67 +17,98 @@ export interface CellProps {
 }
 
 // component is used to represent individual cells in visualization of the placement transfer tab
-const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) => {
+const Cell = ({ container, coordinates, cellSize }: CellProps) => {
+    const fromContainer = useMemo(() => ({ name: container }), [container])
     const dispatch = useAppDispatch()
-    const cell = useAppSelector((state) => selectCell(state)({ parentContainerName: containerName, coordinates }))
-    const placedFrom = useAppSelector((state) => cell?.placedFrom && selectCell(state)(cell.placedFrom))
-    const placedAt = useAppSelector((state) => cell?.placedAt && selectCell(state)(cell.placedAt))
+    const activeSourceContainer = useAppSelector((state) => selectActiveSourceContainer(state))
+    
+    const cell = useAppSelector((state) => selectCell(state)({ fromContainer, coordinates }).state)
+    const samplesByID = useAppSelector((state) => selectPlacementState(state).samples)
 
-    const sampleName = placedFrom?.name ?? cell?.name
+    const samples = useMemo(() => {
+        const samples: SampleState[] = []
+        for (const sampleID in cell.samples) {
+            const sampleState = samplesByID[sampleID]
+            if (sampleState) {
+                samples.push(sampleState)
+            }
+        }
+        return samples
+    }, [cell.samples, samplesByID])
 
-    const isSource = useAppSelector((state) => {
-        const activeSourceContainer = selectActiveSourceContainer(state)
-        return activeSourceContainer?.name === containerName
-    })
-    const isDestination = useAppSelector((state) => {
-        const activeDestinationContainer = selectActiveDestinationContainer(state)
-        return activeDestinationContainer?.name === containerName
-    })
+    const placedFrom = useMemo(() => {
+        const placedFrom: (CellIdentifier | string)[] = []
+        for (const sample of samples) {
+            if (!(sample.fromCell?.fromContainer.name === container && sample?.fromCell?.coordinates === coordinates)) {
+                placedFrom.push(sample.fromCell
+                    ? {
+                        fromContainer: sample.fromCell.fromContainer,
+                        coordinates: sample.fromCell.coordinates
+                    }
+                    : sample.containerName
+                )
+            }
+        }
+        return placedFrom
+    }, [container, coordinates, samples])
+    const placedAt: CellIdentifier[] = useMemo(() => {
+        for (const sample of samples) {
+            if (sample.fromCell?.fromContainer.name === container && sample?.fromCell?.coordinates === coordinates) {
+                return sample.placedAt
+            }
+        }
+        return []
+    }, [container, coordinates, samples])
+
     const [popOverOpen, setPopOverOpen] = useState(false)
-    const thereIsError = !!useAppSelector((state) => state.placement.error)
 
     const onClick = useCallback(() => {
+        if (!activeSourceContainer) return
         dispatch(clickCell({
-            parentContainerName: containerName,
+            fromContainer,
             coordinates,
             context: {
-                source: selectActiveSourceContainer(store.getState())?.name
+                source: activeSourceContainer
             }
         }))
-    }, [containerName, coordinates, dispatch])
+    }, [activeSourceContainer, dispatch, fromContainer, coordinates])
 
     const onMouseEnter = useCallback(() => {
+        if (!activeSourceContainer) return
         dispatch(onCellEnter({
-            parentContainerName: containerName,
+            fromContainer,
             coordinates,
             context: {
-                source: selectActiveSourceContainer(store.getState())?.name
+                source: activeSourceContainer
             }
         }))
-        setPopOverOpen(sampleName !== '')
-    }, [containerName, coordinates, dispatch, sampleName])
+        setPopOverOpen(samples.length > 0)
+    }, [activeSourceContainer, dispatch, fromContainer, coordinates, samples])
 
     const onMouseLeave = useCallback(() => {
+        if (!activeSourceContainer) return
         dispatch(onCellExit({
-            parentContainerName: containerName,
+            fromContainer,
             coordinates,
             context: {
-                source: selectActiveSourceContainer(store.getState())?.name
+                source: activeSourceContainer
             }
         }))
         setPopOverOpen(false)
-    }, [containerName, coordinates, dispatch])
+    }, [activeSourceContainer, dispatch, fromContainer, coordinates])
 
+
+    const cellColor = useAppSelector((state) => selectCellColor(state, { fromContainer, coordinates }, activeSourceContainer))
 
     return (
-        cell &&
         <Popover
             content={<>
-                <div>{`Sample: ${sampleName}`}</div>
-                <div>{`Coords: ${cell.coordinates}`}</div>
-                {placedFrom &&
-                    (placedFrom.parentContainerName ? <div>{`From: ${placedFrom.parentContainerName}@${placedFrom.coordinates}`}</div> : <div>From: Tubes without parent</div>)}
-                {placedAt && <div>{`At: ${placedAt.parentContainerName}@${placedAt.coordinates}`}</div>}
+                <div>{`Sample(s): ${samples.map((s) => s.name).join(", ")}`}</div>
+                <div>{`Coords: ${coordinates}`}</div>
+                {placedFrom.length > 0 ? <div>{'From: '}{placedFrom.map((placedFrom) => typeof placedFrom === 'object'
+                    ? `${placedFrom.fromContainer.name}@${placedFrom.coordinates}`
+                    : placedFrom).join(", ")}</div> : undefined}
+                {placedAt.length > 0 ? <div>{'At: '}{placedAt.map((placedAt) => `${placedAt.fromContainer.name}@${placedAt.coordinates}`).join(", ")}</div> : undefined}
             </>}
             destroyTooltipOnHide={{ keepParent: false }}
             open={popOverOpen}
@@ -87,32 +119,39 @@ const Cell = ({ container: containerName, coordinates, cellSize }: CellProps) =>
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                style={{ backgroundColor: getColor(cell, isSource, isDestination, thereIsError) }}
-            />
+                style={{ backgroundColor: cellColor }}
+            >
+                {cell.preview ? cell.preview : ''}
+                {!cell.preview && placedAt.length > 0 ? placedAt.length : ''}
+                {!cell.preview && placedFrom.length > 1 ? placedFrom.length : ''}
+            </div>
         </Popover>
     )
 }
+export default Cell
 
-function getColor(cell: CellState, isSource: boolean, isDestination: boolean, thereIsError: boolean) {
-    if (cell.selected) {
-        return "#86ebc1"
-    }
-    if (cell.preview) {
-        return cell.sample || cell.placedFrom || thereIsError ? "pink" : "#74bbfc"
-    }
+function selectCellColor(state: RootState, cellID: CellIdentifier, sourceContainer?: ParentContainerIdentifier) {
+    const placementState = selectPlacementState(state)
+    const placement = new PlacementClass(placementState, undefined)
+    const cell = placement.getCell(cellID)
+    try {
+        const placements = cell.getSamplePlacements(true)
+        const existingSample = cell.findExistingSample()
+        const selections = placements.filter((sample) => sample.selected)
 
-    if (isSource && cell.sample) {
-        return cell.placedAt ? "grey" : "#1890ff"
+        if (selections.length > 0) return "#86ebc1"
+        if (cell.preview !== null) return placementState.error ? "pink" : "#74bbfc"
+        const isSource = cellID.fromContainer.name === sourceContainer?.name
+        if (
+            (isSource && existingSample) ||
+            (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample)))
+        ) return "#1890ff"
+        if (!isSource && existingSample) return "grey"
+        return "white"
+    } catch (e) {
+        console.info(cell.state, e)
+        return "red"
     }
-
-    if (isDestination && cell.sample) {
-        return "grey"
-    }
-    if (isDestination && cell.placedFrom) {
-        return "#1890ff"
-    }
-
-    return "white"
 }
 
-export default Cell
+

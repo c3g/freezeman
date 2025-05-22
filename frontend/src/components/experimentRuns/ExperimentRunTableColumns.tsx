@@ -82,6 +82,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Instrument',
         dataIndex: ['experimentRun', 'instrument'],
         sorter: { multiple: 1 },
+        width: MEDIUM_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
             return <div>{instrumentsById[experimentRun.instrument]?.name}</div>
         }
@@ -91,6 +92,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Instrument Type',
         dataIndex: ['experimentRun', 'instrument_type'],
         sorter: { multiple: 1 },
+        width: MEDIUM_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.instrument_type}</div>
         }
@@ -100,6 +102,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Container Barcode',
         dataIndex: ['experimentRun', 'container_barcode'],
         sorter: { multiple: 1 },
+        width: MEDIUM_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
             return (experimentRun.container &&
                 <Link to={`/containers/${experimentRun.container}`}>
