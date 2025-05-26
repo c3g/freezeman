@@ -1,3 +1,5 @@
+from collections import defaultdict
+from typing import Any
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.models import ContentType
 from fms_core.services.taxon import can_edit_taxon
@@ -374,32 +376,41 @@ class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSeria
 
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
 
-        property_types = PropertyType.objects\
-            .filter(object_id=OuterRef("process__protocol__pk"), content_type=protocol_content_type)\
-            .annotate(process_id=OuterRef("process__pk"))\
-            .annotate(process_measurement_id=OuterRef("pk"))
-        property_values = PropertyValue.objects\
-            .filter(property_type=OuterRef("pk"))\
-            .filter(Q(object_id=OuterRef("process_id")) | Q(object_id=OuterRef("process_measurement_id")))
-        process_measurements = process_measurements.annotate(
-            properties=Subquery(
-                property_types.annotate(value=Subquery(
-                    property_values.values_list("value")[:1]
-                )).annotate(name_value=Concat(
-                    F("name"), Value("="), F("value"), output_field=models.CharField()
-                )).values(
-                    "name_value"
-                ).annotate(
-                    name_value_agg=ArrayAgg("name_value", distinct=True, default=Value([]))
-                ).values_list("name_value_agg")[:1]
-            )
-        )
+        property_types = PropertyType.objects.filter(
+            object_id__in=Subquery(process_measurements.values("process__protocol__id")),
+            content_type=protocol_content_type
+        ).values("id", "name", "object_id").all()
+
+        property_values = PropertyValue.objects.filter(
+            property_type__in=Subquery(property_types.values("id")),
+        ).filter(
+            Q(object_id__in=Subquery(process_measurements.values("process__id"))) |
+            Q(object_id__in=Subquery(process_measurements.values("id")))
+        ).values("property_type_id", "value", "object_id").all()
+
+        property_types_by_protocol = defaultdict(list[tuple[int, str]])
+        for property_type in property_types:
+            protocol_id = property_type['object_id']
+            property_types_by_protocol[protocol_id].append((property_type['id'], property_type['name']))
+
+        property_value_by_pm_and_pt_id = defaultdict[int, dict[int, Any]](dict)
+        for property_value in property_values:
+            property_type_id = property_value['property_type_id']
+            value = property_value['value']
+            process_maybe_measurement_id = property_value['object_id']
+            property_value_by_pm_and_pt_id[process_maybe_measurement_id][property_type_id] = value
 
         data = []
         for process_measurement in process_measurements:
             datum = self.child.to_representation(process_measurement)
-            for property in process_measurement.properties:
-                datum[property.name] = property.value
+            protocol_id = process_measurement.process.protocol.id
+            property_types = property_types_by_protocol.get(protocol_id, [])
+            for property_type_id, property_type_name in property_types:
+                property_value = property_value_by_pm_and_pt_id.get(
+                    process_measurement.id, property_value_by_pm_and_pt_id.get(process_measurement.process.id, {})
+                ).get(property_type_id, None)
+                if property_value is not None:
+                    datum[property_type_name] = property_value
             data.append(datum)
         return data
 
