@@ -7,9 +7,7 @@ from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from django.db import models
-from django.db.models import Max, F, Sum, Subquery, OuterRef, Q, Value
-from django.db.models.functions import Concat
-from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Max, Sum, Subquery, Q
 from fms_core.services.study import can_remove_study
 from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
 from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
@@ -37,7 +35,6 @@ from .models import (
     Project,
     Sample,
     SampleKind,
-    SampleLineage,
     SampleMetadata,
     Sequence,
     Taxon,
