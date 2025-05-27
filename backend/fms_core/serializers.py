@@ -1,10 +1,13 @@
+from collections import defaultdict
+from typing import Any
 from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.models import ContentType
 from fms_core.services.taxon import can_edit_taxon
 from fms_core.services.referenceGenome import can_edit_referenceGenome
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from django.db.models import Max, F, Sum
+from django.db import models
+from django.db.models import Max, Sum, Subquery, Q
 from fms_core.services.study import can_remove_study
 from fms_core.services.sample_lineage import get_sample_source_from_derived_sample
 from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
@@ -32,7 +35,6 @@ from .models import (
     Project,
     Sample,
     SampleKind,
-    SampleLineage,
     SampleMetadata,
     Sequence,
     Taxon,
@@ -365,6 +367,53 @@ class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
         model = ProcessMeasurement
         fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
+class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        process_measurements = data.all() if isinstance(data, models.Manager) else data
+        process_measurements = process_measurements.select_related("process", "process__protocol")
+
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+
+        property_types = PropertyType.objects.filter(
+            object_id__in=Subquery(process_measurements.values("process__protocol__id")),
+            content_type=protocol_content_type
+        ).values("id", "name", "object_id").all()
+
+        property_values = PropertyValue.objects.filter(
+            property_type__in=Subquery(property_types.values("id")),
+        ).filter(
+            Q(object_id__in=Subquery(process_measurements.values("process__id"))) |
+            Q(object_id__in=Subquery(process_measurements.values("id")))
+        ).values("property_type_id", "value", "object_id").all()
+
+        property_types_by_protocol = defaultdict(list[tuple[int, str]])
+        for property_type in property_types:
+            protocol_id = property_type['object_id']
+            property_types_by_protocol[protocol_id].append((property_type['id'], property_type['name']))
+
+        property_value_by_pm_and_pt = defaultdict[int, dict[int, Any]](dict)
+        for property_value in property_values:
+            property_type_id = property_value['property_type_id']
+            value = property_value['value']
+            process_maybe_measurement_id = property_value['object_id']
+            property_value_by_pm_and_pt[process_maybe_measurement_id][property_type_id] = value
+
+        data = []
+        for process_measurement in process_measurements:
+            datum = self.child.to_representation(process_measurement)
+            protocol_id = process_measurement.process.protocol.id
+            property_types = property_types_by_protocol.get(protocol_id, [])
+            for property_type_id, property_type_name in property_types:
+
+                property_value = (
+                    property_value_by_pm_and_pt.get(process_measurement.id, {})
+                    or
+                    property_value_by_pm_and_pt.get(process_measurement.process.id, {})
+                ).get(property_type_id, None)
+                if property_value is not None:
+                    datum[property_type_name] = property_value
+            data.append(datum)
+        return data
 
 class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializer):
     DEFAULT_META_FIELDS = ( 'process_measurement_id',
@@ -394,20 +443,12 @@ class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializ
 
     class Meta:
         model = ProcessMeasurement
+        list_serializer_class = ProcessMeasurementWithPropertiesExportListSerializer
         fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
     def list_property_types(self, obj):
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
         return PropertyType.objects.filter(object_id=obj[0].process.protocol.id, content_type=protocol_content_type)
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        for property_type in self.property_types:
-            pm_property_value = PropertyValue.objects.filter(object_id=instance.id, property_type=property_type)
-            p_property_value = PropertyValue.objects.filter(object_id=instance.process.id, property_type=property_type)
-            property_value = pm_property_value.union(p_property_value).first() # union between cases : process or process measurement property value
-            data[property_type.name] = property_value.value if property_value else None # manually insert the property values in the column
-        return data
 
 
 class PropertyTypeSerializer(serializers.ModelSerializer):
