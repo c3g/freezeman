@@ -373,6 +373,7 @@ class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
 class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         process_measurements = data.all() if isinstance(data, models.Manager) else data
+        process_measurements = process_measurements.select_related("process", "process__protocol")
 
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
 
@@ -406,9 +407,7 @@ class ProcessMeasurementWithPropertiesExportListSerializer(serializers.ListSeria
             protocol_id = process_measurement.process.protocol.id
             property_types = property_types_by_protocol.get(protocol_id, [])
             for property_type_id, property_type_name in property_types:
-                property_value = property_value_by_pm_and_pt_id.get(
-                    process_measurement.id, property_value_by_pm_and_pt_id.get(process_measurement.process.id, {})
-                ).get(property_type_id, None)
+                property_value = property_value_by_pm_and_pt_id.get(process_measurement.id, {}).get(property_type_id, None)
                 if property_value is not None:
                     datum[property_type_name] = property_value
             data.append(datum)
