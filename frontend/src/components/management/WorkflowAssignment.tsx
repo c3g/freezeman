@@ -70,7 +70,7 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
 
     const SAMPLES_TABLE_COLUMNS: SampleColumn[] = useMemo(() => {
         return [
-            SAMPLE_COLUMN_DEFINITIONS.NAME,
+            SAMPLE_COLUMN_DEFINITIONS.NAME_WITHOUT_ALIAS,
             SAMPLE_COLUMN_DEFINITIONS.CONTAINER_BARCODE,
             SAMPLE_COLUMN_DEFINITIONS.PARENT_CONTAINER,
             SAMPLE_COLUMN_DEFINITIONS.PARENT_COORDINATES,
