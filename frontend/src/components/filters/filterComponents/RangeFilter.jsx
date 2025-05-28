@@ -36,7 +36,6 @@ const RangeFilterComponent = ({minValue, defaultMin, maxValue, filterKey, setFil
                 placeholder='From'
                 min={defaultMin}
                 style={{ width: 100 }}
-                value={minValue}
                 onChange={newMin => onSearch({min: nullize(newMin), max: maxValue})}
                 onKeyDown={ev => onKeyDown(ev, confirm)}
                 onPressEnter={confirm}
@@ -45,7 +44,6 @@ const RangeFilterComponent = ({minValue, defaultMin, maxValue, filterKey, setFil
                 placeholder='To'
                 min={defaultMin}
                 style={{ width: 100 }}
-                value={maxValue}
                 onChange={newMax => onSearch({min: minValue, max: nullize(newMax)})}
                 onKeyDown={ev => onKeyDown(ev, confirm)}
                 onPressEnter={confirm}
