@@ -11,7 +11,7 @@ def create_empty_index(apps, schema_editor):
     IndexStructure = apps.get_model("fms_core", "IndexStructure")
     Sequence = apps.get_model("fms_core", "Sequence")
 
-    NEW_INDEX_STRUCTURE = {
+    NO_FLANKERS_INDEX_STRUCTURE = {
         "name": "No_Flankers_Index_Structure",
         "flanker_5prime_forward": "",
         "flanker_5prime_reverse": "",
@@ -21,20 +21,20 @@ def create_empty_index(apps, schema_editor):
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        reversion.set_comment(f"Create index '{UNKNOWN_INDEX_NAME}' and its structure '{NEW_INDEX_STRUCTURE['name']}'.")
+        reversion.set_comment(f"Create index '{UNKNOWN_INDEX_NAME}' and its structure '{NO_FLANKERS_INDEX_STRUCTURE['name']}'.")
         reversion.set_user(admin_user)
 
         # Create structure
-        flanker_5prime_forward, _ = Sequence.objects.get_or_create(value=NEW_INDEX_STRUCTURE["flanker_5prime_forward"],
+        flanker_5prime_forward, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_5prime_forward"],
                                                                    defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
-        flanker_5prime_reverse, _ = Sequence.objects.get_or_create(value=NEW_INDEX_STRUCTURE["flanker_5prime_reverse"],
+        flanker_5prime_reverse, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_5prime_reverse"],
                                                                    defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
-        flanker_3prime_forward, _ = Sequence.objects.get_or_create(value=NEW_INDEX_STRUCTURE["flanker_3prime_forward"],
+        flanker_3prime_forward, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_3prime_forward"],
                                                                    defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
-        flanker_3prime_reverse, _ = Sequence.objects.get_or_create(value=NEW_INDEX_STRUCTURE["flanker_3prime_reverse"],
+        flanker_3prime_reverse, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_3prime_reverse"],
                                                                    defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
         index_structure = IndexStructure.objects.create(
-            name=NEW_INDEX_STRUCTURE["name"],
+            name=NO_FLANKERS_INDEX_STRUCTURE["name"],
             flanker_5prime_forward=flanker_5prime_forward,
             flanker_5prime_reverse=flanker_5prime_reverse,
             flanker_3prime_forward=flanker_3prime_forward,
@@ -58,7 +58,7 @@ def create_olink_index_set(apps, schema_editor):
     IndexBySet = apps.get_model("fms_core", "IndexBySet")
     Index = apps.get_model("fms_core", "Index")
 
-    OLINK_INDEX_SET = "Olink_Default"
+    OLINK_INDEX_SET = "Olink_Default_Index_Set"
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         reversion.set_comment(f"Create index set '{OLINK_INDEX_SET}' for Olink library types.")
@@ -78,7 +78,7 @@ def create_olink_library_types(apps, schema_editor):
     NEW_LIBRARY_TYPE_NAMES = ["Olink_Explore_HT",
                               "Olink_Explore_3K",
                               "Olink_Explore_384",
-                              "Olink_Explore_Reveal"]
+                              "Olink_Reveal"]
     
     LibraryType = apps.get_model("fms_core", "LibraryType")
 
@@ -97,8 +97,17 @@ def create_olink_library_types(apps, schema_editor):
 def selection_and_selection_targets_for_olink(apps, schema_editor):
     LibrarySelection = apps.get_model("fms_core", "LibrarySelection")
 
-    SELECTION_NAME = "OLINK_PANEL"
-    SELECTION_TARGETS = ["inflammation", "oncology", "cardiometabolic", "neurology"]
+    SELECTION_NAME = "Olink_Explore_Panel"
+    SELECTION_TARGETS = [
+        "Cardiometabolic",
+        "Cardiometabolic II",
+        "Inflammation",
+        "Inflammation II",
+        "Neurology",
+        "Neurology II",
+        "Oncology",
+        "Oncology II",
+    ]
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
