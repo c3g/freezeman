@@ -170,19 +170,9 @@ export function getRangeFilter(
 	confirm = () => true, // Used by column filters
 	visible = true // Used by column filters
 ) {
-	const value = filterSetting?.value
-	let minValue, maxValue
-
-	if (isRangeFilterValue(value)) {
-		minValue = value.min
-		maxValue = value.max
-	}
-
 	return (
 		<RangeFilterComponent
 			description={description}
-			minValue={minValue}
-			maxValue={maxValue}
 			defaultMin={description.defaultMin ?? 0}
 			filterKey={description.key}
 			setFilter={setFilter}

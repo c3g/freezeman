@@ -1,17 +1,23 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {Button, Input, InputNumber, Space } from 'antd'
 import {SearchOutlined} from "@ant-design/icons"
 import { nullize } from '../../../utils/nullize'
 
-const RangeFilterComponent = ({minValue, defaultMin, maxValue, filterKey, setFilter, confirm, visible, description}) => {
+const RangeFilterComponent = ({defaultMin, filterKey, setFilter, confirm, visible, description}) => {
 
     const inputRef = useRef()
 
+    const [minValue, setMinValue] = useState(undefined)
+    const [maxValue, setMaxValue] = useState(undefined)
     const onSearch = (values) => {
+      setMinValue(values.min)
+      setMaxValue(values.max)
       setFilter(filterKey, values, description)
     }
   
     const onReset = () => {
+      setMinValue(undefined)
+      setMaxValue(undefined)
       setFilter(filterKey, undefined, description)
     };
   
@@ -43,7 +49,7 @@ const RangeFilterComponent = ({minValue, defaultMin, maxValue, filterKey, setFil
             />
             <InputNumber
                 placeholder='To'
-                min={defaultMin}
+                min={minValue}
                 style={{ width: 100 }}
                 value={maxValue}
                 onChange={newMax => onSearch({min: minValue, max: nullize(newMax)})}
