@@ -132,16 +132,12 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   const description = descriptions[filterKey];
   const defaultMin = description.defaultMin ?? 0
   const value = filters[filterKey]?.value;
-  const minValue = value?.min
-  const maxValue = value?.max
 
   return ({
     filterIcon: getFilterIcon(Boolean(value)),
     filterDropdown: ({ confirm, visible }) => {
       const props = {
-        minValue,
         defaultMin,
-        maxValue,
         filterKey,
         setFilter,
         confirm,
