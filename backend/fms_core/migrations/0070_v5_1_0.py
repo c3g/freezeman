@@ -11,46 +11,34 @@ def create_empty_index(apps, schema_editor):
     IndexStructure = apps.get_model("fms_core", "IndexStructure")
     Sequence = apps.get_model("fms_core", "Sequence")
 
-    NO_FLANKERS_INDEX_STRUCTURE = {
-        "name": "No_Flankers_Index_Structure",
-        "flanker_5prime_forward": "",
-        "flanker_5prime_reverse": "",
-        "flanker_3prime_forward": "",
-        "flanker_3prime_reverse": ""
-    }
+    NO_FLANKERS_INDEX_STRUCTURE_NAME = "No_Flankers"
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        reversion.set_comment(f"Create index '{UNKNOWN_INDEX_NAME}' and its structure '{NO_FLANKERS_INDEX_STRUCTURE['name']}'.")
+        reversion.set_comment(f"Create index '{UNKNOWN_INDEX_NAME}' and its structure '{NO_FLANKERS_INDEX_STRUCTURE_NAME}'.")
         reversion.set_user(admin_user)
 
-        # Create structure
-        flanker_5prime_forward, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_5prime_forward"],
-                                                                   defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
-        flanker_5prime_reverse, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_5prime_reverse"],
-                                                                   defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
-        flanker_3prime_forward, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_3prime_forward"],
-                                                                   defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
-        flanker_3prime_reverse, _ = Sequence.objects.get_or_create(value=NO_FLANKERS_INDEX_STRUCTURE["flanker_3prime_reverse"],
-                                                                   defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
+        # Create empty sequence
+        empty_sequence = Sequence.objects.get_or_create(value="",
+                                                        defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
+
+        # Create index structure with no flankers
         index_structure = IndexStructure.objects.create(
-            name=NO_FLANKERS_INDEX_STRUCTURE["name"],
-            flanker_5prime_forward=flanker_5prime_forward,
-            flanker_5prime_reverse=flanker_5prime_reverse,
-            flanker_3prime_forward=flanker_3prime_forward,
-            flanker_3prime_reverse=flanker_3prime_reverse,
+            name=NO_FLANKERS_INDEX_STRUCTURE_NAME,
+            flanker_5prime_forward=empty_sequence,
+            flanker_5prime_reverse=empty_sequence,
+            flanker_3prime_forward=empty_sequence,
+            flanker_3prime_reverse=empty_sequence,
             created_by_id=admin_user.id,
             updated_by_id=admin_user.id
         )
-        reversion.add_to_revision(flanker_5prime_forward)
-        reversion.add_to_revision(flanker_5prime_reverse)
-        reversion.add_to_revision(flanker_3prime_forward)
-        reversion.add_to_revision(flanker_3prime_reverse)
-        reversion.add_to_revision(index_structure)
 
         # Create index
         index = Index.objects.create(name=UNKNOWN_INDEX_NAME, index_structure=index_structure,
                                      created_by_id=admin_user.id, updated_by_id=admin_user.id)
+
+        reversion.add_to_revision(empty_sequence)
+        reversion.add_to_revision(index_structure)
         reversion.add_to_revision(index)
 
 def create_olink_index_set(apps, schema_editor):
@@ -69,14 +57,14 @@ def create_olink_index_set(apps, schema_editor):
         reversion.add_to_revision(index_set)
 
         # Create IndexBySet
-        index = Index.objects.get(name=UNKNOWN_INDEX_NAME)  # Assuming the index was created in the previous step
+        index = Index.objects.get(name=UNKNOWN_INDEX_NAME)  # Assuming create_empty_index function has already run
         index_by_set = IndexBySet.objects.create(index=index, index_set=index_set,
-                                                created_by_id=admin_user.id, updated_by_id=admin_user.id)
+                                                 created_by_id=admin_user.id, updated_by_id=admin_user.id)
         reversion.add_to_revision(index_by_set)
 
 def create_olink_library_types(apps, schema_editor):
     NEW_LIBRARY_TYPE_NAMES = ["Olink_Explore_HT",
-                              "Olink_Explore_3K",
+                              "Olink_Explore_3072",
                               "Olink_Explore_384",
                               "Olink_Reveal"]
     
