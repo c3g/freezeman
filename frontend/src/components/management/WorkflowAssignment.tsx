@@ -63,16 +63,15 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
                 setSampleNextStepsBySampleID({})
                 return
             }
-            const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples([...samplesTableState.items]))).data.results
-            const sampleNextStepsBySampleID = sampleNextSteps.reduce<Record<Sample['id'], FMSSampleNextStep[]>>((acc, sampleNextStep) => {
-                acc[sampleNextStep.sample] ??= []
-                acc[sampleNextStep.sample].push(sampleNextStep)
-                return acc
-            }, {})
+
+            const sampleNextStepsBySampleID: Record<Sample['id'], FMSSampleNextStep[]> = {}
             for (const sampleID of samplesTableState.items) {
-                if (!sampleNextStepsBySampleID[sampleID]) {
-                    sampleNextStepsBySampleID[sampleID] = []
-                }
+                sampleNextStepsBySampleID[sampleID] = []
+            }
+
+            const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples([...samplesTableState.items]))).data.results
+            for (const sampleNextStep of sampleNextSteps) {
+                sampleNextStepsBySampleID[sampleNextStep.sample].push(sampleNextStep)
             }
             setSampleNextStepsBySampleID(sampleNextStepsBySampleID)
         })()
