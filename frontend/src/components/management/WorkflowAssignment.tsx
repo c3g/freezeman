@@ -59,12 +59,21 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
     const dispatch = useAppDispatch()
     useEffect(() => {
         (async () => {
+            if (samplesTableState.items.length === 0) {
+                setSampleNextStepsBySampleID({})
+                return
+            }
+
+            const sampleNextStepsBySampleID: Record<Sample['id'], FMSSampleNextStep[]> = {}
+            for (const sampleID of samplesTableState.items) {
+                sampleNextStepsBySampleID[sampleID] = []
+            }
+
             const sampleNextSteps = (await dispatch(api.sampleNextStep.listSamples([...samplesTableState.items]))).data.results
-            setSampleNextStepsBySampleID(sampleNextSteps.reduce<Record<Sample['id'], FMSSampleNextStep[]>>((acc, sampleNextStep) => {
-                acc[sampleNextStep.sample] ??= []
-                acc[sampleNextStep.sample].push(sampleNextStep) 
-                return acc
-            }, {}))
+            for (const sampleNextStep of sampleNextSteps) {
+                sampleNextStepsBySampleID[sampleNextStep.sample].push(sampleNextStep)
+            }
+            setSampleNextStepsBySampleID(sampleNextStepsBySampleID)
         })()
     }, [dispatch, samplesTableState.items])
 
