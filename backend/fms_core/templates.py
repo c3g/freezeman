@@ -37,6 +37,7 @@ __all__ = [
     "SAMPLE_UPDATE_TEMPLATE",
     "SAMPLE_TRANSFER_TEMPLATE",
     "SAMPLE_QC_TEMPLATE",
+    "SAMPLE_IDENTITY_QC_TEMPLATE",
     "SAMPLE_SELECTION_QPCR_TEMPLATE",
     "PROJECT_STUDY_LINK_SAMPLES_TEMPLATE",
     "MAX_HEADER_OFFSET"
@@ -729,6 +730,41 @@ SAMPLE_TRANSFER_TEMPLATE = {
       ("SampleTransfer", "Destination Container Coord", "coordinates"),
       ("SampleTransfer", "Destination Container Name", "container_name"),
       ("SampleTransfer", "Destination Container Kind", "container_kind"),
+  ],
+}
+
+SAMPLE_IDENTITY_QC_TEMPLATE = {
+  "identity": {"description": "Template to ascertain sample identity",
+               "file": static("submission_templates/Sample_identity_QC_v5_1_0.xlsx"),
+               "protocol": "Sample Identity Quality Control"},
+  "sheets info": [
+      {
+          'name': 'SampleIdentityQC',
+          'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord', 'QC Container Barcode',
+                      'QC Container Coord', 'QC Container Name', 'QC Container Kind',
+                      'Volume Used (uL)', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+          'batch': False,
+      },
+  ],
+  "user prefill info": {
+      # borrowed from transfer template
+      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
+      "Volume Used (uL)": "number",
+      "QC Date (YYYY-MM-DD)": "date",
+      "Comment": "text"
+  },
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("SampleIdentityQC", "Source Sample Name", "name", "name", None),
+      ("SampleIdentityQC", "Source Container Barcode", "container__barcode", "container_barcode", None),
+      ("SampleIdentityQC", "Source Container Coord", "coordinate__name", "coordinates", None),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("SampleIdentityQC", "QC Container Barcode", "container_barcode"),
+      ("SampleIdentityQC", "QC Container Coord", "coordinates"),
+      ("SampleIdentityQC", "QC Container Name", "container_name"),
+      ("SampleIdentityQC", "QC Container Kind", "container_kind"),
   ],
 }
 

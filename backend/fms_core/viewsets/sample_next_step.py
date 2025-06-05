@@ -19,11 +19,11 @@ from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, 
                                 LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_PLANNING_TEMPLATE, 
                                 SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE,
                                 EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, AXIOM_PREPARATION_TEMPLATE,
-                                QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE)
+                                QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE, SAMPLE_IDENTITY_QC_TEMPLATE)
 from fms_core.template_importer.importers import (ExtractionImporter, SampleQCImporter, NormalizationPlanningImporter, NormalizationImporter,
                                                   LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter,
                                                   SamplePoolingPlanningImporter, LibraryCaptureImporter, LibraryConversionImporter,
-                                                  ExperimentRunImporter, AxiomPreparationImporter, QCIntegrationSparkImporter)
+                                                  ExperimentRunImporter, AxiomPreparationImporter, QCIntegrationSparkImporter, SampleIdentityQCImporter)
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin, AutomationsMixin):
     queryset = SampleNextStep.objects.all().distinct()
@@ -138,6 +138,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             "importer": SampleQCImporter,
         },
         {
+            "name": "Sample Identity Quality Control",
+            "description": "Upload the provided template with samples that underwent an identity quality control.",
+            "template": [SAMPLE_IDENTITY_QC_TEMPLATE["identity"]],
+            "importer": SampleIdentityQCImporter,
+        },
+        {
             "name": "Quality Control - Integration",
             "description": "Upload the result file with samples that underwent a quality control.",
             "template": [QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE["identity"]],
@@ -210,6 +216,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": AXIOM_PREPARATION_TEMPLATE},
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_QC_TEMPLATE},
+        {"template": SAMPLE_IDENTITY_QC_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE},
         {"template": LIBRARY_PREPARATION_TEMPLATE},
