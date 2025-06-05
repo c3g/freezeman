@@ -15,7 +15,7 @@ class SampleIdentityQCImporter(GenericImporter):
 
 
     def initialize_data_for_template(self):
-        #Get protocol for Transfer
+        #Get protocol for Sample Identity Quality Control
         protocol = Protocol.objects.get(name='Sample Identity Quality Control')
 
         self.preloaded_data = {'process': None, 'protocol': protocol}
