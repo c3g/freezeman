@@ -9,6 +9,7 @@ from .reference_genome import ReferenceGenome
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
+from ._constants import SEX_CHOICES, SEX_FEMALE, SEX_MALE
 
 
 __all__ = ["Individual"]
@@ -21,16 +22,6 @@ class Individual(TrackedModel):
     """
 
     GENERIC_INDIVIDUAL_PREFIX = "GENERIC_"
-
-    SEX_MALE = "M"
-    SEX_FEMALE = "F"
-    SEX_UNKNOWN = "Unknown"
-
-    SEX_CHOICES = (
-        (SEX_MALE, SEX_MALE),
-        (SEX_FEMALE, SEX_FEMALE),
-        (SEX_UNKNOWN, SEX_UNKNOWN),
-    )
 
     name = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the individual.")
     taxon =  models.ForeignKey(Taxon, on_delete=models.PROTECT,
@@ -89,10 +80,10 @@ class Individual(TrackedModel):
         if self.reference_genome is not None and self.taxon_id != self.reference_genome.taxon_id:
             add_error("reference_genome", "Reference genome must match the individual taxon.")
 
-        if self.father_id is not None and self.father.sex == self.SEX_FEMALE:
+        if self.father_id is not None and self.father.sex == SEX_FEMALE:
             add_error("father", "Father cannot be of female sex.")
 
-        if self.mother_id is not None and self.mother.sex == self.SEX_MALE:
+        if self.mother_id is not None and self.mother.sex == SEX_MALE:
             add_error("mother", "Mother cannot be of male sex.")
 
         has_generic_individual_prefix = self.name[:len(self.GENERIC_INDIVIDUAL_PREFIX)] == self.GENERIC_INDIVIDUAL_PREFIX
