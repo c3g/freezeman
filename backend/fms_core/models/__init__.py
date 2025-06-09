@@ -47,6 +47,7 @@ from .metric import Metric
 from .readset import Readset
 from .archived_comment import ArchivedComment
 from .index_by_set import IndexBySet
+from .sample_identity import SampleIdentity
 
 
 __all__ = [
@@ -97,5 +98,6 @@ __all__ = [
     "Metric",
     "Readset",
     "ArchivedComment",
-    "IndexBySet"
+    "IndexBySet",
+    "SampleIdentity"
 ]

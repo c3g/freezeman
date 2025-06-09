@@ -19,6 +19,7 @@ class SampleNextStep(TrackedModel):
     step = models.ForeignKey(Step, on_delete=models.PROTECT, related_name="samples_next_step", help_text="The next step a sample has to complete in the study.")
     sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="sample_next_steps", help_text="The sample queued to workflows.")
     studies = models.ManyToManyField("Study", blank=True, through="SampleNextStepByStudy", symmetrical=False, related_name="samples_next_steps")
+    block_count = models.PositiveIntegerField(default=0, help_text="Number of sample workflow blocking triggers.")
 
     class Meta:
         indexes = [
