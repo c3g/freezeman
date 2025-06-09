@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 from django.contrib.auth.models import User
+from fms_core.models._constants import SampleType
 
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -114,6 +115,76 @@ def selection_and_selection_targets_for_olink(apps, schema_editor):
             )
             reversion.add_to_revision(olink_selection)
 
+def add_identity_qc_step(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Protocol = apps.get_model("fms_core", "Protocol")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Add a step to investigate samples identity.")
+        reversion.set_user(admin_user)
+        
+        protocol = Protocol.objects.create(name="Sample Identity Quality Control",
+                                           created_by_id=admin_user_id,
+                                           updated_by_id=admin_user_id)
+        reversion.add_to_revision(protocol)
+
+        step = Step.objects.create(name="Sample Identity QC",
+                                   protocol=protocol,
+                                   expected_sample_type=SampleType.EXTRACTED_SAMPLE,
+                                   type="PROTOCOL",
+                                   created_by_id=admin_user_id,
+                                   updated_by_id=admin_user_id)
+        reversion.add_to_revision(step)
+
+def initialize_workflows_with_id_check(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Workflow = apps.get_model("fms_core", "Workflow")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    WORKFLOWS = [
+        # (name, step_names)
+        # Basic Illumina with ID Check
+        ("PCR-free Illumina with ID Check", "Basic Illumina with ID Check", ["Extraction (DNA)", "Sample Identity QC", "Sample QC (DNA)", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
+        ("PCR-enriched Illumina with ID Check", "Basic Illumina with ID Check", ["Extraction (DNA)", "Sample Identity QC", "Sample QC (DNA)", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
+        ("WGBS Illumina with ID Check", "Basic Illumina with ID Check", ["Extraction (DNA)", "Sample Identity QC", "Sample QC (DNA)", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
+        ("RNASeq Illumina with ID Check", "Basic Illumina with ID Check", ["Extraction (RNA)", "Sample Identity QC", "Sample QC (RNA)", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
+        ("miRNA Illumina with ID Check", "Basic Illumina with ID Check", ["Extraction (RNA)", "Sample Identity QC", "Sample QC (RNA)", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
+        # Basic DNBSEQ with ID Check
+        ("PCR-free DNBSEQ with ID Check", "Basic DNBSEQ with ID Check", ["Extraction (DNA)", "Sample Identity QC", "Sample QC (DNA)", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run DNBSEQ"]),
+        # Capture Illumina with ID Check
+        ("PCR-enriched Capture Exome Illumina with ID Check", "Capture Illumina with ID Check", ["Extraction (DNA)", "Sample Identity QC", "Sample QC (DNA)", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Capture Exome)", "Library Capture (Exome)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
+        ("WGBS Capture MCC Illumina with ID Check", "Capture Illumina with ID Check", ["Extraction (DNA)", "Sample Identity QC", "Sample QC (DNA)", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Capture MCC)", "Library Capture (MCC)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
+    ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create the workflows with id check.")
+        reversion.set_user(admin_user)
+
+        for name, structure, step_names in WORKFLOWS:
+            workflow = Workflow.objects.create(name=name,
+                                               structure=structure,
+                                               created_by_id=admin_user_id,
+                                               updated_by_id=admin_user_id)
+            next_step_order = None
+            for i, step_name in enumerate(reversed(step_names)):
+                step = Step.objects.get(name=step_name)
+                order = len(step_names) - i
+                step_order = StepOrder.objects.create(workflow=workflow,
+                                                      step=step,
+                                                      next_step_order=next_step_order,
+                                                      order=order,
+                                                      created_by_id=admin_user_id,
+                                                      updated_by_id=admin_user_id)
+                next_step_order = step_order
+
+                reversion.add_to_revision(step_order)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -151,4 +222,6 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.RunPython(add_identity_qc_step, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(initialize_workflows_with_id_check, reverse_code=migrations.RunPython.noop),
     ]
