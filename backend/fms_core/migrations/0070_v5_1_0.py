@@ -19,8 +19,8 @@ def create_empty_index(apps, schema_editor):
         reversion.set_user(admin_user)
 
         # Create empty sequence
-        empty_sequence = Sequence.objects.get_or_create(value="",
-                                                        defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
+        empty_sequence, _ = Sequence.objects.get_or_create(value="",
+                                                           defaults={"created_by_id": admin_user.id, "updated_by_id": admin_user.id})
 
         # Create index structure with no flankers
         index_structure = IndexStructure.objects.create(
