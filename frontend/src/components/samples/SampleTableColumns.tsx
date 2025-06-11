@@ -220,7 +220,7 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		columnID: SampleColumnID.COORDINATES,
 		title: 'Coords',
 		dataIndex: ['sample', 'coordinate'],
-		width: MEDIUM_COLUMN_WIDTH,
+		width: SMALL_COLUMN_WIDTH,
 		render: (_, { sample }) => {
 			return (
 				sample &&
