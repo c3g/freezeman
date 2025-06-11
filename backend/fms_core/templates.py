@@ -13,7 +13,7 @@ from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    SAMPLE_QC_QUANTITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
-from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment
+from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment, custom_prefill_8x12_container_biosample_names
 
 __all__ = [
     "EXPERIMENT_AXIOM_TEMPLATE",
@@ -740,10 +740,15 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleIdentityQC',
-          'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord', 'QC Container Barcode',
-                      'QC Container Coord', 'QC Container Name', 'QC Container Kind',
+          'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
+                      'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                       'Volume Used (uL)', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
+      },
+      {
+          "name": "QcContainer",
+          "headers": ["Coord", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
+          "custom_prefilling": custom_prefill_8x12_container_biosample_names,
       },
   ],
   "user prefill info": {
@@ -761,10 +766,10 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
   "placement info": [
-      ("SampleIdentityQC", "QC Container Barcode", "container_barcode"),
-      ("SampleIdentityQC", "QC Container Coord", "coordinates"),
-      ("SampleIdentityQC", "QC Container Name", "container_name"),
-      ("SampleIdentityQC", "QC Container Kind", "container_kind"),
+      ("SampleIdentityQC", "Destination Container Barcode", "container_barcode"),
+      ("SampleIdentityQC", "Destination Container Coord", "coordinates"),
+      ("SampleIdentityQC", "Destination Container Name", "container_name"),
+      ("SampleIdentityQC", "Destination Container Kind", "container_kind"),
   ],
 }
 

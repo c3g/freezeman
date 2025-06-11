@@ -11,6 +11,9 @@ __all__ = ["SampleIdentity"]
 
 @reversion.register()
 class SampleIdentity(TrackedModel):
+    
+    SEX_CHOICES = SEX_CHOICES
+
     predicted_sex = models.CharField(null=True, blank=True, choices=SEX_CHOICES, max_length=10, help_text="Sex of the sample.")
     passed_qc = models.BooleanField(default=False, help_text="Flag indicating if the identity qc was conclusive.")
 
