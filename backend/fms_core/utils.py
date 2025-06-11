@@ -6,7 +6,7 @@ import time
 from django.conf import settings
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Iterable, NewType, TypeVar, Union
+from typing import Any, Generator, Iterable, NewType, TypeVar, TypedDict, Union
 
 
 __all__ = [
@@ -192,8 +192,13 @@ def make_timestamped_filename(file_name: str) -> str:
     return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
 
 
-WarningType = NewType('WarningType', dict[str, tuple[str] | str | list[str] | list[tuple[str, list]]])
-def serialize_warnings(warnings: WarningType):
+WarningsType = NewType('WarningsType', dict[str, tuple[str] | str | list[str] | list[tuple[str, list]]])
+class SerializedWarningTypeDict(TypedDict):
+    key: str
+    format: str
+    args: list[str]
+SerializedWarningsType = list[SerializedWarningTypeDict]
+def serialize_warnings(warnings: WarningsType) -> SerializedWarningsType:
     serialized = []
     for (k, vs) in (warnings).items():
         if isinstance(vs, tuple):
