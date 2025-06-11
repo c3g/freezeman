@@ -1050,3 +1050,43 @@ def can_remove_sample(sample: Sample) -> Tuple[bool, List[str], List[str]]:
         is_removable = not is_child and not is_parent and not was_processed
 
     return is_removable, errors, warnings
+
+def get_biosample_name(sample: Sample) -> Tuple[bool, List[str], List[str]]:
+    """
+    Utility function that returns the sample name with the biosample ID as suffix separated by a dash (-).
+
+    Args:
+        sample: Sample for which a unique sample name is required.
+
+    Returns:
+        Tuple with the string biosample name, the list of errors and the list of warnings.
+    """
+    biosample_name = None
+    errors = []
+    warnings = []
+    if sample.is_pool:
+        errors.append(f"Sample is a pool and cannot receive a unique biosample name.")
+    else:
+        biosample_id = str(sample.biosample_not_pool.id)
+        biosample_name = sample.name + "-" + biosample_id
+    return biosample_name, errors, warnings
+
+def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], List[str]]:
+    """
+    Utility function that extracts the biosample ID from the biosample name.
+
+    Args:
+        biosample_name: Biosample name build from the sample name and the biosample ID.
+
+    Returns:
+        Tuple with the int biosample ID, the list of errors and the list of warnings.
+    """
+    biosample_id = None
+    errors = []
+    warnings = []
+    
+    try:
+        biosample_id = int(biosample_name.split("-")[-1])
+    except ValueError as err:
+        errors.append(f"Biosample ID cannot be extracted from {biosample_name}.")
+    return biosample_id, errors, warnings
