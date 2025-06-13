@@ -71,6 +71,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'experimental_group': str_cast_and_normalize(row_data['Experimental Group']),
                 'concentration': float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
+                'volume_ratio': str_cast_and_normalize(row_data['Ratio Library In Pool']),
                 'collection_site': str_cast_and_normalize(row_data['Collection Site']),
                 'tissue_source': str_cast_and_normalize(row_data['Tissue Source']).upper() if row_data['Tissue Source'] else None,
                 'creation_date': input_to_date_and_none(row_data['Reception (YYYY-MM-DD)']),
@@ -113,6 +114,7 @@ class SampleSubmissionImporter(GenericImporter):
                 pool_kwargs = {
                     "pool": {
                         "name": str_cast_and_normalize(row_data["Pool Name"]),
+                        "volume": float_to_decimal_and_none(row_data["Pool Volume"]),
                         "coordinates": str_cast_and_normalize(row_data["Pool Coord"]),
                         "container": {
                             "barcode": str_cast_and_normalize(row_data["Container Barcode"]),

@@ -29,8 +29,8 @@ class SampleRowHandler(GenericRowHandler):
         # make sure all required values are present. WIP.
         if sample["sample_kind"] is None:
             self.errors['sample_kind'] = [f"Sample Kind is a required field."]
-        if sample["volume"] is None:
-            self.errors['volume'] = [f"Volume (uL) is a required field."]
+        if sample["volume"] is None and sample["volume_ratio"] is None:
+            self.errors['volume'] = [f"'Either Volume (uL)' or 'Ratio Library In Pool' is required field."]
 
     def process_row_inner(self, sample, library, container, project, parent_container, individual, sample_kind_objects_by_name, defined_pools):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.now(timezone.utc).isoformat()}Z"
@@ -215,5 +215,5 @@ class SampleRowHandler(GenericRowHandler):
             "project": project_obj,
             "studies": studies_obj,
             # Pool relation info
-            "volume": sample['volume'],
+            "volume_ratio": sample['volume_ratio'],
         }
