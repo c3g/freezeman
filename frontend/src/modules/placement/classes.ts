@@ -604,6 +604,12 @@ export class CellClass extends PlacementObject {
             }
             for (let i = 0; i < destinationCells.length; i++) {
                 selections[i].placeAtCell(destinationCells[i].rawIdentifier())
+                const cell = selections[i].fromCell
+                if (cell !== null) {
+                    cell.setSelectionOfSample(selections[i].rawIdentifier(), false)
+                } else {
+                    this.context.placementClass.getTubesWithoutParent().setSelectionOfSample(selections[i].rawIdentifier(), false)
+                }
             }
             this.fromContainer.clearPreviews()
         } else {
@@ -801,6 +807,10 @@ export class SampleClass extends PlacementObject {
     }
     get fromCell() {
         return this.state.fromCell ? this.placement.getCell(this.state.fromCell) : null
+    }
+    
+    fromParentContainer() {
+        return this.fromCell?.fromContainer ?? this.placement.getTubesWithoutParent()
     }
 
     rawIdentifier(): SampleIdentifier {
