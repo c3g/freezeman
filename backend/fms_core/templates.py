@@ -575,7 +575,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name',
+          'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name', 'Ratio Library In Pool',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Barcode',
                       'Container Name', 'Sample Coord', 'Location Kind', 'Location Barcode', 'Location Name', 'Container Coord', 'Project', 'Study',
                       'Experimental Group', 'Taxon', 'Sex', 'Reference Genome', 'Individual Name', 'Individual Alias', 'Cohort',

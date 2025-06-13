@@ -83,6 +83,7 @@ class PoolsRowHandler(GenericRowHandler):
             # Pool samples
             pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=samples_info,
                                                                                       pool_name=pool['name'],
+                                                                                      pool_volume=pool['volume'],
                                                                                       container_destination=container_destination,
                                                                                       coordinates_destination=pool['coordinates'],
                                                                                       reception_date=reception_date,
