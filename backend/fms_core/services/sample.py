@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, getcontext
 from typing import Tuple, List, TypeVar
 from datetime import datetime, date
 from django.db import Error
@@ -549,6 +549,7 @@ def pool_samples(process: Process,
 
 def pool_submitted_samples(samples_info,
                            pool_name,
+                           pool_volume,
                            container_destination: Container,
                            coordinates_destination,
                            reception_date: datetime.date,
@@ -560,8 +561,6 @@ def pool_submitted_samples(samples_info,
     This sample is then connected to the created derived samples and biosamples. This service is to be used by the
     sample submission importer due to the necessity of creating pools without having to create futile sample objects
     and containers.
-    The volume_ratio is calculated for each source sample and stored on the derivedbysample entry.
-
 
     Args:
         samples_info: a dict for source samples info.
@@ -574,7 +573,7 @@ def pool_submitted_samples(samples_info,
                        "library",
                        "project",
                        "studies",
-                       "volume"}
+                       "volume_ratio"}
 
         pool_name: the name given to the pool by the user.
         container_destination: a container object that will receive the pool.
@@ -602,12 +601,13 @@ def pool_submitted_samples(samples_info,
         errors.append(f"Reception date is not valid.")
 
     if not errors:
-        # Calculate the total volume of the pool
-        pool_volume = sum(sample["volume"] for sample in samples_info)
-        for sample in samples_info:
-            sample_volume = sample["volume"]
-            # Calculate the volume ratio of each sample in the pool
-            sample["volume_ratio"] = decimal_rounded_to_precision(sample_volume / pool_volume, 15)
+        # Verify that the ratio add up to 1
+        old_prec = getcontext().prec
+        getcontext().prec = 15  # Set precision to 15 decimal places
+        total_volume_ratio = sum(Decimal(sample["volume_ratio"]) for sample in samples_info)
+        if total_volume_ratio != 1:
+            errors.append(f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio: {total_volume_ratio}.")
+        getcontext().prec = old_prec  # Restore original precision
 
         try:
             coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
@@ -662,7 +662,7 @@ def pool_submitted_samples(samples_info,
                     # Create the DerivedToSample entries for the pool
                     DerivedBySample.objects.create(sample=pool_sample_obj,
                                                    derived_sample=derived_sample,
-                                                   volume_ratio=volume_ratio,
+                                                   volume_ratio=Decimal(volume_ratio),
                                                    **(dict(project=sample['project']) if sample['project'] is not None else dict()),)
 
                 except Exception as e:
