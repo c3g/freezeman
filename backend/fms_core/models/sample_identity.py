@@ -11,11 +11,11 @@ __all__ = ["SampleIdentity"]
 
 @reversion.register()
 class SampleIdentity(TrackedModel):
-    
     SEX_CHOICES = SEX_CHOICES
-
+    biosample = models.OneToOneField("SampleIdentity", on_delete=models.PROTECT, related_name="identity", help_text="Biosample for the identity.")
     predicted_sex = models.CharField(null=True, blank=True, choices=SEX_CHOICES, max_length=10, help_text="Sex of the sample.")
     passed_qc = models.BooleanField(default=False, help_text="Flag indicating if the identity qc was conclusive.")
+    identity_matches = models.ManyToManyField("Self", blank=True, null=True, symmetrical=True)
 
     def clean(self):
         super().clean()
