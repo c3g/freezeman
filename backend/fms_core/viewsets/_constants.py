@@ -368,3 +368,9 @@ _metric_filterset_fields: FiltersetFields = {
     "readset__dataset__experiment_run__name": CATEGORICAL_FILTERS_LOOSE,
     "readset__dataset__lane": CATEGORICAL_FILTERS,
 }
+
+_sample_identity_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "biosample_id": FK_FILTERS,
+    "predicted_sex": CATEGORICAL_FILTERS,
+}

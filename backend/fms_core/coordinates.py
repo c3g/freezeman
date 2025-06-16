@@ -27,6 +27,9 @@ __all__ = [
 CoordinateAxis = Tuple[str, ...]
 CoordinateSpec = Union[Tuple[()], Tuple[CoordinateAxis], Tuple[CoordinateAxis, CoordinateAxis]]
 
+ROW = "row"
+COLUMN = "column"
+
 
 class CoordinateError(Exception):
     pass
@@ -70,11 +73,12 @@ def is_alpha_digit_spec(spec: CoordinateSpec) -> bool:
 
     return False
 
-def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec) -> int:
+def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis: str = ROW) -> int:
     '''
     Convert a coordinate with the alpha/digit style (eg. A01) to an integer value, starting at 1.
     The coordinate spec must support this style of coordinate.
     The coordinate is expected to be valid.
+    The axis parameter will decide if the value increase follows first the alphabetical part (column) or the numerical part (row).
     '''
 
     # Coordinate must be at least two chars long (eg "A1")
@@ -105,20 +109,33 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec) -> in
         raise CoordinateError(f'Cannot convert coord {coord} to ordinal - no digits were found.')
 
     alpha_offset = 0
-    try:
-        # Find the index of the letter (or letters) in the spec
-        letter_index = spec_letters.index(letters)
-        # Compute the offset of that letter (number of "rows" of length N)
-        alpha_offset = letter_index * len(spec_digits)
-    except:
-        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
-
-    # Convert the digits to an int value
     digit_offset = 0
-    try:
-        digit_offset = int(digits)
-    except:
-        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
+    if axis == ROW:
+        try:
+            # Find the index of the letter (or letters) in the spec
+            letter_index = spec_letters.index(letters)
+            # Compute the offset of that letter (number of "rows" of length N)
+            alpha_offset = letter_index * len(spec_digits)
+        except:
+            raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
+
+        # Convert the digits to an int value
+        try:
+            digit_offset = int(digits)
+        except:
+            raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
+    else: # axis == COLUMN
+        try:
+            # Find the index of the letter (or letters) in the spec and starting the index at 1.
+            alpha_offset = spec_letters.index(letters, start=1)
+        except:
+            raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
+
+        # Convert the digits to an int value
+        try:
+            digit_offset = (int(digits) - 1) * len(spec_letters)
+        except:
+            raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
 
     return alpha_offset + digit_offset
 
