@@ -183,3 +183,37 @@ RUN_PROCESSING_SCHEMA = {
 }
 
 RUN_PROCESSING_VALIDATOR = JsonSchemaValidator(RUN_PROCESSING_SCHEMA, formats=["date-time"])
+
+SAMPLE_IDENTITY_REPORT_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "fms:sample_identity_report",
+    "title": "Sample identity report schema",
+    "description": "Schema used to define the values in sample identity report files.",
+    "type": "object",
+    "properties": {
+        "barcode": {"type": "string"},
+        "instrument": {"type": "string"},
+        "samples": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "sample_name": {"type": "string"},
+                        "sample_position": {"type": "string"},
+                        "passed": {"type": "boolean"},
+                        "fluidigm_predicted_sex": {"type": ["null", "string"]}, # null: no calculation possible, 'inconclusive': result ambiguous, 'M': Male, 'F': Female
+                        "genotype_match": {
+                            "type": "array",
+                            "items": {"type": "string"}, # matching biosample names with IDs
+                        },
+                    },
+                    "required": ["sample_name", "sample_position", "passed"]
+                },
+            },
+        }
+    },
+    "required": ["barcode", "samples"],
+}
+
+SAMPLE_IDENTITY_REPORT_VALIDATOR = JsonSchemaValidator(SAMPLE_IDENTITY_REPORT_SCHEMA)

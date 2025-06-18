@@ -9,6 +9,7 @@ from .reference_genome import ReferenceGenome
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
+from ._constants import SEX_CHOICES, SEX_FEMALE, SEX_MALE, SEX_UNKNOWN
 
 
 __all__ = ["Individual"]
@@ -22,15 +23,11 @@ class Individual(TrackedModel):
 
     GENERIC_INDIVIDUAL_PREFIX = "GENERIC_"
 
-    SEX_MALE = "M"
-    SEX_FEMALE = "F"
-    SEX_UNKNOWN = "Unknown"
+    SEX_UNKNOWN = SEX_UNKNOWN
+    SEX_MALE = SEX_MALE
+    SEX_FEMALE = SEX_FEMALE
 
-    SEX_CHOICES = (
-        (SEX_MALE, SEX_MALE),
-        (SEX_FEMALE, SEX_FEMALE),
-        (SEX_UNKNOWN, SEX_UNKNOWN),
-    )
+    SEX_CHOICES = SEX_CHOICES
 
     name = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the individual.")
     taxon =  models.ForeignKey(Taxon, on_delete=models.PROTECT,
