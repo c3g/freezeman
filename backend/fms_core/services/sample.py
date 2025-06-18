@@ -601,12 +601,28 @@ def pool_submitted_samples(samples_info,
         errors.append(f"Reception date is not valid.")
 
     if not errors:
-        # Verify that the ratio add up to 1
+        equal_volume_ratio = True
+        for sample in samples_info:
+            if sample.get("volume_ratio", None) is not None:
+                equal_volume_ratio = False
+
+        for sample in samples_info:
+            volume_ratio = sample.get("volume_ratio", None)
+            if not equal_volume_ratio and volume_ratio is None:
+                errors.append(f"Volume ratio for sample {sample['alias']} is missing but all samples must either define volume ratio or not simultaneously.")
+            elif equal_volume_ratio and volume_ratio is not None:
+                errors.append(f"Volume ratio for sample {sample['alias']} is defined but all samples must either define volume ratio or not simultaneously.")
+
         old_prec = getcontext().prec
         getcontext().prec = 15  # Set precision to 15 decimal places
-        total_volume_ratio = sum(Decimal(sample["volume_ratio"]) for sample in samples_info)
-        if total_volume_ratio != 1:
-            errors.append(f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio: {total_volume_ratio}.")
+        if equal_volume_ratio:
+            for sample in samples_info:
+                sample["volume_ratio"] = Decimal(1) / Decimal(len(samples_info))
+        else:
+            # Verify that the ratio add up to 1
+            total_volume_ratio = sum(Decimal(sample["volume_ratio"]) for sample in samples_info)
+            if total_volume_ratio != 1:
+                errors.append(f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio calculated: {total_volume_ratio}.")
         getcontext().prec = old_prec  # Restore original precision
 
         try:
