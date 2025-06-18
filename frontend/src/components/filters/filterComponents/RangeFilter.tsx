@@ -1,15 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react'
-import {Button, Input, InputNumber, Space } from 'antd'
-import {SearchOutlined} from "@ant-design/icons"
+import { Button, Input, InputNumber, Space } from 'antd'
+import { SearchOutlined } from "@ant-design/icons"
 import { nullize } from '../../../utils/nullize'
+import { FilterDescription, SetFilterFunc } from '../../../models/paged_items'
 
-const RangeFilterComponent = ({defaultMin, filterKey, setFilter, confirm, visible, description}) => {
 
-    const inputRef = useRef()
+export interface RangeFilterProps {
+  defaultMin?: number
+  filterKey: string
+  setFilter: SetFilterFunc
+  confirm: () => void
+  visible: boolean
+  description: FilterDescription
+}
 
-    const [minValue, setMinValue] = useState(undefined)
-    const [maxValue, setMaxValue] = useState(undefined)
-    const onSearch = (values) => {
+function RangeFilterComponent({defaultMin, filterKey, setFilter, confirm, visible, description}: RangeFilterProps) {
+
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    const [minValue, setMinValue] = useState<string | undefined>(undefined)
+    const [maxValue, setMaxValue] = useState<string | undefined>(undefined)
+    const onSearch = (values: any) => {
       setMinValue(values.min)
       setMaxValue(values.max)
       setFilter(filterKey, values, description)
@@ -40,21 +51,21 @@ const RangeFilterComponent = ({defaultMin, filterKey, setFilter, confirm, visibl
             <InputNumber
                 ref = {inputRef}
                 placeholder='From'
-                min={defaultMin}
+                min={defaultMin?.toString()}
                 style={{ width: 100 }}
-                value={minValue}
                 onChange={newMin => onSearch({min: nullize(newMin), max: maxValue})}
                 onKeyDown={ev => onKeyDown(ev, confirm)}
                 onPressEnter={confirm}
+                stringMode
             />
             <InputNumber
                 placeholder='To'
                 min={minValue}
                 style={{ width: 100 }}
-                value={maxValue}
                 onChange={newMax => onSearch({min: minValue, max: nullize(newMax)})}
                 onKeyDown={ev => onKeyDown(ev, confirm)}
                 onPressEnter={confirm}
+                stringMode
             />
           </Input.Group>
           <Space>
