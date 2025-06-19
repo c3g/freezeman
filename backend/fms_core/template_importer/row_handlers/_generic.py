@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from collections import defaultdict
 
-from fms_core.utils import WarningsType, serialize_warnings
+from fms_core.utils import Warnings, serialize_warnings
 
 '''
     RowHandler objects
@@ -20,7 +20,7 @@ from fms_core.utils import WarningsType, serialize_warnings
 class GenericRowHandler():
     def __init__(self):
         self.errors = defaultdict(list)
-        self.warnings: WarningsType = defaultdict(list)
+        self.warnings: Warnings = defaultdict(list)
         # optional - in case the Importer needs the current row main object from the RowHandler
         self.row_object = None
 

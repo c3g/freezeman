@@ -192,13 +192,13 @@ def make_timestamped_filename(file_name: str) -> str:
     return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
 
 
-WarningsType = NewType('WarningsType', dict[str, tuple[str] | str | list[str] | list[tuple[str, list]]])
+Warnings = NewType('Warnings', dict[str, tuple[str] | str | list[str] | list[tuple[str, list]]])
 class SerializedWarningTypeDict(TypedDict):
     key: str
     format: str
     args: list[str]
 SerializedWarningsType = list[SerializedWarningTypeDict]
-def serialize_warnings(warnings: WarningsType) -> SerializedWarningsType:
+def serialize_warnings(warnings: Warnings) -> SerializedWarningsType:
     serialized = []
     for (k, vs) in (warnings).items():
         if isinstance(vs, tuple):
