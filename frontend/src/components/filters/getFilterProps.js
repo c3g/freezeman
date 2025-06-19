@@ -141,7 +141,8 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
         filterKey,
         setFilter,
         confirm,
-        visible
+        visible,
+        description,
       }
 
       return <RangeFilterComponent {...props} />
