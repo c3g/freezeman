@@ -197,7 +197,7 @@ class SampleRowHandler(GenericRowHandler):
                 try:
                     name_validator_without_dot(sample['alias'])
                 except ValidationError as e:
-                    self.errors['alias'] = [f"Alias {sample['alias']} is not valid."]
+                    self.errors['alias'] = [f"Sample Name or Alias {sample['alias']} is not valid."]
             if defined_pools.get(library['pool_name'], None) is None:
                 self.errors['pooling'] = [f"Pool {library['pool_name']} for the library in pool {sample['name']} is not defined on the PoolSubmission sheet."]
 
