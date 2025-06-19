@@ -808,10 +808,6 @@ export class SampleClass extends PlacementObject {
     get fromCell() {
         return this.state.fromCell ? this.placement.getCell(this.state.fromCell) : null
     }
-    
-    fromParentContainer() {
-        return this.fromCell?.fromContainer ?? this.placement.getTubesWithoutParent()
-    }
 
     rawIdentifier(): SampleIdentifier {
         return {
