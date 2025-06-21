@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from django.core.exceptions import ValidationError
 
 from fms_core.models import Individual, Sample
 
@@ -15,6 +16,7 @@ from fms_core.services.library import get_library_type, get_library_selection, c
 from fms_core.services.platform import get_platform
 from fms_core.services.index import get_index
 from fms_core.services.id_generator import get_unique_id
+from fms_core.models._validators import name_validator_without_dot
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
@@ -189,6 +191,13 @@ class SampleRowHandler(GenericRowHandler):
             sample['alias'] = sample['alias'] or sample['name']
             if not sample['alias']:
                 self.errors['alias'].append([f"A pooled library must have a valid alias."])
+            else:
+                # Since sample fields are not validated for pooling (through sample creation),
+                # we need to validate manually here
+                try:
+                    name_validator_without_dot(sample['alias'])
+                except ValidationError as e:
+                    self.errors['alias'] = [f"Sample Name or Alias {sample['alias']} is not valid."]
             if defined_pools.get(library['pool_name'], None) is None:
                 self.errors['pooling'] = [f"Pool {library['pool_name']} for the library in pool {sample['name']} is not defined on the PoolSubmission sheet."]
 
