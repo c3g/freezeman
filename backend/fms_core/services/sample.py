@@ -1,4 +1,4 @@
-from decimal import Decimal, getcontext
+from decimal import Decimal
 from typing import Tuple, List, TypeVar
 from datetime import datetime, date
 from django.db import Error
@@ -613,17 +613,15 @@ def pool_submitted_samples(samples_info,
             elif equal_volume_ratio and volume_ratio is not None:
                 errors.append(f"Volume ratio for sample {sample['alias']} is defined but all samples must either define volume ratio or not simultaneously.")
 
-        old_prec = getcontext().prec
-        getcontext().prec = 15  # Set precision to 15 decimal places
+        exp = Decimal('1E-15')
         if equal_volume_ratio:
             for sample in samples_info:
-                sample["volume_ratio"] = Decimal(1) / Decimal(len(samples_info))
+                sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(exp)
         else:
             # Verify that the ratio add up to 1
-            total_volume_ratio = sum(Decimal(sample["volume_ratio"]) for sample in samples_info)
+            total_volume_ratio = Decimal(sum(Decimal(sample["volume_ratio"]).quantize(exp) for sample in samples_info)).quantize(exp)
             if total_volume_ratio != 1:
                 errors.append(f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio calculated: {total_volume_ratio}.")
-        getcontext().prec = old_prec  # Restore original precision
 
         try:
             coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
