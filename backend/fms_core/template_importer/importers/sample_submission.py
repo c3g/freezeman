@@ -81,6 +81,7 @@ class SampleSubmissionImporter(GenericImporter):
             }
 
             sample_kwargs = dict(
+                sample_type=row_data["Sample Type"],
                 sample=sample,
                 library=library,
                 container=container,
