@@ -32,7 +32,7 @@ class SampleRowHandler(GenericRowHandler):
         sample_type = kwargs["sample_type"]
         if sample_type == "Library in pool":
             if sample["volume_ratio"] is None:
-                self.errors['volume'].append([f"'Ratio Library In Pool' is a required field for sample type '{sample_type}'."])
+                self.errors['volume_ratio'].append([f"'Ratio Library In Pool' is a required field for sample type '{sample_type}'."])
         else:
             if sample["volume"] is None:
                 self.errors['volume'].append([f"'Volume (uL)' is a required field for sample type '{sample_type}'."])
