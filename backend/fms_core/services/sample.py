@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Tuple, List, TypeVar
+from typing import Tuple, List, TypeVar, TypedDict
 from datetime import datetime, date
 from django.db import Error
 from django.db.models import QuerySet
@@ -546,6 +546,46 @@ def pool_samples(process: Process,
 
     return sample_destination, errors, warnings
 
+def test_and_update_volume_ratio(samples: list):
+    """
+    Tests the volume ratio of the samples in the pool and updates them if necessary.
+    If all samples have volume_ratio defined, it checks that they are all defined and equal.
+    If all samples do not have volume_ratio defined, it sets the volume_ratio to 1/n for each sample.
+    If some samples have volume_ratio defined and others do not, it raises an error.
+    If the volume ratios do not add up to 1, it raises an error.
+
+    Args:
+        samples: A list of sample dictionaries, each containing at least key "alias" and optionally "volume_ratio".
+
+    Returns:
+        A list of errors and the updated samples with volume_ratio.
+    """
+
+    errors: list[str] = []
+
+    equal_volume_ratio = True
+    for sample in samples:
+        if sample.get("volume_ratio", None) is not None:
+            equal_volume_ratio = False
+
+    for sample in samples:
+        volume_ratio = sample.get("volume_ratio", None)
+        if not equal_volume_ratio and volume_ratio is None:
+            errors.append(f"Volume ratio for sample {sample['alias']} is missing but all samples must either define volume ratio or not simultaneously.")
+        elif equal_volume_ratio and volume_ratio is not None:
+            errors.append(f"Volume ratio for sample {sample['alias']} is defined but all samples must either define volume ratio or not simultaneously.")
+
+    exp = Decimal('1E-15')
+    if equal_volume_ratio:
+        for sample in samples:
+            sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples))).quantize(exp)
+    else:
+        # Verify that the ratio add up to 1
+        total_volume_ratio = Decimal(sum(Decimal(sample["volume_ratio"]).quantize(exp) for sample in samples)).quantize(exp)
+        if total_volume_ratio != 1:
+            errors.append(f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio calculated: {total_volume_ratio}.")
+
+    return errors, samples
 
 def pool_submitted_samples(samples_info,
                            pool_name,
@@ -601,27 +641,7 @@ def pool_submitted_samples(samples_info,
         errors.append(f"Reception date is not valid.")
 
     if not errors:
-        equal_volume_ratio = True
-        for sample in samples_info:
-            if sample.get("volume_ratio", None) is not None:
-                equal_volume_ratio = False
-
-        for sample in samples_info:
-            volume_ratio = sample.get("volume_ratio", None)
-            if not equal_volume_ratio and volume_ratio is None:
-                errors.append(f"Volume ratio for sample {sample['alias']} is missing but all samples must either define volume ratio or not simultaneously.")
-            elif equal_volume_ratio and volume_ratio is not None:
-                errors.append(f"Volume ratio for sample {sample['alias']} is defined but all samples must either define volume ratio or not simultaneously.")
-
-        exp = Decimal('1E-15')
-        if equal_volume_ratio:
-            for sample in samples_info:
-                sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(exp)
-        else:
-            # Verify that the ratio add up to 1
-            total_volume_ratio = Decimal(sum(Decimal(sample["volume_ratio"]).quantize(exp) for sample in samples_info)).quantize(exp)
-            if total_volume_ratio != 1:
-                errors.append(f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio calculated: {total_volume_ratio}.")
+        errors.extend(test_and_update_volume_ratio(samples_info))
 
         try:
             coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
