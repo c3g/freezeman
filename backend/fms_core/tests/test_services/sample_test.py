@@ -1,4 +1,5 @@
 from curses import meta
+from typing import Any
 from django.test import TestCase
  
 import datetime
@@ -13,7 +14,7 @@ from fms_core.services.sample import (create_full_sample, get_sample_from_contai
                                       inherit_sample, transfer_sample, extract_sample, pool_samples,
                                       prepare_library, _process_sample, update_qc_flags, remove_qc_flags,
                                       add_sample_metadata, update_sample_metadata, remove_sample_metadata,
-                                      validate_normalization, pool_submitted_samples)
+                                      validate_normalization, pool_submitted_samples, test_and_update_volume_ratio)
 from fms_core.services.derived_sample import inherit_derived_sample
 from fms_core.services.container import create_container, get_container
 from fms_core.services.individual import get_or_create_individual
@@ -739,3 +740,46 @@ class SampleServicesTestCase(TestCase):
                 self.assertEqual(derived_sample.biosample.individual, self.test_individuals[1])
                 self.assertEqual(derived_by_sample_pool_.volume_ratio, Decimal("0.75"))
                 self.assertEqual(derived_sample.library, self.test_libraries[5])
+
+    def test_test_and_update_volume_ratio(self):
+        samples: list[dict[str, Any]] = [{ "alias": "A" }, { "alias": "B" }, { "alias": "C" }, { "alias": "D" }]
+        errors = []
+
+        errors = test_and_update_volume_ratio(samples=samples)
+        self.assertEqual(len(errors), 0)
+        self.assertEqual(samples[0]["volume_ratio"], 0.25)
+        self.assertEqual(samples[1]["volume_ratio"], 0.25)
+        self.assertEqual(samples[2]["volume_ratio"], 0.25)
+        self.assertEqual(samples[3]["volume_ratio"], 0.25)
+
+        samples[0]["volume_ratio"] = 0.1
+        samples[1]["volume_ratio"] = 0.2
+        samples[2]["volume_ratio"] = 0.3
+        samples[3]["volume_ratio"] = 0.4
+        errors = test_and_update_volume_ratio(samples=samples)
+        self.assertEqual(len(errors), 0)
+
+        exp = Decimal(f'1E-{DerivedBySample.VOLUME_RATIO_DECIMAL_PLACES}')
+
+        samples[3]["volume_ratio"] = 0.5
+        errors = test_and_update_volume_ratio(samples=samples)
+        self.assertEqual(
+            errors,
+            [f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio calculated: {Decimal(1.1).quantize(exp)}."]
+        )
+        samples[3]["volume_ratio"] = 0.3
+        errors = test_and_update_volume_ratio(samples=samples)
+        self.assertEqual(
+            errors,
+            [f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio calculated: {Decimal(0.9).quantize(exp)}."]
+        )
+        del samples[2]["volume_ratio"]
+        del samples[3]["volume_ratio"]
+        errors = test_and_update_volume_ratio(samples=samples)
+        self.assertEqual(
+            errors,
+            [
+                f"Volume ratio for sample {samples[2]['alias']} is missing but all samples must either define volume ratio or not simultaneously.",
+                f"Volume ratio for sample {samples[3]['alias']} is missing but all samples must either define volume ratio or not simultaneously."
+            ]
+        )
