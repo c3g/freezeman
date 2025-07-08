@@ -13,9 +13,12 @@ __all__ = ["DerivedBySample"]
 
 @reversion.register()
 class DerivedBySample(TrackedModel):
+    VOLUME_RATIO_DECIMAL_PLACES = 15
+    VOLUME_RATIO_MAX_DIGITS = 16
+
     derived_sample = models.ForeignKey("DerivedSample", on_delete=models.PROTECT, related_name="derived_by_samples")
     sample = models.ForeignKey("Sample", on_delete=models.PROTECT, related_name="derived_by_samples")
-    volume_ratio = models.DecimalField(max_digits=16, decimal_places=15, help_text="Volume ratio in pools.")
+    volume_ratio = models.DecimalField(max_digits=VOLUME_RATIO_MAX_DIGITS, decimal_places=VOLUME_RATIO_DECIMAL_PLACES, help_text="Volume ratio in pools.")
     project = models.ForeignKey("Project", null=True, blank=True, on_delete=models.PROTECT, related_name="project_derived_by_samples",
                                 help_text="Project linked to the derived sample - sample pair.")
 

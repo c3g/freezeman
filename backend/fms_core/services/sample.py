@@ -546,7 +546,7 @@ def pool_samples(process: Process,
 
     return sample_destination, errors, warnings
 
-def test_and_update_volume_ratio(samples: list):
+def test_and_update_volume_ratio(samples: list[dict]):
     """
     Tests the volume ratio of the samples in the pool and updates them if necessary.
     If all samples have volume_ratio defined, it checks that they are all defined and equal.
@@ -569,13 +569,12 @@ def test_and_update_volume_ratio(samples: list):
             equal_volume_ratio = False
 
     for sample in samples:
-        volume_ratio = sample.get("volume_ratio", None)
-        if not equal_volume_ratio and volume_ratio is None:
+        if not equal_volume_ratio and sample.get("volume_ratio", None) is None:
             errors.append(f"Volume ratio for sample {sample['alias']} is missing but all samples must either define volume ratio or not simultaneously.")
-        elif equal_volume_ratio and volume_ratio is not None:
-            errors.append(f"Volume ratio for sample {sample['alias']} is defined but all samples must either define volume ratio or not simultaneously.")
+    if errors:
+        return errors
 
-    exp = Decimal('1E-15')
+    exp = Decimal(f'1E-{DerivedBySample.VOLUME_RATIO_DECIMAL_PLACES}')
     if equal_volume_ratio:
         for sample in samples:
             sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples))).quantize(exp)
@@ -585,7 +584,7 @@ def test_and_update_volume_ratio(samples: list):
         if total_volume_ratio != 1:
             errors.append(f"Volume ratios of the samples in the pool do not add up to 1. Total volume ratio calculated: {total_volume_ratio}.")
 
-    return errors, samples
+    return errors
 
 def pool_submitted_samples(samples_info,
                            pool_name,
