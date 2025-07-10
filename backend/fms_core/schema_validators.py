@@ -200,15 +200,28 @@ SAMPLE_IDENTITY_REPORT_SCHEMA = {
                     "type": "object",
                     "properties": {
                         "sample_name": {"type": "string"},
+                        "biosample_id": {"type": "string"},
                         "sample_position": {"type": "string"},
                         "passed": {"type": "boolean"},
-                        "fluidigm_predicted_sex": {"type": ["null", "string"]}, # null: no calculation possible, 'inconclusive': result ambiguous, 'M': Male, 'F': Female
-                        "genotype_match": {
-                            "type": "array",
-                            "items": {"type": "string"}, # matching biosample names with IDs
-                        },
+                        "fluidigm_predicted_sex": {"type": ["string", "null"]}, # null: no calculation possible, 'inconclusive': result ambiguous, 'male': Male, 'female': Female
+                        "genotype_matches": {
+                            "type": ["object", "null"],
+                            "patternProperties": {
+                                "^.*$": {
+                                    "type": "object",
+                                    "properties": {
+                                        "sample_name": {"type": "string"},
+                                        "biosample_id": {"type": "string"},
+                                        "plate_barcode": {"type": "string"},
+                                        "percent_match": {"type": "number", "minimum": 0, "maximum": 100},
+                                        "n_sites": {"type": "number", "minimum": 1, "maximum": 93},
+                                    },
+                                    "required": ["sample_name", "biosample_id", "plate_barcode", "percent_match", "n_sites"]
+                },
+            },
+        }
                     },
-                    "required": ["sample_name", "sample_position", "passed"]
+                    "required": ["sample_name", "biosample_id", "sample_position", "passed"]
                 },
             },
         }

@@ -15,7 +15,7 @@ class SampleIdentity(TrackedModel):
     biosample = models.OneToOneField("Biosample", on_delete=models.PROTECT, related_name="sample_identity", help_text="Biosample for the identity.")
     predicted_sex = models.CharField(null=True, blank=True, choices=SEX_CHOICES, max_length=10, help_text="Sex of the sample.")
     conclusive = models.BooleanField(default=False, help_text="Flag indicating if the identity qc was conclusive.")
-    identity_matches = models.ManyToManyField("SampleIdentity", blank=True, symmetrical=True)
+    identity_matches = models.ManyToManyField("SampleIdentity", through="SampleIdentityMatch", blank=True, symmetrical=True)
 
     def clean(self):
         super().clean()

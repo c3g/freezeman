@@ -51,7 +51,8 @@ from .models import (
     Coordinate,
     Metric,
     ArchivedComment,
-    IndexBySet
+    IndexBySet,
+    SampleIdentity
 )
 
 from .models._constants import ReleaseStatus
@@ -111,7 +112,8 @@ __all__ = [
     "StepHistorySerializer",
     "CoordinateSerializer",
     "MetricSerializer",
-    "ArchivedCommentSerializer"
+    "ArchivedCommentSerializer",
+    "SampleIdentitySerializer"
 ]
 
 
@@ -1000,3 +1002,9 @@ class MetricSerializer(serializers.ModelSerializer):
                   "lane",
                   "value_numeric",
                   "value_string"]
+
+class SampleIdentitySerializer(serializers.ModelSerializer):
+    sex_concordance = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = SampleIdentity
+        fields = "__all__"

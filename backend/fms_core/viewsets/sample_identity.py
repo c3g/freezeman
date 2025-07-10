@@ -13,7 +13,7 @@ from ._constants import _sample_identity_filterset_fields
 
 class SampleIdentityViewSet(viewsets.ModelViewSet):
     queryset = SampleIdentity.objects.select_related("biosample").all().distinct()
-
+    serializer_class = SampleIdentitySerializer
     ordering_fields = (
         *_list_keys(_sample_identity_filterset_fields),
     )
@@ -27,7 +27,8 @@ class SampleIdentityViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def submit_identity_testing_report(self, request, *args, **kwargs):
         data = request.data
-        identities, errors, _ = service.ingest_identity_testing_report(data)
+        replace = request.POST.get("replace", False)
+        identities, errors, _ = service.ingest_identity_testing_report(data, replace)
         if errors:
             transaction.set_rollback(True)
             return HttpResponseBadRequest("\n".join(errors))
