@@ -3,6 +3,7 @@ from fms_core.models import SampleIdentity
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 import fms_core.services.sample_identity as service
+from fms_core.serializers import SampleIdentitySerializer
 
 from rest_framework import viewsets
 from rest_framework.response import Response

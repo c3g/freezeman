@@ -1,11 +1,17 @@
 from fms_core.schema_validators import SAMPLE_IDENTITY_REPORT_VALIDATOR
 from django.core.exceptions import ValidationError
 from fms_core.models import Sample, Container, SampleIdentity
-from fms_core.models._constants import SEX_UNKNOWN
+from fms_core.models._constants import SEX_UNKNOWN, SEX_MALE, SEX_FEMALE
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal, COLUMN
+from typing import TypedDict
+from decimal import Decimal
 
-def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: str, biosample_id_matches: list[int], replace: bool = False):
+class Identity_match_info(TypedDict):
+    matching_site_ratio: Decimal
+    compared_sites: int
+
+def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: str, matches_by_biosample_id: dict[int: Identity_match_info], replace: bool = False):
     """
     Create a sample identity with the provided information. If there is currently an existing sample identity, an error is returned unless
     one of two situation is present. If the existing sample identity passed attribute is false or if the replace paramater is true the content
@@ -15,7 +21,8 @@ def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: s
         `biosample_id`: Biosample ID for the sample identity.
         `conclusive`: Identity test success boolean.
         `predicted_sex`: Predicted sex of the measure.
-        `biosample_matches`: Other biosamples that matches the current identity.
+        `matches_by_biosample_id`: Dictionary of identity match information to other biosamples.
+        `replace`: Boolean that indicate if the current information is to replace an already conclusive identity. Defaults to false.
 
     Returns:
         Tuple with the following content:
@@ -90,7 +97,7 @@ def ingest_identity_testing_report(report_json, replace):
     errors = []
     warnings = []
 
-    INCONCLUSIVE = "inconclusive"
+    DICT_FMS_SEX = { None: None, "male": SEX_MALE, "female": SEX_FEMALE, "inconclusive": SEX_UNKNOWN }
 
     for error in SAMPLE_IDENTITY_REPORT_VALIDATOR.validator.iter_errors(report_json):
         path = "".join(f'["{p}"]' for p in error.path)
@@ -99,37 +106,23 @@ def ingest_identity_testing_report(report_json, replace):
     if errors:
         return (identities, errors, warnings)
 
-    sample_by_coordinate = {}
-    coordinate_spec = None
-    container_barcode = report_json["barcode"]
-    if container_barcode is not None:
-        try:
-            container = Container.objects.get(container__barcode=container_barcode)
-            coordinate_spec = CONTAINER_KIND_SPECS[container.kind].coordinate_spec
-        except Container.DoesNotExist as err:
-            errors.append(f"Container with barcode {container_barcode} does not exist.")
-        samples_tested = Sample.objects.filter(container__barcode=container_barcode)
-        if not samples_tested.exists():
-            errors.append(f"Provided container barcode do not have any samples. Make sure Identity QC template was submitted.")
-        else:
-            sample_by_coordinate = {str(convert_alpha_digit_coord_to_ordinal(sample.coordinates, coordinate_spec, COLUMN)): sample for sample in samples_tested}
-        for sample_report in report_json["samples"].values():
-            sample = sample_by_coordinate[sample_report["sample_position"]]
-            conclusive = sample_report["passed"]
-            predicted_sex = None
-            matches = []
-            if conclusive:
-                predicted_sex = sample_report.get("fluidigm_predicted_sex", None)
-                if predicted_sex == INCONCLUSIVE:
-                    predicted_sex = SEX_UNKNOWN
-                matches = sample_report.get("genotype_match", [])
-            biosample_id=sample.biosample_not_pool
-            sample_identity, errors_creation, warnings_creation = create_sample_identity(biosample_id=biosample_id, conclusive=conclusive, predicted_sex=predicted_sex, biosample_id_matches=matches, replace=replace)
-            errors.extend(errors_creation)
-            warnings.extend(warnings_creation)
-            if sample_identity and not errors_creation:
-                identities[biosample_id] = sample_identity      
-    else:
-        errors.append("Identity testing container barcode is missing.")
+    for sample_report in report_json["samples"].values():
+        biosample_id = sample_report["biosample_id"]
+        conclusive = sample_report["passed"]
+        predicted_sex = None
+        matches_by_biosample_id = {}
+        if conclusive:
+            predicted_sex = DICT_FMS_SEX(sample_report.get("fluidigm_predicted_sex", None))
+            matches = sample_report.get("genotype_matches", {})
+            matches_by_biosample_id = {match["biosample_id"]: {"matching_site_ratio": match["percent_match"]/100, "compared_sites": match["n_sites"]} for match in matches.values()}
+        sample_identity, errors_creation, warnings_creation = create_sample_identity(biosample_id=biosample_id,
+                                                                                     conclusive=conclusive,
+                                                                                     predicted_sex=predicted_sex,
+                                                                                     matches_by_biosample_id=matches_by_biosample_id,
+                                                                                     replace=replace)
+        errors.extend(errors_creation)
+        warnings.extend(warnings_creation)
+        if sample_identity and not errors_creation:
+            identities[biosample_id] = sample_identity
 
     return (identities, errors, warnings)
