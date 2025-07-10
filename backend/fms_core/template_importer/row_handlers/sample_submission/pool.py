@@ -103,16 +103,26 @@ class PoolsRowHandler(GenericRowHandler):
                         break
                     else:
                         sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(exp)
+                        self.warnings["volume_ratio"] = [(
+                            "Volume ratio for all samples in the pool {0} is set to equal value of {1}.",
+                            (pool['name'], float(sample["volume_ratio"]))
+                        )]
                         total_volume_ratio += sample["volume_ratio"]
             if equal_volume_ratio and samples_info:
                 if total_volume_ratio < 1:
                     delta = (Decimal(1) - total_volume_ratio).quantize(exp)
                     samples_info[0]["volume_ratio"] += delta
-                    self.warnings["volume_ratio"] = [f"Volume ratio of {samples_info[0]['alias']} in pool {pool['name']} has been increased by {delta} to {float(samples_info[0]['volume_ratio'])} to make the total volume ratio equal to 1."]
+                    self.warnings["volume_ratio"].append((
+                        "The volume ratio of the first sample in the pool {0} is increased by {1} to make the total volume ratio equal to 1.",
+                        (pool['name'], delta)
+                    ))
                 elif total_volume_ratio > 1:
                     delta = (total_volume_ratio - Decimal(1)).quantize(exp)
                     samples_info[0]["volume_ratio"] -= delta
-                    self.warnings["volume_ratio"] = [f"Volume ratio of {samples_info[0]['alias']} in pool {pool['name']} has been decreased by {delta} to {float(samples_info[0]['volume_ratio'])} to make the total volume ratio equal to 1."]
+                    self.warnings["volume_ratio"].append((
+                        "The volume ratio of the first sample in the pool {0} is decreased by {1} to make the total volume ratio equal to 1.",
+                        (pool['name'], float(delta))
+                    ))
                 total_volume_ratio = 1
             if not self.errors.get("volume_ratio") and total_volume_ratio != 1:
                 self.errors["volume_ratio"].append(f"Total volume ratio of the samples in the pool {pool['name']} must add up to exactly 1. ({float(total_volume_ratio)})")
