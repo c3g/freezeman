@@ -38,7 +38,7 @@ def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: s
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 
-    sorted_biosample_id_matches = biosample_id_matches.sort()
+    sorted_biosample_id_matches = matches_by_biosample_id.keys().sort()
     if sample_identity and not created:
         old_biosample_matches = [identity.biosample_id for identity in sample_identity.identity_matches].sort()
         if replace or (not replace and not sample_identity.conclusive):
@@ -46,7 +46,7 @@ def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: s
                 warnings.append(f"Identity change for biosample ID {biosample_id}. Predicted sex changed from {sample_identity.predicted_sex} to {predicted_sex}.")
                 sample_identity.predicted_sex = predicted_sex
             if not sample_identity.conclusive == conclusive:
-                warnings.append(f"Identity change for biosample ID {biosample_id}. Predicted sex changed from {sample_identity.conclusive} to {conclusive}.")
+                warnings.append(f"Identity change for biosample ID {biosample_id}. Conclusive identity changed from {sample_identity.conclusive} to {conclusive}.")
                 sample_identity.conclusive = conclusive
             if not old_biosample_matches == sorted_biosample_id_matches:
                 warnings.append(f"Identity change for biosample ID {biosample_id}. Identity biosample matches changed from {old_biosample_matches} to {sorted_biosample_id_matches}.")
