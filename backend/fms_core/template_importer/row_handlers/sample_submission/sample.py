@@ -30,12 +30,9 @@ class SampleRowHandler(GenericRowHandler):
             self.errors['sample_kind'].append([f"Sample Kind is a required field."])
 
         sample_type = kwargs["sample_type"]
-        if sample_type == "Library in pool":
-            if sample["volume_ratio"] is None:
-                self.errors['volume_ratio'].append([f"'Ratio Library In Pool' is a required field for sample type '{sample_type}'."])
-        else:
-            if sample["volume"] is None:
-                self.errors['volume'].append([f"'Volume (uL)' is a required field for sample type '{sample_type}'."])
+        sample["sample_type"] = sample_type
+        if sample_type != "Library in pool" and sample["volume"] is None:
+            self.errors['volume'].append([f"'Volume (uL)' is a required field for sample type '{sample_type}'."])
 
     def process_row_inner(self, sample_type, sample, library, container, project, parent_container, individual, sample_kind_objects_by_name, defined_pools):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.now(timezone.utc).isoformat()}Z"
@@ -208,7 +205,7 @@ class SampleRowHandler(GenericRowHandler):
 
         # For pooling purposes
         self.row_object = {
-            "sample_type": sample_type,
+            "sample_type": sample["sample_type"],
             # Biosample info
             "alias": sample['alias'],
             "individual": individual_obj,

@@ -1,3 +1,5 @@
+from decimal import Decimal
+from fms_core.models.derived_by_sample import DerivedBySample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.sample import pool_submitted_samples
@@ -79,6 +81,31 @@ class PoolsRowHandler(GenericRowHandler):
                               index_warnings.append(("Index {0} for sample {1} and "
                                                     "Index {2} for sample {3} are not different enough {4}.", [indices[i].name, samples_name[i], indices[j].name, samples_name[j], index_distance]))
                           self.warnings["index_collision"] = index_warnings
+
+            equal_volume_ratio = True
+            for sample in samples_info:
+                if sample.get("volume_ratio", None) is not None:
+                    equal_volume_ratio = False
+
+            exp = Decimal(f'1E-{DerivedBySample.VOLUME_RATIO_DECIMAL_PLACES}')
+            total_volume_ratio = 0
+            for sample in samples_info:
+                volume_ratio = sample.get("volume_ratio", None)
+                if not equal_volume_ratio:
+                    if volume_ratio is None:
+                        self.errors["volume_ratio"] = [f"All samples in the pool {pool['name']} must either define volume ratio or not at the same time."]
+                    else:
+                        total_volume_ratio += Decimal(volume_ratio)
+                else:
+                    self.warnings["volume_ratio"] = [f"Each sample in the pool {pool['name']} will have a volume ratio of {Decimal(1/len(samples_info)).quantize(exp)}."]
+                    total_volume_ratio = 1
+                    if volume_ratio:
+                        self.errors["volume_ratio"] = [f"All samples in the pool {pool['name']} must either define volume ratio or not at the same time."]
+                    else:
+                        sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(exp)
+            total_volume_ratio = Decimal(total_volume_ratio).quantize(exp)
+            if not self.errors.get("volume_ratio") and total_volume_ratio != 1:
+                self.errors["volume_ratio"].append(f"Total volume ratio of the samples in the pool {pool['name']} must add up to 1. ({float(total_volume_ratio)})")
 
             # Pool samples
             pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=samples_info,
