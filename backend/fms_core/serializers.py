@@ -52,6 +52,7 @@ from .models import (
     Metric,
     ArchivedComment,
     IndexBySet,
+    SampleIdentityMatch,
     SampleIdentity
 )
 
@@ -113,6 +114,7 @@ __all__ = [
     "CoordinateSerializer",
     "MetricSerializer",
     "ArchivedCommentSerializer",
+    "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer"
 ]
 
@@ -1003,8 +1005,33 @@ class MetricSerializer(serializers.ModelSerializer):
                   "value_numeric",
                   "value_string"]
 
+class SampleIdentityMatchSerializer(serializers.ModelSerializer):
+    tested_biosample_id = serializers.IntegerField(read_only=True, source='tested.biosample_id')
+    matched_biosample_id = serializers.IntegerField(read_only=True, source='matched.biosample_id')
+    class Meta:
+        model = SampleIdentityMatch
+        fields = ["id",
+                  "tested_biosample_id",
+                  "matched_biosample_id",
+                  "matching_site_ratio",
+                  "compared_sites"]
+
+
 class SampleIdentitySerializer(serializers.ModelSerializer):
     sex_concordance = serializers.SerializerMethodField(read_only=True)
+    identity_matches = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = SampleIdentity
-        fields = "__all__"
+        fields = ["id",
+                  "biosample_id",
+                  "conclusive",
+                  "predicted_sex",
+                  "sex_concordance",
+                  "identity_matches"]
+
+    def get_sex_concordance(self, instance: SampleIdentity):
+        return instance.sex_concordance
+    
+    def get_identity_matches(self, instance: SampleIdentity):
+        matches = SampleIdentityMatch.objects.filter(Q(tested=instance) | Q(matched=instance))
+        return SampleIdentityMatchSerializer(matches)
