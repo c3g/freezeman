@@ -12,7 +12,7 @@ class SamplesToPoolRowHandler(GenericRowHandler):
         sample, self.errors["source_sample"], self.warnings["source_sample"] = get_sample_from_container(barcode=source_sample["barcode"],coordinates=source_sample["coordinates"])
 
         # Add a warning if the sample has failed qc
-        if any([sample.quality_flag is False, sample.quantity_flag is False]):
+        if sample.failed_qc:
             self.warnings["qc_flags"] = ("Sample {0} has failed QC.", [sample.name])
 
         if volume_used is None:

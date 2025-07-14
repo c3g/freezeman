@@ -3,7 +3,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_identity_qc import SampleIdentityQCRowHandler
 from fms_core.templates import SAMPLE_IDENTITY_QC_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
-from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
+from fms_core.utils import str_cast_and_normalize
 from fms_core.services.step import get_step_from_template
 
 class SampleIdentityQCImporter(GenericImporter):
@@ -39,20 +39,9 @@ class SampleIdentityQCImporter(GenericImporter):
             volume_used_decimal = float_to_decimal_and_none(row_data['Volume Used (uL)'])
             qc_date = input_to_date_and_none(row_data['QC Date (YYYY-MM-DD)'])
 
-            source_sample = {
-                'coordinates': str_cast_and_normalize(row_data['Source Container Coord']),
-                'container': {'barcode': str_cast_and_normalize(row_data['Source Container Barcode'])},
-            }
-
-            resulting_sample = {
-                'coordinates': str_cast_and_normalize(row_data['QC Container Coord']),
-                'volume': float_to_decimal_and_none(0), # Set QC plate volume to zero to prevent using this aliquot further
-                'creation_date': qc_date,
-                'container': {
-                    'barcode': str_cast_and_normalize(row_data['QC Container Barcode']),
-                    'name': str_cast_and_normalize(row_data['QC Container Name']),
-                    'kind': str_cast_and_normalize_lower(row_data['QC Container Kind']),
-                },
+            sample = {
+                'coordinates': str_cast_and_normalize(row_data['Sample Container Coord']),
+                'container': {'barcode': str_cast_and_normalize(row_data['Sample Container Barcode'])},
             }
 
             process_measurement = {
@@ -68,8 +57,7 @@ class SampleIdentityQCImporter(GenericImporter):
             }
 
             identity_qc_kwargs = dict(
-                source_sample=source_sample,
-                resulting_sample=resulting_sample,
+                sample=sample,
                 process_measurement=process_measurement,
                 workflow=workflow,
             )

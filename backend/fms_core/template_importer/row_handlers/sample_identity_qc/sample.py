@@ -1,29 +1,61 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-from fms_core.services.container import get_or_create_container
-from fms_core.services.sample import get_sample_from_container, transfer_sample
+from fms_core.services.sample import get_sample_from_container, update_sample, update_qc_flags, WorkflowAction
+from fms_core.services.process_measurement import create_process_measurement
+from fms_core.services.sample_next_step import execute_workflow_action
 
 class SampleIdentityQCRowHandler(GenericRowHandler):
 
-    def process_row_inner(self, source_sample, resulting_sample, process_measurement, workflow):
-        original_sample, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=source_sample['container']['barcode'],
-                                                                                                    coordinates=source_sample['coordinates'])
+    def process_row_inner(self, sample, process_measurement, workflow):
+        sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
+            barcode=sample['container']['barcode'],
+            coordinates=sample['coordinates'],
+        )
 
-        destination_container_dict = resulting_sample['container']
+        if sample_obj:
+            # Check if sample is not a library or a pool of libraries
+            if sample_obj.is_pool:
+                self.errors['sample'] = f"Sample identity QC can't be performed on a pool of libraries."
 
-        if original_sample:
-            destination_container, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
-                barcode=destination_container_dict['barcode'],
-                kind=destination_container_dict['kind'],
-                name=destination_container_dict['name'])
+            # Update sample with sample_information
+            new_volume = None
+            volume_used = process_measurement.get('volume_used', None)
+            if volume_used is not None:
+                new_volume = sample_obj.volume - volume_used
+            else:
+                self.errors['volume'] = 'Volume Used is required.'
 
-            _, self.errors['transfered_sample'], self.warnings['transfered_sample'] = transfer_sample(process=process_measurement['process'],
-                                                                                                      sample_source=original_sample,
-                                                                                                      container_destination=destination_container,
-                                                                                                      volume_used=process_measurement['volume_used'],
-                                                                                                      execution_date=process_measurement['execution_date'],
-                                                                                                      coordinates_destination=resulting_sample['coordinates'],
-                                                                                                      volume_destination=resulting_sample['volume'],
-                                                                                                      comment=process_measurement['comment'],
-                                                                                                      workflow=workflow)
+             # Return if there are any validation errors
+            if any(self.errors.values()):
+                return
 
-            # Add a mechanism to hold the sample until results are submitted
+            _, self.errors['sample_update'], self.warnings['sample_update'] = \
+                update_sample(sample_to_update=sample_obj, volume=new_volume)
+
+            # Update the sample's identity flag according to the step action chosen
+            step_action = workflow.get("step_action", None)
+            if step_action is None or step_action is WorkflowAction.NEXT_STEP:
+                identity_flag = "Passed"
+            elif step_action is WorkflowAction.DEQUEUE_SAMPLE:
+                identity_flag = "Failed"
+            else:
+                identity_flag = None
+
+            if identity_flag is not None:
+                _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj, identity_flag=identity_flag)
+
+            process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
+                create_process_measurement(
+                    process=process_measurement['process'],
+                    source_sample=sample_obj,
+                    execution_date=process_measurement['execution_date'],
+                    volume_used=volume_used,
+                    comment=process_measurement['comment'],
+                )
+
+            
+            if process_measurement_obj:
+                # Process the workflow action
+                self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
+                                                                                             step=workflow["step"],
+                                                                                             current_sample=sample_obj,
+                                                                                             process_measurement=process_measurement_obj)

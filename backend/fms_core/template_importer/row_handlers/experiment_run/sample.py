@@ -28,7 +28,7 @@ class SampleRowHandler(GenericRowHandler):
                                                 f"does not match the experiment platform ({platform.name}).")
 
             # Add a warning if the sample has failed qc
-            if any([sample.quality_flag is False, sample.quantity_flag is False]):
+            if sample.failed_qc:
                 self.warnings["qc_flags"] = ("Sample {0} has failed QC.", [sample.name])
 
             if not volume_used:

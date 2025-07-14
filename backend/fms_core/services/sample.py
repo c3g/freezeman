@@ -857,7 +857,7 @@ def _process_sample(process,
     return (sample_destination, errors, warnings)
 
 
-def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
+def update_qc_flags(sample, quantity_flag: str=None, quality_flag: str=None, identity_flag: str=None):
     """
     Set the quantity_flag and quality_flag to given values.
 
@@ -865,6 +865,7 @@ def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
       `sample`: Sample receiving the new flags.
       `quantity_flag`: 'Passed', 'Failed' or None values to set the quantity flag.
       `quality_flag`: 'Passed', 'Failed' or None values to set the quantity flag.
+      `identity_flag`: 'Passed', 'Failed' or None values to set the identity flag.
       
     Returns:
       The updated sample, errors and warnings
@@ -874,7 +875,7 @@ def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
 
     try:
         # Update the QC flags for the given sample
-        if (quantity_flag is None and quality_flag is None):
+        if (quantity_flag is None and quality_flag is None and identity_flag is None):
             errors.append('At least one QC flag is required.')
         else:
             if quantity_flag is not None:
@@ -885,6 +886,10 @@ def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
                 if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
                     warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
                 sample.quality_flag = (quality_flag == 'Passed')
+            if identity_flag is not None:
+                if sample.identity_flag is not None and sample.identity_flag != (identity_flag == 'Passed'):
+                    warnings.append(("Sample {0} identity flag will be changed to {1}.", [sample.name, identity_flag]))
+                sample.identity_flag = (identity_flag == 'Passed')
             sample.save()
     except Error as e:
         errors.append(';'.join(e.messages))
@@ -897,7 +902,7 @@ def remove_qc_flags(sample):
     warnings = []
 
     try:
-        # Remove the QC flags for the given sample
+        # Remove the QC flags for the given sample, identity qc flag kept unless specifically cleared.
         sample.quantity_flag = None
         sample.quality_flag = None
         sample.save()

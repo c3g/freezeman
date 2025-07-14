@@ -260,8 +260,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		dataIndex: ['sample', 'qc_flag'],
 		render: (_, { sample }) => {
 			if (sample) {
-				const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag }
-				if (!isNullish(flags.quantity) || !isNullish(flags.quality)) {
+				const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag, identity: sample.identity_flag }
+				if (!isNullish(flags.quantity) || !isNullish(flags.quality) || !isNullish(flags.identity)) {
 					return <QCFlag flags={flags} />
 				}
 			}

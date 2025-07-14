@@ -91,6 +91,7 @@ const SampleEditContent = ({ sample, isAdding}) => {
   const [formErrors, setFormErrors] = useState({})
   const disabledQualityFlag = (sample.quality_flag == undefined)
   const disabledQuantityFlag = (sample.quantity_flag == undefined)
+  const disabledIdentityFlag = (sample.identity_flag == undefined)
 
   // Initialize the form with the sample values only once, when the component is mounted.
   // Once the form has been loaded with data we have to keep the form data, and not
@@ -345,17 +346,25 @@ const SampleEditContent = ({ sample, isAdding}) => {
             <Item label="Quantity Flag" {...props("quantity_flag")} valuePropName="checked"
               extra="Indicator that reflects the quantity QC." >
               <Switch
-                disabled={disabledQualityFlag}
-                checkedChildren={<CheckSquareFilled style={{backgroundColor: disabledQualityFlag ? 'default' : 'green'}}/>}
-                unCheckedChildren={<CloseSquareFilled style={{backgroundColor: disabledQualityFlag ? 'default' : 'red'}}/>}
+                disabled={disabledQuantityFlag}
+                checkedChildren={<CheckSquareFilled style={{backgroundColor: disabledQuantityFlag ? 'default' : 'green'}}/>}
+                unCheckedChildren={<CloseSquareFilled style={{backgroundColor: disabledQuantityFlag ? 'default' : 'red'}}/>}
               />
             </Item>
             <Item label="Quality Flag" {...props("quality_flag")} valuePropName="checked"
               extra="Indicator that reflects the quality QC." >
               <Switch
-                disabled={disabledQuantityFlag}
-                checkedChildren={<CheckSquareFilled style={{backgroundColor: disabledQuantityFlag ? 'default' : 'green'}}/>}
-                unCheckedChildren={<CloseSquareFilled style={{backgroundColor: disabledQuantityFlag ? 'default' : 'red'}}/>}
+                disabled={disabledQualityFlag}
+                checkedChildren={<CheckSquareFilled style={{backgroundColor: disabledQualityFlag ? 'default' : 'green'}}/>}
+                unCheckedChildren={<CloseSquareFilled style={{backgroundColor: disabledQualityFlag ? 'default' : 'red'}}/>}
+              />
+            </Item>
+            <Item label="Identity Flag" {...props("identity_flag")} valuePropName="checked"
+              extra="Indicator that reflects the identity QC." >
+              <Switch
+                disabled={disabledIdentityFlag}
+                checkedChildren={<CheckSquareFilled style={{backgroundColor: disabledIdentityFlag ? 'default' : 'green'}}/>}
+                unCheckedChildren={<CloseSquareFilled style={{backgroundColor: disabledIdentityFlag ? 'default' : 'red'}}/>}
               />
             </Item>
           </>
@@ -473,6 +482,9 @@ function serializeFormData(form) {
 
   if (form.getFieldValue("quality_flag") != null || form.getFieldValue("quality_flag") != undefined && !form.getFieldValue("quality_flag").disabled)
     newValues.quality_flag = form.getFieldValue("quality_flag")
+
+  if (form.getFieldValue("identity_flag") != null || form.getFieldValue("identity_flag") != undefined && !form.getFieldValue("identity_flag").disabled)
+    newValues.identity_flag = form.getFieldValue("identity_flag")
 
   if (!form.getFieldValue("concentration")) {
     newValues.concentration = null

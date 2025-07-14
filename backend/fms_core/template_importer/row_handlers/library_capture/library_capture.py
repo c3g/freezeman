@@ -32,7 +32,7 @@ class LibraryRowHandler(GenericRowHandler):
                 self.errors['volume_used'].append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})")
 
             # Add a warning if the library has failed qc
-            if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
+            if source_sample_obj.failed_qc:
                 self.warnings['qc_flags'] = ("Source library {0} has failed QC.", [source_sample_obj.name])
 
             # Check if sample is not a library or a pool of libraries

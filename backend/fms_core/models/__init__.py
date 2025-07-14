@@ -47,8 +47,8 @@ from .metric import Metric
 from .readset import Readset
 from .archived_comment import ArchivedComment
 from .index_by_set import IndexBySet
+from .sample_identity_match import SampleIdentityMatch
 from .sample_identity import SampleIdentity
-
 
 __all__ = [
     "Biosample",
@@ -99,5 +99,6 @@ __all__ = [
     "Readset",
     "ArchivedComment",
     "IndexBySet",
-    "SampleIdentity"
+    "SampleIdentityMatch",
+    "SampleIdentity", 
 ]

@@ -233,6 +233,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     creation_date: string               // Date library was created (YYYY-MM-DD)
     quality_flag?: boolean              // Quality check flag (undefined in no QC has been performed)
     quantity_flag?: boolean             // Quantity check flag (undefined in no QC has been performed)
+    identity_flag?: boolean             // Identity check flag (undefined until identity QC has been performed)
     library_type: string                // Library type name, eg "PCR-Free"
     platform: string                    // Platform name, eg "ILLUMINA" or "DNBSEQ"
     library_size?: number               // Size in bp
@@ -394,6 +395,7 @@ export interface FMSSample extends FMSTrackedModel {
     experimental_group: string[]        // Array of experiment group names
     quality_flag?: boolean              // QC quality flag
     quantity_flag?: boolean             // QC quantity flag
+    identity_flag?: boolean             // QC identity flag
     comment: string                     // User comment
     derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
@@ -411,6 +413,7 @@ export interface FMSSampleUpdate {
     comment: string | null
     quality_flag: boolean | null
     quantity_flag: boolean | null
+    identity_flag: boolean | null
     // derived_sample_data
     sample_kind: FMSId
     tissue_source: FMSId | null

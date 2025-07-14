@@ -740,9 +740,7 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleIdentityQC',
-          'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
-                      'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
-                      'Volume Used (uL)', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Volume Used (uL)', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
       {
@@ -752,25 +750,18 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
       },
   ],
   "user prefill info": {
-      # borrowed from transfer template
-      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
       "Volume Used (uL)": "number",
       "QC Date (YYYY-MM-DD)": "date",
       "Comment": "text"
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("SampleIdentityQC", "Source Sample Name", "name", "name", None),
-      ("SampleIdentityQC", "Source Container Barcode", "container__barcode", "container_barcode", None),
-      ("SampleIdentityQC", "Source Container Coord", "coordinate__name", "coordinates", None),
+      ("SampleIdentityQC", "Sample Name", "name", "name", None),
+      ("SampleIdentityQC", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("SampleIdentityQC", "Sample Container Coord", "coordinate__name", "coordinates", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
-  "placement info": [
-      ("SampleIdentityQC", "Destination Container Barcode", "container_barcode"),
-      ("SampleIdentityQC", "Destination Container Coord", "coordinates"),
-      ("SampleIdentityQC", "Destination Container Name", "container_name"),
-      ("SampleIdentityQC", "Destination Container Kind", "container_kind"),
-  ],
+  "placement info": [],
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {

@@ -24,7 +24,7 @@ interface PositionedGraphNode extends GraphNode {
   y: number
 }
 
-type SampleLineageGraphSample = Pick<Sample, 'id' | 'name' | 'quality_flag' | 'quantity_flag'>
+type SampleLineageGraphSample = Pick<Sample, 'id' | 'name' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>
 type SampleLineageGraphProcessMeasurement = (Pick<ProcessMeasurement, 'id' | 'source_sample' | 'child_sample'> & { protocol_name: string })
 
 function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : SampleDetailsLineageProps) {
@@ -126,8 +126,9 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
           const n: Node & { id: string } = g.node(v) as Node & { id: string }
           const curr_sample = samples[n.id]
           let color = "black"
-          if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
-            color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
+          if (curr_sample.quality_flag !== null || curr_sample.quantity_flag !== null || curr_sample.identity_flag !== null) {
+            const flags = [curr_sample.quality_flag, curr_sample.quantity_flag, curr_sample.identity_flag]
+            color = flags.every((flag) => flag !== false) ? "green" : "red"
           }
           return {
             ...n,

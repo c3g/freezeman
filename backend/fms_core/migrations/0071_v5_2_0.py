@@ -86,14 +86,27 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='samplenextstep',
-            name='block_count',
-            field=models.PositiveIntegerField(default=0, help_text='Number of sample workflow blocking triggers.'),
+            model_name='sample',
+            name='identity_flag',
+            field=models.BooleanField(blank=True, choices=[(True, 'Passed'), (False, 'Failed')], help_text='Identity flag of the sample.', max_length=20, null=True),
         ),
-        migrations.AlterField(
-            model_name='stephistory',
-            name='workflow_action',
-            field=models.CharField(choices=[('NEXT_STEP', 'Step complete - Move to next step'), ('DEQUEUE_SAMPLE', 'Sample failed - Remove sample from study workflow'), ('REPEAT_STEP', 'Repeat step - Move to next step and repeat current step'), ('IGNORE_WORKFLOW', 'Ignore workflow - Do not register as part of a workflow'), ('BLOCK_AT_NEXT_STEP', 'Step partially complete - Move to next step and wait for completion')], default='NEXT_STEP', help_text='Workflow action that was performed on the sample after step completion.', max_length=30),
+        migrations.CreateModel(
+            name='SampleIdentityMatch',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('matching_site_ratio', models.DecimalField(decimal_places=5, help_text='Ratio of the compared sites that are matching.', max_digits=6)),
+                ('compared_sites', models.PositiveIntegerField(help_text='Number of marker sites that have a value for both samples.')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
+                ('matched', models.ForeignKey(help_text='Match found to be referencing this sample identity.', on_delete=django.db.models.deletion.PROTECT, related_name='_matched_identity_match', to='fms_core.sampleidentity')),
+                ('tested', models.ForeignKey(help_text='Match found while testing this sample identity.', on_delete=django.db.models.deletion.PROTECT, related_name='tested_identity_match', to='fms_core.sampleidentity')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
         ),
         migrations.CreateModel(
             name='SampleIdentity',
@@ -105,7 +118,7 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('predicted_sex', models.CharField(blank=True, choices=[('M', 'M'), ('F', 'F'), ('Unknown', 'Unknown')], help_text='Sex of the sample.', max_length=10, null=True)),
                 ('conclusive', models.BooleanField(default=False, help_text='Flag indicating if the identity qc was conclusive.')),
-                ('identity_matches', models.ManyToManyField(blank=True, to='fms_core.sampleidentity')),
+                ('identity_matches', models.ManyToManyField(blank=True, through='fms_core.SampleIdentityMatch', to='fms_core.sampleidentity')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
             ],
