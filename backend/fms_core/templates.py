@@ -740,7 +740,7 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleIdentityQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Volume Used (uL)', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'QC Container Coord', 'Volume Used (uL)', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
       {
@@ -761,7 +761,9 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
       ("SampleIdentityQC", "Sample Container Coord", "coordinate__name", "coordinates", None),
   ],
   # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
-  "placement info": [],
+  "placement info": [
+      ("SampleIdentityQC", "QC Container Coord", "coordinates"),
+  ],
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
