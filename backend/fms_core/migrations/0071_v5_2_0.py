@@ -91,6 +91,23 @@ class Migration(migrations.Migration):
             field=models.BooleanField(blank=True, choices=[(True, 'Passed'), (False, 'Failed')], help_text='Identity flag of the sample.', max_length=20, null=True),
         ),
         migrations.CreateModel(
+            name='SampleIdentity',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('biosample', models.OneToOneField(help_text='Biosample for the identity.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_identity', to='fms_core.biosample')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('predicted_sex', models.CharField(blank=True, choices=[('M', 'M'), ('F', 'F'), ('Unknown', 'Unknown')], help_text='Sex of the sample.', max_length=10, null=True)),
+                ('conclusive', models.BooleanField(default=False, help_text='Flag indicating if the identity qc was conclusive.')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
             name='SampleIdentityMatch',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -108,23 +125,10 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
-        migrations.CreateModel(
-            name='SampleIdentity',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('biosample', models.OneToOneField(help_text='Biosample for the identity.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_identity', to='fms_core.biosample')),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('predicted_sex', models.CharField(blank=True, choices=[('M', 'M'), ('F', 'F'), ('Unknown', 'Unknown')], help_text='Sex of the sample.', max_length=10, null=True)),
-                ('conclusive', models.BooleanField(default=False, help_text='Flag indicating if the identity qc was conclusive.')),
-                ('identity_matches', models.ManyToManyField(blank=True, through='fms_core.SampleIdentityMatch', to='fms_core.sampleidentity')),
-                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
-                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'abstract': False,
-            },
+        migrations.AddField(
+            model_name='sampleidentity',
+            name='identity_matches',
+            field=models.ManyToManyField(blank=True, through='fms_core.SampleIdentityMatch', to='fms_core.sampleidentity'),
         ),
         migrations.RunPython(add_identity_qc_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(initialize_workflows_with_id_check, reverse_code=migrations.RunPython.noop),
