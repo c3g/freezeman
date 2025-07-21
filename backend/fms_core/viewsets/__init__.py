@@ -41,6 +41,7 @@ from .coordinate import CoordinateViewSet
 from .metric import MetricViewSet
 from .samplesheet import SamplesheetViewSet
 from .report import ReportViewSet
+from .sample_identity import SampleIdentityViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -86,4 +87,5 @@ __all__ = [
     "MetricViewSet",
     "SamplesheetViewSet",
     "ReportViewSet",
+    "SampleIdentityViewSet",
 ]
