@@ -1058,7 +1058,7 @@ def can_remove_sample(sample: Sample) -> Tuple[bool, List[str], List[str]]:
 
 def get_biosample_name(sample: Sample) -> Tuple[bool, List[str], List[str]]:
     """
-    Utility function that returns the sample name with the biosample ID as suffix separated by a dash (-).
+    Utility function that returns the sample name with the biosample ID as suffix separated by an underscore (_).
 
     Args:
         sample: Sample for which a unique sample name is required.
@@ -1073,7 +1073,7 @@ def get_biosample_name(sample: Sample) -> Tuple[bool, List[str], List[str]]:
         errors.append(f"Sample is a pool and cannot receive a unique biosample name.")
     else:
         biosample_id = str(sample.biosample_not_pool.id)
-        biosample_name = sample.name + "-" + biosample_id
+        biosample_name = sample.name + "_" + biosample_id
     return biosample_name, errors, warnings
 
 def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], List[str]]:
@@ -1091,7 +1091,7 @@ def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], Lis
     warnings = []
     
     try:
-        biosample_id = int(biosample_name.split("-")[-1])
+        biosample_id = int(biosample_name.split("_")[-1])
     except ValueError as err:
         errors.append(f"Biosample ID cannot be extracted from {biosample_name}.")
     return biosample_id, errors, warnings
