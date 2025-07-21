@@ -72,7 +72,7 @@ function StudyStepSamplesTable({ studyID, step, tableState, settings }: StudySte
           })
           await dispatch(api.sampleNextStepByStudy.remove(step.ready.sampleNextStepByID[sample.id]))
           await dispatch(refreshStudySamples(studyID))
-          notification.close(REMOVE_NOTIFICATION_KEY)
+          notification.destroy(REMOVE_NOTIFICATION_KEY)
         }}
         disabled={!sample}
         placement={'topLeft'}
