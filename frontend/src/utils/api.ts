@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 
@@ -229,6 +229,19 @@ const api = {
       request: (options, template) => filteredpost(`/samples/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/samples/search/", { q }),
+  },
+
+  sampleIdentity: {
+    get: (biosampleIDs: FMSId[], options: any = { limit: 10000 }) => {
+      // get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identity/`, { ...options, biosample__id__in: biosampleIDs.join(',') }),
+      return Promise.resolve({
+        isJSON: true,
+        data: {
+          count: 0,
+          results: [] as FMSSampleIdentity[],
+        }
+      } as JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>)
+    },
   },
 
   sampleMetadata: {
