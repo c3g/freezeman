@@ -400,6 +400,20 @@ export interface FMSSample extends FMSTrackedModel {
     derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
 }
 
+export interface FMSSampleIdentity extends FMSTrackedModel {
+    biosample: FMSId                           // Biosample for the identity.
+    conclusive: boolean                        // Flag indicating if the identity qc was conclusive.
+    sex_concordance: boolean                   // Sex of the sample.
+    identity_matches: FMSSampleIdentityMatch[]
+}
+
+export interface FMSSampleIdentityMatch extends FMSTrackedModel {
+    tested_biosample_id: FMSId  // Match found while testing this sample identity.
+    matched_biosample_id: FMSId // Match found to be referencing this sample identity.
+    matching_site_ratio: number // Ratio of the compared sites that are matching.
+    compared_sites: number      // Number of marker sites that have a value for both samples.
+}
+
 export interface FMSSampleUpdate {
     id: FMSId
     // sample_data
