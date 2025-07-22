@@ -232,7 +232,7 @@ const api = {
   },
 
   sampleIdentity: {
-    get: (biosampleIDs: FMSId[], options: any = { limit: 10000 }) => {
+    list: (options: any, abort?: boolean) => {
       // get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identity/`, { ...options, biosample__id__in: biosampleIDs.join(',') }),
       return Promise.resolve({
         isJSON: true,
