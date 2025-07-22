@@ -6,6 +6,7 @@ export enum ProtocolNames {
 	Update = 'Update',
 	DNBSEQ_Preparation = 'DNBSEQ Preparation',
 	Sample_Quality_Control = 'Sample Quality Control',
+	Sample_Identity_Quality_Control = 'Sample Identity Quality Control',
 	Sample_Selection_using_qPCR = 'Sample Selection using qPCR',
 	Library_Preparation = 'Library Preparation',
 	Library_Conversion = 'Library Conversion',

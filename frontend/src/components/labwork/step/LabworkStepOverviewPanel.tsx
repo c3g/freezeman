@@ -1,20 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { FMSId } from '../../../models/fms_api_models'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
-import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
+import { SampleAndLibraryAndIdentity } from '../../WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable, { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { GROUPING_CREATION_DATE, LabworkStepOverviewProps } from './LabworkStepOverview'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { selectLabworkStepsState } from '../../../selectors'
 import { loadSampleNextStepsAtStep } from '../../../modules/labworkSteps/actions'
-import { fetchSamplesAndLibraries } from '../../../modules/studySamples/services'
+import { fetchSamplesAndLibrariesAndIdentities } from '../../../modules/studySamples/services'
 
 export interface LabworkStepPanelProps {
 	refreshing: boolean
 	grouping: FilterDescription
 	groupingValue: string
-	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
+	columns: IdentifiedTableColumnType<SampleAndLibraryAndIdentity>[]
 	hasFilter: boolean,
 	clearFilters?: (boolean?) => void,
 	filterDefinitions?: FilterDescriptionSet,
@@ -27,7 +27,7 @@ export interface LabworkStepPanelProps {
 	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[],
-		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
+		onSelectionChanged: (selectedSamples: SampleAndLibraryAndIdentity[]) => void
 	}
 	stepID: FMSId
 }
@@ -37,7 +37,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 	const dispatch = useAppDispatch()
 
 	const [isFetchingSamples, setIsFetchingSamples] = useState(false)
-	const [sampleAndLibraryList, setSampleAndLibraryList] = useState<SampleAndLibrary[]>([])
+	const [sampleAndLibraryList, setSampleAndLibraryList] = useState<SampleAndLibraryAndIdentity[]>([])
   const displayedSamples = useAppSelector((state) => selectLabworkStepsState(state).steps[stepID].displayedSamples)
 
 	useEffect(() => {
@@ -53,7 +53,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 			return
 		}
 		const samples = await dispatch(loadSampleNextStepsAtStep(stepID, pagination.pageNumber, pagination.pageSize))
-		setSampleAndLibraryList(await fetchSamplesAndLibraries(samples.results.map((sample) => sample.sample)))
+		setSampleAndLibraryList(await fetchSamplesAndLibrariesAndIdentities(samples.results.map((sample) => sample.sample)))
 		setIsFetchingSamples(false)
 	}, [dispatch, filters, grouping.key, pagination?.pageNumber, pagination?.pageSize, stepID])
 
@@ -62,7 +62,7 @@ const LabworkStepOverviewPanel = ({ stepID, refreshing, grouping, groupingValue,
 	}, [initialSampleFetch])
 
   useEffect(() => {
-    const updateDisplay = async () => setSampleAndLibraryList(await fetchSamplesAndLibraries(displayedSamples))
+    const updateDisplay = async () => setSampleAndLibraryList(await fetchSamplesAndLibrariesAndIdentities(displayedSamples))
     updateDisplay()
   }, [displayedSamples]) // Triggers off filters instead of displayed samples to prevent endless loop. TODO fix loopy behaviour ... 
 
