@@ -401,9 +401,10 @@ export interface FMSSample extends FMSTrackedModel {
 }
 
 export interface FMSSampleIdentity extends FMSTrackedModel {
-    biosample: FMSId                           // Biosample for the identity.
-    conclusive: boolean                        // Flag indicating if the identity qc was conclusive.
-    sex_concordance: boolean                   // Sex of the sample.
+    biosample: FMSId                            // Biosample for the identity.
+    conclusive: boolean                         // Flag indicating if the identity qc was conclusive.
+    predicted_sex: 'M' | 'F' | 'Unknown' | null // Predicted sex of the sample
+    sex_concordance: boolean | null             // Whether the sample matches sex on individual (or individual sex unknown)
     identity_matches: FMSSampleIdentityMatch[]
 }
 

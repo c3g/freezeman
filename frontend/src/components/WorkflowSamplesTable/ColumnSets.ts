@@ -1,11 +1,12 @@
-import { Protocol, Step } from '../../models/frontend_models'
+import { Protocol, Step, Workflow } from '../../models/frontend_models'
 import { ProtocolNames } from '../../models/protocols'
 import { getStepSpecificationValue } from '../../modules/steps/services'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { LibraryColumn, LIBRARY_COLUMN_DEFINITIONS as LIBRARY_COLUMNS, ObjectWithLibrary } from '../libraries/LibraryTableColumns'
 import { ObjectWithSample, SampleColumn, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from '../samples/SampleTableColumns'
+import { ObjectWithSampleIdentity, SAMPLE_IDENTITY_COLUMNS_DEFINITIONS as SAMPLE_IDENTITY_COLUMNS, SampleIdentityColumn } from '../samples/SampleIdentityColumns'
 
-export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
+export interface SampleAndLibraryAndIdentity extends ObjectWithSample, ObjectWithLibrary, ObjectWithSampleIdentity {}
 
 
 export function getColumnsForStudySamplesStep(step: Step, protocol: Protocol) {
@@ -18,7 +19,7 @@ export function getColumnsForStudySamplesStep(step: Step, protocol: Protocol) {
 	Returns the default set of columns that should be used to display samples/libraries
 	for a given protocol and step.
 */
-export function getColumnsForStep(step: Step, protocol: Protocol | undefined): IdentifiedTableColumnType<SampleAndLibrary>[] {
+export function getColumnsForStep(step: Step, protocol: Protocol | undefined): IdentifiedTableColumnType<SampleAndLibraryAndIdentity>[] {
 
 	const DEFAULT_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
@@ -45,6 +46,18 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		SAMPLE_COLUMNS.CONCENTRATION,
 		SAMPLE_COLUMNS.CREATION_DATE,
 		SAMPLE_COLUMNS.DEPLETED,
+	]
+
+	const SAMPLE_IDENTITY_QC_COLUMNS = [
+		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.NAME,
+		SAMPLE_COLUMNS.CONTAINER_BARCODE,
+		SAMPLE_COLUMNS.COORDINATES,
+		SAMPLE_COLUMNS.VOLUME,
+		SAMPLE_IDENTITY_COLUMNS.CONCLUSIVE,
+		SAMPLE_IDENTITY_COLUMNS.PREDICTED_SEX,
+		SAMPLE_IDENTITY_COLUMNS.SEX_CONCORDANCE,
+		SAMPLE_IDENTITY_COLUMNS.IDENTITY_MATCHES,
 	]
 
 	const DEFAULT_LIBRARY_COLUMNS = [
@@ -88,7 +101,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		SAMPLE_COLUMNS.DEPLETED,
 	]
 
-	let columnsForStep: (SampleColumn | LibraryColumn)[] = DEFAULT_SAMPLE_COLUMNS
+	let columnsForStep: (SampleColumn | LibraryColumn | SampleIdentityColumn)[] = DEFAULT_SAMPLE_COLUMNS
 
 	switch(protocol?.name) {
 		case ProtocolNames.Extraction: {
@@ -97,6 +110,10 @@ export function getColumnsForStep(step: Step, protocol: Protocol | undefined): I
 		}
 		case ProtocolNames.Sample_Quality_Control: {
 			columnsForStep = PRE_QC_SAMPLE_COLUMNS
+			break
+		}
+		case ProtocolNames.Sample_Identity_Quality_Control: {
+			columnsForStep = SAMPLE_IDENTITY_QC_COLUMNS
 			break
 		}
 		case ProtocolNames.Sample_Pooling: {

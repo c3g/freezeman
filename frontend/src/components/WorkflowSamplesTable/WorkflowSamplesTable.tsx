@@ -5,7 +5,7 @@ import { FMSId } from '../../models/fms_api_models'
 import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../models/paged_items'
 import FiltersBar from '../filters/filtersBar/FiltersBar'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
-import { SampleAndLibrary } from './ColumnSets'
+import { SampleAndLibraryAndIdentity } from './ColumnSets'
 import { addFiltersToColumns } from '../pagedItemsTable/MergeColumnsAndFilters'
 
 
@@ -18,8 +18,8 @@ export interface PaginationParameters {
 }
 
 export interface WorkflowSamplesTableProps {
-	samples: SampleAndLibrary[]
-	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
+	samples: SampleAndLibraryAndIdentity[]
+	columns: IdentifiedTableColumnType<SampleAndLibraryAndIdentity>[]
 	hasFilter: boolean,
 	clearFilters?: () => void,
 	filterDefinitions?: FilterDescriptionSet,
@@ -32,7 +32,7 @@ export interface WorkflowSamplesTableProps {
 	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[],
-		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
+		onSelectionChanged: (selectedSamples: SampleAndLibraryAndIdentity[]) => void
 	}
 	loading?: boolean
 }
@@ -50,11 +50,11 @@ function WorkflowSamplesTable({ samples, columns, filterDefinitions, filterKeys,
 		)
 	}, [columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions])
 
-	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
+	let rowSelection: TableRowSelection<SampleAndLibraryAndIdentity> | undefined = undefined
 	if (selection) {
 		rowSelection = {
 			type: 'checkbox',
-			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
+			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibraryAndIdentity[]) => {
 				selection.onSelectionChanged(selectedRows)
 			},
 			selectedRowKeys: [...selection.selectedSampleIDs]
