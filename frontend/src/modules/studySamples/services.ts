@@ -79,9 +79,9 @@ export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowSte
 }
 
 export async function fetchSamplesAndLibrariesAndIdentities(sampleList: number[], forceFetch = false) {
+	const sampleIdentities: Record<FMSId, FMSSampleIdentity> = {}
 	if (sampleList.length > 0 || forceFetch) {
 		const samples = await fetchSamples(sampleList, false)
-		const sampleIdentities: Record<FMSId, FMSSampleIdentity> = {}
 		if (samples.length > 0) {
 			const sampleIDs = samples.filter(sample => sample.is_library).map(sample => sample.id)
 			await fetchLibrariesForSamples(sampleIDs)
@@ -100,9 +100,11 @@ export async function fetchSamplesAndLibrariesAndIdentities(sampleList: number[]
 			let availableSample: SampleAndLibraryAndIdentity = { sample }
 			if (sample.is_library) {
 				const library = librariesByID[s]
-				availableSample = { sample, library }
+				availableSample = { ...availableSample, library }
 			}
-			if (sample)
+			if (sample.biosample_id in sampleIdentities) {
+				availableSample = { ...availableSample, identity: sampleIdentities[sample.biosample_id] }
+			}
 			availableSamples.push(availableSample)
 		}
 		return availableSamples
