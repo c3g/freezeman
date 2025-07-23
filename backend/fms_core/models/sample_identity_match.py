@@ -15,6 +15,11 @@ class SampleIdentityMatch(TrackedModel):
     matching_site_ratio = models.DecimalField(max_digits=6, decimal_places=5, help_text="Ratio of the compared sites that are matching.")
     compared_sites = models.PositiveIntegerField(help_text="Number of marker sites that have a value for both samples.")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["tested_id", "matched_id"], name="sampleidentitymatch_testedid_matchedid_key")
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
