@@ -1,3 +1,4 @@
+import React from "react";
 import { FILTER_TYPE } from "../../constants";
 import { FMSSampleIdentity, FMSSampleIdentityMatch } from "../../models/fms_api_models";
 import { FilterDescription } from "../../models/paged_items";
@@ -40,6 +41,15 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
         dataIndex: ["identity", "conclusive"],
         width: 150,
         sorter: true,
+        render: (conclusive: FMSSampleIdentity['conclusive'] | undefined) => {
+            if (conclusive === undefined) {
+                return ""
+            } else if (conclusive) {
+                return "Yes"
+            } else {
+                return "No"
+            }
+        }
     },
     [SampleIdentityColumnID.PREDICTED_SEX]: {
         columnID: SampleIdentityColumnID.PREDICTED_SEX,
@@ -52,17 +62,39 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
         columnID: SampleIdentityColumnID.SEX_CONCORDANCE,
         title: "Sex Concordance",
         dataIndex: ["identity", "sex_concordance"],
-        width: 150,
+        width: 170,
         sorter: true,
+        render: (sexConcordance: FMSSampleIdentity['sex_concordance'] | undefined) => {
+            if (sexConcordance === undefined) {
+                return ""
+            } else if (sexConcordance === null) {
+                return "Unknown"
+            } else if (sexConcordance) {
+                return "Match"
+            } else {
+                return "Mismatch"
+            }
+        }
     },
     [SampleIdentityColumnID.IDENTITY_MATCHES]: {
         columnID: SampleIdentityColumnID.IDENTITY_MATCHES,
         title: "Identity Matches",
         dataIndex: ["identity", "identity_matches"],
-        width: 150,
+        width: 160,
         sorter: true,
-        render: (matches: FMSSampleIdentityMatch[]) => {
-            return matches.map(match => match.matched_biosample_id).join(", ");
+        render: (matches: FMSSampleIdentityMatch[] | undefined) => {
+            if (!matches || matches.length === 0) {
+                return []
+            } else {
+                return matches.map((match) => match.tested_biosample_id).reduce<React.ReactNode[]>((prev, curr) => {
+                    if (prev.length === 0) {
+                        prev.push(curr)
+                    } else {
+                        prev.push(", ", curr)
+                    }
+                    return prev
+                }, [])
+            }
         }
     },
 }
