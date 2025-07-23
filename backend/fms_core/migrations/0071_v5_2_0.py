@@ -125,6 +125,10 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.AddConstraint(
+            model_name='sampleidentitymatch',
+            constraint=models.UniqueConstraint(fields=('tested_id', 'matched_id'), name='sampleidentitymatch_testedid_matchedid_key'),
+        ),
         migrations.AddField(
             model_name='sampleidentity',
             name='identity_matches',
