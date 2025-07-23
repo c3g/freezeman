@@ -1033,5 +1033,5 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
         return instance.sex_concordance
     
     def get_identity_matches(self, instance: SampleIdentity):
-        matches = SampleIdentityMatch.objects.filter(Q(tested=instance) | Q(matched=instance))
-        return SampleIdentityMatchSerializer(matches)
+        matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
+        return SampleIdentityMatchSerializer(matches, many=True).data
