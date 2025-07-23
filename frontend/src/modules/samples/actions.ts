@@ -1,5 +1,5 @@
-import { FMSSample, FMSSampleUpdate } from "../../models/fms_api_models";
-import { AppDispatch } from "../../store";
+import { FMSId, FMSSample, FMSSampleUpdate } from "../../models/fms_api_models";
+import { AppDispatch, RootState } from "../../store";
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 
@@ -13,7 +13,7 @@ export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMP
 export const LIST_PREFILL_TEMPLATES = createNetworkActionTypes("SAMPLES.LIST_PREFILL_TEMPLATES");
 export const SUMMARY               = createNetworkActionTypes("SAMPLES.SUMMARY");
 
-export const get = id => async (dispatch, getState) => {
+export const get = (id: FMSId) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const sample = getState().samples.itemsByID[id];
     if (sample && sample.isFetching)
         return;

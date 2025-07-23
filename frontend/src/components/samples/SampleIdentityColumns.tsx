@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FILTER_TYPE } from "../../constants";
-import { FMSSampleIdentity, FMSSampleIdentityMatch } from "../../models/fms_api_models";
+import { FMSId, FMSSampleIdentity, FMSSampleIdentityMatch } from "../../models/fms_api_models";
 import { FilterDescription } from "../../models/paged_items";
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
+import { useAppDispatch } from "../../hooks";
+import { list } from "../../modules/samples/actions";
+import DropdownListItems from "../DropdownListItems";
 
 export interface ObjectWithSampleIdentity {
     identity?: FMSSampleIdentity
@@ -86,19 +89,27 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
             if (!matches || matches.length === 0) {
                 return []
             } else {
-                return matches.map((match) => match.tested_biosample_id).reduce<React.ReactNode[]>((prev, curr) => {
-                    if (prev.length === 0) {
-                        prev.push(curr)
-                    } else {
-                        prev.push(", ", curr)
-                    }
-                    return prev
-                }, [])
+                const aliases = matches.map((match, index) => <BiosampleIDToAlias key={index} biosampleID={match.matched_biosample_id} />)
+                return <DropdownListItems listItems={aliases} />
             }
         }
     },
 }
 
+function BiosampleIDToAlias({ biosampleID }: { biosampleID: FMSId }): React.ReactNode {
+    const [biosampleAlias, setBiosampleAlias] = React.useState<string | undefined>(undefined)
+    const dispatch = useAppDispatch()
+    useEffect(() => {
+        dispatch(list({ derived_samples__biosample__id: biosampleID, limit: 1 })).then((response) => {
+            const [sample] = response.results
+            if (sample) {
+                setBiosampleAlias(sample.alias)
+            }
+        })
+    })
+    return biosampleAlias
+}
+ 
 export const SAMPLE_IDENTITY_COLUMN_FILTERS: Partial<Record<SampleIdentityColumnID, FilterDescription>> = {
     [SampleIdentityColumnID.ID]: {
         type: FILTER_TYPE.INPUT_OBJECT_ID,
