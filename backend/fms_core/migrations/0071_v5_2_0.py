@@ -38,7 +38,7 @@ def initialize_workflows_with_id_check(apps, schema_editor):
     StepOrder = apps.get_model("fms_core", "StepOrder")
 
     WORKFLOWS = [
-        # (name, step_names)
+        # (workflow name, workflow structure, [step_names])
         # Basic Illumina with ID Check
         ("PCR-free Illumina with ID Check", "Basic Illumina with ID Check", ["Extraction (DNA)", "Sample QC (DNA)", "Sample Identity QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
         ("PCR-enriched Illumina with ID Check", "Basic Illumina with ID Check", ["Extraction (DNA)", "Sample QC (DNA)", "Sample Identity QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),
