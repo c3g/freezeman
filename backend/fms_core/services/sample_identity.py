@@ -86,7 +86,7 @@ def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_b
                                                                                   matching_site_ratio=match_info["matching_site_ratio"],
                                                                                   compared_sites=match_info["compared_sites"])
             if any([not tested_created, not matched_created]):
-                warnings.append(f"Identity matches between identity {tested_identity.id} and {matched_identity.id} already existed.")
+                warnings.append(f"Identity matches between identity {tested_identity.id} and {matched_identity.id} already exist.")
         except Exception as err:
             errors.append(err)
     
@@ -150,6 +150,6 @@ def ingest_identity_testing_report(report_json, replace):
             if matches is not None:
                 matches_by_biosample_id = {int(match["biosample_id"]): {"matching_site_ratio": match["percent_match"]/100, "compared_sites": match["n_sites"]} for match in matches.values()}
                 errors_matches, warnings_matches = create_sample_identity_matches(tested_identity=tested_identity, matches_by_biosample_id=matches_by_biosample_id)
-        errors.extend(errors_matches)
-        warnings.extend(warnings_matches)
+                errors.extend(errors_matches)
+                warnings.extend(warnings_matches)
     return (identity_by_biosample_id, errors, warnings)
