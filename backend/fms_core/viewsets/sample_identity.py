@@ -1,6 +1,7 @@
 from fms_core.models import SampleIdentity
 
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
 import fms_core.services.sample_identity as service
 from fms_core.serializers import SampleIdentitySerializer
@@ -28,10 +29,16 @@ class SampleIdentityViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def submit_identity_testing_report(self, request, *args, **kwargs):
         data = request.data
-        replace = request.POST.get("replace", False)
+        replace = request.GET.get("replace", False)
         identities, errors, _ = service.ingest_identity_testing_report(data, replace)
         if errors:
             transaction.set_rollback(True)
-            return HttpResponseBadRequest("\n".join(errors))
+            errors_str = []
+            for error in errors:
+                if isinstance(error, ValidationError):
+                    errors_str.extend(error.messages)
+                else:
+                    errors_str.append(error)
+            return HttpResponseBadRequest("\n".join(errors_str))
         else:
             return Response(self.get_serializer(identities.values(), many=True).data)

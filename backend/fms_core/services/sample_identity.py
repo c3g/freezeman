@@ -77,14 +77,14 @@ def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_b
             matched_identity = SampleIdentity.objects.get(biosample_id=matched_biosample_id)
             # Create the tested relation
             _, tested_created = SampleIdentityMatch.objects.get_or_create(tested=tested_identity,
-                                                                                 matched=matched_identity,
-                                                                                 matching_site_ratio=match_info["matching_site_ratio"],
-                                                                                 compared_sites=match_info["compared_sites"])
+                                                                          matched=matched_identity,
+                                                                          matching_site_ratio=match_info["matching_site_ratio"],
+                                                                          compared_sites=match_info["compared_sites"])
             # Create the reverse relation
             _, matched_created = SampleIdentityMatch.objects.get_or_create(tested=matched_identity,
-                                                                                  matched=tested_identity,
-                                                                                  matching_site_ratio=match_info["matching_site_ratio"],
-                                                                                  compared_sites=match_info["compared_sites"])
+                                                                           matched=tested_identity,
+                                                                           matching_site_ratio=match_info["matching_site_ratio"],
+                                                                           compared_sites=match_info["compared_sites"])
             if any([not tested_created, not matched_created]):
                 warnings.append(f"Identity matches between identity {tested_identity.id} and {matched_identity.id} already exist.")
         except Exception as err:
@@ -148,7 +148,7 @@ def ingest_identity_testing_report(report_json, replace):
         if tested_identity is not None and not identity_kept:
             matches = sample_report.get("genotype_matches", None)
             if matches is not None:
-                matches_by_biosample_id = {int(match["biosample_id"]): {"matching_site_ratio": match["percent_match"]/100, "compared_sites": match["n_sites"]} for match in matches.values()}
+                matches_by_biosample_id = {int(match["biosample_id"]): {"matching_site_ratio": (Decimal(str(match["percent_match"]))/100).quantize(Decimal("0.00001")), "compared_sites": match["n_sites"]} for match in matches.values()}
                 errors_matches, warnings_matches = create_sample_identity_matches(tested_identity=tested_identity, matches_by_biosample_id=matches_by_biosample_id)
                 errors.extend(errors_matches)
                 warnings.extend(warnings_matches)
