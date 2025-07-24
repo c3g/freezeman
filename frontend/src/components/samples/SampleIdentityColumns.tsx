@@ -71,7 +71,7 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
             if (sexConcordance === undefined) {
                 return ""
             } else if (sexConcordance === null) {
-                return "Unknown"
+                return "Inconclusive"
             } else if (sexConcordance) {
                 return "Match"
             } else {
