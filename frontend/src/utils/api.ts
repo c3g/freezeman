@@ -208,7 +208,7 @@ const api = {
   },
 
   samples: {
-    get: sampleId => get(`/samples/${sampleId}/`),
+    get: sampleId => get<JsonResponse<FMSSample>>(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], queryParams?: QueryParams) =>
       filteredpost<StringResponse>(`/samples/add_samples_to_study/`, queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
@@ -232,16 +232,7 @@ const api = {
   },
 
   sampleIdentity: {
-    list: (options: any, abort?: boolean) => {
-      // get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identity/`, { ...options, biosample__id__in: biosampleIDs.join(',') }),
-      return Promise.resolve({
-        isJSON: true,
-        data: {
-          count: 0,
-          results: [] as FMSSampleIdentity[],
-        }
-      } as JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>)
-    },
+    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identities/`, options, { abort }),
   },
 
   sampleMetadata: {
