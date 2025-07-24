@@ -745,7 +745,7 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
       },
       {
           "name": "QcContainer",
-          "headers": ["Coord", "col 01", "col 02", "col 03", "col 04", "col 05", "col 06", "col 07", "col 08", "col 09", "col 10", "col 11", "col 12"],
+          "headers": ["Coord", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
           "custom_prefilling": custom_prefill_8x12_container_biosample_names,
       },
   ],
