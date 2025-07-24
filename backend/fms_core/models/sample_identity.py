@@ -21,9 +21,9 @@ class SampleIdentity(TrackedModel):
     def sex_concordance(self) -> bool | None:
         # True:   predicted_sex matches sex on individual (or individual sex unknown)
         # False:  predicted_sex mismatch with individual sex
-        # None:   predicted_sex is Unknown or None
+        # None:   individual sex is None or predicted_sex is Unknown or None
         sex_concordance = None
-        if self.predicted_sex is not None and self.predicted_sex != SEX_UNKNOWN:
+        if self.biosample.individual.sex is not None and self.predicted_sex is not None and self.predicted_sex != SEX_UNKNOWN:
             sex_concordance = self.biosample.individual.sex == SEX_UNKNOWN or self.biosample.individual.sex == self.predicted_sex
         return sex_concordance
 
