@@ -125,6 +125,7 @@ export const SAMPLE_IDENTITY_COLUMN_FILTERS: Partial<Record<SampleIdentityColumn
         type: FILTER_TYPE.SELECT,
         label: "Conclusive",
         key: UNDEFINED_FILTER_KEY,
+        mode: 'multiple',
         options: [
             { label: "Yes", value: "true" },
             { label: "No", value: "false" },
@@ -134,6 +135,7 @@ export const SAMPLE_IDENTITY_COLUMN_FILTERS: Partial<Record<SampleIdentityColumn
         type: FILTER_TYPE.SELECT,
         label: "Predicted Sex",
         key: UNDEFINED_FILTER_KEY,
+        mode: 'multiple',
         options: [
             { label: "Male", value: "M" },
             { label: "Female", value: "F" },
