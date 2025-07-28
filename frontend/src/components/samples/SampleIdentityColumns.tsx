@@ -40,9 +40,9 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
     },
     [SampleIdentityColumnID.CONCLUSIVE]: {
         columnID: SampleIdentityColumnID.CONCLUSIVE,
-        title: "Conclusive",
+        title: "Conclusive ID QC",
         dataIndex: ["identity", "conclusive"],
-        width: 150,
+        width: 180,
         sorter: true,
         render: (conclusive: FMSSampleIdentity['conclusive'] | undefined) => {
             if (conclusive === undefined) {
@@ -58,7 +58,7 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
         columnID: SampleIdentityColumnID.PREDICTED_SEX,
         title: "Predicted Sex",
         dataIndex: ["identity", "predicted_sex"],
-        width: 150,
+        width: 160,
         sorter: true,
     },
     [SampleIdentityColumnID.SEX_CONCORDANCE]: {
@@ -66,7 +66,7 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
         title: "Sex Concordance",
         dataIndex: ["identity", "sex_concordance"],
         width: 170,
-        sorter: true,
+        sorter: false,
         render: (sexConcordance: FMSSampleIdentity['sex_concordance'] | undefined) => {
             if (sexConcordance === undefined) {
                 return ""
@@ -84,7 +84,7 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
         title: "Identity Matches",
         dataIndex: ["identity", "identity_matches"],
         width: 160,
-        sorter: true,
+        sorter: false,
         render: (matches: FMSSampleIdentityMatch[] | undefined) => {
             if (!matches || matches.length === 0) {
                 return []
@@ -138,27 +138,6 @@ export const SAMPLE_IDENTITY_COLUMN_FILTERS: Partial<Record<SampleIdentityColumn
             { label: "Male", value: "M" },
             { label: "Female", value: "F" },
             { label: "Unknown", value: "Unknown" },
-            { label: "Pending", value: "null" },
         ],
-    },
-    [SampleIdentityColumnID.SEX_CONCORDANCE]: {
-        type: FILTER_TYPE.SELECT,
-        label: "Sex Concordance",
-        key: UNDEFINED_FILTER_KEY,
-        options: [
-            { label: "Match", value: "true" },
-            { label: "Mismatch", value: "false" },
-            { label: "Unknown", value: "null" },
-        ]
     }
-}
-
-type SampleIdentityFilterKeys = SampleIdentityColumnID.ID | SampleIdentityColumnID.BIOSAMPLE | SampleIdentityColumnID.CONCLUSIVE | SampleIdentityColumnID.PREDICTED_SEX | SampleIdentityColumnID.SEX_CONCORDANCE;
-
-export const SAMPLE_IDENTITY_FILTER_KEYS: Record<SampleIdentityFilterKeys, string> = {
-    [SampleIdentityColumnID.ID]: "id",
-    [SampleIdentityColumnID.BIOSAMPLE]: "biosample",
-    [SampleIdentityColumnID.CONCLUSIVE]: "conclusive",
-    [SampleIdentityColumnID.PREDICTED_SEX]: "predicted_sex",
-    [SampleIdentityColumnID.SEX_CONCORDANCE]: "sex_concordance",
 }
