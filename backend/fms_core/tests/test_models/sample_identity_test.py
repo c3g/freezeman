@@ -17,7 +17,7 @@ class SampleIdentityTest(TestCase):
         self.assertEqual(sample_identity.predicted_sex, Individual.SEX_MALE)
         self.assertTrue(sample_identity.sex_concordance)
         self.assertEqual(sample_identity.biosample, self.valid_biosample)
-        self.assertEqual(sample_identity.identity_matches, [])
+        self.assertFalse(sample_identity.identity_matches.exists())
 
     def test_sampleidentity_with_default_conclusive(self):
         sample_identity = SampleIdentity.objects.create(biosample=self.valid_biosample, predicted_sex=Individual.SEX_MALE)
@@ -25,7 +25,7 @@ class SampleIdentityTest(TestCase):
         self.assertEqual(sample_identity.predicted_sex, Individual.SEX_MALE)
         self.assertTrue(sample_identity.sex_concordance)
         self.assertEqual(sample_identity.biosample, self.valid_biosample)
-        self.assertEqual(sample_identity.identity_matches, [])
+        self.assertFalse(sample_identity.identity_matches.exists())
 
     def test_sampleidentity_with_false_sex_concordance(self):
         sample_identity = SampleIdentity.objects.create(biosample=self.valid_biosample, conclusive=False, predicted_sex=Individual.SEX_FEMALE)
@@ -33,4 +33,4 @@ class SampleIdentityTest(TestCase):
         self.assertEqual(sample_identity.predicted_sex, Individual.SEX_FEMALE)
         self.assertFalse(sample_identity.sex_concordance)
         self.assertEqual(sample_identity.biosample, self.valid_biosample)
-        self.assertEqual(sample_identity.identity_matches, [])
+        self.assertFalse(sample_identity.identity_matches.exists())

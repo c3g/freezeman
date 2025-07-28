@@ -117,8 +117,8 @@ class Migration(migrations.Migration):
                 ('matching_site_ratio', models.DecimalField(decimal_places=5, help_text='Ratio of the compared sites that are matching.', max_digits=6)),
                 ('compared_sites', models.PositiveIntegerField(help_text='Number of marker sites that have a value for both samples.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
-                ('matched', models.ForeignKey(help_text='Match found to be referencing this sample identity.', on_delete=django.db.models.deletion.PROTECT, related_name='_matched_identity_match', to='fms_core.sampleidentity')),
                 ('tested', models.ForeignKey(help_text='Match found while testing this sample identity.', on_delete=django.db.models.deletion.PROTECT, related_name='tested_identity_match', to='fms_core.sampleidentity')),
+                ('matched', models.ForeignKey(help_text='Match found to be referencing this sample identity.', on_delete=django.db.models.deletion.PROTECT, related_name='_matched_identity_match', to='fms_core.sampleidentity')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
