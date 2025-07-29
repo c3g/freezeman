@@ -33,9 +33,9 @@ class SampleIdentityQCRowHandler(GenericRowHandler):
 
             # Update the sample's identity flag according to the step action chosen
             step_action = workflow.get("step_action", None)
-            if step_action is None or step_action is WorkflowAction.NEXT_STEP:
+            if step_action is None or step_action == WorkflowAction.NEXT_STEP:
                 identity_flag = "Passed"
-            elif step_action is WorkflowAction.DEQUEUE_SAMPLE:
+            elif step_action == WorkflowAction.DEQUEUE_SAMPLE:
                 identity_flag = "Failed"
             else:
                 identity_flag = None
