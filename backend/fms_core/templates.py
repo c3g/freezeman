@@ -735,7 +735,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
 
 SAMPLE_IDENTITY_QC_TEMPLATE = {
   "identity": {"description": "Template to ascertain sample identity",
-               "file": static("submission_templates/Sample_identity_QC_v5_1_0.xlsx"),
+               "file": static("submission_templates/Sample_identity_QC_v5_2_0.xlsx"),
                "protocol": "Sample Identity Quality Control"},
   "sheets info": [
       {

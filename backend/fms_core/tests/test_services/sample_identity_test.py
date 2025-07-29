@@ -94,7 +94,7 @@ class SampleIdentityServicesTestCase(TestCase):
                                                                                                               replace=False)
 
         self.assertEqual(errors, [])
-        self.assertEqual(warnings.count(), 2)
+        self.assertEqual(len(warnings), 2)
         self.assertTrue("Predicted sex changed from" in warnings[0])
         self.assertTrue("Conclusive identity changed from" in warnings[1])
         self.assertFalse(sample_identity_tested.conclusive)
