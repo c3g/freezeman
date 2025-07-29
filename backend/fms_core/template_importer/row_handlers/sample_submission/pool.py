@@ -82,28 +82,23 @@ class PoolsRowHandler(GenericRowHandler):
                                                     "Index {2} for sample {3} are not different enough {4}.", [indices[i].name, samples_name[i], indices[j].name, samples_name[j], index_distance]))
                           self.warnings["index_collision"] = index_warnings
 
-            equal_volume_ratio = None
-            if samples_info[0].get("volume_ratio", None) is None:
-                equal_volume_ratio = True
-            else:
-                equal_volume_ratio = False
+            equal_volume_ratio = True
+            for sample in samples_info:
+                if sample.get("volume_ratio", None) is not None:
+                    equal_volume_ratio = False
+                    break
 
-            EQUAL_VOLUME_RATIO_ERROR = [f"All samples in the pool {pool['name']} must either define volume ratio or not at the same time."]
             EXP = Decimal(f'1E-{DerivedBySample.VOLUME_RATIO_DECIMAL_PLACES}')
             total_volume_ratio = 0
 
             for sample in samples_info:
-                volume_ratio = sample.get("volume_ratio", None)
                 if equal_volume_ratio:
-                    if volume_ratio:
-                        self.errors["volume_ratio"] = EQUAL_VOLUME_RATIO_ERROR
-                        break
-                    else:
-                        sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(EXP)
-                        total_volume_ratio += sample["volume_ratio"]
+                    sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(EXP)
+                    total_volume_ratio += sample["volume_ratio"]
                 else:
+                    volume_ratio = sample.get("volume_ratio", None)
                     if volume_ratio is None:
-                        self.errors["volume_ratio"] = EQUAL_VOLUME_RATIO_ERROR
+                        self.errors["volume_ratio"] = [f"All samples in the pool {pool['name']} must define volume ratio."]
                         break
                     else:
                         total_volume_ratio += Decimal(volume_ratio).quantize(EXP)
@@ -115,7 +110,7 @@ class PoolsRowHandler(GenericRowHandler):
                     samples_info[0]["volume_ratio"] += delta
                     total_volume_ratio += delta
                 else:
-                    self.errors["volume_ratio"].append(f"Total volume ratio of the samples in the pool {pool['name']} must add up to exactly 1. ({float(total_volume_ratio)})")
+                    self.errors["volume_ratio"].append(f"Total volume ratio of the samples in the pool {pool['name']} must add up to exactly 1. ({total_volume_ratio.normalize()})")
 
             # Pool samples
             pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=samples_info,
