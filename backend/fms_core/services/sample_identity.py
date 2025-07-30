@@ -126,9 +126,7 @@ def ingest_identity_testing_report(report_json, replace):
     for sample_report in report_json["samples"].values():
         biosample_id = int(sample_report["biosample_id"])
         conclusive = sample_report["passed"]
-        predicted_sex = None
-        if conclusive:
-            predicted_sex = DICT_FMS_SEX[sample_report.get("fluidigm_predicted_sex", None)]
+        predicted_sex = DICT_FMS_SEX[sample_report.get("fluidigm_predicted_sex", None)]
         sample_identity, identity_kept, errors_creation, warnings_creation = create_sample_identity(biosample_id=biosample_id,
                                                                                                     conclusive=conclusive,
                                                                                                     predicted_sex=predicted_sex,
