@@ -14,7 +14,7 @@ class SampleIdentityQCRowHandler(GenericRowHandler):
         if sample_obj:
             # Check if sample is not a library or a pool of libraries
             if sample_obj.is_pool:
-                self.errors['sample'] = f"Sample identity QC can't be performed on a pool of libraries."
+                self.errors['sample'].append(f"Sample identity QC can't be performed on a pool of libraries.")
 
             # Update sample with sample_information
             new_volume = None
@@ -22,14 +22,13 @@ class SampleIdentityQCRowHandler(GenericRowHandler):
             if volume_used is not None:
                 new_volume = sample_obj.volume - volume_used
             else:
-                self.errors['volume'] = 'Volume Used is required.'
+                self.errors['volume'].append('Volume Used is required.')
 
              # Return if there are any validation errors
             if any(self.errors.values()):
                 return
 
-            _, self.errors['sample_update'], self.warnings['sample_update'] = \
-                update_sample(sample_to_update=sample_obj, volume=new_volume)
+            _, self.errors['sample_update'], self.warnings['sample_update'] = update_sample(sample_to_update=sample_obj, volume=new_volume)
 
             # Update the sample's identity flag according to the step action chosen
             step_action = workflow.get("step_action", None)
