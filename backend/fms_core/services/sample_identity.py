@@ -57,7 +57,7 @@ def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: s
     
     return sample_identity, kept_existing_identity, errors, warnings
 
-def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_biosample_id: dict[int: Identity_match_info]):
+def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_biosample_id: dict[int, Identity_match_info]):
     """
     Create sample identity matches with the provided information.
 
