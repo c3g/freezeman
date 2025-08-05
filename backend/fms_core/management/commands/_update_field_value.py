@@ -60,7 +60,7 @@ def update_field_value(params, objects_to_delete, log):
                 entity = entity_model.objects.get(**id)
                 try:
                     db_old_value = getattr(entity, field)
-                    if not old_value or old_value == db_old_value:
+                    if not old_value or str(old_value) == str(db_old_value):
                         setattr(entity, field, new_value)
                         log.info(f"Updated model [{model}] id [{id} field [{field}] old value [{db_old_value}] new value [{new_value}].")
                         entity.save(requester_id=user_id) # Save using the id of the requester if present
