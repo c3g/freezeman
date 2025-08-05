@@ -1,9 +1,11 @@
 import React, { useMemo } from "react";
+import { Typography } from 'antd'
 import { Readset } from "../../models/frontend_models";
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns";
 import { FilterDescription } from "../../models/paged_items";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
 import { FILTER_TYPE } from "../../constants";
+import { numberToString } from "../../utils/numberToString";
 
 export interface ObjectWithReadset {
     readset: Readset
@@ -74,7 +76,7 @@ export function useReadsetColumnDefinitions({ renderReleaseStatus = defaultRende
             dataIndex: ['readset', 'number_reads'],
             sorter: true,
             render: (_, { readset }) => {
-                return readset && readset.metrics && readset.metrics['nb_reads'] ? <div> {Number(readset.metrics['nb_reads'].value_numeric)} </div> : ''
+                return readset && readset.metrics && readset.metrics['nb_reads'] ? <Typography className='table-column-numbers' style={{float: 'right'}}> {numberToString(Number(readset.metrics['nb_reads'].value_numeric))} </Typography> : ''
             }
         },
     }), [renderReleaseStatus])
