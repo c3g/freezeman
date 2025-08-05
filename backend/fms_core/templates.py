@@ -571,7 +571,7 @@ SAMPLE_POOLING_PLANNING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_14_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v5_2_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
