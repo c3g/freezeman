@@ -93,6 +93,7 @@ _sample_filterset_fields: FiltersetFields = {
 
     "container": FK_FILTERS,  # PK
     "derived_samples__biosample__collection_site": FREE_TEXT_FILTERS,
+    "derived_samples__biosample__id": FK_FILTERS,
     "derived_samples__id": PK_FILTERS,
     **_prefix_keys("container__", _container_filterset_fields),
     "container__location__barcode": CATEGORICAL_FILTERS_LOOSE,
@@ -109,6 +110,13 @@ _sample_minimal_filterset_fields: FiltersetFields = {
 
 _sample_metadata_filterset_fields: FiltersetFields = {
     "biosample__id": FK_FILTERS,
+}
+
+_sample_identity_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "biosample_id": FK_FILTERS,
+    "conclusive": ["exact"],
+    "predicted_sex": CATEGORICAL_FILTERS,
 }
 
 _protocol_filterset_fields: FiltersetFields = {
@@ -313,6 +321,7 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     "sample__derived_samples__sample_kind__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__derived_samples__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("sample__derived_samples__biosample__sample_identity__", _sample_identity_filterset_fields),
     "sample__container__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
     "sample__container__location__barcode": CATEGORICAL_FILTERS_LOOSE,

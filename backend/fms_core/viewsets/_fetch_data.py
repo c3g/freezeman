@@ -98,6 +98,7 @@ class FetchSampleData(FetchData):
             'creation_date',
             'quality_flag',
             'quantity_flag',
+            'identity_flag',
             'depleted',
             'comment',
             'created_by',
@@ -191,6 +192,7 @@ class FetchSampleData(FetchData):
                     'experimental_group': derived_by_sample["derived_sample__experimental_group"] if not is_pool else None,
                     'quality_flag': sample["quality_flag"],
                     'quantity_flag': sample["quantity_flag"],
+                    'identity_flag': sample["identity_flag"],
                     'created_by': sample["created_by"],
                     'created_at': sample["created_at"],
                     'updated_by': sample["updated_by"],
@@ -284,6 +286,7 @@ class FetchSampleData(FetchData):
             'creation_date',
             'quality_flag',
             'quantity_flag',
+            'identity_flag',
             'depleted',
             'comment',
         )
@@ -366,6 +369,7 @@ class FetchSampleData(FetchData):
                 'pedigree': derived_by_sample["derived_sample__biosample__individual__pedigree"] if not is_pool or not is_library else None,
                 'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
                 'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,
+                'identity_flag': ["Failed", "Passed"][sample["identity_flag"]] if sample["identity_flag"] is not None else None,
                 'project': project_name_by_id[derived_by_sample["project_id"]] if not is_pool and derived_by_sample["project_id"] is not None else None,
                 'depleted': ["No", "Yes"][sample["depleted"]],
                 'is_library': is_library,
@@ -515,6 +519,7 @@ class FetchLibraryData(FetchData):
             'creation_date',
             'quality_flag',
             'quantity_flag',
+            'identity_flag',
             'depleted',
         )
 
@@ -571,6 +576,7 @@ class FetchLibraryData(FetchData):
                     'creation_date': sample["creation_date"],
                     'quality_flag': sample["quality_flag"],
                     'quantity_flag': sample["quantity_flag"],
+                    'identity_flag': sample["identity_flag"],
                     'library_type': derived_by_sample["derived_sample__library__library_type__name"] if not is_pool else None,
                     'platform': derived_by_sample["derived_sample__library__platform__name"],
                     'library_size': sample["fragment_size"],
@@ -609,6 +615,7 @@ class FetchLibraryData(FetchData):
             'creation_date',
             'quality_flag',
             'quantity_flag',
+            'identity_flag',
             'depleted',
         )
 
@@ -675,6 +682,7 @@ class FetchLibraryData(FetchData):
                     'creation_date': sample["creation_date"],
                     'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
                     'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,
+                    'identity_flag': ["Failed", "Passed"][sample["identity_flag"]] if sample["identity_flag"] is not None else None,
                     'library_type': derived_by_sample["derived_sample__library__library_type__name"] if not is_pool else None,
                     'platform': derived_by_sample["derived_sample__library__platform__name"],
                     'library_size': sample["fragment_size"],

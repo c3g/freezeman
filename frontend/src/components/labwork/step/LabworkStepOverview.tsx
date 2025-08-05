@@ -9,7 +9,7 @@ import { selectLabworkStepSummaryState } from '../../../selectors'
 import { Step } from '../../../models/frontend_models'
 import { FMSId } from '../../../models/fms_api_models'
 import { IdentifiedTableColumnType } from '../../pagedItemsTable/PagedItemsColumns'
-import { SampleAndLibrary } from '../../WorkflowSamplesTable/ColumnSets'
+import { SampleAndLibraryAndIdentity } from '../../WorkflowSamplesTable/ColumnSets'
 import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { LabworkStepSamples, LabworkStepSamplesGroup } from '../../../modules/labworkSteps/models'
@@ -21,7 +21,7 @@ export interface LabworkStepOverviewProps {
   step: Step,
   refreshing: boolean
   stepSamples: LabworkStepSamples
-	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
+	columns: IdentifiedTableColumnType<SampleAndLibraryAndIdentity>[]
 	hasFilter: boolean,
 	clearFilters?: (refresh?: boolean) => void,
 	filterDefinitions?: FilterDescriptionSet,
@@ -34,7 +34,7 @@ export interface LabworkStepOverviewProps {
 	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[],
-		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
+		onSelectionChanged: (selectedSamples: SampleAndLibraryAndIdentity[]) => void
 	}
 }
 

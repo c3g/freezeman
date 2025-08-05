@@ -54,6 +54,8 @@ class Sample(TrackedModel):
                                        help_text='Quality flag of the sample.', max_length=20)
     quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
                                         help_text='Quantity flag of the sample.', max_length=20)
+    identity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                        help_text='Identity flag of the sample.', max_length=20)
 
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
 
@@ -93,6 +95,10 @@ class Sample(TrackedModel):
     @property
     def biosample_not_pool(self) -> Biosample:
         return self.derived_samples.first().biosample if not self.is_pool else None
+
+    @property
+    def failed_qc(self) -> bool:
+        return any([self.quality_flag is False, self.quantity_flag is False, self.identity_flag is False])
 
     # Computed properties for containers
 

@@ -16,6 +16,7 @@ from fms_core.services.sample_next_step import (dequeue_sample_from_specific_ste
                                                 move_sample_to_next_step,
                                                 dequeue_sample_from_all_study_workflows_matching_step,
                                                 remove_sample_from_workflow,
+                                                record_step_history,
                                                 execute_workflow_action)
 from fms_core._constants import WorkflowAction
 
@@ -480,6 +481,50 @@ class SampleNextStepServicesTestCase(TestCase):
                                                     step_order__step=step,
                                                     workflow_action=WorkflowAction.DEQUEUE_SAMPLE).count(), 1)
 
+    def test_record_step_history(self):  
+        # Test valid completion
+        container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
+        sample_in = create_fullsample(name="TestSampleNextStep_in",
+                                      alias="TestSampleNextStep_in",
+                                      volume=5000,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_DNA,
+                                      container=container1)
+        for derived_by_sample in sample_in.derived_by_samples.all():
+                derived_by_sample.project_id = self.project.id
+                derived_by_sample.save()
+
+        step = Step.objects.get(name="Sample QC (DNA)")
+        sample_next_step = SampleNextStep.objects.create(sample=sample_in, step=step)
+        sample_next_step_initial_count = SampleNextStep.objects.all().count()
+        step_order = StepOrder.objects.get(order=2, workflow=self.workflow_pcr_free, step=step)
+        study = Study.objects.create(letter="B",
+                                     project=self.project,
+                                     workflow=self.workflow_pcr_free,
+                                     start=2,
+                                     end=3)
+        SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step, step_order=step_order, study=study)
+        self.assertTrue(isinstance(sample_next_step, SampleNextStep))
+        self.assertEqual(sample_next_step.sample, sample_in)
+
+        protocol = Protocol.objects.get(name="Sample Quality Control")
+        process = Process.objects.create(protocol=protocol)
+        process_measurement = ProcessMeasurement.objects.create(process=process,
+                                                                source_sample=sample_in,
+                                                                execution_date=datetime.date(2021, 1, 10),
+                                                                volume_used=10)
+        step_histories, errors, warnings = record_step_history(step, sample_in, process_measurement, WorkflowAction.REPEAT_QC_STEP)
+        step_history_obj = StepHistory.objects.filter(study=study,
+                                                      process_measurement__source_sample=sample_in,
+                                                      step_order__step=step,
+                                                      workflow_action=WorkflowAction.REPEAT_QC_STEP).first()
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(step_histories[0], step_history_obj)
+        self.assertTrue(SampleNextStep.objects.filter(id=sample_next_step.id).exists())
+        sample_next_step_final_count = SampleNextStep.objects.all().count()
+        self.assertEqual(sample_next_step_initial_count, sample_next_step_final_count)
+
     def test_execute_workflow_action(self):
         container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
         container2 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_2', barcode='T123456_2'))
@@ -575,10 +620,29 @@ class SampleNextStepServicesTestCase(TestCase):
                                                                   source_sample=sample_out,
                                                                   execution_date=datetime.date(2021, 1, 10),
                                                                   volume_used=2)
-        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.DEQUEUE_SAMPLE.label,
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.REPEAT_QC_STEP.label,
                                                    step=step_2,
                                                    current_sample=sample_out,
                                                    process_measurement=process_measurement_3)
+        
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(StepHistory.objects.filter(study=study_B,
+                                                    process_measurement__source_sample=sample_out,
+                                                    step_order__step=step_2,
+                                                    workflow_action=WorkflowAction.REPEAT_QC_STEP).count(), 1)
+        
+
+        process_4 = Process.objects.create(protocol=protocol_3)
+        process_measurement_4 = ProcessMeasurement.objects.create(process=process_4,
+                                                                  source_sample=sample_out,
+                                                                  execution_date=datetime.date(2021, 1, 10),
+                                                                  volume_used=2)
+
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.DEQUEUE_SAMPLE.label,
+                                                   step=step_2,
+                                                   current_sample=sample_out,
+                                                   process_measurement=process_measurement_4)
 
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])

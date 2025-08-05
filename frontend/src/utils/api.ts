@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 
@@ -208,7 +208,7 @@ const api = {
   },
 
   samples: {
-    get: sampleId => get(`/samples/${sampleId}/`),
+    get: sampleId => get<JsonResponse<FMSSample>>(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], queryParams?: QueryParams) =>
       filteredpost<StringResponse>(`/samples/add_samples_to_study/`, queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
@@ -229,6 +229,10 @@ const api = {
       request: (options, template) => filteredpost(`/samples/prefill_template/`, {...options}, form({ template: template })),
     },
     search: q => get("/samples/search/", { q }),
+  },
+
+  sampleIdentity: {
+    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identities/`, options, { abort }),
   },
 
   sampleMetadata: {

@@ -233,6 +233,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     creation_date: string               // Date library was created (YYYY-MM-DD)
     quality_flag?: boolean              // Quality check flag (undefined in no QC has been performed)
     quantity_flag?: boolean             // Quantity check flag (undefined in no QC has been performed)
+    identity_flag?: boolean             // Identity check flag (undefined until identity QC has been performed)
     library_type: string                // Library type name, eg "PCR-Free"
     platform: string                    // Platform name, eg "ILLUMINA" or "DNBSEQ"
     library_size?: number               // Size in bp
@@ -394,8 +395,24 @@ export interface FMSSample extends FMSTrackedModel {
     experimental_group: string[]        // Array of experiment group names
     quality_flag?: boolean              // QC quality flag
     quantity_flag?: boolean             // QC quantity flag
+    identity_flag?: boolean             // QC identity flag
     comment: string                     // User comment
     derived_samples_count: number       // Number of derived_samples (used to count samples in pool, if it's a pool)
+}
+
+export interface FMSSampleIdentity extends FMSTrackedModel {
+    biosample_id: FMSId                            // Biosample for the identity.
+    conclusive: boolean                         // Flag indicating if the identity qc was conclusive.
+    predicted_sex: 'M' | 'F' | 'Unknown' | null // Predicted sex of the sample
+    sex_concordance: boolean | null             // Whether the sample matches sex on individual (or individual sex unknown)
+    identity_matches: FMSSampleIdentityMatch[]
+}
+
+export interface FMSSampleIdentityMatch extends FMSTrackedModel {
+    tested_biosample_id: FMSId  // Match found while testing this sample identity.
+    matched_biosample_id: FMSId // Match found to be referencing this sample identity.
+    matching_site_ratio: number // Ratio of the compared sites that are matching.
+    compared_sites: number      // Number of marker sites that have a value for both samples.
 }
 
 export interface FMSSampleUpdate {
@@ -411,6 +428,7 @@ export interface FMSSampleUpdate {
     comment: string | null
     quality_flag: boolean | null
     quantity_flag: boolean | null
+    identity_flag: boolean | null
     // derived_sample_data
     sample_kind: FMSId
     tissue_source: FMSId | null
@@ -461,7 +479,7 @@ export interface FMSStep extends FMSTrackedModel {
     step_specifications: FMSStepSpecification[]
 }
 
-export type WorkflowActionType = 'NEXT_STEP' | 'DEQUEUE_SAMPLE' | 'REPEAT_STEP' | 'IGNORE_WORKFLOW'
+export type WorkflowActionType = 'NEXT_STEP' | 'DEQUEUE_SAMPLE' | 'REPEAT_STEP' | 'REPEAT_QC_STEP' | 'IGNORE_WORKFLOW'
 
 export interface FMSStepHistory extends FMSTrackedModel {
     study: FMSId

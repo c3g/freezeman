@@ -101,7 +101,7 @@ const SampleDetailsContent = () => {
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
   const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
-  const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
+  const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag , identity: sample.identity_flag};
   const [processMeasurements, setProcessMeasurements] = useState([])
   const experimentRunsIDs = isLoaded && container?.experiment_run ? [container.experiment_run] : []
   const library = librariesByID[id]
@@ -220,7 +220,7 @@ const SampleDetailsContent = () => {
                 : "—"}
             </Descriptions.Item>
             <Descriptions.Item label="QC Flag">
-              {!isNullish(flags.quantity) || !isNullish(flags.quality)
+              {!isNullish(flags.quantity) || !isNullish(flags.quality) || !isNullish(flags.identity)
                 ? <QCFlag flags={flags} />
                 : null}
             </Descriptions.Item>

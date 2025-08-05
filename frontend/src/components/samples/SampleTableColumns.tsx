@@ -13,6 +13,7 @@ import SampleKindTag from '../SampleKindTag'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
 import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndividualRenderComponent, WithProjectRenderComponent } from '../shared/WithItemRenderComponent'
+import { SampleIdentityColumnID } from './SampleIdentityColumns'
 
 /*
 	Defines a set of Ant Table column descriptors for sample fields. Each column
@@ -260,8 +261,8 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		dataIndex: ['sample', 'qc_flag'],
 		render: (_, { sample }) => {
 			if (sample) {
-				const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag }
-				if (!isNullish(flags.quantity) || !isNullish(flags.quality)) {
+				const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag, identity: sample.identity_flag }
+				if (!isNullish(flags.quantity) || !isNullish(flags.quality) || !isNullish(flags.identity)) {
 					return <QCFlag flags={flags} />
 				}
 			}
@@ -527,6 +528,11 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
 	[SampleColumnID.QUEUED_STEPS]: 'step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',
+}
+
+export const SAMPLE_NEXT_STEP_IDENTITY_COLUMN_FILTER_KEYS: Partial<Record<SampleIdentityColumnID, string>> = {
+	[SampleIdentityColumnID.CONCLUSIVE]: 'sample__derived_samples__biosample__sample_identity__conclusive',
+	[SampleIdentityColumnID.PREDICTED_SEX]: 'sample__derived_samples__biosample__sample_identity__predicted_sex'
 }
 
 export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: string } = {

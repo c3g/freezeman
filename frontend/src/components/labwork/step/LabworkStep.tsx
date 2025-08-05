@@ -17,12 +17,13 @@ import ExecuteAutomationButton from './AdditionalAutomationData'
 import { getColumnsForStep } from '../../WorkflowSamplesTable/ColumnSets'
 import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SAMPLE_NEXT_STEP_IDENTITY_COLUMN_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import LabworkSelection from './LabworkSelection'
 import Placement from '../../placementVisuals/Placement'
 import { flushPlacement } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
+import { SAMPLE_IDENTITY_COLUMN_FILTERS } from '../../samples/SampleIdentityColumns'
 
 const { Text } = Typography
 
@@ -147,6 +148,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return {
 			...SAMPLE_COLUMN_FILTERS,
 			...LIBRARY_COLUMN_FILTERS,
+			...SAMPLE_IDENTITY_COLUMN_FILTERS,
 			GROUPING_CONTAINER,
 			GROUPING_CREATED_BY
 		}
@@ -156,6 +158,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return {
 			...SAMPLE_NEXT_STEP_FILTER_KEYS,
 			...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS,
+			...SAMPLE_NEXT_STEP_IDENTITY_COLUMN_FILTER_KEYS,
 			[GROUPING_CONTAINER.label]: GROUPING_CONTAINER.key,
 			[GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
 		}

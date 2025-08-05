@@ -526,10 +526,12 @@ class SampleServicesTestCase(TestCase):
                                               fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         updated_sample, errors, warnings = update_qc_flags(sample=new_sample,
                                                            quantity_flag="Passed",
-                                                           quality_flag="Failed")
+                                                           quality_flag="Failed",
+                                                           identity_flag="Passed")
         self.assertEqual(updated_sample, new_sample)
         self.assertTrue(updated_sample.quantity_flag)
         self.assertFalse(updated_sample.quality_flag)
+        self.assertTrue(updated_sample.identity_flag)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -548,13 +550,16 @@ class SampleServicesTestCase(TestCase):
                                               fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         updated_sample, _, _ = update_qc_flags(sample=new_sample,
                                                quantity_flag="Passed",
-                                               quality_flag="Failed")
+                                               quality_flag="Failed",
+                                               identity_flag="Failed")
         self.assertTrue(updated_sample.quantity_flag)
         self.assertFalse(updated_sample.quality_flag)
+        self.assertFalse(updated_sample.identity_flag)
         cleared_sample, errors, warnings = remove_qc_flags(sample=new_sample)
         self.assertEqual(cleared_sample, new_sample)
         self.assertIsNone(cleared_sample.quantity_flag)
         self.assertIsNone(cleared_sample.quality_flag)
+        self.assertFalse(cleared_sample.identity_flag)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 

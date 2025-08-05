@@ -857,7 +857,7 @@ def _process_sample(process,
     return (sample_destination, errors, warnings)
 
 
-def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
+def update_qc_flags(sample, quantity_flag: str=None, quality_flag: str=None, identity_flag: str=None):
     """
     Set the quantity_flag and quality_flag to given values.
 
@@ -865,6 +865,7 @@ def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
       `sample`: Sample receiving the new flags.
       `quantity_flag`: 'Passed', 'Failed' or None values to set the quantity flag.
       `quality_flag`: 'Passed', 'Failed' or None values to set the quantity flag.
+      `identity_flag`: 'Passed', 'Failed' or None values to set the identity flag.
       
     Returns:
       The updated sample, errors and warnings
@@ -874,7 +875,7 @@ def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
 
     try:
         # Update the QC flags for the given sample
-        if (quantity_flag is None and quality_flag is None):
+        if (quantity_flag is None and quality_flag is None and identity_flag is None):
             errors.append('At least one QC flag is required.')
         else:
             if quantity_flag is not None:
@@ -885,6 +886,10 @@ def update_qc_flags(sample, quantity_flag=None, quality_flag=None):
                 if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
                     warnings.append(("Sample {0} quality flag will be changed to {1}.", [sample.name, quality_flag]))
                 sample.quality_flag = (quality_flag == 'Passed')
+            if identity_flag is not None:
+                if sample.identity_flag is not None and sample.identity_flag != (identity_flag == 'Passed'):
+                    warnings.append(("Sample {0} identity flag will be changed to {1}.", [sample.name, identity_flag]))
+                sample.identity_flag = (identity_flag == 'Passed')
             sample.save()
     except Error as e:
         errors.append(';'.join(e.messages))
@@ -897,7 +902,7 @@ def remove_qc_flags(sample):
     warnings = []
 
     try:
-        # Remove the QC flags for the given sample
+        # Remove the QC flags for the given sample, identity qc flag kept unless specifically cleared.
         sample.quantity_flag = None
         sample.quality_flag = None
         sample.save()
@@ -1050,3 +1055,43 @@ def can_remove_sample(sample: Sample) -> Tuple[bool, List[str], List[str]]:
         is_removable = not is_child and not is_parent and not was_processed
 
     return is_removable, errors, warnings
+
+def get_biosample_name(sample: Sample) -> Tuple[bool, List[str], List[str]]:
+    """
+    Utility function that returns the sample name with the biosample ID as suffix separated by an underscore (_).
+
+    Args:
+        sample: Sample for which a unique sample name is required.
+
+    Returns:
+        Tuple with the string biosample name, the list of errors and the list of warnings.
+    """
+    biosample_name = None
+    errors = []
+    warnings = []
+    if sample.is_pool:
+        errors.append(f"Sample is a pool and cannot receive a unique biosample name.")
+    else:
+        biosample_id = str(sample.biosample_not_pool.id)
+        biosample_name = sample.name + "_" + biosample_id
+    return biosample_name, errors, warnings
+
+def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], List[str]]:
+    """
+    Utility function that extracts the biosample ID from the biosample name.
+
+    Args:
+        biosample_name: Biosample name build from the sample name and the biosample ID.
+
+    Returns:
+        Tuple with the int biosample ID, the list of errors and the list of warnings.
+    """
+    biosample_id = None
+    errors = []
+    warnings = []
+    
+    try:
+        biosample_id = int(biosample_name.split("_")[-1])
+    except ValueError as err:
+        errors.append(f"Biosample ID cannot be extracted from {biosample_name}.")
+    return biosample_id, errors, warnings

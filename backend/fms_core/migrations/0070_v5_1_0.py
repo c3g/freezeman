@@ -1,7 +1,7 @@
-
+import reversion
 from django.db import migrations
 from django.contrib.auth.models import User
-import reversion
+
 
 ADMIN_USERNAME = 'biobankadmin'
 

@@ -1,6 +1,6 @@
-import { SampleAndLibrary } from "../../components/WorkflowSamplesTable/ColumnSets"
+import { SampleAndLibraryAndIdentity } from "../../components/WorkflowSamplesTable/ColumnSets"
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/pagedItemsTable/serializeFilterParamsTS"
-import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory, WorkflowStepOrder, WorkflowActionType } from "../../models/fms_api_models"
+import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory, WorkflowStepOrder, WorkflowActionType, FMSSampleIdentity } from "../../models/fms_api_models"
 import { createItemsByID } from "../../models/frontend_models"
 import { selectLibrariesByID, selectSamplesByID, selectStudySettingsByID, selectStudyTableStatesByID } from "../../selectors"
 import store from "../../store"
@@ -31,7 +31,7 @@ export function lazyLoadStudySamplesInStepByStudy(studyID: FMSId, stepOrderID: F
 		ready: async (offset: number, limit: number) => {
 			const fetchSamplesAtStepOrderResponse = await fetchSamplesAtStepOrder(studyID, stepOrderID, offset, limit)
 			const { sampleNextSteps, count: readyCount } = fetchSamplesAtStepOrderResponse
-			const readySamples = await fetchSamplesAndLibraries(sampleNextSteps.map((s) => s.sample))
+			const readySamples = await fetchSamplesAndLibrariesAndIdentities(sampleNextSteps.map((s) => s.sample))
 
 			return {
 				samples: readySamples,
@@ -78,12 +78,17 @@ export async function loadStudySampleStep(studyID: FMSId, stepOrder: WorkflowSte
 	}
 }
 
-export async function fetchSamplesAndLibraries(sampleList: number[], forceFetch = false) {
+export async function fetchSamplesAndLibrariesAndIdentities(sampleList: number[], forceFetch = false) {
+	const sampleIdentities: Record<FMSId, FMSSampleIdentity> = {}
 	if (sampleList.length > 0 || forceFetch) {
 		const samples = await fetchSamples(sampleList, false)
 		if (samples.length > 0) {
 			const sampleIDs = samples.filter(sample => sample.is_library).map(sample => sample.id)
 			await fetchLibrariesForSamples(sampleIDs)
+			const results = (await store.dispatch(api.sampleIdentity.list({ biosample__id__in: samples.map((s => s.biosample_id)).join(',') }))).data.results
+			for (const sampleIdentity of results) {
+				sampleIdentities[sampleIdentity.biosample_id] = sampleIdentity
+			}
 		}
 	}
 
@@ -93,15 +98,18 @@ export async function fetchSamplesAndLibraries(sampleList: number[], forceFetch 
 	const availableSamples = sampleList.reduce((availableSamples, s) => {
 		const sample = samplesByID[s]
 		if (sample) {
+			let availableSample: SampleAndLibraryAndIdentity = { sample }
 			if (sample.is_library) {
 				const library = librariesByID[s]
-				availableSamples.push({ sample, library })
-			} else {
-				availableSamples.push({ sample })
+				availableSample = { ...availableSample, library }
 			}
+			if (sample.biosample_id in sampleIdentities) {
+				availableSample = { ...availableSample, identity: sampleIdentities[sample.biosample_id] }
+			}
+			availableSamples.push(availableSample)
 		}
 		return availableSamples
-	}, [] as SampleAndLibrary[])
+	}, [] as SampleAndLibraryAndIdentity[])
 
 	return availableSamples
 }

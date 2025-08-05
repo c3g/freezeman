@@ -183,3 +183,50 @@ RUN_PROCESSING_SCHEMA = {
 }
 
 RUN_PROCESSING_VALIDATOR = JsonSchemaValidator(RUN_PROCESSING_SCHEMA, formats=["date-time"])
+
+SAMPLE_IDENTITY_REPORT_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "fms:sample_identity_report",
+    "title": "Sample identity report schema",
+    "description": "Schema used to define the values in sample identity report files.",
+    "type": "object",
+    "properties": {
+        "barcode": {"type": "string"},
+        "instrument": {"type": "string"},
+        "samples": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "sample_name": {"type": "string"},
+                        "biosample_id": {"type": "string"},
+                        "sample_position": {"type": "string"},
+                        "passed": {"type": "boolean"},
+                        "fluidigm_predicted_sex": {"type": ["string", "null"]}, # null: no calculation possible, 'inconclusive': result ambiguous, 'male': Male, 'female': Female
+                        "genotype_matches": {
+                            "type": ["object", "null"],
+                            "patternProperties": {
+                                "^.*$": {
+                                    "type": "object",
+                                    "properties": {
+                                        "sample_name": {"type": "string"},
+                                        "biosample_id": {"type": "string"},
+                                        "plate_barcode": {"type": "string"},
+                                        "percent_match": {"type": "number", "minimum": 0, "maximum": 100},
+                                        "n_sites": {"type": "number", "minimum": 1, "maximum": 93},
+                                    },
+                                    "required": ["sample_name", "biosample_id", "plate_barcode", "percent_match", "n_sites"]
+                },
+            },
+        }
+                    },
+                    "required": ["sample_name", "biosample_id", "sample_position", "passed"]
+                },
+            },
+        }
+    },
+    "required": ["barcode", "samples"],
+}
+
+SAMPLE_IDENTITY_REPORT_VALIDATOR = JsonSchemaValidator(SAMPLE_IDENTITY_REPORT_SCHEMA)

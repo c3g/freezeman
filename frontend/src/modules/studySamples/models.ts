@@ -1,4 +1,4 @@
-import { SampleAndLibrary } from "../../components/WorkflowSamplesTable/ColumnSets"
+import { SampleAndLibraryAndIdentity } from "../../components/WorkflowSamplesTable/ColumnSets"
 import { FMSId, FMSSampleNextStepByStudy, FMSStepHistory, WorkflowStepOrder } from "../../models/fms_api_models"
 import { Sample } from "../../models/frontend_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
@@ -23,7 +23,7 @@ export interface StudySampleStep {
 	readonly protocolID: FMSId					// protocol ID
 	readonly ready: {
 		readonly count: number,
-		readonly samples: SampleAndLibrary[]
+		readonly samples: SampleAndLibraryAndIdentity[]
 		readonly sampleNextStepByID: { [key: Sample['id']]: FMSSampleNextStepByStudy['id'] }
 	}
 	readonly completed: {
