@@ -199,3 +199,5 @@ On this page we list the various steps needed for deployments. The first section
   * Add FMS_AUTOMATIONS_WORK_PATH to env variables through uwsgi.ini.
 * Version 4.13.0
   * Add a daily Cron call to "Python manage.py prepare_report_data" from a script on the server.
+* Version 5.2.0
+  * Upgrade node.js to v16.20.2.
