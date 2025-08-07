@@ -122,6 +122,7 @@ On this page we list the various steps needed for deployments. The first section
 
     nvm install v16.20.2
     nvm use v16.20.2
+    nvm alias default v16.20.2
     ```
   * Install and Configure nginx
     ```
