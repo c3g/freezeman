@@ -424,7 +424,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
               if (options.notifyError) {
                   let detail = response.data.detail
                   if (Array.isArray(detail)) {
-                    detail = detail.join('. ')
+                    detail = detail.join('; ')
                   }
                   dispatch(notifyError({
                     id: baseRoute,
