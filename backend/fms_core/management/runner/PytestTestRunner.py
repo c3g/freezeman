@@ -20,7 +20,7 @@ class PytestTestRunner():
         """
         import pytest
 
-        argv = ['-n=logical']
+        argv = ['--maxprocesses=9', '-n=logical']
         if self.verbosity == 0:
             argv.append('--quiet')
         if self.verbosity == 2:
