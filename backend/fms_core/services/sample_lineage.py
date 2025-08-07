@@ -61,13 +61,14 @@ def create_sample_lineage_graph(sampleId: int) -> Tuple[List[Dict[str, Any]], Li
                                                   .annotate(name=F("sample__name")) \
                                                   .annotate(quality_flag=F("sample__quality_flag")) \
                                                   .annotate(quantity_flag=F("sample__quantity_flag")) \
+                                                  .annotate(identity_flag=F("sample__identity_flag")) \
 
         sampleIds = derivedBySamples.values_list("sample__id", flat=True)
         process_measurements = ProcessMeasurement.objects.filter(source_sample__in=sampleIds) \
                                                          .annotate(child_sample=F("lineage__child")) \
                                                          .annotate(protocol_name=F("process__protocol__name"))
 
-        nodes = list(derivedBySamples.values("name", "quality_flag", "quantity_flag").annotate(id=F("sample_id")))
+        nodes = list(derivedBySamples.values("name", "quality_flag", "quantity_flag", "identity_flag").annotate(id=F("sample_id")))
         edges = list(process_measurements.values("id", "source_sample", "child_sample", "protocol_name"))
     
     return (nodes, edges, errors)

@@ -8,6 +8,7 @@ import { Graph, GraphConfiguration, GraphData, GraphLink, GraphNode } from "free
 
 import dagre, { GraphLabel, Node } from "dagre"
 import api from "../../../utils/api";
+import { isNullish } from "../../../utils/functions";
 import { useAppDispatch } from '../../../hooks'
 import { useResizeObserver } from "../../../utils/ref"
 import { ProcessMeasurement, Sample } from "../../../models/frontend_models";
@@ -31,9 +32,9 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
   const dispatch = useAppDispatch()
 
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
-  
+
   const nodeSize = { width: 10, height: 10 }
-  
+
   // maxSize.height is sometimes outrageously large or extremely small
   const graphSize = { width: maxSize.width - 50, height: maxSize.height - 150 }
   const graphConfig: GraphConfiguration<any, any> = {
@@ -73,7 +74,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
     staticGraph: false,
     d3: {}
   }
-  
+
   const dagreConfig: GraphLabel = {
     rankdir: "LR",
     ranksep: 150,
@@ -81,7 +82,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
     marginx: 50,
     marginy: 50
   }
-  
+
   const [graphData, setGraphData] = useState<GraphData<PositionedGraphNode, GraphLink>>({ nodes: [], links: [] })
   const [nodesToEdges, setNodesToEdges] = useState<{ [key: string]: SampleLineageGraphProcessMeasurement }> ({})
   
@@ -103,7 +104,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
         ...prev,
         [curr.id.toString()]: curr
       }), {})
-      
+
       // use dagre to position nodes
       const g = new dagre.graphlib.Graph({ directed: true })
         .setGraph(dagreConfig)
@@ -117,18 +118,18 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
         }
       }
       dagre.layout(g)
-      
+
       // create final nodes and links for graphData for react-d3-graph
-      
+
       const nodes = g.nodes()
         .map((v) => {
           // 'id' is set by g.setNode but typedef is dumb :(
           const n: Node & { id: string } = g.node(v) as Node & { id: string }
           const curr_sample = samples[n.id]
           let color = "black"
-          if (curr_sample.quality_flag !== null || curr_sample.quantity_flag !== null || curr_sample.identity_flag !== null) {
+          if (!isNullish(curr_sample.quality_flag) || !isNullish(curr_sample.quantity_flag) || !isNullish(curr_sample.identity_flag)) {
             const flags = [curr_sample.quality_flag, curr_sample.quantity_flag, curr_sample.identity_flag]
-            color = flags.every((flag) => flag !== false) ? "green" : "red"
+            color = flags.some((flag) => flag === false) ? "red" : "green"
           }
           return {
             ...n,
@@ -147,7 +148,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
         }
       })
       setGraphData({nodes, links})
-      
+
       setNodesToEdges(
         data.edges.filter((process) => process.child_sample)
         .reduce((prev, p) => {
@@ -171,7 +172,7 @@ function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : 
       if (currentNode) {
         const enclosedWidth = Math.max(...nodes.map((n) => n.x))
         const { x: cx, y: cy } = currentNode
-        
+
         // if graph too wide
         if (enclosedWidth > (graphSize.width - nodeSize.width)) {
           dx = graphSize.width / 2 - cx
