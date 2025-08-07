@@ -42,6 +42,7 @@ class SampleIdentityQCImporter(GenericImporter):
             sample = {
                 'coordinates': str_cast_and_normalize(row_data['Sample Container Coord']),
                 'container': {'barcode': str_cast_and_normalize(row_data['Sample Container Barcode'])},
+                'identity_flag': str_cast_and_normalize(row_data['Identity Flag']),
             }
 
             process_measurement = {
