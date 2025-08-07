@@ -328,6 +328,8 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
             try:
                 rows_dicts = self._prepare_prefill_dicts(template, queryset, user_prefill_data, placement_data)
                 prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
+            except ValidationError as err:
+                return HttpResponseBadRequest(json.dumps({"detail": err.messages}), content_type="application/json")
             except Exception as err:
                 return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
             
