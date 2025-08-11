@@ -30,17 +30,8 @@ class SampleIdentityQCRowHandler(GenericRowHandler):
 
             _, self.errors['sample_update'], self.warnings['sample_update'] = update_sample(sample_to_update=sample_obj, volume=new_volume)
 
-            # Update the sample's identity flag according to the step action chosen
-            step_action = workflow.get("step_action", None)
-            if step_action is None or step_action == WorkflowAction.NEXT_STEP.label:
-                identity_flag = "Passed"
-            elif step_action == WorkflowAction.DEQUEUE_SAMPLE.label:
-                identity_flag = "Failed"
-            else:
-                identity_flag = None
-
-            if identity_flag is not None:
-                _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj, identity_flag=identity_flag)
+            # Update the sample's identity flag
+            _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj, identity_flag=sample['identity_flag'])
 
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
@@ -51,7 +42,6 @@ class SampleIdentityQCRowHandler(GenericRowHandler):
                     comment=process_measurement['comment'],
                 )
 
-            
             if process_measurement_obj:
                 # Process the workflow action
                 self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],

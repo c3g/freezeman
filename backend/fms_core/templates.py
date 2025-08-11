@@ -740,7 +740,7 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleIdentityQC',
-          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'QC Container Coord', 'Volume Used (uL)', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'QC Container Coord', 'Volume Used (uL)', 'Identity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
           'batch': False,
       },
       {
@@ -751,6 +751,7 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
   ],
   "user prefill info": {
       "Volume Used (uL)": "number",
+      "Identity Flag": VALID_QC_FLAG_CHOICES,
       "QC Date (YYYY-MM-DD)": "date",
       "Comment": "text"
   },
