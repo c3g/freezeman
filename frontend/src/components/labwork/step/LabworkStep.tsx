@@ -24,6 +24,7 @@ import Placement from '../../placementVisuals/Placement'
 import { flushPlacement } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
 import { SAMPLE_IDENTITY_COLUMN_FILTERS } from '../../samples/SampleIdentityColumns'
+import { useNavigateToWorkflowAssignment } from '../../management/WorkflowAssigmentPage'
 
 const { Text } = Typography
 
@@ -74,7 +75,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error('No templates are associated with step!')
 			}
 		}
-	}, [stepSamples, selectedTemplate])
+	}, [stepSamples, selectedTemplate, isAutomationStep])
 
 	// Handle the prefill template button
 	const canPrefill = selectedTemplate ? stepSamples.selectedSamples.items.length > 0 && stepSamples.prefill.templates.length > 0 : false
@@ -134,7 +135,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error(err)
 			}
 		}
-		, [step, dispatch])
+		, [dispatch, step.id, navigate])
 
 	/** Table columns **/
 
@@ -316,6 +317,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [dispatch, step.id])
 
+	const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
+
 	/** UX **/
 
 	// Display the number of selected samples in the tab title
@@ -344,11 +347,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<Link to={`/management/workflow-assignment?${SampleColumnID.QUEUED_STEPS}=${step.name}`}>
-				<Button type='default' title={"Manage sample queueing to the current step."}>
-					Manage Workflow
-				</Button>
-			</Link>
+			<Button type='default' title={"Manage sample queueing to the current step."} onClick={() => navigateToWorkflowAssignment(`${SampleColumnID.QUEUED_STEPS}=${step.name}`, stepSamples.selectedSamples.items)}>
+				Manage Workflow
+			</Button>
 			{!isAutomationStep &&
 				<>
 					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>
