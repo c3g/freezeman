@@ -1,6 +1,6 @@
 import { Checkbox, Pagination, PaginationProps, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
@@ -11,6 +11,7 @@ import { useRefreshWhenStale } from './useRefreshWhenStale'
 
 export interface PagedItemTableSelection {
 	onSelectionChanged: (exceptedItems: React.Key[], defaultSelection: boolean) => void
+	initialExceptedItems?: React.Key[]
 }
 
 // This is the set of possible callbacks for the paged items table.
@@ -137,7 +138,11 @@ function PagedItemsTable<T extends object>({
 	}, [tableDataState.objectMap])
 
 	const [defaultSelection, setDefaultSelection] = useState(false)
-	const [exceptedItems, setExceptedItems] = useState<React.Key[]>([])
+	const [exceptedItems, setExceptedItems] = useState<React.Key[]>(selection?.initialExceptedItems ?? [])
+	console.info("PagedItemsTable",{
+		exceptedItems,
+		initialExceptedSampleIDs: selection?.initialExceptedItems
+	})
 	const allIsSelected = (!defaultSelection && exceptedItems.length === pagedItems.totalCount) || (defaultSelection && exceptedItems.length === 0)
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
