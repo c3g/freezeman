@@ -94,12 +94,12 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 	// Clicking the Add Study button navigates the user to the study creation form
 	const addStudyButton = <Button onClick={handleAddStudy}>Add Study</Button>
 
-	const navigateToWorkflowAssigment = useNavigateToWorkflowAssignment()
+	const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
 
 	return (
 		<>
 			<AppPageHeader title={title} extra={<>
-				<Button onClick={() => navigateToWorkflowAssigment(`${SampleColumnID.PROJECT}=${project.name}`)}>Manage Workflow</Button>
+				<Button onClick={() => navigateToWorkflowAssignment(`${SampleColumnID.PROJECT}=${project.name}`)}>Manage Workflow</Button>
 				<EditButton url={`/projects/${`${project.id}`}/update`} />
 				</>}/>
 			{project && (

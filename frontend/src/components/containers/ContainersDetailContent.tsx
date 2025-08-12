@@ -65,7 +65,7 @@ const ContainersDetailContent = () => {
   }, [isLoaded, container?.coordinate, coordinate?.isLoaded, container])
 
 
-  const navigateToWorkflowAssigment = useNavigateToWorkflowAssignment()
+  const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
 
   return (
     <>
@@ -74,7 +74,7 @@ const ContainersDetailContent = () => {
         extra={
           !isLoaded ? null :
             <Space>
-              <Button onClick={() => navigateToWorkflowAssigment(
+              <Button onClick={() => navigateToWorkflowAssignment(
                 + ((container?.children.length ?? 0) > 0 ? SampleColumnID.PARENT_CONTAINER : SampleColumnID.CONTAINER_BARCODE)
                 + `=${container?.barcode}`
               )}>Manage Workflow</Button>
