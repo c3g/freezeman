@@ -75,7 +75,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error('No templates are associated with step!')
 			}
 		}
-	}, [stepSamples, selectedTemplate, isAutomationStep])
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
 	const canPrefill = selectedTemplate ? stepSamples.selectedSamples.items.length > 0 && stepSamples.prefill.templates.length > 0 : false
@@ -135,7 +136,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error(err)
 			}
 		}
-		, [dispatch, step.id, navigate])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		, [step, dispatch])
 
 	/** Table columns **/
 
