@@ -4,6 +4,7 @@ from django.conf import settings
 
 from io import BytesIO
 from openpyxl import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.reader.excel import load_workbook
 from openpyxl.styles import PatternFill, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -440,7 +441,7 @@ def _generate_samplesheet_workbook(BCLConvert_Data: list[BCLConvert_Datum], Drag
 
     return workbook
 
-def fit_sheet_columns_width_to_content(workbook_sheet, adjust_factor: float=1.1, adjust_offset: float=4):
+def fit_sheet_columns_width_to_content(workbook_sheet: Worksheet, adjust_factor: float=1.1, adjust_offset: float=4):
     # Refit columns width to data
     for column in workbook_sheet.columns:
         max_length = max(len(str(cell.value)) for cell in column)
