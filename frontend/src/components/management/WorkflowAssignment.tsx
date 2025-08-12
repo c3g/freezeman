@@ -140,7 +140,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
             setDefaultSelection(selectAll)
         },
         initialExceptedItems: initialExceptedSampleIDs?.map(id => id.toString()) ?? []
-    }), [initialExceptedSampleIDs, setExceptedSampleIDs])
+    }), [initialExceptedSampleIDs])
 
     const [open, setOpen] = useState(false)
     const maybeExpandRightPanel = useCallback(() => {
