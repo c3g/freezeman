@@ -23,7 +23,7 @@ export function WorkflowAssigmentPage() {
 export function useNavigateToWorkflowAssignment() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  return useCallback((queryParameters: string, defaultSelections: FMSId[]) => {
+  return useCallback((queryParameters?: string, defaultSelections: FMSId[] = []) => {
     dispatch(actions.setInitialExceptSampleIDs(defaultSelections))
     navigate(`/management/workflow-assignment${queryParameters ? `?${queryParameters}` : ''}`);
   }, [dispatch, navigate])

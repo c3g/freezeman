@@ -18,7 +18,7 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Spin, Typography } from "antd";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { connect } from "react-redux";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
@@ -59,7 +59,7 @@ import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
 import { Reports } from "../reports/Reports";
-import { WorkflowAssigmentPage } from "../management/WorkflowAssigmentPage";
+import { useNavigateToWorkflowAssignment, WorkflowAssigmentPage } from "../management/WorkflowAssigmentPage";
 
 
 const { Title } = Typography;
@@ -89,134 +89,6 @@ const getMenuItems = (user, logOut) => [
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
     style: { marginBottom: '50px' }
-  },
-]
-
-/**
- * @type {BadMenuItem[]}
- */
-const MENU_ITEMS = [
-  {
-    url: "/dashboard",
-    icon: <DashboardOutlined />,
-    text: "Dashboard",
-    key: "dashboard",
-  },
-  {
-    url: "/lab-work",
-    icon: <ExperimentOutlined />,
-    text: "Lab Work",
-    key: "lab-work",
-  },
-  {
-    url: "/projects",
-    icon: <ProjectOutlined />,
-    text: "Projects",
-    key: "projects",
-  },
-  {
-    icon: <CarryOutOutlined />,
-    text: "Management",
-    key: "management",
-    children: [
-      {
-        url: "/management/workflow-assignment",
-        icon: <RetweetOutlined />,
-        text: "Assign Workflow",
-        key: "workflow-assignment",
-      },
-    ]
-  },
-  {
-    url: "/containers",
-    icon: <TableOutlined />,
-    text: "Containers",
-    key: "containers",
-  },
-  {
-    url: "/samples",
-    icon: <ExperimentOutlined />,
-    text: "Samples",
-    key: "samples",
-  },
-  {
-    url: "/libraries",
-    icon: <ExperimentOutlined />,
-    text: "Libraries",
-    key: "libraries",
-  },
-  {
-    url: "/experiment-runs",
-    icon: <HddOutlined />,
-    text: "Experiments",
-    key: "experiment-runs",
-  },
-  {
-    url: "/datasets",
-    icon: <FileZipOutlined />,
-    text: "Datasets",
-    key: "datasets",
-  },
-  {
-    url: "/reports",
-    icon: <FlagOutlined />,
-    text: "Reports",
-    key: "reports",
-  },
-  {
-    icon: <SettingOutlined />,
-    text: "Definitions",
-    key: "definitions",
-    children: [
-      {
-        url: "/indices",
-        icon: <BarcodeOutlined />,
-        text: "Indices",
-        key: "indices",
-      },
-      {
-        url: "/instruments",
-        icon: <BarcodeOutlined />,
-        text: "Instruments",
-        key: "instruments",
-      },
-      {
-        url: "/genomes",
-        icon: <BarcodeOutlined />,
-        text: "Reference Genomes",
-        key: "genomes",
-      },
-      {
-        url: "/taxons",
-        icon: <BarcodeOutlined />,
-        text: "Taxons",
-        key: "taxons",
-      },
-      {
-        url: "/workflows",
-        icon: <BarcodeOutlined />,
-        text: "Workflows",
-        key: "workflows",
-      },
-    ]
-  },
-  {
-    url: "/individuals",
-    icon: <TeamOutlined />,
-    text: "Individuals",
-    key: "individuals",
-  },
-  {
-    url: "/process-measurements",
-    icon: <ExperimentOutlined />,
-    text: "Protocols",
-    key: "process-measurements",
-  },
-  {
-    url: "/users",
-    icon: <AuditOutlined />,
-    text: "Users",
-    key: "users",
   },
 ]
 
@@ -276,6 +148,137 @@ const App = ({userID, usersByID, logOut, get}) => {
   useUserInputExpiration(logOut, 12 * hour);
 
   const loadingIcon = <SyncOutlined style={{ fontSize: '22px', color: 'white' }} spin />
+
+  const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
+
+  /**
+   * @type {import("../../utils/menus").BadMenuItem[]}
+   */
+  const MENU_ITEMS = useMemo(() => [
+      {
+        url: "/dashboard",
+        icon: <DashboardOutlined />,
+        text: "Dashboard",
+        key: "dashboard",
+      },
+      {
+        url: "/lab-work",
+        icon: <ExperimentOutlined />,
+        text: "Lab Work",
+        key: "lab-work",
+      },
+      {
+        url: "/projects",
+        icon: <ProjectOutlined />,
+        text: "Projects",
+        key: "projects",
+      },
+      {
+        icon: <CarryOutOutlined />,
+        text: "Management",
+        key: "management",
+        children: [
+          {
+            onClick: () => navigateToWorkflowAssignment(),
+            icon: <RetweetOutlined />,
+            text: "Assign Workflow",
+            key: "workflow-assignment",
+          },
+        ]
+      },
+      {
+        url: "/containers",
+        icon: <TableOutlined />,
+        text: "Containers",
+        key: "containers",
+      },
+      {
+        url: "/samples",
+        icon: <ExperimentOutlined />,
+        text: "Samples",
+        key: "samples",
+      },
+      {
+        url: "/libraries",
+        icon: <ExperimentOutlined />,
+        text: "Libraries",
+        key: "libraries",
+      },
+      {
+        url: "/experiment-runs",
+        icon: <HddOutlined />,
+        text: "Experiments",
+        key: "experiment-runs",
+      },
+      {
+        url: "/datasets",
+        icon: <FileZipOutlined />,
+        text: "Datasets",
+        key: "datasets",
+      },
+      {
+        url: "/reports",
+        icon: <FlagOutlined />,
+        text: "Reports",
+        key: "reports",
+      },
+      {
+        icon: <SettingOutlined />,
+        text: "Definitions",
+        key: "definitions",
+        children: [
+          {
+            url: "/indices",
+            icon: <BarcodeOutlined />,
+            text: "Indices",
+            key: "indices",
+          },
+          {
+            url: "/instruments",
+            icon: <BarcodeOutlined />,
+            text: "Instruments",
+            key: "instruments",
+          },
+          {
+            url: "/genomes",
+            icon: <BarcodeOutlined />,
+            text: "Reference Genomes",
+            key: "genomes",
+          },
+          {
+            url: "/taxons",
+            icon: <BarcodeOutlined />,
+            text: "Taxons",
+            key: "taxons",
+          },
+          {
+            url: "/workflows",
+            icon: <BarcodeOutlined />,
+            text: "Workflows",
+            key: "workflows",
+          },
+        ]
+      },
+      {
+        url: "/individuals",
+        icon: <TeamOutlined />,
+        text: "Individuals",
+        key: "individuals",
+      },
+      {
+        url: "/process-measurements",
+        icon: <ExperimentOutlined />,
+        text: "Protocols",
+        key: "process-measurements",
+      },
+      {
+        url: "/users",
+        icon: <AuditOutlined />,
+        text: "Users",
+        key: "users",
+      },
+    ]
+  , [navigateToWorkflowAssignment])
 
   return (
     <Layout style={{ height: "100vh" }}>

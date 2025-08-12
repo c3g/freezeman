@@ -18,6 +18,7 @@ import { Container } from "../../models/frontend_models";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 import { isNullish } from "../../utils/functions";
 import { SampleColumnID } from "../samples/SampleTableColumns";
+import { useNavigateToWorkflowAssignment } from "../management/WorkflowAssigmentPage";
 
 const pageStyle = {
   padding: 0,
@@ -31,7 +32,6 @@ const tabStyle = {
 }
 
 const ContainersDetailContent = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
   const [activeKey, setActiveKey] = useHashURL('overview')
 
@@ -64,6 +64,9 @@ const ContainersDetailContent = () => {
     }
   }, [isLoaded, container?.coordinate, coordinate?.isLoaded, container])
 
+
+  const navigateToWorkflowAssigment = useNavigateToWorkflowAssignment()
+
   return (
     <>
       <AppPageHeader
@@ -71,8 +74,7 @@ const ContainersDetailContent = () => {
         extra={
           !isLoaded ? null :
             <Space>
-              <Button onClick={() => navigate(
-                '/management/workflow-assignment?'
+              <Button onClick={() => navigateToWorkflowAssigment(
                 + ((container?.children.length ?? 0) > 0 ? SampleColumnID.PARENT_CONTAINER : SampleColumnID.CONTAINER_BARCODE)
                 + `=${container?.barcode}`
               )}>Manage Workflow</Button>
