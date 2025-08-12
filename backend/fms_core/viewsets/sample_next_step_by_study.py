@@ -9,16 +9,17 @@ from django.db.models import Count, F, Case, When, Q, BooleanField
 from fms_core.models.step_order import StepOrder
 from fms_core.filters import SampleNextStepByStudyFilter
 from fms_core.models.workflow import Workflow
+from fms_core.models import Step
 
 from ._constants import _sample_next_step_by_study_filterset_fields
 from fms_core._constants import WorkflowAction
 from fms_core.models import SampleNextStepByStudy, Sample, Study, StepHistory
-from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history
+from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history, dequeue_sample_from_all_study_workflows_matching_step
 from fms_core.serializers import SampleNextStepByStudySerializer
 from ._utils import _list_keys
 
 class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
-    queryset = SampleNextStepByStudy.objects.select_related("sample_next_step").select_related("step_order").all().distinct()
+    queryset = SampleNextStepByStudy.objects.select_related("sample_next_step").select_related("step_order").select_related("sample_next_step__step").all().distinct()
 
     queryset = queryset.annotate(
         qc_flag=Case(
@@ -45,23 +46,21 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     filterset_class = SampleNextStepByStudyFilter
 
     def destroy(self, request, pk=None):
-        removed = False
         errors = []
         if pk is not None:
             try:
-                values_list = self.get_queryset().filter(id=pk).values_list("sample_next_step__sample", "study", "step_order__order")
+                values_list = self.get_queryset().filter(id=pk).values_list("sample_next_step__sample", "sample_next_step__step")
                 if not values_list:
                     return HttpResponseBadRequest(f"Sample does not appear to be queued to the study's workflow.")
-                for sample_id, study_id, order in values_list:
+                for sample_id, step_id in values_list:
                     sample = Sample.objects.get(id=sample_id)
-                    study = Study.objects.get(id=study_id)
-                    removed, errors, _ = dequeue_sample_from_specific_step_study_workflow_with_updated_last_step_history(sample, study, order)
+                    step = Step.objects.get(id=step_id)
+                    removal_number, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(sample, step)
+                    if errors:
+                        return HttpResponseBadRequest({"errors": errors, "warnings": warnings})
             except Exception as err:
                 return HttpResponseBadRequest(err)
-        if removed and not errors:
-            return Response(data={"details": removed}, status=status.HTTP_200_OK)
-        else:
-            return HttpResponseBadRequest(errors or f"Missing sample-next-step-by-study ID to delete.")
+        return Response(data={"details": f"Sample next steps removed: {removal_number}", "warnings": warnings}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"])
     def destroy_list(self, request):
