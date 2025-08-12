@@ -10,7 +10,7 @@ import { FMSId } from "../../models/fms_api_models";
 import { selectWorkflowAssignmentState } from "../../modules/workflowAssignment/selectors";
 
 export function WorkflowAssigmentPage() {
-  const initialExceptSampleIDs = useAppSelector(selectWorkflowAssignmentState).initialExceptSampleIDs
+  const initialExceptSampleIDs = useAppSelector(selectWorkflowAssignmentState).initialExceptedSampleIDs
 
   return (<>
         <AppPageHeader title="Manage Assignment of Samples to Study Workflows" />
@@ -23,8 +23,8 @@ export function WorkflowAssigmentPage() {
 export function useNavigateToWorkflowAssignment() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  return useCallback((queryParameters?: string, defaultSelections: FMSId[] = []) => {
-    dispatch(actions.setInitialExceptSampleIDs(defaultSelections))
+  return useCallback((queryParameters?: string, initialSelections: FMSId[] = []) => {
+    dispatch(actions.setInitialExceptedSampleIDs(initialSelections))
     navigate(`/management/workflow-assignment${queryParameters ? `?${queryParameters}` : ''}`);
   }, [dispatch, navigate])
 }
