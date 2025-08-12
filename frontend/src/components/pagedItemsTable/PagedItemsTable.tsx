@@ -139,10 +139,6 @@ function PagedItemsTable<T extends object>({
 
 	const [defaultSelection, setDefaultSelection] = useState(false)
 	const [exceptedItems, setExceptedItems] = useState<React.Key[]>(selection?.initialExceptedItems ?? [])
-	console.info("PagedItemsTable",{
-		exceptedItems,
-		initialExceptedSampleIDs: selection?.initialExceptedItems
-	})
 	const allIsSelected = (!defaultSelection && exceptedItems.length === pagedItems.totalCount) || (defaultSelection && exceptedItems.length === 0)
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
@@ -239,8 +235,8 @@ function PagedItemsTable<T extends object>({
 	// avoid dilema selectAll and selectedItems logic
 	useEffect(() => {
 		setDefaultSelection(false)
-		setExceptedItems([])
-		selection?.onSelectionChanged([], false)
+		setExceptedItems(selection?.initialExceptedItems ?? [])
+		selection?.onSelectionChanged(selection?.initialExceptedItems ?? [], false)
 	}, [pagedItems.filters, pagedItems.fixedFilters, selection])
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.

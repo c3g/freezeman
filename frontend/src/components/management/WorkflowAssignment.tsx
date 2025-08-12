@@ -134,17 +134,13 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
     const [defaultSelection, setDefaultSelection] = useState(false)
     const [exceptedSampleIDs, setExceptedSampleIDs] = useState(initialExceptedSampleIDs ?? [])
     const sampleSelectionCount = defaultSelection ? samplesTableState.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
-    console.info("WorkflowAssignment", {
-        exceptedSampleIDs,
-        initialExceptedSampleIDs
-    })
     const selection: NonNullable<PagedItemsTableProps<SampleAndLibraryAndIdentity>['selection']> = useMemo(() => ({
         onSelectionChanged: (selectedItems, selectAll) => {
             setExceptedSampleIDs(selectedItems.map(id => parseInt(id as string)))
             setDefaultSelection(selectAll)
         },
         initialExceptedItems: initialExceptedSampleIDs?.map(id => id.toString()) ?? []
-    }), [initialExceptedSampleIDs])
+    }), [initialExceptedSampleIDs, setExceptedSampleIDs])
 
     const [open, setOpen] = useState(false)
     const maybeExpandRightPanel = useCallback(() => {
