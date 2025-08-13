@@ -1,6 +1,7 @@
 import re
 from fms_core.template_importer._constants import DESTINATION_CONTAINER_BARCODE_MARKER
 from fms_core.services.sample import get_sample_from_container, get_biosample_name
+from fms_core.services.samplesheet import fit_sheet_columns_width_to_content
 
 def get_axiom_experiment_barcode_from_comment(comment: str):
     re_comment = rf"{DESTINATION_CONTAINER_BARCODE_MARKER}(\S+)[ ]\."
@@ -27,4 +28,5 @@ def custom_prefill_8x12_container_biosample_names(workbook_sheet, sheet_info, he
             errors.extend(errors_biosample)
             warnings.extend(warnings_biosample)
             workbook_sheet.cell(row=header_offset + row_offset, column=column_offset + 1).value = biosample_name
+    fit_sheet_columns_width_to_content(workbook_sheet=workbook_sheet, adjust_factor=2, adjust_offset=6)
     return errors, warnings
