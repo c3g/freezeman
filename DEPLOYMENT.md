@@ -115,14 +115,10 @@ On this page we list the various steps needed for deployments. The first section
     ```
   * Install Node.js
     ```
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-
-    export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-
-    nvm install v16.20.2
-    nvm use v16.20.2
-    nvm alias default v16.20.2
+    export PATH=/opt/torque/x86_64/bin:/usr/pgsql-15/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/django/.local/bin:/home/django/bin
+    npm cache clean
+    sudo /usr/local/bin/npm install -g n
+    sudo /bin/n 16.20.2
     ```
   * Install and Configure nginx
     ```
