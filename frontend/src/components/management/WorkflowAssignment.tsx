@@ -32,6 +32,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     const [searchParams] = useSearchParams()
+    const [searchParamsProcessed, setSearchParamsProcessed] = useState(false)
     useEffect(() => {
         samplesTableCallbacks.clearFiltersCallback()
         for (const [columnID, value] of searchParams.entries()) {
@@ -52,6 +53,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
             )
         }
         samplesTableCallbacks.refreshPageCallback()
+        setSearchParamsProcessed(true)
         return () => {
             samplesTableCallbacks.clearFiltersCallback()
         }
@@ -161,7 +163,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
 
     return (
         <>
-            <PagedItemsTable<ObjectWithSample>
+            {searchParamsProcessed && <PagedItemsTable<ObjectWithSample>
                 getDataObjectsByID={mapSampleIDs}
                 pagedItems={samplesTableState}
                 columns={columns}
@@ -173,7 +175,7 @@ export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignm
                     disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
                 paginationProps={{simple: true}}
                 {...samplesTableCallbacks}
-            />
+            />}
             <Drawer
                 title="Queue/Dequeue Samples"
                 placement="right"

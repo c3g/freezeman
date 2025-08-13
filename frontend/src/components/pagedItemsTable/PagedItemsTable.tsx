@@ -1,6 +1,6 @@
 import { Checkbox, Pagination, PaginationProps, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { FilterDescription, FilterOptions, FilterSetting, FilterValue, PageableData, PagedItems, SortBy } from '../../models/paged_items'
 import { setPageSize as setPageSizeForApp } from '../../modules/pagination'
@@ -232,11 +232,19 @@ function PagedItemsTable<T extends object>({
 		return undefined
 	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, onSelectMultiple, selectedRowKeys, selection])
 
-	// avoid dilema selectAll and selectedItems logic
+	// reset selections when filters change to avoid confusion for selectAll and selectedItems logic
+	const useInitialExceptedItems = useRef(Boolean(selection?.initialExceptedItems))
 	useEffect(() => {
 		setDefaultSelection(false)
-		setExceptedItems(selection?.initialExceptedItems ?? [])
-		selection?.onSelectionChanged(selection?.initialExceptedItems ?? [], false)
+		setExceptedItems(useInitialExceptedItems.current
+			? selection?.initialExceptedItems ?? []
+			: []
+		)
+		selection?.onSelectionChanged(useInitialExceptedItems.current
+			? selection?.initialExceptedItems ?? []
+			: [], false
+		)
+		useInitialExceptedItems.current = false // only use initial excepted items once, after that clear selections when filters change
 	}, [pagedItems.filters, pagedItems.fixedFilters, selection])
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.
