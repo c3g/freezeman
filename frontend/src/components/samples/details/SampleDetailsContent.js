@@ -10,6 +10,7 @@ import {
   Empty,
   Row,
   Space,
+  Table,
   Tabs,
   Tag,
   Timeline,
@@ -39,6 +40,8 @@ import { fetchProcessMeasurements } from "../../../modules/cache/cache";
 import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndexRenderComponent, WithIndividualRenderComponent, WithSampleRenderComponent } from "../../shared/WithItemRenderComponent";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { selectAuthTokenAccess, selectContainersByID, selectLibrariesByID, selectSampleKindsByID, selectSamplesByID, selectUsersByID } from "../../../selectors";
+import { BiosampleIDToAlias } from "../SampleIdentityColumns";
+import DropdownListItems from "../../DropdownListItems";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -89,6 +92,10 @@ const SampleDetailsContent = () => {
 
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
+  /**
+   * @typedef {import("../../../models/frontend_models").Sample} Sample
+   * @type {Sample | Record<string, undefined>}
+   */
   const sample = useMemo(() => samplesByID[id] || {}, [id, samplesByID])
   const error = sample.error?.name !== 'APIError' ? sample.error : undefined;
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
@@ -156,6 +163,82 @@ const SampleDetailsContent = () => {
       setSampleMetadata(metadata)
     })
   }, [sample])
+
+
+  /**
+   * @typedef {import("../../../models/fms_api_models").FMSSampleIdentity} FMSSampleIdentity
+   * @type {[FMSSampleIdentity | undefined, (value: FMSSampleIdentity) => void]}
+   */
+  const sampleIdentityState = useState(undefined);
+  const [sampleIdentity, setSampleIdentity] = sampleIdentityState
+  useEffect(() => {
+    const biosampleId = sample?.biosample_id
+    console.info('sample?.biosample_id', biosampleId)
+    if (biosampleId) {
+      const identities = dispatch(api.sampleIdentity.list({ biosample__id: biosampleId.toString() }))
+      identities.then(({ data }) => {
+        console.info('Sample identities', data)
+        if (data.count > 0) {
+          setSampleIdentity(data.results[0])
+        }
+      })
+    }
+  }, [dispatch, sample?.biosample_id, setSampleIdentity])
+  const sampleIdentityItems = useMemo(() => {
+    /**
+     * @type {NonNullable<import("antd").DescriptionsProps['items']>}
+     */
+    const items = [
+      {
+        label: "Conclusive",
+        key: "conclusive",
+        children: sampleIdentity?.conclusive === undefined
+          ? ""
+          : sampleIdentity.conclusive ? "Yes" : "No"
+      },
+      {
+        label: "Predicted Sex",
+        key: "predicted_sex",
+        children: sampleIdentity?.predicted_sex ?? ""
+      },
+      {
+        label: "Sex Concordance",
+        key: "sex_concordance",
+        children: sampleIdentity?.sex_concordance === undefined
+                        ? ""
+                        : sampleIdentity.sex_concordance === null
+                            ? "Inconclusive"
+                            : sampleIdentity.sex_concordance ? "Match" : "Mismatch"
+      },
+    ]
+    return items
+  }, [sampleIdentity])
+  const sampleIdentityMatchesColumns = useMemo(() => {
+    /**
+     * @type {NonNullable<import("antd").TableProps<import("../../../models/fms_api_models").FMSSampleIdentityMatch>['columns']>}
+     */
+    const columns = [
+      {
+        title: "Matching Biosample (Alias)",
+        dataIndex: "matched_biosample_id",
+        key: "biosample_alias",
+        render: (matched_biosample_id) => {
+          return <BiosampleIDToAlias biosampleId={matched_biosample_id} />
+        }
+      },
+      {
+        title: "Matching Site Ratio",
+        dataIndex: "matching_site_ratio",
+        key: "matching_site_ratio"
+      },
+      {
+        title: "Compared Sites",
+        dataIndex: "compared_sites",
+        key: "compared_sites"
+      }
+    ]
+    return columns
+  }, [])
 
   return <>
     <AppPageHeader
@@ -266,6 +349,16 @@ const SampleDetailsContent = () => {
               </Descriptions>
             </>
           ) : null}
+
+          {sampleIdentity &&
+            <>
+              <Title level={5} style={{ marginTop: '1rem' }}> Identity QC </Title>
+              <Descriptions bordered={true} size="small" column={3} items={sampleIdentityItems}/>
+              <div style={{ marginTop: '1rem' }} />
+              {sampleIdentity.identity_matches.length > 0 &&
+                <Table dataSource={sampleIdentity.identity_matches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
+            </>
+          }
 
           <TrackingFieldsContent entity={sample} />
           <Title level={2} style={{ marginTop: '1rem' }}>Versions</Title>
