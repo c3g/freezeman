@@ -174,7 +174,7 @@ const SampleDetailsContent = () => {
   useEffect(() => {
     const biosampleId = sample?.biosample_id
     if (biosampleId) {
-      const identities = dispatch(api.sampleIdentity.list({ biosample__id: biosampleId.toString() }))
+      const identities = dispatch(api.sampleIdentity.get(biosampleId))
       identities.then(({ data }) => {
         if (data.count > 0) {
           setSampleIdentity(data.results[0])

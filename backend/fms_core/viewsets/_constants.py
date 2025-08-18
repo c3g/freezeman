@@ -114,7 +114,7 @@ _sample_metadata_filterset_fields: FiltersetFields = {
 
 _sample_identity_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "biosample__id": FK_FILTERS,
+    "biosample": FK_FILTERS,
     "conclusive": ["exact"],
     "predicted_sex": CATEGORICAL_FILTERS,
 }
