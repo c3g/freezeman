@@ -85,7 +85,7 @@ export async function fetchSamplesAndLibrariesAndIdentities(sampleList: number[]
 		if (samples.length > 0) {
 			const sampleIDs = samples.filter(sample => sample.is_library).map(sample => sample.id)
 			await fetchLibrariesForSamples(sampleIDs)
-			const results = (await store.dispatch(api.sampleIdentity.list({ biosample__id__in: samples.map((s => s.biosample_id)).join(',') }))).data.results
+			const results = (await store.dispatch(api.sampleIdentity.list({ biosample__in: samples.map((s => s.biosample_id)).join(',') }))).data.results
 			for (const sampleIdentity of results) {
 				sampleIdentities[sampleIdentity.biosample_id] = sampleIdentity
 			}

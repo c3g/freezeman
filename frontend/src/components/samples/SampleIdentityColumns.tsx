@@ -96,7 +96,7 @@ export const SAMPLE_IDENTITY_COLUMNS_DEFINITIONS: Record<SampleIdentityColumnID,
     },
 }
 
-function BiosampleIDToAlias({ biosampleID }: { biosampleID: FMSId }): React.ReactNode {
+export function BiosampleIDToAlias({ biosampleID }: { biosampleID: FMSId }): React.ReactNode {
     const [biosampleAlias, setBiosampleAlias] = React.useState<string | undefined>(undefined)
     const dispatch = useAppDispatch()
     useEffect(() => {

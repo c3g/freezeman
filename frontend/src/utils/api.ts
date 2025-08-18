@@ -233,6 +233,7 @@ const api = {
   },
 
   sampleIdentity: {
+    get: (id: FMSSampleIdentity['id']) => get<JsonResponse<FMSSampleIdentity>>(`/sample-identities/${id}/`),
     list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identities/`, options, { abort }),
   },
 
