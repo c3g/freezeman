@@ -21,84 +21,168 @@ def create_pacbio_revio_instrument(apps, schema_editor):
         reversion.set_user(admin_user)
 
         platform, _ = Platform.objects.create(
-            name="PACBIO_SMRT"
+            name="PACBIO_SMRT",
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
-        
+        reversion.add_to_revision(platform)
+
         instrument_type, _ = InstrumentType.create(
             platform=platform,
             type="Revio",
             index_read_5_prime="Unknown",
-            index_read_3_prime="Unknown"
+            index_read_3_prime="Unknown",
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
+        reversion.add_to_revision(instrument_type)
 
         instrument, _ = Instrument.objects.create(
             name="Revio",
             type=instrument_type,
-            serial_id="r84240"
+            serial_id="R84240",
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
-
-        reversion.add_to_revision(platform)
-        reversion.add_to_revision(instrument_type)
         reversion.add_to_revision(instrument)
 
 
+STEP_NAME = "PacBio Experiment Run"
+def create_pacbio_experiment_run_step(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Protocol = apps.get_model("fms_core", "Protocol")
+    Platform = apps.get_model("fms_core", "Platform")
+    RunType = apps.get_model("fms_core", "RunType")
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+    PropertyType = apps.get_model("fms_core", "PropertyType")
 
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create step for PacBio experiment run.")
+        reversion.set_user(admin_user)
+
+        protocol, _ = Protocol.objects.create(
+            name="PacBio Preparation",
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(protocol)
+
+        platform = Platform.objects.get(name="PACBIO_SMRT")
+        run_type = RunType.objects.create(
+            name="Pacbio",
+            platform=platform,
+            protcol=protocol,
+            needs_run_processing=False,
+            craeted_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(run_type)
+
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+        property_types = [
+            {
+                "name": "Loading concentration",
+            },
+            {
+                "name": "Run time",
+            },
+            {
+                "name": "Sequencing kit lot",
+            },
+            {
+                "name": "Sequencing side",
+            }
+        ]
+        for property_type in property_types:
+            pt = PropertyType.objects.create(
+                name=property_type["name"],
+                value_type="str",
+                is_optional=False,
+                object_id=protocol.id,
+                content_type=protocol_content_type,
+                created_by_id=admin_user_id, updated_by_id=admin_user_id
+            )
+            reversion.add_to_revision(pt)
+
+        Step.objects.create(
+            name=STEP_NAME,
+            protocol=protocol,
+            sample_type=SampleType.LIBRARY,
+            is_active=True,
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(Step)
+
+def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
+    Workflow = apps.get_model("fms_core", "Workflow")
+    Step = apps.get_model("fms_core", "Step")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    experiment_run_step = Step.objects.get(name=STEP_NAME)
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create workflow for PacBio ready to sequence.")
+        reversion.set_user(admin_user)
+
+        workflow, _ = Workflow.objects.create(
+            name="Ready-to-Sequence PacBio",
+            structure="Ready-to-Sequence PacBio",
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(workflow)
+
+        prev_step_order = StepOrder.objects.create(
+            step=experiment_run_step,
+            order=4,
+            workflow=workflow,
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(prev_step_order)
+
+        normalization_and_pooling_step = Step.objects.get(
+            name="Normalization and Pooling"
+        )
+        prev_step_order = StepOrder.objects.create(
+            step=normalization_and_pooling_step,
+            next_step_order=prev_step_order,
+            order=3,
+            workflow=workflow,
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(prev_step_order)
+
+        library_qc_step = Step.objects.get(
+            name="Library QC"
+        )
+        prev_step_order = StepOrder.objects.create(
+            step=library_qc_step,
+            next_step_order=prev_step_order,
+            order=2,
+            workflow=workflow,
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(prev_step_order)
+        
+        transfer_for_library_qc_step = Step.objects.get(
+            name="Transfer for library QC"
+        )
+        prev_step_order = StepOrder.objects.create(
+            step=transfer_for_library_qc_step,
+            next_step_order=prev_step_order,
+            order=1,
+            workflow=workflow,
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(prev_step_order)
+        
 class Migration(migrations.Migration):
-
     dependencies = [
         ('fms_core', '0071_v5_2_0'),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='sample',
-            name='identity_flag',
-            field=models.BooleanField(blank=True, choices=[(True, 'Passed'), (False, 'Failed')], help_text='Identity flag of the sample.', max_length=20, null=True),
-        ),
-        migrations.CreateModel(
-            name='SampleIdentity',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('biosample', models.OneToOneField(help_text='Biosample for the identity.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_identity', to='fms_core.biosample')),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('predicted_sex', models.CharField(blank=True, choices=[('M', 'M'), ('F', 'F'), ('Unknown', 'Unknown')], help_text='Sex of the sample.', max_length=10, null=True)),
-                ('conclusive', models.BooleanField(default=False, help_text='Flag indicating if the identity qc was conclusive.')),
-                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
-                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
-            name='SampleIdentityMatch',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('matching_site_ratio', models.DecimalField(decimal_places=5, help_text='Ratio of the compared sites that are matching.', max_digits=6)),
-                ('compared_sites', models.PositiveIntegerField(help_text='Number of marker sites that have a value for both samples.')),
-                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
-                ('tested', models.ForeignKey(help_text='Match found while testing this sample identity.', on_delete=django.db.models.deletion.PROTECT, related_name='tested_identity_match', to='fms_core.sampleidentity')),
-                ('matched', models.ForeignKey(help_text='Match found to be referencing this sample identity.', on_delete=django.db.models.deletion.PROTECT, related_name='_matched_identity_match', to='fms_core.sampleidentity')),
-                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.AddConstraint(
-            model_name='sampleidentitymatch',
-            constraint=models.UniqueConstraint(fields=('tested_id', 'matched_id'), name='sampleidentitymatch_testedid_matchedid_key'),
-        ),
-        migrations.AddField(
-            model_name='sampleidentity',
-            name='identity_matches',
-            field=models.ManyToManyField(blank=True, through='fms_core.SampleIdentityMatch', to='fms_core.sampleidentity'),
-        ),
-        migrations.RunPython(add_identity_qc_step, reverse_code=migrations.RunPython.noop),
-        migrations.RunPython(initialize_workflows_with_id_check, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_pacbio_revio_instrument, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_pacbio_experiment_run_step, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_pacbio_ready_to_sequence_workflow, reverse_code=migrations.RunPython.noop),
     ]
