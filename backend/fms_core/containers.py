@@ -296,6 +296,14 @@ CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL = ContainerSpec(
      is_run_container=True,
 )
 
+CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY = ContainerSpec(
+    container_kind_id="pacbio-revio smrt cell tray",
+    coordinate_spec=(alphas(4), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(), # Leaf node; sample-holding
+    is_run_container=False,
+)
+
 RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA,
     CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB,
@@ -315,6 +323,7 @@ RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL,
+    CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY,
 )
 
 # Containers
