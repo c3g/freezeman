@@ -5,8 +5,8 @@ import { FilterDescription } from "../../models/paged_items";
 import { IdentifiedTableColumnType } from "../pagedItemsTable/PagedItemsColumns";
 import { UNDEFINED_FILTER_KEY } from "../pagedItemsTable/PagedItemsFilters";
 import { useAppDispatch } from "../../hooks";
-import { list } from "../../modules/samples/actions";
 import DropdownListItems from "../DropdownListItems";
+import api from "../../utils/api";
 
 export interface ObjectWithSampleIdentity {
     identity?: FMSSampleIdentity
@@ -100,11 +100,8 @@ export function BiosampleIDToAlias({ biosampleID }: { biosampleID: FMSId }): Rea
     const [biosampleAlias, setBiosampleAlias] = React.useState<string | undefined>(undefined)
     const dispatch = useAppDispatch()
     useEffect(() => {
-        dispatch(list({ derived_samples__biosample__id: biosampleID, limit: 1 })).then((response) => {
-            const [sample] = response.results
-            if (sample) {
-                setBiosampleAlias(sample.alias)
-            }
+        dispatch(api.biosamples.get(biosampleID)).then((response) => {
+            setBiosampleAlias(response.data.alias)
         })
     })
     return biosampleAlias

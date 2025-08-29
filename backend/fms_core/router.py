@@ -1,6 +1,7 @@
 from rest_framework import routers
 
 from .viewsets import (
+    BiosampleViewSet,
     ContainerKindViewSet,
     ContainerViewSet,
     ExperimentRunViewSet,
@@ -50,6 +51,7 @@ from .viewsets import (
 __all__ = ["router"]
 
 router = routers.DefaultRouter()
+router.register(r"biosamples", BiosampleViewSet)
 router.register(r"container-kinds", ContainerKindViewSet, basename="container-kind")
 router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)

@@ -221,7 +221,7 @@ const SampleDetailsContent = () => {
         dataIndex: "matched_biosample_id",
         key: "biosample_alias",
         render: (matched_biosample_id) => {
-          return <BiosampleIDToAlias biosampleId={matched_biosample_id} />
+          return <BiosampleIDToAlias biosampleID={matched_biosample_id} />
         }
       },
       {

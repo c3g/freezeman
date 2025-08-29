@@ -13,6 +13,7 @@ from fms_core.services.sample_lineage import get_sample_source_from_derived_samp
 from fms_core.coordinates import convert_ordinal_to_alpha_digit_coord
 
 from .models import (
+    Biosample,
     Container,
     Dataset,
     DatasetFile,
@@ -118,6 +119,10 @@ __all__ = [
     "SampleIdentitySerializer"
 ]
 
+class BiosampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Biosample
+        fields = "__all__"
 
 class ContainerSerializer(serializers.ModelSerializer):
     children = serializers.PrimaryKeyRelatedField(many=True, read_only=True)

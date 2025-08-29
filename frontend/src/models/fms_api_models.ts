@@ -48,6 +48,11 @@ export interface FMSTrackedModel {
     deleted: boolean                    // Soft delete flag
 }
 
+export interface FMSBiosample extends FMSTrackedModel {
+    id: FMSId                           // Unique ID of object in database
+    alias: string                       // Alternate name for biosample
+}
+
 export interface FMSContainer extends FMSTrackedModel {
     kind: string                        // The type of container (eg. 96-well-plate)
     name: string                        // Container name
