@@ -14,6 +14,11 @@ DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
 
 FiltersetFields = Dict[str, List[str]]
 
+_biosample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "alias": CATEGORICAL_FILTERS_LOOSE,
+}
+
 _coordinate_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,

@@ -1,3 +1,4 @@
+from .biosample import BiosampleViewSet
 from .container import ContainerViewSet
 from .container_kind import ContainerKindViewSet
 from .experiment_run import ExperimentRunViewSet
@@ -44,6 +45,7 @@ from .report import ReportViewSet
 from .sample_identity import SampleIdentityViewSet
 
 __all__ = [
+    "BiosampleViewSet",
     "ContainerViewSet",
     "ContainerKindViewSet",
     "ExperimentRunViewSet",
