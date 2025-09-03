@@ -301,7 +301,7 @@ CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY = ContainerSpec(
     coordinate_spec=(alphas(4), ints(1, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(), # Leaf node; sample-holding
-    is_run_container=False,
+    is_run_container=True,
 )
 
 RUN_CONTAINER_SPECS = (
