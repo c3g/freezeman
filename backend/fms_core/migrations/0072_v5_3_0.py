@@ -3,7 +3,7 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 from django.contrib.auth.models import User
-from fms_core.models._constants import SampleType
+from fms_core.models._constants import INDEX_READ_FORWARD, SampleType
 
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -29,8 +29,8 @@ def create_pacbio_revio_instrument(apps, schema_editor):
         instrument_type, _ = InstrumentType.create(
             platform=platform,
             type="Revio",
-            index_read_5_prime="Unknown",
-            index_read_3_prime="Unknown",
+            index_read_5_prime=INDEX_READ_FORWARD,
+            index_read_3_prime=INDEX_READ_FORWARD,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
         reversion.add_to_revision(instrument_type)
@@ -44,7 +44,7 @@ def create_pacbio_revio_instrument(apps, schema_editor):
         reversion.add_to_revision(instrument)
 
 
-STEP_NAME = "PacBio Experiment Run"
+PACBIO_EXPERIMENT_RUN_STEP_NAME = "PacBio Experiment Run"
 def create_pacbio_experiment_run_step(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     Protocol = apps.get_model("fms_core", "Protocol")
@@ -103,7 +103,7 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
             reversion.add_to_revision(pt)
 
         Step.objects.create(
-            name=STEP_NAME,
+            name=PACBIO_EXPERIMENT_RUN_STEP_NAME,
             protocol=protocol,
             sample_type=SampleType.LIBRARY,
             is_active=True,
@@ -116,7 +116,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     StepOrder = apps.get_model("fms_core", "StepOrder")
 
-    experiment_run_step = Step.objects.get(name=STEP_NAME)
+    experiment_run_step = Step.objects.get(name=PACBIO_EXPERIMENT_RUN_STEP_NAME)
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -132,49 +132,49 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
         )
         reversion.add_to_revision(workflow)
 
-        prev_step_order = StepOrder.objects.create(
+        next_step_order = StepOrder.objects.create(
             step=experiment_run_step,
             order=4,
             workflow=workflow,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
-        reversion.add_to_revision(prev_step_order)
+        reversion.add_to_revision(next_step_order)
 
         normalization_and_pooling_step = Step.objects.get(
             name="Normalization and Pooling"
         )
-        prev_step_order = StepOrder.objects.create(
+        next_step_order = StepOrder.objects.create(
             step=normalization_and_pooling_step,
-            next_step_order=prev_step_order,
+            next_step_order=next_step_order,
             order=3,
             workflow=workflow,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
-        reversion.add_to_revision(prev_step_order)
+        reversion.add_to_revision(next_step_order)
 
         library_qc_step = Step.objects.get(
             name="Library QC"
         )
-        prev_step_order = StepOrder.objects.create(
+        next_step_order = StepOrder.objects.create(
             step=library_qc_step,
-            next_step_order=prev_step_order,
+            next_step_order=next_step_order,
             order=2,
             workflow=workflow,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
-        reversion.add_to_revision(prev_step_order)
+        reversion.add_to_revision(next_step_order)
         
         transfer_for_library_qc_step = Step.objects.get(
             name="Transfer for library QC"
         )
-        prev_step_order = StepOrder.objects.create(
+        next_step_order = StepOrder.objects.create(
             step=transfer_for_library_qc_step,
-            next_step_order=prev_step_order,
+            next_step_order=next_step_order,
             order=1,
             workflow=workflow,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
-        reversion.add_to_revision(prev_step_order)
+        reversion.add_to_revision(next_step_order)
         
 class Migration(migrations.Migration):
     dependencies = [
