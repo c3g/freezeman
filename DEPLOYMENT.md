@@ -115,9 +115,10 @@ On this page we list the various steps needed for deployments. The first section
     ```
   * Install Node.js
     ```
-    # Tested with node.js versions <=16.17.0
-    yum update
-    yum install nodejs -y
+    export PATH=/opt/torque/x86_64/bin:/usr/pgsql-15/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/home/django/.local/bin:/home/django/bin
+    npm cache clean
+    sudo /usr/local/bin/npm install -g n
+    sudo /bin/n 16.20.2
     ```
   * Install and Configure nginx
     ```
@@ -199,3 +200,5 @@ On this page we list the various steps needed for deployments. The first section
   * Add FMS_AUTOMATIONS_WORK_PATH to env variables through uwsgi.ini.
 * Version 4.13.0
   * Add a daily Cron call to "Python manage.py prepare_report_data" from a script on the server.
+* Version 5.2.0
+  * Upgrade node.js to v16.20.2.

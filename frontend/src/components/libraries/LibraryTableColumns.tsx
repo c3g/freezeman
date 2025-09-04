@@ -226,8 +226,8 @@ export const LIBRARY_COLUMN_DEFINITIONS: { [key in LibraryColumnID]: LibraryColu
 		dataIndex: ['library', 'qc_flag'],
 		render: (_, { library }) => {
 			if (library) {
-				const flags = { quantity: library.quantity_flag, quality: library.quality_flag }
-				if (!isNullish(flags.quantity) || !isNullish(flags.quality)) {
+				const flags = { quantity: library.quantity_flag, quality: library.quality_flag, identity: library.identity_flag }
+				if (!isNullish(flags.quantity) || !isNullish(flags.quality) || !isNullish(flags.identity)) {
 					return <QCFlag flags={flags} />
 				}
 			}

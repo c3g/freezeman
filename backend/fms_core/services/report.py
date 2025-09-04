@@ -12,6 +12,7 @@ from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
 
+from fms_core.services.samplesheet import fit_sheet_columns_width_to_content
 from fms_report.models import Report, MetricField
 from fms_report.models._constants import AggregationType, FieldDataType
 
@@ -145,10 +146,7 @@ def get_report_as_excel(report_data: ReportData) -> bytes:
                     cell = samplesheet.cell(row=k, column=j)
                     cell.value = sheet_datum[header["name"]]
         # Refit columns width to data
-        for column in samplesheet.columns:
-            max_length = max(len(str(cell.value)) for cell in column)
-            adjusted_width = (max_length * 1.1) + 4 # Ad Hoc values to tweak the width
-            samplesheet.column_dimensions[column[0].column_letter].width = adjusted_width
+        fit_sheet_columns_width_to_content(workbook_sheet=samplesheet, adjust_factor=1.1, adjust_offset=4)
 
     # Remove default sheet
     del workbook["Sheet"]

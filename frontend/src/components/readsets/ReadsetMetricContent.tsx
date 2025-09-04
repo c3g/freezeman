@@ -4,6 +4,7 @@ import { ReactNode } from "react"
 import { Tooltip, Typography } from "antd"
 import { MinusCircleTwoTone, PlusCircleTwoTone } from "@ant-design/icons"
 import { Readset } from "../../models/frontend_models"
+import { numberToString } from "../../utils/numberToString"
 import React from "react"
 
 export const ReadsetMetricContent = (): ExpandableConfig<ObjectWithReadset> => {
@@ -52,12 +53,12 @@ export const ReadsetMetricContent = (): ExpandableConfig<ObjectWithReadset> => {
                                             flexDirection: 'column',
                                         }} key={name}>
                                             {<b >
-                                                {name.replace(/_/g, " ")}
+                                              {name.replace(/_/g, " ")}
                                             </b>
                                             }
                                             {readset.metrics[name].value_numeric
                                                 ?
-                                                checkIfDecimal(readset.metrics[name].value_numeric)
+                                                <Typography className='table-column-numbers' style={{float: 'right'}}> {numberToString(Number(checkIfDecimal(readset.metrics[name].value_numeric)))} </Typography>
                                                 :
                                                 readset.metrics[name].value_string}
                                         </div>)

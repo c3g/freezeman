@@ -135,9 +135,10 @@ class SampleServicesTestCase(TestCase):
 
         # Create samples for testing
         self.SUBMITTED_SAMPLES_TO_POOL = [
-            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "studies": [], "volume": Decimal(10), "experimental_group": None, "fragment_size": 100},
-            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "studies": [], "volume": Decimal(30), "experimental_group": None, "fragment_size": 100},
+            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "studies": [], "volume_ratio": Decimal("0.25"), "experimental_group": None, "fragment_size": 100},
+            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "studies": [], "volume_ratio": Decimal("0.75"), "experimental_group": None, "fragment_size": 100},
         ]
+        self.SUBMITTED_SAMPLES_TO_POOL_VOLUME = 40
 
     def test_create_full_sample(self):
         new_sample, errors, warnings = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
@@ -526,10 +527,12 @@ class SampleServicesTestCase(TestCase):
                                               fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         updated_sample, errors, warnings = update_qc_flags(sample=new_sample,
                                                            quantity_flag="Passed",
-                                                           quality_flag="Failed")
+                                                           quality_flag="Failed",
+                                                           identity_flag="Passed")
         self.assertEqual(updated_sample, new_sample)
         self.assertTrue(updated_sample.quantity_flag)
         self.assertFalse(updated_sample.quality_flag)
+        self.assertTrue(updated_sample.identity_flag)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -548,13 +551,16 @@ class SampleServicesTestCase(TestCase):
                                               fragment_size=self.TEST_SAMPLES[0]["fragment_size"])
         updated_sample, _, _ = update_qc_flags(sample=new_sample,
                                                quantity_flag="Passed",
-                                               quality_flag="Failed")
+                                               quality_flag="Failed",
+                                               identity_flag="Failed")
         self.assertTrue(updated_sample.quantity_flag)
         self.assertFalse(updated_sample.quality_flag)
+        self.assertFalse(updated_sample.identity_flag)
         cleared_sample, errors, warnings = remove_qc_flags(sample=new_sample)
         self.assertEqual(cleared_sample, new_sample)
         self.assertIsNone(cleared_sample.quantity_flag)
         self.assertIsNone(cleared_sample.quality_flag)
+        self.assertFalse(cleared_sample.identity_flag)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -699,6 +705,7 @@ class SampleServicesTestCase(TestCase):
 
         pool, errors, warnings = pool_submitted_samples(samples_info=self.SUBMITTED_SAMPLES_TO_POOL,
                                                         pool_name=POOL_NAME,
+                                                        pool_volume=self.SUBMITTED_SAMPLES_TO_POOL_VOLUME,
                                                         container_destination=self.test_containers[2],
                                                         coordinates_destination=None,
                                                         reception_date=EXECUTION_DATE,

@@ -11,6 +11,7 @@ import { useRefreshWhenStale } from './useRefreshWhenStale'
 
 export interface PagedItemTableSelection {
 	onSelectionChanged: (exceptedItems: React.Key[], defaultSelection: boolean) => void
+	initialExceptedItems?: React.Key[]
 }
 
 // This is the set of possible callbacks for the paged items table.
@@ -137,7 +138,7 @@ function PagedItemsTable<T extends object>({
 	}, [tableDataState.objectMap])
 
 	const [defaultSelection, setDefaultSelection] = useState(false)
-	const [exceptedItems, setExceptedItems] = useState<React.Key[]>([])
+	const [exceptedItems, setExceptedItems] = useState<React.Key[]>(selection?.initialExceptedItems ?? [])
 	const allIsSelected = (!defaultSelection && exceptedItems.length === pagedItems.totalCount) || (defaultSelection && exceptedItems.length === 0)
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === pagedItems.totalCount)
 
@@ -231,11 +232,19 @@ function PagedItemsTable<T extends object>({
 		return undefined
 	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, onSelectMultiple, selectedRowKeys, selection])
 
-	// avoid dilema selectAll and selectedItems logic
+	// reset selections when filters change to avoid confusion for selectAll and selectedItems logic
+	const useInitialExceptedItems = useRef(Boolean(selection?.initialExceptedItems))
 	useEffect(() => {
 		setDefaultSelection(false)
-		setExceptedItems([])
-		selection?.onSelectionChanged([], false)
+		setExceptedItems(useInitialExceptedItems.current
+			? selection?.initialExceptedItems ?? []
+			: []
+		)
+		selection?.onSelectionChanged(useInitialExceptedItems.current
+			? selection?.initialExceptedItems ?? []
+			: [], false
+		)
+		useInitialExceptedItems.current = false // only use initial excepted items once, after that clear selections when filters change
 	}, [pagedItems.filters, pagedItems.fixedFilters, selection])
 
 	// When 'items' changes we have to fetch the data object corresponding with the item id's.

@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Collapse, Drawer, Flex, Modal, Popover, Select, Spin } from "antd";
 import { fetchProjects, fetchSamples, fetchWorkflows } from "../../modules/cache/cache";
 import { FilterSet } from "../../models/paged_items";
@@ -6,7 +7,7 @@ import { FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStudy, FMSWorkflow } fr
 import { notifyError, notifySuccess } from "../../modules/notification/actions";
 import { Project, Sample, Step, Study, Workflow } from "../../models/frontend_models";
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SAMPLE_COLUMN_DEFINITIONS, SampleColumn, ObjectWithSample, SampleColumnID } from '../samples/SampleTableColumns'
-import { SampleAndLibrary } from "../WorkflowSamplesTable/ColumnSets";
+import { SampleAndLibraryAndIdentity } from "../WorkflowSamplesTable/ColumnSets";
 import { selectProjectsByID, selectSamplesByID, selectSamplesTable } from "../../selectors";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { useFilteredColumns } from "../pagedItemsTable/useFilteredColumns";
@@ -21,15 +22,17 @@ import DropdownListItems from "../DropdownListItems";
 
 const MAX_SELECTION = 960
 
-interface LabworkSamplesProps {
+export interface WorkflowAssignmentProps {
+    initialExceptedSampleIDs?: Sample['id'][]
 }
 
-export function WorkflowAssignment(props: LabworkSamplesProps) {
+export function WorkflowAssignment({ initialExceptedSampleIDs }: WorkflowAssignmentProps) {
     const samplesTableState = useAppSelector(selectSamplesTable)
     const { filters, fixedFilters } = samplesTableState
 
     const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
     const [searchParams] = useSearchParams()
+    const [searchParamsProcessed, setSearchParamsProcessed] = useState(false)
     useEffect(() => {
         samplesTableCallbacks.clearFiltersCallback()
         for (const [columnID, value] of searchParams.entries()) {
@@ -50,6 +53,7 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
             )
         }
         samplesTableCallbacks.refreshPageCallback()
+        setSearchParamsProcessed(true)
         return () => {
             samplesTableCallbacks.clearFiltersCallback()
         }
@@ -125,19 +129,20 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
                 acc[sample.sample.id] = sample
             }
             return acc
-        }, {} as Record<string, SampleAndLibrary>)
+        }, {} as Record<string, SampleAndLibraryAndIdentity>)
         return Promise.resolve(dataObjectsByID)
     }, [samples])
 
     const [defaultSelection, setDefaultSelection] = useState(false)
-    const [exceptedSampleIDs, setExceptedSampleIDs] = useState<Sample['id'][]>([])
+    const [exceptedSampleIDs, setExceptedSampleIDs] = useState(initialExceptedSampleIDs ?? [])
     const sampleSelectionCount = defaultSelection ? samplesTableState.totalCount - exceptedSampleIDs.length : exceptedSampleIDs.length
-    const selection: NonNullable<PagedItemsTableProps<SampleAndLibrary>['selection']> = useMemo(() => ({
+    const selection: NonNullable<PagedItemsTableProps<SampleAndLibraryAndIdentity>['selection']> = useMemo(() => ({
         onSelectionChanged: (selectedItems, selectAll) => {
             setExceptedSampleIDs(selectedItems.map(id => parseInt(id as string)))
             setDefaultSelection(selectAll)
-        }
-    }), [])
+        },
+        initialExceptedItems: initialExceptedSampleIDs?.map(id => id.toString()) ?? []
+    }), [initialExceptedSampleIDs])
 
     const [open, setOpen] = useState(false)
     const maybeExpandRightPanel = useCallback(() => {
@@ -158,7 +163,7 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
 
     return (
         <>
-            <PagedItemsTable<ObjectWithSample>
+            {searchParamsProcessed && <PagedItemsTable<ObjectWithSample>
                 getDataObjectsByID={mapSampleIDs}
                 pagedItems={samplesTableState}
                 columns={columns}
@@ -170,7 +175,7 @@ export function WorkflowAssignment(props: LabworkSamplesProps) {
                     disabled={sampleSelectionCount < 1}>{`Queue/Dequeue ${sampleSelectionCount} Samples`}</Button>}
                 paginationProps={{simple: true}}
                 {...samplesTableCallbacks}
-            />
+            />}
             <Drawer
                 title="Queue/Dequeue Samples"
                 placement="right"

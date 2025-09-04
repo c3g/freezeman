@@ -18,6 +18,7 @@ import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { get as getProject } from '../../modules/projects/actions'
 import { FMSId } from '../../models/fms_api_models'
 import { SampleColumnID } from '../samples/SampleTableColumns'
+import { useNavigateToWorkflowAssignment } from '../management/WorkflowAssigmentPage'
 
 const { TabPane } = Tabs
 
@@ -93,10 +94,12 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 	// Clicking the Add Study button navigates the user to the study creation form
 	const addStudyButton = <Button onClick={handleAddStudy}>Add Study</Button>
 
+	const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
+
 	return (
 		<>
 			<AppPageHeader title={title} extra={<>
-				<Button onClick={() => navigate(`/management/workflow-assignment?${SampleColumnID.PROJECT}=${project.name}`)}>Manage Workflow</Button>
+				<Button onClick={() => navigateToWorkflowAssignment(`${SampleColumnID.PROJECT}=${project.name}`)}>Manage Workflow</Button>
 				<EditButton url={`/projects/${`${project.id}`}/update`} />
 				</>}/>
 			{project && (

@@ -1,3 +1,5 @@
+from decimal import Decimal
+from fms_core.models.derived_by_sample import DerivedBySample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.sample import pool_submitted_samples
@@ -80,9 +82,40 @@ class PoolsRowHandler(GenericRowHandler):
                                                     "Index {2} for sample {3} are not different enough {4}.", [indices[i].name, samples_name[i], indices[j].name, samples_name[j], index_distance]))
                           self.warnings["index_collision"] = index_warnings
 
+            equal_volume_ratio = True
+            for sample in samples_info:
+                if sample.get("volume_ratio", None) is not None:
+                    equal_volume_ratio = False
+                    break
+
+            EXP = Decimal(f'1E-{DerivedBySample.VOLUME_RATIO_DECIMAL_PLACES}')
+            total_volume_ratio = 0
+
+            for sample in samples_info:
+                if equal_volume_ratio:
+                    sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(EXP)
+                    total_volume_ratio += sample["volume_ratio"]
+                else:
+                    volume_ratio = sample.get("volume_ratio", None)
+                    if volume_ratio is None:
+                        self.errors["volume_ratio"] = [f"All samples in the pool {pool['name']} must define volume ratio."]
+                        break
+                    else:
+                        total_volume_ratio += Decimal(volume_ratio).quantize(EXP)
+
+            if not self.errors.get("volume_ratio") and total_volume_ratio != 1:
+                if equal_volume_ratio:
+                    # correct by adjusting first volume ratio
+                    delta = Decimal(1).quantize(EXP) - total_volume_ratio
+                    samples_info[0]["volume_ratio"] += delta
+                    total_volume_ratio += delta
+                else:
+                    self.errors["volume_ratio"].append(f"Total volume ratio of the samples in the pool {pool['name']} must add up to exactly 1. ({total_volume_ratio.normalize()})")
+
             # Pool samples
             pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=samples_info,
                                                                                       pool_name=pool['name'],
+                                                                                      pool_volume=pool['volume'],
                                                                                       container_destination=container_destination,
                                                                                       coordinates_destination=pool['coordinates'],
                                                                                       reception_date=reception_date,

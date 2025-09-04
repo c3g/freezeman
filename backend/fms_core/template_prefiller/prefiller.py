@@ -3,6 +3,7 @@ from io import BytesIO
 from openpyxl.reader.excel import load_workbook
 from ._utils import load_position_dict, find_worksheet_header_offset, is_sheet_true_batch
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 def PrefillTemplate(template_path, template_info, queryset):
@@ -59,6 +60,12 @@ def PrefillTemplateFromDict(template, rows_dicts):
         for i, sheet_info in enumerate(template["sheets info"]):
             current_sheet = workbook[sheet_info["name"]]
             header_offset = find_worksheet_header_offset(current_sheet, sheet_info['headers'])
+            custom_prefilling = sheet_info.get("custom_prefilling", None)
+            if custom_prefilling is not None:
+                errors, _ = custom_prefilling(current_sheet, sheet_info, header_offset, rows_dicts)
+                if errors:
+                    raise ValidationError(errors)
+          
             for j, entry in enumerate(rows_dicts[i]):
                 for header_index, template_column in enumerate(sheet_info['headers']):
                     value = entry.get(template_column, None)
@@ -66,5 +73,7 @@ def PrefillTemplateFromDict(template, rows_dicts):
                         current_sheet.cell(row=header_offset + j, column=header_index + 1).value = value
         workbook.save(out_stream)
         return out_stream.getvalue()
+    except ValidationError as e:
+        raise e
     except Exception as e:
         raise e

@@ -93,13 +93,13 @@ coverage run ./manage.py test -v 2
 
   1. Update the `VERSION` file in the repository to represent the current
      version number, according to semantic versioning.
-     
+
   2. Squash any migrations between the last version and the new version and
      name it `vX_Y_Z` where the version reflects the new semantic version
      number stored in the `VERSION` file. There should be **at most one
      migration per version.** Do not use `.` to separate version components,
      it breaks Django for some reason.
-     
+
   3. Tag a new release on GitHub, following the format `vX.Y.Z` where `X` is
      the major version, `Y` is the minor version, and `Z` is the patch version.
 
@@ -112,39 +112,39 @@ coverage run ./manage.py test -v 2
     * Media files are kept in the `media/` directory
     * For example uWSGI and NGINX configurations, see `example.uwsgi.ini` and
       `example.nginx.conf` respectively
-  
+
   * Use a WSGI server such as uWSGI or Gunicorn
-  
+
   * Set a secret key in `settings.py` different from the default repository
     value **for security reasons**
-  
+
   * Make sure to set `FMS_DEBUG=False` and `FMS_HOST=your.domain.org` in the
     production environment **for security reasons** and for the site to 
     function correctly
 
   * Set the `FMS_RUN_INFO_PATH` variable to point to a directory where Freezeman
     will output run info files to trigger run processing.
-    
+
   * Configure the Postgres connection using any of the following environment
     variables, where the default value is not sufficient:
-    
+
     * `PG_DATABASE`: Postgres database name. Default: `fms`
     * `PG_USER`: Postgres username. Default: `admin`
     * `PG_PASSWORD`: Postgres user password. Default: `admin`
     * `PG_HOST`: Postgres database host. Default: `localhost`
     * `PG_PORT`: Postgres database port. Default: `5432`
-    
+
   * Any time a new version is deployed, remember to run the following
     management commands:
-    
+
     * `./manage.py collectstatic` - Moves all static files into the
       `staticfiles/` directory
     * `./manage.py migrate` - Migrates the database to the latest version
-    
+
 
 ## Database diagram
 
-[Database Schema Diagram](https://dbdiagram.io/d/FMS-DB-v5-0-62012be785022f4ee54f72f3)
+[Database Schema Diagram](https://dbdiagram.io/d/FMS-DB-v5-2-622116d754f9ad109a563cbc)
 
 
 ## pg_fzy

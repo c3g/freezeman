@@ -103,6 +103,7 @@ import { indicesTable } from './modules/indicesTable/reducers'
 import { datasetsTable } from './modules/datasetsTable/reducers'
 import { experimentRunsTable } from "./modules/experimentRunsTable/reducers"
 import placement from "./modules/placement/reducers";
+import workflowAssignment from "./modules/workflowAssignment/reducers";
 
 const AUTH_PERSIST_CONFIG = {
     key: "auth",
@@ -187,6 +188,7 @@ const allReducers = combineReducers({
     steps,
     notifications,
     placement,
+    workflowAssignment
 });
 
 export default function rootReducer(state, action) {

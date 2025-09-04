@@ -13,7 +13,7 @@ from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    SAMPLE_QC_QUANTITY_INSTRUMENTS)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
-from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment
+from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment, custom_prefill_8x12_container_biosample_names
 
 __all__ = [
     "EXPERIMENT_AXIOM_TEMPLATE",
@@ -37,6 +37,7 @@ __all__ = [
     "SAMPLE_UPDATE_TEMPLATE",
     "SAMPLE_TRANSFER_TEMPLATE",
     "SAMPLE_QC_TEMPLATE",
+    "SAMPLE_IDENTITY_QC_TEMPLATE",
     "SAMPLE_SELECTION_QPCR_TEMPLATE",
     "PROJECT_STUDY_LINK_SAMPLES_TEMPLATE",
     "MAX_HEADER_OFFSET"
@@ -571,11 +572,11 @@ SAMPLE_POOLING_PLANNING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_14_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v5_2_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name',
+          'headers': ['Sample Type', 'Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Pool Name', 'Ratio Library In Pool',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Collection Site', 'Tissue Source','Container Kind', 'Container Barcode',
                       'Container Name', 'Sample Coord', 'Location Kind', 'Location Barcode', 'Location Name', 'Container Coord', 'Project', 'Study',
                       'Experimental Group', 'Taxon', 'Sex', 'Reference Genome', 'Individual Name', 'Individual Alias', 'Cohort',
@@ -729,6 +730,40 @@ SAMPLE_TRANSFER_TEMPLATE = {
       ("SampleTransfer", "Destination Container Coord", "coordinates"),
       ("SampleTransfer", "Destination Container Name", "container_name"),
       ("SampleTransfer", "Destination Container Kind", "container_kind"),
+  ],
+}
+
+SAMPLE_IDENTITY_QC_TEMPLATE = {
+  "identity": {"description": "Template to ascertain sample identity",
+               "file": static("submission_templates/Sample_identity_QC_v5_2_0.xlsx"),
+               "protocol": "Sample Identity Quality Control"},
+  "sheets info": [
+      {
+          'name': 'SampleIdentityQC',
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'QC Container Coord', 'Volume Used (uL)', 'Identity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
+          'batch': False,
+      },
+      {
+          "name": "QcContainer",
+          "headers": ["Coord", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
+          "custom_prefilling": custom_prefill_8x12_container_biosample_names,
+      },
+  ],
+  "user prefill info": {
+      "Volume Used (uL)": "number",
+      "Identity Flag": VALID_QC_FLAG_CHOICES,
+      "QC Date (YYYY-MM-DD)": "date",
+      "Comment": "text"
+  },
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("SampleIdentityQC", "Sample Name", "name", "name", None),
+      ("SampleIdentityQC", "Sample Container Barcode", "container__barcode", "container_barcode", None),
+      ("SampleIdentityQC", "Sample Container Coord", "coordinate__name", "coordinates", None),
+  ],
+  # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+  "placement info": [
+      ("SampleIdentityQC", "QC Container Coord", "coordinates"),
   ],
 }
 

@@ -26,13 +26,15 @@ class SampleRowHandler(GenericRowHandler):
         super().validate_row_input(**kwargs)
 
         sample = kwargs["sample"]
-        # make sure all required values are present. WIP.
         if sample["sample_kind"] is None:
-            self.errors['sample_kind'] = [f"Sample Kind is a required field."]
-        if sample["volume"] is None:
-            self.errors['volume'] = [f"Volume (uL) is a required field."]
+            self.errors['sample_kind'].append(f"Sample Kind is a required field.")
 
-    def process_row_inner(self, sample, library, container, project, parent_container, individual, sample_kind_objects_by_name, defined_pools):
+        sample_type = kwargs["sample_type"]
+        sample["sample_type"] = sample_type
+        if sample_type != "Library in pool" and sample["volume"] is None:
+            self.errors['volume'].append(f"'Volume (uL)' is a required field for sample type '{sample_type}'.")
+
+    def process_row_inner(self, sample_type, sample, library, container, project, parent_container, individual, sample_kind_objects_by_name, defined_pools):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.now(timezone.utc).isoformat()}Z"
 
         # Individual related section
@@ -190,7 +192,7 @@ class SampleRowHandler(GenericRowHandler):
         else:
             sample['alias'] = sample['alias'] or sample['name']
             if not sample['alias']:
-                self.errors['alias'].append([f"A pooled library must have a valid alias."])
+                self.errors['alias'].append(f"A pooled library must have a valid alias.")
             else:
                 # Since sample fields are not validated for pooling (through sample creation),
                 # we need to validate manually here
@@ -203,6 +205,7 @@ class SampleRowHandler(GenericRowHandler):
 
         # For pooling purposes
         self.row_object = {
+            "sample_type": sample["sample_type"],
             # Biosample info
             "alias": sample['alias'],
             "individual": individual_obj,
@@ -215,5 +218,5 @@ class SampleRowHandler(GenericRowHandler):
             "project": project_obj,
             "studies": studies_obj,
             # Pool relation info
-            "volume": sample['volume'],
+            "volume_ratio": sample['volume_ratio'],
         }

@@ -17,12 +17,14 @@ import ExecuteAutomationButton from './AdditionalAutomationData'
 import { getColumnsForStep } from '../../WorkflowSamplesTable/ColumnSets'
 import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamplesTable'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../libraries/LibraryTableColumns'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SAMPLE_NEXT_STEP_IDENTITY_COLUMN_FILTER_KEYS, SampleColumnID } from '../../samples/SampleTableColumns'
 import LabworkStepOverview, { GROUPING_CONTAINER, GROUPING_CREATED_BY } from './LabworkStepOverview'
 import LabworkSelection from './LabworkSelection'
 import Placement from '../../placementVisuals/Placement'
 import { flushPlacement } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
+import { SAMPLE_IDENTITY_COLUMN_FILTERS } from '../../samples/SampleIdentityColumns'
+import { useNavigateToWorkflowAssignment } from '../../management/WorkflowAssigmentPage'
 
 const { Text } = Typography
 
@@ -73,6 +75,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error('No templates are associated with step!')
 			}
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [stepSamples, selectedTemplate])
 
 	// Handle the prefill template button
@@ -133,6 +136,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error(err)
 			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		, [step, dispatch])
 
 	/** Table columns **/
@@ -147,6 +151,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return {
 			...SAMPLE_COLUMN_FILTERS,
 			...LIBRARY_COLUMN_FILTERS,
+			...SAMPLE_IDENTITY_COLUMN_FILTERS,
 			GROUPING_CONTAINER,
 			GROUPING_CREATED_BY
 		}
@@ -156,6 +161,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		return {
 			...SAMPLE_NEXT_STEP_FILTER_KEYS,
 			...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS,
+			...SAMPLE_NEXT_STEP_IDENTITY_COLUMN_FILTER_KEYS,
 			[GROUPING_CONTAINER.label]: GROUPING_CONTAINER.key,
 			[GROUPING_CREATED_BY.label]: GROUPING_CREATED_BY.key
 		}
@@ -313,6 +319,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [dispatch, step.id])
 
+	const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
+
 	/** UX **/
 
 	// Display the number of selected samples in the tab title
@@ -341,11 +349,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					/>
 				</>
 			}
-			<Link to={`/management/workflow-assignment?${SampleColumnID.QUEUED_STEPS}=${step.name}`}>
-				<Button type='default' title={"Manage sample queueing to the current step."}>
-					Manage Workflow
-				</Button>
-			</Link>
+			<Button type='default' title={"Manage sample queueing to the current step."} onClick={() => navigateToWorkflowAssignment(`${SampleColumnID.QUEUED_STEPS}=${step.name}`, stepSamples.selectedSamples.items)}>
+				Manage Workflow
+			</Button>
 			{!isAutomationStep &&
 				<>
 					<PrefillButton onPrefillOpen={onPrefillOpen} canPrefill={canPrefill} handlePrefillTemplate={handlePrefillTemplate} data={selectedTemplate?.prefillFields ?? []}></PrefillButton>

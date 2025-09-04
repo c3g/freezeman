@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -14,7 +15,7 @@ from fms_core.services.index import get_or_create_index_set, create_index, creat
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v4_14_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v5_2_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
@@ -114,6 +115,19 @@ class SampleSubmissionTestCase(TestCase):
 
         # Verify the parent container is created
         self.assertTrue(Container.objects.filter(name="Rackadoodledoo").exists())
+
+        # Tests for the SubmittedPool2
+        pool_name = "SubmittedPool2"
+        pooled_libraries_alias = ["POOLIO_1", "POOLIO_2", "POOLIO_3"]
+        self.assertTrue(Sample.objects.filter(name=pool_name).exists())
+        pool = Sample.objects.get(name=pool_name)
+        derived_by_samples = DerivedBySample.objects.filter(sample_id=pool.id)
+        self.assertEqual(derived_by_samples.count(), 3)
+        derived_by_samples = derived_by_samples.all()
+        self.assertEqual(derived_by_samples[0].volume_ratio, Decimal(f"0.{'3' * 14}4"))
+        self.assertEqual(derived_by_samples[1].volume_ratio, Decimal(f"0.{'3' * 15}"))
+        self.assertEqual(derived_by_samples[2].volume_ratio, Decimal(f"0.{'3' * 15}"))
+
 
     def test_invalid_sample_submission(self):
         for f in self.invalid_template_tests:

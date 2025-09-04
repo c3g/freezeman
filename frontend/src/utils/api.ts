@@ -1,8 +1,9 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
+import { notifyError } from "../modules/notification/actions";
 
 const api = {
   auth: {
@@ -10,6 +11,10 @@ const api = {
     tokenRefresh: tokens => post("/token/refresh/", tokens),
     resetPassword: email => post("/password_reset/", { email }),
     changePassword: (token, password) => post("/password_reset/confirm/", { token, password }),
+  },
+
+  biosamples: {
+    get: (biosampleId: FMSId) => get<JsonResponse<FMSBiosample>>(`/biosamples/${biosampleId}/`),
   },
 
   containerKinds: {
@@ -208,7 +213,7 @@ const api = {
   },
 
   samples: {
-    get: sampleId => get(`/samples/${sampleId}/`),
+    get: sampleId => get<JsonResponse<FMSSample>>(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     addSamplesToStudy: (exceptedSampleIDs: Array<FMSSample['id']>, defaultSelection: boolean, projectId: FMSProject['id'], studyLetter: FMSStudy['letter'], stepOrder: WorkflowStepOrder['order'], queryParams?: QueryParams) =>
       filteredpost<StringResponse>(`/samples/add_samples_to_study/`, queryParams, { excepted_sample_ids: exceptedSampleIDs, default_selection: defaultSelection, project_id: projectId, study_letter: studyLetter, step_order: stepOrder }),
@@ -231,6 +236,11 @@ const api = {
     search: q => get("/samples/search/", { q }),
   },
 
+  sampleIdentity: {
+    get: (id: FMSSampleIdentity['id']) => get<JsonResponse<FMSSampleIdentity>>(`/sample-identities/${id}/`),
+    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identities/`, options, { abort }),
+  },
+
   sampleMetadata: {
     get: options => get(`/sample-metadata/`, options),
     search: (q, options) => get("/sample-metadata/search/", { q, ...options }),
@@ -249,7 +259,7 @@ const api = {
     listSamplesAtStep: (stepId: FMSId, options?: QueryParams, sample__id__in?: FMSId[]) => filteredpost<JsonResponse<FMSPagedResultsReponse<FMSSampleNextStep>>>('/sample-next-step/list_post/', {limit: 100000, ...options, step__id__in: stepId}, { sample__id__in }),
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills/', {protocol: protocolId}),
-      request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string,  options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID.toString(), sample__id__in }))
+      request: (templateID: FMSId, user_prefill_data: string, placement_data: string, sample__id__in: string,  options?: QueryParams) => filteredpost<ArrayBufferResponse>('/sample-next-step/prefill_template/',{...options}, form({user_prefill_data: user_prefill_data, placement_data: placement_data, template: templateID.toString(), sample__id__in }), { notifyError: true })
     },
     template: {
       actions: () => get(`/sample-next-step/template_actions/`),
@@ -357,14 +367,15 @@ const ongoingRequests: Record<string, AbortController> = {}
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
     abort?: boolean
+    notifyError?: boolean
 }
 
 export const ABORT_ERROR_NAME = 'AbortError'
 
-function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false }) {
+function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: string, body?: any, options: APIFetchOptions = { abort: false, notifyError: false }) {
     const baseRoute = getPathname(route)
 
-    return (_: Dispatch<AnyAction>, getState: (() => AuthTokensAccess)) => {
+    return (dispatch: Dispatch<AnyAction>, getState: (() => AuthTokensAccess)) => {
 
         const accessToken = getState().auth.tokens.access;
 
@@ -403,19 +414,30 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
                         undefined,
         })
 
-        return request.then(res => {
-            if (options.abort) {
-                delete ongoingRequests[baseRoute]
-            }
-            return res
-        })
-            .then((response) => attachData<R>(response))
-            .then(response => {
-                if (response.ok) {
-                    return response;
-                }
-                return Promise.reject(createAPIError(response));
-            })
+        return request
+          .then(res => {
+              if (options.abort) {
+                  delete ongoingRequests[baseRoute]
+              }
+              return res
+          })
+          .then((response) => attachData<R>(response))
+          .then(response => {
+              if (response.ok) {
+                  return response;
+              }
+              if (options.notifyError) {
+                  let detail = response.data.detail
+                  if (Array.isArray(detail)) {
+                    detail = detail.join('; ')
+                  }
+                  dispatch(notifyError({
+                    id: baseRoute,
+                    title: detail || 'API request failed',
+                  }))
+              }
+              return Promise.reject(createAPIError(response));
+          })
     };
 }
 

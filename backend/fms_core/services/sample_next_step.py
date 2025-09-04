@@ -463,6 +463,55 @@ def remove_sample_from_workflow(current_step: Step, current_sample: Sample, proc
 
     return removed_count, errors, warnings
 
+def record_step_history(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP):
+    """
+    Service that record a step history in a workflow. New StepHistory instances are created for the current step for the sample being processed alongside the chosen workflow action.
+
+    Args:
+        `current_step`: Step instance representing the protocol being executed by the template.
+        `current_sample`: Sample instance being processed.
+        `process_measurement`: Process_measurement related to the step for the current sample. An entry is inserted into StepHistory.
+        `workflow_action`: WorkflowAction that was performed on the sample at the step completion. Defaults to WorkflowAction.NEXT_STEP
+    
+    Returns:
+        Tuple containing the list of new StepHistory or None if an error occurs, errors and warnings.
+    """
+    new_step_histories = []
+    errors = []
+    warnings = []
+    if not isinstance(current_step, Step):
+        errors.append(f"A valid current step instance must be provided.")
+
+    if not isinstance(current_sample, Sample):
+        errors.append(f"A valid current sample instance must be provided.")
+    
+    if not isinstance(process_measurement, ProcessMeasurement):
+        errors.append(f"A valid process measurement instance must be provided.")
+
+    if not isinstance(workflow_action, WorkflowAction):
+        errors.append(f"A valid workflow action instance must be provided.")
+
+    if not errors:
+        current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step=current_step)
+
+        for current_sample_next_step in current_sample_next_steps.all():
+            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all() :
+                study = sample_next_step_by_study.study
+                current_step_order = sample_next_step_by_study.step_order
+                try:
+                    # Create the entry in StepHistory
+                    step_history = StepHistory.objects.create(study=study,
+                                                              step_order=current_step_order,
+                                                              process_measurement=process_measurement,
+                                                              sample=current_sample,
+                                                              workflow_action=workflow_action)
+                    new_step_histories.append(step_history)
+                except Exception as err:
+                    errors.append(f"Failed to create StepHistory.")
+    if errors:
+        new_step_histories = None
+
+    return new_step_histories, errors, warnings
 
 def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sample, process_measurement: ProcessMeasurement=None, next_sample: Sample=None) -> Tuple[List[str], List[str]]:
     """
@@ -500,6 +549,11 @@ def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sa
                                                 workflow_action=WorkflowAction.REPEAT_STEP,
                                                 next_sample=next_sample,
                                                 keep_current=True)
+    elif workflow_action == WorkflowAction.REPEAT_QC_STEP.label:
+        _, errors, _ = record_step_history(current_step=step,
+                                           current_sample=current_sample,
+                                           process_measurement=process_measurement,
+                                           workflow_action=WorkflowAction.REPEAT_QC_STEP)
     elif workflow_action == WorkflowAction.IGNORE_WORKFLOW.label:
         warnings.append(("Sample {0} current process will not be recorded as part of a workflow.", [current_sample.name]))
     else:
