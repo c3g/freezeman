@@ -3,7 +3,7 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 from django.contrib.auth.models import User
-from fms_core.models._constants import INDEX_READ_FORWARD, SampleType
+from fms_core.models._constants import INDEX_READ_FORWARD, SampleType, StepType
 
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -20,13 +20,14 @@ def create_pacbio_revio_instrument(apps, schema_editor):
         reversion.set_comment(f"Create instrument for PacBio.")
         reversion.set_user(admin_user)
 
-        platform, _ = Platform.objects.create(
+        # already exists in db 2024/07/21
+        platform, _ = Platform.objects.get_or_create(
             name="PACBIO_SMRT",
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
         reversion.add_to_revision(platform)
 
-        instrument_type, _ = InstrumentType.create(
+        instrument_type = InstrumentType.objects.create(
             platform=platform,
             type="Revio",
             index_read_5_prime=INDEX_READ_FORWARD,
@@ -35,7 +36,7 @@ def create_pacbio_revio_instrument(apps, schema_editor):
         )
         reversion.add_to_revision(instrument_type)
 
-        instrument, _ = Instrument.objects.create(
+        instrument = Instrument.objects.create(
             name="Revio",
             type=instrument_type,
             serial_id="r84240",
@@ -60,7 +61,7 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
         reversion.set_comment(f"Create step for PacBio Experiment Run.")
         reversion.set_user(admin_user)
 
-        protocol, _ = Protocol.objects.create(
+        protocol = Protocol.objects.create(
             name="PacBio Preparation",
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
@@ -70,9 +71,9 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
         run_type = RunType.objects.create(
             name="Pacbio",
             platform=platform,
-            protcol=protocol,
-            needs_run_processing=False,
-            craeted_by_id=admin_user_id, updated_by_id=admin_user_id
+            protocol=protocol,
+            needs_run_processing=True,
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
         reversion.add_to_revision(run_type)
 
@@ -94,14 +95,16 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
             )
             reversion.add_to_revision(pt)
 
-        Step.objects.create(
+        step = Step.objects.create(
             name=PACBIO_EXPERIMENT_RUN_STEP_NAME,
             protocol=protocol,
-            sample_type=SampleType.LIBRARY,
-            is_active=True,
+            type=StepType.PROTOCOL,
+            expected_sample_type=SampleType.LIBRARY,
+            needs_placement=True,
+            need_planning=False,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
-        reversion.add_to_revision(Step)
+        reversion.add_to_revision(step)
 
 def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
     Workflow = apps.get_model("fms_core", "Workflow")
@@ -117,7 +120,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
         reversion.set_comment(f"Create workflow for PacBio ready to sequence.")
         reversion.set_user(admin_user)
 
-        workflow, _ = Workflow.objects.create(
+        workflow = Workflow.objects.create(
             name="Ready-to-Sequence PacBio",
             structure="Ready-to-Sequence PacBio",
             created_by_id=admin_user_id, updated_by_id=admin_user_id
@@ -133,7 +136,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
         reversion.add_to_revision(next_step_order)
 
         normalization_and_pooling_step = Step.objects.get(
-            name="Normalization and Pooling"
+            name="Normalization and Pooling (Experiment Run)"
         )
         next_step_order = StepOrder.objects.create(
             step=normalization_and_pooling_step,

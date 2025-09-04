@@ -23,6 +23,7 @@ __all__ = [
     "CONTAINER_RENAME_TEMPLATE",
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "EXPERIMENT_ILLUMINA_TEMPLATE",
+    "EXPERIMENT_PACBIO_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_CAPTURE_TEMPLATE",
     "LIBRARY_CONVERSION_TEMPLATE",
@@ -202,6 +203,24 @@ EXPERIMENT_AXIOM_TEMPLATE = {
         ("Experiments", "Experiment Container Barcode", "container__comment", "container_comment", get_axiom_experiment_barcode_from_comment),
     ],
     # placement_info : [("Template Sheet Name", "Template Column Header", "Placement Data Key"]
+    "placement info": [
+        ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
+        ("Experiments", "Experiment Container Barcode", "container_barcode"),
+        ("Experiments", "Experiment Container Kind", "container_kind"),
+    ],
+}
+
+EXPERIMENT_PACBIO_TEMPLATE = {
+    "identity" : {"description": "Template to add PacBio experiments",
+                    "file": static("submission_templates/Experiment_run_Pacbio_v5_3_0.xlsx"),
+                    "protocol": "PacBio Preparation"},
+    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+    "prefill info": [
+        ("Samples", "Source Sample Name", "name", "name", None),
+        ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
+        ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+        ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
+    ],
     "placement info": [
         ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
         ("Experiments", "Experiment Container Barcode", "container_barcode"),
