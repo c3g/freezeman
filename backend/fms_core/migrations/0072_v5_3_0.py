@@ -38,7 +38,7 @@ def create_pacbio_revio_instrument(apps, schema_editor):
         instrument, _ = Instrument.objects.create(
             name="Revio",
             type=instrument_type,
-            serial_id="R84240",
+            serial_id="r84240",
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
         reversion.add_to_revision(instrument)
@@ -57,7 +57,7 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         admin_user_id = admin_user.id
 
-        reversion.set_comment(f"Create step for PacBio experiment run.")
+        reversion.set_comment(f"Create step for PacBio Experiment Run.")
         reversion.set_user(admin_user)
 
         protocol, _ = Protocol.objects.create(
@@ -77,23 +77,15 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
         reversion.add_to_revision(run_type)
 
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
-        property_types = [
-            {
-                "name": "Loading concentration",
-            },
-            {
-                "name": "Run time",
-            },
-            {
-                "name": "Sequencing kit lot",
-            },
-            {
-                "name": "Sequencing side",
-            }
+        PROPERTY_TYPE_NAMES = [
+            "Loading Concentration",
+            "Run Time",
+            "Sequencing Kit Lot",
+            "Sequencing Side",
         ]
-        for property_type in property_types:
+        for property_type_name in PROPERTY_TYPE_NAMES:
             pt = PropertyType.objects.create(
-                name=property_type["name"],
+                name=property_type_name,
                 value_type="str",
                 is_optional=False,
                 object_id=protocol.id,
