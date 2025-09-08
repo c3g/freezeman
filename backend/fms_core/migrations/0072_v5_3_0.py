@@ -77,7 +77,7 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
 
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
         PROPERTY_TYPE_NAMES = [
-            "Loading Concentration",
+            "Loading Concentration (pM)",
             "Run Time",
             "Sequencing Kit Lot",
             "Sequencer Side",
