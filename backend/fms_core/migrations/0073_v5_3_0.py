@@ -15,7 +15,6 @@ def create_pacbio_index_structure(apps, schema_editor):
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        admin_user_id = admin_user.id
 
         reversion.set_comment(f"Create index structure for PacBio.")
         reversion.set_user(admin_user)
@@ -531,47 +530,66 @@ def create_pacbio_indices_and_index_sets(apps, schema_editor):
     IndexSet = apps.get_model("fms_core", "IndexSet")
     IndexStructure = apps.get_model("fms_core", "IndexStructure")
     Sequence = apps.get_model("fms_core", "Sequence")
+    SequenceByIndex3Prime = apps.get_model("fms_core", "SequenceByIndex3Prime")
+    SequenceByIndex5Prime = apps.get_model("fms_core", "SequenceByIndex5Prime")
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        admin_user_id = admin_user.id
 
         reversion.set_comment(f"Create indices and index sets for PacBio.")
         reversion.set_user(admin_user)
 
-        pacbio_index_structure, _ = IndexStructure.objects.get(name=PACBIO_INDEX_STRUCTURE_NAME)
+        pacbio_index_structure = IndexStructure.objects.get(name=PACBIO_INDEX_STRUCTURE_NAME)
         for index_set_name, indices in INDICES_BY_INDEX_SET.items():
             index_set = IndexSet.objects.create(
                 name=index_set_name,
-                index_structure=pacbio_index_structure,
-                created_by_id=admin_user_id,
-                modified_by_id=admin_user_id,
+                created_by_id=admin_user.id,
+                updated_by_id=admin_user.id,
             )
+            reversion.add_to_revision(index_set)
             for index in indices:
-                sequence1 = Sequence.objects.get_or_create(
+                sequence1, created = Sequence.objects.get_or_create(
                     value=index['sequence1'],
-                    created_by_id=admin_user_id,
-                    modified_by_id=admin_user_id,
+                    created_by_id=admin_user.id,
+                    updated_by_id=admin_user.id,
                 )
-                sequence2 = Sequence.objects.get_or_create(
+                if not created:
+                    reversion.add_to_revision(sequence1)
+                sequence2, created = Sequence.objects.get_or_create(
                     value=index['sequence2'],
-                    created_by_id=admin_user_id,
-                    modified_by_id=admin_user_id,
+                    created_by_id=admin_user.id,
+                    updated_by_id=admin_user.id,
                 )
+                if not created:
+                    reversion.add_to_revision(sequence2)
                 index_obj = Index.objects.create(
                     name=index['name'],
-                    sequences_3prime=sequence1,
-                    sequences_5prime=sequence2,
                     index_structure=pacbio_index_structure,
-                    created_by_id=admin_user_id,
-                    modified_by_id=admin_user_id,
+                    created_by_id=admin_user.id,
+                    updated_by_id=admin_user.id,
                 )
+                reversion.add_to_revision(index_obj)
+                sequence_by_index_3_prime = SequenceByIndex3Prime.objects.create(
+                    sequence=sequence1,
+                    index=index_obj,
+                    created_by_id=admin_user.id,
+                    updated_by_id=admin_user.id,
+                )
+                reversion.add_to_revision(sequence_by_index_3_prime)
+                sequence_by_index_5_prime = SequenceByIndex5Prime.objects.create(
+                    sequence=sequence2,
+                    index=index_obj,
+                    created_by_id=admin_user.id,
+                    updated_by_id=admin_user.id,
+                )
+                reversion.add_to_revision(sequence_by_index_5_prime)
                 IndexBySet.objects.create(
                     index=index_obj,
                     index_set=index_set,
-                    created_by_id=admin_user_id,
-                    modified_by_id=admin_user_id,
+                    created_by_id=admin_user.id,
+                    updated_by_id=admin_user.id,
                 )
+                reversion.add_to_revision(index_set)
 
 def create_no_index(apps, schema_editor):
     Index = apps.get_model("fms_core", "Index")
@@ -579,6 +597,8 @@ def create_no_index(apps, schema_editor):
     IndexSet = apps.get_model("fms_core", "IndexSet")
     IndexStructure = apps.get_model("fms_core", "IndexStructure")
     Sequence = apps.get_model("fms_core", "Sequence")
+    SequenceByIndex3Prime = apps.get_model("fms_core", "SequenceByIndex3Prime")
+    SequenceByIndex5Prime = apps.get_model("fms_core", "SequenceByIndex5Prime")
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -590,27 +610,38 @@ def create_no_index(apps, schema_editor):
         empty_sequence = Sequence.objects.get(value="")
         no_index = Index.objects.create(
             name="No_Index",
-            sequences_3prime=empty_sequence,
-            sequences_5prime=empty_sequence,
             index_structure=no_flanker_structure,
             created_by_id=admin_user.id,
-            modified_by_id=admin_user.id,
+            updated_by_id=admin_user.id,
         )
+        reversion.add_to_revision(no_index)
+        sequence_by_index_3_prime = SequenceByIndex3Prime.objects.create(
+            sequence=empty_sequence,
+            index=no_index,
+            created_by_id=admin_user.id,
+            updated_by_id=admin_user.id,
+        )
+        reversion.add_to_revision(sequence_by_index_3_prime)
+        sequence_by_index_5_prime = SequenceByIndex5Prime.objects.create(
+            sequence=empty_sequence,
+            index=no_index,
+            created_by_id=admin_user.id,
+            updated_by_id=admin_user.id,
+        )
+        reversion.add_to_revision(sequence_by_index_5_prime)
 
         miscellaneous_index_set = IndexSet.objects.create(
             name="Miscellaneous_Index_Set",
-            index_structure=no_flanker_structure,
             created_by_id=admin_user.id,
-            modified_by_id=admin_user.id,
+            updated_by_id=admin_user.id,
         )
+        reversion.add_to_revision(miscellaneous_index_set)
         no_index_by_set = IndexBySet.objects.create(
             index=no_index,
             index_set=miscellaneous_index_set,
             created_by_id=admin_user.id,
-            modified_by_id=admin_user.id,
+            updated_by_id=admin_user.id,
         )
-        reversion.add_to_revision(no_index)
-        reversion.add_to_revision(miscellaneous_index_set)
         reversion.add_to_revision(no_index_by_set)
 
 class Migration(migrations.Migration):
