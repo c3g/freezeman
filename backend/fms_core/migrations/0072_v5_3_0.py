@@ -101,7 +101,7 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
             type=StepType.PROTOCOL,
             expected_sample_type=SampleType.LIBRARY,
             needs_placement=True,
-            need_planning=False,
+            needs_planning=False,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
         reversion.add_to_revision(step)
@@ -130,7 +130,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
             step=experiment_run_step,
             order=4,
             workflow=workflow,
-            created_by_id=admin_user_id, updated_by_id=admin_user_id
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
         reversion.add_to_revision(next_step_order)
 
@@ -142,7 +142,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
             next_step_order=next_step_order,
             order=3,
             workflow=workflow,
-            created_by_id=admin_user_id, updated_by_id=admin_user_id
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
         reversion.add_to_revision(next_step_order)
 
@@ -154,7 +154,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
             next_step_order=next_step_order,
             order=2,
             workflow=workflow,
-            created_by_id=admin_user_id, updated_by_id=admin_user_id
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
         reversion.add_to_revision(next_step_order)
         
@@ -166,7 +166,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
             next_step_order=next_step_order,
             order=1,
             workflow=workflow,
-            created_by_id=admin_user_id, updated_by_id=admin_user_id
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
         reversion.add_to_revision(next_step_order)
 
@@ -200,13 +200,13 @@ def create_qc_instruments(apps, schema_editor):
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         
-        reversion.set_comment(f"Create FEMTO Pulse QC instrument.")
+        reversion.set_comment(f"Create Femto Pulse QC instrument.")
         reversion.set_user(admin_user)
 
         platform = Platform.objects.get(name="Quality Control")
         instrument_type = InstrumentType.objects.create(
             platform=platform,
-            type="FEMTO Pulse",
+            type="Femto Pulse",
             created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
         reversion.add_to_revision(instrument_type)
