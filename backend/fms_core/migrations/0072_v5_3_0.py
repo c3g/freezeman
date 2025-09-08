@@ -170,7 +170,29 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
         reversion.add_to_revision(next_step_order)
-        
+
+def create_pacbio_library_types(apps, schema_editor):
+    LibraryType = apps.get_model("fms_core", "LibraryType")
+    
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create PacBio library types.")
+        reversion.set_user(admin_user)
+
+        pacbio_library_types = [
+            "Kinnex Full-length RNA",
+            "Isoseq RNA",
+        ]
+
+        for library_type_name in pacbio_library_types:
+            library_type = LibraryType.objects.create(
+                name=library_type_name,
+                created_by_id=admin_user_id, updated_by_id=admin_user_id
+            )
+            reversion.add_to_revision(library_type)
+
 class Migration(migrations.Migration):
     dependencies = [
         ('fms_core', '0071_v5_2_0'),
