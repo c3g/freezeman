@@ -573,7 +573,45 @@ def create_pacbio_indices_and_index_sets(apps, schema_editor):
                     modified_by_id=admin_user_id,
                 )
 
+def create_no_index(apps, schema_editor):
+    Index = apps.get_model("fms_core", "Index")
+    IndexBySet = apps.get_model("fms_core", "IndexBySet")
+    IndexSet = apps.get_model("fms_core", "IndexSet")
+    IndexStructure = apps.get_model("fms_core", "IndexStructure")
+    Sequence = apps.get_model("fms_core", "Sequence")
 
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Create 'No_Index' index and index set.")
+        reversion.set_user(admin_user)
+
+        no_flanker_structure = IndexStructure.objects.get(name="No_Flankers")
+        empty_sequence = Sequence.objects.get(value="")
+        no_index = Index.objects.create(
+            name="No_Index",
+            sequences_3prime=empty_sequence,
+            sequences_5prime=empty_sequence,
+            index_structure=no_flanker_structure,
+            created_by_id=admin_user.id,
+            modified_by_id=admin_user.id,
+        )
+
+        miscellaneous_index_set = IndexSet.objects.create(
+            name="Miscellaneous_Index_Set",
+            index_structure=no_flanker_structure,
+            created_by_id=admin_user.id,
+            modified_by_id=admin_user.id,
+        )
+        no_index_by_set = IndexBySet.objects.create(
+            index=no_index,
+            index_set=miscellaneous_index_set,
+            created_by_id=admin_user.id,
+            modified_by_id=admin_user.id,
+        )
+        reversion.add_to_revision(no_index)
+        reversion.add_to_revision(miscellaneous_index_set)
+        reversion.add_to_revision(no_index_by_set)
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -583,4 +621,5 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(create_pacbio_index_structure, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_pacbio_indices_and_index_sets, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_no_index, reverse_code=migrations.RunPython.noop),
     ]
