@@ -115,7 +115,6 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
-        admin_user_id = admin_user.id
 
         reversion.set_comment(f"Create workflow for PacBio ready to sequence.")
         reversion.set_user(admin_user)
@@ -123,7 +122,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
         workflow = Workflow.objects.create(
             name="Ready-to-Sequence PacBio",
             structure="Ready-to-Sequence PacBio",
-            created_by_id=admin_user_id, updated_by_id=admin_user_id
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
         reversion.add_to_revision(workflow)
 
@@ -193,6 +192,25 @@ def create_pacbio_library_types(apps, schema_editor):
             )
             reversion.add_to_revision(library_type)
 
+def create_qc_instruments(apps, schema_editor):
+    Instrument = apps.get_model("fms_core", "Instrument")
+    InstrumentType = apps.get_model("fms_core", "InstrumentType")
+    Platform = apps.get_model("fms_core", "Platform")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        
+        reversion.set_comment(f"Create FEMTO Pulse QC instrument.")
+        reversion.set_user(admin_user)
+
+        platform = Platform.objects.get(name="Quality Control")
+        instrument_type = InstrumentType.objects.create(
+            platform=platform,
+            type="FEMTO Pulse",
+            created_by_id=admin_user.id, updated_by_id=admin_user.id
+        )
+        reversion.add_to_revision(instrument_type)
+
 class Migration(migrations.Migration):
     dependencies = [
         ('fms_core', '0071_v5_2_0'),
@@ -202,4 +220,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_pacbio_revio_instrument, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_pacbio_experiment_run_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_pacbio_ready_to_sequence_workflow, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_pacbio_library_types, reverse_code=migrations.RunPython.noop),
     ]
