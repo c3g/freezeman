@@ -126,7 +126,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
 
         next_step_order = StepOrder.objects.create(
             step=experiment_run_step,
-            order=4,
+            order=3,
             workflow=workflow,
             created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
@@ -138,7 +138,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
         next_step_order = StepOrder.objects.create(
             step=normalization_and_pooling_step,
             next_step_order=next_step_order,
-            order=3,
+            order=2,
             workflow=workflow,
             created_by_id=admin_user.id, updated_by_id=admin_user.id
         )
@@ -149,18 +149,6 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
         )
         next_step_order = StepOrder.objects.create(
             step=library_qc_step,
-            next_step_order=next_step_order,
-            order=2,
-            workflow=workflow,
-            created_by_id=admin_user.id, updated_by_id=admin_user.id
-        )
-        reversion.add_to_revision(next_step_order)
-        
-        transfer_for_library_qc_step = Step.objects.get(
-            name="Transfer for library QC"
-        )
-        next_step_order = StepOrder.objects.create(
-            step=transfer_for_library_qc_step,
             next_step_order=next_step_order,
             order=1,
             workflow=workflow,
