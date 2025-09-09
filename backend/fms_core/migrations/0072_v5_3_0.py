@@ -221,4 +221,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_pacbio_experiment_run_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_pacbio_ready_to_sequence_workflow, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_pacbio_library_types, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_qc_instruments, reverse_code=migrations.RunPython.noop),
     ]
