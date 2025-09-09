@@ -1,7 +1,5 @@
 import reversion
-from django.conf import settings
-from django.db import migrations, models
-import django.db.models.deletion
+from django.db import migrations
 from django.contrib.auth.models import User
 from fms_core.models._constants import INDEX_READ_FORWARD, SampleType, StepType
 
@@ -193,7 +191,6 @@ def create_pacbio_library_types(apps, schema_editor):
             reversion.add_to_revision(library_type)
 
 def create_qc_instruments(apps, schema_editor):
-    Instrument = apps.get_model("fms_core", "Instrument")
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
     Platform = apps.get_model("fms_core", "Platform")
 
