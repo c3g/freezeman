@@ -167,8 +167,8 @@ def create_pacbio_library_types(apps, schema_editor):
         reversion.set_user(admin_user)
 
         pacbio_library_types = [
-            "Kinnex Full-length RNA",
-            "Isoseq RNA",
+            "Kinnex_Full-length_RNA",
+            "IsoSeq_RNA",
         ]
 
         for library_type_name in pacbio_library_types:

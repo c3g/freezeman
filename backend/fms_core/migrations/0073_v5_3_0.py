@@ -32,7 +32,7 @@ def create_pacbio_index_structure(apps, schema_editor):
         reversion.add_to_revision(pacbio_index_structure)
 
 INDICES_BY_INDEX_SET = {
-    "SMRT96A": [
+    "PacBio_SMRTbell_adapter_index_plate_96A": [
         { "name": "SMRT96A_01_A01_bc2001--bc2001", "sequence1": "ATCGTGCGACGAGTAT", "sequence2": "ATCGTGCGACGAGTAT" },
         { "name": "SMRT96A_02_B01_bc2002--bc2002", "sequence1": "TGCATGTCATGAGTAT", "sequence2": "TGCATGTCATGAGTAT" },
         { "name": "SMRT96A_03_C01_bc2003--bc2003", "sequence1": "ACGAGTGCTCGAGTAT", "sequence2": "ACGAGTGCTCGAGTAT" },
@@ -130,7 +130,7 @@ INDICES_BY_INDEX_SET = {
         { "name": "SMRT96A_95_G12_bc2095--bc2095", "sequence1": "CTACTCATACGAGTAT", "sequence2": "CTACTCATACGAGTAT" },
         { "name": "SMRT96A_96_H12_bc2096--bc2096", "sequence1": "ATGTACTAGTGAGTAT", "sequence2": "ATGTACTAGTGAGTAT" },
     ],
-    "M13QA1": [
+    "PacBio_Barcoded_M13_Primer_Plate_384_Quadrant_A1": [
         { "name": "M13QA1_01_A01_bc1002--bc1050", "sequence1": "ACACACAGACTGTGAG", "sequence2": "GATATACGCGAGAGAG" },
         { "name": "M13QA1_02_B01_bc1004--bc1050", "sequence1": "CACGCACACACGCGCG", "sequence2": "GATATACGCGAGAGAG" },
         { "name": "M13QA1_03_C01_bc1006--bc1050", "sequence1": "CATATATATCAGCTGT", "sequence2": "GATATACGCGAGAGAG" },
@@ -228,7 +228,7 @@ INDICES_BY_INDEX_SET = {
         { "name": "M13QA1_95_G12_bc1014--bc1072", "sequence1": "CTCACTACGCGCGCGT", "sequence2": "AGACGCGAGCGCGTAG" },
         { "name": "M13QA1_96_H12_bc1016--bc1072", "sequence1": "CATAGAGAGATAGTAT", "sequence2": "AGACGCGAGCGCGTAG" },
     ],
-    "M13QA2": [
+    "PacBio_Barcoded_M13_Primer_Plate_384_Quadrant_A2": [
         { "name": "M13QA2_01_A01_bc1002--bc1051", "sequence1": "ACACACAGACTGTGAG", "sequence2": "CGTGTCTAGCGCGCGC" },
         { "name": "M13QA2_02_B01_bc1004--bc1051", "sequence1": "CACGCACACACGCGCG", "sequence2": "CGTGTCTAGCGCGCGC" },
         { "name": "M13QA2_03_C01_bc1006--bc1051", "sequence1": "CATATATATCAGCTGT", "sequence2": "CGTGTCTAGCGCGCGC" },
@@ -326,7 +326,7 @@ INDICES_BY_INDEX_SET = {
         { "name": "M13QA2_95_G12_bc1014--bc1073", "sequence1": "CTCACTACGCGCGCGT", "sequence2": "GCGTGTGTCGAGTGTA" },
         { "name": "M13QA2_96_H12_bc1016--bc1073", "sequence1": "CATAGAGAGATAGTAT", "sequence2": "GCGTGTGTCGAGTGTA" },
     ],
-    "M13QB1": [
+    "PacBio_Barcoded_M13_Primer_Plate_384_Quadrant_B1": [
         { "name": "M13QB1_01_A01_bc1003--bc1050", "sequence1": "ACACATCTCGTGAGAG", "sequence2": "GATATACGCGAGAGAG" },
         { "name": "M13QB1_02_B01_bc1005--bc1050", "sequence1": "CACTCGACTCTCGCGT", "sequence2": "GATATACGCGAGAGAG" },
         { "name": "M13QB1_03_C01_bc1007--bc1050", "sequence1": "TCTGTATCTCTATGTG", "sequence2": "GATATACGCGAGAGAG" },
@@ -424,7 +424,7 @@ INDICES_BY_INDEX_SET = {
         { "name": "M13QB1_95_G12_bc1015--bc1072", "sequence1": "CGCATGACACGTGTGT", "sequence2": "AGACGCGAGCGCGTAG" },
         { "name": "M13QB1_96_H12_bc1017--bc1072", "sequence1": "CACACGCGCGCTATAT", "sequence2": "AGACGCGAGCGCGTAG" },
     ],
-    "M13QB2": [
+    "PacBio_Barcoded_M13_Primer_Plate_384_Quadrant_B2": [
         { "name": "M13QB2_01_A01_bc1003--bc1051", "sequence1": "ACACATCTCGTGAGAG", "sequence2": "CGTGTCTAGCGCGCGC" },
         { "name": "M13QB2_02_B01_bc1005--bc1051", "sequence1": "CACTCGACTCTCGCGT", "sequence2": "CGTGTCTAGCGCGCGC" },
         { "name": "M13QB2_03_C01_bc1007--bc1051", "sequence1": "TCTGTATCTCTATGTG", "sequence2": "CGTGTCTAGCGCGCGC" },
