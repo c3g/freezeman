@@ -3,7 +3,6 @@ from django.db import migrations
 from django.contrib.auth.models import User
 from fms_core.models._constants import INDEX_READ_FORWARD, SampleType, StepType
 
-
 ADMIN_USERNAME = 'biobankadmin'
 
 def create_pacbio_revio_instrument(apps, schema_editor):
@@ -196,6 +195,18 @@ def create_qc_instruments(apps, schema_editor):
         )
         reversion.add_to_revision(instrument_type)
 
+def create_ffpe_sample_kind(apps, schema_editor):
+    SampleKind = apps.get_model('fms_core', 'SampleKind')
+
+    with reversion.create_revision():
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        reversion.set_user(admin_user)
+        reversion.set_comment("Create FFPE sample kind.")
+
+        ffpe_sample_kind = SampleKind.objects.create(name='FFPE', description='Formalin-Fixed Paraffin-Embedded')
+        ffpe_sample_kind.save()
+        reversion.add_to_revision(ffpe_sample_kind)
+
 class Migration(migrations.Migration):
     dependencies = [
         ('fms_core', '0071_v5_2_0'),
@@ -207,4 +218,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_pacbio_ready_to_sequence_workflow, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_pacbio_library_types, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_qc_instruments, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_ffpe_sample_kind, reverse_code=migrations.RunPython.noop),
     ]
