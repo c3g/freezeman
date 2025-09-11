@@ -7,10 +7,10 @@ from django.conf import settings
 
 from fms_core.utils import make_timestamped_filename
 from fms_core.services.experiment_run_info import generate_run_info
-from ..models import ExperimentRun
+from ..models import ExperimentRun, ProcessMeasurement
 
 from .process import create_process
-from .property_value import create_process_properties
+from .property_value import create_process_properties, create_process_measurement_properties
 from .sample import transfer_sample
 
 def get_experiment_run(name):
@@ -71,7 +71,7 @@ def create_experiment_run(experiment_run_name,
 
     # Create process' properties
     if not process_errors:
-        properties, properties_errors, properties_warnings = create_process_properties(process_properties, processes_by_protocol_id)
+        _, properties_errors, properties_warnings = create_process_properties(process_properties, processes_by_protocol_id)
 
     errors += process_errors + properties_errors
     warnings += process_warnings + properties_warnings
@@ -110,6 +110,14 @@ def create_experiment_run(experiment_run_name,
             if sample_destination:
                 sample_destination.depleted = True # deplete destination sample
                 sample_destination.save()
+                try:
+                    # Create process measurement properties
+                    process_measurement_obj = ProcessMeasurement.objects.get(source_sample=source_sample, lineage__child=sample_destination)
+                    _, pm_properties_errors, pm_properties_warnings = create_process_measurement_properties(sample_info['process_measurement_properties'], process_measurement_obj)
+                    errors += pm_properties_errors
+                    warnings += pm_properties_warnings
+                except ProcessMeasurement.DoesNotExist as e:
+                    errors.append(f"Failed to get process measurement for experiment run.")
 
             errors += transfer_errors
             warnings += transfer_warnings
