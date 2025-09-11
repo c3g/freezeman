@@ -14,8 +14,10 @@ LOAD_ALL = "ALL"
 PASSED = "Passed"
 FAILED = "Failed"
 VALID_QC_FLAG_CHOICES = [PASSED, FAILED]
+# Library qualifiers
+STRANDEDNESS_CHOICES = ["Double stranded", "Single stranded"]
 # QC Instruments
-LIBRARY_QC_QUALITY_INSTRUMENTS = ["Caliper LabChip", "TapeStation"]
+LIBRARY_QC_QUALITY_INSTRUMENTS = ["Caliper LabChip", "TapeStation", "Femto Pulse"]
 SAMPLE_QC_QUALITY_INSTRUMENTS = ['Agarose Gel', 'TapeStation', 'NanoDrop', 'Caliper LabChip', 'Tecan Absorbance', 'BioAnalyzer']
 SAMPLE_QC_QUANTITY_INSTRUMENTS = ['PicoGreen', 'Qubit', 'NanoDrop', 'Caliper LabChip', 'Tecan Absorbance', 'BioAnalyzer', 'TapeStation']
 LIBRARY_QC_QUANTITY_INSTRUMENTS = ["qPCR", "Qubit"]
