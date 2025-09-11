@@ -67,7 +67,7 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
 
         platform = Platform.objects.get(name="PACBIO_SMRT")
         run_type = RunType.objects.create(
-            name="Pacbio",
+            name="PacBio",
             platform=platform,
             protocol=protocol,
             needs_run_processing=True,
