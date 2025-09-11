@@ -5,6 +5,7 @@ import { capitalize } from '../../utils/capitalize'
 export enum RUN_TYPES {
     ILLUMINA = "Illumina",
     AXIOM = "Axiom",
+    PACBIO = "PacBio",
     DNBSEQ = "DNBSEQ",
     INFINIUM =  "Infinium",
 }
