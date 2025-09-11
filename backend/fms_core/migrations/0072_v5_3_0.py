@@ -27,7 +27,7 @@ def create_pacbio_revio_instrument(apps, schema_editor):
 
         instrument_type = InstrumentType.objects.create(
             platform=platform,
-            type="Revio",
+            type="PacBio Revio",
             index_read_5_prime=INDEX_READ_FORWARD,
             index_read_3_prime=INDEX_READ_FORWARD,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
