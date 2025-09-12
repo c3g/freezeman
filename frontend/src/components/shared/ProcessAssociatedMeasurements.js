@@ -98,13 +98,10 @@ const ProcessAssociatedMeasurements = ({
   const columns = getTableColumns(samplesByID, sample_property_types, propertyValuesByID)
 
   useEffect(() => {
-    const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
-                                                                 .filter((id) => !allPropertiesLoaded(processMeasurementsByID[id], propertyValuesByID))
-
-    if (measurementsWithMissingProperties.length > 0) {
+    if (processMeasurements.length > 0) {
       listPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
     }
-  }, [processMeasurements, propertyValuesByID])
+  }, [listPropertyValues, processMeasurements])
 
   const props = useFilteredList({
     description: PROCESS_MEASUREMENT_FILTERS,
