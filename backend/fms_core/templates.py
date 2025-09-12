@@ -7,6 +7,7 @@ from django.templatetags.static import static
 
 from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    VALID_QC_FLAG_CHOICES,
+                                                   STRANDEDNESS_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
                                                    LIBRARY_QC_QUANTITY_INSTRUMENTS,
                                                    SAMPLE_QC_QUALITY_INSTRUMENTS,
@@ -382,6 +383,7 @@ LIBRARY_QC_TEMPLATE = {
   "user prefill info": {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
+      "Strandedness": STRANDEDNESS_CHOICES,
       "Quality Instrument": LIBRARY_QC_QUALITY_INSTRUMENTS,
       "Quality Flag": VALID_QC_FLAG_CHOICES,
       "Quantity Instrument": LIBRARY_QC_QUANTITY_INSTRUMENTS,
