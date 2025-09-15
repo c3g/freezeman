@@ -96,9 +96,9 @@ class ExperimentRunImporter(GenericImporter):
          # Iterate through sample rows
         for i, row_data in enumerate(samples_sheet.rows):
             # Extract process measurement property values
-            process_measurement_properties = self.preloaded_data['process_measurement_properties']
+            process_measurement_properties = { key: v.copy() for key, v in self.preloaded_data['process_measurement_properties'].items()}
             for ii, (key, val) in enumerate(row_data.items()):
-                if ii >=  self.sample_properties_starting_index:
+                if ii >= self.sample_properties_starting_index:
                     process_measurement_properties[key]['value'] = val
             # Allows for submission of both numeric lanes (1, 2, 3, ...) and coordinates
             lane_or_experiment_container_coordinates = str_cast_and_normalize(row_data['Experiment Container Coordinates (Lane)'])
