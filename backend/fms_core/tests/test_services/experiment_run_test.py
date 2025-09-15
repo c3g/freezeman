@@ -64,8 +64,8 @@ class ExperimentRunServicesTestCase(TestCase):
                                                                )
 
         self.samples_info = [
-            {"sample_obj": sample_1, "volume_used": 5, "experiment_container_coordinates": "A01", "comment": "Comment1"},
-            {"sample_obj": sample_2, "volume_used": 5, "experiment_container_coordinates": "A02", "comment": "Comment2"}
+            {"sample_obj": sample_1, "volume_used": 5, "experiment_container_coordinates": "A01", "comment": "Comment1", "process_measurement_properties": {}},
+            {"sample_obj": sample_2, "volume_used": 5, "experiment_container_coordinates": "A02", "comment": "Comment2", "process_measurement_properties": {}}
         ]
 
         self.properties = {
