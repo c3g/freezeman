@@ -21,7 +21,7 @@ class ExperimentRunRowHandler(GenericRowHandler):
         instrument_obj, self.errors['instrument'], self.warnings['instrument'] = get_instrument(instrument['name'])
 
         container_obj, self.errors['container'], self.warnings['container'] = create_container(barcode=container['barcode'],
-                                                                                               name=container['barcode'],
+                                                                                               name=container['name'],
                                                                                                kind=container['kind'],
                                                                                                coordinates=None,
                                                                                                creation_comment=comment)

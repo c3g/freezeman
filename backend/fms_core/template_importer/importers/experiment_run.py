@@ -152,6 +152,7 @@ class ExperimentRunImporter(GenericImporter):
                 experiment_run_name=str_cast_and_normalize(experiment_run_dict['Experiment Name']),
                 instrument={'name': str_cast_and_normalize(str_remove_parenthesis(experiment_run_dict['Instrument Name']))},
                 container={'barcode': str_cast_and_normalize(experiment_run_dict['Experiment Container Barcode']),
+                           'name': str_cast_and_normalize(experiment_run_dict['Experiment Container Name']),
                            'kind': str_cast_and_normalize_lower(experiment_run_dict['Experiment Container Kind'])},
                 start_date=input_to_date_and_none(experiment_run_dict['Experiment Start Date (YYYY-MM-DD)']),
                 comment=str_cast_and_normalize(experiment_run_dict['Comment']),
