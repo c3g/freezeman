@@ -15,7 +15,7 @@ from fms_core.services.index import get_or_create_index_set, create_index, creat
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v5_2_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v5_3_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
