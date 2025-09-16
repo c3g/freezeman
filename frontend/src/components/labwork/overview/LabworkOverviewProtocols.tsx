@@ -1,10 +1,11 @@
 import { Collapse, Space, Switch, Typography } from 'antd'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useAppDispatch } from '../../../hooks'
 import { refreshLabwork, setHideEmptySections } from '../../../modules/labwork/actions'
 import { LabworkSummary } from '../../../modules/labwork/models'
 import RefreshButton from '../../RefreshButton'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
+import protocolSortOrder from '../../../modules/labwork/protocolSortOrder.json'
 
 const { Title } = Typography
 
@@ -19,11 +20,29 @@ const LabworkOverviewProtocols = ({ summary, hideEmptySections, refreshing }: La
 
 	// If hideEmptySections is true then we filter the protocol list to include
 	// only protocols with a count greater than zero.
-	let protocols = summary.protocols
+	const protocols = useMemo(() => {
+		let protocols = summary.protocols
 
-	if (hideEmptySections) {
-		protocols = protocols.filter(protocol => protocol.count > 0)
-	}
+		if (hideEmptySections) {
+			protocols = protocols.filter(protocol => protocol.count > 0)
+		}
+
+		return protocols
+	}, [hideEmptySections, summary.protocols])
+
+	const sortedProtocols = useMemo(() => {
+		const sortOrder = protocolSortOrder.reduce((acc, protocolName, index) => {
+			acc[protocolName] = index
+			return acc
+		}, {} as Record<string, number>)
+
+		return protocols.slice().sort((a, b) => {
+			const aIndex = sortOrder[a.name] !== undefined ? sortOrder[a.name] : Number.MAX_SAFE_INTEGER
+			const bIndex = sortOrder[b.name] !== undefined ? sortOrder[b.name] : Number.MAX_SAFE_INTEGER
+			return aIndex - bIndex
+		})
+	}, [protocols])
+	console.info(sortedProtocols)
 
 	function handleHideEmptySections(hide: boolean) {
 		dispatch(setHideEmptySections(hide))
@@ -51,7 +70,7 @@ const LabworkOverviewProtocols = ({ summary, hideEmptySections, refreshing }: La
 					/>
 				</Space>
 			</div>
-			<Collapse items={protocols.map((protocol) => {
+			<Collapse items={sortedProtocols.map((protocol) => {
 				return {
 					key: protocol.id,
 					label: protocol.name,
