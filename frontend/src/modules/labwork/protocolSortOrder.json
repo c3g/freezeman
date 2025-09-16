@@ -1,0 +1,19 @@
+[
+    "Extraction",
+    "Sample Quality Control",
+    "Sample Identity Quality Control",
+    "Normalization",
+    "Library Preparation",
+    "Transfer",
+    "Library Quality Control",
+    "Sample Pooling",
+    "Library Capture",
+    "Library Conversion",
+    "Illumina Infinium Preparation",
+    "Illumina Preparation",
+    "PacBio Preparation",
+    "Axiom Experiment Preparation",
+    "Quality Control - Integration",
+    "Axiom Sample Preparation",
+    "DNBSEQ Preparation"
+]
