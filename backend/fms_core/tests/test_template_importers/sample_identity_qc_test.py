@@ -124,7 +124,7 @@ class SampleIdentityQCTestCase(TestCase):
         self.assertEqual(stephan_sample.volume, self.initial_volume - self.volume_used)
         self.assertEqual(stephan_sample.concentration, self.sample_concentration)
         # Sample flag tests
-        self.assertIsNone(stephan_sample.identity_flag)
+        self.assertFalse(stephan_sample.identity_flag)
 
         # Process measurement tests
         self.assertTrue(ProcessMeasurement.objects.get(source_sample=stephan_sample, execution_date=self.QC_date))

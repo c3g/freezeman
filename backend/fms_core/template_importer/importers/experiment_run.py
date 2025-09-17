@@ -9,7 +9,8 @@ from datetime import datetime
 from fms_core.services.step import get_step_from_template
 from .._utils import float_to_decimal_and_none, input_to_date_and_none, load_all_or_float_to_decimal_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
-PROPERTIES_STARTING_INDEX = 6
+EXPERIMENT_PROPERTIES_STARTING_INDEX = 7
+SAMPLE_PROPERTIES_STARTING_INDEX = 9
 RUN_TYPE_INDEX = 2
 
 class ExperimentRunImporter(GenericImporter):
@@ -17,10 +18,11 @@ class ExperimentRunImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        self.properties_starting_index = PROPERTIES_STARTING_INDEX
+        self.experiment_properties_starting_index = EXPERIMENT_PROPERTIES_STARTING_INDEX
+        self.sample_properties_starting_index = SAMPLE_PROPERTIES_STARTING_INDEX
 
 
-    def initialize_data_for_template(self, runtype, properties):
+    def initialize_data_for_template(self, runtype, process_properties, process_measurement_properties):
         self.preloaded_data = {'run_type': {}, 'protocol': None, 'protocols_dict': {}, 'property_types_by_name': {}}
 
         # Preload RunType and Protocols dict
@@ -41,7 +43,8 @@ class ExperimentRunImporter(GenericImporter):
                 run_protocols_ids.append(protocol_parent.id)
                 for child_protocol in children_protocol:
                     run_protocols_ids.append(child_protocol.id)
-            self.preloaded_data['process_properties'] = {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(name__in=properties, object_id__in=run_protocols_ids))}
+            self.preloaded_data['process_properties'] = {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(name__in=process_properties, object_id__in=run_protocols_ids))}
+            self.preloaded_data['process_measurement_properties'] = {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(name__in=process_measurement_properties, object_id__in=run_protocols_ids))}
         except Exception as e:
             self.base_errors.append(f"Property Type could not be found. {e}")
 
@@ -70,6 +73,7 @@ class ExperimentRunImporter(GenericImporter):
     def import_template_inner(self):
         samples_sheet = self.sheets['Samples']
         experiments_sheet = self.sheets['Experiments']
+        samples_df = samples_sheet.dataframe
         experiments_df = experiments_sheet.dataframe
         sample_input = []
         experiment_input = []
@@ -78,7 +82,8 @@ class ExperimentRunImporter(GenericImporter):
         runtype_name = experiments_df.values[RUN_TYPE_INDEX][1]
 
         self.initialize_data_for_template(runtype=runtype_name,
-                                          properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
+                                          process_properties=experiments_df.values[experiments_sheet.header_row_nb][self.experiment_properties_starting_index:].tolist(),
+                                          process_measurement_properties=samples_df.values[samples_sheet.header_row_nb][self.sample_properties_starting_index:].tolist())
 
         # Identify for each row of the matching workflow step
         step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
@@ -88,7 +93,13 @@ class ExperimentRunImporter(GenericImporter):
             SAMPLES SHEET
         """
         sample_rows_data = defaultdict(list)
+         # Iterate through sample rows
         for i, row_data in enumerate(samples_sheet.rows):
+            # Extract process measurement property values
+            process_measurement_properties = { key: v.copy() for key, v in self.preloaded_data['process_measurement_properties'].items()}
+            for ii, (key, val) in enumerate(row_data.items()):
+                if ii >= self.sample_properties_starting_index:
+                    process_measurement_properties[key]['value'] = val
             # Allows for submission of both numeric lanes (1, 2, 3, ...) and coordinates
             lane_or_experiment_container_coordinates = str_cast_and_normalize(row_data['Experiment Container Coordinates (Lane)'])
             # Convert internally to alphanumerical coordinates
@@ -101,6 +112,7 @@ class ExperimentRunImporter(GenericImporter):
                           {'step_action': str_cast_and_normalize(row_data['Workflow Action']),
                            'step': step_by_row_id[i]
                           },
+                      'process_measurement_properties': process_measurement_properties,
                       }
 
             sample_kwargs = dict(
@@ -130,7 +142,7 @@ class ExperimentRunImporter(GenericImporter):
             experiment_run_dict = {}
             process_properties = self.preloaded_data['process_properties']
             for i, (key, val) in enumerate(row.items()):
-                if i < self.properties_starting_index:
+                if i < self.experiment_properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
                     process_properties[key]['value'] = val
@@ -140,6 +152,7 @@ class ExperimentRunImporter(GenericImporter):
                 experiment_run_name=str_cast_and_normalize(experiment_run_dict['Experiment Name']),
                 instrument={'name': str_cast_and_normalize(str_remove_parenthesis(experiment_run_dict['Instrument Name']))},
                 container={'barcode': str_cast_and_normalize(experiment_run_dict['Experiment Container Barcode']),
+                           'name': str_cast_and_normalize(experiment_run_dict['Experiment Container Name']),
                            'kind': str_cast_and_normalize_lower(experiment_run_dict['Experiment Container Kind'])},
                 start_date=input_to_date_and_none(experiment_run_dict['Experiment Start Date (YYYY-MM-DD)']),
                 comment=str_cast_and_normalize(experiment_run_dict['Comment']),

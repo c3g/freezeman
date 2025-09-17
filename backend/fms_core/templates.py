@@ -7,6 +7,7 @@ from django.templatetags.static import static
 
 from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    VALID_QC_FLAG_CHOICES,
+                                                   STRANDEDNESS_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
                                                    LIBRARY_QC_QUANTITY_INSTRUMENTS,
                                                    SAMPLE_QC_QUALITY_INSTRUMENTS,
@@ -23,6 +24,7 @@ __all__ = [
     "CONTAINER_RENAME_TEMPLATE",
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "EXPERIMENT_ILLUMINA_TEMPLATE",
+    "EXPERIMENT_PACBIO_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_CAPTURE_TEMPLATE",
     "LIBRARY_CONVERSION_TEMPLATE",
@@ -115,7 +117,7 @@ CONTAINER_RENAME_TEMPLATE = {
 EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
           'name': 'Experiments',
-          'headers': ['Experiment Name', 'Experiment Container Barcode', 'Instrument Name',
+          'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Name', 'Instrument Name',
                       'Experiment Container Kind', 'Experiment Start Date (YYYY-MM-DD)', 'Comment'],
           'stitch_column': 'Experiment Name',
           'batch': True,
@@ -130,7 +132,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
   "identity": {"description": "Template to add Infinium experiments",
-               "file": static("submission_templates/Experiment_run_Infinium_v5_0_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_Infinium_v5_3_0.xlsx"),
                "protocol": "Illumina Infinium Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
@@ -144,13 +146,14 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
   "placement info": [
       ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
       ("Experiments", "Experiment Container Barcode", "container_barcode"),
+      ("Experiments", "Experiment Container Name", "container_name"),
       ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
 }
 
 EXPERIMENT_MGI_TEMPLATE = {
   "identity": {"description": "Template to add MGI experiments",
-               "file": static("submission_templates/Experiment_run_MGI_v4_8_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_MGI_v5_3_0.xlsx"),
                "protocol": "DNBSEQ Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
@@ -164,13 +167,14 @@ EXPERIMENT_MGI_TEMPLATE = {
   "placement info": [
     ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
     ("Experiments", "Experiment Container Barcode", "container_barcode"),
+    ("Experiments", "Experiment Container Name", "container_name"),
     ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
 }
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {
   "identity": {"description": "Template to add Illumina experiments",
-               "file": static("submission_templates/Experiment_run_illumina_v4_8_0.xlsx"),
+               "file": static("submission_templates/Experiment_run_illumina_v5_3_0.xlsx"),
                "protocol": "Illumina Preparation"},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
@@ -184,13 +188,14 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
   "placement info": [
       ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
       ("Experiments", "Experiment Container Barcode", "container_barcode"),
+      ("Experiments", "Experiment Container Name", "container_name"),
       ("Experiments", "Experiment Container Kind", "container_kind"),
   ],
 }
 
 EXPERIMENT_AXIOM_TEMPLATE = {
     "identity" : {"description": "Template to add Axiom experiments",
-                  "file": static("submission_templates/Experiment_run_Axiom_v4_8_0.xlsx"),
+                  "file": static("submission_templates/Experiment_run_Axiom_v5_3_0.xlsx"),
                   "protocol": "Axiom Experiment Preparation"},
     "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
     # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
@@ -205,6 +210,26 @@ EXPERIMENT_AXIOM_TEMPLATE = {
     "placement info": [
         ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
         ("Experiments", "Experiment Container Barcode", "container_barcode"),
+        ("Experiments", "Experiment Container Name", "container_name"),
+        ("Experiments", "Experiment Container Kind", "container_kind"),
+    ],
+}
+
+EXPERIMENT_PACBIO_TEMPLATE = {
+    "identity" : {"description": "Template to add PacBio experiments",
+                    "file": static("submission_templates/Experiment_run_Pacbio_v5_3_0.xlsx"),
+                    "protocol": "PacBio Preparation"},
+    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+    "prefill info": [
+        ("Samples", "Source Sample Name", "name", "name", None),
+        ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
+        ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+        ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
+    ],
+    "placement info": [
+        ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
+        ("Experiments", "Experiment Container Barcode", "container_barcode"),
+        ("Experiments", "Experiment Container Name", "container_name"),
         ("Experiments", "Experiment Container Kind", "container_kind"),
     ],
 }
@@ -363,6 +388,7 @@ LIBRARY_QC_TEMPLATE = {
   "user prefill info": {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
+      "Strandedness": STRANDEDNESS_CHOICES,
       "Quality Instrument": LIBRARY_QC_QUALITY_INSTRUMENTS,
       "Quality Flag": VALID_QC_FLAG_CHOICES,
       "Quantity Instrument": LIBRARY_QC_QUANTITY_INSTRUMENTS,
@@ -572,7 +598,7 @@ SAMPLE_POOLING_PLANNING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v5_2_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v5_3_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
