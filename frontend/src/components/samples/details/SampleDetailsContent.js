@@ -104,13 +104,12 @@ const SampleDetailsContent = () => {
   const tissueSource = sampleKindsByID[sample.tissue_source]?.name
   const volume = isNullish(sample.volume) ? '' : parseFloat(sample.volume).toFixed(3)
   const container = containersByID[sample.container]
-  const experimentalGroups = sample.experimental_group || [];
+  const experimentalGroups = useMemo(() => sample.experimental_group || [], [sample.experimental_group])
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
-  const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
-  const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag , identity: sample.identity_flag};
+  const flags = useMemo(() => ({ quantity: sample.quantity_flag, quality: sample.quality_flag , identity: sample.identity_flag}), [sample.quantity_flag, sample.quality_flag, sample.identity_flag])
   const [processMeasurements, setProcessMeasurements] = useState([])
-  const experimentRunsIDs = isLoaded && container?.experiment_run ? [container.experiment_run] : []
+  const experimentRunsIDs = useMemo(() => isLoaded && container?.experiment_run ? [container.experiment_run] : [], [container?.experiment_run, isLoaded])
   const library = librariesByID[id]
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
@@ -145,12 +144,12 @@ const SampleDetailsContent = () => {
   }, [dispatch, isLoaded, sample.id, sample.isFetching, sample.versions])
 
   useEffect(() => {
-    if (isLoaded && !isProcessesEmpty) {
+    if (isLoaded) {
       fetchProcessMeasurements(sample.process_measurements).then((processMeasurements) => {
         setProcessMeasurements(processMeasurements)
       })
     }
-  }, [isLoaded, isProcessesEmpty, sample.process_measurements])
+  }, [isLoaded, sample.process_measurements])
 
   useEffect(() => {
     if (!librariesByID[id])
@@ -162,7 +161,7 @@ const SampleDetailsContent = () => {
     listSampleMetadata(token, { "biosample__id": biosampleId }).then(metadata => {
       setSampleMetadata(metadata)
     })
-  }, [sample])
+  }, [sample, token])
 
 
   /**
