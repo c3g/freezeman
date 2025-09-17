@@ -231,8 +231,9 @@ class NormalizationPlanningImporter(GenericImporter):
                 raise ValidationError(f"Normalization destination container cannot be a tube.")
             coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec # kind should not be tube
 
-        # Map destination container barcode to robot destination barcodes
-        for i, (barcode, _) in enumerate(dest_containers, start=1):
+        # Map destination container barcode to robot destination barcodes after sorting them alphabetically
+        sorted_dest_containers = sorted(dest_containers, key=lambda x: x[0]) # x[0] references the barcode in the container tuple
+        for i, (barcode, _) in enumerate(sorted_dest_containers, start=1):
             mapping_dest_containers[barcode] = ROBOT_DST_PREFIX + str(i)
 
         for output_row_data in output_norm_rows_data:
