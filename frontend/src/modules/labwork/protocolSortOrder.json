@@ -7,13 +7,13 @@
     "Transfer",
     "Library Quality Control",
     "Sample Pooling",
-    "Illumina Infinium Preparation",
-    "Illumina Preparation",
     "Library Capture",
     "Library Conversion",
-    "Axiom Experiment Preparation",
-    "Quality Control - Integration",
     "Axiom Sample Preparation",
+    "Quality Control - Integration",
+    "Axiom Experiment Preparation",
     "DNBSEQ Preparation",
+    "Illumina Preparation",
+    "Illumina Infinium Preparation",
     "PacBio Preparation"
 ]
