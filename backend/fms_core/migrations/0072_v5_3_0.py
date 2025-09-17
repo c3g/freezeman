@@ -203,7 +203,7 @@ def create_ffpe_sample_kind(apps, schema_editor):
         reversion.set_user(admin_user)
         reversion.set_comment("Create FFPE sample kind.")
 
-        ffpe_sample_kind = SampleKind.objects.create(name='FFPE', description='Formalin-Fixed Paraffin-Embedded')
+        ffpe_sample_kind = SampleKind.objects.create(name='FFPE', created_by_id=admin_user.id, updated_by_id=admin_user.id)
         ffpe_sample_kind.save()
         reversion.add_to_revision(ffpe_sample_kind)
 
