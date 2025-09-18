@@ -18,7 +18,7 @@ from fms_core.services.study import create_study
 class TransferTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = TransferImporter()
-        self.file = APP_DATA_ROOT / "Sample_transfer_v4_10_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_transfer_v5_3_0.xlsx"
 
         self.invalid_template_tests = [TEST_DATA_ROOT / "Sample_transfer_v4_10_0_Missing_Study.xlsx",
                                        TEST_DATA_ROOT / "Sample_transfer_v4_10_0_With_Workflow_Progression.xlsx",
