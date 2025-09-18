@@ -37,6 +37,7 @@ class TransferImporter(GenericImporter):
             self.preloaded_data['process'].save()
 
         for row_id, row_data in enumerate(sheet.rows):
+            new_current_volume = float_to_decimal_and_none(row_data['New Current Volume (uL)'])
             volume_used_decimal = load_all_or_float_to_decimal_and_none(row_data['Volume Used (uL)'])
             transfer_date = input_to_date_and_none(row_data['Transfer Date (YYYY-MM-DD)'])
 
@@ -44,6 +45,7 @@ class TransferImporter(GenericImporter):
                 'coordinates': str_cast_and_normalize(row_data['Source Container Coord']),
                 'container': {'barcode': str_cast_and_normalize(row_data['Source Container Barcode'])},
                 'depleted': str_cast_and_normalize(row_data['Source Depleted']),
+                'volume': new_current_volume,
             }
 
             resulting_sample = {
