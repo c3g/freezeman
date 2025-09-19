@@ -29,9 +29,10 @@ class TransferRowHandler(GenericRowHandler):
                 coordinates=destination_container_dict['coordinates'],
                 container_parent=container_parent)
 
-            _, self.errors['new_current_volume'], self.warnings['new_current_volume'] = update_sample(sample_to_update=original_sample, volume=source_sample.get('volume'))
-            if self.errors['new_current_volume']:
-                return
+            if source_sample.get('corrected_current_volume') is not None:
+                _, self.errors['corrected_current_volume'], self.warnings['corrected_current_volume'] = update_sample(sample_to_update=original_sample, volume=source_sample['corrected_current_volume'])
+                if self.errors['corrected_current_volume']:
+                    return
             
             source_depleted = check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None
 
