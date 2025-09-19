@@ -37,7 +37,7 @@ class TransferImporter(GenericImporter):
             self.preloaded_data['process'].save()
 
         for row_id, row_data in enumerate(sheet.rows):
-            new_current_volume = float_to_decimal_and_none(row_data['New Current Volume (uL)'])
+            new_current_volume = float_to_decimal_and_none(row_data['Corrected Current Volume (uL)'])
             volume_used_decimal = load_all_or_float_to_decimal_and_none(row_data['Volume Used (uL)'])
             transfer_date = input_to_date_and_none(row_data['Transfer Date (YYYY-MM-DD)'])
 
