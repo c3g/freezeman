@@ -21,8 +21,8 @@ class SampleSubmissionTestCase(TestCase):
         self.project_name = "TEST_PROJECT"
         self.workflow_name = "PCR-free Illumina"
 
-        self.invalid_template_tests = ["Sample_submission_v4_14_0_bad_location.xlsx",
-                                       "Sample_submission_v4_14_0_library_without_index.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v5_3_0_bad_location.xlsx",
+                                       "Sample_submission_v5_3_0_library_without_index.xlsx",]
 
         # Create indices
         (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
