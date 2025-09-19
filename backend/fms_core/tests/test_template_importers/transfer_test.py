@@ -34,6 +34,7 @@ class TransferTestCase(TestCase):
         self.coord_A02 = Coordinate.objects.get(name="A02")
         self.coord_A03 = Coordinate.objects.get(name="A03")
         self.coord_A04 = Coordinate.objects.get(name="A04")
+        self.coord_A05 = Coordinate.objects.get(name="A05")
         self.coord_H08 = Coordinate.objects.get(name="H08")
 
         self.project_from, _, _ = create_project("TestTransferFrom")
@@ -199,6 +200,33 @@ class TransferTestCase(TestCase):
         self.assertEqual(cs4.derived_by_samples.first().project, self.project_to)
         self.assertTrue(SampleNextStep.objects.filter(sample=cs4).exists())
         self.assertTrue(SampleNextStepByStudy.objects.filter(study=self.study).exists())
+
+        # test with corrected_current_volume = 600
+        ss5 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinate=self.coord_A05)
+        self.assertEqual(ss5.volume, 500)
+        self.assertFalse(ss5.depleted)
+        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A05).exists())
+        self.assertTrue(SampleLineage.objects.filter(parent=ss5).exists())
+        self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss5).exists())
+        cs5 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A05)
+        sl5 = SampleLineage.objects.get(parent=ss5)
+        pm5 = ProcessMeasurement.objects.get(source_sample=ss5)
+        process5 = pm5.process
+        self.assertEqual(sl5.child, cs5)
+        self.assertEqual(sl5.process_measurement, pm5)
+        self.assertEqual(pm5.source_sample, ss5)
+        self.assertEqual(pm5.volume_used, 100)
+        self.assertEqual(pm5.protocol_name, "Transfer")
+        self.assertEqual(pm5.comment, "Project Transfer One")
+        self.assertEqual(cs5.volume, 100)
+        self.assertEqual(process5, process1)
+        self.assertEqual(cs5.creation_date, pm5.execution_date)
+        self.assertEqual(cs5.creation_date, datetime.strptime("2024-07-16", "%Y-%m-%d").date())
+        self.assertEqual(ss5.derived_by_samples.first().project, self.project_from)
+        self.assertEqual(cs5.derived_by_samples.first().project, self.project_to)
+        self.assertTrue(SampleNextStep.objects.filter(sample=cs5).exists())
+        self.assertTrue(SampleNextStepByStudy.objects.filter(study=self.study).exists())
+
 
         # Pool test
         pool = Sample.objects.get(container__barcode="PoolContainerSource")
