@@ -730,7 +730,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
           'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
                       'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                       'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
-                      'Current Volume (uL)', 'New Current Volume (uL)', 'Volume Used (uL)', 'Transfer Date (YYYY-MM-DD)',
+                      'Current Volume (uL)', 'Corrected Current Volume (uL)', 'Volume Used (uL)', 'Transfer Date (YYYY-MM-DD)',
                       'Comment', 'Destination Project', 'Destination Study', 'Workflow Action'],
           'batch': False,
       },
