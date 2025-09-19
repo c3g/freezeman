@@ -739,7 +739,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
       # borrowed from transfer template
       "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
       "Source Depleted": ["YES"],
-      "Volume Used (uL)": "number",
+      "Volume Used (uL)": "text",
       "Transfer Date (YYYY-MM-DD)": "date",
       "Comment": "text"
   },
