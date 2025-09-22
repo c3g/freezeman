@@ -93,7 +93,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     
     queryset = queryset.annotate(
         project_name=Case(
-            When(Q(is_pooled=True), then=Value("Pooled_Projects")),
+            When(Q(is_pooled=True), then=Value("(Pooled)")),
             default=F("sample__derived_by_samples__project__name"),
             output_field=CharField()
         )
