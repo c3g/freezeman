@@ -110,11 +110,12 @@ class RunInfo:
     platform: str
     instrument_serial_number: str
     instrument_type: str
+    sequencer_side: str
 
     samples: List[RunInfoSample]
 
 
-RUN_INFO_FILE_VERSION = "1.1.0"
+RUN_INFO_FILE_VERSION = "5.3.0"
 
 
 def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
@@ -134,6 +135,8 @@ def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
     if experiment_run.start_date is not None:
         start_date = experiment_run.start_date.strftime("%Y-%m-%d")
 
+    sequencer_side = _get_sequencer_side(experiment_run)
+
     run_info : RunInfo = RunInfo(
         version=RUN_INFO_FILE_VERSION,
         run_name=experiment_run.name or '',
@@ -145,6 +148,7 @@ def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
         platform=instrument.type.platform.name,
         instrument_serial_number=experiment_run.instrument.serial_id,
         instrument_type=instrument.type.type,
+        sequencer_side=sequencer_side,
         samples=[]
     )
 
@@ -299,6 +303,24 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
                 row.chip_seq_mark = library.library_selection.target
 
     return row
+
+def _get_sequencer_side(experiment_run : ExperimentRun) -> str:
+    """
+    Some sequencers have sides for simultaneous runs. This information is stored in as a property on process linked to the Experiment Run model.
+    The sequencer side descriptor may differ from one platform to the other. The function returns the Sequencer Side linked to the given Experiment Run.
+
+    Args:
+        `experiment_run`: An experiment run object, which may or may not have a sequencer side.
+
+    Returns:
+        A Sequencer Side string, or None.
+    """
+    try:
+        property_value = PropertyValue.objects.get(object_id=experiment_run.process.pk, property_type__name="Sequencer Side")
+        sequencer_side = property_value.value
+    except PropertyValue.DoesNotExist:
+        sequencer_side = None
+    return sequencer_side
 
 def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
     ''' 

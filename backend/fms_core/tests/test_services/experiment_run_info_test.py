@@ -68,7 +68,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(mgi_experiment)
 
         self.assertIsNotNone(run_info)
-        self.assertEqual(run_info['version'], '1.1.0')
+        self.assertEqual(run_info['version'], '5.3.0')
         self.assertEqual(run_info['run_name'], 'ER-RNA-MGI-EXPERIMENT')
         self.assertEqual(run_info['run_obj_id'], mgi_experiment.id)
         self.assertEqual(run_info['run_start_date'],  mgi_experiment.start_date.strftime("%Y-%m-%d"))
@@ -78,6 +78,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertEqual(run_info['platform'], mgi_experiment.instrument.type.platform.name)
         self.assertEqual(run_info['instrument_serial_number'], mgi_experiment.instrument.serial_id)
         self.assertEqual(run_info['instrument_type'], mgi_experiment.instrument.type.type)
+        self.assertEqual(run_info['sequencer_side'], "A")
 
         self.assertEqual(len(run_info['samples']), 2)
 
@@ -142,6 +143,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(illumina_experiment)
 
         self.assertIsNotNone(run_info)
+        self.assertEqual(run_info['sequencer_side'], "B")
 
     def test_axiom_experiment_run(self):
         #Axiom Experiment
@@ -153,6 +155,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(axiom_experiment)
 
         self.assertIsNotNone(run_info)
+        self.assertIsNone(run_info['sequencer_side'])
 
     def test_service_start_experiment_run_processing(self):
         # MGI Experiment
