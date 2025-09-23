@@ -361,7 +361,7 @@ function getSampleKindOptions() {
 				value: sampleKind.name
 
 			}
-		})
+		}).sort((a, b) => a.label.localeCompare(b.label))
 		return options
 	} return []
 }

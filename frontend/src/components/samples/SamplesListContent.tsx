@@ -71,11 +71,13 @@ function SamplesListContent() {
 	}
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(initialCategory)
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortByList)
+	const totalFilters = useMemo(() => ({...filters, ...fixedFilters}), [filters, fixedFilters])
 
-	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortByList)
+	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, totalFilters, sortByList)
 
-	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortByList)
+	const listExport = useListExportCallback(api.samples.listExport, totalFilters, sortByList)
+
+	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  totalFilters, sortByList)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
 
