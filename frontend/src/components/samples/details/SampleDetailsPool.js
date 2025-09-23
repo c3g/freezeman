@@ -46,6 +46,7 @@ const getTableColumns = (sampleKinds) => {
             title: "Volume Ratio",
             dataIndex: "volume_ratio",
             sorter: true,
+            render: (_, pooledSample) => <div>{parseFloat(pooledSample.volume_ratio)}</div>
         },
         {
             title: "Kind",
