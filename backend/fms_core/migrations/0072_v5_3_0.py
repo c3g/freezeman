@@ -78,8 +78,9 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
         PROPERTY_TYPE_NAMES = [
             "Loading Concentration (pM)",
             "Run Time",
+            "Sequencer Position",
             "Sequencing Kit Lot",
-            "Sequencer Side",
+            "SMRT Link Run ID"
         ]
         for property_type_name in PROPERTY_TYPE_NAMES:
             pt = PropertyType.objects.create(
