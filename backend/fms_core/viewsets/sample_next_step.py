@@ -247,13 +247,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             if sample__id__in:
                 queryset = queryset.filter(sample__id__in=sample__id__in)
 
-        params = QueryDict(self.request.META.get('QUERY_STRING'))
-
-        for key in params:
-            if key.startswith('project_name'):
-                queryset = queryset.filter(**{key: params[key]})
-                break
-
         return queryset
 
     @action(detail=False, methods=['post'])
