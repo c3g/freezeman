@@ -16,6 +16,7 @@ class IndexCreationImporter(GenericImporter):
         for row_id, row_data in enumerate(index_creation_sheet.rows):
             index = {
                 'name': str_cast_and_normalize(row_data['Index Name']),
+                'external_name': str_cast_and_normalize(row_data['External Index Name']),
                 'index_structure': str_cast_and_normalize(row_data['Index Structure']),
                 'index_3prime': comma_separated_string_to_array(row_data['Index 3 Prime']),
                 'index_5prime': comma_separated_string_to_array(row_data['Index 5 Prime']),

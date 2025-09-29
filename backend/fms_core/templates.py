@@ -235,11 +235,11 @@ EXPERIMENT_PACBIO_TEMPLATE = {
 }
 
 INDEX_CREATION_TEMPLATE = {
-  "identity": {"description": "Template to create indices", "file": static("submission_templates/Index_creation_v3_7_0.xlsx")},
+  "identity": {"description": "Template to create indices", "file": static("submission_templates/Index_creation_v5_3_0.xlsx")},
   "sheets info": [
       {
           'name': 'Indices',
-          'headers': ['Set Name', 'Index Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
+          'headers': ['Set Name', 'Index Name', 'External Index Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
           'batch': False,
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]

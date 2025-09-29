@@ -11,7 +11,7 @@ from fms_core.models import Index, IndexSet, IndexStructure, Sequence
 class IndexCreationTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = IndexCreationImporter()
-        self.file = APP_DATA_ROOT / "Index_creation_v3_7_0.xlsx"
+        self.file = APP_DATA_ROOT / "Index_creation_v5_3_0.xlsx"
         ContentType.objects.clear_cache()
 
         #first 2 indices belong to set 1 and index structure TrueSeqLT
@@ -21,6 +21,7 @@ class IndexCreationTestCase(TestCase):
         self.index_name_1 = 'Test_index_1'
         self.index_name_2 = 'Test_index_2'
         self.index_name_3 = 'Test_index_3'
+        self.external_name_1 = 'External_name_1'
         self.index_structure_name_1 = 'TruSeqHT'
         self.index_structure_name_2 = 'IDTStubby'
         self.sequence_1 = 'ACTG'
@@ -48,18 +49,21 @@ class IndexCreationTestCase(TestCase):
         index_structure_3 = IndexStructure.objects.get(name=self.index_structure_name_2)
 
         self.assertEqual(index_1.name, self.index_name_1)
+        self.assertEqual(index_1.external_name, self.external_name_1)
         self.assertEqual([index_set for index_set in index_1.index_sets.all()], [index_set_1, index_set_3])
         self.assertEqual(index_set_1.name, self.set_name_1)
         self.assertEqual(index_1.index_structure, index_structure_1)
         self.assertEqual(index_structure_1.name, self.index_structure_name_1)
 
         self.assertEqual(index_2.name, self.index_name_2)
+        self.assertIsNone(index_2.external_name)
         self.assertEqual(index_2.index_sets.first(), index_set_2)
         self.assertEqual(index_set_2.name, self.set_name_1)
         self.assertEqual(index_2.index_structure, index_structure_2)
         self.assertEqual(index_structure_2.name, self.index_structure_name_1)
 
         self.assertEqual(index_3.name, self.index_name_3)
+        self.assertIsNone(index_3.external_name)
         self.assertEqual(index_3.index_sets.first(), index_set_3)
         self.assertEqual(index_set_3.name, self.set_name_2)
         self.assertEqual(index_3.index_structure, index_structure_3)

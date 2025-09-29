@@ -600,7 +600,7 @@ class IndexExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Index
-        fields = ("id", "name", "index_sets", "index_structure", "sequences_3prime", "sequences_5prime")
+        fields = ("id", "name", "external_name", "index_sets", "index_structure", "sequences_3prime", "sequences_5prime")
 
     def get_index_sets(self, obj):
         index_sets = obj.list_index_sets

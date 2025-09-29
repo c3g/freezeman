@@ -12,6 +12,8 @@ class IndexServicesTestCase(TestCase):
         self.index_name_1 = "TEST_INDEX_1"
         self.index_name_2 = "TEST_INDEX_2"
 
+        self.external_index_name = "MeepMoop"
+
         self.structure_name = "TruSeqLT"
         self.TruSeqLT_structure = IndexStructure.objects.get(name=self.structure_name)
 
@@ -39,6 +41,18 @@ class IndexServicesTestCase(TestCase):
         self.assertEqual(index_1.index_structure, self.TruSeqLT_structure)
         self.assertEqual(index_1.index_sets.first(), index_set_1)
         self.assertEqual(index_1.name, self.index_name_1)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+    
+    def test_create_index_with_external_name(self):
+        # init
+        index_set_1, _, _, _ = get_or_create_index_set(self.index_set_name)
+        # test
+        index_1, errors, warnings = create_index(self.index_name_1, self.structure_name, index_set_1, self.external_index_name)
+        self.assertEqual(index_1.index_structure, self.TruSeqLT_structure)
+        self.assertEqual(index_1.index_sets.first(), index_set_1)
+        self.assertEqual(index_1.name, self.index_name_1)
+        self.assertEqual(index_1.external_name, self.external_index_name)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 

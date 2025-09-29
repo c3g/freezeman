@@ -43,6 +43,7 @@ const IndicesDetailedContent = ({ indicesByID, sequencesByID, isFetching, get })
       <Title level={2}>Overview</Title>
       <Descriptions bordered={true} size="small" column={4}>
         <Descriptions.Item label="Index name" span={4}>{index.name}</Descriptions.Item>
+        <Descriptions.Item label="External Index name" span={4}>{index.external_name}</Descriptions.Item>
         <Descriptions.Item label="Index Sets" span={4}>{index && index.index_sets &&
           <DropdownListItems listItems={index.index_sets}
           />}

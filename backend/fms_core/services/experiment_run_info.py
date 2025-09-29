@@ -71,6 +71,7 @@ class RunInfoSample:
     index_sets: Optional[List[index_set]] = None
     index_obj_id: Obj_Id = None
     index_name: Optional[str] = None
+    external_index_name: Optional[str] = None
     # sequences in fragment : 5' - index_adapter_5_prime - index_sequence_5_prime - insert_adapter_5_prime - INSERT - insert_adapter_3_prime - index_sequence_3_prime - index_adapter_3_prime - 3'
     index_sequence_3_prime: Optional[List[str]] = None
     index_sequence_5_prime: Optional[List[str]] = None
@@ -267,6 +268,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
         row.index_obj_id = index.pk
         row.index_name = index.name
+        row.external_index_name = index.external_name
 
         row.index_sequence_3_prime = index.list_3prime_sequences
         row.index_sequence_5_prime = index.list_5prime_sequences
