@@ -92,11 +92,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     )
     
     queryset = queryset.annotate(
-        project_name=Case(
-            When(Q(is_pooled=True), then=Value("Pooled_Projects")),
-            default=F("sample__derived_by_samples__project__name"),
-            output_field=CharField()
-        )
+        project_name=F("sample__derived_by_samples__project__name")
     )
 
     serializer_class = SampleNextStepSerializer
@@ -252,15 +248,19 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                 queryset = queryset.filter(sample__id__in=sample__id__in)
 
         params = QueryDict(self.request.META.get('QUERY_STRING'))
-        project_name = params.get('project_name')
-        if project_name:
-            queryset = queryset.filter(project_name=project_name)
-            
+
+        for key in params:
+            if key.startswith('project_name'):
+                queryset = queryset.filter(**{key: params[key]})
+                break
+
         return queryset
 
     @action(detail=False, methods=['post'])
     def list_post(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        ids = queryset.values_list('id', flat=True).distinct()
+        queryset = SampleNextStep.objects.filter(id__in=ids)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
