@@ -1,94 +1,93 @@
 from .biosample import BiosampleViewSet
 from .container import ContainerViewSet
 from .container_kind import ContainerKindViewSet
-from .coordinate import CoordinateViewSet
-from .dataset import DatasetViewSet
-from .dataset_file import DatasetFileViewSet
 from .experiment_run import ExperimentRunViewSet
+from .run_type import RunTypeViewSet
 from .group import GroupViewSet
-from .imported_file import ImportedFileViewSet
 from .index import IndexViewSet
 from .individual import IndividualViewSet
 from .instrument import InstrumentViewSet
 from .instrument_type import InstrumentTypeViewSet
-from .library import LibraryViewSet
-from .library_type import LibraryTypeViewSet
-from .metric import MetricViewSet
-from .platform import PlatformViewSet
-from .preference import PreferenceViewSet
 from .process import ProcessViewSet
 from .process_measurement import ProcessMeasurementViewSet
-from .project import ProjectViewSet
 from .property_value import PropertyValueViewSet
 from .protocol import ProtocolViewSet
 from .query import QueryViewSet
-from .readset import ReadsetViewSet
-from .reference_genome import ReferenceGenomeViewSet
-from .report import ReportViewSet
 from .revision import RevisionViewSet
-from .run_type import RunTypeViewSet
 from .sample import SampleViewSet
-from .sample_identity import SampleIdentityViewSet
 from .sample_kind import SampleKindViewSet
-from .sample_lineage import SampleLineageViewSet
 from .sample_metadata import SampleMetadataViewSet
-from .sample_next_step import SampleNextStepViewSet
-from .sample_next_step_by_study import SampleNextStepByStudyViewSet
-from .sample_pooled import PooledSamplesViewSet
-from .samplesheet import SamplesheetViewSet
-from .sequence import SequenceViewSet
-from .step import StepViewSet
-from .step_history import StepHistoryViewSet
-from .study import StudyViewSet
-from .taxon import TaxonViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
+from .project import ProjectViewSet
+from .sequence import SequenceViewSet
+from .library import LibraryViewSet
+from .platform import PlatformViewSet
+from .library_type import LibraryTypeViewSet
+from .taxon import TaxonViewSet
+from .sample_lineage import SampleLineageViewSet
+from .imported_file import ImportedFileViewSet
+from .dataset import DatasetViewSet
+from .dataset_file import DatasetFileViewSet
+from .sample_pooled import PooledSamplesViewSet
 from .workflow import WorkflowViewSet
+from .reference_genome import ReferenceGenomeViewSet
+from .study import StudyViewSet
+from .sample_next_step import SampleNextStepViewSet
+from .step import StepViewSet
+from .sample_next_step_by_study import SampleNextStepByStudyViewSet
+from .step_history import StepHistoryViewSet
+from .readset import ReadsetViewSet
+from .coordinate import CoordinateViewSet
+from .metric import MetricViewSet
+from .samplesheet import SamplesheetViewSet
+from .report import ReportViewSet
+from .sample_identity import SampleIdentityViewSet
 
 __all__ = [
     "BiosampleViewSet",
-    "ContainerKindViewSet",
     "ContainerViewSet",
-    "CoordinateViewSet",
-    "DatasetFileViewSet",
-    "DatasetViewSet",
+    "ContainerKindViewSet",
     "ExperimentRunViewSet",
+    "RunTypeViewSet",
     "GroupViewSet",
-    "ImportedFileViewSet",
     "IndexViewSet",
     "IndividualViewSet",
-    "InstrumentTypeViewSet",
     "InstrumentViewSet",
-    "LibraryTypeViewSet",
-    "LibraryViewSet",
-    "MetricViewSet",
-    "PlatformViewSet",
-    "PooledSamplesViewSet",
-    "ProcessMeasurementViewSet",
+    "InstrumentTypeViewSet",
     "ProcessViewSet",
-    "ProjectViewSet",
-    "PropertyValueViewSet",
+    "ProcessMeasurementViewSet",
     "ProtocolViewSet",
+    "PropertyValueViewSet",
     "QueryViewSet",
-    "ReadsetViewSet",
-    "ReferenceGenomeViewSet",
-    "ReportViewSet",
     "RevisionViewSet",
-    "RunTypeViewSet",
-    "SampleIdentityViewSet",
-    "SampleKindViewSet",
-    "SampleLineageViewSet",
-    "SampleMetadataViewSet",
-    "SampleNextStepByStudyViewSet",
-    "SampleNextStepViewSet",
-    "SamplesheetViewSet",
     "SampleViewSet",
-    "SequenceViewSet",
-    "StepHistoryViewSet",
-    "StepViewSet",
-    "StudyViewSet",
-    "TaxonViewSet",
+    "SampleKindViewSet",
+    "SampleMetadataViewSet",
     "UserViewSet",
     "VersionViewSet",
+    "ProjectViewSet",
+    "SequenceViewSet",
+    "LibraryViewSet",
+    "PlatformViewSet",
+    "LibraryTypeViewSet",
+    "TaxonViewSet",
+    "ImportedFileViewSet",
+    "SampleLineageViewSet",
+    "DatasetViewSet",
+    "DatasetFileViewSet",
+    "PooledSamplesViewSet",
     "WorkflowViewSet",
+    "ReferenceGenomeViewSet",
+    "StudyViewSet",
+    "SampleNextStepViewSet",
+    "StepViewSet",
+    "SampleNextStepByStudyViewSet",
+    "StepHistoryViewSet",
+    "ReadsetViewSet",
+    "CoordinateViewSet",
+    "MetricViewSet",
+    "SamplesheetViewSet",
+    "ReportViewSet",
+    "SampleIdentityViewSet",
 ]
