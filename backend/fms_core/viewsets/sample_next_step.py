@@ -90,10 +90,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             output_field=BooleanField()
         )
     )
-    
-    queryset = queryset.annotate(
-        project_name=F("sample__derived_by_samples__project__name")
-    )
 
     serializer_class = SampleNextStepSerializer
     permission_classes = [IsAuthenticated]
@@ -424,6 +420,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id) \
             .annotate(sample_name=F("sample__name")) \
             .annotate(container_name=F("sample__container__name")) \
+            .annotate(project_name=F("sample__derived_by_samples__project__name")) \
             .values_list(
                 "sample_id",
                 "sample_name",
