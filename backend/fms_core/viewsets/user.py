@@ -8,7 +8,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions, IsAdminUser
 
-from fms_core.serializers import UserSerializer
+from fms_core.models.freezeman_user import FreezemanUser
+from fms_core.models.user_profile import UserProfile
+from fms_core.serializers import UserProfileSerializer, UserSerializer
 
 from ._constants import _user_filterset_fields
 
@@ -77,3 +79,10 @@ class UserViewSet(viewsets.ModelViewSet):
             user.set_password(password)
             user.save()
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def preferences(self, request, *args, **kwargs):
+        raw_user = self.queryset.get(pk=kwargs.get("pk"))
+        fm_user = FreezemanUser.objects.get(user=raw_user)
+        profile = UserProfile.objects.get(user=fm_user)
+        return Response(UserProfileSerializer(profile.preferences).data)
