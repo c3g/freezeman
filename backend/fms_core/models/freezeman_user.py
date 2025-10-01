@@ -9,8 +9,5 @@ class FreezemanUser(TrackedModel):
     def username(self):
         return self.user.username
 
-    def __str__(self):
-        return self.username
-
     def __repr__(self) -> str:
         return super().__repr__() + f" (user={self.user})"
