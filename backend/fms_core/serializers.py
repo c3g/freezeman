@@ -118,7 +118,9 @@ __all__ = [
     "MetricSerializer",
     "ArchivedCommentSerializer",
     "SampleIdentityMatchSerializer",
-    "SampleIdentitySerializer"
+    "SampleIdentitySerializer",
+    "FreezemanUserSerializer",
+    "UserProfileSerializer",
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
