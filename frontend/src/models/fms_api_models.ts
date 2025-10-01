@@ -170,6 +170,7 @@ export interface FMSImportedFile {
 
 export interface FMSIndex extends FMSTrackedModel {
     name: string                        // eg "Index_1"
+    external_name?: string              // vendor index name
     index_sets: string[]                // IndexSet names
     index_structure: string             // IndexStructure name
     sequences_3prime: FMSId[]           // Sequence ID's

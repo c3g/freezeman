@@ -23,7 +23,8 @@ class IndexCreationHandler(GenericRowHandler):
         #create index
         index_obj, index_created, self.errors['index'], self.warnings['index'] = get_or_create_index(index_name=index['name'],
                                                                                                      index_structure=index['index_structure'],
-                                                                                                     index_set=index_set_obj)
+                                                                                                     index_set=index_set_obj,
+                                                                                                     external_index_name=index['external_name'])
 
         if index_obj and index_created:
             if any([index['index_3prime'], index['index_5prime']]):

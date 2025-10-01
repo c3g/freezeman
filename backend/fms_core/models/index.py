@@ -17,6 +17,9 @@ class Index(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="The name of the index.")
 
+    external_name = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
+                            help_text="The fabricator given name of the index. Used internally by the instrument.")
+    
     index_structure = models.ForeignKey("IndexStructure", on_delete=models.PROTECT,
                                         related_name="indices",
                                         help_text="The index structure of the index")

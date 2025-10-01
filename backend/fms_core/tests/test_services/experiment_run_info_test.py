@@ -34,7 +34,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.project.external_id = EXTERNAL_PROJECT_ID
         self.project.save()
 
-        self.import_template(IndexCreationImporter(), 'Index_creation_v3_7_0.xlsx')
+        self.import_template(IndexCreationImporter(), 'Index_creation_v5_3_0.xlsx')
 
         self.import_template(SampleSubmissionImporter(), 'Sample_submission_v5_3_0.xlsx')
         
@@ -104,6 +104,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             index_sets= [{"obj_id": IndexSet.objects.get(name='_10x_Genomics_scRNA_V1').id, "name": "_10x_Genomics_scRNA_V1"}],
             index_obj_id= Index.objects.get(name='SI-3A-A1').id,
             index_name= "SI-3A-A1",
+            external_index_name= "Test_external_name",
             index_sequence_3_prime= [
                 ""
             ],
