@@ -81,8 +81,8 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
-    def preferences(self, request, *args, **kwargs):
+    def profile(self, request, *args, **kwargs):
         raw_user = self.queryset.get(pk=kwargs.get("pk"))
         fm_user = FreezemanUser.objects.get(user=raw_user)
         profile = UserProfile.objects.get(user=fm_user)
-        return Response(UserProfileSerializer(profile.preferences).data)
+        return Response(UserProfileSerializer(profile).data)
