@@ -119,7 +119,6 @@ __all__ = [
     "ArchivedCommentSerializer",
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
-    "FreezemanUserSerializer",
     "UserProfileSerializer",
 ]
 
@@ -1055,7 +1054,11 @@ class FreezemanUserSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = FreezemanUserSerializer()
+    personalized = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = UserProfile
         fields = ["user", "preferences"]
+
+    def get_personalized(self, instance: UserProfile):
+        return instance.is_personalized()
