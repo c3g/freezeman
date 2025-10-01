@@ -56,7 +56,7 @@ from .models import (
     SampleIdentityMatch,
     SampleIdentity,
     FreezemanUser,
-    UserProfile,
+    Profile,
 )
 
 from .models._constants import ReleaseStatus
@@ -119,7 +119,7 @@ __all__ = [
     "ArchivedCommentSerializer",
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
-    "UserProfileSerializer",
+    "ProfileSerializer",
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -1052,13 +1052,18 @@ class FreezemanUserSerializer(serializers.ModelSerializer):
         model = FreezemanUser
         fields = ["id", "username"]
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = FreezemanUserSerializer()
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(read_only=True, source='user.user.username')
     personalized = serializers.SerializerMethodField(read_only=True)
+    # TODO: make this writable?
+    preferences = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = UserProfile
+        model = Profile
         fields = ["user", "preferences"]
 
-    def get_personalized(self, instance: UserProfile):
+    def get_personalized(self, instance: Profile):
         return instance.is_personalized()
+    
+    def get_preferences(self, instance: Profile):
+        return instance.final_preferences()
