@@ -64,7 +64,6 @@ export interface PlacementSample {
     id: FMSId
     selected: boolean
     name: string
-    projectName: string
     containerName: string
     coordinates?: string // only for real parent containers
     fromCell: CellIdentifier | null // null for tubes without parent
@@ -91,9 +90,6 @@ export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, 
 
     if (a.containerName < b.containerName) orderA -= MAX / 16
     if (a.containerName > b.containerName) orderB -= MAX / 16
-
-    if (a.projectName < b.projectName) orderA -= MAX / 32
-    if (a.projectName > b.projectName) orderB -= MAX / 32
 
     return orderA - orderB
 }

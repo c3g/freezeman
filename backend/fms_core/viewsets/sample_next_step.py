@@ -420,16 +420,10 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         grouped_step_samples = grouped_step_samples.filter(step__id__exact=step_id) \
             .annotate(sample_name=F("sample__name")) \
             .annotate(container_name=F("sample__container__name")) \
-            .annotate(project_name=Case(
-                When(Q(is_pooled=True), then=Value("")),
-                default=F("sample__derived_by_samples__project__name"),
-                output_field=CharField()
-            )) \
             .values_list(
                 "sample_id",
                 "sample_name",
                 "container_name",
-                "project_name",
                 grouping_column,
                 "ordering_container_barcode",
                 "ordering_container_coordinates"
@@ -437,12 +431,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         groups = defaultdict(list)
         # Extract the locators from the entries
-        for sample_id, sample_name, container_name, project_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
+        for sample_id, sample_name, container_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
             groups[group_column].append({
                 "sample_id": sample_id,
                 "sample_name": sample_name,
                 "container_name": container_name,
-                "project_name": project_name,
                 "contextual_container_barcode": container_barcode,
                 "contextual_coordinates": container_coordinates
             })

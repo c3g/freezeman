@@ -564,7 +564,6 @@ export interface SampleLocator {
     sample_id: FMSId
     sample_name: string
     container_name: string
-    project_name: string
     contextual_container_barcode: string
     contextual_coordinates: string
 }
