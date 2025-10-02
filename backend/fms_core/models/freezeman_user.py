@@ -4,10 +4,11 @@ from .tracked_model import TrackedModel
 
 class FreezemanUser(TrackedModel):
     user = models.OneToOneField(User, on_delete=models.PROTECT, related_name='freezeman_user')
+    profile = models.ForeignKey("Profile", on_delete=models.PROTECT, related_name='users')
 
     @property
     def username(self):
         return self.user.username
 
     def __repr__(self) -> str:
-        return super().__repr__() + f" (user={self.user})"
+        return super().__repr__() + f" (user={repr(self.user)})"
