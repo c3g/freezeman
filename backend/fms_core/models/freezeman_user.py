@@ -1,9 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 from .tracked_model import TrackedModel
+from django.conf import settings
 
 class FreezemanUser(TrackedModel):
-    user = models.OneToOneField(User, on_delete=models.PROTECT, related_name='freezeman_user')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='freezeman_user')
     profile = models.ForeignKey("Profile", on_delete=models.PROTECT, related_name='users')
 
     @property
