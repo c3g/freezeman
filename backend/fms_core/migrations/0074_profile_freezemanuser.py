@@ -3,13 +3,15 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-from django.contrib.auth.models import User
+
+from django.contrib.auth import get_user_model
 
 import reversion
 
 ADMIN_USERNAME = 'biobankadmin'
 
 def create_default_profile(apps, schema_editor):
+    User = get_user_model()
     Profile = apps.get_model('fms_core', 'Profile')
 
     with reversion.create_revision(manage_manually=True):
@@ -35,6 +37,7 @@ def create_freezeman_users(apps, schema_editor):
     default_profile = Profile.objects.get(name='Default')
 
     with reversion.create_revision(manage_manually=True):
+        User = get_user_model()
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         reversion.set_comment(f"Create FreezemanUser for all existing users.")
         reversion.set_user(admin_user)
