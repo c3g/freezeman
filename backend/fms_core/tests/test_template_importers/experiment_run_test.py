@@ -450,7 +450,7 @@ class ExperimentRunPacbioTestCase(TestCase):
 
         project, _, _ = create_project(name='TestProject')
 
-        for i, sample_name in enumerate(self.sample_names):
+        for i, sample_name in enumerate(self.sample_names, start=1):
             container, _, _ = create_container(barcode=self.container_barcode + str(i), kind='Tube', name=self.container_barcode + str(i))
             create_full_sample(name=sample_name, volume=24, collection_site='site1',
                               creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
