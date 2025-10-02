@@ -90,14 +90,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             output_field=BooleanField()
         )
     )
-    
-    queryset = queryset.annotate(
-        project_name=Case(
-            When(Q(is_pooled=True), then=Value("Pooled_Projects")),
-            default=F("sample__derived_by_samples__project__name"),
-            output_field=CharField()
-        )
-    )
 
     serializer_class = SampleNextStepSerializer
     permission_classes = [IsAuthenticated]
@@ -251,16 +243,13 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             if sample__id__in:
                 queryset = queryset.filter(sample__id__in=sample__id__in)
 
-        params = QueryDict(self.request.META.get('QUERY_STRING'))
-        project_name = params.get('project_name')
-        if project_name:
-            queryset = queryset.filter(project_name=project_name)
-            
         return queryset
 
     @action(detail=False, methods=['post'])
     def list_post(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
+        ids = queryset.values_list('id', flat=True).distinct()
+        queryset = SampleNextStep.objects.filter(id__in=ids)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -435,7 +424,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                 "sample_id",
                 "sample_name",
                 "container_name",
-                "project_name",
                 grouping_column,
                 "ordering_container_barcode",
                 "ordering_container_coordinates"
@@ -443,12 +431,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         groups = defaultdict(list)
         # Extract the locators from the entries
-        for sample_id, sample_name, container_name, project_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
+        for sample_id, sample_name, container_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
             groups[group_column].append({
                 "sample_id": sample_id,
                 "sample_name": sample_name,
                 "container_name": container_name,
-                "project_name": project_name,
                 "contextual_container_barcode": container_barcode,
                 "contextual_coordinates": container_coordinates
             })

@@ -1,5 +1,5 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, unselectSamples } from '../../../modules/labworkSteps/actions'
@@ -14,6 +14,7 @@ import { PaginationParameters } from '../../WorkflowSamplesTable/WorkflowSamples
 import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { LabworkStepSamples, LabworkStepSamplesGroup } from '../../../modules/labworkSteps/models'
 import { mergeArraysIntoSet } from '../../../utils/mergeArraysIntoSet'
+import { SampleColumnID } from '../../samples/SampleTableColumns'
 
 const { Title } = Typography
 
@@ -41,7 +42,7 @@ export interface LabworkStepOverviewProps {
 const MAX_STEP_SAMPLE_SELECTION = 1000
 
 // If the filters do not work as expectd, check the filtering rules for sample_next_step endpoint (e.g. /backend/fms_core/viewsets/_constants.py, /backend/fms_core/filters.py)
-export const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key: "project_name"}
+export const GROUPING_PROJECT = {type: FILTER_TYPE.INPUT, label: "Project", key: "sample__derived_by_samples__project__name"}
 export const GROUPING_CONTAINER = {type: FILTER_TYPE.INPUT, label: "Container", key: "ordering_container_name"}
 export const GROUPING_CREATION_DATE = {type: FILTER_TYPE.DATE_RANGE, label: "Creation Date", key: "sample__creation_date"}
 export const GROUPING_CREATED_BY = {type: FILTER_TYPE.INPUT, label: "Created By", key: "sample__created_by__username"}
@@ -90,6 +91,16 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
     dispatch(unselectSamples(step.id, groupSampleIds))
   }, [dispatch, step.id])
 
+  const finalColumns = useMemo(() => {
+    let finalColumns = [...columns]
+    switch (activeGrouping) {
+      case GROUPING_PROJECT:
+        finalColumns = finalColumns.filter(col => col.columnID !== SampleColumnID.PROJECT)
+        break
+    }
+    return finalColumns
+  }, [activeGrouping, columns])
+
 	return (
 		<>
       <div>
@@ -119,7 +130,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 							  groupingValue={group.name}
 							  clearFilters={clearFilters}
 							  hasFilter={true}
-							  columns={columns}
+							  columns={finalColumns}
 							  filterDefinitions={filterDefinitions}
 							  filterKeys={filterKeys}
 							  filters={filters}

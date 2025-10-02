@@ -119,7 +119,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                 coordinates: sample.coordinates,
                 sample: sample.id,
                 name: sample.name,
-                projectName: sample.project,
                 containerName: 'THIS IS NOT SHOWN IN THE UI',
             }))
         }))
