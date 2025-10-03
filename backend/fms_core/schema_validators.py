@@ -240,6 +240,7 @@ PREFERENCES_SCHEMA = {
     "type": "object",
     "properties": {
         "table.sample.page-limit": {"type": "number", "minimum": 1}
-    }
+    },
+    "required": ["table.sample.page-limit"],
 }
 PREFERENCES_VALIDATOR = JsonSchemaValidator(PREFERENCES_SCHEMA)

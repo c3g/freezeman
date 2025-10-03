@@ -31,6 +31,9 @@ class Profile(TrackedModel):
         for error in PREFERENCES_VALIDATOR.validator.iter_errors(preferences):
             path = "".join(f'["{p}"]' for p in error.path)
             add_error("preferences", f"{path}: {error.message}" if error.path else error.message)
+        
+        if errors:
+            raise ValidationError(errors)
 
     def __repr__(self) -> str:
         return super().__repr__() + f" (name={repr(self.name)})"
