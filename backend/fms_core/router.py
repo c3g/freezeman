@@ -46,6 +46,7 @@ from .viewsets import (
     SamplesheetViewSet,
     ReportViewSet,
     SampleIdentityViewSet,
+    ProfileViewSet,
 )
 
 __all__ = ["router"]
@@ -96,3 +97,4 @@ router.register(r"metrics", MetricViewSet)
 router.register(r"samplesheets", SamplesheetViewSet, basename="samplesheets")
 router.register(r"reports", ReportViewSet, basename="reports")
 router.register(r"sample-identities", SampleIdentityViewSet)
+router.register(r"profiles", ProfileViewSet, basename="profiles")
