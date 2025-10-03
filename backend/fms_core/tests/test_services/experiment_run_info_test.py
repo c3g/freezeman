@@ -176,3 +176,12 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertIsNotNone(info)
         self.assertFalse(errors)
         self.assertFalse(warnings)
+
+    def test_pacbio_experiment_run(self):
+        # Pacbio Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Pacbio_v5_3_0.xlsx')
+        # Just verify that no exception is thrown
+        pacbio_experiment = ExperimentRun.objects.get(name='Revio_run_211')
+        run_info = generate_run_info(pacbio_experiment)
+
+        self.assertIsNotNone(run_info)

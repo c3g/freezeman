@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import ExperimentRunImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType, ProcessMeasurement, Taxon, Project
+from fms_core.models import ExperimentRun, Sample, SampleKind, Process, PropertyValue, PropertyType, ProcessMeasurement, Taxon, Project
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -427,3 +427,80 @@ class ExperimentRunIlluminaTestCase(TestCase):
         self.assertEqual(p9.value, 'r2c')
         self.assertEqual(p10.value, 'i1c')
         self.assertEqual(p11.value, 'i2c')
+
+
+class ExperimentRunPacbioTestCase(TestCase):
+    def setUp(self) -> None:
+        self.importer = ExperimentRunImporter()
+        self.file = APP_DATA_ROOT / "Experiment_run_Pacbio_v5_3_0.xlsx"
+        ContentType.objects.clear_cache()
+
+        self.container_barcode = "CONTAINERWITHSAMPLETESTPACBIO"
+        self.sample_names = ["PacBio1", "PacBio2", "PacBio3", "PacBio4", "PacBio5", "PacBio6", "PacBio7", "PacBio8"]
+        self.sequencer_position = ["1_A01", "1_B01", "1_C01", "1_D01", "2_A01", "2_B01", "2_C01", "2_D01"]
+
+        self.prefill_data()
+
+
+    def prefill_data(self):
+        sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
+
+        individual, _, errors, warnings = get_or_create_individual(name='MrTestomax', taxon=taxon)
+
+        project, _, _ = create_project(name='TestProject')
+
+        for i, sample_name in enumerate(self.sample_names, start=1):
+            container, _, _ = create_container(barcode=self.container_barcode + str(i), kind='Tube', name=self.container_barcode + str(i))
+            create_full_sample(name=sample_name, volume=24, collection_site='site1',
+                              creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
+                              individual=individual, sample_kind=sample_kind_DNA, project=project)
+
+
+    def test_import(self):
+        # Basic test for all templates - checks that template is valid
+        result = load_template(importer=self.importer, file=self.file)
+        self.assertEqual(result['valid'], True)
+
+        # Custom tests for each template
+
+        # Test experiment run Illumina
+        experiment_run_obj = ExperimentRun.objects.get(container__barcode="RunContainerPacbio")
+        process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        content_type_process = ContentType.objects.get_for_model(Process)
+        content_type_process_measurement = ContentType.objects.get_for_model(ProcessMeasurement)
+
+        # Experiment Run tests
+        self.assertEqual(experiment_run_obj.run_type.name, 'PacBio')
+        self.assertEqual(experiment_run_obj.instrument.name, 'Revio')
+
+        # Process Tests
+        self.assertEqual(process_obj.child_process.count(), 0)
+        self.assertEqual(process_obj.protocol.name, 'PacBio Preparation')
+
+        # Process properties Tests (check properties for process)
+        protocol_id = process_obj.protocol.id
+
+        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencing Kit Lot', object_id=protocol_id))
+        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='SMRT Link Run ID', object_id=protocol_id))
+
+        # Check property values for Illumina preparation process
+        self.assertEqual(p1.value, 'kitlot101024')
+        self.assertEqual(p2.value, 'ID_MOI_TON_NOM')      
+
+        # Process measurement properties Tests (check properties for process measurement)
+        for i, sample_name in enumerate(self.sample_names):
+            sample = Sample.objects.get(container__barcode=self.container_barcode + str(i+1))
+            pm_obj = ProcessMeasurement.objects.get(source_sample=sample, process=process_obj)
+            p3 = PropertyValue.objects.get(content_type=content_type_process_measurement, object_id=pm_obj.id,
+                                                property_type=PropertyType.objects.get(name='Loading Concentration (pM)', object_id=protocol_id))
+            p4 = PropertyValue.objects.get(content_type=content_type_process_measurement, object_id=pm_obj.id,
+                                                property_type=PropertyType.objects.get(name='Run Time', object_id=protocol_id))
+            p5 = PropertyValue.objects.get(content_type=content_type_process_measurement, object_id=pm_obj.id,
+                                                property_type=PropertyType.objects.get(name='Sequencer Position', object_id=protocol_id))
+            
+            self.assertEqual(p3.value, '5')
+            self.assertEqual(p4.value, '12h')
+            self.assertEqual(p5.value, self.sequencer_position[i])
