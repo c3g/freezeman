@@ -54,7 +54,9 @@ from .models import (
     ArchivedComment,
     IndexBySet,
     SampleIdentityMatch,
-    SampleIdentity
+    SampleIdentity,
+    FreezemanUser,
+    Profile,
 )
 
 from .models._constants import ReleaseStatus
@@ -116,7 +118,8 @@ __all__ = [
     "MetricSerializer",
     "ArchivedCommentSerializer",
     "SampleIdentityMatchSerializer",
-    "SampleIdentitySerializer"
+    "SampleIdentitySerializer",
+    "ProfileSerializer",
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -1040,3 +1043,14 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data
+
+class ProfileSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(read_only=True)
+    preferences = serializers.JSONField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ["name", "preferences"]
+    
+    def get_preferences(self, instance: Profile):
+        return instance.final_preferences()

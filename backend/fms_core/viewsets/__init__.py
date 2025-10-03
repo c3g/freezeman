@@ -43,6 +43,7 @@ from .metric import MetricViewSet
 from .samplesheet import SamplesheetViewSet
 from .report import ReportViewSet
 from .sample_identity import SampleIdentityViewSet
+from .profile import ProfileViewSet
 
 __all__ = [
     "BiosampleViewSet",
@@ -90,4 +91,5 @@ __all__ = [
     "SamplesheetViewSet",
     "ReportViewSet",
     "SampleIdentityViewSet",
+    "ProfileViewSet",
 ]
