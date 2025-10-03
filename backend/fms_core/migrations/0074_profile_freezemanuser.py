@@ -13,6 +13,7 @@ ADMIN_USERNAME = 'biobankadmin'
 def create_default_profile(apps, schema_editor):
     User = get_user_model()
     Profile = apps.get_model('fms_core', 'Profile')
+    reversion.register(Profile)
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -33,6 +34,7 @@ def create_default_profile(apps, schema_editor):
 def create_freezeman_users(apps, schema_editor):
     Profile = apps.get_model('fms_core', 'Profile')
     FreezemanUser = apps.get_model('fms_core', 'FreezemanUser')
+    reversion.register(FreezemanUser)
 
     default_profile = Profile.objects.get(name='Default')
 
@@ -44,7 +46,7 @@ def create_freezeman_users(apps, schema_editor):
 
         for user in User.objects.all():
             fm_user = FreezemanUser.objects.create(
-                user=user,
+                user_id=user.id,
                 profile=default_profile,
                 created_by_id=admin_user.id,
                 updated_by_id=admin_user.id,
