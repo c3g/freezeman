@@ -34,5 +34,4 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if errors:
             raise ValidationError({"preferences": errors})
         serializer = self.get_serializer(profile)
-        response_data = serializer.data
-        return Response({**response_data})
+        return Response(serializer.data)
