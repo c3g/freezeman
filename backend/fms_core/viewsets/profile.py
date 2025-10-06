@@ -1,3 +1,4 @@
+from django.http import QueryDict
 from rest_framework import viewsets
 from rest_framework.exceptions import bad_request
 from rest_framework.permissions import IsAuthenticated
@@ -16,21 +17,27 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    http_method_names = ["get", "head", "options", "patch"]
+    http_method_names = ['get', 'post', 'head', 'options', 'trace']
 
     def retrieve(self, _request, pk, *args, **kwargs):
-        # user with id=pk is assumed to exist
-        serializer = self.get_serializer(get_profile(int(pk)))
-        return Response(serializer.data)
+        return Response(bad_request(_request, "Fetch individual profile via /profile/?user_id=USER_ID"))
 
     def list(self, _request, *args, **kwargs):
-        # Why on earth would you want to list all profiles?
-        return bad_request(_request, "Listing all profiles is not allowed.")
+        params = QueryDict(self.request.META.get('QUERY_STRING'))
+        user_id = params.get("user_id")
+        if not user_id:
+            raise ValidationError({"user_id": "user_id parameter is required"})
+        profile = get_profile(int(user_id))
+        return Response(self.get_serializer(profile).data)
     
-    def partial_update(self, request, pk, *args, **kwargs):
-        # user with id=pk is assumed to exist
+    def update(self, request, *args, **kwargs):
+        params = QueryDict(self.request.META.get('QUERY_STRING'))
+        user_id = params.get("user_id")
+        if not user_id:
+            raise ValidationError({"profile_id": "profile_id parameter is required"})
+
         data = request.data
-        profile, errors, warnings = update_preferences(int(pk), data["preferences"])
+        profile, errors, _ = update_preferences(int(user_id), data["preferences"])
         if errors:
             raise ValidationError({"preferences": errors})
         serializer = self.get_serializer(profile)
