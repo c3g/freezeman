@@ -25,10 +25,10 @@ def update_preferences(user_id: int, new_preferences: dict) -> tuple[Profile, li
 
     profile = fm_user.profile
 
-    old_preferences = profile.final_preferences()
+    old_preferences = profile.preferences
     updated_preferences = {}
     for key, new_value in new_preferences.items():
-        if new_value != old_preferences[key]:
+        if new_value != old_preferences.get(key, None):
             updated_preferences[key] = new_value
 
     if updated_preferences:
@@ -40,8 +40,9 @@ def update_preferences(user_id: int, new_preferences: dict) -> tuple[Profile, li
             )
 
         # Remove any new preferences that are the same as the parent's preferences
+        # parent should have all preference settings
         for k, v in profile.parent.preferences.items():
-            if updated_preferences.get(k) == v:
+            if updated_preferences.get(k, None) == v:
                 del updated_preferences[k]
 
         profile.preferences = updated_preferences
