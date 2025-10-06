@@ -32,12 +32,18 @@ def update_preferences(user_id: int, new_preferences: dict) -> tuple[Profile, li
             updated_preferences[key] = new_value
 
     if updated_preferences:
-        if not profile.is_personalized():
+        if not profile.parent:
             profile = Profile.objects.create(
                 name=fm_user.username,
                 parent=profile,
                 preferences=updated_preferences,
             )
+
+        # Remove any new preferences that are the same as the parent's preferences
+        for k, v in profile.parent.preferences.items():
+            if updated_preferences.get(k) == v:
+                del updated_preferences[k]
+
         profile.preferences = updated_preferences
         profile.save()
 
