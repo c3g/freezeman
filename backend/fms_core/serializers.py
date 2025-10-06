@@ -1046,7 +1046,7 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
-    preferences = serializers.JSONField(read_only=True)
+    preferences = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile

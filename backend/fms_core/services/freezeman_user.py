@@ -1,12 +1,10 @@
+from fms_core.models.profile import Profile
 from fms_core.models import FreezemanUser
 
-def get_or_create_freezeman_user(user_id: int) -> FreezemanUser:
-    from fms_core.services.profile import get_default_profile
-    try:
-        fm_user = FreezemanUser.objects.filter(user__id=user_id).get()
-    except FreezemanUser.DoesNotExist:
-        fm_user = FreezemanUser.objects.create(
-            user_id=user_id,
-            profile=get_default_profile(),
-        )
-    return fm_user
+from django.contrib.auth import get_user_model
+
+def get_freezeman_user(django_user_id: int) -> FreezemanUser:
+    return FreezemanUser.objects.get(user__id=django_user_id)
+
+def create_freezeman_user(django_user_id: int, profile: Profile):
+    return FreezemanUser.objects.create(user=get_user_model().objects.get(id=django_user_id), profile=profile)
