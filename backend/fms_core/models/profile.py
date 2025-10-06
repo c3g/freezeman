@@ -10,7 +10,7 @@ from ._utils import add_error as _add_error
 class Profile(TrackedModel):
     name = models.CharField(max_length=50, unique=True, help_text="Name of the profile (e.g. 'TechDev', 'Production Lab', username, etc.)")
     parent = models.ForeignKey("self", on_delete=models.PROTECT, blank=True, null=True)
-    preferences = models.JSONField(default=dict, help_text="Preferences stored as a JSON object")
+    preferences = models.JSONField(default=dict, blank=True, help_text="Preferences stored as a JSON object")
 
     def final_preferences(self) -> dict[str, Any]:
         preferences = {}

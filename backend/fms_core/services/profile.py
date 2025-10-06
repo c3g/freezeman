@@ -23,32 +23,26 @@ def update_preferences(user_id: int, new_preferences: dict) -> tuple[Profile, li
     if errors:
         return fm_user.profile, errors, warnings
 
-    profile = fm_user.profile
+    parent_profile = fm_user.profile.parent if fm_user.profile.parent else fm_user.profile
+    # Remove any new preferences that are the same as the parent's preferences
+    # parent should have all preference settings
+    for k, v in parent_profile.preferences.items():
+        if new_preferences.get(k, None) == v:
+            del new_preferences[k]
 
-    old_preferences = profile.preferences
-    updated_preferences = {}
-    for key, new_value in new_preferences.items():
-        if new_value != old_preferences.get(key, None):
-            updated_preferences[key] = new_value
+    if not new_preferences and fm_user.profile.parent is None:
+        # don't update user preferences if the user hasn't personalized yet anyway which means they stuck with default
+        return fm_user.profile, errors, warnings
 
-    if updated_preferences:
-        if not profile.parent:
-            profile = Profile.objects.create(
-                name=fm_user.username,
-                parent=profile,
-                preferences=updated_preferences,
-            )
+    if fm_user.profile.parent is None:
+        fm_user.profile = Profile.objects.create(
+            name=f"{fm_user.username}",
+            parent=fm_user.profile,
+            preferences=new_preferences
+        )
 
-        # Remove any new preferences that are the same as the parent's preferences
-        # parent should have all preference settings
-        for k, v in profile.parent.preferences.items():
-            if updated_preferences.get(k, None) == v:
-                del updated_preferences[k]
+    fm_user.profile.save()
 
-        profile.preferences = updated_preferences
-        profile.save()
+    fm_user.save()
 
-        fm_user.profile = profile
-        fm_user.save()
-
-    return profile, errors, warnings
+    return fm_user.profile, errors, warnings
