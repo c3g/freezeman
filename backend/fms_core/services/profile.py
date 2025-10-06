@@ -1,18 +1,17 @@
-from collections import defaultdict
+from fms_core.services.freezeman_user import get_freezeman_user
 from fms_core.models import Profile, FreezemanUser
 from fms_core.schema_validators import PREFERENCES_VALIDATOR
 
-def get_default_profile() -> Profile:
-    return Profile.objects.get(name="Default")
+def get_profile_by_name(name = "Default") -> Profile:
+    return Profile.objects.get(name=name)
 
-def get_profile(user_id: int) -> Profile:
-    from fms_core.services.freezeman_user import get_or_create_freezeman_user
-    fm_user = get_or_create_freezeman_user(user_id)
+def get_profile_by_user_id(user_id: int) -> Profile:
+    fm_user = get_freezeman_user(user_id)
     return fm_user.profile
 
-def update_preferences(user_id: int, new_preferences: dict) -> tuple[Profile, list[str], list[str]]:
-    from fms_core.services.freezeman_user import get_or_create_freezeman_user
-    fm_user = get_or_create_freezeman_user(user_id)
+def update_profile_preferences(user_id: int, new_preferences: dict) -> tuple[Profile, list[str], list[str]]:
+    new_preferences = dict(new_preferences)
+    fm_user = get_freezeman_user(user_id)
 
     errors = []
     warnings = []
@@ -40,9 +39,9 @@ def update_preferences(user_id: int, new_preferences: dict) -> tuple[Profile, li
             parent=fm_user.profile,
             preferences=new_preferences
         )
+    fm_user.profile.preferences = new_preferences
 
     fm_user.profile.save()
-
     fm_user.save()
 
     return fm_user.profile, errors, warnings

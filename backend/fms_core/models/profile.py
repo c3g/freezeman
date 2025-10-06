@@ -1,14 +1,18 @@
 from typing import Any
 from django.db import models
 from django.core.exceptions import ValidationError
+import reversion
 
 from .tracked_model import TrackedModel
 from fms_core.schema_validators import PREFERENCES_VALIDATOR
 
+from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
+from ._validators import name_validator_with_spaces
 
+@reversion.register()
 class Profile(TrackedModel):
-    name = models.CharField(max_length=50, unique=True, help_text="Name of the profile (e.g. 'TechDev', 'Production Lab', username, etc.)")
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, unique=True, help_text="Name of the profile (e.g. 'TechDev', 'Production Lab', username, etc.)", validators=[name_validator_with_spaces])
     parent = models.ForeignKey("self", on_delete=models.PROTECT, blank=True, null=True)
     preferences = models.JSONField(default=dict, blank=True, help_text="Preferences stored as a JSON object")
 

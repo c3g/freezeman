@@ -22,12 +22,12 @@ def create_default_profile(apps, schema_editor):
 
         default_profile = Profile.objects.create(
             name='Default',
+            parent=None,
             preferences={
                 "table.sample.page-limit": 20,
             },
             created_by_id=admin_user.id,
             updated_by_id=admin_user.id,
-            parent=None,
         )
         reversion.add_to_revision(default_profile)        
 
