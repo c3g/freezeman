@@ -20,9 +20,6 @@ class Profile(TrackedModel):
             preferences.update(self.preferences)
         return preferences
 
-    def is_personalized(self) -> bool:
-        return self.parent is not None
-
     def clean(self) -> None:
         super().clean()
 
