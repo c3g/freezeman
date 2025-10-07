@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from backend.fms_core.models import Profile, FreezemanUser
+from fms_core.models import Profile, FreezemanUser
 
 from fms_core.services.profile import get_profile_by_name, get_profile_by_user_id, update_profile_preferences
 from fms_core.services.freezeman_user import get_freezeman_user
@@ -35,26 +35,29 @@ class ProfileServicesTestCase(TestCase):
         DEFAULT_PROFILE = get_profile_by_name()
         DEFAULT_PREFERENCES = DEFAULT_PROFILE.preferences
 
-        profile, errors, warnings = update_profile_preferences(1, DEFAULT_PREFERENCES)
+        # no new profile is created if being initially set to default preferences
+        still_default_profile, errors, warnings = update_profile_preferences(1, DEFAULT_PREFERENCES)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
-        self.assertDictEqual(profile.preferences, DEFAULT_PREFERENCES)
-        self.assertIsNone(profile.parent)
-        self.assertEqual(profile.pk, DEFAULT_PROFILE.pk)
+        self.assertDictEqual(still_default_profile.preferences, DEFAULT_PREFERENCES)
+        self.assertIsNone(still_default_profile.parent)
+        self.assertEqual(still_default_profile.pk, DEFAULT_PROFILE.pk)
 
+        # new profile is created with new preferences
         new_preference = {"table.sample.page-limit": DEFAULT_PREFERENCES["table.sample.page-limit"] + 10}
-        profile, errors, warnings = update_profile_preferences(1, new_preference)
+        new_profile, errors, warnings = update_profile_preferences(1, new_preference)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
-        self.assertDictEqual(profile.preferences, new_preference)
-        self.assertIsNotNone(profile.parent)
-        self.assertEqual(profile.parent.pk, DEFAULT_PROFILE.pk)
-        self.assertNotEqual(profile.pk, DEFAULT_PROFILE.pk)
+        self.assertDictEqual(new_profile.preferences, new_preference)
+        self.assertIsNotNone(new_profile.parent)
+        self.assertEqual(new_profile.parent.pk, DEFAULT_PROFILE.pk)
+        self.assertNotEqual(new_profile.pk, DEFAULT_PROFILE.pk)
 
-        profile, errors, warnings = update_profile_preferences(1, DEFAULT_PREFERENCES)
+        # if new preferences are the same as default, the new profile is updated to have empty preferences
+        same_new_profile, errors, warnings = update_profile_preferences(1, DEFAULT_PREFERENCES)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
-        self.assertDictEqual(profile.preferences, {})
-        self.assertIsNotNone(profile.parent)
-        self.assertEqual(profile.parent.pk, DEFAULT_PROFILE.pk)
-        self.assertNotEqual(profile.pk, DEFAULT_PROFILE.pk)
+        self.assertDictEqual(same_new_profile.preferences, {})
+        self.assertIsNotNone(same_new_profile.parent)
+        self.assertEqual(same_new_profile.parent.pk, DEFAULT_PROFILE.pk)
+        self.assertEqual(same_new_profile.pk, new_profile.pk)
