@@ -7,8 +7,8 @@ from .tracked_model import TrackedModel
 
 @reversion.register()
 class FreezemanUser(TrackedModel):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='freezeman_users')
-    profile = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='users')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='freezeman_user')
+    profile = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='freezeman_users')
 
     @property
     def username(self):
