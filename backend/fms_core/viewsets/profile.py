@@ -18,19 +18,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    http_method_names = ['get', 'post', 'head', 'options', 'trace']
-
     def retrieve(self, _request, pk, *args, **kwargs):
-        return Response(bad_request(_request, "Fetch individual profile via /profile/?user_id=USER_ID"))
-
-    def list(self, _request, *args, **kwargs):
-        params = QueryDict(self.request.META.get('QUERY_STRING'))
-        user_id = params.get("user_id")
-        if not user_id:
-            raise ValidationError({"user_id": "user_id parameter is required"})
-        name = get_user_model().objects.get(id=user_id).username
-        profile = get_profile_by_name(name)
-        return Response(self.get_serializer(profile).data)
+        return Response(bad_request(_request, "Fetch individual profile via /profile/?user__user__id=USER_ID"))
     
     def update(self, request, *args, **kwargs):
         params = QueryDict(self.request.META.get('QUERY_STRING'))
