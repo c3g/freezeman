@@ -239,7 +239,7 @@ PREFERENCES_SCHEMA = {
     "description": "Schema used to define user's preferences.",
     "type": "object",
     "properties": {
-        "table.sample.page-limit": {"type": "number", "minimum": 1}
+        "table.sample.page-limit": {"type": "integer", "minimum": 1}
     },
     "required": ["table.sample.page-limit"],
 }
