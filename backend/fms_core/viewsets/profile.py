@@ -17,11 +17,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
-
-    def retrieve(self, _request, pk, *args, **kwargs):
-        return Response(bad_request(_request, "Fetch individual profile via /profile/?user__user__id=USER_ID"))
     
-    def update(self, request, *args, **kwargs):
+    def update(self, request, pk, *args, **kwargs):
         params = QueryDict(self.request.META.get('QUERY_STRING'))
         user_id = params.get("user_id")
         if not user_id:
