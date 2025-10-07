@@ -26,7 +26,7 @@ def update_profile_preferences(user_id: int, new_preferences: dict) -> tuple[Pro
     # Remove any new preferences that are the same as the parent's preferences
     # parent should have all preference settings
     for k, v in parent_profile.preferences.items():
-        if new_preferences.get(k, None) == v:
+        if k in new_preferences and new_preferences[k] == v:
             del new_preferences[k]
 
     if not new_preferences and fm_user.profile.parent is None:
@@ -39,9 +39,8 @@ def update_profile_preferences(user_id: int, new_preferences: dict) -> tuple[Pro
             parent=fm_user.profile,
             preferences=new_preferences
         )
-    fm_user.profile.preferences = new_preferences
 
-    fm_user.profile.save()
+    fm_user.profile.preferences = new_preferences
     fm_user.save()
 
     return fm_user.profile, errors, warnings
