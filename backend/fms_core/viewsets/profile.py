@@ -7,7 +7,7 @@ from rest_framework.exceptions import bad_request
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from fms_core.services.profile import get_profile_by_name, update_profile_preferences
+# from fms_core.services.profile import get_profile_by_name, update_user_profile
 from fms_core.schema_validators import PREFERENCES_VALIDATOR
 from fms_core.models import FreezemanUser, Profile
 from fms_core.serializers import ProfileSerializer
@@ -18,15 +18,15 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
     
-    def update(self, request, pk, *args, **kwargs):
-        params = QueryDict(self.request.META.get('QUERY_STRING'))
-        user_id = params.get("user_id")
-        if not user_id:
-            raise ValidationError({"profile_id": "profile_id parameter is required"})
+    # def update(self, request, pk, *args, **kwargs):
+    #     params = QueryDict(self.request.META.get('QUERY_STRING'))
+    #     user_id = params.get("user_id")
+    #     if not user_id:
+    #         raise ValidationError({"profile_id": "profile_id parameter is required"})
 
-        data = request.data
-        profile, errors, _ = update_profile_preferences(int(user_id), data["preferences"])
-        if errors:
-            raise ValidationError({"preferences": errors})
-        serializer = self.get_serializer(profile)
-        return Response(serializer.data)
+    #     data = request.data
+    #     profile, errors, _ = update_user_profile(int(user_id), data["preferences"])
+    #     if errors:
+    #         raise ValidationError({"preferences": errors})
+    #     serializer = self.get_serializer(profile)
+    #     return Response(serializer.data)
