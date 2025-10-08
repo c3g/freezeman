@@ -545,6 +545,13 @@ export interface FMSUser extends FMSTrackedModel {
     is_superuser: boolean               // Superuser flag
     is_active: boolean                  // Active flag
     date_joined: string                 // Timestamp user was created
+    profile: FMSId                      // Current Profile ID
+}
+
+export interface FMSProfile extends FMSTrackedModel {
+    id: FMSId                           // Profile ID
+    name: string                        // Profile name
+    preferences: Record<string, any>    // Key-value pairs of user preferences
 }
 
 export interface FMSWorkflow extends FMSTrackedModel {

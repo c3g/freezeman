@@ -87,6 +87,7 @@ import { studySamples } from "./modules/studySamples/reducers";
 import { taxons } from "./modules/taxons/reducers";
 import { taxonsTable } from './modules/taxonsTable/reducers'
 import { users } from "./modules/users/reducers";
+import profiles from "./modules/profiles"
 import { versions } from "./modules/versions/reducers";
 import { workflows } from "./modules/workflows/reducers";
 import { projectsOfSamples } from './modules/projectsOfSamples/reducers'
@@ -172,6 +173,7 @@ const allReducers = combineReducers({
     libraryTypes,
     platforms,
     users,
+    profiles,
     usersTable,
     groups,
     pagination,
