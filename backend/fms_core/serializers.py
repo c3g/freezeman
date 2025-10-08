@@ -542,11 +542,23 @@ class RevisionSerializer(serializers.ModelSerializer):
         model = Revision
         fields = "__all__"
 
+class ProfileSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(read_only=True)
+    preferences = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ["name", "preferences"]
+    
+    def get_preferences(self, instance: Profile):
+        return instance.final_preferences()
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = serializers.IntegerField(read_only=True, source="freezeman_user.profile.id")
+
     class Meta:
         model = User
-        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined")
+        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined", "profile")
         extra_kwargs = {
             "password": {"write_only": True}
         }
@@ -1043,14 +1055,3 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data
-
-class ProfileSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(read_only=True)
-    preferences = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = Profile
-        fields = ["name", "preferences"]
-    
-    def get_preferences(self, instance: Profile):
-        return instance.final_preferences()

@@ -13,7 +13,7 @@ from ._validators import name_validator_with_spaces
 @reversion.register()
 class Profile(TrackedModel):
     name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, unique=True, help_text="Name of the profile (e.g. 'TechDev', 'Production Lab', username, etc.)", validators=[name_validator_with_spaces])
-    parent = models.ForeignKey("self", on_delete=models.PROTECT, blank=True, null=True)
+    parent = models.ForeignKey("self", on_delete=models.PROTECT, blank=True, null=True, related_name="children")
     preferences = models.JSONField(default=dict, blank=True, help_text="Preferences stored as a JSON object")
 
     def final_preferences(self) -> dict[str, Any]:
