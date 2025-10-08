@@ -68,7 +68,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(mgi_experiment)
 
         self.assertIsNotNone(run_info)
-        self.assertEqual(run_info['version'], '1.1.0')
+        self.assertEqual(run_info['version'], '5.3.0')
         self.assertEqual(run_info['run_name'], 'ER-RNA-MGI-EXPERIMENT')
         self.assertEqual(run_info['run_obj_id'], mgi_experiment.id)
         self.assertEqual(run_info['run_start_date'],  mgi_experiment.start_date.strftime("%Y-%m-%d"))
@@ -185,3 +185,6 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(pacbio_experiment)
 
         self.assertIsNotNone(run_info)
+        self.assertEqual(run_info['run_name'], 'Revio_run_211')
+        self.assertEqual(run_info['external_run_name'], 'RUN_ID_RUN')
+        self.assertEqual(run_info['samples'][0]['external_index_name'], 'bc2001')
