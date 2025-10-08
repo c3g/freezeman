@@ -548,7 +548,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["name", "preferences"]
+        fields = ("id", "name", "preferences")
     
     def get_preferences(self, instance: Profile):
         return instance.final_preferences()
