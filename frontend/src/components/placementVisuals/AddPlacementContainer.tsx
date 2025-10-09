@@ -1,21 +1,20 @@
 import React, { useCallback, useState } from "react"
 import { Button, Select, Tabs, notification, Row } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { selectCoordinatesByID, selectContainerKindsByID, selectProjectsByID } from "../../selectors"
+import { selectCoordinatesByID, selectContainerKindsByID } from "../../selectors"
 import Modal from "antd/lib/modal/Modal"
 import SearchContainer from "../SearchContainer"
 import Input from "antd/lib/input/Input"
 import api from "../../utils/api"
 import { MAX_CONTAINER_BARCODE_LENGTH, MAX_CONTAINER_NAME_LENGTH, barcodeRules, nameRules } from "../../constants"
 import { FMSContainer, FMSId, FMSSample } from "../../models/fms_api_models"
-import { get as getProject } from "../../modules/projects/actions"
 import store from "../../store"
 
 export interface DestinationContainer {
     container_barcode: string
     container_name: string
     container_kind: string
-    samples: { [key in FMSId]: { id: FMSId, coordinates: string, name: string, project: string } }
+    samples: { [key in FMSId]: { id: FMSId, coordinates: string, name: string } }
 }
 
 export interface AddPlacementContainerProps {
@@ -59,24 +58,13 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
         if (container.samples.length > 0) {
             const loadedSamples: FMSSample[] = (await dispatch(api.samples.list({ id__in: container.samples.join(','), limit: 100000 }))).data.results
 
-            const projectIDs = new Set(loadedSamples.map(sample => sample.project))
-            const promises: Promise<any>[] = []
-            for (const projectID of projectIDs) {
-                if (projectID) {
-                    promises.push(dispatch(getProject(projectID)))
-                }
-            }
-            await Promise.all(promises)
-
             const coordinates = selectCoordinatesByID(store.getState())
-            const projects = selectProjectsByID(store.getState())
 
             loadedSamples.forEach(sample => {
                 newDestination[sample.id] = {
                     id: sample.id,
                     coordinates: sample.coordinate ? coordinates[sample.coordinate]?.name ?? '...' : '-',
                     name: sample.name,
-                    project: sample.project ? projects[sample.project]?.name ?? '...' : '-'
                 }
             })
         }
