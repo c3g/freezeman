@@ -323,7 +323,7 @@ const api = {
   },
 
   profiles: {
-    get(profileID: FMSId) { return get<JsonResponse<FMSProfile>>(`/profiles/${profileID}/`) },
+    get: (profileID: FMSId) => get<JsonResponse<FMSProfile>>(`/profiles/${profileID}/`),
   },
 
   workflows: {
