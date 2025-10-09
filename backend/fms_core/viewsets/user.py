@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions, IsAdminUser
 
+from fms_core.models import FreezemanUser, Profile
 from fms_core.serializers import UserSerializer
 
 from ._constants import _user_filterset_fields
@@ -46,6 +47,12 @@ class UserViewSet(viewsets.ModelViewSet):
             errors["email"] = "User's email is already in use by another user."
         try:
             response = super().create(request, *args, **kwargs)
+            user = self.queryset.get(email=email)
+            FreezemanUser.objects.create(
+                user=user,
+                profile=Profile.objects.get(name="Default"),
+            )
+            response = Response(self.serializer_class(user).data, status=response.status_code)
         except Exception as err:
             errors.update(err.__dict__.get("detail", {"username": "An unexpected error happened."}))
         if errors:
