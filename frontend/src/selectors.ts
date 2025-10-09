@@ -33,6 +33,7 @@ import { LabworkStepsState } from './modules/labworkSteps/models'
 import { ProjectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { StudySamplesByID, StudySamplesState, StudySettingsByID } from './modules/studySamples/models'
 import { RootState } from './store'
+import { createSelector } from '@reduxjs/toolkit'
 
 /*
     Selector functions for use with the useSelector() hook from react-redux,
@@ -124,6 +125,16 @@ export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as 
 export const selectTaxonsTable = (state: RootState) => state.taxonsTable
 export const selectToken = (state: RootState) => state.auth.tokens.access as unknown as string | null
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
+export const selectProfileByID = (state: RootState) => state.profiles.itemsByID
+export const selectCurrentUserProfile = createSelector(
+	[selectAuthCurrentUserID, selectUsersByID, selectProfileByID],
+	(currentUserID, usersByID, profilesByID) => {
+		if (currentUserID && profilesByID && currentUserID in usersByID) {
+			return profilesByID[usersByID[Number(currentUserID)].profile]
+		}
+		return undefined
+	}
+)
 export const selectUsersState = (state: RootState) => state.users
 export const selectUsersTable = (state: RootState) => state.usersTable
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>

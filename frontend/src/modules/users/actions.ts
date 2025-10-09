@@ -1,3 +1,5 @@
+import { FMSId } from "../../models/fms_api_models";
+import { AppDispatch, RootState } from "../../store";
 import { createNetworkActionTypes, networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 
@@ -8,7 +10,7 @@ export const LIST = createNetworkActionTypes("USERS.LIST");
 export const LIST_REVISIONS = createNetworkActionTypes("USERS.LIST_REVISIONS");
 export const LIST_VERSIONS = createNetworkActionTypes("USERS.LIST_VERSIONS");
 
-export const get = id => async (dispatch, getState) => {
+export const get = (id: FMSId) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const user = getState().users.itemsByID[id];
     if (user && user.isFetching)
         return;

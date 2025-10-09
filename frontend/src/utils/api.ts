@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -313,13 +313,17 @@ const api = {
   },
 
   users: {
-    get: userId => get(`/users/${userId}/`),
+    get: userId => get<JsonResponse<FMSUser>>(`/users/${userId}/`),
     add: user => post("/users/", user),
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
     list: (options, abort?: boolean) => get("/users/", options, { abort }),
     listRevisions: (userId, options = {}) => get(`/revisions/`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions/`, { revision__user: userId, ...options }),
+  },
+
+  profiles: {
+    get: (profileID: FMSId) => get<JsonResponse<FMSProfile>>(`/profiles/${profileID}/`),
   },
 
   workflows: {

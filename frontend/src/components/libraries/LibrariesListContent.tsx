@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { useAppSelector } from "../../hooks"
+import { useAppSelector, usePagedItemsTableProfile } from "../../hooks"
 import { Library } from '../../models/frontend_models'
 import LibrariesTableActions from '../../modules/librariesTable/actions'
 import { selectLibrariesByID, selectLibrariesTable, selectLibraryPrefillTemplates, selectLibraryTemplateActions } from "../../selectors"
@@ -68,6 +68,8 @@ export default function LibariesListContent() {
 	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortByList)
 
 	const librariesTableCallbacks = usePagedItemsActionsCallbacks(LibrariesTableActions)
+
+	usePagedItemsTableProfile(librariesTableCallbacks)
 
 	const clearFiltersAndCategory = useCallback(async () => {
 		librariesTableCallbacks.setFixedFilterCallback(getSampleCategoryFilterSetting(SampleCategory.ALL))

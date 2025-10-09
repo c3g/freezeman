@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useAppSelector } from '../../hooks'
+import { useAppSelector, usePagedItemsTableProfile } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
 import SamplesTableActions from '../../modules/samplesTable/actions'
-import { selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable } from '../../selectors'
+import { selectCurrentUserProfile, selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable } from '../../selectors'
 import api from '../../utils/api'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
@@ -80,6 +80,8 @@ function SamplesListContent() {
 	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  totalFilters, sortByList)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
+
+	usePagedItemsTableProfile(samplesTableCallbacks)
 
 	// Special clearFilters callback that also sets the sample category back to ALL whenever
 	// filters are cleared. Do we still want that to happen?
