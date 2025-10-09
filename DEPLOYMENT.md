@@ -202,3 +202,5 @@ On this page we list the various steps needed for deployments. The first section
   * Add a daily Cron call to "Python manage.py prepare_report_data" from a script on the server.
 * Version 5.2.0
   * Upgrade node.js to v16.20.2.
+* Version 5.4.0
+  * Add FMS_VALIDATED_FILES_PATH and FMS_RELEASED_FILES_PATH to env variables through uwsgi.ini.
