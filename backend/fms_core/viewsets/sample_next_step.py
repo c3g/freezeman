@@ -248,8 +248,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
     @action(detail=False, methods=['post'])
     def list_post(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        ids = queryset.values_list('id', flat=True).distinct()
-        queryset = SampleNextStep.objects.filter(id__in=ids)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
