@@ -131,7 +131,6 @@ const App = ({userID, usersByID, logOut }) => {
       if (user) {
         const profile = (await dispatch(api.profiles.get(user.profile))).data
         dispatch(getProfile(profile))
-        console.info(store.getState().profiles)
       }
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())

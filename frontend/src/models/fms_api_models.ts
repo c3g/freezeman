@@ -548,10 +548,13 @@ export interface FMSUser extends FMSTrackedModel {
     profile: FMSId                      // Current Profile ID
 }
 
+export interface FMSProfilePreferences {
+    'table.sample.page-limit': number
+}
 export interface FMSProfile extends FMSTrackedModel {
     id: FMSId                           // Profile ID
     name: string                        // Profile name
-    preferences: Record<string, any>    // Key-value pairs of user preferences
+    preferences: FMSProfilePreferences  // Key-value pairs of user preferences
 }
 
 export interface FMSWorkflow extends FMSTrackedModel {

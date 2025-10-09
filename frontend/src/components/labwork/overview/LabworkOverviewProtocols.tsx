@@ -42,7 +42,6 @@ const LabworkOverviewProtocols = ({ summary, hideEmptySections, refreshing }: La
 			return aIndex - bIndex
 		})
 	}, [protocols])
-	console.info(sortedProtocols)
 
 	function handleHideEmptySections(hide: boolean) {
 		dispatch(setHideEmptySections(hide))

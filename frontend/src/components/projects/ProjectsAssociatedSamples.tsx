@@ -1,5 +1,5 @@
 import React, { ReactElement, useCallback, useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks";
+import { useAppDispatch, useAppSelector, usePagedItemsTableProfile } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable, selectStudiesByID } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
@@ -168,6 +168,7 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
     const { pagedItems } = projectSamplesTable
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
+    usePagedItemsTableProfile(projectSamplesTableCallbacks)
 
     const LastProtocol = useLastProtocols(pagedItems.items)
     const [StudySteps, refreshStudySteps] = useStudySteps(pagedItems.items)
