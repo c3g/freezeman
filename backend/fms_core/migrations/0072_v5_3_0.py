@@ -228,7 +228,7 @@ def create_default_profile(apps, schema_editor):
             name='Default',
             parent=None,
             preferences={
-                "table.sample.page-limit": 20,
+                "table.sample.page-limit": 100,
             },
             created_by_id=admin_user.id,
             updated_by_id=admin_user.id,
