@@ -2,7 +2,7 @@ import re
 import reversion
 import django.core.validators
 from django.db import migrations, models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from fms_core.models._constants import INDEX_READ_FORWARD, SampleType, StepType
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -13,7 +13,7 @@ def create_pacbio_revio_instrument(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
 
     with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
         admin_user_id = admin_user.id
 
         reversion.set_comment(f"Create instrument for PacBio.")
@@ -54,7 +54,7 @@ def create_pacbio_experiment_run_step(apps, schema_editor):
     PropertyType = apps.get_model("fms_core", "PropertyType")
 
     with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
         admin_user_id = admin_user.id
 
         reversion.set_comment(f"Create step for PacBio Experiment Run.")
@@ -114,7 +114,7 @@ def create_pacbio_ready_to_sequence_workflow(apps, schema_editor):
     experiment_run_step = Step.objects.get(name=PACBIO_EXPERIMENT_RUN_STEP_NAME)
 
     with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
 
         reversion.set_comment(f"Create workflow for PacBio ready to sequence.")
         reversion.set_user(admin_user)
@@ -162,7 +162,7 @@ def create_pacbio_library_types(apps, schema_editor):
     LibraryType = apps.get_model("fms_core", "LibraryType")
     
     with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
         admin_user_id = admin_user.id
 
         reversion.set_comment(f"Create PacBio library types.")
@@ -185,7 +185,7 @@ def create_qc_instruments(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
 
     with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
         
         reversion.set_comment(f"Create Femto Pulse QC instrument.")
         reversion.set_user(admin_user)
@@ -202,7 +202,7 @@ def create_ffpe_sample_kind(apps, schema_editor):
     SampleKind = apps.get_model('fms_core', 'SampleKind')
 
     with reversion.create_revision():
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
         reversion.set_user(admin_user)
         reversion.set_comment("Create FFPE sample kind.")
 
@@ -214,6 +214,47 @@ def create_ffpe_sample_kind(apps, schema_editor):
         )
         ffpe_sample_kind.save()
         reversion.add_to_revision(ffpe_sample_kind)
+
+def create_default_profile(apps, schema_editor):
+    User = get_user_model()
+    Profile = apps.get_model('fms_core', 'Profile')
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        reversion.set_comment(f"Create default profile.")
+        reversion.set_user(admin_user)
+
+        default_profile = Profile.objects.create(
+            name='Default',
+            parent=None,
+            preferences={
+                "table.sample.page-limit": 20,
+            },
+            created_by_id=admin_user.id,
+            updated_by_id=admin_user.id,
+        )
+        reversion.add_to_revision(default_profile)        
+
+def create_freezeman_users(apps, schema_editor):
+    Profile = apps.get_model('fms_core', 'Profile')
+    FreezemanUser = apps.get_model('fms_core', 'FreezemanUser')
+
+    default_profile = Profile.objects.get(name='Default')
+
+    with reversion.create_revision(manage_manually=True):
+        User = get_user_model()
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        reversion.set_comment(f"Create FreezemanUser for all existing users.")
+        reversion.set_user(admin_user)
+
+        for user in User.objects.all():
+            fm_user = FreezemanUser.objects.create(
+                user_id=user.id,
+                profile=default_profile,
+                created_by_id=admin_user.id,
+                updated_by_id=admin_user.id,
+            )
+            reversion.add_to_revision(fm_user)
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -256,5 +297,39 @@ class Migration(migrations.Migration):
             model_name='stephistory',
             name='workflow_action',
             field=models.CharField(choices=[('NEXT_STEP', 'Step complete - Move to next step'), ('DEQUEUE_SAMPLE', 'Sample failed - Remove sample from study workflow'), ('REPEAT_STEP', 'Repeat step - Move to next step and repeat current step'), ('REPEAT_QC_STEP', 'Repeat QC step - Repeat current QC step'), ('IGNORE_WORKFLOW', 'Ignore workflow - Do not register as part of a workflow')], default='NEXT_STEP', help_text='Workflow action that was performed on the sample after step completion.', max_length=30),
+        ),
+
+        migrations.CreateModel(
+            name='Profile',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('name', models.CharField(max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))])),
+                ('preferences', models.JSONField(default=dict, help_text='Preferences stored as a JSON object')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
+                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='children', to='fms_core.profile')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='FreezemanUser',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_creation', to=settings.AUTH_USER_MODEL)),
+                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='freezeman_users', to='fms_core.profile')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='%(app_label)s_%(class)s_modification', to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, related_name='freezeman_user', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
         ),
     ]
