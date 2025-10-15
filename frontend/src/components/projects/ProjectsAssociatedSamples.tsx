@@ -1,5 +1,5 @@
 import React, { ReactElement, useCallback, useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector, usePagedItemsTableProfile } from "../../hooks";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectSamplesByID, selectProjectSamplesTable, selectStudiesByID } from "../../selectors"
 import projectSamplesTableActions from '../../modules/projectSamplesTable/actions'
 import { ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumn } from "../samples/SampleTableColumns"
@@ -13,6 +13,7 @@ import { Button, Popover, Tag } from "antd";
 import LinkSamplesToStudy from "./LinkSamplesToStudy";
 import { FMSSampleNextStepByStudy, FMSStudy, WorkflowStepOrder } from "../../models/fms_api_models";
 import { fetchStudies } from "../../modules/cache/cache";
+import { selectCurrentPreferences } from "../../modules/profiles/selectors";
 
 const lastProtocols = api.protocols.lastProtocols;
 
@@ -168,7 +169,10 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
     const { pagedItems } = projectSamplesTable
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
-    usePagedItemsTableProfile(projectSamplesTableCallbacks)
+    const defaultPageSize = useAppSelector(selectCurrentPreferences)['table.sample.page-limit']
+    useEffect(() => {
+        projectSamplesTableCallbacks.setPageSizeCallback(defaultPageSize)
+    }, [defaultPageSize, projectSamplesTableCallbacks])
 
     const LastProtocol = useLastProtocols(pagedItems.items)
     const [StudySteps, refreshStudySteps] = useStudySteps(pagedItems.items)

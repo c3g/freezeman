@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { useAppSelector, usePagedItemsTableProfile } from "../../hooks"
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useAppSelector } from "../../hooks"
 import { Library } from '../../models/frontend_models'
 import LibrariesTableActions from '../../modules/librariesTable/actions'
 import { selectLibrariesByID, selectLibrariesTable, selectLibraryPrefillTemplates, selectLibraryTemplateActions } from "../../selectors"
@@ -20,6 +20,7 @@ import { usePrefilledTemplateCallback } from '../pagedItemsTable/usePrefilledTem
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from '../samples/SampleCategoryChooser'
 import FlexBar from '../shared/Flexbar'
 import { LIBARY_TABLE_FILTER_KEYS, LIBRARY_COLUMN_DEFINITIONS, LIBRARY_COLUMN_FILTERS, LibraryColumnID, ObjectWithLibrary } from "./LibraryTableColumns"
+import { selectCurrentPreferences } from '../../modules/profiles/selectors'
 
 const LIBRARY_TABLE_COLUMNS = [
 	LIBRARY_COLUMN_DEFINITIONS.ID,
@@ -68,8 +69,10 @@ export default function LibariesListContent() {
 	const listExport = useListExportCallback(api.libraries.listExport, {...filters, ...fixedFilters}, sortByList)
 
 	const librariesTableCallbacks = usePagedItemsActionsCallbacks(LibrariesTableActions)
-
-	usePagedItemsTableProfile(librariesTableCallbacks)
+	const defaultPageSize = useAppSelector(selectCurrentPreferences)['table.sample.page-limit']
+	useEffect(() => {
+		librariesTableCallbacks.setPageSizeCallback(defaultPageSize)
+	}, [defaultPageSize, librariesTableCallbacks])
 
 	const clearFiltersAndCategory = useCallback(async () => {
 		librariesTableCallbacks.setFixedFilterCallback(getSampleCategoryFilterSetting(SampleCategory.ALL))

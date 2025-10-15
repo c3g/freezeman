@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useAppSelector, usePagedItemsTableProfile } from '../../hooks'
+import { useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
 import SamplesTableActions from '../../modules/samplesTable/actions'
-import { selectCurrentUserProfile, selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable } from '../../selectors'
+import { selectSamplePrefillTemplates, selectSampleTemplateActions, selectSamplesByID, selectSamplesTable } from '../../selectors'
 import api from '../../utils/api'
 import { PrefilledTemplatesDropdown } from '../../utils/prefillTemplates'
 import { ActionDropdown } from '../../utils/templateActions'
@@ -24,6 +24,7 @@ import Flexbar from '../shared/Flexbar'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
+import { selectCurrentPreferences } from '../../modules/profiles/selectors'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
@@ -80,8 +81,10 @@ function SamplesListContent() {
 	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  totalFilters, sortByList)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
-
-	usePagedItemsTableProfile(samplesTableCallbacks)
+	const defaultPageSize = useAppSelector(selectCurrentPreferences)['table.sample.page-limit']
+	useEffect(() => {
+		samplesTableCallbacks.setPageSizeCallback(defaultPageSize)
+	}, [defaultPageSize, samplesTableCallbacks])
 
 	// Special clearFilters callback that also sets the sample category back to ALL whenever
 	// filters are cleared. Do we still want that to happen?
