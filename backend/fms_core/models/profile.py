@@ -40,4 +40,4 @@ class Profile(TrackedModel):
             raise ValidationError(errors)
 
     def __repr__(self) -> str:
-        return super().__repr__() + f" (name={repr(self.name)})"
+        return f"Profile(name={repr(self.name)}, pk={repr(self.pk)})"
