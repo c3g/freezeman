@@ -1,9 +1,13 @@
 import re
 import reversion
+
+from django.conf import settings
+from django.contrib.auth import get_user_model
 import django.core.validators
 from django.db import migrations, models
-from django.contrib.auth import get_user_model
+
 from fms_core.models._constants import INDEX_READ_FORWARD, SampleType, StepType
+
 
 ADMIN_USERNAME = 'biobankadmin'
 
