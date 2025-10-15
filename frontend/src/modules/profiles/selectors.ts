@@ -16,7 +16,7 @@ export const selectCurrentUserProfile = createSelector(
 )
 
 const DEFAULT_PREFERENCES: FMSProfilePreferences = {
-    'table.sample.page-limit': 100,
+    'table.sample.page-limit': 20,
 }
 export const selectCurrentPreferences = createSelector(
     [selectCurrentUserProfile],
