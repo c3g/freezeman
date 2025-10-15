@@ -33,7 +33,6 @@ import { LabworkStepsState } from './modules/labworkSteps/models'
 import { ProjectSamplesTable } from './modules/projectSamplesTable/reducers'
 import { StudySamplesByID, StudySamplesState, StudySettingsByID } from './modules/studySamples/models'
 import { RootState } from './store'
-import { createSelector } from '@reduxjs/toolkit'
 
 /*
     Selector functions for use with the useSelector() hook from react-redux,

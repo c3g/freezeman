@@ -17,16 +17,3 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
-    
-    # def update(self, request, pk, *args, **kwargs):
-    #     params = QueryDict(self.request.META.get('QUERY_STRING'))
-    #     user_id = params.get("user_id")
-    #     if not user_id:
-    #         raise ValidationError({"profile_id": "profile_id parameter is required"})
-
-    #     data = request.data
-    #     profile, errors, _ = update_user_profile(int(user_id), data["preferences"])
-    #     if errors:
-    #         raise ValidationError({"preferences": errors})
-    #     serializer = self.get_serializer(profile)
-    #     return Response(serializer.data)
