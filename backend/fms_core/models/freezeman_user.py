@@ -15,4 +15,4 @@ class FreezemanUser(TrackedModel):
         return self.user.username
 
     def __repr__(self) -> str:
-        return super().__repr__() + f" (user={repr(self.user)})"
+        return f"FreezemanUser(user={repr(self.user)}, profile={repr(self.profile)})"
