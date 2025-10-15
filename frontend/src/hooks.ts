@@ -4,8 +4,6 @@ import { FMSId } from './models/fms_api_models'
 import { useEffect, useState } from 'react'
 import { SampleAndLibraryAndIdentity } from './components/WorkflowSamplesTable/ColumnSets'
 import { fetchSamplesAndLibrariesAndIdentities } from './modules/studySamples/services'
-import { PagedItemsActionsCallbacks } from './components/pagedItemsTable/PagedItemsTable'
-import { selectCurrentUserProfile } from './selectors'
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch: () => AppDispatch = useDispatch
@@ -25,13 +23,4 @@ export function useSampleAndLibraryList(sampleIDs: FMSId[], offset?: number, pag
 	}, [sampleIDs, offset, endIndex, pageSize])
 
 	return [availableSamples, isFetching] as const
-}
-
-export function usePagedItemsTableProfile(callbacks: PagedItemsActionsCallbacks) {
-	const profile = useAppSelector(selectCurrentUserProfile)
-	useEffect(() => {
-		if (profile) {
-			callbacks.setPageSizeCallback(profile.preferences['table.sample.page-limit'])
-		}
-	}, [profile, callbacks])
 }
