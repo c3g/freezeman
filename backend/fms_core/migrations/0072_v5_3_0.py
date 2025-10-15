@@ -336,4 +336,6 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.RunPython(create_default_profile, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_freezeman_users, reverse_code=migrations.RunPython.noop),
     ]
