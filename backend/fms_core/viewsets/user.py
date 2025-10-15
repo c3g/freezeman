@@ -52,7 +52,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 user=user,
                 profile=Profile.objects.get(name="Default"),
             )
-            response = Response(self.serializer_class(user).data, status=response.status_code)
         except Exception as err:
             errors.update(err.__dict__.get("detail", {"username": "An unexpected error happened."}))
         if errors:
