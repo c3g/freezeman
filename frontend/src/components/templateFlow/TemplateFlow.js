@@ -10,7 +10,7 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 
-import { fetchListedData, fetchSummariesData } from "../../modules/shared/actions";
+import { fetchSummariesData } from "../../modules/shared/actions";
 
 import { UploadStep } from "./steps/UploadStep";
 import { ReviewStep } from "./steps/ReviewStep";
@@ -38,9 +38,9 @@ STEPS.UPLOAD = 0
 STEPS.REVIEW = 1
 STEPS.CONFIRM = 2
 
-const actionCreators = { fetchListedData, fetchSummariesData };
+const actionCreators = { fetchSummariesData };
 
-const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
+const TemplateFlow = ({ fetchSummariesData, ...props }) => {
   const [step, setStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
@@ -107,7 +107,6 @@ const TemplateFlow = ({ fetchListedData, fetchSummariesData, ...props }) => {
           error,
         })
       })
-      .then(fetchListedData)
       .then(fetchSummariesData)
       .finally(() => {
         setIsSubmitted(true)

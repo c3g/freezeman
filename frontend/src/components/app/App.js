@@ -134,7 +134,6 @@ const App = ({userID, usersByID, logOut }) => {
       }
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
-      dispatch(fetchListedData())
       dispatch(fetchSummariesData())
     }
 
