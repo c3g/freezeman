@@ -81,17 +81,21 @@ class SampleSubmissionImporter(GenericImporter):
             }
 
             sample_kwargs = dict(
-                sample_type=row_data["Sample Type"],
-                sample=sample,
-                library=library,
-                container=container,
-                project=project,
-                parent_container=parent_container,
-                individual=individual,
-                # Preloaded data
-                sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
-                # Validation
-                defined_pools=defined_pools,
+                template_data={
+                    "sample_type": row_data["Sample Type"],
+                    "sample": sample,
+                    "library": library,
+                    "container": container,
+                    "project": project,
+                    "parent_container": parent_container,
+                    "individual": individual
+                },
+                additional_data={
+                    # Preloaded data
+                    "sample_kind_objects_by_name": self.preloaded_data['sample_kind_objects_by_name'],
+                    # Validation
+                    "defined_pools": defined_pools,
+                }
             )
 
             (result, row_object) = self.handle_row(
@@ -113,29 +117,33 @@ class SampleSubmissionImporter(GenericImporter):
             # Iterate through libraries rows
             for row_id, row_data in enumerate(pools_sheet.rows):
                 pool_kwargs = {
-                    "pool": {
-                        "name": str_cast_and_normalize(row_data["Pool Name"]),
-                        "volume": float_to_decimal_and_none(row_data["Pool Volume"]),
-                        "coordinates": str_cast_and_normalize(row_data["Pool Coord"]),
-                        "container": {
-                            "barcode": str_cast_and_normalize(row_data["Container Barcode"]),
-                            "name": str_cast_and_normalize(row_data["Container Name"]),
-                            "kind": str_cast_and_normalize_lower(row_data["Container Kind"]),
-                            "coordinates": str_cast_and_normalize(row_data["Container Coord"]),
-                            "parent_barcode": str_cast_and_normalize(row_data["Location Barcode"]),
-                            "parent_name": str_cast_and_normalize(row_data["Location Name"]),
-                            "parent_kind": str_cast_and_normalize_lower(row_data["Location Kind"]),
+                    "template_data": {
+                        "pool": {
+                            "name": str_cast_and_normalize(row_data["Pool Name"]),
+                            "volume": float_to_decimal_and_none(row_data["Pool Volume"]),
+                            "coordinates": str_cast_and_normalize(row_data["Pool Coord"]),
+                            "container": {
+                                "barcode": str_cast_and_normalize(row_data["Container Barcode"]),
+                                "name": str_cast_and_normalize(row_data["Container Name"]),
+                                "kind": str_cast_and_normalize_lower(row_data["Container Kind"]),
+                                "coordinates": str_cast_and_normalize(row_data["Container Coord"]),
+                                "parent_barcode": str_cast_and_normalize(row_data["Location Barcode"]),
+                                "parent_name": str_cast_and_normalize(row_data["Location Name"]),
+                                "parent_kind": str_cast_and_normalize_lower(row_data["Location Kind"]),
+                            },
                         },
+                        "seq_instrument_type": str_cast_and_normalize(row_data["Seq Instrument Type"]),
+                        "reception_date": input_to_date_and_none(row_data["Reception (YYYY-MM-DD)"]),
+                        "comment": str_cast_and_normalize(row_data["Comment"]),
                     },
-                    "seq_instrument_type": str_cast_and_normalize(row_data["Seq Instrument Type"]),
-                    "reception_date": input_to_date_and_none(row_data["Reception (YYYY-MM-DD)"]),
-                    "comment": str_cast_and_normalize(row_data["Comment"]),
+                    "additional_data": {
+                        "samples_info": pools_dict.get(str_cast_and_normalize(row_data['Pool Name']), None),
+                    }
                 }
 
                 (result, _) = self.handle_row(
                     row_handler_class=PoolsRowHandler,
                     sheet=pools_sheet,
                     row_i=row_id,
-                    samples_info=pools_dict.get(str_cast_and_normalize(row_data['Pool Name']), None),
                     **pool_kwargs
                 )

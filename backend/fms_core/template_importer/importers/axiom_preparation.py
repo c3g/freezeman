@@ -76,17 +76,22 @@ class AxiomPreparationImporter(GenericImporter):
                     process_properties[combined_key]['value'] = val
 
             axiom_preparation_kwargs = dict(
-                container={'barcode': str_cast_and_normalize(sample_preparation_dict['Container Barcode']),
-                           'name': str_cast_and_normalize(sample_preparation_dict['Container Name'])},
-                start_date=input_to_date_and_none(sample_preparation_dict['Preparation Start Date (YYYY-MM-DD)']),
-                comment=str_cast_and_normalize(sample_preparation_dict['Comment']),
-                workflow={'step_action': str_cast_and_normalize(sample_preparation_dict['Workflow Action']),
-                          'step': step_by_row_id[row_id]},
-                # Additional data for this row
-                process_properties=process_properties,
-                # Preloaded data
-                protocols_dict=self.preloaded_data['protocols_dict'],
-                imported_template=self.imported_file
+                template_data={
+                    "container": {'barcode': str_cast_and_normalize(sample_preparation_dict['Container Barcode']),
+                              'name': str_cast_and_normalize(sample_preparation_dict['Container Name'])},
+                    "start_date": input_to_date_and_none(sample_preparation_dict['Preparation Start Date (YYYY-MM-DD)']),
+                    "comment": str_cast_and_normalize(sample_preparation_dict['Comment']),
+                    "workflow": {'step_action': str_cast_and_normalize(sample_preparation_dict['Workflow Action'])},
+                    # Additional data for this row
+                    "process_properties": process_properties,
+                    
+                },
+                additional_data={
+                    'step': step_by_row_id[row_id],
+                    "protocols_dict": self.preloaded_data['protocols_dict'],
+                    "imported_template": self.imported_file
+                    
+                }
             )
 
             (result, _) = self.handle_row(

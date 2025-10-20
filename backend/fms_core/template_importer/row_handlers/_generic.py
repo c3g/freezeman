@@ -33,9 +33,32 @@ class GenericRowHandler():
             has_errors = has_errors or bool(error)
         return has_errors
 
+    def is_empty_row(self, **kwargs) -> bool:
+        """
+        Check if there is any useful data on a template row.
+
+        returns a boolean
+        """
+
+        def _is_empty(kwargs) -> bool:
+            is_empty = True
+            if isinstance(kwargs, (list, set)):
+                for value in kwargs:
+                    is_empty = is_empty and _is_empty(value)
+            elif isinstance(kwargs, dict):
+                for value in kwargs.values():
+                    is_empty = is_empty and _is_empty(value)
+            else:
+                is_empty = kwargs != 0 and not kwargs
+            return is_empty
+        
+        return _is_empty(kwargs)
+
     def process_row(self, **kwargs):
-        self.validate_row_input(**kwargs)
-        if not self.errors:
+        if self.is_empty_row(**kwargs["template_data"]):
+            self.warnings["Empty Row"] = f"Empty template row."
+        elif not self.errors:
+            self.validate_row_input(**kwargs)
             self.process_row_inner(**kwargs)
         result = self.get_result()
         return result

@@ -51,4 +51,4 @@ class StepServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(matches_dict[0].name, "Axiom Sample Preparation")
-        self.assertEqual(len(matches_dict), 1)
+        self.assertEqual(len(matches_dict), 2)

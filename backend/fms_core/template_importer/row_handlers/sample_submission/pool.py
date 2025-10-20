@@ -13,20 +13,22 @@ class PoolsRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, samples_info, pool, seq_instrument_type, reception_date, comment):
+    def process_row_inner(self, template_data, additional_data):
+        # template_data = pool, seq_instrument_type, reception_date, comment
+        # additional_data = samples_info
         # Ensure there is samples_tied to the pool
-        if samples_info is None:
-            self.errors["source_sample"] = (f"Cannot find samples for pool {pool['name']}. "
+        if additional_data["samples_info"] is None:
+            self.errors["source_sample"] = (f"Cannot find samples for pool {template_data['pool']['name']}. "
                                             f"Make sure SampleSubmission sheet Pool Name column values "
                                             f"match a value in PoolSubmission sheet Pool Name column.")
         else:
             # Validate that all libraries have the same platform
-            set_platform = set(sample['library'].platform_id for sample in samples_info)
+            set_platform = set(sample['library'].platform_id for sample in additional_data["samples_info"])
             if len(set_platform) > 1:
-                self.errors["source_sample"] = (f"Libraries in pool {pool['name']} must have the same platform.")
+                self.errors["source_sample"] = (f"Libraries in pool {template_data['pool']['name']} must have the same platform.")
 
             # Get/Create pool container
-            pool_container_dict = pool["container"]
+            pool_container_dict = template_data["pool"]["container"]
 
             parent_barcode = pool_container_dict["parent_barcode"]
             if parent_barcode:
@@ -45,12 +47,12 @@ class PoolsRowHandler(GenericRowHandler):
                                         container_parent=container_parent)
 
             # Validate indices from the samples being pooled
-            if seq_instrument_type is not None:
-                instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
+            if template_data["seq_instrument_type"] is not None:
+                instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(template_data["seq_instrument_type"])
                 if instrument_type_obj is not None:
                     indices = []
                     samples_name = []
-                    for sample in samples_info:
+                    for sample in additional_data["samples_info"]:
                         sample_name = sample["alias"]
                         indices.append(sample["library"].index)
                         samples_name.append(sample_name)
@@ -83,7 +85,7 @@ class PoolsRowHandler(GenericRowHandler):
                           self.warnings["index_collision"] = index_warnings
 
             equal_volume_ratio = True
-            for sample in samples_info:
+            for sample in additional_data["samples_info"]:
                 if sample.get("volume_ratio", None) is not None:
                     equal_volume_ratio = False
                     break
@@ -91,14 +93,14 @@ class PoolsRowHandler(GenericRowHandler):
             EXP = Decimal(f'1E-{DerivedBySample.VOLUME_RATIO_DECIMAL_PLACES}')
             total_volume_ratio = 0
 
-            for sample in samples_info:
+            for sample in additional_data["samples_info"]:
                 if equal_volume_ratio:
-                    sample["volume_ratio"] = (Decimal(1) / Decimal(len(samples_info))).quantize(EXP)
+                    sample["volume_ratio"] = (Decimal(1) / Decimal(len(additional_data["samples_info"]))).quantize(EXP)
                     total_volume_ratio += sample["volume_ratio"]
                 else:
                     volume_ratio = sample.get("volume_ratio", None)
                     if volume_ratio is None:
-                        self.errors["volume_ratio"] = [f"All samples in the pool {pool['name']} must define volume ratio."]
+                        self.errors["volume_ratio"] = [f"All samples in the pool {template_data['pool']['name']} must define volume ratio."]
                         break
                     else:
                         total_volume_ratio += Decimal(volume_ratio).quantize(EXP)
@@ -107,16 +109,16 @@ class PoolsRowHandler(GenericRowHandler):
                 if equal_volume_ratio:
                     # correct by adjusting first volume ratio
                     delta = Decimal(1).quantize(EXP) - total_volume_ratio
-                    samples_info[0]["volume_ratio"] += delta
+                    additional_data["samples_info"][0]["volume_ratio"] += delta
                     total_volume_ratio += delta
                 else:
-                    self.errors["volume_ratio"].append(f"Total volume ratio of the samples in the pool {pool['name']} must add up to exactly 1. ({total_volume_ratio.normalize()})")
+                    self.errors["volume_ratio"].append(f"Total volume ratio of the samples in the pool {template_data['pool']['name']} must add up to exactly 1. ({total_volume_ratio.normalize()})")
 
             # Pool samples
-            pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=samples_info,
-                                                                                      pool_name=pool['name'],
-                                                                                      pool_volume=pool['volume'],
+            pool, self.errors['pool'], self.warnings['pool'] = pool_submitted_samples(samples_info=additional_data["samples_info"],
+                                                                                      pool_name=template_data["pool"]['name'],
+                                                                                      pool_volume=template_data["pool"]['volume'],
                                                                                       container_destination=container_destination,
-                                                                                      coordinates_destination=pool['coordinates'],
-                                                                                      reception_date=reception_date,
-                                                                                      comment=comment)
+                                                                                      coordinates_destination=template_data["pool"]['coordinates'],
+                                                                                      reception_date=template_data["reception_date"],
+                                                                                      comment=template_data["comment"])
