@@ -137,14 +137,14 @@ function selectCellColor(state: RootState, cellID: CellIdentifier, sourceContain
     try {
         const placements = cell.getSamplePlacements(true)
         const existingSample = cell.findExistingSample()
-        const selections = placements.filter((sample) => sample.selected)
+        const selections = placements.filter((sample) => sample.getSelected())
 
         if (selections.length > 0) return "#86ebc1"
-        if (cell.preview !== null) return placementState.error ? "pink" : "#74bbfc"
+        if (cell.getPreview() !== null) return placementState.error ? "pink" : "#74bbfc"
         const isSource = cellID.fromContainer.name === sourceContainer?.name
         if (
             (isSource && existingSample) ||
-            (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample)))
+            (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample.rawIdentifier())))
         ) return "#1890ff"
         if (!isSource && existingSample) return "grey"
         return "white"

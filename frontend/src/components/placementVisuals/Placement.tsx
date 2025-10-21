@@ -13,7 +13,9 @@ import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
-import { PlacementDirections, PlacementType } from "../../modules/placement/models"
+import { ParentContainerIdentifier, PlacementDirections, PlacementType } from "../../modules/placement/models"
+import store from "../../store"
+import { PlacementClass } from "../../modules/placement/classes"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -161,6 +163,18 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
             dispatch(undoPlacements(activeDestinationContainer))
         }
     }, [activeDestinationContainer, dispatch])
+
+    useEffect(() => {
+        (async () => {
+            const store = (await import("../../store")).default
+            const placementModule = await import("../../modules/placement/classes")
+            console.info({
+                getPlacementClass: (parentContainer: ParentContainerIdentifier | undefined = undefined) => new placementModule.PlacementClass(store.getState().placement, parentContainer),
+                reducers: await import("../../modules/placement/reducers"),
+                store,
+            })
+        })()
+    }, [])
 
     return (
         <>
