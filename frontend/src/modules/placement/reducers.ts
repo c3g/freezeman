@@ -80,7 +80,7 @@ const slice = createSlice({
                 const container = placement.getTubesWithoutParent()
 
                 if (payload.type === 'all') {
-                    samples.push(...container.getSamples())
+                    samples.push(...container.getSamples().map((s) => s.rawIdentifier()))
                 } else if (payload.type === 'sample-ids') {
                     samples.push(...payload.samples)
                 }
@@ -115,10 +115,10 @@ const slice = createSlice({
                 }
                 if (payload.forcedSelectedValue !== undefined) {
                     for (const samplePlacement of samplePlacements) {
-                        container.setSelectionOfPlacement(samplePlacement, payload.forcedSelectedValue)
+                        container.setSelectionOfPlacement(samplePlacement.rawIdentifier(), payload.forcedSelectedValue)
                     }
                 } else {
-                    container.togglePlacementSelections(...samplePlacements)
+                    container.togglePlacementSelections(...samplePlacements.map((sp) => sp.rawIdentifier()))
                 }
             }
         }),
