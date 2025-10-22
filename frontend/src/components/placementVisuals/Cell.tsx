@@ -119,7 +119,7 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                style={{ backgroundColor: cellColor }}
+                style={{ background: cell.preview ? cellColor : `radial-gradient(white 0%, ${cellColor} 50%, ${cellColor} 100%)` }}
             >
                 {cell.preview ? cell.preview : ''}
                 {!cell.preview && placedAt.length > 0 ? placedAt.length : ''}
