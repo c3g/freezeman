@@ -63,17 +63,17 @@ class LibraryConversionImporter(GenericImporter):
                 comment=str_cast_and_normalize(library_batch_dict['Comment']),
                 imported_template=self.imported_file
             )
+            if any(library_batch_sheet.rows[row_id]): # Add the data only if the row is not empty
+                library_batch_info = dict(
+                    # Library attributes data dictionary and related objects
+                    execution_date=input_to_date_and_none(library_batch_dict['Date (YYYY-MM-DD)']),
+                    # Library Type and Platform
+                    **batch_objects,
+                    # Additional data for this row
+                    protocol=self.preloaded_data['protocol'],
+                )
 
-            library_batch_info = dict(
-                # Library attributes data dictionary and related objects
-                execution_date=input_to_date_and_none(library_batch_dict['Date (YYYY-MM-DD)']),
-                # Library Type and Platform
-                **batch_objects,
-                # Additional data for this row
-                protocol=self.preloaded_data['protocol'],
-            )
-
-            library_batch_rows_data[library_batch_dict['Library Batch ID']] = library_batch_info
+                library_batch_rows_data[library_batch_dict['Library Batch ID']] = library_batch_info
 
         """
             LIBRARIES SHEET

@@ -29,8 +29,9 @@ class StepServicesTestCase(TestCase):
         self.assertEqual(warnings, [])
         self.assertEqual(matches_dict[0].name, "Library Preparation (PCR-free, DNBSEQ)")
         self.assertEqual(matches_dict[1].name, "Library Preparation (PCR-free, DNBSEQ)")
-        self.assertEqual(matches_dict[2].name, "Library Preparation (PCR-enriched, Illumina)")
+        self.assertIsNone(matches_dict[2]) # empty row
         self.assertEqual(matches_dict[3].name, "Library Preparation (PCR-enriched, Illumina)")
+        self.assertEqual(matches_dict[4].name, "Library Preparation (PCR-enriched, Illumina)")
 
     def test_get_step_from_template_batch(self):
         # extract sheets from axiom sample preparation for test
@@ -50,5 +51,6 @@ class StepServicesTestCase(TestCase):
         
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
-        self.assertEqual(matches_dict[0].name, "Axiom Sample Preparation")
+        self.assertEqual(matches_dict[0].name, "Axiom Sample Preparation") # empty row for a step with single candidate
+        self.assertEqual(matches_dict[1].name, "Axiom Sample Preparation") # first row is empty
         self.assertEqual(len(matches_dict), 2)

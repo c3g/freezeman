@@ -64,17 +64,18 @@ class LibraryCaptureImporter(GenericImporter):
                 imported_template=self.imported_file
             )
 
-            capture_batch_info = dict(
-                # Library attributes data dictionary and related objects
-                capture_date=input_to_date_and_none(capture_batch_dict['Capture Date (YYYY-MM-DD)']),
-                # library selection
-                **batch_objects,
-                # Additional data for this row
-                protocol=self.preloaded_data['protocol'],
-            )
+            if any(capture_batch_sheet.rows[row_id]): # Add the data only if the row is not empty
+                capture_batch_info = dict(
+                    # Library attributes data dictionary and related objects
+                    capture_date=input_to_date_and_none(capture_batch_dict['Capture Date (YYYY-MM-DD)']),
+                    # library selection
+                    **batch_objects,
+                    # Additional data for this row
+                    protocol=self.preloaded_data['protocol'],
+                )
 
-            if capture_batch_dict['Capture Batch ID']:
-                capture_batch_rows_data[capture_batch_dict['Capture Batch ID']] = capture_batch_info
+                if capture_batch_dict['Capture Batch ID']:
+                    capture_batch_rows_data[capture_batch_dict['Capture Batch ID']] = capture_batch_info
 
         """
             LIBRARIES SHEET
