@@ -3,7 +3,6 @@ import { Empty } from "antd"
 import Cell from "./Cell"
 import { multiSelect } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import store from "../../store"
 import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
 import { selectParentContainer } from "../../modules/placement/selectors"
 
@@ -19,35 +18,35 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length
 
+    const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
     const selectColumn = useCallback((column: number) => {
-        return () => containerName && dispatch(multiSelect({
+        return () => containerName && activeSourceContainer && dispatch(multiSelect({
             parentContainer: { name: containerName},
             type: 'column',
             column,
             context: {
-                source: selectActiveSourceContainer(store.getState())
-            }
-        }))
-    }, [containerName, dispatch])
+                source: activeSourceContainer
+            }}))
+    }, [activeSourceContainer, containerName, dispatch])
     const selectRow = useCallback((row: number) => {
-        return () => containerName && dispatch(multiSelect({
+        return () => containerName && activeSourceContainer && dispatch(multiSelect({
             parentContainer: { name: containerName },
             type: 'row',
             row,
             context: {
-                source: selectActiveSourceContainer(store.getState())
+                source: activeSourceContainer
             }
         }))
-    }, [containerName, dispatch])
+    }, [activeSourceContainer, containerName, dispatch])
     const selectAll = useCallback(() => {
-        dispatch(multiSelect({
+        activeSourceContainer && dispatch(multiSelect({
             parentContainer: { name: containerName },
             type: 'all',
             context: {
-                source: selectActiveSourceContainer(store.getState())
+                source: activeSourceContainer
             }
         }))
-    }, [containerName, dispatch])
+    }, [activeSourceContainer, containerName, dispatch])
 
     const cells: ReactNode[] = useMemo(() => {
         const cells: ReactNode[] = []

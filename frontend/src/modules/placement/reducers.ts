@@ -1,7 +1,7 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Sample } from "../../models/frontend_models"
 import { CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, ParentContainerIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
+import { CellIdentifier, ParentContainerIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementPatternOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
 import { PlacementClass, SamplePlacement, SamplePlacementIdentifier } from "./classes"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
@@ -43,6 +43,7 @@ export interface PlaceAllSourcePayload {
 const initialState: PlacementState = {
     placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.COLUMN,
+    gaps: [0, 0],
     tubesWithoutParentContainer: { name: null, samples: {} },
     realParentContainers: {},
     samples: {},
@@ -61,6 +62,9 @@ const slice = createSlice({
         },
         setPlacementDirection(state, action: PayloadAction<PlacementGroupOptions['direction']>) {
             state.placementDirection = action.payload
+        },
+        setGaps(state, action: PayloadAction<PlacementPatternOptions['gaps']>) {
+            state.gaps = action.payload
         },
         clickCell: reducerWithThrows((state, payload: MouseOnCellPayload) =>
             new PlacementClass(state, payload.context.source)
@@ -157,6 +161,7 @@ export const {
     loadContainer,
     setPlacementType,
     setPlacementDirection,
+    setGaps,
     clickCell,
     placeAllSource,
     onCellEnter,
