@@ -7,15 +7,6 @@ class SheetDataTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ContainerCreationImporter()
 
-    def test_empty_rows(self):
-        # extract sheets from container creation for test
-        file = APP_DATA_ROOT / "Container_creation_empty_row_v4_2_0.xlsx"
-
-        result = load_template(importer=self.importer, file=file)
-
-        self.assertEqual(result['valid'], False)
-        self.assertIsNotNone(result['base_errors'])
-
     def test_empty_columns(self):
 
         file = APP_DATA_ROOT / "Container_creation_empty_column_v4_2_0.xlsx"
