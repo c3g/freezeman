@@ -1,14 +1,14 @@
 import { CoordinateAxis, CoordinateSpec } from "../../models/fms_api_models"
 import { comparePlacementSamples, coordinatesToOffsets, offsetsToCoordinates, PlacementSample } from "../../utils/functions"
-import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState, TubesWithoutParentContainerIdentifier, SampleEntry, ParentContainerIdentifier } from "./models"
+import { CellIdentifier, RealParentContainerIdentifier, Coordinates, PlacementDirections, PlacementState, PlacementType, RealParentContainerState, SampleID, SampleIdentifier, TubesWithoutParentContainerState, CellState, SampleState, TubesWithoutParentContainerIdentifier, SampleEntry, ParentContainerIdentifier, PlacementOptions } from "./models"
 import { LoadContainerPayload } from "./reducers"
 
 export class PlacementContext {
     placementState: PlacementState
 
     // these fields are not set by default, they should be set ASAP
-    _sourceContainer: RealParentContainerClass | TubesWithoutParentClass
-    placementClass: PlacementClass
+    _sourceContainer!: RealParentContainerClass | TubesWithoutParentClass
+    placementClass!: PlacementClass
 
     constructor(state: PlacementState) {
         this.placementState = state
@@ -296,7 +296,10 @@ export class RealParentContainerClass extends ParentContainerClass {
         const placementLocations = this.placementDestinations(
             samples.map((s) => s.rawIdentifier()),
             `${axisRow[0]}${axisCol[0]}`,
-            PlacementType.PATTERN,
+            {
+                ...this.getPlacementState(),
+                placementType: PlacementType.PATTERN,
+            }
         )
         if (placementLocations.length !== samples.length) {
             throw new Error(`Placement locations length does not match samples length`)
@@ -350,7 +353,7 @@ export class RealParentContainerClass extends ParentContainerClass {
         }
     }
 
-    placementDestinations(samples: SampleIdentifier[], coordinates: Coordinates, placementType: PlacementType, placementDirection: PlacementDirections | undefined = undefined) {
+    placementDestinations(samples: SampleIdentifier[], coordinates: Coordinates, options: Pick<PlacementState, 'placementType' | 'placementDirection' | 'gaps'>): CellClass[] {
         const [axisRow = [''], axisCol = ['']] = this.getSpec()
         const height = axisRow.length
         const width = axisCol.length
@@ -358,7 +361,7 @@ export class RealParentContainerClass extends ParentContainerClass {
         const newOffsetsList: number[][] = []
         const destinationStartingOffsets = coordinatesToOffsets(this.getSpec(), coordinates)
 
-        switch (placementType) {
+        switch (options.placementType) {
             case PlacementType.PATTERN: {
                 const sourceContainer = this.context.getSourceContainer()
                 if (sourceContainer instanceof TubesWithoutParentClass) {
@@ -381,7 +384,10 @@ export class RealParentContainerClass extends ParentContainerClass {
                 for (const sourceOffsets of sourceOffsetsList) {
                     newOffsetsList.push(
                         this.getSpec().map(
-                            (_: CoordinateAxis, index: number) => sourceOffsets[index] - minOffsets[index] + destinationStartingOffsets[index]
+                            (_: CoordinateAxis, index: number) => {
+                                const relativeOffset = sourceOffsets[index] - minOffsets[index]
+                                return relativeOffset * (options.gaps[index] + 1) + destinationStartingOffsets[index]
+                            }
                         )
                     )
                 }
@@ -435,6 +441,7 @@ export class RealParentContainerClass extends ParentContainerClass {
                         [COLUMN]: startingCol
                     }
 
+                    const placementDirection = options.placementDirection
                     if (placementDirection === PlacementDirections.ROW) {
                         finalOffsets[COLUMN] += relativeOffset
                         const finalColBeforeWrap = finalOffsets[1]
@@ -596,8 +603,7 @@ export class CellClass extends PlacementObject {
             const destinationCells = this.getFromContainer().placementDestinations(
                 selections.map((s) => s.rawIdentifier()),
                 this.getCoordinates(),
-                this.context.placementState.placementType,
-                this.context.placementState.placementDirection,
+                this.context.placementState,
             )
             if (destinationCells.length !== selections.length) {
                 throw new Error(`Destination cells length does not match selections length`)
@@ -635,8 +641,7 @@ export class CellClass extends PlacementObject {
         const destinations = this.getFromContainer().placementDestinations(
             samples.map((s) => s.rawIdentifier()),
             this.getCoordinates(),
-            this.context.placementState.placementType,
-            this.context.placementState.placementDirection,
+            this.context.placementState
         )
         this.getFromContainer().setPreviews(
             samples.map((s) => s.getFromCell()?.rawIdentifier() ?? { coordinates: '' }),

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
+import { Button, Col, InputNumber, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -11,11 +11,10 @@ import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
+import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setGaps, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { ParentContainerIdentifier, PlacementDirections, PlacementType } from "../../modules/placement/models"
-import store from "../../store"
-import { PlacementClass } from "../../modules/placement/classes"
+import { InputNumberProps } from "antd/lib"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -164,6 +163,18 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
+    const gaps = useAppSelector((state) => state.placement.gaps)
+    const setRowGap: NonNullable<InputNumberProps['onChange']> = useCallback((scale) => {
+        console.info("setRowGap", scale)
+        if (scale !== null)
+            dispatch(setGaps([parseInt(scale.toString()), gaps[1]]))
+    }, [dispatch, gaps])
+    const setColGap: NonNullable<InputNumberProps['onChange']> = useCallback((scale) => {
+        console.info("setColGap", scale)
+        if (scale !== null)
+            dispatch(setGaps([gaps[0], parseInt(scale.toString())]))
+    }, [dispatch, gaps])
+
     useEffect(() => {
         (async () => {
             const store = (await import("../../store")).default
@@ -245,6 +256,22 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 <Radio.Button value={PlacementType.PATTERN}> Pattern </Radio.Button>
                                 <Radio.Button value={PlacementType.GROUP}> Group </Radio.Button>
                             </Radio.Group>
+                        </Col>
+                        <Col span={5}>
+                            <InputNumber
+                                min={0}
+                                value={gaps[0]}
+                                addonBefore="Row Gap"
+                                disabled={placementType !== PlacementType.PATTERN}
+                                onChange={setRowGap}
+                            />
+                            <InputNumber
+                                min={0}
+                                value={gaps[1]}
+                                addonBefore="Col Gap"
+                                disabled={placementType !== PlacementType.PATTERN}
+                                onChange={setColGap}
+                            />
                         </Col>
                         <Col span={5}>
                             <Radio.Group

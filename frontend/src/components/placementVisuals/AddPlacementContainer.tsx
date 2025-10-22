@@ -193,7 +193,7 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
                                 <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')} maxLength={MAX_CONTAINER_NAME_LENGTH}></Input>
                             </Row>
                             <Row style={{ padding: "10px" }}>
-                                <Select value={newContainer.container_kind} clearIcon placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>
+                                <Select value={newContainer.container_kind} allowClear={true} placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>
                             </Row>
                         </Tabs.TabPane>
                         <Tabs.TabPane tab='Load Container' key={'load'}>
