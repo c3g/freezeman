@@ -35,7 +35,7 @@ class GenericRowHandler():
 
     def process_row(self, **kwargs):
         if kwargs["is_empty_row"]:
-            self.warnings["Empty Row"] = f"Empty template row."
+            self.warnings["Template"] = f"Empty template row."
         elif not self.errors:
             kwargs.pop("is_empty_row")
             self.validate_row_input(**kwargs)
