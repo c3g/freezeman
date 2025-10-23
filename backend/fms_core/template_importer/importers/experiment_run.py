@@ -132,7 +132,8 @@ class ExperimentRunImporter(GenericImporter):
             sample["volume_used"] = (sample['sample_obj'].volume if sample['sample_obj'] is not None else 0) if sample["volume_used"] == LOAD_ALL else sample["volume_used"]
             sample_rows_data[sample['experiment_name']].append(sample)
             sample_kwargs["sample"] = sample
-            sample_input.append(sample_kwargs)
+            if any(samples_sheet.rows[i]): # Add the data only if the row is not empty
+                sample_input.append(sample_kwargs)
 
         """
             EXPERIMENTS SHEET
@@ -171,8 +172,8 @@ class ExperimentRunImporter(GenericImporter):
                 row_i=row_id,
                 **experiment_run_kwargs,
             )
-
-            experiment_input.append(experiment_run_kwargs)
+            if any(experiments_sheet.rows[row_id]): # Add the data only if the row is not empty
+                experiment_input.append(experiment_run_kwargs)
       
         self.validation_by_run_type(self.preloaded_data['run_type'], sample_input, experiment_input)
 
