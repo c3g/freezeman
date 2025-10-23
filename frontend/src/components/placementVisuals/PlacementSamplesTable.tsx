@@ -37,7 +37,6 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                         id: parseInt(sampleID),
                         selected: Boolean(entry.selected),
                         name: sample.name,
-                        projectName: sample.projectName,
                         containerName: sample.containerName,
                         fromCell: sample.fromCell
                     })
@@ -55,7 +54,6 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                             id: parseInt(sampleID),
                             selected: Boolean(entry?.selected),
                             name: sample.name,
-                            projectName: sample.projectName,
                             containerName: sample.containerName,
                             coordinates: cellID,
                             fromCell: sample.fromCell
