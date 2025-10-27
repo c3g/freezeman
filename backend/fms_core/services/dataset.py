@@ -242,7 +242,7 @@ def ingest_run_validation_report(report_json):
     errors = []
     warnings = []
 
-    ACCEPTED_DATASET_FILE_TYPES = ["fastq_1", "fastq_2", "bam", "bai"]
+    ACCEPTED_DATASET_FILE_TYPES = ["fastq_1", "fastq_2", "bam", "bai", "variant_inferences"]
 
     for error in RUN_PROCESSING_VALIDATOR.validator.iter_errors(report_json):
         if error.path[0] == "lane":
