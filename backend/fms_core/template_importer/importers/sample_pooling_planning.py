@@ -94,11 +94,11 @@ class SamplePoolingPlanningImporter(GenericImporter):
                 row_i=row_id,
                 **pooling_kwargs
             )
-
-            if (pooling_row_mapping is None):
-                base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
-            
-            pooling_mapping_rows.append(pooling_row_mapping)
+            if any(sheet.rows[row_id]): # Add the data only if the row is not empty
+                if (pooling_row_mapping is None):
+                    base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
+                
+                pooling_mapping_rows.append(pooling_row_mapping)
 
         if (len(source_containers_barcodes) > MAX_SOURCE_CONTAINERS):
             self.base_errors.append(f"Too many source containers ({MAX_SOURCE_CONTAINERS}) for the robot.")

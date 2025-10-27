@@ -97,12 +97,12 @@ class NormalizationPlanningImporter(GenericImporter):
                 row_i=row_id,
                 **normalization_kwargs
             )
-
-            if (normalization_row_mapping is None):
-                base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
-            
-            normalization_mapping_rows.append(normalization_row_mapping)
-            robot_choice.append(robot)
+            if any(sheet.rows[row_id]): # Add the data only if the row is not empty
+                if (normalization_row_mapping is None):
+                    base_error_rows.append(sheet.rows_results[row_id]["row_repr"])
+                
+                normalization_mapping_rows.append(normalization_row_mapping)
+                robot_choice.append(robot)
 
         if len(base_error_rows) > 1:
             self.base_errors.append(f"Rows {base_error_rows} have errors.")
