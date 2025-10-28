@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, InputNumber, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, SwitchProps } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -14,7 +14,6 @@ import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setGaps, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { ParentContainerIdentifier, PlacementDirections, PlacementType } from "../../modules/placement/models"
-import { InputNumberProps } from "antd/lib"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -163,17 +162,17 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
-    const gaps = useAppSelector((state) => state.placement.gaps)
-    const setRowGap: NonNullable<InputNumberProps['onChange']> = useCallback((scale) => {
-        console.info("setRowGap", scale)
-        if (scale !== null)
-            dispatch(setGaps([parseInt(scale.toString()), gaps[1]]))
-    }, [dispatch, gaps])
-    const setColGap: NonNullable<InputNumberProps['onChange']> = useCallback((scale) => {
-        console.info("setColGap", scale)
-        if (scale !== null)
-            dispatch(setGaps([gaps[0], parseInt(scale.toString())]))
-    }, [dispatch, gaps])
+    const quadMode = useAppSelector((state) => {
+        const gaps = state.placement.gaps
+        return gaps[0] === 1 && gaps[1] === 1
+    })
+const setQuadMode: NonNullable<SwitchProps['onChange']> = useCallback((checked) => {
+        if (checked) {
+            dispatch(setGaps([1, 1]))
+        } else {
+            dispatch(setGaps([0, 0]))
+        }
+    }, [dispatch])
 
     useEffect(() => {
         (async () => {
@@ -258,20 +257,12 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             </Radio.Group>
                         </Col>
                         <Col span={5}>
-                            <InputNumber
-                                min={0}
-                                value={gaps[0]}
-                                addonBefore="Row Gap"
+                            <Switch
+                                checked={quadMode}
+                                onChange={setQuadMode}
                                 disabled={placementType !== PlacementType.PATTERN}
-                                onChange={setRowGap}
-                            />
-                            <InputNumber
-                                min={0}
-                                value={gaps[1]}
-                                addonBefore="Col Gap"
-                                disabled={placementType !== PlacementType.PATTERN}
-                                onChange={setColGap}
-                            />
+                                checkedChildren={"Quad Mode"}
+                                unCheckedChildren={"Quad Mode"}/>
                         </Col>
                         <Col span={5}>
                             <Radio.Group
