@@ -13,7 +13,7 @@ import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setGaps, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
-import { ParentContainerIdentifier, PlacementDirections, PlacementType } from "../../modules/placement/models"
+import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -174,17 +174,17 @@ const setQuadMode: NonNullable<SwitchProps['onChange']> = useCallback((checked) 
         }
     }, [dispatch])
 
-    useEffect(() => {
-        (async () => {
-            const store = (await import("../../store")).default
-            const placementModule = await import("../../modules/placement/classes")
-            console.info({
-                getPlacementClass: (parentContainer: ParentContainerIdentifier | undefined = undefined) => new placementModule.PlacementClass(store.getState().placement, parentContainer),
-                reducers: await import("../../modules/placement/reducers"),
-                store,
-            })
-        })()
-    }, [])
+    // useEffect(() => {
+    //     (async () => {
+    //         const store = (await import("../../store")).default
+    //         const placementModule = await import("../../modules/placement/classes")
+    //         console.info({
+    //             getPlacementClass: (parentContainer: ParentContainerIdentifier | undefined = undefined) => new placementModule.PlacementClass(store.getState().placement, parentContainer),
+    //             reducers: await import("../../modules/placement/reducers"),
+    //             store,
+    //         })
+    //     })()
+    // }, [])
 
     return (
         <>
