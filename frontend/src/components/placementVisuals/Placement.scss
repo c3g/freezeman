@@ -2,12 +2,12 @@
     border: 1px solid gray;
     color: black;
     border-radius: 100%;
-    height: 2em;
-    width: 2em;
+    height: 2vw;
+    width: 2vw;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.5em;
+    font-size: medium;
 }
 
 .tiny-cell
@@ -15,8 +15,8 @@
   border: 1px solid gray;
   color: black;
   border-radius: 100%;
-  height: 2em;
-  width: 2em;
+  height: 1vw;
+  width: 1vw;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -26,26 +26,26 @@
 
 .row {
     display: flex;
-    gap: 0.5em;
+    gap: 0.5vw;
     flex-direction: row;
 }
 
 .header-row {
     display: flex;
     flex-direction: row;
-    gap: 0.5em
+    gap: 0.5vw;
 }
 
 .flex-column {
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    gap: 0.25em;
 }
 
 .tiny-flex-column {
   display: flex;
   flex-direction: column;
-  gap: 1em;
+  gap: 0.25em;
 }
 
 .flex-row {
