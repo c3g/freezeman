@@ -263,6 +263,9 @@ export class RealParentContainerClass extends ParentContainerClass {
     getCell(cellID: Pick<CellIdentifier, 'coordinates'>): CellClass {
         return this.getPlacementClass().getCell({ fromContainer: this.rawIdentifier(), coordinates: cellID.coordinates })
     }
+    getCells(): CellClass[] {
+        return Object.keys(this.state.cells).map((cellKey) => this.getCell({ coordinates: cellKey }))
+    }
     getCellsInRow(row: number): CellClass[] {
         const [axisRow = [''], axisCol = ['']] = this.getSpec()
         if (row >= axisRow.length) {
