@@ -151,12 +151,14 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                     title: 'Src Coords',
                     dataIndex: 'coordinates',
                     key: 'coordinates',
+                    width: 120,
                 })
             }
             columns.push({
                 title: 'Count',
                 dataIndex: 'count',
                 key: 'count',
+                width: 80,
             })
         } else {
             columns.push({
