@@ -81,7 +81,7 @@ export const USER_COLUMN_DEFINITIONS : {[key in UserColumnID] : Readonly<UserCol
 		columnID: UserColumnID.DATE_JOINED,
 		title: 'Date Joined',
 		dataIndex: ['user', 'date_joined'],
-		render: date => dayjs(date).fromNow(),
+		render: date => `${dayjs(date).format('YYYY-MM-DD')} (${dayjs(date).fromNow()})`,
 	},
 	[UserColumnID.STAFF]: {
 		columnID: UserColumnID.STAFF,
@@ -104,9 +104,7 @@ export const USER_COLUMN_DEFINITIONS : {[key in UserColumnID] : Readonly<UserCol
 }
 
 // Only a subset of columns has a filter definition
-type UserFilterKeys = (UserColumnID.ID | UserColumnID.USERNAME | UserColumnID.EMAIL)
-
-export const USER_FILTER_DEFINITIONS : {[key in UserFilterKeys]: FilterDescription} = {
+export const USER_FILTER_DEFINITIONS : {[key in UserColumnID]: FilterDescription} = {
 	[UserColumnID.ID]: {
 		type: FILTER_TYPE.INPUT_OBJECT_ID,
 		key: UNDEFINED_FILTER_KEY,
@@ -122,11 +120,56 @@ export const USER_FILTER_DEFINITIONS : {[key in UserFilterKeys]: FilterDescripti
 		key: UNDEFINED_FILTER_KEY,
 		label: 'Email'
 	},
+	[UserColumnID.GROUPS]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Groups',
+	},
+	[UserColumnID.DATE_JOINED]: {
+		type: FILTER_TYPE.DATE_RANGE,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Date Joined',
+	},
+	[UserColumnID.STAFF]: {
+		type: FILTER_TYPE.SELECT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Staff',
+		placeholder: 'All',
+		options: [
+			{ label: 'Yes', value: 'true' },
+			{ label: 'No', value: 'false' },
+		],
+	},
+	[UserColumnID.SUPERUSER]: {
+		type: FILTER_TYPE.SELECT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Superuser',
+		placeholder: 'All',
+		options: [
+			{ label: 'Yes', value: 'true' },
+			{ label: 'No', value: 'false' },
+		],
+	},
+	[UserColumnID.ACTIVE]: {
+		type: FILTER_TYPE.SELECT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Active',
+		placeholder: 'All',
+		options: [
+			{ label: 'Yes', value: 'true' },
+			{ label: 'No', value: 'false' },
+		],
+	},
 }
 
-export const USER_FILTER_KEYS: {[key in UserFilterKeys]: string} = {
+export const USER_FILTER_KEYS: {[key in UserColumnID]: string} = {
 	[UserColumnID.ID]: 'id',
 	[UserColumnID.USERNAME]: 'username',
-	[UserColumnID.EMAIL]: 'email'
+	[UserColumnID.EMAIL]: 'email',
+	[UserColumnID.GROUPS]: 'groups__name',
+	[UserColumnID.DATE_JOINED]: 'date_joined',
+	[UserColumnID.STAFF]: 'is_staff',
+	[UserColumnID.SUPERUSER]: 'is_superuser',
+	[UserColumnID.ACTIVE]: 'is_active',
 }
 
