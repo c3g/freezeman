@@ -179,17 +179,19 @@ function selectCellColor(state: RootState, cellID: CellIdentifier) {
 
         const sourceContainers = selectSourceContainers(state)
         const activeSourceContainer = selectActiveSourceContainer(state)
-        if (!activeSourceContainer) return ERROR_CELL_COLOR
+        if (!activeSourceContainer) throw new Error("No active source container when selecting cell color")
 
-        // no existing sample, no placed sample, and no preview
+        // if no existing sample, no placed sample, and no preview, then it is empty
         if (placements.length === 0 && cell.getPreview() === null) return EMPTY_CELL_COLOR
 
+        // is being preview?
         if (cell.getPreview() !== null) {
             const containerIndex = sourceContainers.findIndex((container) => container.name === activeSourceContainer.name)
-            if (containerIndex === -1) return ERROR_CELL_COLOR
+            if (containerIndex === -1) throw new Error(`For preview cell, couldn't find container index for ${activeSourceContainer.name}`)
             return placementState.error ? INVALID_PREVIEW_CELL_COLOR : VALID_PREVIEW_CELL_COLORS[containerIndex]
         }
 
+        // is selected?
         const selections = placements.filter((sample) => sample.getSelected())
         if (selections.length > 0) {
             return SELECTION_CELL_COLOR
@@ -197,19 +199,24 @@ function selectCellColor(state: RootState, cellID: CellIdentifier) {
 
         const isSource = activeSourceContainer.name === cellID.fromContainer.name
         const existingSample = cell.findExistingSample()
-        if ((isSource && existingSample)
+        if (// source cell with existing sample
+            (isSource && existingSample)
             ||
+            // destination cell with a placed sample (and not already existing in that cell)
             (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample.rawIdentifier())))
         ) {
             // assume only one sample per cell. placements also should include existing samples.
             const sample = placements[0].sample
             const containerSource = sample.getFromCell()?.getFromContainer()
             const containerIndex = sourceContainers.findIndex((container) => container.name === (
+                // null is tubes without parent
+                // now that i think about it, cell is never visible for tubes without parent
                 containerSource ? containerSource.getName() : null
             ))
             return ACTIVE_CELL_COLORS[containerIndex]
         }
 
+        // a cell should only be inactive if it's at the destination side with existing sample
         return INACTIVE_CELL_COLOR
     } catch (e) {
         console.info(cell.state, e)
