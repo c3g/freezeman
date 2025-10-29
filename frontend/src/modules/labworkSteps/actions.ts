@@ -433,7 +433,6 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 							sample: locator.sample_id,
 							name: locator.sample_name,
 							containerName: locator.container_name,
-							projectName: locator.project_name,
 							coordinates: locator.contextual_coordinates
 						}
 					})
@@ -453,7 +452,6 @@ export function fetchAndLoadSourceContainers(stepID: FMSId, sampleIDs: FMSId[]) 
 							sample: locator.sample_id,
 							name: locator.sample_name,
 							containerName: locator.container_name,
-							projectName: locator.project_name,
 						}
 					})
 				}))

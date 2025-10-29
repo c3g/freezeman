@@ -43,7 +43,6 @@ export interface TubesWithoutParentContainerState extends TubesWithoutParentCont
 export interface SampleState extends SampleIdentifier {
     containerName: ContainerName, // can be the name of a tube or container of the well
     name: SampleName
-    projectName: string
     fromCell: CellIdentifier | null
     placedAt: CellIdentifier[]
 }

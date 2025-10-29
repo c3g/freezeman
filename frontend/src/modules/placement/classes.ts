@@ -89,7 +89,6 @@ export class PlacementClass extends PlacementObject {
                     containerName: cell.containerName,
                     id: sampleID,
                     name: cell.name,
-                    projectName: cell.projectName,
                     fromCell: null,
                     placedAt: []
                 }
@@ -152,7 +151,6 @@ export class PlacementClass extends PlacementObject {
                     containerName: payloadCell.containerName,
                     id: sampleID,
                     name: payloadCell.name,
-                    projectName: payloadCell.projectName,
                     fromCell: {
                         fromContainer: { name: payload.parentContainerName },
                         coordinates: payloadCell.coordinates
@@ -404,7 +402,6 @@ export class RealParentContainerClass extends ParentContainerClass {
                         id: sample.id,
                         selected: false, // temporary
                         name: sample.name,
-                        projectName: sample.projectName,
                         containerName: sample.containerName,
                         coordinates: sample.fromCell?.coordinates,
                         fromCell: sample.fromCell?.rawIdentifier() ?? null,
@@ -801,9 +798,6 @@ export class SampleClass extends PlacementObject {
     }
     get containerName() {
         return this.state.containerName
-    }
-    get projectName() {
-        return this.state.projectName
     }
     get fromCell() {
         return this.state.fromCell ? this.placement.getCell(this.state.fromCell) : null
