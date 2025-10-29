@@ -253,7 +253,7 @@ INDEX_UPDATE_TEMPLATE = {
   "sheets info": [
       {
           'name': 'Library',
-          'headers': ['Library Name', 'Library Container Barcode', 'Library Container Coord', 'Old Index Name', 'New Index Name', 'Comment'],
+          'headers': ['Library Name', 'Library Container Barcode', 'Library Container Coord', 'Old Index Name', 'New Index Name'],
           'batch': False,
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
