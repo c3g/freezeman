@@ -66,6 +66,7 @@ from .containers import CONTAINER_KIND_SPECS
 __all__ = [
     "ContainerSerializer",
     "ContainerExportSerializer",
+    "ContainerSearchSerializer",
     "DatasetSerializer",
     "DatasetFileSerializer",
     "ReadsetSerializer",
@@ -160,6 +161,11 @@ class ContainerExportSerializer(serializers.ModelSerializer):
 
     def get_samples_contained_count(self, obj):
         return obj.samples.all().count()
+
+class ContainerSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Container
+        fields = ('id', 'name', 'barcode', 'kind')
 
 class ExperimentRunSerializer(serializers.ModelSerializer):
     children_processes = serializers.SerializerMethodField()

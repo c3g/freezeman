@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSContainer } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -40,8 +40,8 @@ const api = {
       templates: () => get(`/containers/list_prefills/`),
       request: (options, template) => filteredpost(`/containers/prefill_template/`, {...options}, form({ template: template })),
     },
-    search: (q, { parent, sample_holding, exact_match, except_kinds }) =>
-      get("/containers/search/", { q, parent, sample_holding, exact_match, except_kinds }),
+    search: (q, { parent, sample_holding, exact_match, except_kinds }, abort?: boolean) =>
+      get<JsonResponse<Pick<FMSContainer, 'id' | 'barcode' | 'name' | 'kind'>[]>>("/containers/search/", { q, parent, sample_holding, exact_match, except_kinds }, { abort }),
   },
 
   coordinates: {

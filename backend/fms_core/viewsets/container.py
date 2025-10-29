@@ -16,6 +16,7 @@ from ._constants import _container_filterset_fields
 from fms_core.template_importer.importers import ContainerCreationImporter, ContainerRenameImporter, ContainerMoveImporter
 
 from fms_core.serializers import (
+    ContainerSearchSerializer,
     ContainerSerializer,
     ContainerExportSerializer,
 )
@@ -178,28 +179,36 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         qs_except_kinds = _request.GET.get("except_kinds")
         except_kinds = qs_except_kinds.split(",") if qs_except_kinds else []
 
+        queryset = Container.objects.all()
         if search_input is not None:
-            if is_exact_match:
-                query = Q(barcode=search_input)
-                query.add(Q(name=search_input), Q.OR)
-                query.add(Q(id=search_input), Q.OR)
-            else:
-                query = Q(barcode__icontains=search_input)
-                query.add(Q(name__icontains=search_input), Q.OR)
-                query.add(Q(id__icontains=search_input), Q.OR)
             if is_parent:
                 kinds = [kind for kind in PARENT_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
+                queryset = queryset.filter(kind__in=kinds)
             if is_sample_holding:
                 kinds = [kind for kind in SAMPLE_CONTAINER_KINDS if kind not in except_kinds]
-                query.add(Q(kind__in=kinds), Q.AND)
-            containers_data = Container.objects.filter(query)
-        else:
-            containers_data = Container.objects.all()
+                queryset = queryset.filter(kind__in=kinds)
 
-        page = self.paginate_queryset(containers_data)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+            if is_exact_match:
+                containers_data = queryset.filter(Q(barcode=search_input) | Q(name=search_input))
+            else:
+                queryset_exact = queryset.filter(Q(barcode=search_input) | Q(name=search_input))
+                queryset_startswith = queryset.filter(Q(barcode__startswith=search_input) | Q(name__startswith=search_input))[:10]
+                queryset_icontains = queryset.filter(Q(barcode__icontains=search_input) | Q(name__icontains=search_input))[:10]
+
+                containers_data = dict()
+                for container in [*queryset_exact, *queryset_startswith, *queryset_icontains]:
+                    containers_data[container.pk] = container
+                containers_data = containers_data.values()
+        else:
+            containers_data = queryset
+
+        serializer = self.get_serializer(containers_data, many=True)
+        return Response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action == "search":
+            return ContainerSearchSerializer
+        return super().get_serializer_class()
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):

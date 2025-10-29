@@ -8,6 +8,7 @@ import {
   InputNumber,
   Select,
   Space,
+  Spin,
   Switch,
 } from "antd";
 import { CheckSquareFilled, CloseSquareFilled } from '@ant-design/icons';
@@ -69,8 +70,11 @@ export function EditSampleRoute() {
 const searchCoordinates = (token, input, options) =>
   withToken(token, api.coordinates.search)(input, options).then(res => res.data.results)
 
-const searchContainers = (token, input, options) =>
-  withToken(token, api.containers.search)(input, { sample_holding: true, ...options }).then(res => res.data.results)
+const searchContainers = async (token, input, options) => {
+  const result = await withToken(token, api.containers.search)(input, { sample_holding: true, ...options }, true)
+  console.info(result)
+  return result.data
+}
 
 const searchIndividuals = (token, input, options) =>
   withToken(token, api.individuals.search)(input, options).then(res => res.data.results)
@@ -185,12 +189,14 @@ const SampleEditContent = ({ sample, isAdding}) => {
    * Container (location) autocomplete
    */
 
-  const [containerOptions, setContainerOptions] = useState([]);
-  const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
-  const onSearchContainer = useCallback((input, options) => {
-    searchContainers(token, input, options).then(containers => {
-      setContainerOptions(containers.map(Options.renderContainer));
-    })
+  const [containerOptions, setContainerOptions] = useState([])
+  const [IsFetchingContainers, setIsFetchingContainers] = useState(false)
+  const onSearchContainer = useCallback(async (input, options) => {
+    setIsFetchingContainers(true)
+    setContainerOptions([])
+    const containers = await searchContainers(token, input, options)
+    setIsFetchingContainers(false)
+    setContainerOptions(containers)
   }, [token])
 
   /*
@@ -320,9 +326,9 @@ const SampleEditContent = ({ sample, isAdding}) => {
               showSearch
               allowClear
               filterOption={false}
-              options={containerOptions}
+              notFoundContent={IsFetchingContainers ? <Spin size={"small"} /> : "No containers found"}
+              options={containerOptions.map(Options.renderContainer)}
               onSearch={onSearchContainer}
-              onFocus={onFocusContainer}
             />
           </Item>
           <Item label="Coordinates" {...props("coordinate")}
