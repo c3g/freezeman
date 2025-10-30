@@ -18,7 +18,7 @@ import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { get as getProject } from '../../modules/projects/actions'
 import { FMSId } from '../../models/fms_api_models'
 import { SampleColumnID } from '../samples/SampleTableColumns'
-import { useNavigateToWorkflowAssignment } from '../management/WorkflowAssigmentPage'
+import { useNavigateToWorkflowAssignment } from '../management/WorkflowAssignmentPage'
 
 const { TabPane } = Tabs
 

@@ -43,9 +43,9 @@ class IndexUpdateRowHandler(GenericRowHandler):
                             _, self.errors["index_update"], self.warnings["index_update"] = update_library(derived_sample=updated_derived_sample, index=index)
                             
                     except Index.DoesNotExist:
-                        self.errors["index"].append(f"No index found for name [{index["new_index"]}].")
+                        self.errors["index"].append(f"No index found for name [{index['new_index']}].")
                     except Index.MultipleObjectsReturned:
-                        self.errors["index"].append(f"Multiple indices found for name [{index["new_index"]}]. Should be unique.")
+                        self.errors["index"].append(f"Multiple indices found for name [{index['new_index']}]. Should be unique.")
                 else:
                     self.errors["library"].append(f"Sample [{derived_sample.biosample.alias}] is not a library. It does not have an index.")
             except DerivedSample.DoesNotExist:
