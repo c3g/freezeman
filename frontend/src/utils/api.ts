@@ -161,6 +161,11 @@ const api = {
   pooledSamples: {
     list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, { abort }),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
+    template: {
+      actions: () => get(`/pooled-samples/template_actions/`),
+      check:  (action, template) => post(`/pooled-samples/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/pooled-samples/template_submit/`, form({ action, template })),
+    },
   },
 
   processes: {
