@@ -4,14 +4,17 @@ from fms_core.models import DerivedBySample, Sample
 from ._constants import (
     _pooled_sample_filterset_fields,
 )
-from ._utils import _list_keys
+from ._utils import _list_keys, TemplateActionsMixin, TemplatePrefillsMixin
 from fms_core.serializers import PooledSampleSerializer, PooledSampleExportSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
-        
-from fms_core.filters import PooledSamplesFilter        
 
-class PooledSamplesViewSet(viewsets.ModelViewSet):
+from fms_core.templates import INDEX_UPDATE_TEMPLATE
+from fms_core.template_importer.importers import IndexUpdateImporter
+
+from fms_core.filters import PooledSamplesFilter
+
+class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     '''
         Lists the samples that are contained in a pool. This is a custom endpoint designed
         for the frontend to display pooled samples in a table. It returns the list of derived
@@ -20,39 +23,7 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         The request must include a 'sampled__id__in` query parameter specifying the id of the
         pool sample.
     '''
-    queryset = DerivedBySample.objects.all()
-
-    # Limit queries to DerivedBySamples that are in a pooled parent sample,
-    # ie. a parent sample that contains more than one derived sample.
-
-    queryset = queryset.annotate(
-        count_derived_samples=Count('sample__derived_samples')
-    )
-
-    queryset = queryset.annotate(is_pooled=Case(
-        When(count_derived_samples__gt=1, then=True),
-        default=False,
-        output_field=BooleanField()
-    )).distinct()
-    queryset = queryset.filter(is_pooled=True)
-
-    queryset = queryset.annotate(
-        parent_sample_name=Subquery(
-            DerivedBySample.objects
-            .filter(sample__parent_of=OuterRef("sample"))
-            .filter(derived_sample=OuterRef("derived_sample"))
-            .values_list("sample__name", flat=True)[:1]
-        )
-    )
-
-    queryset = queryset.annotate(
-        parent_sample_id=Subquery(
-            DerivedBySample.objects
-            .filter(sample__parent_of=OuterRef("sample"))
-            .filter(derived_sample=OuterRef("derived_sample"))
-            .values_list("sample__id", flat=True)[:1]
-        )
-    )
+    queryset = DerivedBySample.objects.none() # Should not be called directly
 
     serializer_class = PooledSampleSerializer
     filterset_fields = _pooled_sample_filterset_fields
@@ -62,6 +33,57 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
     }
 
     ordering = ["id"]
+
+    template_action_list = [
+        {
+            "name": "Update Library Index",
+            "description": "Upload the provided template with up to 384 index updates.",
+            "template": [INDEX_UPDATE_TEMPLATE["identity"]],
+            "importer": IndexUpdateImporter,
+        },
+    ]
+
+    template_prefill_list = [
+        {"template": INDEX_UPDATE_TEMPLATE},
+    ]
+
+    def get_queryset(self):
+        include_pools_of_one = self.request.query_params.get('include_pools_of_one', False)
+
+        self.queryset = DerivedBySample.objects.all()
+
+        self.queryset = self.queryset.annotate(
+            count_derived_samples=Count('sample__derived_samples')
+        )
+
+        self.queryset = self.queryset.annotate(is_pooled=Case(
+            When(count_derived_samples__gt=1, then=True),
+            default=False,
+            output_field=BooleanField()
+        )).distinct()
+
+        if not include_pools_of_one:
+            # Limit queries to DerivedBySamples that are in a pooled parent sample,
+            # ie. a parent sample that contains more than one derived sample.
+            self.queryset = self.queryset.filter(is_pooled=True)
+
+        self.queryset = self.queryset.annotate(
+            parent_sample_name=Subquery(
+                DerivedBySample.objects
+                .filter(sample__parent_of=OuterRef("sample"))
+                .filter(derived_sample=OuterRef("derived_sample"))
+                .values_list("sample__name", flat=True)[:1]
+            )
+        )
+
+        self.queryset = self.queryset.annotate(
+            parent_sample_id=Subquery(
+                DerivedBySample.objects
+                .filter(sample__parent_of=OuterRef("sample"))
+                .filter(derived_sample=OuterRef("derived_sample"))
+                .values_list("sample__id", flat=True)[:1]
+            )
+        )
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
