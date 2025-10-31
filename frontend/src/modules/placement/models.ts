@@ -3,6 +3,7 @@ import { CoordinateSpec } from "../../models/fms_api_models"
 export interface PlacementState {
     placementType: PlacementOptions['type']
     placementDirection: PlacementGroupOptions['direction']
+    gaps: PlacementPatternOptions['gaps']
     tubesWithoutParentContainer: TubesWithoutParentContainerState
     realParentContainers: Record<ContainerName, RealParentContainerState | undefined>
     samples: Record<SampleID, SampleState | undefined>
@@ -15,6 +16,7 @@ export enum PlacementType {
 }
 export interface PlacementPatternOptions {
     type: PlacementType.PATTERN
+    gaps: number[] // x_destination = x_relative_offset * (gaps[x] + 1) + x_starting_offset_at_destination
 }
 export enum PlacementDirections {
     ROW,

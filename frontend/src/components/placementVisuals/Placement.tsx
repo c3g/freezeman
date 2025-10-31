@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, SwitchProps } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -11,7 +11,7 @@ import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
+import { INITIAL_STATE, loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setGaps, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 
@@ -21,6 +21,8 @@ interface PlacementProps {
     sampleIDs: number[],
     stepID: FMSId,
 }
+
+const QUADRANT_MODE_GAPS = [1, 1]
 
 function Placement({ stepID, sampleIDs }: PlacementProps) {
     const dispatch = useAppDispatch()
@@ -162,6 +164,30 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
+    const quadMode = useAppSelector((state) => {
+        const gaps = state.placement.gaps
+        return gaps[0] === QUADRANT_MODE_GAPS[0] && gaps[1] === QUADRANT_MODE_GAPS[1]
+    })
+const setQuadMode: NonNullable<SwitchProps['onChange']> = useCallback((checked) => {
+        if (checked) {
+            dispatch(setGaps(QUADRANT_MODE_GAPS))
+        } else {
+            dispatch(setGaps(INITIAL_STATE.gaps))
+        }
+    }, [dispatch])
+
+    // useEffect(() => {
+    //     (async () => {
+    //         const store = (await import("../../store")).default
+    //         const placementModule = await import("../../modules/placement/classes")
+    //         console.info({
+    //             getPlacementClass: (parentContainer: ParentContainerIdentifier | undefined = undefined) => new placementModule.PlacementClass(store.getState().placement, parentContainer),
+    //             reducers: await import("../../modules/placement/reducers"),
+    //             store,
+    //         })
+    //     })()
+    // }, [])
+
     return (
         <>
             <PageContainer>
@@ -231,6 +257,14 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 <Radio.Button value={PlacementType.PATTERN}> Pattern </Radio.Button>
                                 <Radio.Button value={PlacementType.GROUP}> Group </Radio.Button>
                             </Radio.Group>
+                        </Col>
+                        <Col span={5}>
+                            <Switch
+                                checked={quadMode && placementType === PlacementType.PATTERN}
+                                onChange={setQuadMode}
+                                disabled={placementType !== PlacementType.PATTERN}
+                                checkedChildren={"Quadrant"}
+                                unCheckedChildren={"Quadrant"}/>
                         </Col>
                         <Col span={5}>
                             <Radio.Group
