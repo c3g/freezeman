@@ -24,7 +24,7 @@ import Placement from '../../placementVisuals/Placement'
 import { flushPlacement } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
 import { SAMPLE_IDENTITY_COLUMN_FILTERS } from '../../samples/SampleIdentityColumns'
-import { useNavigateToWorkflowAssignment } from '../../management/WorkflowAssigmentPage'
+import { useNavigateToWorkflowAssignment } from '../../management/WorkflowAssignmentPage'
 import { selectCurrentPreferences } from '../../../modules/profiles/selectors'
 
 const { Text } = Typography

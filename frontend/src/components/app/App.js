@@ -59,7 +59,7 @@ import { useAuthInit } from "./useAuthInit";
 import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
 import { Reports } from "../reports/Reports";
-import { useNavigateToWorkflowAssignment, WorkflowAssigmentPage } from "../management/WorkflowAssigmentPage";
+import { useNavigateToWorkflowAssignment, WorkflowAssignmentPage } from "../management/WorkflowAssignmentPage";
 import { getProfile } from "../../modules/profiles";
 import api from "../../utils/api";
 import store from "../../store";
@@ -397,7 +397,7 @@ const App = ({userID, usersByID, logOut }) => {
             } />
             <Route path="/management/workflow-assignment" element={
               <PrivateNavigate>
-                <WorkflowAssigmentPage />
+                <WorkflowAssignmentPage />
               </PrivateNavigate>
             } />
             <Route path="/indices/*" element={
