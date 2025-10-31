@@ -225,7 +225,7 @@ function selectCellColor(state: RootState, cellID: CellIdentifier) {
                 containerSource ? containerSource.getName() : null
             ))
             if (containerIndex === -1)
-                throw new Error(`For active cell, couldn't find container index for sample ${containerSource?.getName()}`)
+                throw new Error(`For cell ${cell.toString()}, couldn't find container index for sample ${containerSource?.getName()}`)
             if (containerIndex >= ACTIVE_CELL_COLORS.length)
                 throw new Error(`Did not expect more than ${ACTIVE_CELL_COLORS.length} source containers for active cell color`)
             return ACTIVE_CELL_COLORS[containerIndex]

@@ -153,7 +153,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                 })
             }
             columns.push({
-                title: 'Count',
+                title: 'Dst Count',
                 dataIndex: 'count',
                 key: 'count',
                 width: 80,

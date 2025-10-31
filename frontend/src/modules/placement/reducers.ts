@@ -40,7 +40,7 @@ export interface PlaceAllSourcePayload {
     destination: RealParentContainerIdentifier
 }
 
-const initialState: PlacementState = {
+export const INITIAL_STATE: PlacementState = {
     placementType: PlacementType.GROUP,
     placementDirection: PlacementDirections.COLUMN,
     gaps: [0, 0],
@@ -52,7 +52,7 @@ const initialState: PlacementState = {
 
 const slice = createSlice({
     name: 'PLACEMENT',
-    initialState,
+    initialState: INITIAL_STATE,
     reducers: {
         loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) =>
             new PlacementClass(state, undefined).loadContainerPayload(payload)
@@ -152,7 +152,7 @@ const slice = createSlice({
             }
         },
         flushPlacement(state) {
-            Object.assign(state, initialState)
+            Object.assign(state, INITIAL_STATE)
         }
     }
 })
@@ -179,7 +179,7 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
             state.error = undefined
             func(state, action.payload)
         } catch (error) {
-            const originalState = original(state) ?? initialState
+            const originalState = original(state) ?? INITIAL_STATE
             Object.assign(state, originalState)
             state.error = `${error.message}\n${error.stack}`
         }
