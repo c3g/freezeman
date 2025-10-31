@@ -258,10 +258,10 @@ INDEX_UPDATE_TEMPLATE = {
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("Library", "Library Name", "name", "name", None),
-      ("Library", "Source Container Barcode", "container__barcode", "container_barcode", None),
-      ("Library", "Source Container Coordinates", "coordinate__name", "coordinates", None),
-      ("Library", "Old Index Name", None, "index_name", None),
+      ("Library", "Library Name", "alias", None, None),
+      ("Library", "Library Container Barcode", "container_barcode", None, None),
+      ("Library", "Library Container Coordinates", "coordinates", None, None),
+      ("Library", "Old Index Name", "index", None, None),
   ],
   "placement info": [],
 }
