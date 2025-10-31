@@ -37,7 +37,6 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                     id: sample.getId(),
                     selected: parentContainer.isSampleSelected(sample.rawIdentifier()),
                     name: sample.getName(),
-                    projectName: sample.getProjectName(),
                     containerName: sample.getContainerName(),
                     fromCell: null,
                     count: sample.state.placedAt.length
@@ -51,7 +50,6 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                         id: sample.getId(),
                         selected: cell.isSampleSelected(sample.rawIdentifier()),
                         name: sample.getName(),
-                        projectName: sample.getProjectName(),
                         containerName: sample.getContainerName(),
                         coordinates: cell.getCoordinates(),
                         fromCell: sample.getFromCell()?.state ?? null,
