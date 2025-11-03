@@ -12,16 +12,23 @@ from fms_core.models.project import Project
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
+from fms_core.models._constants import ReleaseStatus, ValidationStatus
+
 from fms_report.models.production_data import ProductionData
 from fms_report.models.production_tracking import ProductionTracking
-from fms_core.models._constants import ValidationStatus
+
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 from fms.settings import VALIDATED_FILES_OUTPUT_PATH
 from fms_core.utils import make_timestamped_filename
 
 from fms_core.services.readset import create_readset
 from fms_core.services.metric import create_metrics_from_run_validation_data
-from fms_core.services.archived_comment import create_archived_comment_for_model, AUTOMATED_COMMENT_DATASET_VALIDATED, AUTOMATED_COMMENT_DATASET_NEW_DATA, AUTOMATED_COMMENT_DATASET_RESET
+from fms_core.services.archived_comment import (create_archived_comment_for_model,
+                                                AUTOMATED_COMMENT_DATASET_VALIDATED,
+                                                AUTOMATED_COMMENT_DATASET_NEW_DATA,
+                                                AUTOMATED_COMMENT_DATASET_RESET,
+                                                AUTOMATED_COMMENT_DATASET_RELEASED,
+                                                AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED)
 
 def create_dataset(project_id: int,
                    experiment_run_id: int,
@@ -228,6 +235,71 @@ def get_experiment_run_lane_validation_status(experiment_run_id: int, lane: int)
 
     return validation_status, errors, warnings
 
+def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[str, ReleaseStatus], released_by: User):
+    """
+    Set release_status for readsets of the given dataset.
+
+    Args:
+        `dataset_id`: Freezeman Dataset ID.
+        `readsets_release_status`: dictionary mapping readset id to a valid release status (choices : Available - 0 (default), Released - 1, Blocked - 2).
+        `released_by`: The user that set the release status.
+    
+    Returns:
+        A tuple of the count of release status set, errors and warnings
+    """
+    count_status = 0
+    errors = []
+    warnings = []
+
+    if dataset_id is None:
+        errors.append(f"Missing dataset id.")
+    if any(id for id, status in readsets_release_status if status not in ReleaseStatus.choices):
+        errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
+    if released_by is None or not isinstance(released_by, User):
+        errors.append(f"Missing released_by.")
+
+    if not errors:
+      
+        readset_ids = [int(i) for i in readsets_release_status.keys()]
+        readsets = Readset.objects.filter(dataset=dataset_id, id__in=readset_ids)
+        is_status_revocation = False
+
+        try:
+            release_status_timestamp = timezone.now()
+            for readset in readsets:
+                release_status = readsets_release_status[str(readset.id)]
+                readset.release_status = release_status
+                if release_status == ReleaseStatus.AVAILABLE:
+                    is_status_revocation = True
+                    readset.release_status_timestamp = None
+                    readset.released_by = None
+                else:
+                    readset.release_status_timestamp = release_status_timestamp
+                    readset.released_by = released_by
+                readset.save()
+                count_status += 1
+        except Exception as e:
+            errors.append(f"Error updating release status: {e}")
+            return None, errors, warnings
+
+        # Validate that all release status are set (released or blocked) at once.
+        readsets = list(Readset.objects.filter(dataset=dataset_id).all())
+        readset_count = len(readsets)
+        unset_count = len([readset.id for readset in readsets if readset.release_status==ReleaseStatus.AVAILABLE])
+        if unset_count > 0 and unset_count < readset_count:
+            errors.append(f"Cannot set only a subset of a dataset readsets status.")
+            return None, errors, warnings
+
+        if is_status_revocation:
+            create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED())
+        else:
+            create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_RELEASED())
+      
+    else: # Error returns None, while a non-existant dataset will return 0.
+        return None, errors, warnings
+
+    return count_status, errors, warnings
+
 def create_validation_transfer_file(dataset_obj: Dataset):
     """
     Once a dataset gets validated, creates a file that lists the deliverables to be transfered to the data delivery location.
@@ -252,7 +324,7 @@ def create_validation_transfer_file(dataset_obj: Dataset):
     external_project_id = dataset_obj.project.external_id
     lane = str(dataset_obj.lane)
 
-    filename = make_timestamped_filename(external_project_id + "_" + dataset_id + "_" + lane + ".json")
+    filename = make_timestamped_filename("validated_" + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
     file_path = path.join(VALIDATED_FILES_OUTPUT_PATH, filename)
     validated_data = {"external_project_id": external_project_id, "dataset_id": dataset_id, "lane": lane, "files": []}
     dataset_files = DatasetFile.objects.filter(readset__dataset=dataset_obj)

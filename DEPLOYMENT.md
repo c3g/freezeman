@@ -204,3 +204,4 @@ On this page we list the various steps needed for deployments. The first section
   * Upgrade node.js to v16.20.2.
 * Version 5.4.0
   * Add FMS_VALIDATED_FILES_PATH and FMS_RELEASED_FILES_PATH to env variables through uwsgi.ini.
+  * If RUN_INFO_OUTPUT_PATH not defined in environment, move triggered mechanisms from /backend/lims-run-info/ to /backend/triggers/lims-run-info/
