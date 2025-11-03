@@ -11,7 +11,8 @@ from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
                                                    LIBRARY_QC_QUANTITY_INSTRUMENTS,
                                                    SAMPLE_QC_QUALITY_INSTRUMENTS,
-                                                   SAMPLE_QC_QUANTITY_INSTRUMENTS)
+                                                   SAMPLE_QC_QUANTITY_INSTRUMENTS,
+                                                   INDEX_SETS_FOR_LIBRARY_PREPARATION)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment, custom_prefill_8x12_container_biosample_names
@@ -353,7 +354,11 @@ LIBRARY_PREPARATION_TEMPLATE = {
       },
   ],
   "user prefill info": {
-      "Strandedness": STRANDEDNESS_CHOICES
+      "Sample Volume Used (uL)": "text",
+      "Library Volume (uL)": "number",
+      "Index Set": INDEX_SETS_FOR_LIBRARY_PREPARATION,
+      "Strandedness": STRANDEDNESS_CHOICES,
+      "Comment": "text"
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
