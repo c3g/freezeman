@@ -178,7 +178,7 @@ export const propertyValues = (
             return {
                 ...state,
                 items: action.data,
-                itemsByID: indexByID(action.data, "id"),
+                itemsByID: indexByID(action.data, "id", state.itemsByID),
                 isFetching: false,
             };
         case LIST_PROPERTY_VALUES.ERROR:

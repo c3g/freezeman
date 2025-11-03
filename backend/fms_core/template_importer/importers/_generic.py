@@ -146,7 +146,8 @@ class GenericImporter():
         if self.errors_count >= self.ERRORS_CUTOFF:
             result = {'errors': [], 'validation_error': ValidationError({}), 'warnings': []} # Skip row handling, report no error
         else:
-            result = row_handler_obj.process_row(**kwargs)
+            is_empty_row = not any(sheet.rows[row_i])
+            result = row_handler_obj.process_row(is_empty_row=is_empty_row, **kwargs)
 
             if result['validation_error'].messages:
                 self.errors_count += 1

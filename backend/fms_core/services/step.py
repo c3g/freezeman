@@ -23,7 +23,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition,
         Tuple with a dict {row_id, matching_step} for each sheet row if a match is found (otherwise None), errors and warnings.
     """
     matching_step = None
-    matching_dict = defaultdict(list)
+    matching_dict = defaultdict(lambda: None)
     stitch_dict = {}
     errors = []
     warnings = []
@@ -60,13 +60,16 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition,
                 for step_specification in candidate_step.step_specifications.all():
                     sheet = template_sheets[step_specification.sheet_name]
                     for row_id, row_data in enumerate(sheet.rows):
-                        template_step_specification = str_cast_and_normalize(row_data[step_specification.column_name])
-                        if isinstance(template_step_specification, str):
-                            match = (template_step_specification.upper() == step_specification.value.upper())
-                        else:
+                        if any(row_data):
+                            template_step_specification = str_cast_and_normalize(row_data[step_specification.column_name])
+                            if isinstance(template_step_specification, str):
+                                match = (template_step_specification.upper() == step_specification.value.upper())
+                            else:
+                                match = False
+                                if first_pass:
+                                    errors.append(f"The specification field [{step_specification.column_name}] is empty.")
+                        else: # ensure an empty row will not match any candidate step
                             match = False
-                            if first_pass:
-                                errors.append(f"The specification field [{step_specification.column_name}] is empty.")
                         if step_specification.sheet_name == sample_sheet_name:
                             sample_sheet_matches[row_id].append(match)
                         else:
@@ -103,13 +106,16 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition,
                 for step_specification in candidate_step.step_specifications.all():
                     sheet = template_sheets[step_specification.sheet_name]
                     for row_id, row_data in enumerate(sheet.rows):
-                        template_step_specification = str_cast_and_normalize(row_data[step_specification.column_name])
-                        if isinstance(template_step_specification, str):
-                            match = (template_step_specification.upper() == step_specification.value.upper())
-                        else:
+                        if any(row_data): # only process if row not empty
+                            template_step_specification = str_cast_and_normalize(row_data[step_specification.column_name])
+                            if isinstance(template_step_specification, str):
+                                match = (template_step_specification.upper() == step_specification.value.upper())
+                            else:
+                                match = False
+                                if first_pass:
+                                    errors.append(f"The specification field [{step_specification.column_name}] is empty.")
+                        else: # ensure an empty row will not match any candidate step
                             match = False
-                            if first_pass:
-                                errors.append(f"The specification field [{step_specification.column_name}] is empty.")
                         if step_specification.sheet_name == batch_sheet_name:
                             batch_sheet_matches[row_id].append(match)
                         else:

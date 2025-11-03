@@ -54,7 +54,9 @@ from .models import (
     ArchivedComment,
     IndexBySet,
     SampleIdentityMatch,
-    SampleIdentity
+    SampleIdentity,
+    FreezemanUser,
+    Profile,
 )
 
 from .models._constants import ReleaseStatus
@@ -116,7 +118,8 @@ __all__ = [
     "MetricSerializer",
     "ArchivedCommentSerializer",
     "SampleIdentityMatchSerializer",
-    "SampleIdentitySerializer"
+    "SampleIdentitySerializer",
+    "ProfileSerializer",
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -539,11 +542,23 @@ class RevisionSerializer(serializers.ModelSerializer):
         model = Revision
         fields = "__all__"
 
+class ProfileSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(read_only=True)
+    preferences = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ("id", "name", "preferences")
+    
+    def get_preferences(self, instance: Profile):
+        return instance.final_preferences()
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = serializers.IntegerField(read_only=True, source="freezeman_user.profile.id")
+
     class Meta:
         model = User
-        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined")
+        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined", "profile")
         extra_kwargs = {
             "password": {"write_only": True}
         }
@@ -600,7 +615,7 @@ class IndexExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Index
-        fields = ("id", "name", "index_sets", "index_structure", "sequences_3prime", "sequences_5prime")
+        fields = ("id", "name", "external_name", "index_sets", "index_structure", "sequences_3prime", "sequences_5prime")
 
     def get_index_sets(self, obj):
         index_sets = obj.list_index_sets

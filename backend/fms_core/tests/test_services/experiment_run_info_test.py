@@ -34,9 +34,9 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.project.external_id = EXTERNAL_PROJECT_ID
         self.project.save()
 
-        self.import_template(IndexCreationImporter(), 'Index_creation_v3_7_0.xlsx')
+        self.import_template(IndexCreationImporter(), 'Index_creation_v5_3_0.xlsx')
 
-        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v5_2_0.xlsx')
+        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v5_3_0.xlsx')
         
         self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_4_0.xlsx')
 
@@ -60,7 +60,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
     def test_mgi_experiment_run(self):
         # MGI Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_8_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v5_3_0.xlsx')
 
         mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
         self.assertIsNotNone(mgi_experiment)
@@ -68,7 +68,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(mgi_experiment)
 
         self.assertIsNotNone(run_info)
-        self.assertEqual(run_info['version'], '1.1.0')
+        self.assertEqual(run_info['version'], '5.3.0')
         self.assertEqual(run_info['run_name'], 'ER-RNA-MGI-EXPERIMENT')
         self.assertEqual(run_info['run_obj_id'], mgi_experiment.id)
         self.assertEqual(run_info['run_start_date'],  mgi_experiment.start_date.strftime("%Y-%m-%d"))
@@ -104,6 +104,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             index_sets= [{"obj_id": IndexSet.objects.get(name='_10x_Genomics_scRNA_V1').id, "name": "_10x_Genomics_scRNA_V1"}],
             index_obj_id= Index.objects.get(name='SI-3A-A1').id,
             index_name= "SI-3A-A1",
+            external_index_name= "Test_external_name",
             index_sequence_3_prime= [
                 ""
             ],
@@ -134,7 +135,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
     def test_illumina_experiment_run(self):
         # Illumina Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_8_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v5_3_0.xlsx')
         # This test just verifies that an illumina experiment run can be processed.
         illumina_experiment = ExperimentRun.objects.get(name='ER-DNA-ILLUMINA-EXPERIMENT')
         self.assertIsNotNone(illumina_experiment)
@@ -145,7 +146,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
     def test_axiom_experiment_run(self):
         #Axiom Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v4_8_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Axiom_v5_3_0.xlsx')
         # This test just verifies that an axiom experiment run can be processed.
         axiom_experiment = ExperimentRun.objects.get(name='ER-AXIOM-EXPERIMENT')
         self.assertIsNotNone(axiom_experiment)
@@ -156,7 +157,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
     def test_service_start_experiment_run_processing(self):
         # MGI Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_8_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v5_3_0.xlsx')
         # Just verify that no exception is thrown
         mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
         event_file, errors, warnings = start_experiment_run_processing(mgi_experiment.id)
@@ -167,7 +168,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
     def test_service_get_run_info_for_experiment(self):
         # MGI Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_8_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v5_3_0.xlsx')
         # Just verify that no exception is thrown
         mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
         info, errors, warnings = get_run_info_for_experiment(mgi_experiment.id)
@@ -175,3 +176,15 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertIsNotNone(info)
         self.assertFalse(errors)
         self.assertFalse(warnings)
+
+    def test_pacbio_experiment_run(self):
+        # Pacbio Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_Pacbio_v5_3_0.xlsx')
+        # Just verify that no exception is thrown
+        pacbio_experiment = ExperimentRun.objects.get(name='Revio_run_211')
+        run_info = generate_run_info(pacbio_experiment)
+
+        self.assertIsNotNone(run_info)
+        self.assertEqual(run_info['run_name'], 'Revio_run_211')
+        self.assertEqual(run_info['external_run_name'], 'RUN_ID_RUN')
+        self.assertEqual(run_info['samples'][0]['external_index_name'], 'bc2001')

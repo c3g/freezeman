@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useAppSelector } from '../../hooks'
 import { Sample } from '../../models/frontend_models'
@@ -24,6 +24,7 @@ import Flexbar from '../shared/Flexbar'
 import SampleCategoryChooser, { SampleCategory, getSampleCategoryFilterSetting } from './SampleCategoryChooser'
 import { SAMPLE_COHORT_FILTER, SAMPLE_COLLECTION_SITE_FILTER, SAMPLE_METADATA_FILTER, SAMPLE_PEDIGREE_FILTER, SAMPLE_QPCR_STATUS, SAMPLE_SEX_FILTER } from './SampleDetachedFilters'
 import { ObjectWithSample, SAMPLE_COLUMN_FILTERS, SAMPLE_FILTER_KEYS, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SampleColumns } from './SampleTableColumns'
+import { selectCurrentPreferences } from '../../modules/profiles/selectors'
 
 const SAMPLES_TABLE_COLUMNS = [
 	SampleColumns.ID,
@@ -71,13 +72,19 @@ function SamplesListContent() {
 	}
 	const [sampleCategory, setSampleCategory] = useState<SampleCategory>(initialCategory)
 
-	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, {...filters, ...fixedFilters}, sortByList)
+	const totalFilters = useMemo(() => ({...filters, ...fixedFilters}), [filters, fixedFilters])
 
-	const listExport = useListExportCallback(api.samples.listExport, {...filters, ...fixedFilters}, sortByList)
+	const prefillTemplate = usePrefilledTemplateCallback(api.samples.prefill.request, totalFilters, sortByList)
 
-	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  {...filters, ...fixedFilters}, sortByList)
+	const listExport = useListExportCallback(api.samples.listExport, totalFilters, sortByList)
+
+	const listExportMetadata = useListExportCallback(api.samples.listExportMetadata,  totalFilters, sortByList)
 
 	const samplesTableCallbacks = usePagedItemsActionsCallbacks(SamplesTableActions)
+	const defaultPageSize = useAppSelector(selectCurrentPreferences)['table.sample.page-limit']
+	useEffect(() => {
+		samplesTableCallbacks.setPageSizeCallback(defaultPageSize)
+	}, [defaultPageSize, samplesTableCallbacks])
 
 	// Special clearFilters callback that also sets the sample category back to ALL whenever
 	// filters are cleared. Do we still want that to happen?

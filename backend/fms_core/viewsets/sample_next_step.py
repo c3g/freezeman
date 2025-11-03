@@ -15,7 +15,7 @@ from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, Automati
 from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, Workflow
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
-from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
+from fms_core.templates import (EXPERIMENT_PACBIO_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
                                 LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_PLANNING_TEMPLATE, 
                                 SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE,
                                 EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, AXIOM_PREPARATION_TEMPLATE,
@@ -88,14 +88,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             When(Q(sample__derived_by_samples__volume_ratio__lt=1), then=True),
             default=False,
             output_field=BooleanField()
-        )
-    )
-    
-    queryset = queryset.annotate(
-        project_name=Case(
-            When(Q(is_pooled=True), then=Value("Pooled_Projects")),
-            default=F("sample__derived_by_samples__project__name"),
-            output_field=CharField()
         )
     )
 
@@ -206,7 +198,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {
             "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
-            "template": [EXPERIMENT_ILLUMINA_TEMPLATE['identity'], EXPERIMENT_MGI_TEMPLATE['identity'], EXPERIMENT_INFINIUM_TEMPLATE["identity"], EXPERIMENT_AXIOM_TEMPLATE["identity"]],
+            "template": [EXPERIMENT_ILLUMINA_TEMPLATE['identity'], EXPERIMENT_MGI_TEMPLATE['identity'], EXPERIMENT_INFINIUM_TEMPLATE["identity"], EXPERIMENT_AXIOM_TEMPLATE["identity"], EXPERIMENT_PACBIO_TEMPLATE["identity"]],
             "importer": ExperimentRunImporter,
         },
     ]
@@ -230,6 +222,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": EXPERIMENT_MGI_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": EXPERIMENT_AXIOM_TEMPLATE},
+        {"template": EXPERIMENT_PACBIO_TEMPLATE},
     ]
 
     def get_queryset(self):
@@ -250,11 +243,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             if sample__id__in:
                 queryset = queryset.filter(sample__id__in=sample__id__in)
 
-        params = QueryDict(self.request.META.get('QUERY_STRING'))
-        project_name = params.get('project_name')
-        if project_name:
-            queryset = queryset.filter(project_name=project_name)
-            
         return queryset
 
     @action(detail=False, methods=['post'])
@@ -434,7 +422,6 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
                 "sample_id",
                 "sample_name",
                 "container_name",
-                "project_name",
                 grouping_column,
                 "ordering_container_barcode",
                 "ordering_container_coordinates"
@@ -442,12 +429,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
         groups = defaultdict(list)
         # Extract the locators from the entries
-        for sample_id, sample_name, container_name, project_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
+        for sample_id, sample_name, container_name, group_column, container_barcode, container_coordinates in grouped_step_samples.all():
             groups[group_column].append({
                 "sample_id": sample_id,
                 "sample_name": sample_name,
                 "container_name": container_name,
-                "project_name": project_name,
                 "contextual_container_barcode": container_barcode,
                 "contextual_coordinates": container_coordinates
             })

@@ -60,6 +60,9 @@ import { useRefreshHook } from "./useRefreshHook";
 import InstrumentsRoute from "../instruments/InstrumentsRoute";
 import { Reports } from "../reports/Reports";
 import { useNavigateToWorkflowAssignment, WorkflowAssigmentPage } from "../management/WorkflowAssigmentPage";
+import { getProfile } from "../../modules/profiles";
+import api from "../../utils/api";
+import store from "../../store";
 
 
 const { Title } = Typography;
@@ -112,9 +115,9 @@ export const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = { logOut, get };
+export const actionCreators = { logOut };
 
-const App = ({userID, usersByID, logOut, get}) => {
+const App = ({userID, usersByID, logOut }) => {
   /* global FMS_ENV */
   const env = FMS_ENV
   const dispatch = useAppDispatch()
@@ -124,17 +127,20 @@ const App = ({userID, usersByID, logOut, get}) => {
   // Once the user has a valid auth token, go ahead and load the initial data for the app.
   useEffect(() => {
     async function loadInitialData() {
-      await get(userID)
+      const user = await dispatch(get(userID))
+      if (user) {
+        const profile = (await dispatch(api.profiles.get(user.profile))).data
+        dispatch(getProfile(profile))
+      }
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
-      dispatch(fetchListedData())
       dispatch(fetchSummariesData())
     }
 
     if (isLoggedIn) {
       loadInitialData()
     }
-  }, [userID, isLoggedIn, get, dispatch]);
+  }, [userID, isLoggedIn, dispatch]);
 
   useRefreshHook(isLoggedIn)
 

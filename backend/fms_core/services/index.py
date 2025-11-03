@@ -36,7 +36,7 @@ def get_or_create_index_set(set_name):
     return index_set, created_entity, errors, warnings
 
 
-def create_index(index_name: str, index_structure: str, index_set: IndexSet = None):
+def create_index(index_name: str, index_structure: str, index_set: IndexSet = None, external_index_name: str = None):
     """
     Create an index model with the provided index_structure and set.
 
@@ -44,6 +44,7 @@ def create_index(index_name: str, index_structure: str, index_set: IndexSet = No
         `index_name`: Name of the index.
         `index_structure`: Name of the index structure.
         `index_set`: Optional Index set instance. Defaults to None.
+        `external_index_name`: Optional External Index Name given by vendor. Defaults to None.
 
     Returns:
         Tuple including the created index instance as well as a list of errors and warnings.
@@ -62,8 +63,14 @@ def create_index(index_name: str, index_structure: str, index_set: IndexSet = No
         errors.append(f"Index structure is needed to create an index.")
 
     if not errors:
+        index_data = dict(
+            name=index_name,
+            index_structure=index_structure_obj,
+            # Optional attributes
+            **(dict(external_name=external_index_name) if external_index_name is not None else dict())
+        )
         try:
-            index = Index.objects.create(name=index_name, index_structure=index_structure_obj)
+            index = Index.objects.create(**index_data)
         except ValidationError as e:
             errors.append(';'.join(e.messages))
 
@@ -75,7 +82,7 @@ def create_index(index_name: str, index_structure: str, index_set: IndexSet = No
 
     return index, errors, warnings
 
-def get_or_create_index(index_name: str, index_structure: str, index_set: IndexSet = None):
+def get_or_create_index(index_name: str, index_structure: str, index_set: IndexSet = None, external_index_name: str = None):
     """
     Get or create an index model with the provided index_structure and set.
     If the index exists and a new index set is provided, it will link the index to the new index set.
@@ -84,6 +91,7 @@ def get_or_create_index(index_name: str, index_structure: str, index_set: IndexS
         `index_name`: Name of the index.
         `index_structure`: Name of the index structure.
         `index_set`: Optional Index set instance. Defaults to None.
+        `external_index_name`: Optional External Index Name given by vendor. Defaults to None.
 
     Returns:
         Tuple including the created index instance, a flag to indicate if the index was created as well as a list of errors and warnings.
@@ -112,7 +120,13 @@ def get_or_create_index(index_name: str, index_structure: str, index_set: IndexS
                 errors.append(f"Provided index_structure {index_structure} does not match the index structure {index.index_structure.name} of the index retrieved using the name {index_name}.")
         except Index.DoesNotExist:
             try:
-                index = Index.objects.create(name=index_name, index_structure=index_structure_obj)
+                index_data = dict(
+                    name=index_name,
+                    index_structure=index_structure_obj,
+                    # Optional attributes
+                    **(dict(external_name=external_index_name) if external_index_name is not None else dict())
+                )
+                index = Index.objects.create(**index_data)
                 created_entity = True
             except ValidationError as e:
                 errors.append(';'.join(e.messages))

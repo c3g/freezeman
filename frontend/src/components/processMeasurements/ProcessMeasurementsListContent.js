@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
@@ -151,6 +151,9 @@ const ProcessMeasurementsListContent = ({
   clearFilters,
   setSortBy,
 }) => {
+  useEffect(() => {
+    listTable()
+  }, [listTable])
 
   const listExport = () =>
     withToken(token, api.processMeasurements.listExport)

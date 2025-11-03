@@ -170,6 +170,7 @@ export interface FMSImportedFile {
 
 export interface FMSIndex extends FMSTrackedModel {
     name: string                        // eg "Index_1"
+    external_name?: string              // vendor index name
     index_sets: string[]                // IndexSet names
     index_structure: string             // IndexStructure name
     sequences_3prime: FMSId[]           // Sequence ID's
@@ -544,6 +545,16 @@ export interface FMSUser extends FMSTrackedModel {
     is_superuser: boolean               // Superuser flag
     is_active: boolean                  // Active flag
     date_joined: string                 // Timestamp user was created
+    profile: FMSId                      // Current Profile ID
+}
+
+export interface FMSProfilePreferences {
+    'table.sample.page-limit': number
+}
+export interface FMSProfile extends FMSTrackedModel {
+    id: FMSId                           // Profile ID
+    name: string                        // Profile name
+    preferences: FMSProfilePreferences  // Key-value pairs of user preferences
 }
 
 export interface FMSWorkflow extends FMSTrackedModel {
@@ -564,7 +575,6 @@ export interface SampleLocator {
     sample_id: FMSId
     sample_name: string
     container_name: string
-    project_name: string
     contextual_container_barcode: string
     contextual_coordinates: string
 }

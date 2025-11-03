@@ -10,7 +10,8 @@ __all__ = [
     "EXPERIMENTAL_GROUP_SCHEMA",
     "PROPERTY_VALUE_SCHEMA",
     "PROPERTY_VALUE_VALIDATOR",
-    "RUN_PROCESSING_VALIDATOR"
+    "RUN_PROCESSING_VALIDATOR",
+    "PREFERENCES_VALIDATOR",
 ]
 
 
@@ -230,3 +231,16 @@ SAMPLE_IDENTITY_REPORT_SCHEMA = {
 }
 
 SAMPLE_IDENTITY_REPORT_VALIDATOR = JsonSchemaValidator(SAMPLE_IDENTITY_REPORT_SCHEMA)
+
+PREFERENCES_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "fms:preference",
+    "title": "Preference schema",
+    "description": "Schema used to define user's preferences.",
+    "type": "object",
+    "properties": {
+        "table.sample.page-limit": {"type": "integer", "minimum": 1}
+    },
+    "required": ["table.sample.page-limit"],
+}
+PREFERENCES_VALIDATOR = JsonSchemaValidator(PREFERENCES_SCHEMA)

@@ -361,7 +361,7 @@ function getSampleKindOptions() {
 				value: sampleKind.name
 
 			}
-		})
+		}).sort((a, b) => a.label.localeCompare(b.label))
 		return options
 	} return []
 }
@@ -524,7 +524,7 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.CREATION_DATE]: 'sample__creation_date',
 	[SampleColumnID.DEPLETED]: 'sample__depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
-	[SampleColumnID.PROJECT]: 'project_name',
+	[SampleColumnID.PROJECT]: 'sample__derived_by_samples__project__name',
 	[SampleColumnID.COHORT]: 'sample__derived_samples__biosample__individual__cohort',
 	[SampleColumnID.QUEUED_STEPS]: 'step__name',
 	[SampleColumnID.SAMPLE_COUNT]: '',

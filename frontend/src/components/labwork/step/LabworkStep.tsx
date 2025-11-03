@@ -2,7 +2,7 @@ import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notificatio
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
-import { useAppDispatch } from '../../../hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
@@ -25,6 +25,7 @@ import { flushPlacement } from '../../../modules/placement/reducers'
 import { flushContainers as flushLabworkStepPlacementContainers } from '../../../modules/labworkSteps/reducers'
 import { SAMPLE_IDENTITY_COLUMN_FILTERS } from '../../samples/SampleIdentityColumns'
 import { useNavigateToWorkflowAssignment } from '../../management/WorkflowAssigmentPage'
+import { selectCurrentPreferences } from '../../../modules/profiles/selectors'
 
 const { Text } = Typography
 
@@ -207,7 +208,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			dispatch(setPageSize(pageSize))
 			dispatch(loadSamplesAtStep(step.id, stepSamples.pagedItems.page?.pageNumber ?? 1))
 		}
-		, [step, stepSamples, dispatch])
+		, [step.id, stepSamples.pagedItems.page?.pageNumber, dispatch])
+		
+	const defaultPageSize = useAppSelector(selectCurrentPreferences)['table.sample.page-limit']
+	useEffect(() => {
+		handlePageSize(defaultPageSize)
+	}, [defaultPageSize, handlePageSize])
 
 	const pagination: PaginationParameters = {
 		pageNumber: stepSamples.pagedItems.page?.pageNumber ?? 1,

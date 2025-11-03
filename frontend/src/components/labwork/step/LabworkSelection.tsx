@@ -2,7 +2,7 @@ import { InfoCircleOutlined } from "@ant-design/icons"
 import { Alert, Space, Typography } from "antd"
 import React, { useState, useCallback, useEffect, useMemo } from "react"
 import { DEFAULT_SMALL_PAGE_SIZE } from "../../../constants"
-import { useAppDispatch, useSampleAndLibraryList } from "../../../hooks"
+import { useAppDispatch, useAppSelector, useSampleAndLibraryList } from "../../../hooks"
 import { Protocol, Step } from "../../../models/frontend_models"
 import { updateSelectedSamplesAtStep, showSelectionChangedMessage, setSelectedSamples, unselectSamples } from "../../../modules/labworkSteps/actions"
 import { LabworkStepSamples } from "../../../modules/labworkSteps/models"
@@ -10,6 +10,7 @@ import { SampleAndLibrary, getColumnsForStep } from "../../WorkflowSamplesTable/
 import WorkflowSamplesTable, { WorkflowSamplesTableProps } from "../../WorkflowSamplesTable/WorkflowSamplesTable"
 import { SampleColumnID } from "../../samples/SampleTableColumns"
 import { FMSId } from "../../../models/fms_api_models"
+import { selectCurrentPreferences } from "../../../modules/profiles/selectors"
 
 const { Text } = Typography
 
@@ -31,8 +32,13 @@ function samplesAndLibrariesToSampleIDs(sampleAndLibraries: SampleAndLibrary[]) 
 
 export function LabworkSelection({stepSamples, step, protocol, setSortByList}: LabworkSelectionProps) {
 	const dispatch = useAppDispatch()
-
+	
 	const [pageSize, setPageSize] = useState(DEFAULT_SMALL_PAGE_SIZE)
+	const defaultPageSize = useAppSelector(selectCurrentPreferences)['table.sample.page-limit']
+	useEffect(() => {
+		setPageSize(defaultPageSize)
+	}, [defaultPageSize])
+
 	const [pageNumber, setPageNumber] = useState(1)
 	const totalCount = stepSamples.selectedSamples.items.length
 

@@ -49,6 +49,8 @@ from .archived_comment import ArchivedComment
 from .index_by_set import IndexBySet
 from .sample_identity_match import SampleIdentityMatch
 from .sample_identity import SampleIdentity
+from .freezeman_user import FreezemanUser
+from .profile import Profile
 
 __all__ = [
     "Biosample",
@@ -100,5 +102,7 @@ __all__ = [
     "ArchivedComment",
     "IndexBySet",
     "SampleIdentityMatch",
-    "SampleIdentity", 
+    "SampleIdentity",
+    "FreezemanUser",
+    "Profile",
 ]

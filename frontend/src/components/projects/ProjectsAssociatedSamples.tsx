@@ -13,6 +13,7 @@ import { Button, Popover, Tag } from "antd";
 import LinkSamplesToStudy from "./LinkSamplesToStudy";
 import { FMSSampleNextStepByStudy, FMSStudy, WorkflowStepOrder } from "../../models/fms_api_models";
 import { fetchStudies } from "../../modules/cache/cache";
+import { selectCurrentPreferences } from "../../modules/profiles/selectors";
 
 const lastProtocols = api.protocols.lastProtocols;
 
@@ -168,6 +169,10 @@ export const ProjectsAssociatedSamples = ({ projectID: currentProjectID }: Proje
     const { pagedItems } = projectSamplesTable
 
     const projectSamplesTableCallbacks = usePagedItemsActionsCallbacks(projectSamplesTableActions)
+    const defaultPageSize = useAppSelector(selectCurrentPreferences)['table.sample.page-limit']
+    useEffect(() => {
+        projectSamplesTableCallbacks.setPageSizeCallback(defaultPageSize)
+    }, [defaultPageSize, projectSamplesTableCallbacks])
 
     const LastProtocol = useLastProtocols(pagedItems.items)
     const [StudySteps, refreshStudySteps] = useStudySteps(pagedItems.items)

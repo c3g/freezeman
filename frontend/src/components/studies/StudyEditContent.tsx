@@ -1,5 +1,5 @@
 import { Alert } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../hooks'
@@ -55,7 +55,9 @@ const StudyEditContent = ({ action }: StudyEditContentProps) => {
 	}, [projectId, projectsById])
 
 	const workflowsByID = useSelector(selectWorkflowsByID)
-	const workflows = Object.values(workflowsByID) as Workflow[]
+	const workflows = useMemo(() => 
+		(Object.values(workflowsByID) as Workflow[]).sort((a, b) => a.name.localeCompare(b.name)),
+	[workflowsByID])
 
 	let title: string
 	if (isCreating) {

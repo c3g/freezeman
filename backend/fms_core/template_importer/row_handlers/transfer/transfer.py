@@ -3,7 +3,7 @@ from datetime import datetime
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.template_importer._constants import LOAD_ALL
 from fms_core.services.container import get_container, get_or_create_container
-from fms_core.services.sample import get_sample_from_container, transfer_sample
+from fms_core.services.sample import get_sample_from_container, transfer_sample, update_sample
 
 from fms_core.utils import check_truth_like
 
@@ -29,6 +29,9 @@ class TransferRowHandler(GenericRowHandler):
                 coordinates=destination_container_dict['coordinates'],
                 container_parent=container_parent)
 
+            if source_sample.get('corrected_current_volume') is not None:
+                _, self.errors['corrected_current_volume'], self.warnings['corrected_current_volume'] = update_sample(sample_to_update=original_sample, volume=source_sample['corrected_current_volume'])
+            
             source_depleted = check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None
 
             _, self.errors['transfered_sample'], self.warnings['transfered_sample'] = transfer_sample(process=process_measurement['process'],
