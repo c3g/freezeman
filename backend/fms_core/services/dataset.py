@@ -248,6 +248,8 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
         A tuple of the count of release status set, errors and warnings
     """
     count_status = 0
+    released_readsets = []
+    recalled_readsets = []
     errors = []
     warnings = []
 
@@ -268,15 +270,20 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
             release_status_timestamp = timezone.now()
             for readset in readsets:
                 release_status = readsets_release_status[str(readset.id)]
+                previous_status = readset.release_status
                 readset.release_status = release_status
                 if release_status == ReleaseStatus.AVAILABLE:
                     is_status_revocation = True
                     readset.release_status_timestamp = None
                     readset.released_by = None
+                    if previous_status == ReleaseStatus.RELEASED:
+                        recalled_readsets.append(readset)
                 else:
                     readset.release_status_timestamp = release_status_timestamp
                     readset.released_by = released_by
                 readset.save()
+                if release_status == ReleaseStatus.RELEASED:
+                    released_readsets.append(readset)
                 count_status += 1
         except Exception as e:
             errors.append(f"Error updating release status: {e}")
@@ -292,12 +299,14 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
 
         if is_status_revocation:
             create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED())
+            create_release_file(recalled_readsets, is_status_revocation)
         else:
             create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_RELEASED())
-      
+            create_release_file(released_readsets, is_status_revocation)
     else: # Error returns None, while a non-existant dataset will return 0.
         return None, errors, warnings
 
+    
     return count_status, errors, warnings
 
 def create_validation_transfer_file(dataset_obj: Dataset):
@@ -340,7 +349,27 @@ def create_validation_transfer_file(dataset_obj: Dataset):
         errors.append(f"Failed to create validation file trigger for Dataset {dataset_obj.id}.")
 
     return file_path, errors, warnings
+
+def create_release_file(readsets_obj: List[Readset], release_revocation: bool = False):
+    """
+    Once readsets in a dataset gets released, creates a file that lists the deliverables to be made available to the client.
     
+    Args:
+        `readsets_obj`: List of readsets that have their deliverable files ready for release to the client.
+        `release_revocation`: Boolean indicating the list created need to revert a previous release on a subset of files. Defaults to False.
+
+    Returns:
+        Tuple with the following content:
+        `file_path`: File path to the json in case of success otherwise None.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
+    file_path = None
+    errors = []
+    warnings = []
+
+
+    return file_path, errors, warnings    
     
 def ingest_run_validation_report(report_json):
     """
