@@ -300,8 +300,7 @@ export class RealParentContainerClass extends ParentContainerClass {
             samples.map((s) => s.rawIdentifier()),
             `${axisRow[0]}${axisCol[0]}`,
             {
-                ...this.getPlacementState(),
-                placementType: PlacementType.PATTERN,
+                type: PlacementType.SOURCE_PATTERN,
             }
         )
         if (placementLocations.length !== samples.length) {
@@ -356,7 +355,7 @@ export class RealParentContainerClass extends ParentContainerClass {
         }
     }
 
-    placementDestinations(samples: SampleIdentifier[], coordinates: Coordinates, options: Pick<PlacementState, 'placementType' | 'placementDirection' | 'gaps'>): CellClass[] {
+    placementDestinations(samples: SampleIdentifier[], coordinates: Coordinates, options: PlacementOptions): CellClass[] {
         const [axisRow = [''], axisCol = ['']] = this.getSpec()
         const height = axisRow.length
         const width = axisCol.length
@@ -364,106 +363,100 @@ export class RealParentContainerClass extends ParentContainerClass {
         const newOffsetsList: number[][] = []
         const destinationStartingOffsets = coordinatesToOffsets(this.getSpec(), coordinates)
 
-        switch (options.placementType) {
-            case PlacementType.PATTERN: {
-                const sourceContainer = this.context.getSourceContainer()
-                if (sourceContainer instanceof TubesWithoutParentClass) {
-                    throw new Error(`Pattern placement is not supported for tubes without parent`)
-                }
-
-                const sourceOffsetsList = samples.map((selection) => {
-                    const cell = this.getPlacementClass().getSample(selection).getFromCell()
-                    if (cell == null) {
-                        throw new Error(`Sample ${selection.id} is not placed in a cell`)
-                    }
-                    return coordinatesToOffsets(cell.getFromContainer().getSpec(), cell.getCoordinates())
-                })
-
-                // find top left corner that tightly bounds all of the selections
-                const minOffsets = sourceOffsetsList.reduce((minOffsets, offsets) => {
-                    return offsets.map((_, index) => offsets[index] < minOffsets[index] ? offsets[index] : minOffsets[index])
-                }, sourceOffsetsList[0])
-
-                for (const sourceOffsets of sourceOffsetsList) {
-                    newOffsetsList.push(
-                        this.getSpec().map(
-                            (_: CoordinateAxis, index: number) => {
-                                const relativeOffset = sourceOffsets[index] - minOffsets[index]
-                                return relativeOffset * (options.gaps[index] + 1) + destinationStartingOffsets[index]
-                            }
-                        )
-                    )
-                }
-
-                break
+        if (options.type === PlacementType.SOURCE_PATTERN || options.type === PlacementType.QUADRANT_PATTERN) {
+            const sourceContainer = this.context.getSourceContainer()
+            if (sourceContainer instanceof TubesWithoutParentClass) {
+                throw new Error(`Pattern placement is not supported for tubes without parent`)
             }
-            case PlacementType.GROUP: {
-                const sourceContainer = this.context.getSourceContainer()
 
-                const relativeOffsetByIndices: Record<number, number> = {}
-
-                //#region populate relativeOffsetByIndices
-                const placementSamples: (PlacementSample & { index: number })[] = []
-                for (let index = 0; index < samples.length; index++) {
-                    const sample = this.getPlacementClass().getSample(samples[index])
-                    const placementSample: typeof placementSamples[number] = {
-                        index,
-                        id: sample.getId(),
-                        selected: false, // temporary
-                        name: sample.getName(),
-                        projectName: sample.getProjectName(),
-                        containerName: sample.getContainerName(),
-                        coordinates: sample.getFromCell()?.getCoordinates(),
-                        fromCell: sample.getFromCell()?.rawIdentifier() ?? null,
-                    }
-                    if (sourceContainer instanceof TubesWithoutParentClass) {
-                        placementSample.selected = sourceContainer.isSampleSelected(sample.rawIdentifier())
-                    } else {
-                        const fromCell = sample.getFromCell()
-                        if (!fromCell) {
-                            throw new Error(`Sample ${sample.getId()} is not placed in a cell from ${sourceContainer}`)
-                        }
-                        placementSample.selected = sourceContainer.isPlacementSelected({ sample: sample.rawIdentifier(), cell: fromCell.rawIdentifier() })
-                    }
-                    placementSamples.push(placementSample)
+            const sourceOffsetsList = samples.map((selection) => {
+                const cell = this.getPlacementClass().getSample(selection).getFromCell()
+                if (cell == null) {
+                    throw new Error(`Sample ${selection.id} is not placed in a cell`)
                 }
-                placementSamples.sort((a, b) => comparePlacementSamples(a, b, sourceContainer.getSpec()))
-                for (let index = 0; index < placementSamples.length; index++) {
-                    const item = placementSamples[index]
-                    relativeOffsetByIndices[item.index] = index
-                }
-                //#endregion
+                return coordinatesToOffsets(cell.getFromContainer().getSpec() ?? [], cell.getCoordinates())
+            })
 
-                for (const sourceIndex in samples) {
-                    const relativeOffset = relativeOffsetByIndices[sourceIndex]
-                    const [startingRow, startingCol] = destinationStartingOffsets
+            // find top left corner that tightly bounds all of the selections
+            const minOffsets = sourceOffsetsList.reduce((minOffsets, offsets) => {
+                return offsets.map((_, index) => offsets[index] < minOffsets[index] ? offsets[index] : minOffsets[index])
+            }, sourceOffsetsList[0])
 
-                    const { ROW, COLUMN } = PlacementDirections
-                    const finalOffsets = {
-                        [ROW]: startingRow,
-                        [COLUMN]: startingCol
-                    }
-
-                    const placementDirection = options.placementDirection
-                    if (placementDirection === PlacementDirections.ROW) {
-                        finalOffsets[COLUMN] += relativeOffset
-                        const finalColBeforeWrap = finalOffsets[1]
-                        if (finalColBeforeWrap >= width) {
-                            finalOffsets[COLUMN] = finalColBeforeWrap % width
-                            finalOffsets[ROW] += Math.floor(finalColBeforeWrap / width)
+            for (const sourceOffsets of sourceOffsetsList) {
+                newOffsetsList.push(
+                    this.getSpec().map(
+                        (_: CoordinateAxis, index: number) => {
+                            const relativeOffset = sourceOffsets[index] - minOffsets[index]
+                            return relativeOffset * ((options.type === PlacementType.QUADRANT_PATTERN ? 1 : 0) + 1) + destinationStartingOffsets[index]
                         }
-                    } else if (placementDirection === PlacementDirections.COLUMN) {
-                        finalOffsets[ROW] += relativeOffset
-                        const finalRowBeforeWrap = finalOffsets[0]
-                        if (finalRowBeforeWrap >= height) {
-                            finalOffsets[ROW] = finalRowBeforeWrap % height
-                            finalOffsets[COLUMN] += Math.floor(finalRowBeforeWrap / height)
-                        }
-                    }
+                    )
+                )
+            }
+        } else if (options.type === PlacementType.SEQUENTIAL) {
+            const sourceContainer = this.context.getSourceContainer()
 
-                    newOffsetsList.push([finalOffsets[ROW], finalOffsets[COLUMN]])
+            const relativeOffsetByIndices: Record<number, number> = {}
+
+            //#region populate relativeOffsetByIndices
+            const placementSamples: (PlacementSample & { index: number })[] = []
+            for (let index = 0; index < samples.length; index++) {
+                const sample = this.getPlacementClass().getSample(samples[index])
+                const placementSample: typeof placementSamples[number] = {
+                    index,
+                    id: sample.getId(),
+                    selected: false, // it will be set later
+                    name: sample.getName(),
+                    containerName: sample.getContainerName(),
+                    coordinates: sample.getFromCell()?.getCoordinates(),
+                    fromCell: sample.getFromCell()?.rawIdentifier() ?? null,
+                    count: -1, // ignored but type-expected for comparePlacementSamples
                 }
-                break
+                if (sourceContainer instanceof TubesWithoutParentClass) {
+                    placementSample.selected = sourceContainer.isSampleSelected(sample.rawIdentifier())
+                } else {
+                    const fromCell = sample.getFromCell()
+                    if (!fromCell) {
+                        throw new Error(`Sample ${sample.getId()} is not placed in a cell from ${sourceContainer}`)
+                    }
+                    placementSample.selected = sourceContainer.isPlacementSelected({ sample: sample.rawIdentifier(), cell: fromCell.rawIdentifier() })
+                }
+                placementSamples.push(placementSample)
+            }
+            placementSamples.sort((a, b) => comparePlacementSamples(a, b, sourceContainer.getSpec()))
+            for (let index = 0; index < placementSamples.length; index++) {
+                const item = placementSamples[index]
+                relativeOffsetByIndices[item.index] = index
+            }
+            //#endregion
+
+            for (const sourceIndex in samples) {
+                const relativeOffset = relativeOffsetByIndices[sourceIndex]
+                const [startingRow, startingCol] = destinationStartingOffsets
+
+                const { ROW, COLUMN } = PlacementDirections
+                const finalOffsets = {
+                    [ROW]: startingRow,
+                    [COLUMN]: startingCol
+                }
+
+                const placementDirection = options.direction
+                if (placementDirection === PlacementDirections.ROW) {
+                    finalOffsets[COLUMN] += relativeOffset
+                    const finalColBeforeWrap = finalOffsets[1]
+                    if (finalColBeforeWrap >= width) {
+                        finalOffsets[COLUMN] = finalColBeforeWrap % width
+                        finalOffsets[ROW] += Math.floor(finalColBeforeWrap / width)
+                    }
+                } else if (placementDirection === PlacementDirections.COLUMN) {
+                    finalOffsets[ROW] += relativeOffset
+                    const finalRowBeforeWrap = finalOffsets[0]
+                    if (finalRowBeforeWrap >= height) {
+                        finalOffsets[ROW] = finalRowBeforeWrap % height
+                        finalOffsets[COLUMN] += Math.floor(finalRowBeforeWrap / height)
+                    }
+                }
+
+                newOffsetsList.push([finalOffsets[ROW], finalOffsets[COLUMN]])
             }
         }
 
@@ -606,7 +599,10 @@ export class CellClass extends PlacementObject {
             const destinationCells = this.getFromContainer().placementDestinations(
                 selections.map((s) => s.rawIdentifier()),
                 this.getCoordinates(),
-                this.context.placementState,
+                {
+                    type: this.context.placementState.placementType,
+                    direction: this.context.placementState.placementDirection,
+                }
             )
             if (destinationCells.length !== selections.length) {
                 throw new Error(`Destination cells length does not match selections length`)
@@ -644,7 +640,10 @@ export class CellClass extends PlacementObject {
         const destinations = this.getFromContainer().placementDestinations(
             samples.map((s) => s.rawIdentifier()),
             this.getCoordinates(),
-            this.context.placementState
+            {
+                type: this.context.placementState.placementType,
+                direction: this.context.placementState.placementDirection,
+            }
         )
         this.getFromContainer().setPreviews(
             samples.map((s) => s.getFromCell()?.rawIdentifier() ?? { coordinates: '' }),
@@ -810,9 +809,6 @@ export class SampleClass extends PlacementObject {
     }
     getContainerName() {
         return this.state.containerName
-    }
-    getProjectName() {
-        return this.state.projectName
     }
     getFromCell() {
         return this.state.fromCell ? this.getPlacementClass().getCell(this.state.fromCell) : null

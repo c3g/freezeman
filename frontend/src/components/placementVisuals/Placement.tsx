@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row, Switch, SwitchProps } from "antd"
+import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -11,7 +11,7 @@ import { selectContainerKindsByID, selectStepsByID } from "../../selectors"
 import { fetchAndLoadSourceContainers, fetchSamplesheet } from "../../modules/labworkSteps/actions"
 import PlacementSamplesTable from "./PlacementSamplesTable"
 import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors"
-import { INITIAL_STATE, loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setGaps, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
+import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 
@@ -21,8 +21,6 @@ interface PlacementProps {
     sampleIDs: number[],
     stepID: FMSId,
 }
-
-const QUADRANT_MODE_GAPS = [1, 1]
 
 function Placement({ stepID, sampleIDs }: PlacementProps) {
     const dispatch = useAppDispatch()
@@ -164,18 +162,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
-    const quadMode = useAppSelector((state) => {
-        const gaps = state.placement.gaps
-        return gaps[0] === QUADRANT_MODE_GAPS[0] && gaps[1] === QUADRANT_MODE_GAPS[1]
-    })
-const setQuadMode: NonNullable<SwitchProps['onChange']> = useCallback((checked) => {
-        if (checked) {
-            dispatch(setGaps(QUADRANT_MODE_GAPS))
-        } else {
-            dispatch(setGaps(INITIAL_STATE.gaps))
-        }
-    }, [dispatch])
-
     // useEffect(() => {
     //     (async () => {
     //         const store = (await import("../../store")).default
@@ -251,31 +237,24 @@ const setQuadMode: NonNullable<SwitchProps['onChange']> = useCallback((checked) 
                             </div>
                         </Col>
                     </Row>
-                    <Row justify="end" style={{ padding: "10px" }}>
-                        <Col span={5}>
+                    <Row justify={'space-between'}>
+                        <Col span={6} offset={2}>
                             <Radio.Group onChange={updatePlacementType} value={placementType}>
-                                <Radio.Button value={PlacementType.PATTERN}> Pattern </Radio.Button>
-                                <Radio.Button value={PlacementType.GROUP}> Group </Radio.Button>
+                                {Object.entries(PlacementType).map(([key, value]) => (
+                                    <Radio.Button key={key} value={value}>{value}</Radio.Button>   
+                                ))}
                             </Radio.Group>
                         </Col>
-                        <Col span={5}>
-                            <Switch
-                                checked={quadMode && placementType === PlacementType.PATTERN}
-                                onChange={setQuadMode}
-                                disabled={placementType !== PlacementType.PATTERN}
-                                checkedChildren={"Quadrant"}
-                                unCheckedChildren={"Quadrant"}/>
-                        </Col>
-                        <Col span={5}>
+                        <Col span={6}>
                             <Radio.Group
-                                disabled={placementType !== PlacementType.GROUP}
+                                disabled={placementType !== PlacementType.SEQUENTIAL}
                                 value={placementDirection}
                                 onChange={updatePlacementDirection}>
                                 <Radio.Button value={PlacementDirections.ROW}> row </Radio.Button>
                                 <Radio.Button value={PlacementDirections.COLUMN}> column </Radio.Button>
                             </Radio.Group>
                         </Col>
-                        <Col span={8}>
+                        <Col span={10}>
                             <Button onClick={transferAllSamples} disabled={!canTransferAllSamples}>Place All Source</Button>
                             <Popconfirm
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
