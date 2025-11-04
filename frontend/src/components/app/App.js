@@ -192,7 +192,7 @@ const App = ({userID, usersByID, logOut }) => {
             key: "workflow-assignment",
           },
           {
-            url: "/index-curations",
+            url: "/management/index-curations",
             icon: <BarcodeOutlined />,
             text: "Correct Index",
             key: "index-curations",
@@ -407,7 +407,7 @@ const App = ({userID, usersByID, logOut }) => {
                 <WorkflowAssignmentPage />
               </PrivateNavigate>
             } />
-            <Route path="/management/index-curation" element={
+            <Route path="/management/index-curations" element={
               <PrivateNavigate>
                 <IndexCurationPage />
               </PrivateNavigate>
