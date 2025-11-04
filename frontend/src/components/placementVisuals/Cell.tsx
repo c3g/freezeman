@@ -195,10 +195,13 @@ function selectCellColor(state: RootState, cellID: CellIdentifier) {
         // is being preview?
         if (cell.getPreview() !== null) {
             const containerIndex = sourceContainers.findIndex((container) => container.name === activeSourceContainer.name)
-            if (containerIndex === -1)
-                throw new Error(`For preview cell, couldn't find container index for ${activeSourceContainer.name}`)
-            if (containerIndex >= VALID_PREVIEW_CELL_COLORS.length)
+            if (containerIndex === -1) {
+                console.error(`For preview cell, couldn't find container index for ${activeSourceContainer.name}`)
+                return EMPTY_CELL_COLOR
+            }
+            if (containerIndex >= VALID_PREVIEW_CELL_COLORS.length) {
                 throw new Error(`Did not expect more than ${VALID_PREVIEW_CELL_COLORS.length} source containers for preview cell color`)
+            }
             return placementState.error ? INVALID_PREVIEW_CELL_COLOR : VALID_PREVIEW_CELL_COLORS[containerIndex]
         }
 
