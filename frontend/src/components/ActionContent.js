@@ -27,7 +27,7 @@ const checkRequests = {
   project: api.projects.template.check,
   index: api.indices.template.check,
   sampleNextStep: api.sampleNextStep.template.check,
-  pooledSample: api.pooledSample.template.check,
+  pooledSample: api.pooledSamples.template.check,
 }
 
 const submitRequests = {
@@ -39,7 +39,7 @@ const submitRequests = {
   project: api.projects.template.submit,
   index: api.indices.template.submit,
   sampleNextStep: api.sampleNextStep.template.submit,
-  pooledSample: api.pooledSample.template.submit,
+  pooledSample: api.pooledSamples.template.submit,
 }
 
 const ActionContent = ({token, templateType, templateActions}) => {

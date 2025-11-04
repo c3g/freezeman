@@ -26,7 +26,7 @@ import About from "../About";
 import ContainersPage from "../containers/ContainersPage";
 import DashboardPage from "../DashboardPage";
 import ExperimentRunsPage from "../experimentRuns/ExperimentRunsPage";
-import IndexCurationPage from "../management/IndexCurationPage";
+import { IndexCurationPage } from "../management/IndexCurationPage";
 import IndicesPage from "../indices/IndicesPage";
 import IndividualsPage from "../individuals/IndividualsPage";
 import JumpBar from "../JumpBar";
