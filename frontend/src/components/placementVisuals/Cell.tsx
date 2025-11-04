@@ -17,19 +17,20 @@ export interface CellProps {
 }
 
 const EMPTY_CELL_COLOR = "#F2F3F4" // light grey
-// assume maximum 11 source containers
+// assume maximum 12 source containers
 const ACTIVE_CELL_COLORS = [
     "#4169E1",
-    "#32CD32",
-    "#FFD700",
+    "#2cb12cff",
     "#ac38acff",
-    "#FF8C00",
-    "#cc5490",
+    "#FFD700",
     "#008080",
+    "#00ff00",
+    "#cc5490",
+    "#FF8C00",
     "#40E0D0",
+    "#9ACD32",
     "#a04242ff",
     "#9b7a52ff",
-    "#00ff00",
 ]
 const INACTIVE_CELL_COLOR = "#808080" // grey
 const SELECTION_CELL_COLOR = "#86EBC1" // light green
@@ -37,15 +38,16 @@ const SELECTION_CELL_COLOR = "#86EBC1" // light green
 const VALID_PREVIEW_CELL_COLORS = [
     "#939CED",
     "#90E182",
-    "#FFE167",
     "#BD81B9",
-    "#FFC183",
-    "#E7A4C1",
+    "#FFE167",
     "#9DC4C3",
+    "#B3FFB3",
+    "#E7A4C1",
+    "#FFC183",
     "#98ECE1",
+    "#C2DF83",
     "#D19999",
     "#CFC1A3",
-    "#B3FFB3",
 ]
 const INVALID_PREVIEW_CELL_COLOR = "#FFC0CB" // light pink
 const ERROR_CELL_COLOR = "#FF0000" // red
@@ -168,7 +170,7 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                style={{ background: cell.preview ? cellColor : `radial-gradient(white 0%, ${cellColor} 50%, ${cellColor} 100%)` }}
+                style={{ background: cell.preview ? cellColor : `radial-gradient(white 0%, ${cellColor} 85%, ${cellColor} 100%)` }}
             >
                 {cellContent}
             </div>
