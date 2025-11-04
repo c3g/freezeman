@@ -1,27 +1,48 @@
-import React from "react";
-import PagedItemsTable, { DataObjectsByID, PagedItemsTableProps } from "../pagedItemsTable/PagedItemsTable";
+import React, { useEffect, useMemo, useState } from "react"
+import { FMSPooledSample } from "../../models/fms_api_models"
+import { Table, TableProps } from "antd"
+import { useAppDispatch } from "../../hooks"
+import api from "../../utils/api"
 
 export function IndexCuration() {
+  const [pooledSamples, setPooledSamples] = useState<FMSPooledSample[]>([])
+  const dispatch = useAppDispatch()
+  useEffect(() => {
+    dispatch(api.pooledSamples.list({ include_pools_of_one: true, derived_sample__library__isnull: false, limit: 100 })).then((response) => {
+      setPooledSamples(response.data.results)
+    })
+  }, [dispatch])
 
+  const columns = useMemo<TableProps<FMSPooledSample>['columns']>(() => [
+    {
+      title: 'Name',
+      dataIndex: 'alias',
+      key: 'alias',
+    },
+    {
+      title: 'Container Barcode',
+      dataIndex: 'container_barcode',
+      key: 'container_barcode',
+    },
+    {
+      title: 'Coordinates',
+      dataIndex: 'coordinates',
+      key: 'coordinates',
+    },
+    {
+      title: 'Current Index',
+      dataIndex: 'index',
+      key: 'index',
+    },
+  ], [])
 
     return (
       <>
-          {<AppPageHeader title="Containers" extra={[
-            <ActionDropdown key='actions' urlBase={"/pooled-samples"} actions={templateActions}/>,
-            <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalCount} prefills={prefills}/>
-            
-            ]}/>
-          <PagedItemsTable<ObjectWithPooledSample>
-            getDataObjectsByID={mapSampleIDs}
-            pagedItems={samplesTableState}
-            columns={columns}
-            usingFilters={true}
-            initialLoad={false}
-            selection={selection}
-            topBarExtra={}
-            paginationProps={{simple: true}}
-            {...samplesTableCallbacks}
-          />}
+        <Table<FMSPooledSample>
+          dataSource={pooledSamples}
+          rowKey="id"
+          columns={columns}
+        />
       </>
     )
 }

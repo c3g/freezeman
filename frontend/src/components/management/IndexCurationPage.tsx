@@ -9,9 +9,8 @@ export function IndexCurationPage() {
   return (<>
         <PageContainer>
           <Routes>
-            <Route path="/list/*" element={<IndexCuration />}/>
             <Route path="/actions/:action/*" element={<ActionContent templateType="pooledSample" />}/>
-            <Route path="*" element={<Navigate to="/pooled-samples/list" replace />}/>
+            <Route path="*" element={<IndexCuration />}/>
           </Routes>
         </PageContainer>
   </>)

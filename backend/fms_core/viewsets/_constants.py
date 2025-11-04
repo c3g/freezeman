@@ -299,6 +299,7 @@ _pooled_sample_filterset_fields: FiltersetFields = {
     "volume_ratio": SCALAR_FILTERS,
     **_prefix_keys("derived_sample__library__library_type__", _library_type_filterset_fields),
     **_prefix_keys("derived_sample__library__library_selection__", _library_selection_filterset_fields),
+    "derived_sample__library": NULLABLE_FK_FILTERS,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("derived_sample__sample_kind__", _sample_kind_filterset_fields),
     "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,
