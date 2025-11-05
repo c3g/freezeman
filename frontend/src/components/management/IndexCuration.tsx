@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FMSPooledSample } from "../../models/fms_api_models"
 import { Input, InputRef, Table } from "antd"
 import { useAppDispatch } from "../../hooks"
@@ -6,7 +6,7 @@ import api from "../../utils/api"
 import { SearchOutlined } from "@ant-design/icons"
 import { AnyObject as ReactAnyObject } from "antd/es/_util/type"
 import { ColumnType } from "antd/lib/table"
-import { ColumnsType } from "antd/es/table"
+import { ColumnsType, TablePaginationConfig } from "antd/es/table"
 import { useDebounce } from "../filters/filterComponents/DebouncedInput"
 
 enum PooledSampleColumnID {
@@ -57,7 +57,11 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
     },
 } as const
 
+const DEFAULT_PAGE_SIZE = 20
 export function IndexCuration() {
+    const { pagination, setTotal } = usePagination(DEFAULT_PAGE_SIZE)
+
+    const { pageSize, current: currentPage } = pagination
     const [filters, setFilters] = useState<Partial<Record<PooledSampleColumnID, string>>>({})
     const [pooledSamples, setPooledSamples] = useState<FMSPooledSample[]>([])
     const [loading, setLoading] = useState<boolean>(false)
@@ -65,12 +69,14 @@ export function IndexCuration() {
     useEffect(() => {
         const filterParams = createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters)
         setLoading(true)
-        dispatch(api.pooledSamples.list({ ...filterParams, include_pools_of_one: true, derived_sample__library__isnull: false, limit: 10 }, true)).then((response) => {
+        const offset = ((currentPage ?? 1) - 1) * (pageSize ?? DEFAULT_PAGE_SIZE)
+        dispatch(api.pooledSamples.list({ ...filterParams, include_pools_of_one: true, derived_sample__library__isnull: false, offset, limit: pageSize }, true)).then((response) => {
+            setTotal(response.data.count)
             setPooledSamples(response.data.results)
         }).finally(() => {
             setLoading(false)
         })
-    }, [dispatch, filters])
+    }, [currentPage, dispatch, filters, pageSize, setTotal])
 
     const search = useDebounce((searchKey: string, text: string) => setFilters(prev => ({ ...prev, [searchKey]: text })))
     const searchInput = useRef<InputRef>(null)
@@ -99,6 +105,8 @@ export function IndexCuration() {
                 rowKey="id"
                 columns={columns}
                 loading={loading}
+                pagination={pagination}
+                scroll={{ y: '80vh' }}
             />
         </>
     )
@@ -193,4 +201,26 @@ function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: Filte
         }
         return acc
     }, {})
+}
+
+function usePagination(defaultPageSize: number): { pagination: TablePaginationConfig, setTotal: (total: number) => void } {
+    const [current, setCurrent] = useState<number>(1)
+    const [pageSize, setPageSize] = useState<number>(defaultPageSize)
+    const [total, setTotal] = useState<number>(0)
+    const onChange = useCallback<NonNullable<TablePaginationConfig['onChange']>>((page, pageSize) => {
+        if (page) {
+            setCurrent(page)
+        }
+        if (pageSize) {
+            setCurrent(1)
+            setPageSize(pageSize)
+        }
+    }, [])
+    const pagination = useMemo(() => ({
+        current,
+        pageSize,
+        total,
+        onChange,
+    }), [current, pageSize, total, onChange])
+    return { pagination, setTotal}
 }
