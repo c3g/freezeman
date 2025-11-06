@@ -4,8 +4,8 @@ from fms_core.models._constants import ValidationStatus
 from django.db.models import Model
 from django.contrib.contenttypes.models import ContentType
 
-def AUTOMATED_COMMENT_DATASET_RELEASED():
-    return f"Dataset was released."
+def AUTOMATED_COMMENT_DATASET_RELEASED(release_count, blocked_count):
+    return f"Dataset was released ({release_count} readsets released and {blocked_count} readsets blocked)."
 
 def AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED():
     return f"Dataset release status revoked."

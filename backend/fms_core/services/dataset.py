@@ -251,6 +251,7 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
         A tuple of the count of release status set, errors and warnings
     """
     count_status = 0
+    released_count = 0
     readsets_released = []
     readsets_recalled = []
     is_status_reset = False
@@ -291,6 +292,7 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
                 is_status_revocation = release_status != ReleaseStatus.RELEASED and previous_status == ReleaseStatus.RELEASED
                 if release_status == ReleaseStatus.RELEASED:
                     readsets_released.append(readset)
+                    released_count += 1
                 elif is_status_revocation:
                     readsets_recalled.append(readset)
                 count_status += 1
@@ -309,7 +311,7 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
         if is_status_reset: # All readsets from a dataset should be set to available together
             create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED())
         else: # Some readsets are released and some are blocked
-            create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_RELEASED())
+            create_archived_comment_for_model(Dataset, dataset_id, AUTOMATED_COMMENT_DATASET_RELEASED(released_count, len(readset_ids) - released_count))
         
         # each status submission may include released (released readset that were blocked initially or never released) and recalled (blocked readsets that were released initially)
         _, errors_trigger, warnings_trigger = create_release_info_file(dataset_obj, readsets_released, is_release_revocation=False)
