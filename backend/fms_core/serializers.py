@@ -764,10 +764,6 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample.
     '''
-    # Since DerivedBySample doesn't have its own id field, we use the derived_sample id
-    # as a top level id in the returned data structure. The UX needs this for 'objectsById' stuff.
-    id = serializers.IntegerField(read_only = True, source='derived_sample.id')
-
     # Return the id of the pool containing this sample. This allows api clients to request
     # a list of samples from multiple pools and then group them by pool on the client side.
     pool_id = serializers.IntegerField(read_only=True, source='sample.id')
