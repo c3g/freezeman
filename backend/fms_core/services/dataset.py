@@ -354,11 +354,12 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
 
     filename = make_timestamped_filename(file_prefix[is_validation_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
     file_path = path.join(VALIDATED_FILES_OUTPUT_PATH, filename)
-    validated_data = {"external_project_id": external_project_id, "dataset_id": dataset_id, "lane": lane, "files": []}
+    validated_data = {"external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_id, "lane": lane, "files": {}}
     dataset_files = DatasetFile.objects.filter(readset__dataset=dataset_obj)
 
     for dataset_file in dataset_files:
-        validated_data["files"].append(dataset_file.file_path)
+        file_definition = {"readset_id": dataset_file.readset.id, "filepath": dataset_file.file_path}
+        validated_data["files"][dataset_file.id] = file_definition
     try:
         # Create file if it doesn't already exist
         with open(file_path, "x") as fp:
@@ -402,11 +403,12 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
 
     filename = make_timestamped_filename(file_prefix[is_release_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
     file_path = path.join(RELEASED_FILES_OUTPUT_PATH, filename)
-    released_data = {"external_project_id": external_project_id, "dataset_id": dataset_id, "lane": lane, "files": []}
+    released_data = {"external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_id, "lane": lane, "files": {}}
     dataset_files = DatasetFile.objects.filter(readset__in=readsets_obj)
 
     for dataset_file in dataset_files:
-        released_data["files"].append(dataset_file.file_path)
+        file_definition = {"readset_id": dataset_file.readset.id, "filepath": dataset_file.file_path}
+        released_data["files"][dataset_file.id] = file_definition
     try:
         # Create file if it doesn't already exist
         with open(file_path, "x") as fp:
