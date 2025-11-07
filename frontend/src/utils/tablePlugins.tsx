@@ -23,7 +23,6 @@ function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: 
 }
 
 interface useBasicTablePropsParameters<ColumnID extends string, RowData extends AntdAnyObject> {
-    doFetchInitially?: boolean,
     defaultPageSize: number,
     fetchRowData: (pageNumber: number, pageSize: number, filters: Record<string, string>) => Promise<{ total: number, data: RowData[] }>,
     rowKey: RowKey<RowData>,
@@ -33,7 +32,6 @@ interface useBasicTablePropsParameters<ColumnID extends string, RowData extends 
     searchDefinitions: Record<ColumnID, SearchPropertyDefinition>,
 }
 export function useBasicTableProps<ColumnID extends string, RowData extends AntdAnyObject>({
-    doFetchInitially = true,
     defaultPageSize,
     fetchRowData,
     rowKey,
@@ -42,24 +40,15 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     filterDescriptions,
     searchDefinitions,
 }: useBasicTablePropsParameters<ColumnID, RowData>): TableProps<RowData> {
+    const [filters, setFilters] = useState<Partial<Record<ColumnID, string>>>({})
+
     const { total, dataSource, loading, fetchTableData } = useFetchTableData<ColumnID, RowData>(
         fetchRowData,
         filterKeys,
         filterDescriptions
     )
 
-    // Initial fetch
-    useEffect(() => {
-        if (doFetchInitially)
-            fetchTableData(1, defaultPageSize, {})
-    }, [defaultPageSize, doFetchInitially, fetchTableData])
-
-    const [filters, setFilters] = useState<Partial<Record<ColumnID, string>>>({})
-
-    const onPaginationChange = useCallback<NonNullable<TablePaginationConfig['onChange']>>((page, pageSize) => {
-        fetchTableData(page, pageSize, filters)
-    }, [fetchTableData, filters])
-    const [pagination, changePagination] = usePagination(defaultPageSize, total, onPaginationChange)
+    const [pagination, changePagination] = usePagination(defaultPageSize, total)
 
     const { rowSelection, resetSelection } = useSmartSelection<RowData>(
         total,
@@ -67,16 +56,19 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
         rowKey,
     )
 
-    const { pageSize } = pagination
+    const { current: currentPage, pageSize } = pagination
     const mySetFilter = useDebounce(useCallback((searchKey: ColumnID, text: string) => {
-        setFilters(prev => {
-            resetSelection()
-            changePagination(1, pageSize ?? defaultPageSize)
-            const filters = { ...prev, [searchKey]: text }
-            fetchTableData(1, pageSize ?? defaultPageSize, filters)
-            return filters
-        })
-    }, [changePagination, defaultPageSize, fetchTableData, pageSize, resetSelection]))
+        resetSelection()
+        changePagination(1)
+        setFilters(prev => ({ ...prev, [searchKey]: text }))
+    }, [changePagination, resetSelection]))
+
+
+    useEffect(() => {
+        if (currentPage !== undefined && pageSize !== undefined) {
+            fetchTableData(currentPage, pageSize, filters)
+        }
+    }, [currentPage, pageSize, fetchTableData, filters])
 
     const columns = useTableColumns(
         columnDefinitions,
@@ -107,6 +99,7 @@ function useFetchTableData<ColumnID extends string, RowData extends AntdAnyObjec
         const filterParams = createQueryParamsFromFilters(filterKeys, filterDescriptions, filters)
         setLoading(true)
         const result = await fetchData(pageNumber, pageSize, filterParams)
+        console.info("Fetched table data:", result)
         setTotal(result.total)
         setDataSource(result.data)
         setLoading(false)
@@ -130,39 +123,43 @@ function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: Filte
     }, {})
 }
 
-function usePagination(defaultPageSize: number, total: number, onChange: TablePaginationConfig['onChange']): [TablePaginationConfig, NonNullable<TablePaginationConfig['onChange']>] {
+function usePagination(defaultPageSize: number, total: number): [
+    TablePaginationConfig,
+    (newCurrentPage?: number, newPageSize?: number) => void
+] {
     const [current, setCurrent] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
 
-    const finalOnChange = useCallback<NonNullable<TablePaginationConfig['onChange']>>((page, pageSize) => {
-        setCurrent(page)
-        setPageSize(pageSize)
-        onChange?.(page, pageSize)
-    }, [onChange])
-
-    useEffect(() => {
-        // Reset page size and current page if defaultPageSize changes
-        finalOnChange(1, defaultPageSize)
-    }, [defaultPageSize, finalOnChange])
-
-    useEffect(() => {
-        if ((current - 1) * pageSize > total) {
-            finalOnChange(1, pageSize)
+    const setCurrentPageAndPageSize = useCallback((newCurrentPage?: number, newPageSize?: number) => {
+        newCurrentPage = newCurrentPage ?? current
+        newPageSize = newPageSize ?? pageSize
+        if ((newCurrentPage - 1) * newPageSize >= total) {
+            newCurrentPage = newPageSize > 0 ? Math.max(Math.ceil(total / newPageSize), 1) : 1
         }
-    }, [current, finalOnChange, pageSize, total])
+
+        setCurrent(newCurrentPage)
+        setPageSize(newPageSize)
+    }, [current, pageSize, total])
+
+    // Reset page size and current page if defaultPageSize changes
+    const pastDefaultPageSize = useRef<number>(0)
+    useEffect(() => {
+        if (pastDefaultPageSize.current === defaultPageSize) {
+            return
+        }
+        pastDefaultPageSize.current = defaultPageSize
+        setCurrentPageAndPageSize(1, defaultPageSize)
+    }, [defaultPageSize, setCurrentPageAndPageSize])
 
     return useMemo(() => [
         {
             current,
             pageSize,
             total,
-            onChange: finalOnChange,
+            onChange: setCurrentPageAndPageSize,
         },
-        (page: number, pageSize: number) => {
-            setCurrent(page)
-            setPageSize(pageSize)
-        }
-    ], [current, finalOnChange, pageSize, total])
+        setCurrentPageAndPageSize
+    ], [current, setCurrentPageAndPageSize, pageSize, total])
 }
 
 function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>(
@@ -207,6 +204,8 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
                     value={selectedKeys[0]}
                     onChange={(e) => {
                         setFilter(searchKey, e.target.value)
+                        setSelectedKeys(e.target.value ? [e.target.value] : [])
+                        confirm({ closeDropdown: false })
                     }}
                     onPressEnter={() => {
                         confirm()
