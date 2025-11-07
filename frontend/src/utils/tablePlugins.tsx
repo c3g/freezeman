@@ -59,7 +59,7 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     const onPaginationChange = useCallback<NonNullable<TablePaginationConfig['onChange']>>((page, pageSize) => {
         fetchTableData(page, pageSize, filters)
     }, [fetchTableData, filters])
-    const pagination = usePagination(defaultPageSize, total, onPaginationChange)
+    const [pagination, changePagination] = usePagination(defaultPageSize, total, onPaginationChange)
 
     const { rowSelection, resetSelection } = useSmartSelection<RowData>(
         total,
@@ -68,14 +68,15 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     )
 
     const { pageSize } = pagination
-    const mySetFilter = useCallback((searchKey: ColumnID, text: string) => {
+    const mySetFilter = useDebounce(useCallback((searchKey: ColumnID, text: string) => {
         setFilters(prev => {
             resetSelection()
+            changePagination(1, pageSize ?? defaultPageSize)
             const filters = { ...prev, [searchKey]: text }
             fetchTableData(1, pageSize ?? defaultPageSize, filters)
             return filters
         })
-    }, [defaultPageSize, fetchTableData, pageSize, resetSelection])
+    }, [changePagination, defaultPageSize, fetchTableData, pageSize, resetSelection]))
 
     const columns = useTableColumns(
         columnDefinitions,
@@ -129,7 +130,7 @@ function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: Filte
     }, {})
 }
 
-function usePagination(defaultPageSize: number, total: number, onChange: TablePaginationConfig['onChange']): TablePaginationConfig {
+function usePagination(defaultPageSize: number, total: number, onChange: TablePaginationConfig['onChange']): [TablePaginationConfig, NonNullable<TablePaginationConfig['onChange']>] {
     const [current, setCurrent] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
 
@@ -150,12 +151,18 @@ function usePagination(defaultPageSize: number, total: number, onChange: TablePa
         }
     }, [current, finalOnChange, pageSize, total])
 
-    return useMemo(() => ({
-        current,
-        pageSize,
-        total,
-        onChange: finalOnChange,
-    }), [current, finalOnChange, pageSize, total])
+    return useMemo(() => [
+        {
+            current,
+            pageSize,
+            total,
+            onChange: finalOnChange,
+        },
+        (page: number, pageSize: number) => {
+            setCurrent(page)
+            setPageSize(pageSize)
+        }
+    ], [current, finalOnChange, pageSize, total])
 }
 
 function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>(
