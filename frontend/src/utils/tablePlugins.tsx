@@ -4,12 +4,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox, Input, InputRef } from "antd"
 import { SelectionSelectFn, TableRowSelection } from "antd/es/table/interface"
 import { useDebounce } from "../components/filters/filterComponents/DebouncedInput"
+import { FILTER_TYPE } from "../constants"
+import { SearchOutlined } from "@ant-design/icons"
 
 export type ColumnDefinitions<ColumnID extends string, RowData> = Record<ColumnID, ColumnType<RowData>>
 
 export type FilterKeys<ColumnID extends string> = Record<ColumnID, string>
 
-export type FilterDescription = { type: 'startswith' }
+export type FilterDescription = { type: typeof FILTER_TYPE.INPUT, lookup_type: 'exact' | 'startswith' }
 export type FilterDescriptions<ColumnID extends string> = Record<ColumnID, FilterDescription>
 
 export interface SearchPropertyDefinition { placeholder?: string }
@@ -100,17 +102,14 @@ function useFetchTableData<ColumnID extends string, RowData extends AntdAnyObjec
     const [dataSource, setDataSource] = useState<RowData[]>([])
     const [loading, setLoading] = useState<boolean>(false)
 
-    const fetchTableData = useDebounce(useCallback(async (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => {
+    const fetchTableData = useCallback(async (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => {
         const filterParams = createQueryParamsFromFilters(filterKeys, filterDescriptions, filters)
-        try {
-            setLoading(true)
-            const result = await fetchData(pageNumber, pageSize, filterParams)
-            setTotal(result.total)
-            setDataSource(result.data)
-        } finally {
-            setLoading(false)
-        }
-    }, [fetchData, filterDescriptions, filterKeys]))
+        setLoading(true)
+        const result = await fetchData(pageNumber, pageSize, filterParams)
+        setTotal(result.total)
+        setDataSource(result.data)
+        setLoading(false)
+    }, [fetchData, filterDescriptions, filterKeys])
 
     return useMemo(() => ({ total, dataSource, loading, fetchTableData }), [dataSource, fetchTableData, loading, total])
 }
@@ -122,8 +121,8 @@ function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: Filte
             const description = descriptions[key as ColumnID]
             if (description === undefined) {
                 acc[filterKey] = value as string
-            } else if (description.type === 'startswith') {
-                acc[`${filterKey}__startswith`] = value as string // this is very clearly string but typescript cannot infer that
+            } else if (description.type === FILTER_TYPE.INPUT) {
+                acc[`${filterKey}__${description.lookup_type}`] = value as string
             }
         }
         return acc
@@ -133,6 +132,7 @@ function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: Filte
 function usePagination(defaultPageSize: number, total: number, onChange: TablePaginationConfig['onChange']): TablePaginationConfig {
     const [current, setCurrent] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
+
     const finalOnChange = useCallback<NonNullable<TablePaginationConfig['onChange']>>((page, pageSize) => {
         setCurrent(page)
         setPageSize(pageSize)
@@ -140,10 +140,15 @@ function usePagination(defaultPageSize: number, total: number, onChange: TablePa
     }, [onChange])
 
     useEffect(() => {
+        // Reset page size and current page if defaultPageSize changes
+        finalOnChange(1, defaultPageSize)
+    }, [defaultPageSize, finalOnChange])
+
+    useEffect(() => {
         if ((current - 1) * pageSize > total) {
-            setCurrent(1)
+            finalOnChange(1, pageSize)
         }
-    }, [current, pageSize, total])
+    }, [current, finalOnChange, pageSize, total])
 
     return useMemo(() => ({
         current,
