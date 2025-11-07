@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
 import { ColumnDefinitions, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tablePlugins"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
+import { FILTER_TYPE } from "../../constants"
 
 enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
@@ -21,10 +22,10 @@ const FILTER_KEYS: FilterKeys<PooledSampleColumnID> = {
 } as const
 
 const FILTER_DESCRIPTIONS: FilterDescriptions<PooledSampleColumnID> = {
-    [PooledSampleColumnID.ALIAS]: { type: 'startswith' },
-    [PooledSampleColumnID.CONTAINER_BARCODE]: { type: 'startswith' },
-    [PooledSampleColumnID.COORDINATES]: { type: 'startswith' },
-    [PooledSampleColumnID.INDEX]: { type: 'startswith' },
+    [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
+    [PooledSampleColumnID.CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
+    [PooledSampleColumnID.COORDINATES]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
+    [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
 } as const
 
 const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSample> = {
@@ -60,11 +61,15 @@ const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
 export function IndexCuration() {
     const dispatch = useAppDispatch()
     const fetchPooledSamples = useCallback(async (pageNumber: number, pageSize: number, filters: Record<string, string>) => {
-        const response = await dispatch(api.pooledSamples.list({
-            offset: (pageNumber - 1) * pageSize,
-            limit: pageSize,
-            ...filters
-        }))
+        const response = await dispatch(api.pooledSamples.list(
+            {
+                ...filters,
+                include_pools_of_one: true, derived_sample__library__isnull: false,
+                offset: (pageNumber - 1) * pageSize,
+                limit: pageSize,
+            },
+            true
+        ))
         return {
             total: response.data.count,
             data: response.data.results
