@@ -5,6 +5,7 @@ import { Checkbox, Input, InputRef } from "antd"
 import { SelectionSelectFn, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
 import { SearchOutlined } from "@ant-design/icons"
+import { useDebouncedEffect } from "../components/filters/filterComponents/DebouncedInput"
 
 export type ColumnDefinitions<ColumnID extends string, RowData> = Record<ColumnID, ColumnType<RowData>>
 
@@ -76,8 +77,7 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
         })
     }, [changePagination, resetSelection])
 
-
-    useEffect(() => {
+    useDebouncedEffect(() => {
         if (currentPage !== undefined && pageSize !== undefined) {
             fetchTableData(currentPage, pageSize, filters)
         }
