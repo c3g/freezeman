@@ -77,11 +77,12 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
         })
     }, [changePagination, resetSelection])
 
-    useDebouncedEffect(() => {
+    const debouncedEffect = useCallback(() => {
         if (currentPage !== undefined && pageSize !== undefined) {
             fetchTableData(currentPage, pageSize, filters)
         }
     }, [currentPage, pageSize, fetchTableData, filters])
+    useDebouncedEffect(debouncedEffect)
 
     const columns = useTableColumns(
         mySetFilter,

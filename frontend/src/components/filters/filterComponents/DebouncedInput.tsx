@@ -4,23 +4,16 @@ import { Input } from 'antd'
 const DEFAULT_DEBOUNCE_TIME = 500
 
 export function useDebouncedEffect(
-    effect: React.EffectCallback,
-    deps: React.DependencyList,
+    effect: () => void,
     delay: number = DEFAULT_DEBOUNCE_TIME,
 ) {
-    const callback = useRef<React.EffectCallback>(effect)
-    useEffect(() => {
-        callback.current = effect
-    }, [effect])
-
     useEffect(() => {
         const handler = setTimeout(() => {
-            callback.current()
+            effect()
         }, delay)
 
         return () => clearTimeout(handler)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [...deps, delay])
+    }, [effect, delay])
 }
 
 /**
