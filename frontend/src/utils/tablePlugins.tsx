@@ -3,7 +3,6 @@ import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox, Input, InputRef } from "antd"
 import { SelectionSelectFn, TableRowSelection } from "antd/es/table/interface"
-import { useDebounce } from "../components/filters/filterComponents/DebouncedInput"
 import { FILTER_TYPE } from "../constants"
 import { SearchOutlined } from "@ant-design/icons"
 
@@ -39,7 +38,13 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     filterKeys,
     filterDescriptions,
     searchDefinitions,
-}: useBasicTablePropsParameters<ColumnID, RowData>): TableProps<RowData> {
+}: useBasicTablePropsParameters<ColumnID, RowData>): [
+    TableProps<RowData>,
+    {
+        filters: Partial<Record<ColumnID, string>>,
+        setFilters: (newFilters: Partial<Record<ColumnID, string>>) => void
+    }
+] {
     const [filters, setFilters] = useState<Partial<Record<ColumnID, string>>>({})
 
     const { total, dataSource, loading, fetchTableData } = useFetchTableData<ColumnID, RowData>(
@@ -57,11 +62,19 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     )
 
     const { current: currentPage, pageSize } = pagination
-    const mySetFilter = useDebounce(useCallback((searchKey: ColumnID, text: string) => {
+    const mySetFilter = useCallback((searchKey: ColumnID, text: string) => {
         resetSelection()
         changePagination(1)
-        setFilters(prev => ({ ...prev, [searchKey]: text }))
-    }, [changePagination, resetSelection]))
+        setFilters((prev) => {
+            if (text) {
+                return { ...prev, [searchKey]: text }
+            } else {
+                const newFilters = { ...prev }
+                delete newFilters[searchKey]
+                return newFilters
+            }
+        })
+    }, [changePagination, resetSelection])
 
 
     useEffect(() => {
@@ -71,19 +84,26 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     }, [currentPage, pageSize, fetchTableData, filters])
 
     const columns = useTableColumns(
+        mySetFilter,
+        filters,
         columnDefinitions,
         searchDefinitions,
-        mySetFilter
     )
 
-    return {
+    return [
+        {
             dataSource,
             rowKey,
             columns,
             loading,
             pagination,
             rowSelection,
+        },
+        {
+            filters,
+            setFilters,
         }
+    ]
 }
 
 function useFetchTableData<ColumnID extends string, RowData extends AntdAnyObject>(
@@ -163,9 +183,10 @@ function usePagination(defaultPageSize: number, total: number): [
 }
 
 function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>(
+    setFilter: (searchKey: ColumnID, value: string) => void,
+    filters: Partial<Record<ColumnID, string>>,
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
     searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
-    setFilter: (searchKey: ColumnID, value: string) => void,
 ): ColumnsType<RowData> {
     const searchInput = useRef<InputRef>(null)
     return useMemo(() => {
@@ -178,6 +199,7 @@ function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>
             if (searchPropsArgs) {
                 Object.assign(column, getColumnSearchProps(
                     setFilter,
+                    filters,
                     columnID,
                     searchInput,
                     searchPropsArgs.placeholder
@@ -186,25 +208,25 @@ function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>
             columns.push(column)
         }
         return columns
-    }, [columnDefinitions, searchPropertyDefinitions, setFilter])
+    }, [columnDefinitions, filters, searchPropertyDefinitions, setFilter])
 }
 
 function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     setFilter: (searchKey: SearchKey, value: string) => void,
+    filters: Partial<Record<SearchKey, string>>,
     searchKey: SearchKey,
     searchInput: React.RefObject<InputRef>,
     placeholder?: string
 ): ColumnType<T> {
     return {
-        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        filterDropdown: ({ confirm, close }) => (
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     ref={searchInput}
                     placeholder={`Search ${placeholder ?? searchKey}`}
-                    value={selectedKeys[0]}
+                    value={filters[searchKey] ?? ''}
                     onChange={(e) => {
                         setFilter(searchKey, e.target.value)
-                        setSelectedKeys(e.target.value ? [e.target.value] : [])
                         confirm({ closeDropdown: false })
                     }}
                     onPressEnter={() => {
@@ -212,7 +234,6 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
                     }}
                     onKeyDown={(ev) => {
                         if (ev.key === 'Escape') {
-                            ev.stopPropagation()
                             close()
                         }
                     }}
@@ -225,8 +246,8 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
                 />
             </div>
         ),
-        filterIcon: (filtered: boolean) => (
-            <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        filterIcon: () => (
+            <SearchOutlined style={{ color: searchKey in filters && filters[searchKey] ? '#1677ff' : undefined }} />
         ),
         filterDropdownProps: {
             onOpenChange(open) {
