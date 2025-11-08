@@ -1,11 +1,13 @@
 import React, { useCallback } from "react"
 import { FMSPooledSample } from "../../models/fms_api_models"
-import { Table } from "antd"
+import { Button, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
 import { ColumnDefinitions, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tablePlugins"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
+import AppPageHeader from "../AppPageHeader"
+import PageContent from "../PageContent"
 
 enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
@@ -77,7 +79,7 @@ export function IndexCuration() {
     }, [dispatch])
 
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
-    const tableProps = useBasicTableProps({
+    const [tableProps, { filters, setFilters }] = useBasicTableProps({
         defaultPageSize,
         fetchRowData: fetchPooledSamples,
         rowKey: "id",
@@ -89,10 +91,22 @@ export function IndexCuration() {
 
     return (
         <>
-            <Table<FMSPooledSample>
-                {...tableProps}
-                scroll={{ y: '80vh' }}
-            />
+            <AppPageHeader
+				title = "Index Correction"
+			/>
+            <PageContent>
+                <Button
+                    type={"primary"}
+                    disabled={Object.keys(filters).length === 0}
+                    onClick={() => setFilters({})}
+                >
+                    Clear Filters
+                </Button> 
+                <Table<FMSPooledSample>
+                    {...tableProps}
+                    scroll={{ y: '80vh' }}
+                />
+            </PageContent>
         </>
     )
 }
