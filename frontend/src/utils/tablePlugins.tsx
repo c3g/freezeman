@@ -63,6 +63,14 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     )
 
     const { current: currentPage, pageSize } = pagination
+
+    const debouncedEffect = useCallback(() => {
+        if (currentPage !== undefined && pageSize !== undefined) {
+            fetchTableData(currentPage, pageSize, filters)
+        }
+    }, [currentPage, pageSize, fetchTableData, filters])
+    useDebouncedEffect(debouncedEffect)
+
     const mySetFilter = useCallback((searchKey: ColumnID, text: string) => {
         resetSelection()
         changePagination(1)
@@ -76,13 +84,6 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
             }
         })
     }, [changePagination, resetSelection])
-
-    const debouncedEffect = useCallback(() => {
-        if (currentPage !== undefined && pageSize !== undefined) {
-            fetchTableData(currentPage, pageSize, filters)
-        }
-    }, [currentPage, pageSize, fetchTableData, filters])
-    useDebouncedEffect(debouncedEffect)
 
     const columns = useTableColumns(
         mySetFilter,
