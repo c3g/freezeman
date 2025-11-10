@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSProcessMeasurement, FMSSampleLineageGraph } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -162,7 +162,7 @@ const api = {
     list: (options: any, apiOptions?: APIFetchOptions) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, apiOptions),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
     template: {
-      actions: () => get(`/pooled-samples/template_actions/`),
+      actions: () => get<JsonResponse<FMSTemplateAction[]>>(`/pooled-samples/template_actions/`),
       check:  (action, template) => post(`/pooled-samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/pooled-samples/template_submit/`, form({ action, template })),
     },

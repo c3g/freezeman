@@ -1,5 +1,5 @@
-import React, { useCallback } from "react"
-import { FMSPooledSample } from "../../models/fms_api_models"
+import React, { useCallback, useEffect, useState } from "react"
+import { FMSPooledSample, FMSTemplateAction } from "../../models/fms_api_models"
 import { Button, Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
@@ -9,6 +9,7 @@ import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import { Link } from "react-router-dom"
+import { ActionDropdown } from "../../utils/templateActions"
 
 enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
@@ -110,10 +111,22 @@ export function IndexCuration() {
         searchDefinitions: SEARCH_DEFINITIONS,
     })
 
+    const [templateActions, setTemplateActions] = useState<{ items: FMSTemplateAction[] }>({ items: [] })
+    useEffect(() => {
+        dispatch(api.pooledSamples.template.actions()).then(response => {
+            setTemplateActions({
+                items: response.data
+            })
+        })
+    }, [dispatch])
+
     return (
         <>
             <AppPageHeader
 				title = "Index Correction"
+                extra = {[
+                    <ActionDropdown key="actions" urlBase={'/index-curations'} actions={templateActions} />,
+                ]}
 			/>
             <PageContent>
                 <Space direction={"vertical"} style={{ width: '100%' }}>
