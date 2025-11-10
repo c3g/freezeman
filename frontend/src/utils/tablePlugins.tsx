@@ -201,8 +201,8 @@ function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>
             if (searchPropsArgs) {
                 Object.assign(column, getColumnSearchProps(
                     setFilter,
-                    filters,
                     columnID,
+                    filters[columnID],
                     searchInput,
                     searchPropsArgs.placeholder
                 ))
@@ -215,8 +215,8 @@ function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>
 
 function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     setFilter: (searchKey: SearchKey, value: string) => void,
-    filters: Partial<Record<SearchKey, string>>,
     searchKey: SearchKey,
+    currentFilterValue: string | undefined,
     searchInput: React.RefObject<InputRef>,
     placeholder?: string
 ): ColumnType<T> {
@@ -226,7 +226,7 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
                 <Input
                     ref={searchInput}
                     placeholder={`Search ${placeholder ?? searchKey}`}
-                    value={filters[searchKey] ?? ''}
+                    value={currentFilterValue ?? ''}
                     onChange={(e) => {
                         setFilter(searchKey, e.target.value)
                         confirm({ closeDropdown: false })
@@ -249,7 +249,7 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
             </div>
         ),
         filterIcon: () => (
-            <SearchOutlined style={{ color: searchKey in filters && filters[searchKey] ? '#1677ff' : undefined }} />
+            <SearchOutlined style={{ color: currentFilterValue ? '#1677ff' : undefined }} />
         ),
         filterDropdownProps: {
             onOpenChange(open) {
