@@ -42,12 +42,14 @@ class RunInfoSample:
     pool_name: Optional[str]
     sample_name: Optional[str]
 
+    sample_obj_id: Obj_Id = None
     derived_sample_obj_id: Obj_Id = None
     biosample_obj_id: Obj_Id = None
 
     # Flowcell lane containing the sample
     container_coordinates: Optional[str] = None
     lane: Optional[int] = None
+    sequencer_position: Optional[str] = None
 
     project_obj_id: Obj_Id = None
     project_name: Optional[str] = None
@@ -233,6 +235,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     # sample by the customer.
     row = RunInfoSample(sample_name=biosample.alias, pool_name=sample.name)
 
+    row.sample_obj_id = sample.pk
     row.derived_sample_obj_id = derived_sample.pk
     row.biosample_obj_id = biosample.pk
 
@@ -244,6 +247,16 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         raise Exception(f'Cannot convert coord {sample.coordinates} to lane number. No ContainerSpec found for container kind "{sample.container.kind}".')
 
     row.lane = convert_alpha_digit_coord_to_ordinal(sample.coordinates, container_spec.coordinate_spec)
+
+    try:
+        experiment_run_process_measurement = ProcessMeasurement.objects.get(lineage__child_id=sample.pk)
+        try:
+            sequencer_position_property_value = PropertyValue.objects.get(object_id=experiment_run_process_measurement.pk, property_type__name="Sequencer Position")
+            row.sequencer_position = sequencer_position_property_value.value
+        except PropertyValue.DoesNotExist:
+            row.sequencer_position = None
+    except Exception as err:
+        row.sequencer_position = None
 
     # INDIVIDUAL
     if biosample.individual is not None:
