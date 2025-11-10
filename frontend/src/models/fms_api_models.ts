@@ -537,6 +537,12 @@ export interface FMSTemplateAction {
     }[]
 }
 
+export interface FMSTemplatePrefillOption {
+    id: number
+    description: string
+    prefillFields: Record<string, 'number' | 'text' | 'date' | string[]> | null
+}
+
 export interface FMSUser extends FMSTrackedModel {
     // The user model is defined by Django
     username: string                    // Django user name

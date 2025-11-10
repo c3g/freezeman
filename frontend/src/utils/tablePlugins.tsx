@@ -44,6 +44,11 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
     {
         filters: Partial<Record<ColumnID, string>>,
         setFilters: (newFilters: Partial<Record<ColumnID, string>>) => void
+    },
+    {
+        defaultSelection: boolean,
+        exceptedItems: React.Key[],
+        totalSelectionCount: number,
     }
 ] {
     const [filters, setFilters] = useState<Partial<Record<ColumnID, string>>>({})
@@ -56,7 +61,7 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
 
     const [pagination, changePagination] = usePagination(defaultPageSize, total)
 
-    const { rowSelection, resetSelection } = useSmartSelection<RowData>(
+    const { rowSelection, resetSelection, defaultSelection, exceptedItems, totalSelectionCount } = useSmartSelection<RowData>(
         total,
         dataSource,
         rowKey,
@@ -104,6 +109,11 @@ export function useBasicTableProps<ColumnID extends string, RowData extends Antd
         {
             filters,
             setFilters,
+        },
+        {
+            defaultSelection,
+            exceptedItems,
+            totalSelectionCount,
         }
     ]
 }
@@ -361,10 +371,14 @@ function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, it
         setDefaultSelectionAndExceptedItems(false, [])
     }, [setDefaultSelectionAndExceptedItems])
 
+
+    const totalSelectionCount = defaultSelection ? totalCount - exceptedItems.length : exceptedItems.length
+
     return useMemo(() => ({
+        rowSelection,
+        resetSelection,
         defaultSelection,
         exceptedItems,
-        rowSelection,
-        resetSelection
-    }), [defaultSelection, exceptedItems, resetSelection, rowSelection])
+        totalSelectionCount,
+    }), [defaultSelection, exceptedItems, resetSelection, rowSelection, totalSelectionCount])
 }
