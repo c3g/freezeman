@@ -159,7 +159,7 @@ const api = {
   },
 
   pooledSamples: {
-    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, { abort }),
+    list: (options: any, apiOptions?: APIFetchOptions) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, apiOptions),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
     template: {
       actions: () => get(`/pooled-samples/template_actions/`),
@@ -376,6 +376,7 @@ const ongoingRequests: Record<string, AbortController> = {}
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
 interface APIFetchOptions {
     abort?: boolean
+    requestID?: string
     notifyError?: boolean
 }
 
@@ -395,19 +396,21 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
 
         if (!isFormData(body) && isObject(body))
             headers["content-type"] = "application/json"
+        
+        const requestID = options.requestID ?? baseRoute
 
         // For abortable requests
         let signal: AbortSignal | undefined
         if (options.abort) {
             const controller = new AbortController()
             signal = controller.signal
-            if (ongoingRequests[baseRoute]) {
-                ongoingRequests[baseRoute].abort({
+            if (ongoingRequests[requestID]) {
+                ongoingRequests[requestID].abort({
                     name: ABORT_ERROR_NAME,
-                    message: `Request aborted for request to ${baseRoute}`,
+                    message: `Request aborted for request to ${requestID}`,
                 })
             }
-            ongoingRequests[baseRoute] = controller
+            ongoingRequests[requestID] = controller
         }
 
         const request = fetch(`${API_BASE_PATH}${route}`, {
@@ -426,7 +429,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
         return request
           .then(res => {
               if (options.abort) {
-                  delete ongoingRequests[baseRoute]
+                  delete ongoingRequests[requestID]
               }
               return res
           })
@@ -441,7 +444,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
                     detail = detail.join('; ')
                   }
                   dispatch(notifyError({
-                    id: baseRoute,
+                    id: requestID,
                     title: detail || 'API request failed',
                   }))
               }

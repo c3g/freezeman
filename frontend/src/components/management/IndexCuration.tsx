@@ -70,7 +70,10 @@ export function IndexCuration() {
                 offset: (pageNumber - 1) * pageSize,
                 limit: pageSize,
             },
-            true
+            {
+                abort: true,
+                requestID: 'IndexCuration.fetchPooledSamples'
+            }
         ))
         return {
             total: response.data.count,
