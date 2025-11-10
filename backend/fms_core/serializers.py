@@ -782,6 +782,7 @@ class PooledSampleSerializer(serializers.Serializer):
     individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
     parent_sample_id = serializers.CharField(read_only=True)
     parent_sample_name = serializers.CharField(read_only=True)
+    container_id = serializers.IntegerField(read_only=True, source='sample.container.id')
     container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
     coordinates = serializers.CharField(read_only=True, source='sample.coordinate.name')
     sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
