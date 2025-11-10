@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -165,6 +165,10 @@ const api = {
       actions: () => get<JsonResponse<FMSTemplateAction[]>>(`/pooled-samples/template_actions/`),
       check:  (action, template) => post(`/pooled-samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/pooled-samples/template_submit/`, form({ action, template })),
+    },
+    prefill: {
+      templates: () => get<JsonResponse<FMSTemplatePrefillOption[]>>(`/pooled-samples/list_prefills/`),
+      request: (options, template) => filteredpost(`/pooled-samples/prefill_template/`, {...options}, form({ template: template })),
     },
   },
 
@@ -374,7 +378,7 @@ export function withToken<R extends ResponseWithData<any>, Args extends any[]>(t
 const ongoingRequests: Record<string, AbortController> = {}
 
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
-interface APIFetchOptions {
+export interface APIFetchOptions {
     abort?: boolean
     requestID?: string
     notifyError?: boolean

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
-import { FMSPooledSample, FMSTemplateAction } from "../../models/fms_api_models"
+import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } from "../../models/fms_api_models"
 import { Button, Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
@@ -10,6 +10,8 @@ import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
 import { Link } from "react-router-dom"
 import { ActionDropdown } from "../../utils/templateActions"
+import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates"
+import { smartSelectionOnIDWrapperForApi } from "../../utils/functions"
 
 enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
@@ -101,7 +103,7 @@ export function IndexCuration() {
     }, [dispatch])
 
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
-    const [tableProps, { filters, setFilters }] = useBasicTableProps({
+    const [tableProps, { filters, setFilters }, { totalSelectionCount, defaultSelection, exceptedItems }] = useBasicTableProps({
         defaultPageSize,
         fetchRowData: fetchPooledSamples,
         rowKey: "id",
@@ -120,12 +122,27 @@ export function IndexCuration() {
         })
     }, [dispatch])
 
+    const [prefills, setPrefills] = useState<{ items: FMSTemplatePrefillOption[] }>({ items: [] })
+    useEffect(() => {
+        dispatch(api.pooledSamples.prefill.templates()).then(response => {
+            setPrefills({
+                items: response.data
+            })
+        })
+    }, [dispatch])
+
+
+    const prefillTemplate = useCallback(async ({ template }: { template: FMSId }) => {
+        return dispatch(smartSelectionOnIDWrapperForApi(api.pooledSamples.prefill.request, defaultSelection, exceptedItems.map(id => Number(id)), ...[{}, template]))
+    }, [defaultSelection, dispatch, exceptedItems])
+
     return (
         <>
             <AppPageHeader
 				title = "Index Correction"
                 extra = {[
                     <ActionDropdown key="actions" urlBase={'/index-curations'} actions={templateActions} />,
+                    <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalSelectionCount} prefills={prefills}/>,
                 ]}
 			/>
             <PageContent>

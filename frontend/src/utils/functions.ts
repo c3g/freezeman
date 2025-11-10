@@ -1,6 +1,8 @@
 import { CoordinateSpec, FMSId } from "../models/fms_api_models"
 import { ContainerKind } from "../models/frontend_models"
 import { CellIdentifier } from "../modules/placement/models"
+import { AppDispatch, RootState } from "../store"
+import { APIFetchOptions } from "./api"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -93,4 +95,12 @@ export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, 
     if (a.containerName > b.containerName) orderB -= MAX / 16
 
     return orderA - orderB
+}
+
+export function smartSelectionOnIDWrapperForApi<F extends (...args: [any, APIFetchOptions | undefined]) => any>(apiCall: F, defaultSelection: boolean, exceptedIDs: FMSId[], ...args: Parameters<F>): ReturnType<F> {
+    if (defaultSelection) {
+        return apiCall({ ...args[0], id__not__in: exceptedIDs.join(',') }, ...args.slice(1))
+    } else {
+        return apiCall({ ...args[0], id__in: exceptedIDs.join(',') },  ...args.slice(1))
+    }
 }
