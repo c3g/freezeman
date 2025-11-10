@@ -250,11 +250,8 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     try:
         experiment_run_process_measurement = ProcessMeasurement.objects.get(lineage__child_id=sample.pk)
-        try:
-            sequencer_position_property_value = PropertyValue.objects.get(object_id=experiment_run_process_measurement.pk, property_type__name="Sequencer Position")
-            row.sequencer_position = sequencer_position_property_value.value
-        except PropertyValue.DoesNotExist:
-            row.sequencer_position = None
+        sequencer_position_property_value = PropertyValue.objects.get(object_id=experiment_run_process_measurement.pk, property_type__name="Sequencer Position")
+        row.sequencer_position = sequencer_position_property_value.value
     except Exception as err:
         row.sequencer_position = None
 
