@@ -121,7 +121,6 @@ function useFetchTableData<ColumnID extends string, RowData extends AntdAnyObjec
         const filterParams = createQueryParamsFromFilters(filterKeys, filterDescriptions, filters)
         setLoading(true)
         const result = await fetchData(pageNumber, pageSize, filterParams)
-        console.info("Fetched table data:", result)
         setTotal(result.total)
         setDataSource(result.data)
         setLoading(false)
