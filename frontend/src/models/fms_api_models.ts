@@ -288,6 +288,7 @@ export interface FMSPooledSample extends FMSTrackedModel {
     parent_sample_id: FMSId,            // The id of the sample that was added to this pool
     parent_sample_name: string,         // The name of the sample that was added to this pool
     sample_kind: string,                // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
+    container_id: FMSId
     container_barcode: string,
     coordinates: string
 

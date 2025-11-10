@@ -1,6 +1,6 @@
 import React, { useCallback } from "react"
 import { FMSPooledSample } from "../../models/fms_api_models"
-import { Button, Table } from "antd"
+import { Button, Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
 import { ColumnDefinitions, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tablePlugins"
@@ -8,11 +8,13 @@ import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
 import PageContent from "../PageContent"
+import { Link } from "react-router-dom"
 
 enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
     CONTAINER_BARCODE = 'CONTAINER_BARCODE',
     COORDINATES = 'COORDINATES',
+    PROJECT = 'PROJECT',
     INDEX = 'INDEX',
 }
 
@@ -20,6 +22,7 @@ const FILTER_KEYS: FilterKeys<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: 'derived_sample__biosample__alias',
     [PooledSampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
     [PooledSampleColumnID.COORDINATES]: 'sample__coordinate__name',
+    [PooledSampleColumnID.PROJECT]: 'project__name',
     [PooledSampleColumnID.INDEX]: 'derived_sample__library__index__name',
 } as const
 
@@ -27,6 +30,7 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
     [PooledSampleColumnID.CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
     [PooledSampleColumnID.COORDINATES]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
+    [PooledSampleColumnID.PROJECT]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
     [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
 } as const
 
@@ -39,12 +43,25 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
     [PooledSampleColumnID.CONTAINER_BARCODE]: {
         title: 'Container Barcode',
         dataIndex: 'container_barcode',
-        key: 'container_barcode'
+        key: 'container_barcode',
+        render: (_: any, record: FMSPooledSample) => (
+            <Link to={`/containers/${record.container_id}`}>{record.container_barcode}</Link>
+        ),
     },
     [PooledSampleColumnID.COORDINATES]: {
         title: 'Coordinates',
         dataIndex: 'coordinates',
-        key: 'coordinates'
+        key: 'coordinates',
+        width: 130,
+        align: 'center',
+    },
+    [PooledSampleColumnID.PROJECT]: {
+        title: 'Project',
+        dataIndex: 'project_name',
+        key: 'project_name',
+        render: (_: any, record: FMSPooledSample) => (
+            <Link to={`/projects/${record.project_id}`}>{record.project_name}</Link>
+        ),
     },
     [PooledSampleColumnID.INDEX]: {
         title: 'Current Index',
@@ -57,6 +74,7 @@ const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: { placeholder: 'Sample Name' },
     [PooledSampleColumnID.CONTAINER_BARCODE]: { placeholder: 'Container Barcode' },
     [PooledSampleColumnID.COORDINATES]: { placeholder: 'Coordinates' },
+    [PooledSampleColumnID.PROJECT]: { placeholder: 'Project Name' },
     [PooledSampleColumnID.INDEX]: { placeholder: 'Index Name' },
 }
 
@@ -98,17 +116,20 @@ export function IndexCuration() {
 				title = "Index Correction"
 			/>
             <PageContent>
-                <Button
-                    type={"primary"}
-                    disabled={Object.keys(filters).length === 0}
-                    onClick={() => setFilters({})}
-                >
-                    Clear Filters
-                </Button> 
-                <Table<FMSPooledSample>
-                    {...tableProps}
-                    scroll={{ y: '80vh' }}
-                />
+                <Space direction={"vertical"} style={{ width: '100%' }}>
+                    <Button
+                        type={"primary"}
+                        disabled={Object.keys(filters).length === 0}
+                        onClick={() => setFilters({})}
+                    >
+                        Clear Filters
+                    </Button>
+                    <Table<FMSPooledSample>
+                        {...tableProps}
+                        scroll={{ y: '75vh' }}
+                        bordered
+                    />
+                </Space>
             </PageContent>
         </>
     )
