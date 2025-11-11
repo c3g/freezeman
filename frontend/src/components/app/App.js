@@ -407,7 +407,7 @@ const App = ({userID, usersByID, logOut }) => {
                 <WorkflowAssignmentPage />
               </PrivateNavigate>
             } />
-            <Route path="/management/index-curations" element={
+            <Route path="/management/index-curations/*" element={
               <PrivateNavigate>
                 <IndexCurationPage />
               </PrivateNavigate>
