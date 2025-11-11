@@ -761,7 +761,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
         model = DatasetFile
         fields = ("id", "readset", "file_path", "size")
 
-class PooledSampleSerializer(serializers.Serializer):
+class PooledSampleSerializer(serializers.ModelSerializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample.
     '''
     # Return the id of the pool containing this sample. This allows api clients to request
@@ -812,6 +812,7 @@ class PooledSampleSerializer(serializers.Serializer):
             'library_selection_target',
             'parent_sample_id',
             'parent_sample_name',
+            'container_id',
             'container_barcode',
             'coordinates',
             'platform',

@@ -139,7 +139,7 @@ function useFetchTableData<ColumnID extends string, RowData extends AntdAnyObjec
     return useMemo(() => ({ total, dataSource, loading, fetchTableData }), [dataSource, fetchTableData, loading, total])
 }
 
-function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Partial<Record<ColumnID, string>>): Record<string, string> {
+export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Partial<Record<ColumnID, string>>): Record<string, string> {
     return Object.entries(filters).reduce<Record<string, string>>((acc, [key, value]) => {
         if (value) {
             const filterKey = filterKeys[key as ColumnID]

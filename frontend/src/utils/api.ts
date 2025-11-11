@@ -168,7 +168,7 @@ const api = {
     },
     prefill: {
       templates: () => get<JsonResponse<FMSTemplatePrefillOption[]>>(`/pooled-samples/list_prefills/`),
-      request: (options, template) => filteredpost(`/pooled-samples/prefill_template/`, {...options}, form({ template: template })),
+      request: (options: any, template: number) => filteredpost(`/pooled-samples/prefill_template/`, {...options}, form({ template: template })),
     },
   },
 

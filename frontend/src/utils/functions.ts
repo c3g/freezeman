@@ -97,10 +97,13 @@ export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, 
     return orderA - orderB
 }
 
-export function smartSelectionOnIDWrapperForApi<F extends (...args: [any, APIFetchOptions | undefined]) => any>(apiCall: F, defaultSelection: boolean, exceptedIDs: FMSId[], ...args: Parameters<F>): ReturnType<F> {
+export function smartQuerySetLookup(field: string, defaultSelection: boolean, exceptedIDs: FMSId[]) {
+    if (exceptedIDs.length === 0) {
+        return {}
+    }
     if (defaultSelection) {
-        return apiCall({ ...args[0], id__not__in: exceptedIDs.join(',') }, ...args.slice(1))
+        return { [`${field}__not__in`]: exceptedIDs.join(',') }
     } else {
-        return apiCall({ ...args[0], id__in: exceptedIDs.join(',') },  ...args.slice(1))
+        return { [`${field}__in`]: exceptedIDs.join(',') }
     }
 }

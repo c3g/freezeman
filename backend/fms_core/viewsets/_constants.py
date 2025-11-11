@@ -290,6 +290,7 @@ _dataset_file_filterset_fields: FiltersetFields = {
 }
 
 _pooled_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
     "sample__id": PK_FILTERS,
     "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
     "sample__coordinate__name": CATEGORICAL_FILTERS_LOOSE,
