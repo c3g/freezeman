@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } from "../../models/fms_api_models"
 import { Button, Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tablePlugins"
+import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tablePlugins"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -11,7 +11,7 @@ import PageContent from "../PageContent"
 import { Link } from "react-router-dom"
 import { ActionDropdown } from "../../utils/templateActions"
 import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates"
-import { smartSelectionOnIDWrapperForApi } from "../../utils/functions"
+import { smartQuerySetLookup } from "../../utils/functions"
 
 enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
@@ -131,10 +131,16 @@ export function IndexCuration() {
         })
     }, [dispatch])
 
-
-    const prefillTemplate = useCallback(async ({ template }: { template: FMSId }) => {
-        return dispatch(smartSelectionOnIDWrapperForApi(api.pooledSamples.prefill.request, defaultSelection, exceptedItems.map(id => Number(id)), ...[{}, template]))
-    }, [defaultSelection, dispatch, exceptedItems])
+    const finalFilters = useMemo(() => createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters), [filters])
+    const prefillTemplate = useCallback(({ template }: { template: FMSId }) => {
+        return dispatch(api.pooledSamples.prefill.request(
+            {
+                ...finalFilters,
+                ...smartQuerySetLookup('id', defaultSelection, exceptedItems.map(id => Number(id))),
+            },
+            template
+        ))
+    }, [defaultSelection, dispatch, exceptedItems, finalFilters])
 
     return (
         <>
