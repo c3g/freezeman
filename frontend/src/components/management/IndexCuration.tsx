@@ -3,7 +3,7 @@ import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } f
 import { Button, Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tablePlugins"
+import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, usePaginatedDataProps, useSmartSelection, useTableColumns } from "../../utils/tablePlugins"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -83,10 +83,13 @@ const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
 
 export function IndexCuration() {
     const dispatch = useAppDispatch()
-    const fetchPooledSamples = useCallback(async (pageNumber: number, pageSize: number, filters: Record<string, string>) => {
+
+    const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
+    const fetchPooledSamples = useCallback(async (pageNumber: number, pageSize: number, filters: Partial<Record<PooledSampleColumnID, string>>) => {
+        const queryParams = createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters)
         const response = await dispatch(api.pooledSamples.list(
             {
-                ...filters,
+                ...queryParams,
                 include_pools_of_one: true, derived_sample__library__isnull: false,
                 offset: (pageNumber - 1) * pageSize,
                 limit: pageSize,
@@ -101,17 +104,53 @@ export function IndexCuration() {
             data: response.data.results
         }
     }, [dispatch])
-
-    const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
-    const [tableProps, { filters, setFilters }, { totalSelectionCount, defaultSelection, exceptedItems }] = useBasicTableProps({
+    const [filters, setFilters] = useState<Partial<Record<PooledSampleColumnID, string>>>({})
+    const {
+        dataSource,
+        pagination,
+        loading
+    } = usePaginatedDataProps({
         defaultPageSize,
         fetchRowData: fetchPooledSamples,
-        rowKey: "id",
-        columnDefinitions: COLUMN_DEFINITIONS,
-        filterKeys: FILTER_KEYS,
-        filterDescriptions: FILTER_DESCRIPTIONS,
-        searchDefinitions: SEARCH_DEFINITIONS,
+        filters,
     })
+
+    const rowKey: keyof FMSPooledSample = 'id'
+
+    const [
+        rowSelection,
+        {
+            resetSelection,
+            defaultSelection,
+            exceptedItems,
+            totalSelectionCount
+        }
+    ] = useSmartSelection<FMSPooledSample>(
+        pagination.total,
+        dataSource,
+        rowKey,
+    )
+
+    const paginationOnChange = pagination.onChange
+    const mySetFilter = useCallback((searchKey: PooledSampleColumnID, text: string) => {
+        paginationOnChange(1)
+        resetSelection()
+        setFilters((prev) => {
+            if (text) {
+                return { ...prev, [searchKey]: text }
+            } else {
+                const newFilters = { ...prev }
+                delete newFilters[searchKey]
+                return newFilters
+            }
+        })
+    }, [paginationOnChange, resetSelection])
+    const columns = useTableColumns<PooledSampleColumnID, FMSPooledSample>(
+        mySetFilter,
+        filters,
+        COLUMN_DEFINITIONS,
+        SEARCH_DEFINITIONS,
+    )
 
     const [templateActions, setTemplateActions] = useState<{ items: FMSTemplateAction[] }>({ items: [] })
     useEffect(() => {
@@ -131,16 +170,16 @@ export function IndexCuration() {
         })
     }, [dispatch])
 
-    const finalFilters = useMemo(() => createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters), [filters])
+    const filtersAsOptions = useMemo(() => createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters), [filters])
     const prefillTemplate = useCallback(({ template }: { template: FMSId }) => {
         return dispatch(api.pooledSamples.prefill.request(
             {
-                ...finalFilters,
+                ...filtersAsOptions,
                 ...smartQuerySetLookup('id', defaultSelection, exceptedItems.map(id => Number(id))),
             },
             template
         ))
-    }, [defaultSelection, dispatch, exceptedItems, finalFilters])
+    }, [defaultSelection, dispatch, exceptedItems, filtersAsOptions])
 
     return (
         <>
@@ -161,7 +200,12 @@ export function IndexCuration() {
                         Clear Filters
                     </Button>
                     <Table<FMSPooledSample>
-                        {...tableProps}
+                        rowKey={rowKey}
+                        columns={columns}
+                        dataSource={dataSource}
+                        pagination={pagination}
+                        loading={loading}
+                        rowSelection={rowSelection}
                         scroll={{ y: '75vh' }}
                         bordered
                     />

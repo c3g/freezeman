@@ -1,4 +1,4 @@
-import { ColumnsType, ColumnType, TablePaginationConfig, TableProps } from "antd/es/table"
+import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox, Input, InputRef } from "antd"
@@ -22,121 +22,42 @@ function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: 
     return rowKey instanceof Function ? rowKey(record) : record[rowKey as keyof RowData] as React.Key
 }
 
-interface useBasicTablePropsParameters<ColumnID extends string, RowData extends AntdAnyObject> {
+interface PaginatedDataPropsParameters<ColumnID extends string, RowData extends AntdAnyObject> {
     defaultPageSize: number,
-    fetchRowData: (pageNumber: number, pageSize: number, filters: Record<string, string>) => Promise<{ total: number, data: RowData[] }>,
-    rowKey: RowKey<RowData>,
-    columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
-    filterKeys: FilterKeys<ColumnID>,
-    filterDescriptions: FilterDescriptions<ColumnID>,
-    searchDefinitions: Record<ColumnID, SearchPropertyDefinition>,
+    fetchRowData: (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => Promise<{ total: number, data: RowData[] }>,
+    filters: Partial<Record<ColumnID, string>>,
 }
-export function useBasicTableProps<ColumnID extends string, RowData extends AntdAnyObject>({
+export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>({
     defaultPageSize,
     fetchRowData,
-    rowKey,
-    columnDefinitions,
-    filterKeys,
-    filterDescriptions,
-    searchDefinitions,
-}: useBasicTablePropsParameters<ColumnID, RowData>): [
-    TableProps<RowData>,
-    {
-        filters: Partial<Record<ColumnID, string>>,
-        setFilters: (newFilters: Partial<Record<ColumnID, string>>) => void
-    },
-    {
-        defaultSelection: boolean,
-        exceptedItems: React.Key[],
-        totalSelectionCount: number,
-    }
-] {
-    const [filters, setFilters] = useState<Partial<Record<ColumnID, string>>>({})
-
-    const { total, dataSource, loading, fetchTableData } = useFetchTableData<ColumnID, RowData>(
-        fetchRowData,
-        filterKeys,
-        filterDescriptions
-    )
-
-    const [pagination, changePagination] = usePagination(defaultPageSize, total)
-
-    const { rowSelection, resetSelection, defaultSelection, exceptedItems, totalSelectionCount } = useSmartSelection<RowData>(
-        total,
-        dataSource,
-        rowKey,
-    )
-
+    filters,
+}: PaginatedDataPropsParameters<ColumnID, RowData>) {
+    const { pagination, setTotal } = usePagination(defaultPageSize)
+    
     const { current: currentPage, pageSize } = pagination
-
-    const debouncedEffect = useCallback(() => {
-        if (currentPage !== undefined && pageSize !== undefined) {
-            fetchTableData(currentPage, pageSize, filters)
-        }
-    }, [currentPage, pageSize, fetchTableData, filters])
-    useDebouncedEffect(debouncedEffect)
-
-    const mySetFilter = useCallback((searchKey: ColumnID, text: string) => {
-        resetSelection()
-        changePagination(1)
-        setFilters((prev) => {
-            if (text) {
-                return { ...prev, [searchKey]: text }
-            } else {
-                const newFilters = { ...prev }
-                delete newFilters[searchKey]
-                return newFilters
-            }
-        })
-    }, [changePagination, resetSelection])
-
-    const columns = useTableColumns(
-        mySetFilter,
-        filters,
-        columnDefinitions,
-        searchDefinitions,
-    )
-
-    return [
-        {
-            dataSource,
-            rowKey,
-            columns,
-            loading,
-            pagination,
-            rowSelection,
-        },
-        {
-            filters,
-            setFilters,
-        },
-        {
-            defaultSelection,
-            exceptedItems,
-            totalSelectionCount,
-        }
-    ]
-}
-
-function useFetchTableData<ColumnID extends string, RowData extends AntdAnyObject>(
-    fetchData: (pageNumber: number, pageSize: number, filters: Record<string, string>) => Promise<{ total: number, data: RowData[] }>,
-    filterKeys: FilterKeys<ColumnID>,
-    filterDescriptions: FilterDescriptions<ColumnID>,
-) {
-    const [total, setTotal] = useState<number>(0)
+    
     const [dataSource, setDataSource] = useState<RowData[]>([])
     const [loading, setLoading] = useState<boolean>(false)
+    const debouncedEffect = useCallback(() => {
+        if (currentPage !== undefined && pageSize !== undefined) {
+            setLoading(true)
+            fetchRowData(currentPage, pageSize, filters).then(({ total: newTotal, data }) => {
+                setDataSource(data)
+                setTotal(newTotal)
+            }).catch((e) => {
+                console.error('Error fetching data for table:', e)
+            }).finally(() => {
+                setLoading(false)
+            })
+        }
+    }, [currentPage, pageSize, fetchRowData, filters, setTotal])
+    useDebouncedEffect(debouncedEffect)
 
-    const fetchTableData = useCallback(async (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => {
-        const filterParams = createQueryParamsFromFilters(filterKeys, filterDescriptions, filters)
-        setLoading(true)
-        const result = await fetchData(pageNumber, pageSize, filterParams)
-        setTotal(result.total)
-        setDataSource(result.data)
-        setLoading(false)
-    }, [fetchData, filterDescriptions, filterKeys])
-
-    return useMemo(() => ({ total, dataSource, loading, fetchTableData }), [dataSource, fetchTableData, loading, total])
+    return {
+        dataSource,
+        loading,
+        pagination,
+    }
 }
 
 export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Partial<Record<ColumnID, string>>): Record<string, string> {
@@ -154,10 +75,8 @@ export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys
     }, {})
 }
 
-function usePagination(defaultPageSize: number, total: number): [
-    TablePaginationConfig,
-    (newCurrentPage?: number, newPageSize?: number) => void
-] {
+function usePagination(defaultPageSize: number) {
+    const [total, setTotal] = useState<number>(0)
     const [current, setCurrent] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
 
@@ -166,6 +85,9 @@ function usePagination(defaultPageSize: number, total: number): [
         newPageSize = newPageSize ?? pageSize
         if ((newCurrentPage - 1) * newPageSize >= total) {
             newCurrentPage = newPageSize > 0 ? Math.max(Math.ceil(total / newPageSize), 1) : 1
+        }
+        if (newPageSize !== pageSize) {
+            newCurrentPage = 1
         }
 
         setCurrent(newCurrentPage)
@@ -182,18 +104,18 @@ function usePagination(defaultPageSize: number, total: number): [
         setCurrentPageAndPageSize(1, defaultPageSize)
     }, [defaultPageSize, setCurrentPageAndPageSize])
 
-    return useMemo(() => [
-        {
+    return useMemo(() => ({
+        pagination: {
             current,
             pageSize,
             total,
             onChange: setCurrentPageAndPageSize,
         },
-        setCurrentPageAndPageSize
-    ], [current, setCurrentPageAndPageSize, pageSize, total])
+        setTotal,
+    }), [current, setCurrentPageAndPageSize, pageSize, total])
 }
 
-function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>(
+export function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>(
     setFilter: (searchKey: ColumnID, value: string) => void,
     filters: Partial<Record<ColumnID, string>>,
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
@@ -270,7 +192,7 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     }
 }
 
-function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]) {
+export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]) {
 	const [defaultSelection, setDefaultSelection] = useState(false)
 	const [exceptedItems, setExceptedItems] = useState<React.Key[]>(initialExceptedItems ?? [])
 	const allIsSelected = (!defaultSelection && exceptedItems.length === totalCount) || (defaultSelection && exceptedItems.length === 0)
@@ -374,11 +296,13 @@ function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, it
 
     const totalSelectionCount = defaultSelection ? totalCount - exceptedItems.length : exceptedItems.length
 
-    return useMemo(() => ({
+    return useMemo(() => ([
         rowSelection,
-        resetSelection,
-        defaultSelection,
-        exceptedItems,
-        totalSelectionCount,
-    }), [defaultSelection, exceptedItems, resetSelection, rowSelection, totalSelectionCount])
+        {
+            resetSelection,
+            defaultSelection,
+            exceptedItems,
+            totalSelectionCount,
+        }
+    ] as const), [defaultSelection, exceptedItems, resetSelection, rowSelection, totalSelectionCount])
 }
