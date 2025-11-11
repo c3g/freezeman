@@ -22,16 +22,89 @@ function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: 
     return rowKey instanceof Function ? rowKey(record) : record[rowKey as keyof RowData] as React.Key
 }
 
-interface PaginatedDataPropsParameters<ColumnID extends string, RowData extends AntdAnyObject> {
+export function useBasicTableProps<ColumnID extends string, RowData extends AntdAnyObject>(
     defaultPageSize: number,
-    fetchRowData: (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => Promise<{ total: number, data: RowData[] }>,
-    filters: Partial<Record<ColumnID, string>>,
+    fetchRowData: FetchRowData<ColumnID, RowData>,
+    rowKey: RowKey<RowData>,
+    columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
+    searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
+): [
+    TableProps<RowData>,
+    {
+        filters: Partial<Record<ColumnID, string>>,
+        setFilters: React.Dispatch<React.SetStateAction<Partial<Record<ColumnID, string>>>>,
+        defaultSelection: boolean,
+        exceptedItems: React.Key[],
+        totalSelectionCount: number,
+    }
+] {
+    const [filters, setFilters] = useState<Partial<Record<ColumnID, string>>>({})
+    const {
+        dataSource,
+        pagination,
+        loading
+    } = usePaginatedDataProps(
+        defaultPageSize,
+        fetchRowData,
+        filters,
+    )
+
+    const [
+        rowSelection,
+        {
+            resetSelection,
+            defaultSelection,
+            exceptedItems,
+            totalSelectionCount
+        }
+    ] = useSmartSelection<RowData>(
+        pagination.total,
+        dataSource,
+        rowKey,
+    )
+
+    const paginationOnChange = pagination.onChange
+    const mySetFilter = useCallback((searchKey: ColumnID, text: string) => {
+        paginationOnChange(1)
+        resetSelection()
+        setFilters((prev) => {
+            if (text) {
+                return { ...prev, [searchKey]: text }
+            } else {
+                const newFilters = { ...prev }
+                delete newFilters[searchKey]
+                return newFilters
+            }
+        })
+    }, [paginationOnChange, resetSelection])
+    const columns = useTableColumns<ColumnID, RowData>(
+        mySetFilter,
+        filters,
+        columnDefinitions,
+        searchPropertyDefinitions,
+    )
+
+    return [
+        {
+            dataSource,
+            pagination,
+            loading,
+            rowSelection,
+            columns,
+            rowKey,
+        },
+        {
+            filters, setFilters,
+            defaultSelection, exceptedItems, totalSelectionCount,
+        }
+    ]
 }
-export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>({
-    defaultPageSize,
-    fetchRowData,
-    filters,
-}: PaginatedDataPropsParameters<ColumnID, RowData>) {
+
+export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>(
+    defaultPageSize: number,
+    fetchRowData: FetchRowData<ColumnID, RowData>,
+    filters: Partial<Record<ColumnID, string>>,
+) {
     const { pagination, setTotal } = usePagination(defaultPageSize)
     
     const { current: currentPage, pageSize } = pagination
@@ -41,7 +114,9 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     const debouncedEffect = useCallback(() => {
         if (currentPage !== undefined && pageSize !== undefined) {
             setLoading(true)
-            fetchRowData(currentPage, pageSize, filters).then(({ total: newTotal, data }) => {
+            fetchRowData(
+                currentPage, pageSize, filters
+            ).then(({ total: newTotal, data }) => {
                 setDataSource(data)
                 setTotal(newTotal)
             }).catch((e) => {
@@ -58,21 +133,6 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         loading,
         pagination,
     }
-}
-
-export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Partial<Record<ColumnID, string>>): Record<string, string> {
-    return Object.entries(filters).reduce<Record<string, string>>((acc, [key, value]) => {
-        if (value) {
-            const filterKey = filterKeys[key as ColumnID]
-            const description = descriptions[key as ColumnID]
-            if (description === undefined) {
-                acc[filterKey] = value as string
-            } else if (description.type === FILTER_TYPE.INPUT) {
-                acc[`${filterKey}__${description.lookup_type}`] = value as string
-            }
-        }
-        return acc
-    }, {})
 }
 
 function usePagination(defaultPageSize: number) {
@@ -306,3 +366,21 @@ export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: num
         }
     ] as const), [defaultSelection, exceptedItems, resetSelection, rowSelection, totalSelectionCount])
 }
+
+export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Partial<Record<ColumnID, string>>): Record<string, string> {
+    return Object.entries(filters).reduce<Record<string, string>>((acc, [key, value]) => {
+        if (value) {
+            const filterKey = filterKeys[key as ColumnID]
+            const description = descriptions[key as ColumnID]
+            if (description === undefined) {
+                acc[filterKey] = value as string
+            } else if (description.type === FILTER_TYPE.INPUT) {
+                acc[`${filterKey}__${description.lookup_type}`] = value as string
+            }
+        }
+        return acc
+    }, {})
+}
+
+
+type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => Promise<{ total: number, data: RowData[] }>
