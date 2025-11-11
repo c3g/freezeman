@@ -1,22 +1,33 @@
-import React, {useEffect} from "react";
-import {connect} from "react-redux";
-import {useNavigate, useMatch, useParams} from "react-router-dom";
-import PropTypes from "prop-types";
+import React, {useCallback, useEffect} from "react";
+import {useParams} from "react-router-dom";
 import {Menu, Dropdown, Button} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
 
 import { isNullish } from "../utils/functions"
-import {fetchSummariesData} from "../modules/shared/actions";
-import api, {withToken} from "../utils/api";
+import api from "../utils/api";
 import AppPageHeader from "./AppPageHeader";
 import PageContent from "./PageContent";
 import TemplateFlow from "./templateFlow/TemplateFlow";
+import { useAppDispatch } from "../hooks";
+import { FMSTemplateAction } from "../models/fms_api_models";
 
-const LOADING_ACTION = {
+const LOADING_ACTION: FMSTemplateAction = {
   name: 'Loading...',
   description: 'Loading...',
   template: 'loading.xlsx',
 }
+
+const loadActions = {
+  sample:    api.samples.template.actions,
+  library:    api.libraries.template.actions,
+  container: api.containers.template.actions,
+  processMeasurement:   api.processMeasurements.template.actions,
+  experimentRun: api.experimentRuns.template.actions,
+  project: api.projects.template.actions,
+  index: api.indices.template.actions,
+  sampleNextStep: api.sampleNextStep.template.actions,
+  pooledSample: api.pooledSamples.template.actions,
+} as const
 
 const checkRequests = {
   sample:    api.samples.template.check,
@@ -28,7 +39,7 @@ const checkRequests = {
   index: api.indices.template.check,
   sampleNextStep: api.sampleNextStep.template.check,
   pooledSample: api.pooledSamples.template.check,
-}
+} as const
 
 const submitRequests = {
   sample:    api.samples.template.submit,
@@ -40,23 +51,35 @@ const submitRequests = {
   index: api.indices.template.submit,
   sampleNextStep: api.sampleNextStep.template.submit,
   pooledSample: api.pooledSamples.template.submit,
-}
+} as const
 
-const ActionContent = ({token, templateType, templateActions}) => {
+export default function ActionContent({templateType}: { templateType: keyof typeof loadActions }) {
   const { action: actionId } = useParams()
+  const actionIndex = parseInt(actionId, 10) || 0
+  
+  const dispatch = useAppDispatch()
 
-  const actionIndex = parseInt(actionId, 10) || 0;
-  const actions = templateActions[templateType];
-  const checkRequest = withToken(token, checkRequests[templateType]);
-  const submitRequest = withToken(token, submitRequests[templateType]);
+  const [actions, setActions] = React.useState<FMSTemplateAction[]>([]);
+  useEffect(() => {
+    dispatch(loadActions[templateType]()).then((response) => {
+      setActions(response.data)
+    })
+  }, [dispatch, templateType]);
 
-  const action = actions.items[actionIndex] || LOADING_ACTION;
+  const checkRequest = useCallback((action: any, template: any) => {
+    return dispatch(checkRequests[templateType](action, template))
+  }, [dispatch, templateType])
+  const submitRequest = useCallback((action: any, template: any) => {
+    return dispatch(submitRequests[templateType](action, template))
+  }, [dispatch, templateType])
+
+  const action = actions[actionIndex] || LOADING_ACTION;
 
   const templateChoiceMenu = (
       <Menu>
-        {actions.items[actionIndex]
+        {actions[actionIndex]
           ? action.template.map((template, i) =>
-            <Menu.Item key={i} onClick={() => window.location = template.file}>{template.description}</Menu.Item>) :
+            <Menu.Item key={i} onClick={() => window.location.assign(template.file)}>{template.description}</Menu.Item>) :
             <Menu.Item>Loading ...</Menu.Item>
         }
       </Menu>
@@ -66,7 +89,7 @@ const ActionContent = ({token, templateType, templateActions}) => {
     <AppPageHeader
       title={action.name}
       extra={
-        actions.items[actionIndex] && action.template.length > 1 ?
+        actions[actionIndex] && action.template.length > 1 ?
           <Dropdown overlay={templateChoiceMenu} placement="bottomRight">
             <Button>
               <DownloadOutlined /> Download Template...
@@ -74,7 +97,7 @@ const ActionContent = ({token, templateType, templateActions}) => {
           </Dropdown> :
           isNullish(action.template[0].file) ?
             <></> :
-            <Button onClick={() => window.location = action.template[0].file}>
+            <Button onClick={() => window.location.assign(action.template[0].file)}>
               <DownloadOutlined /> Download Template
             </Button>
       }
@@ -89,29 +112,4 @@ const ActionContent = ({token, templateType, templateActions}) => {
       />
     </PageContent>
   </>;
-};
-
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  templateActions: {
-    container: state.containerTemplateActions,
-    sample: state.sampleTemplateActions,
-    library: state.libraryTemplateActions,
-    processMeasurement: state.processMeasurementTemplateActions,
-    experimentRun: state.experimentRunTemplateActions,
-    project: state.projectTemplateActions,
-    index: state.indicesTemplateActions,
-    sampleNextStep: state.sampleNextStepTemplateActions,
-    pooledSample: state.pooledSampleTemplateActions,
-  },
-});
-
-const mapDispatchToProps = dispatch => ({
-  fetchSummariesData: () => dispatch(fetchSummariesData),
-})
-
-ActionContent.propTypes = {
-  templateType: PropTypes.oneOf(["container", "sample", "processMeasurement", "experimentRun", "project", "index", "library", "sampleNextStep", "pooledSample"]).isRequired,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(ActionContent);
+}
