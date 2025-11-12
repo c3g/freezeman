@@ -194,11 +194,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                             />
                                         </>
                                     }
-                                    <Col span={12}>
-                                        <div className={"flex-row"}>
-                                            <div className={"flex-column"} />
-                                        </div>
-                                    </Col>
                                 </div>
                             </div>
                         </Col>
@@ -219,21 +214,16 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 </div>
                             </div>
                         </Col>
-                        <Col span={12}>
-                            <div className={"flex-row"}>
-                                <div className={"flex-column"} />
-                            </div>
-                        </Col>
                     </Row>
-                    <Row justify={'space-between'}>
-                        <Col span={6} offset={2}>
+                    <Row>
+                        <Col span={8}>
                             <Radio.Group onChange={updatePlacementType} value={placementType}>
                                 {Object.entries(PlacementType).map(([key, value]) => (
                                     <Radio.Button key={key} value={value}>{value}</Radio.Button>   
                                 ))}
                             </Radio.Group>
                         </Col>
-                        <Col span={6}>
+                        <Col span={4}>
                             <Radio.Group
                                 disabled={placementType !== PlacementType.SEQUENTIAL}
                                 value={placementDirection}
@@ -242,7 +232,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 <Radio.Button value={PlacementDirections.COLUMN}> column </Radio.Button>
                             </Radio.Group>
                         </Col>
-                        <Col span={10}>
+                        <Col span={7} offset={5}>
                             <Button onClick={transferAllSamples} disabled={!canTransferAllSamples}>Place All Source</Button>
                             <Popconfirm
                                 title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
@@ -257,7 +247,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         <Col span={10}>
                             {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name}/>}
                         </Col>
-                        <Col span={10}>
+                        <Col span={10} offset={2}>
                             {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name}/>}
                         </Col>
                     </Row>

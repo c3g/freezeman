@@ -39,13 +39,14 @@
 .flex-column {
     display: flex;
     flex-direction: column;
-    gap: 0.25em;
+    gap: 0.25vw;
+    width: 100%;
 }
 
 .tiny-flex-column {
   display: flex;
   flex-direction: column;
-  gap: 0.25em;
+  gap: 0.5vw;
 }
 
 .flex-row {
@@ -57,9 +58,9 @@
 .transfer {
     display: flex;
     flex-direction: column;
-    gap: 0.5em 0;
+    gap: 0.5vw 0;
     border: solid grey 1px;
-    padding: 0.5em;
+    padding: 0.25vw;
 
     // disable selection
     -webkit-touch-callout: none; /* iOS Safari */
@@ -68,4 +69,7 @@
     -moz-user-select: none; /* Old versions of Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+
+    width: fit-content;
+    align-self: center;
 }
