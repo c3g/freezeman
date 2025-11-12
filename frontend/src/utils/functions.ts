@@ -67,7 +67,7 @@ export interface PlacementSample {
     containerName: string
     coordinates?: string // only for real parent containers
     fromCell: CellIdentifier | null // null for tubes without parent
-    count: number
+    placementCount: number
 }
 export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, spec?: ContainerKind['coordinate_spec']) {
     const MAX = 1

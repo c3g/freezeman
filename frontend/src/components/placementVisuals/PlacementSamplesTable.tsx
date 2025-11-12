@@ -39,7 +39,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                     name: sample.getName(),
                     containerName: sample.getContainerName(),
                     fromCell: null,
-                    count: sample.state.placedAt.length
+                    placementCount: sample.state.placedAt.length
                 })
             }
         } else {
@@ -53,7 +53,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
                         containerName: sample.getContainerName(),
                         coordinates: cell.getCoordinates(),
                         fromCell: sample.getFromCell()?.state ?? null,
-                        count: sample.state.placedAt.length
+                        placementCount: sample.state.placedAt.length
                     })
                 }
             }
