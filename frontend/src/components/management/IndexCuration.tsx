@@ -3,7 +3,7 @@ import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } f
 import { Button, Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tableHooks"
+import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, usePaginatedDataProps, useSmartSelection, useTableColumns } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -105,21 +105,53 @@ export function IndexCuration() {
         }
     }, [dispatch])
 
-    const [
-        tableProps,
-        {
-            filters,
-            setFilters,
-            defaultSelection,
-            exceptedItems,
-            totalSelectionCount,
-        }
-    ] = useBasicTableProps<PooledSampleColumnID, FMSPooledSample>(
+    const [filters, setFilters] = useState<Partial<Record<PooledSampleColumnID, string>>>({})
+
+    const {
+        dataSource,
+        pagination,
+        loading
+    } = usePaginatedDataProps(
         defaultPageSize,
         fetchPooledSamples,
-        "id",
+        filters,
+    )
+
+    const rowKey = "id"
+
+    const [
+        rowSelection,
+        {
+            resetSelection,
+            defaultSelection,
+            exceptedItems,
+            totalSelectionCount
+        }
+    ] = useSmartSelection<FMSPooledSample>(
+        pagination.total,
+        dataSource,
+        rowKey,
+    )
+
+    const paginationOnChange = pagination.onChange
+    const mySetFilter = useCallback((searchKey: PooledSampleColumnID, text: string) => {
+        paginationOnChange(1)
+        resetSelection()
+        setFilters((prev) => {
+            if (text) {
+                return { ...prev, [searchKey]: text }
+            } else {
+                const newFilters = { ...prev }
+                delete newFilters[searchKey]
+                return newFilters
+            }
+        })
+    }, [paginationOnChange, resetSelection, setFilters])
+    const columns = useTableColumns<PooledSampleColumnID, FMSPooledSample>(
+        mySetFilter,
+        filters,
         COLUMN_DEFINITIONS,
-        SEARCH_DEFINITIONS
+        SEARCH_DEFINITIONS,
     )
 
     const [templateActions, setTemplateActions] = useState<{ items: FMSTemplateAction[] }>({ items: [] })
@@ -170,7 +202,12 @@ export function IndexCuration() {
                         Clear Filters
                     </Button>
                     <Table<FMSPooledSample>
-                        {...tableProps}
+                        dataSource={dataSource}
+                        pagination={pagination}
+                        loading={loading}
+                        rowSelection={rowSelection}
+                        columns={columns}
+                        rowKey={rowKey}
                         scroll={{ y: '75vh' }}
                         bordered
                     />
