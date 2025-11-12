@@ -196,13 +196,13 @@ function selectCellColor(state: RootState, cellID: CellIdentifier) {
 
         // is being preview?
         if (cell.getPreview() !== null) {
-            const containerIndex = sourceContainers.findIndex((container) => container.name === activeSourceContainer.name)
+            let containerIndex = sourceContainers.findIndex((container) => container.name === activeSourceContainer.name)
             if (containerIndex === -1) {
                 console.error(`For preview cell, couldn't find container index for ${activeSourceContainer.name}`)
                 return EMPTY_CELL_COLOR
             }
             if (containerIndex >= VALID_PREVIEW_CELL_COLORS.length) {
-                throw new Error(`Did not expect more than ${VALID_PREVIEW_CELL_COLORS.length} source containers for preview cell color`)
+                containerIndex = VALID_PREVIEW_CELL_COLORS.length - 1
             }
             return placementState.error ? INVALID_PREVIEW_CELL_COLOR : VALID_PREVIEW_CELL_COLORS[containerIndex]
         }
@@ -224,7 +224,7 @@ function selectCellColor(state: RootState, cellID: CellIdentifier) {
             // assume only one sample per cell. placements also should include existing samples.
             const sample = placements[0].sample
             const containerSource = sample.getFromCell()?.getFromContainer()
-            const containerIndex = sourceContainers.findIndex((container) => container.name === (
+            let containerIndex = sourceContainers.findIndex((container) => container.name === (
                 // null is tubes without parent
                 // now that i think about it, cell is never visible for tubes without parent
                 containerSource ? containerSource.getName() : null
@@ -232,7 +232,7 @@ function selectCellColor(state: RootState, cellID: CellIdentifier) {
             if (containerIndex === -1)
                 throw new Error(`For cell ${cell.toString()}, couldn't find container index for sample ${containerSource?.getName()}`)
             if (containerIndex >= ACTIVE_CELL_COLORS.length)
-                throw new Error(`Did not expect more than ${ACTIVE_CELL_COLORS.length} source containers for active cell color`)
+                containerIndex = ACTIVE_CELL_COLORS.length - 1
             return ACTIVE_CELL_COLORS[containerIndex]
         }
 
