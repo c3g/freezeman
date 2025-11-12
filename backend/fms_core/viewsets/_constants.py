@@ -175,6 +175,7 @@ _project_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
     "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
     "requestor_name": CATEGORICAL_FILTERS_LOOSE,
+    "requestor_email": CATEGORICAL_FILTERS_LOOSE,
     "status": CATEGORICAL_FILTERS,
     "external_id": CATEGORICAL_FILTERS_LOOSE,
     "external_name": CATEGORICAL_FILTERS_LOOSE,
