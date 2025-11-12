@@ -162,18 +162,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
-    // useEffect(() => {
-    //     (async () => {
-    //         const store = (await import("../../store")).default
-    //         const placementModule = await import("../../modules/placement/classes")
-    //         console.info({
-    //             getPlacementClass: (parentContainer: ParentContainerIdentifier | undefined = undefined) => new placementModule.PlacementClass(store.getState().placement, parentContainer),
-    //             reducers: await import("../../modules/placement/reducers"),
-    //             store,
-    //         })
-    //     })()
-    // }, [])
-
     return (
         <>
             <PageContainer>
