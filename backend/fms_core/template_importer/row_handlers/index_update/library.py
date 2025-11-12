@@ -17,7 +17,7 @@ class IndexUpdateRowHandler(GenericRowHandler):
 
         if not self.errors["index"]:
             try:
-                derived_sample = DerivedSample.objects.get(sample__container__barcode=library["barcode"], sample__coordinate__name=library["coordinates"], library__index__name=index["old_index"])
+                derived_sample = DerivedSample.objects.get(samples__container__barcode=library["barcode"], samples__coordinate__name=library["coordinates"], library__index__name=index["old_index"])
                 if derived_sample.library is not None:
                     try:
                         # get the new index id
@@ -41,6 +41,9 @@ class IndexUpdateRowHandler(GenericRowHandler):
                         # Apply the new index to the library identified
                         for updated_derived_sample in derived_sample_lineage:
                             _, self.errors["index_update"], self.warnings["index_update"] = update_library(derived_sample=updated_derived_sample, index=index)
+
+                        if len(derived_sample_lineage) > 1:
+                            self.warnings["multiple updates"] = f"A total of {len(derived_sample_lineage)} derived libraries that share lineage with the updated library were changed."
                             
                     except Index.DoesNotExist:
                         self.errors["index"].append(f"No index found for name [{index['new_index']}].")
