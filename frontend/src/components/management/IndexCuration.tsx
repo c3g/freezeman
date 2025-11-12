@@ -3,7 +3,7 @@ import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } f
 import { Button, Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tablePlugins"
+import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, useBasicTableProps } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
