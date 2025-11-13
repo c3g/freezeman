@@ -139,6 +139,12 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         dispatch(setPlacementType(e.target.value))
     }, [dispatch])
 
+    useEffect(() => {
+        if (activeSourceContainer && activeSourceContainer.name === null) {
+            dispatch(setPlacementType(PlacementType.SEQUENTIAL))
+        }
+    }, [activeSourceContainer, activeSourceContainer?.name, dispatch])
+
     const canTransferAllSamples = useMemo(() => {
         if (!activeSourceContainer || !activeDestinationContainer) return false
         const sourceContainer = activeSourceContainer
@@ -194,9 +200,9 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 <Row>
                                     <Flex justify={"space-between"} style={{ width: "100%" }}>    
                                         <Radio.Group onChange={updatePlacementType} value={placementType}>
-                                            {Object.entries(PlacementType).map(([key, value]) => (
-                                                <Radio.Button key={key} value={value}>{value}</Radio.Button>   
-                                            ))}
+                                            <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>{PlacementType.SEQUENTIAL}</Radio.Button>
+                                            <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.SOURCE_PATTERN}</Radio.Button>
+                                            <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.QUADRANT_PATTERN}</Radio.Button>
                                         </Radio.Group>
                                         <Radio.Group
                                             disabled={placementType !== PlacementType.SEQUENTIAL}
