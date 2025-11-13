@@ -208,8 +208,8 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                             disabled={placementType !== PlacementType.SEQUENTIAL}
                                             value={placementDirection}
                                             onChange={updatePlacementDirection}>
-                                            <Radio.Button value={PlacementDirections.ROW}> row </Radio.Button>
-                                            <Radio.Button value={PlacementDirections.COLUMN}> column </Radio.Button>
+                                            <Radio.Button value={PlacementDirections.ROW}>Row</Radio.Button>
+                                            <Radio.Button value={PlacementDirections.COLUMN}>Column</Radio.Button>
                                         </Radio.Group>
                                     </Flex>
                                 </Row>
