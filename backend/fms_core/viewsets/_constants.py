@@ -70,6 +70,11 @@ _user_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "username": FREE_TEXT_FILTERS,
     "email": FREE_TEXT_FILTERS,
+    "groups__name": FREE_TEXT_FILTERS,
+    "date_joined": DATE_FILTERS,
+    "is_active": ["exact"],
+    "is_staff": ["exact"],
+    "is_superuser": ["exact"],
 }
 
 _group_filterset_fields: FiltersetFields = {
