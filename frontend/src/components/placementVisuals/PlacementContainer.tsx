@@ -57,7 +57,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
 
         //renders header based on the number of columns provided to the component
         const headerCells: ReactNode[] = []
-        const cellSize = totalColumn <= 12 ? "cell" : "tiny-cell"
+        const cellSize = totalColumn <= 12 ? "placement-cell" : "tiny-placement-cell"
         const columnLabelsWithPlus = ['+', ...axisColumn]
         for (let i = 0; i < totalColumn + 1; i++) {
             headerCells.push(
@@ -69,7 +69,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
             )
         }
         //adds number headers to total number of columns
-        cells.push(<div key={'headers'} className={"header-row"}>
+        cells.push(<div key={'headers'} className={"placement-container-header-row-of-cells"}>
             {
                 headerCells
             }
@@ -98,7 +98,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
             }
             //pushes rowOfCells to cell array
             cells.push(
-                <div key={'row_' + axisRow[rowNumber]} className={"row"}>
+                <div key={'row_' + axisRow[rowNumber]} className={"placement-container-rows-of-cells"}>
                     {
                         rowOfCells
                     }
@@ -110,7 +110,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
 
     return (
         <>
-            <div className={"transfer"}>
+            <div className={"placement-cells"}>
                 {
                     (totalRow === 0 || totalColumn === 0 || cells.length === 0) ?
                         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />

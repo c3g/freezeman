@@ -191,6 +191,8 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
             rowKey={rowKey}
             rowSelection={selectionProps}
             pagination={paginationProps}
+            className={"placement-samples-table"}
+            style={{ width: "100%" }}
         />
     )
 }

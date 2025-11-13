@@ -12,7 +12,7 @@ const ContainerNameScroller = ({ names, name, changeContainer }: ContainerNameSc
     const index = useMemo(() => names.findIndex((x) => x === name), [name, names])
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'row', padding: "2px", justifyContent: 'space-between', gap: '1em' }}>
+        <div className={"container-name-scroller"} style={{ display: 'flex', flexDirection: 'row', padding: "2px", justifyContent: 'space-between', gap: '1em', width: '100%' }}>
             <Button disabled={index === 0 || names.length === 1} onClick={() => changeContainer(-1)}>
                 Previous
             </Button>
