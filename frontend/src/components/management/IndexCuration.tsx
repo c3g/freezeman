@@ -186,7 +186,7 @@ export function IndexCuration() {
     return (
         <>
             <AppPageHeader
-				title = "Index Correction"
+				title = "Index Curation"
                 extra = {[
                     <ActionDropdown key="actions" urlBase={'/management/index-curations'} actions={templateActions} />,
                     <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalSelectionCount} prefills={prefills}/>,

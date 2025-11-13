@@ -194,7 +194,7 @@ const App = ({userID, usersByID, logOut }) => {
           {
             url: "/management/index-curations",
             icon: <BarcodeOutlined />,
-            text: "Correct Index",
+            text: "Index Curation",
             key: "index-curations",
           },
         ]

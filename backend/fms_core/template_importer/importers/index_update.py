@@ -15,6 +15,7 @@ class IndexUpdateImporter(GenericImporter):
 
         for row_id, row_data in enumerate(index_update_sheet.rows):
             library = {
+                'alias': str_cast_and_normalize(row_data['Library Name']),
                 'barcode': str_cast_and_normalize(row_data['Library Container Barcode']),
                 'coordinates': str_cast_and_normalize(row_data['Library Container Coord'])
             }
