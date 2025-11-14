@@ -187,15 +187,15 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                         <Row id="placement-row-main">
                             { activeSourceContainer !== undefined && <Col span={12}>
                                 <Row>
-                                <ContainerNameScroller
-                                    names={sourceContainers.map((c) => c.name)}
-                                    name={activeSourceContainer.name}
-                                    changeContainer={changeSourceContainer} />
-                                </Row>
+                                    <ContainerNameScroller
+                                        names={sourceContainers.map((c) => c.name)}
+                                        name={activeSourceContainer.name}
+                                        changeContainer={changeSourceContainer} />
+                                    </Row>
                                 <Row>
-                                <PlacementContainer
-                                    container={activeSourceContainer.name}
-                                />
+                                    <PlacementContainer
+                                        container={activeSourceContainer.name}
+                                    />
                                 </Row>
                                 <Row>
                                     <Flex justify={"space-between"} style={{ width: "100%" }}>    

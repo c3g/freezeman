@@ -57,7 +57,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
 
         //renders header based on the number of columns provided to the component
         const headerCells: ReactNode[] = []
-        const cellSize = totalColumn <= 12 ? "placement-cell" : "tiny-placement-cell"
+        const cellSize = "placement-cell" + (totalColumn <= 12 ? "" : " tiny-placement-cell")
         const columnLabelsWithPlus = ['+', ...axisColumn]
         for (let i = 0; i < totalColumn + 1; i++) {
             headerCells.push(
@@ -69,7 +69,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
             )
         }
         //adds number headers to total number of columns
-        cells.push(<div key={'headers'} className={"placement-container-header-row-of-cells"}>
+        cells.push(<div key={'headers'} className={"placement-container-rows-of-cells"}>
             {
                 headerCells
             }

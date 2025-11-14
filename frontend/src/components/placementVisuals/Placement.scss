@@ -20,27 +20,16 @@
     font-size: 1vw;
 }
 
+// place after placement-cell in html
 .tiny-placement-cell
 {
-  border: 1px solid gray;
-  color: black;
-  border-radius: 100%;
   height: 1.15vw;
   width: 1.15vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   font-size: .5vw;
   font-weight: bold;
 }
 
 .placement-container-rows-of-cells {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-}
-
-.placement-container-header-row-of-cells {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
