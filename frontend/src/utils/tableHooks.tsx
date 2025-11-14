@@ -6,6 +6,7 @@ import { SelectionSelectFn, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
 import { SearchOutlined } from "@ant-design/icons"
 import { useDebouncedEffect } from "../components/filters/filterComponents/DebouncedInput"
+import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue } from "../models/paged_items"
 
 export type ColumnDefinitions<ColumnID extends string, RowData> = Record<ColumnID, ColumnType<RowData>>
 
@@ -117,7 +118,7 @@ export function useTableColumns<ColumnID extends string, RowData extends AntdAny
                     columnID,
                     filters[columnID],
                     searchInput,
-                    searchPropsArgs.placeholder
+                    searchPropsArgs
                 ))
             }
             columns.push(column)
@@ -131,14 +132,14 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     searchKey: SearchKey,
     currentFilterValue: string | undefined,
     searchInput: React.RefObject<InputRef>,
-    placeholder?: string
+    searchPropsArgs: SearchPropertyDefinition,
 ): ColumnType<T> {
     return {
         filterDropdown: ({ confirm, close }) => (
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     ref={searchInput}
-                    placeholder={`Search ${placeholder ?? searchKey}`}
+                    placeholder={`Search ${searchPropsArgs.placeholder ?? searchKey}`}
                     value={currentFilterValue ?? ''}
                     onChange={(e) => {
                         setFilter(searchKey, e.target.value)
@@ -306,3 +307,27 @@ export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys
 
 
 type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => Promise<{ total: number, data: RowData[] }>
+
+export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters: Partial<Record<ColumnID, string>>, filterDescriptions: FilterDescriptions<ColumnID>, filterKeys: FilterKeys<ColumnID>, searchProperties: SearchPropertiesDefinitions<ColumnID>): OldFilterSet {
+    const filterSet: OldFilterSet = {}
+
+    for (const columnID in filters) {
+        const newValue = filters[columnID as ColumnID]
+        const newFilterDescription = filterDescriptions[columnID as ColumnID]
+        const newFilterKey = filterKeys[columnID as ColumnID]
+        const newFilterSearchProps = searchProperties[columnID as ColumnID]
+
+        if (newFilterDescription.type === FILTER_TYPE.INPUT) {
+            filterSet[newFilterKey] = {
+                value: newValue as OldFilterValue,
+                description: {
+                    type: FILTER_TYPE.INPUT,
+                    key: newFilterKey,
+                    label: newFilterSearchProps.placeholder ?? columnID,
+                } as OldFilterDescription
+            }
+        }
+    }
+
+    return filterSet
+}

@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } from "../../models/fms_api_models"
-import { Button, Space, Table } from "antd"
+import { Button, Flex, Space, Table, Typography } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, SearchPropertiesDefinitions, usePaginatedDataProps, useSmartSelection, useTableColumns } from "../../utils/tableHooks"
+import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, usePaginatedDataProps, useSmartSelection, useTableColumns } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -12,6 +12,8 @@ import { Link } from "react-router-dom"
 import { ActionDropdown } from "../../utils/templateActions"
 import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates"
 import { smartQuerySetLookup } from "../../utils/functions"
+import { QuestionCircleOutlined } from "@ant-design/icons"
+import FiltersBar from "../filters/filtersBar/FiltersBar"
 
 enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
@@ -183,6 +185,8 @@ export function IndexCuration() {
         ))
     }, [defaultSelection, dispatch, exceptedItems, filtersAsOptions])
 
+    const filterSet = useMemo(() => newFilterDefinitionsToFilterSet<PooledSampleColumnID>(filters, FILTER_DESCRIPTIONS, FILTER_KEYS, SEARCH_DEFINITIONS), [filters])
+
     return (
         <>
             <AppPageHeader
@@ -194,13 +198,7 @@ export function IndexCuration() {
 			/>
             <PageContent>
                 <Space direction={"vertical"} style={{ width: '100%' }}>
-                    <Button
-                        type={"primary"}
-                        disabled={Object.keys(filters).length === 0}
-                        onClick={() => setFilters({})}
-                    >
-                        Clear Filters
-                    </Button>
+                    <FiltersBar filters={filterSet} clearFilters={() => setFilters({})} />
                     <Table<FMSPooledSample>
                         dataSource={dataSource}
                         pagination={pagination}
