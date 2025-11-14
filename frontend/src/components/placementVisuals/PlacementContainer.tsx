@@ -3,7 +3,6 @@ import { Empty } from "antd"
 import Cell from "./Cell"
 import { multiSelect } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import store from "../../store"
 import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
 import { selectParentContainer } from "../../modules/placement/selectors"
 
@@ -19,35 +18,35 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
     const totalRow = axisRow?.length
     const totalColumn = axisColumn?.length
 
+    const activeSourceContainer = useAppSelector(selectActiveSourceContainer)
     const selectColumn = useCallback((column: number) => {
-        return () => containerName && dispatch(multiSelect({
+        return () => containerName && activeSourceContainer && dispatch(multiSelect({
             parentContainer: { name: containerName},
             type: 'column',
             column,
             context: {
-                source: selectActiveSourceContainer(store.getState())
-            }
-        }))
-    }, [containerName, dispatch])
+                source: activeSourceContainer
+            }}))
+    }, [activeSourceContainer, containerName, dispatch])
     const selectRow = useCallback((row: number) => {
-        return () => containerName && dispatch(multiSelect({
+        return () => containerName && activeSourceContainer && dispatch(multiSelect({
             parentContainer: { name: containerName },
             type: 'row',
             row,
             context: {
-                source: selectActiveSourceContainer(store.getState())
+                source: activeSourceContainer
             }
         }))
-    }, [containerName, dispatch])
+    }, [activeSourceContainer, containerName, dispatch])
     const selectAll = useCallback(() => {
-        dispatch(multiSelect({
+        activeSourceContainer && dispatch(multiSelect({
             parentContainer: { name: containerName },
             type: 'all',
             context: {
-                source: selectActiveSourceContainer(store.getState())
+                source: activeSourceContainer
             }
         }))
-    }, [containerName, dispatch])
+    }, [activeSourceContainer, containerName, dispatch])
 
     const cells: ReactNode[] = useMemo(() => {
         const cells: ReactNode[] = []
@@ -58,7 +57,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
 
         //renders header based on the number of columns provided to the component
         const headerCells: ReactNode[] = []
-        const cellSize = totalColumn <= 12 ? "cell" : "tiny-cell"
+        const cellSize = "placement-cell" + (totalColumn <= 12 ? "" : " tiny-placement-cell")
         const columnLabelsWithPlus = ['+', ...axisColumn]
         for (let i = 0; i < totalColumn + 1; i++) {
             headerCells.push(
@@ -70,7 +69,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
             )
         }
         //adds number headers to total number of columns
-        cells.push(<div key={'headers'} className={"header-row"}>
+        cells.push(<div key={'headers'} className={"placement-container-rows-of-cells"}>
             {
                 headerCells
             }
@@ -99,7 +98,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
             }
             //pushes rowOfCells to cell array
             cells.push(
-                <div key={'row_' + axisRow[rowNumber]} className={"row"}>
+                <div key={'row_' + axisRow[rowNumber]} className={"placement-container-rows-of-cells"}>
                     {
                         rowOfCells
                     }
@@ -111,7 +110,7 @@ const PlacementContainer = ({ container: containerName }: PlacementContainerProp
 
     return (
         <>
-            <div className={"transfer"}>
+            <div className={"placement-cells"}>
                 {
                     (totalRow === 0 || totalColumn === 0 || cells.length === 0) ?
                         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
