@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } from "../../models/fms_api_models"
-import { Button, Flex, Space, Table, Typography } from "antd"
+import { Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, usePaginatedDataProps, useSmartSelection, useTableColumns } from "../../utils/tableHooks"
+import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, usePaginatedDataProps, useSmartSelection, useTableColumns, useTableSortBy } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -12,7 +12,6 @@ import { Link } from "react-router-dom"
 import { ActionDropdown } from "../../utils/templateActions"
 import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates"
 import { smartQuerySetLookup } from "../../utils/functions"
-import { QuestionCircleOutlined } from "@ant-design/icons"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 
 enum PooledSampleColumnID {
@@ -39,39 +38,44 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<PooledSampleColumnID> = {
     [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
 } as const
 
+const ROW_KEY = "id"
+
 const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSample> = {
     [PooledSampleColumnID.ALIAS]: {
         title: 'Name',
         dataIndex: 'alias',
-        key: 'alias'
+        key: PooledSampleColumnID.ALIAS,
+        sorter: { multiple: 1 }
     },
     [PooledSampleColumnID.CONTAINER_BARCODE]: {
         title: 'Container Barcode',
         dataIndex: 'container_barcode',
-        key: 'container_barcode',
+        key: PooledSampleColumnID.CONTAINER_BARCODE,
         render: (_: any, record: FMSPooledSample) => (
             <Link to={`/containers/${record.container_id}`}>{record.container_barcode}</Link>
         ),
+        sorter: { multiple: 1 }
     },
     [PooledSampleColumnID.COORDINATES]: {
         title: 'Coordinates',
         dataIndex: 'coordinates',
-        key: 'coordinates',
+        key: PooledSampleColumnID.COORDINATES,
         width: 130,
         align: 'center',
     },
     [PooledSampleColumnID.PROJECT]: {
         title: 'Project',
         dataIndex: 'project_name',
-        key: 'project_name',
+        key: PooledSampleColumnID.PROJECT,
         render: (_: any, record: FMSPooledSample) => (
             <Link to={`/projects/${record.project_id}`}>{record.project_name}</Link>
         ),
+        sorter: { multiple: 1 }
     },
     [PooledSampleColumnID.INDEX]: {
         title: 'Current Index',
         dataIndex: 'index',
-        key: 'index'
+        key: PooledSampleColumnID.INDEX
     },
 } as const
 
@@ -85,13 +89,12 @@ const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
 
 export function IndexCuration() {
     const dispatch = useAppDispatch()
-
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
-    const fetchPooledSamples = useCallback(async (pageNumber: number, pageSize: number, filters: Partial<Record<PooledSampleColumnID, string>>) => {
-        const queryParams = createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters)
+    const fetchPooledSamples = useCallback(async (pageNumber: number, pageSize: number, filters: Partial<Record<PooledSampleColumnID, string>>, sortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
         const response = await dispatch(api.pooledSamples.list(
             {
-                ...queryParams,
+                ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+                ...createQueryParamsFromSortBy(FILTER_KEYS, sortBy),
                 include_pools_of_one: true, derived_sample__library__isnull: false,
                 offset: (pageNumber - 1) * pageSize,
                 limit: pageSize,
@@ -108,6 +111,7 @@ export function IndexCuration() {
     }, [dispatch])
 
     const [filters, setFilters] = useState<Partial<Record<PooledSampleColumnID, string>>>({})
+    const [onChange, { sortBy, setSortBy }] = useTableSortBy<PooledSampleColumnID, FMSPooledSample>()
 
     const {
         dataSource,
@@ -117,9 +121,8 @@ export function IndexCuration() {
         defaultPageSize,
         fetchPooledSamples,
         filters,
+        sortBy,
     )
-
-    const rowKey = "id"
 
     const [
         rowSelection,
@@ -130,14 +133,14 @@ export function IndexCuration() {
             totalSelectionCount
         }
     ] = useSmartSelection<FMSPooledSample>(
-        pagination.total,
+        pagination.total ?? 0,
         dataSource,
-        rowKey,
+        ROW_KEY,
     )
 
     const paginationOnChange = pagination.onChange
     const mySetFilter = useCallback((searchKey: PooledSampleColumnID, text: string) => {
-        paginationOnChange(1)
+        paginationOnChange?.(1, pagination.pageSize ?? defaultPageSize)
         resetSelection()
         setFilters((prev) => {
             if (text) {
@@ -148,12 +151,13 @@ export function IndexCuration() {
                 return newFilters
             }
         })
-    }, [paginationOnChange, resetSelection, setFilters])
+    }, [defaultPageSize, pagination.pageSize, paginationOnChange, resetSelection])
     const columns = useTableColumns<PooledSampleColumnID, FMSPooledSample>(
         mySetFilter,
         filters,
         COLUMN_DEFINITIONS,
         SEARCH_DEFINITIONS,
+        sortBy,
     )
 
     const [templateActions, setTemplateActions] = useState<{ items: FMSTemplateAction[] }>({ items: [] })
@@ -174,18 +178,18 @@ export function IndexCuration() {
         })
     }, [dispatch])
 
-    const filtersAsOptions = useMemo(() => createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters), [filters])
     const prefillTemplate = useCallback(({ template }: { template: FMSId }) => {
         return dispatch(api.pooledSamples.prefill.request(
             {
-                ...filtersAsOptions,
+                ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+                ...createQueryParamsFromSortBy(FILTER_KEYS, sortBy),
                 ...smartQuerySetLookup('id', defaultSelection, exceptedItems.map(id => Number(id))),
             },
             template
         ))
-    }, [defaultSelection, dispatch, exceptedItems, filtersAsOptions])
+    }, [defaultSelection, dispatch, exceptedItems, filters, sortBy])
 
-    const filterSet = useMemo(() => newFilterDefinitionsToFilterSet<PooledSampleColumnID>(filters, FILTER_DESCRIPTIONS, FILTER_KEYS, SEARCH_DEFINITIONS), [filters])
+    const filterSet = useMemo(() => newFilterDefinitionsToFilterSet(filters, FILTER_DESCRIPTIONS, FILTER_KEYS, SEARCH_DEFINITIONS), [filters])
 
     return (
         <>
@@ -198,15 +202,19 @@ export function IndexCuration() {
 			/>
             <PageContent>
                 <Space direction={"vertical"} style={{ width: '100%' }}>
-                    <FiltersBar filters={filterSet} clearFilters={() => setFilters({})} />
+                    <FiltersBar filters={filterSet} clearFilters={() => {
+                        setFilters({})
+                        setSortBy({})
+                    }} />
                     <Table<FMSPooledSample>
                         dataSource={dataSource}
                         pagination={pagination}
                         loading={loading}
                         rowSelection={rowSelection}
                         columns={columns}
-                        rowKey={rowKey}
+                        rowKey={ROW_KEY}
                         scroll={{ y: '75vh' }}
+                        onChange={onChange}
                         bordered
                     />
                 </Space>
