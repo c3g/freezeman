@@ -24,3 +24,9 @@ export const selectCurrentPreferences = createSelector(
         return profile ? profile.preferences : DEFAULT_PREFERENCES
     }
 )
+export const selectCurrentPreference = createSelector(
+    [selectCurrentPreferences, (_: RootState, key: keyof FMSProfilePreferences) => key],
+    (preferences, key) => {
+        return preferences[key] ?? DEFAULT_PREFERENCES[key]
+    }
+)
