@@ -9,8 +9,9 @@ export function IndexCurationPage() {
   return (<>
         <PageContainer>
           <Routes>
+            <Route index element={<IndexCuration />} />
             <Route path="/actions/:action/*" element={<ActionContent templateType="pooledSample" />}/>
-            <Route path="*" element={<IndexCuration />}/>
+            <Route path="*" element={<Navigate to={"/management/index-curations"} />}/>
           </Routes>
         </PageContainer>
   </>)
