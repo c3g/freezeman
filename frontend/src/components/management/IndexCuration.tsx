@@ -3,7 +3,7 @@ import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } f
 import { Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, usePaginatedDataProps, useSmartSelection, useTableColumns, useTableSortBy } from "../../utils/tableHooks"
+import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, usePaginatedDataProps, useSmartSelection, useTableColumns, useTableSortBy } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -29,6 +29,13 @@ const FILTER_KEYS: FilterKeys<PooledSampleColumnID> = {
     [PooledSampleColumnID.PROJECT]: 'project__name',
     [PooledSampleColumnID.INDEX]: 'derived_sample__library__index__name',
 } as const
+const SORT_KEYS: SortKeys<PooledSampleColumnID> = {
+    [PooledSampleColumnID.ALIAS]: 'derived_sample__biosample__alias',
+    [PooledSampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
+    [PooledSampleColumnID.COORDINATES]: 'sample__coordinate__id',
+    [PooledSampleColumnID.PROJECT]: 'project__name',
+    [PooledSampleColumnID.INDEX]: 'derived_sample__library__index__name',
+}
 
 const FILTER_DESCRIPTIONS: FilterDescriptions<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
@@ -60,8 +67,9 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
         title: 'Coordinates',
         dataIndex: 'coordinates',
         key: PooledSampleColumnID.COORDINATES,
-        width: 130,
+        width: 150,
         align: 'center',
+        sorter: { multiple: 1 }
     },
     [PooledSampleColumnID.PROJECT]: {
         title: 'Project',
@@ -94,7 +102,7 @@ export function IndexCuration() {
         const response = await dispatch(api.pooledSamples.list(
             {
                 ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
-                ...createQueryParamsFromSortBy(FILTER_KEYS, sortBy),
+                ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
                 include_pools_of_one: true, derived_sample__library__isnull: false,
                 offset: (pageNumber - 1) * pageSize,
                 limit: pageSize,

@@ -293,7 +293,7 @@ _pooled_sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "sample__id": PK_FILTERS,
     "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
-    "sample__coordinate__name": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("sample__coordinate__", _coordinate_filterset_fields),
     "sample__fragment_size": SCALAR_FILTERS,
     "project__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
