@@ -26,6 +26,7 @@ function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: 
 }
 
 type SortBy<ColumnID extends string> = Partial<Record<ColumnID, 'ascend' | 'descend'>>
+export type SortKeys<ColumnID extends string> = Record<ColumnID, string>
 
 export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>(
     defaultPageSize: number,
@@ -368,10 +369,10 @@ export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys
     }, {})
 }
 
-export function createQueryParamsFromSortBy<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, sortBy: SortBy<ColumnID>): Record<string, string> {
+export function createQueryParamsFromSortBy<ColumnID extends string>(sortKeys: SortKeys<ColumnID>, sortBy: SortBy<ColumnID>): Record<string, string> {
     return  {
         ordering: Object.entries(sortBy).map(([columnID, order]) => {
-            return order === 'ascend' ? filterKeys[columnID as ColumnID] : `-${filterKeys[columnID as ColumnID]}`
+            return order === 'ascend' ? sortKeys[columnID as ColumnID] : `-${sortKeys[columnID as ColumnID]}`
         }).join(',')
     }
 }
