@@ -2,10 +2,13 @@ import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox, Input, InputRef } from "antd"
-import { SelectionSelectFn, TableRowSelection } from "antd/es/table/interface"
+import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
 import { SearchOutlined } from "@ant-design/icons"
 import { useDebouncedEffect } from "../components/filters/filterComponents/DebouncedInput"
+import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue } from "../models/paged_items"
+
+type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>, sortBy: SortBy<ColumnID>) => Promise<{ total: number, data: RowData[] }>
 
 export type ColumnDefinitions<ColumnID extends string, RowData> = Record<ColumnID, ColumnType<RowData>>
 
@@ -22,11 +25,19 @@ function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: 
     return rowKey instanceof Function ? rowKey(record) : record[rowKey as keyof RowData] as React.Key
 }
 
+type SortBy<ColumnID extends string> = Partial<Record<ColumnID, 'ascend' | 'descend'>>
+export type SortKeys<ColumnID extends string> = Record<ColumnID, string>
+
 export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>(
     defaultPageSize: number,
     fetchRowData: FetchRowData<ColumnID, RowData>,
     filters: Partial<Record<ColumnID, string>>,
-) {
+    sortBy: SortBy<ColumnID>
+): {
+    dataSource: RowData[],
+    loading: boolean,
+    pagination: TablePaginationConfig,
+} {
     const { pagination, setTotal } = usePagination(defaultPageSize)
     
     const { current: currentPage, pageSize } = pagination
@@ -37,7 +48,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         if (currentPage !== undefined && pageSize !== undefined) {
             setLoading(true)
             fetchRowData(
-                currentPage, pageSize, filters
+                currentPage, pageSize, filters, sortBy
             ).then(({ total: newTotal, data }) => {
                 setDataSource(data)
                 setTotal(newTotal)
@@ -47,7 +58,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
                 setLoading(false)
             })
         }
-    }, [currentPage, pageSize, fetchRowData, filters, setTotal])
+    }, [currentPage, pageSize, fetchRowData, filters, sortBy, setTotal])
     useDebouncedEffect(debouncedEffect)
 
     return {
@@ -57,7 +68,10 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     }
 }
 
-function usePagination(defaultPageSize: number) {
+function usePagination(defaultPageSize: number): {
+    pagination: TablePaginationConfig,
+    setTotal: (total: number) => void,
+} {
     const [total, setTotal] = useState<number>(0)
     const [current, setCurrent] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
@@ -94,7 +108,7 @@ function usePagination(defaultPageSize: number) {
             onChange: setCurrentPageAndPageSize,
         },
         setTotal,
-    }), [current, setCurrentPageAndPageSize, pageSize, total])
+    }), [current, pageSize, setCurrentPageAndPageSize, total])
 }
 
 export function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>(
@@ -102,12 +116,13 @@ export function useTableColumns<ColumnID extends string, RowData extends AntdAny
     filters: Partial<Record<ColumnID, string>>,
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
     searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
+    sortBy: SortBy<ColumnID>,
 ): ColumnsType<RowData> {
     const searchInput = useRef<InputRef>(null)
     return useMemo(() => {
         const columns: ColumnsType<RowData> = []
         for (const columnID in columnDefinitions) {
-            const column = {}
+            const column: ColumnType<RowData> = {}
             Object.assign(column, columnDefinitions[columnID])
 
             const searchPropsArgs = searchPropertyDefinitions[columnID]
@@ -117,13 +132,16 @@ export function useTableColumns<ColumnID extends string, RowData extends AntdAny
                     columnID,
                     filters[columnID],
                     searchInput,
-                    searchPropsArgs.placeholder
+                    searchPropsArgs
                 ))
             }
+
+            column.sortOrder = sortBy[columnID] ?? null
+
             columns.push(column)
         }
         return columns
-    }, [columnDefinitions, filters, searchPropertyDefinitions, setFilter])
+    }, [columnDefinitions, filters, searchPropertyDefinitions, setFilter, sortBy])
 }
 
 function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
@@ -131,14 +149,14 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     searchKey: SearchKey,
     currentFilterValue: string | undefined,
     searchInput: React.RefObject<InputRef>,
-    placeholder?: string
+    searchPropsArgs: SearchPropertyDefinition,
 ): ColumnType<T> {
     return {
         filterDropdown: ({ confirm, close }) => (
             <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
                 <Input
                     ref={searchInput}
-                    placeholder={`Search ${placeholder ?? searchKey}`}
+                    placeholder={`Search ${searchPropsArgs.placeholder ?? searchKey}`}
                     value={currentFilterValue ?? ''}
                     onChange={(e) => {
                         setFilter(searchKey, e.target.value)
@@ -174,7 +192,54 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     }
 }
 
-export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]) {
+export function useTableSortBy<ColumnID extends string, RowData extends AntdAnyObject>(): [
+    NonNullable<TableProps<RowData>['onChange']>,
+    {
+        sortBy: SortBy<ColumnID>,
+        setSortBy: React.Dispatch<React.SetStateAction<SortBy<ColumnID>>>,
+    }
+] {
+    const [sortBy, setSortBy] = useState<SortBy<ColumnID>>({})
+
+    const onChange = useCallback<NonNullable<TableProps<RowData>['onChange']>>((pagination, filters, sorter) => {
+        if (Array.isArray(sorter)) {
+            setSortBy((sortBy) => {
+                return sorter.reduce<typeof sortBy>((newSortBy, sortItem) => {
+                    if (sortItem.order && sortItem.columnKey) {
+                        newSortBy[sortItem.columnKey as ColumnID] = sortItem.order
+                    }
+                    return newSortBy
+                }, {})
+            })
+        } else {
+            if (sorter.order && sorter.columnKey) {
+                setSortBy({
+                    [sorter.columnKey as ColumnID]: sorter.order
+                } as SortBy<ColumnID>)
+            } else {
+                setSortBy({})
+            }
+        }
+    }, [])
+
+    return [
+        onChange,
+        {
+            sortBy,
+            setSortBy,
+        }
+    ] as const
+}
+
+export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]): [
+    TableRowSelection<RowData>,
+    {
+        resetSelection: () => void,
+        defaultSelection: boolean,
+        exceptedItems: React.Key[],
+        totalSelectionCount: number,
+    }
+] {
 	const [defaultSelection, setDefaultSelection] = useState(false)
 	const [exceptedItems, setExceptedItems] = useState<React.Key[]>(initialExceptedItems ?? [])
 	const allIsSelected = (!defaultSelection && exceptedItems.length === totalCount) || (defaultSelection && exceptedItems.length === 0)
@@ -304,5 +369,34 @@ export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys
     }, {})
 }
 
+export function createQueryParamsFromSortBy<ColumnID extends string>(sortKeys: SortKeys<ColumnID>, sortBy: SortBy<ColumnID>): Record<string, string> {
+    return  {
+        ordering: Object.entries(sortBy).map(([columnID, order]) => {
+            return order === 'ascend' ? sortKeys[columnID as ColumnID] : `-${sortKeys[columnID as ColumnID]}`
+        }).join(',')
+    }
+}
 
-type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>) => Promise<{ total: number, data: RowData[] }>
+export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters: Partial<Record<ColumnID, string>>, filterDescriptions: FilterDescriptions<ColumnID>, filterKeys: FilterKeys<ColumnID>, searchProperties: SearchPropertiesDefinitions<ColumnID>): OldFilterSet {
+    const filterSet: OldFilterSet = {}
+
+    for (const columnID in filters) {
+        const newValue = filters[columnID as ColumnID]
+        const newFilterDescription = filterDescriptions[columnID as ColumnID]
+        const newFilterKey = filterKeys[columnID as ColumnID]
+        const newFilterSearchProps = searchProperties[columnID as ColumnID]
+
+        if (newFilterDescription.type === FILTER_TYPE.INPUT) {
+            filterSet[newFilterKey] = {
+                value: newValue as OldFilterValue,
+                description: {
+                    type: FILTER_TYPE.INPUT,
+                    key: newFilterKey,
+                    label: newFilterSearchProps.placeholder ?? columnID,
+                } as OldFilterDescription
+            }
+        }
+    }
+
+    return filterSet
+}
