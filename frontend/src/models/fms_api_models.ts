@@ -634,3 +634,8 @@ export interface FMSReportData {
         time_window_label: string
     }[]
 }
+
+export interface FMSSampleLineageGraph {
+    nodes: Pick<FMSSample, 'id' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>[],
+    edges: (Pick<FMSProcessMeasurement, 'id' | 'source_sample' | 'child_sample'> & { protocol_name: string })[]
+}
