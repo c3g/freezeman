@@ -636,6 +636,6 @@ export interface FMSReportData {
 }
 
 export interface FMSSampleLineageGraph {
-    nodes: Pick<FMSSample, 'id' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>[],
+    nodes: Pick<FMSSample, 'id' | 'name' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>[],
     edges: (Pick<FMSProcessMeasurement, 'id' | 'source_sample' | 'child_sample'> & { protocol_name: string })[]
 }
