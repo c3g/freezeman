@@ -1,6 +1,6 @@
-import React, { RefCallback, useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
-import { Typography, Card, Space } from 'antd';
+import { Typography, Card, Space, Button, Popover } from 'antd';
 
 const { Text } = Typography;
 
@@ -14,7 +14,6 @@ import "./SampleDetailsLineage.scss"
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import cytoscapeDagre from "cytoscape-dagre";
-import { useNavigate } from "react-router-dom";
 
 interface SampleDetailsLineageProps {
     sample: Partial<Sample>
@@ -29,6 +28,7 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
     const dispatch = useAppDispatch()
 
     const [data, setData] = React.useState<FMSSampleLineageGraph>({ nodes: [], edges: [] })
+    const [cy, setCy] = React.useState<cytoscape.Core | null>(null)
 
     useEffect(() => {
         if (sample.id !== undefined) {
@@ -37,6 +37,13 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
             })
         }
     }, [dispatch, sample.id])
+
+    const recenter = useCallback(() => {
+        if (cy) {
+            const currentNode = cy.$(`node[id="${sample.id}"]`)
+            cy.center(currentNode)
+        }
+    }, [cy, sample.id])
 
     useEffect(() => {
         const layout: cytoscapeDagre.DagreLayoutOptions = {
@@ -75,6 +82,7 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
                             'target-arrow-shape': 'triangle',
                             'line-color': '#9dbaea',
                             'target-arrow-color': '#9dbaea',
+                            'width': 4,
                         }
                     }
                 ],
@@ -123,10 +131,33 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
             const currentNode = cy.$(`node[id="${sample.id}"]`)
             cy.zoom(0.75)
             cy.center(currentNode)
+            setCy(cy)
         }
     }, [data.edges, data.nodes, handleProcessClick, handleSampleClick, sample.id])
 
-    return <div id="sample-details-lineage-div"></div>
+    return <>
+        <Space>
+          <Button
+            type="primary"
+            style={{ width: "fit-content" }}
+            onClick={() => recenter()}
+          >
+            Recenter
+          </Button>
+          <Popover
+            content={<Details />}
+            placement={"topLeft"}
+          >
+            <Button
+              type="primary"
+              style={{ width: "fit-content" }}
+            >
+              ?
+            </Button>
+          </Popover>
+        </Space>
+        <div id="sample-details-lineage-div"></div>
+    </>
 }
 
 function Details() {
