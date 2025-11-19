@@ -10,6 +10,10 @@ import { Sample } from "../../../models/frontend_models";
 import { FMSProcessMeasurement, FMSSample, FMSSampleLineageGraph } from "../../../models/fms_api_models"
 import { Property } from "csstype"
 
+import "./SampleDetailsLineage.scss"
+import dagreD3 from "dagre-d3"
+import * as d3 from "d3"
+
 interface SampleDetailsLineageProps {
     sample: Partial<Sample>
     handleSampleClick?: (id: FMSSample['id']) => void
@@ -29,11 +33,36 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
         }
     }, [dispatch, sample.id])
 
-    const d3ContainerRefCallback = useCallback<RefCallback<SVGSVGElement>>((svgNode) => {
-        return
-    }, [])
+    useEffect(() => {
+        const g = new dagreD3.graphlib.Graph().setGraph({});
+        data.nodes.forEach((node) => {
+            g.setNode(node.id.toString(), { label: node.id.toString() })
+        })
+        data.edges.forEach((edge) => {
+            if (edge.child_sample)
+                g.setEdge(edge.source_sample.toString(), edge.child_sample.toString(), { label: edge.protocol_name })
+        })
 
-    return <></>
+        const svg = d3.select("#lineage-graph-svg")
+        const inner = svg.select("g")
+
+        const zoom = d3.zoom().on("zoom", function() {
+            inner.attr("transform", d3.event.transform);
+        });
+        svg.call(zoom);
+
+        const render = new dagreD3.render();
+        render(inner, g);
+
+        // Center the graph
+        const initialScale = 0.75;
+        svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+        svg.attr('height', g.graph().height * initialScale + 40);
+    }, [data.edges, data.nodes])
+
+    return <svg id="lineage-graph-svg" width="600" height="400">
+        <g></g>
+    </svg>
 }
 
 function Details() {
