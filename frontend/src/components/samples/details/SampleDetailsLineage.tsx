@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { RefCallback, useCallback, useEffect, useMemo } from "react";
 
 import { Typography, Card, Space, Button, Popover } from 'antd';
 
@@ -23,70 +23,59 @@ interface SampleDetailsLineageProps {
 
 
 cytoscape.use(dagre)
+const layout: cytoscapeDagre.DagreLayoutOptions = {
+    name: 'dagre',
+    rankDir: 'LR',
+    nodeDimensionsIncludeLabels: true,
+    avoidOverlap: true,
+    nodeSep: 150,
+}
+const lineageCy = cytoscape({
+    style: [
+        {
+            selector: 'node',
+            style: {
+                'content': 'data(name)',
+                'background-color': 'data(color)',
+                'color': 'data(color)',
+                'text-opacity': 1,
+                'text-valign': 'top',
+                'text-halign': 'left',
+                'shape': 'data(shape)',
+            }
+        },
+
+        {
+            selector: 'edge',
+            style: {
+                'content': 'data(protocol_name)',
+                'curve-style': 'bezier',
+                'target-arrow-shape': 'triangle',
+                'line-color': '#9dbaea',
+                'target-arrow-color': '#9dbaea',
+                'width': 4,
+            }
+        }
+    ],
+})
+window.lineageCy = lineageCy
+
 
 function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }: SampleDetailsLineageProps) {
     const dispatch = useAppDispatch()
 
-    const [data, setData] = React.useState<FMSSampleLineageGraph>({ nodes: [], edges: [] })
-    const [cy, setCy] = React.useState<cytoscape.Core | null>(null)
+    const recenter = useCallback(() => {
+        const currentNode = lineageCy.$(`node[id="${sample.id}"]`)
+        lineageCy.zoom(0.75)
+        lineageCy.center(currentNode)
+    }, [sample.id])
 
     useEffect(() => {
         if (sample.id !== undefined) {
-            dispatch(api.sample_lineage.get(sample.id)).then((result) => {
-                setData(result.data)
-            })
-        }
-    }, [dispatch, sample.id])
-
-    const recenter = useCallback(() => {
-        if (cy) {
-            const currentNode = cy.$(`node[id="${sample.id}"]`)
-            cy.center(currentNode)
-        }
-    }, [cy, sample.id])
-
-    useEffect(() => {
-        const layout: cytoscapeDagre.DagreLayoutOptions = {
-            name: 'dagre',
-            rankDir: 'LR',
-            nodeDimensionsIncludeLabels: true,
-            avoidOverlap: true,
-            nodeSep: 150,
-        }
-
-        const container = document.getElementById('sample-details-lineage-div')
-        if (container) {
-            container.innerHTML = ''
-            const cy = window.cy = cytoscape({
-                container,
-                layout,
-                style: [
-                    {
-                        selector: 'node',
-                        style: {
-                            'content': 'data(name)',
-                            'background-color': 'data(color)',
-                            'color': 'data(color)',
-                            'text-opacity': 1,
-                            'text-valign': 'top',
-                            'text-halign': 'left',
-                            'shape': 'data(shape)',
-                        }
-                    },
-
-                    {
-                        selector: 'edge',
-                        style: {
-                            'content': 'data(protocol_name)',
-                            'curve-style': 'bezier',
-                            'target-arrow-shape': 'triangle',
-                            'line-color': '#9dbaea',
-                            'target-arrow-color': '#9dbaea',
-                            'width': 4,
-                        }
-                    }
-                ],
-                elements: {
+            dispatch(api.sample_lineage.get(sample.id)).then(({ data }) => {
+                lineageCy.remove("node")
+                lineageCy.remove("edge")
+                lineageCy.add({
                     nodes: data.nodes.reduce<cytoscape.NodeDefinition[]>((prev, node) => {
                         const QCs = [node.quality_flag, node.quantity_flag]
                         const color = QCs.some((f) => f === false) ? "red" : (QCs.every((f) => f === true) ? "green" : "black")
@@ -114,26 +103,39 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
                         }
                         return prev
                     }, [])
-                }
+                })
+
+                lineageCy.layout(layout).run()
+                recenter()
             })
-            cy.on("click", "node", (event) => {
-                const nod = event.target
-                if (handleSampleClick) {
-                    handleSampleClick(parseInt(nod.data().id))
-                }
-            })
-            cy.on("click", "edge", (event) => {
-                const edge = event.target
-                if (handleProcessClick) {
-                    handleProcessClick(parseInt(edge.data().id))
-                }
-            })
-            const currentNode = cy.$(`node[id="${sample.id}"]`)
-            cy.zoom(0.75)
-            cy.center(currentNode)
-            setCy(cy)
         }
-    }, [data.edges, data.nodes, handleProcessClick, handleSampleClick, sample.id])
+    }, [dispatch, recenter, sample.id])
+
+    useEffect(() => {
+        lineageCy.on("click", "node", (event) => {
+            const nod = event.target
+            if (handleSampleClick) {
+                handleSampleClick(parseInt(nod.data().id))
+            }
+        })
+        lineageCy.on("click", "edge", (event) => {
+            const edge = event.target
+            if (handleProcessClick) {
+                handleProcessClick(parseInt(edge.data().id))
+            }
+        })
+        return () => {
+            lineageCy.removeAllListeners()
+        }
+    }, [handleProcessClick, handleSampleClick])
+
+    const divRef = useCallback<RefCallback<HTMLDivElement>>((divNode) => {
+        if (divNode !== null) {
+            lineageCy.mount(divNode)
+        } else {
+            lineageCy.unmount()
+        }
+    }, [])
 
     return <>
         <Space>
@@ -156,7 +158,7 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
             </Button>
           </Popover>
         </Space>
-        <div id="sample-details-lineage-div"></div>
+        <div ref={divRef} id="sample-details-lineage-div" />
     </>
 }
 
