@@ -19,7 +19,7 @@ def create_novaseq_instrument(apps, schema_editor):
         reversion.set_comment(f"Create instrument Yvette Bonny for Illumina.")
         reversion.set_user(admin_user)
 
-        platform, _ = Platform.objects.get(name="ILLUMINA")
+        platform = Platform.objects.get(name="ILLUMINA")
         instrument_type = InstrumentType.objects.get(platform=platform, type="Illumina NovaSeq X")
 
         instrument = Instrument.objects.create(
