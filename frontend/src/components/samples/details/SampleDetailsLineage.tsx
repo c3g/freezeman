@@ -120,6 +120,9 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
                     handleProcessClick(parseInt(edge.data().id))
                 }
             })
+            const currentNode = cy.$(`node[id="${sample.id}"]`)
+            cy.zoom(0.75)
+            cy.center(currentNode)
         }
     }, [data.edges, data.nodes, handleProcessClick, handleSampleClick, sample.id])
 
