@@ -1,10 +1,12 @@
+from collections import defaultdict
+
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.index_update import IndexUpdateRowHandler
 from fms_core.templates import INDEX_UPDATE_TEMPLATE
 
 from fms_core.models import Index
 from fms_core.utils import str_cast_and_normalize
-from fms_core.services.index import validate_indices
+from fms_core.services.index import validate_indices, validate_distance_matrix
 
 class IndexUpdateImporter(GenericImporter):
     SHEETS_INFO = INDEX_UPDATE_TEMPLATE["sheets info"]
@@ -15,6 +17,7 @@ class IndexUpdateImporter(GenericImporter):
     def import_template_inner(self):
         index_update_sheet = self.sheets['Library']
         samples_affected = set()
+        mapping_index_to_row = {}
         for row_id, row_data in enumerate(index_update_sheet.rows):
             library = {
                 'alias': str_cast_and_normalize(row_data['Library Name']),
@@ -37,15 +40,38 @@ class IndexUpdateImporter(GenericImporter):
                 row_i=row_id,
                 **index_update_kwargs,
             )
-            print(row_object)
+            mapping_index_to_row[index['new_index']] = row_id
             samples_affected.update(row_object["Samples Impacted"])
         
         # Once all updates are done validate collisions for all affected samples
+        warnings_by_row = defaultdict(list)
         for sample in samples_affected:
-            print(sample)
             indices = Index.objects.filter(libraries__derived_sample__samples__id=sample.id)
             if len(indices) > 1:
                 results, _, _ = validate_indices(indices=indices, threshold=0)
                 if not results["is_valid"]:
-                    print(results)
-                    #self.warnings["index collision"].append(("Index {0} collide with an existing index in pooled library {1} with ID [{2}].", [index.name, sample.name, sample.id]))
+                    header = results["header"]
+                    distance_matrix = results["distances"]
+                    _, collisions = validate_distance_matrix(distance_matrix, 0)
+                    for x, y in collisions:
+                        index_id_x = header[x]
+                        index_id_y = header[y]
+                        try:
+                            index_x = Index.objects.get(id=index_id_x)
+                        except:
+                            self.base_errors.append(f"Failed to find index id {index_id_x} during validation.")
+                        try:
+                            index_y = Index.objects.get(id=index_id_y)
+                        except:
+                            self.base_errors.append(f"Failed to find index id {index_id_y} during validation.")
+                        warning_row_id = mapping_index_to_row.get(index_x.name, None)
+                        if warning_row_id is None:
+                            # if the conflicting index reported is not the same.
+                            warning_row_id = mapping_index_to_row.get(index_y.name, None)
+                        warnings_by_row[warning_row_id].append(("Pooled library {0} (Sample ID {1}) would have a conflict between index {2} and index {3}.", [sample.name, sample.id, index_x.name, index_y.name]))
+
+        for row_id, warnings in warnings_by_row.items():
+            for format, args in warnings:
+                combined_warnings = index_update_sheet.rows_results[row_id]["warnings"]
+                combined_warnings.append({"key": "index collisions","format": format, "args": args})
+                index_update_sheet.rows_results[row_id].update(warnings=combined_warnings)
