@@ -10,9 +10,6 @@ import { Sample } from "../../../models/frontend_models";
 import { FMSProcessMeasurement, FMSSample, FMSSampleLineageGraph } from "../../../models/fms_api_models"
 import { Property } from "csstype"
 
-import dagre from "dagre"
-import * as d3 from "d3";
-
 interface SampleDetailsLineageProps {
     sample: Partial<Sample>
     handleSampleClick?: (id: FMSSample['id']) => void
@@ -33,68 +30,10 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
     }, [dispatch, sample.id])
 
     const d3ContainerRefCallback = useCallback<RefCallback<SVGSVGElement>>((svgNode) => {
-        const g = new dagre.graphlib.Graph<FMSSampleLineageGraph['nodes'][0]>()
-        g.setGraph({
-            marginx: MARGIN_LEFT + MARGIN_RIGHT,
-            marginy: MARGIN_TOP + MARGIN_BOTTOM,
-            rankdir: 'LR',
-        })
-        g.setDefaultEdgeLabel(() => ({}))
+        return
+    }, [])
 
-        for (const node of data.nodes) {
-            g.setNode(node.id.toString(), { ...node })
-        }
-
-        for (const edge of data.edges) {
-            // child_sample is typically missing for QC. In which case, we would just color the sample node accordingly
-            if (edge.child_sample) {
-                g.setEdge(edge.source_sample.toString(), edge.child_sample.toString(), { ...edge })
-            }
-        }
-
-        dagre.layout(g)
-
-        if (svgNode) {
-            const svg = d3.select(svgNode);
-            
-            svg.selectAll("*").remove();  // Clear previous contents
-
-            svg.attr("width", WIDTH)
-                .attr("height", HEIGHT)
-                .attr("viewBox", [0, 0, g.graph().width ?? WIDTH, g.graph().width ?? HEIGHT])
-                .attr("style", "max-width: 100%; height: auto;");
-
-            const link = svg.append("g")
-                .selectAll("line")
-                .data(g.edges())
-                .enter()
-                .append("line")
-                .attr("stroke", "#000")
-                .attr("stroke-width", 2)
-                .attr("x1", (d) => g.node(d.v).x)
-                .attr("y1", (d) => g.node(d.v).y)
-                .attr("x2", (d) => g.node(d.w).x)
-                .attr("y2", (d) => g.node(d.w).y)
-                .attr("source", (d) => d.v)
-                .attr("target", (d) => d.w);
-            
-            link.append("title").text((d) => `Process ID: ${g.edge(d)?.protocol_name}`);
-
-            const node = svg.append("g")
-                .selectAll("circle")
-                .data(g.nodes())
-                .enter()
-                .append("circle")
-                .attr("stroke", "#000").attr("stroke-width", 5)
-                .attr("cx", (d) => g.node(d).x)
-                .attr("cy", (d) => g.node(d).y)
-                .attr("r", 5);
-            node.append("title").text((d) => g.node(d).id);
-        }
-    }, [data.edges, data.nodes])
-
-    return <svg ref={d3ContainerRefCallback}>
-    </svg>
+    return <></>
 }
 
 function Details() {
@@ -159,10 +98,3 @@ function Legend() {
 }
 
 export default SampleDetailsLineage;
-
-const WIDTH = 1000
-const HEIGHT = 1000
-const MARGIN_TOP = 10
-const MARGIN_RIGHT = 10
-const MARGIN_BOTTOM = 10
-const MARGIN_LEFT = 10
