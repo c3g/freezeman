@@ -7,13 +7,12 @@ const { Text } = Typography;
 import api from "../../../utils/api";
 import { useAppDispatch } from '../../../hooks'
 import { Sample } from "../../../models/frontend_models";
-import { FMSProcessMeasurement, FMSSample, FMSSampleLineageGraph } from "../../../models/fms_api_models"
+import { FMSProcessMeasurement, FMSSample } from "../../../models/fms_api_models"
 import { Property } from "csstype"
 
 import "./SampleDetailsLineage.scss"
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import cytoscapeDagre from "cytoscape-dagre";
 
 interface SampleDetailsLineageProps {
     sample: Partial<Sample>
@@ -21,54 +20,8 @@ interface SampleDetailsLineageProps {
     handleProcessClick?: (id: FMSProcessMeasurement['id']) => void
 }
 
-
-cytoscape.use(dagre)
-const layout: cytoscapeDagre.DagreLayoutOptions = {
-    name: 'dagre',
-    rankDir: 'LR',
-    nodeDimensionsIncludeLabels: true,
-    avoidOverlap: true,
-    nodeSep: 150,
-}
-const lineageCy = cytoscape({
-    style: [
-        {
-            selector: 'node',
-            style: {
-                'content': 'data(name)',
-                'background-color': 'data(color)',
-                'color': 'data(color)',
-                'text-opacity': 1,
-                'text-valign': 'top',
-                'text-halign': 'left',
-                'shape': 'data(shape)',
-            }
-        },
-
-        {
-            selector: 'edge',
-            style: {
-                'content': 'data(protocol_name)',
-                'curve-style': 'bezier',
-                'target-arrow-shape': 'triangle',
-                'line-color': '#9dbaea',
-                'target-arrow-color': '#9dbaea',
-                'width': 4,
-            }
-        }
-    ],
-})
-window.lineageCy = lineageCy
-
-
 function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }: SampleDetailsLineageProps) {
     const dispatch = useAppDispatch()
-
-    const recenter = useCallback(() => {
-        const currentNode = lineageCy.$(`node[id="${sample.id}"]`)
-        lineageCy.zoom(0.75)
-        lineageCy.center(currentNode)
-    }, [sample.id])
 
     useEffect(() => {
         if (sample.id !== undefined) {
@@ -104,24 +57,23 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
                         return prev
                     }, [])
                 })
-
-                lineageCy.layout(layout).run()
-                recenter()
+                currentNode = lineageCy.$(`node[id="${sample.id}"]`)
+                resetLineageLayout()
             })
         }
-    }, [dispatch, recenter, sample.id])
+    }, [dispatch, sample.id])
 
     useEffect(() => {
         lineageCy.on("click", "node", (event) => {
-            const nod = event.target
             if (handleSampleClick) {
-                handleSampleClick(parseInt(nod.data().id))
+                const node = event.target.data()
+                handleSampleClick(parseInt(node.id))
             }
         })
         lineageCy.on("click", "edge", (event) => {
-            const edge = event.target
             if (handleProcessClick) {
-                handleProcessClick(parseInt(edge.data().id))
+                const edge = event.target.data()
+                handleProcessClick(parseInt(edge.id))
             }
         })
         return () => {
@@ -129,36 +81,35 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
         }
     }, [handleProcessClick, handleSampleClick])
 
-    const divRef = useCallback<RefCallback<HTMLDivElement>>((divNode) => {
-        if (divNode !== null) {
-            lineageCy.mount(divNode)
-        } else {
-            lineageCy.unmount()
-        }
-    }, [])
-
     return <>
         <Space>
-          <Button
-            type="primary"
-            style={{ width: "fit-content" }}
-            onClick={() => recenter()}
-          >
-            Recenter
-          </Button>
-          <Popover
-            content={<Details />}
-            placement={"topLeft"}
-          >
             <Button
-              type="primary"
-              style={{ width: "fit-content" }}
+                type="primary"
+                style={{ width: "fit-content" }}
+                onClick={resetLineageLayout}
             >
-              ?
+                Reset
             </Button>
-          </Popover>
+            <Button
+                type="primary"
+                style={{ width: "fit-content" }}
+                onClick={recenter}
+            >
+                Recenter
+            </Button>
+            <Popover
+                content={<Details />}
+                placement={"topLeft"}
+            >
+                <Button
+                    type="primary"
+                    style={{ width: "fit-content" }}
+                >
+                    ?
+                </Button>
+            </Popover>
         </Space>
-        <div ref={divRef} id="sample-details-lineage-div" />
+        <div ref={lineageDivRefCallback} id="sample-details-lineage-div" />
     </>
 }
 
@@ -223,4 +174,61 @@ function Legend() {
     </>
 }
 
-export default SampleDetailsLineage;
+export default SampleDetailsLineage
+
+cytoscape.use(dagre)
+const lineageCy = cytoscape()
+window.lineageCy = lineageCy // declare lineageCy globally for debugging in browser console
+lineageCy.style([
+    {
+        selector: 'node',
+        style: {
+            'content': 'data(name)',
+            'background-color': 'data(color)',
+            'color': 'data(color)',
+            'text-opacity': 1,
+            'text-valign': 'top',
+            'text-halign': 'left',
+            'shape': 'data(shape)',
+        }
+    },
+
+    {
+        selector: 'edge',
+        style: {
+            'content': 'data(protocol_name)',
+            'curve-style': 'bezier',
+            'target-arrow-shape': 'triangle',
+            'line-color': '#9dbaea',
+            'target-arrow-color': '#9dbaea',
+            'width': 4,
+        }
+    }
+]).update()
+function lineageDivRefCallback(divNode: HTMLDivElement | null) {
+    if (divNode) {
+        lineageCy.mount(divNode)
+    } else {
+        lineageCy.unmount()
+    }
+}
+
+let currentNode: cytoscape.NodeSingular | null = null
+function recenter() {
+    if (currentNode) {
+        lineageCy.zoom(0.75)
+        lineageCy.center(currentNode)
+    }
+}
+
+function resetLineageLayout() {
+    lineageCy.layout({
+        name: 'dagre',
+        rankDir: 'LR',
+        nodeDimensionsIncludeLabels: true,
+        avoidOverlap: true,
+        nodeSep: 150,
+        rankSep: 150
+    }).run()
+    // recenter()
+}

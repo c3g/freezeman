@@ -416,7 +416,7 @@ const SampleDetailsContent = () => {
           </Descriptions>
         </TabPane>
 
-        <TabPane tab={`Lineage`} key="lineage" style={lineageStyle}>
+        <TabPane tab={`Lineage`} key="lineage" style={lineageStyle} destroyInactiveTabPane>
           <SampleDetailsLineage sample={sample} 
             handleSampleClick={navigateToSample}
             handleProcessClick={navigateToProcess}
