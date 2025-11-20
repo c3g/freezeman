@@ -1,6 +1,6 @@
 import React, { RefCallback, useCallback, useEffect, useMemo } from "react";
 
-import { Typography, Card, Space, Button, Popover, Spin } from 'antd';
+import { Typography, Card, Space, Button, Popover } from 'antd';
 
 const { Text } = Typography;
 
