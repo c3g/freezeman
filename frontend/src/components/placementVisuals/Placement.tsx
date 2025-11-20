@@ -178,7 +178,6 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             {usesSamplesheet &&
                                 <Button
                                     onClick={handleGetSamplesheet}
-                                // disabled={!isPlacementComplete}
                                 >
                                     Get Samplesheet
                                 </Button>
