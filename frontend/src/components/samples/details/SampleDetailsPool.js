@@ -15,6 +15,26 @@ import { withToken } from '../../../utils/api'
 
 import mergedListQueryParams from '../../../utils/mergedListQueryParams'
 
+/**
+ * 
+ * @param {number | string} number
+ * @param {number} sigfig
+ */
+function truncateNumberWithSigFig(number, sigfig) {
+    let regex = []
+    regex.push('^(0\\.)?0*')
+    for (let i = 0; i < sigfig; i++) {
+        regex.push('\\.?[0-9]')
+    }
+    regex = `/${regex.join('')}/g`
+    const matches = number.toString().match(new RegExp(regex))
+    if (matches && matches.length > 0) {
+        return matches[0]
+    } else {
+        return number
+    }
+}
+
 const getTableColumns = (sampleKinds) => {
     return [
         {    
