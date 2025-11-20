@@ -1,6 +1,6 @@
 import React, { RefCallback, useCallback, useEffect, useMemo } from "react";
 
-import { Typography, Card, Space, Button, Popover } from 'antd';
+import { Typography, Card, Space, Button, Popover, Spin } from 'antd';
 
 const { Text } = Typography;
 
@@ -23,63 +23,92 @@ interface SampleDetailsLineageProps {
 function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }: SampleDetailsLineageProps) {
     const dispatch = useAppDispatch()
 
-    useEffect(() => {
-        if (sample.id !== undefined) {
-            dispatch(api.sample_lineage.get(sample.id)).then(({ data }) => {
-                lineageCy.remove("node")
-                lineageCy.remove("edge")
-                lineageCy.add({
-                    nodes: data.nodes.reduce<cytoscape.NodeDefinition[]>((prev, node) => {
-                        const QCs = [node.quality_flag, node.quantity_flag]
-                        const color = QCs.some((f) => f === false) ? "red" : (QCs.every((f) => f === true) ? "green" : "black")
-                        const shape = node.id === sample.id ? "star" : "circle"
-                        prev.push({
-                            data: {
-                                id: node.id.toString(),
-                                name: node.name,
-                                color,
-                                shape
-                            }
-                        })
-                        return prev
-                    }, []),
-                    edges: data.edges.reduce<cytoscape.EdgeDefinition[]>((prev, edge) => {
-                        if (edge.child_sample) {
-                            prev.push({
-                                data: {
-                                    source: edge.source_sample.toString(),
-                                    target: edge.child_sample.toString(),
-                                    protocol_name: edge.protocol_name,
-                                    id: edge.id.toString()
-                                }
-                            })
-                        }
-                        return prev
-                    }, [])
-                })
-                currentNode = lineageCy.$(`node[id="${sample.id}"]`)
-                resetLineageLayout()
-            })
-        }
-    }, [dispatch, sample.id])
+    const [cy, setCy] = React.useState<cytoscape.Core | undefined>(undefined)
 
     useEffect(() => {
-        lineageCy.on("click", "node", (event) => {
+        const cy = cytoscape()
+        window.lineageCy = cy // expose lineageCy to the browser console
+        setCy(cy)
+        return () => {
+            cy.destroy()
+            delete window.lineageCy
+        }
+    }, [])
+
+    const [loading, setLoading] = React.useState<boolean>(false)
+
+    useEffect(() => {
+        if (!cy) return;
+        const sampleID = sample.id;
+        if (sampleID === undefined) return;
+
+        setLoading(true)
+        dispatch(api.sample_lineage.get(sampleID)).then(({ data }) => {
+            cy.remove("*")
+            cy.add({
+                nodes: data.nodes.reduce<cytoscape.NodeDefinition[]>((prev, node) => {
+                    const QCs = [node.quality_flag, node.quantity_flag]
+                    const color = QCs.some((f) => f === false) ? "red" : (QCs.every((f) => f === true) ? "green" : "black")
+                    const shape = node.id === sampleID ? "star" : "circle"
+                    prev.push({
+                        data: {
+                            id: node.id.toString(),
+                            name: node.name,
+                            color,
+                            shape
+                        }
+                    })
+                    return prev
+                }, []),
+                edges: data.edges.reduce<cytoscape.EdgeDefinition[]>((prev, edge) => {
+                    if (edge.child_sample) {
+                        prev.push({
+                            data: {
+                                source: edge.source_sample.toString(),
+                                target: edge.child_sample.toString(),
+                                protocol_name: edge.protocol_name,
+                                id: edge.id.toString()
+                            }
+                        })
+                    }
+                    return prev
+                }, [])
+            })
+            currentNode = cy.$(`node[id="${sampleID}"]`)
+            resetLineageLayout()
+            setLoading(false)
+        })
+    }, [cy, dispatch, sample.id])
+
+    useEffect(() => {
+        if (!cy) return;
+
+        cy.on("click", "node", (event) => {
             if (handleSampleClick) {
                 const node = event.target.data()
                 handleSampleClick(parseInt(node.id))
             }
         })
-        lineageCy.on("click", "edge", (event) => {
+        cy.on("click", "edge", (event) => {
             if (handleProcessClick) {
                 const edge = event.target.data()
                 handleProcessClick(parseInt(edge.id))
             }
         })
         return () => {
-            lineageCy.removeAllListeners()
+            cy.removeAllListeners()
         }
-    }, [handleProcessClick, handleSampleClick])
+    }, [cy, handleProcessClick, handleSampleClick])
+
+    const lineageDivRefCallback = useCallback<RefCallback<HTMLDivElement>>((divNode) => {
+        if (!cy) return;
+        if (divNode === null) return;
+
+        // cytoscape swaps container if already mounted
+        cy.mount(divNode)
+
+        // div unmount is already handled in a useEffect cleanup
+    }, [cy])
 
     return <>
         <Space>
@@ -109,6 +138,7 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
                 </Button>
             </Popover>
         </Space>
+        
         <div ref={lineageDivRefCallback} id="sample-details-lineage-div" />
     </>
 }
@@ -177,44 +207,12 @@ function Legend() {
 export default SampleDetailsLineage
 
 cytoscape.use(dagre)
-const lineageCy = cytoscape()
-window.lineageCy = lineageCy // declare lineageCy globally for debugging in browser console
-lineageCy.style([
-    {
-        selector: 'node',
-        style: {
-            'content': 'data(name)',
-            'background-color': 'data(color)',
-            'color': 'data(color)',
-            'text-opacity': 1,
-            'text-valign': 'top',
-            'text-halign': 'left',
-            'shape': 'data(shape)',
-        }
-    },
-
-    {
-        selector: 'edge',
-        style: {
-            'content': 'data(protocol_name)',
-            'curve-style': 'bezier',
-            'target-arrow-shape': 'triangle',
-            'line-color': '#9dbaea',
-            'target-arrow-color': '#9dbaea',
-            'width': 4,
-        }
-    }
-]).update()
-function lineageDivRefCallback(divNode: HTMLDivElement | null) {
-    if (divNode) {
-        lineageCy.mount(divNode)
-    } else {
-        lineageCy.unmount()
-    }
-}
 
 let currentNode: cytoscape.NodeSingular | null = null
 function recenter() {
+    const lineageCy = window.lineageCy as cytoscape.Core | undefined
+    if (!lineageCy) return;
+
     if (currentNode) {
         lineageCy.zoom(0.75)
         lineageCy.center(currentNode)
@@ -222,13 +220,44 @@ function recenter() {
 }
 
 function resetLineageLayout() {
+    const lineageCy = window.lineageCy as cytoscape.Core | undefined
+    if (!lineageCy) return;
+
+    lineageCy.style([
+        {
+            selector: 'node',
+            style: {
+                'content': 'data(name)',
+                'background-color': 'data(color)',
+                'color': 'data(color)',
+                'text-opacity': 1,
+                'text-valign': 'top',
+                'text-halign': 'left',
+                'shape': 'data(shape)',
+            }
+        },
+
+        {
+            selector: 'edge',
+            style: {
+                'content': 'data(protocol_name)',
+                'curve-style': 'bezier',
+                'target-arrow-shape': 'triangle',
+                'line-color': '#9dbaea',
+                'target-arrow-color': '#9dbaea',
+                'width': 4,
+            }
+        }
+    ]).update()
     lineageCy.layout({
         name: 'dagre',
         rankDir: 'LR',
         nodeDimensionsIncludeLabels: true,
         avoidOverlap: true,
         nodeSep: 150,
-        rankSep: 150
+        rankSep: 150,
+        zoomingEnabled: true,
+        panningEnabled: true,
     }).run()
-    // recenter()
+    recenter()
 }
