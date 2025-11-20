@@ -16,8 +16,9 @@ class IndexUpdateImporter(GenericImporter):
 
     def import_template_inner(self):
         index_update_sheet = self.sheets['Library']
+        samples_affected_by_row = defaultdict(set)
         samples_affected = set()
-        mapping_index_to_row = {}
+        mapping_index_to_rows = defaultdict(list)
         for row_id, row_data in enumerate(index_update_sheet.rows):
             library = {
                 'alias': str_cast_and_normalize(row_data['Library Name']),
@@ -40,7 +41,8 @@ class IndexUpdateImporter(GenericImporter):
                 row_i=row_id,
                 **index_update_kwargs,
             )
-            mapping_index_to_row[index['new_index']] = row_id
+            mapping_index_to_rows[index['new_index']].append(row_id)
+            samples_affected_by_row[row_id].update(row_object["Samples Impacted"])
             samples_affected.update(row_object["Samples Impacted"])
         
         # Once all updates are done validate collisions for all affected samples
@@ -64,14 +66,19 @@ class IndexUpdateImporter(GenericImporter):
                             index_y = Index.objects.get(id=index_id_y)
                         except:
                             self.base_errors.append(f"Failed to find index id {index_id_y} during validation.")
-                        warning_row_id = mapping_index_to_row.get(index_x.name, None)
-                        if warning_row_id is None:
+                        warning_row_ids = mapping_index_to_rows.get(index_x.name, None)
+                        if warning_row_ids is None:
                             # if the conflicting index reported is not the same.
-                            warning_row_id = mapping_index_to_row.get(index_y.name, None)
-                        warnings_by_row[warning_row_id].append(("Pooled library {0} (Sample ID {1}) would have a conflict between index {2} and index {3}.", [sample.name, sample.id, index_x.name, index_y.name]))
+                            warning_row_ids = mapping_index_to_rows.get(index_y.name, None)
+                        for warning_row_id in warning_row_ids:
+                            if sample in samples_affected_by_row.get(warning_row_id, set()): # ensure the warning applies to the given row
+                                warnings_by_row[warning_row_id].append(("Pooled library {0} (Sample ID {1}) would have a conflict between index {2} and index {3}.", [sample.name, sample.id, index_x.name, index_y.name]))
 
         for row_id, warnings in warnings_by_row.items():
+            duplicate_filtering_dict = defaultdict(list)
             for format, args in warnings:
-                combined_warnings = index_update_sheet.rows_results[row_id]["warnings"]
-                combined_warnings.append({"key": "index collisions","format": format, "args": args})
-                index_update_sheet.rows_results[row_id].update(warnings=combined_warnings)
+                if not args in duplicate_filtering_dict.get(format, []):
+                    duplicate_filtering_dict[format].append(args)
+                    combined_warnings = index_update_sheet.rows_results[row_id]["warnings"]
+                    combined_warnings.append({"key": "index collisions","format": format, "args": args})
+                    index_update_sheet.rows_results[row_id].update(warnings=combined_warnings)
