@@ -22,17 +22,31 @@ import mergedListQueryParams from '../../../utils/mergedListQueryParams'
  * @returns 
  */
 function humanFriendlyFixed(number, precision) {
-    const numberString = number.toString()
-    const [integerPart = '0', decimalPart = '0'] = numberString.split('.')
-    if (parseInt(integerPart) > 0) {
-        return parseFloat(number).toFixed(precision)
+    // assumes wholeNumber has at least one digit
+    const [wholeNumber, fractionalPart = ''] = number.toString().replace(/^0+/, '').split('.')
+    
+    // If the whole number part is longer than the precision, return just the whole number part.
+    if (wholeNumber.length > precision) {
+        return wholeNumber
+    }
+    // If there is a non-zero whole number part, return the number rounded to the specified precision.
+    if (wholeNumber && parseInt(wholeNumber) !== 0) {
+        return parseFloat(`${wholeNumber}.${fractionalPart}`).toFixed(precision)
     }
 
-    const [leadingZeros] = decimalPart.match(/^0+/) ?? ['']
-    const withoutLeadingZeros = decimalPart.slice(leadingZeros.length)
+    const [leadingZeros] = fractionalPart.match(/^0+/) ?? ['']
+
+    // If there are only leading zeros in the fractional part, return '0'.
+    if (leadingZeros.length === fractionalPart.replace(/0+$/, '').length) {
+        return '0'
+    }
+
+    // Otherwise, return the number with leading zeros preserved and rounded to the specified precision.
+    const withoutLeadingZeros = fractionalPart.slice(leadingZeros.length)
     const withPrecision = parseFloat(`0.${withoutLeadingZeros}`).toFixed(precision)
-    return `0.${leadingZeros}${withPrecision.slice(2).replace(/0+$/, '')}`
+    return `0.${leadingZeros}${withPrecision.slice(2)}`
 }
+window.humanFriendlyFixed = humanFriendlyFixed
 
 const getTableColumns = (sampleKinds) => {
     return [
