@@ -1,6 +1,8 @@
 import { CoordinateSpec, FMSId } from "../models/fms_api_models"
 import { ContainerKind } from "../models/frontend_models"
 import { CellIdentifier } from "../modules/placement/models"
+import { AppDispatch, RootState } from "../store"
+import { APIFetchOptions } from "./api"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -93,4 +95,15 @@ export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, 
     if (a.containerName > b.containerName) orderB -= MAX / 16
 
     return orderA - orderB
+}
+
+export function smartQuerySetLookup(field: string, defaultSelection: boolean, exceptedIDs: FMSId[]) {
+    if (exceptedIDs.length === 0) {
+        return {}
+    }
+    if (defaultSelection) {
+        return { [`${field}__not__in`]: exceptedIDs.join(',') }
+    } else {
+        return { [`${field}__in`]: exceptedIDs.join(',') }
+    }
 }

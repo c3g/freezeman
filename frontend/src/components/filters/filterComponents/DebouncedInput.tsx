@@ -1,12 +1,27 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Input } from 'antd'
 
+const DEFAULT_DEBOUNCE_TIME = 500
+
+export function useDebouncedEffect(
+    effect: () => void,
+    delay: number = DEFAULT_DEBOUNCE_TIME,
+) {
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            effect()
+        }, delay)
+
+        return () => clearTimeout(handler)
+    }, [effect, delay])
+}
+
 /**
  * A hook to debounce function calls until after the specified time.
  * This is used to avoid triggering calls to the backend while the user
  * is typing in a filter.
  */
-export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction: F, debounceTime = 500) => {
+export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction: F, debounceTime = DEFAULT_DEBOUNCE_TIME) => {
     const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
     function caller(...args: Parameters<F>) {
         // eslint-disable-next-line @typescript-eslint/no-this-alias

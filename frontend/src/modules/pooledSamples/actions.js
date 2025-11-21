@@ -36,7 +36,7 @@ export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}
     const options = { limit, offset, ordering, ...serializedFilters}
 
     return await dispatch(networkAction(LIST_TABLE,
-        api.pooledSamples.list(options, abort),
+        api.pooledSamples.list(options, { abort }),
         { meta: { ...options, ignoreError: 'AbortError' } }
     ));
 };
