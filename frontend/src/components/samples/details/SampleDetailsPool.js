@@ -15,6 +15,25 @@ import { withToken } from '../../../utils/api'
 
 import mergedListQueryParams from '../../../utils/mergedListQueryParams'
 
+/**
+ * 
+ * @param {number | string} number 
+ * @param {number} precision 
+ * @returns 
+ */
+function humanFriendlyFixed(number, precision) {
+    const numberString = number.toString()
+    const [integerPart = '0', decimalPart = '0'] = numberString.split('.')
+    if (parseInt(integerPart) > 0) {
+        return parseFloat(number).toFixed(precision)
+    }
+
+    const [leadingZeros] = decimalPart.match(/^0+/) ?? ['']
+    const withoutLeadingZeros = decimalPart.slice(leadingZeros.length)
+    const withPrecision = parseFloat(`0.${withoutLeadingZeros}`).toFixed(precision)
+    return `0.${leadingZeros}${withPrecision.slice(2).replace(/0+$/, '')}`
+}
+
 const getTableColumns = (sampleKinds) => {
     return [
         {    
@@ -46,7 +65,7 @@ const getTableColumns = (sampleKinds) => {
             title: "Volume Ratio",
             dataIndex: "volume_ratio",
             sorter: true,
-            render: (_, pooledSample) => <div>{parseFloat(pooledSample.volume_ratio).toPrecision(5)}</div>
+            render: (_, pooledSample) => <div>{humanFriendlyFixed(pooledSample.volume_ratio, 5)}</div>
         },
         {
             title: "Kind",
