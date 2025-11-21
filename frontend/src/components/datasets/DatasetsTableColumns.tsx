@@ -17,6 +17,7 @@ export interface ObjectWithDataset {
 
 export enum DatasetColumnID {
 	ID  = 'ID',
+	RUN_ID = 'RUN_ID',
 	RUN = 'RUN',
 	PROJECT = 'PROJECT',
 	LANE = 'LANE',
@@ -40,6 +41,15 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 		},
 		width: 90,
 		sorter: { multiple: 1 }
+	},
+  [DatasetColumnID.RUN_ID]: {
+		columnID: DatasetColumnID.RUN_ID,
+		title: 'Run ID',
+		dataIndex: ['dataset', 'experiment_run_id'],
+		sorter: { multiple: 1 },
+		render: (_, {dataset}) => {
+			return <Link to={`/experiment-runs/${dataset.experiment_run_id}`}>{dataset.experiment_run_id}</Link>
+		}
 	},
 	[DatasetColumnID.RUN]: {
 		columnID: DatasetColumnID.RUN,
@@ -105,6 +115,7 @@ export const DATASET_COLUMN_DEFINITIONS : {[key in DatasetColumnID] : DatasetCol
 
 enum DatasetFilterID {
 	ID = DatasetColumnID.ID,
+  RUN_ID = DatasetColumnID.RUN_ID,
 	RUN = DatasetColumnID.RUN,
 	PROJECT = DatasetColumnID.PROJECT,
 	LANE = DatasetColumnID.LANE,
@@ -117,6 +128,11 @@ export const DATASET_FILTER_DEFINITIONS : {[key in DatasetFilterID]: FilterDescr
 		type: FILTER_TYPE.INPUT_NUMBER,
 		key: UNDEFINED_FILTER_KEY,
 		label: "Dataset ID",
+	},
+  [DatasetColumnID.RUN_ID]: {
+		type: FILTER_TYPE.INPUT_OBJECT_ID,
+		key: UNDEFINED_FILTER_KEY,
+		label: "Run ID",
 	},
 	[DatasetColumnID.RUN]: {
 		type: FILTER_TYPE.INPUT,
@@ -154,6 +170,7 @@ export const DATASET_EXTERNAL_PROJECT_FILTER : FilterDescription = {
 
 export const DATASET_FILTER_KEYS: {[key in DatasetFilterID]: string} = {
 	[DatasetFilterID.ID]: 'id',
+  [DatasetFilterID.RUN_ID]: 'experiment_run',
 	[DatasetFilterID.RUN]: 'experiment_run__name',
 	[DatasetFilterID.PROJECT]: 'project__name',
 	[DatasetFilterID.LANE]: 'lane',

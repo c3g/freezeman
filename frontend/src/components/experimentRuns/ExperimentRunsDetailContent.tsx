@@ -160,7 +160,7 @@ export function ExperimentRunsDetailContent({ experimentRun, container, process 
 					</TabPane>
 
 					<TabPane tab={'Datasets'} key="datasets">
-						<DatasetTable run_name={experimentRun.name} scroll={{ x: '100%', y: '60vh' }}/>
+						<DatasetTable run_id={experimentRun.id} scroll={{ x: '100%', y: '60vh' }}/>
 					</TabPane>
 				</Tabs>
 			</PageContent>

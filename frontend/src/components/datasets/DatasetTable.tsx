@@ -12,29 +12,29 @@ import useExpandableTableDatasetComments from "./ExpandableTableDatasetComments"
 import { ExperimentRun } from "../../models/frontend_models"
 
 export interface DatasetTableProps {
-	run_name?: ExperimentRun['name']
+	run_id?: ExperimentRun['id']
 	scroll?: NonNullable<PagedItemsTableProps<ObjectWithDataset>['scroll']>
 }
-function DatasetTable({ run_name, scroll }: DatasetTableProps) {
+function DatasetTable({ run_id, scroll }: DatasetTableProps) {
 
 	const pagedItems = useAppSelector(selectDatasetsTable)
 	const { filters } = pagedItems
 
 	const callbacks = usePagedItemsActionsCallbacks(DatasetsTableActions)
 	useEffect(() => {
-		if (run_name) {
+		if (run_id) {
 			callbacks.setFixedFilterCallback({
-				value: run_name,
+				value: run_id.toString(),
 				description: {
-					...DATASET_FILTER_DEFINITIONS[DatasetColumnID.RUN],
-					key: DATASET_FILTER_KEYS[DatasetColumnID.RUN]
+					...DATASET_FILTER_DEFINITIONS[DatasetColumnID.RUN_ID],
+					key: DATASET_FILTER_KEYS[DatasetColumnID.RUN_ID]
 				}
 			})
 		} else {
 			callbacks.setFixedFilterCallback({ value: undefined })
 		}
 		callbacks.refreshPageCallback()
-	}, [callbacks, run_name])
+	}, [callbacks, run_id])
 
 	// avoid showing stale data initially in another page
 	useEffect(() => {
@@ -46,7 +46,7 @@ function DatasetTable({ run_name, scroll }: DatasetTableProps) {
 	const tableColumns = useMemo(() => {
 		const columns = [
 			DATASET_COLUMN_DEFINITIONS.ID,
-			...(run_name ? [] : [DATASET_COLUMN_DEFINITIONS.RUN]),
+			...(run_id ? [] : [DATASET_COLUMN_DEFINITIONS.RUN]),
 			DATASET_COLUMN_DEFINITIONS.PROJECT,
 			DATASET_COLUMN_DEFINITIONS.LANE,
 			DATASET_COLUMN_DEFINITIONS.VALIDATION_STATUS,
@@ -55,7 +55,7 @@ function DatasetTable({ run_name, scroll }: DatasetTableProps) {
 			DATASET_COLUMN_DEFINITIONS.LATEST_RELEASE_UPDATE,
 		]
 		return columns
-	}, [run_name])
+	}, [run_id])
 
   	const tweakedColumns = useFilteredColumns(
           tableColumns,
