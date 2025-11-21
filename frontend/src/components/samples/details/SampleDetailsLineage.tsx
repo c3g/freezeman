@@ -35,14 +35,11 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
         }
     }, [])
 
-    const [loading, setLoading] = React.useState<boolean>(false)
-
     useEffect(() => {
         if (!cy) return;
         const sampleID = sample.id;
         if (sampleID === undefined) return;
 
-        setLoading(true)
         dispatch(api.sample_lineage.get(sampleID)).then(({ data }) => {
             cy.remove("*")
             cy.add({
@@ -76,7 +73,6 @@ function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }:
             })
             currentNode = cy.$(`node[id="${sampleID}"]`)
             resetLineageLayout()
-            setLoading(false)
         })
     }, [cy, dispatch, sample.id])
 
