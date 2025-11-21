@@ -1,79 +1,48 @@
-.cell {
+#placement-row-main {
+    flex-wrap: nowrap;
+    gap: 1em;
+}
+
+#placement-row-main .ant-col .ant-row {
+    margin-top: 1em;
+}
+
+// PlacementContainer.tsx
+.placement-cell {
     border: 1px solid gray;
-    color: white;
+    color: black;
     border-radius: 100%;
-    height: 3vh;
+    height: 2vw;
     width: 2vw;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 1vw;
 }
 
-.tiny-cell
+// place after placement-cell in html
+.tiny-placement-cell
 {
-  border: 1px solid gray;
-  color: white;
-  border-radius: 100%;
-  height: 1.2vh;
-  width: 1vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 1.15vw;
+  width: 1.15vw;
+  font-size: .5vw;
+  font-weight: bold;
 }
 
-.row {
-    display: flex;
-    gap: 1%;
-    flex-direction: row;
-    justify-content: space-around;
-}
-
-.header {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.header-row {
+.placement-container-rows-of-cells {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
-    gap: 1%
+    justify-content: space-evenly;
 }
 
-.flex-column {
-    height: 100%;
-    width: 100%;
+.placement-cells {
     display: flex;
     flex-direction: column;
-    gap: 2vh;
-}
-
-.tiny-flex-column {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1vh;
-}
-
-.flex-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-}
-
-.transfer {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    flex-direction: column;
-    gap: 1vh;
-    justify-content: space-around;
     border: solid grey 1px;
-    padding: 1%;
+    width: 100%;
+    height: 32em;
+    align-self: center;
+    justify-content: space-evenly;
 
     // disable selection
     -webkit-touch-callout: none; /* iOS Safari */
