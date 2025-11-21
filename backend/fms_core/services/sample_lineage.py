@@ -39,7 +39,7 @@ def create_sample_lineage_graph(sampleId: int) -> Tuple[List[Dict[str, Any]], Li
 
     Returns:
         `Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]` consisting of `nodes`, `edges` and `errors`.
-        Each node consists of sample `"name"`, `"quality_flag"` and `"quantity_flag"`.
+        Each node consists of sample `"name"`, `"quality_flag"`, `"quantity_flag"`, and `"identity_flag"`.
         Each edge consists of process `"id"`, `"source_sample"`, `"child_sample"`, `"protocol_name"`.
         `errors` contains an error if the ID in `sampleId` does not correspond
         to an existing sample.
