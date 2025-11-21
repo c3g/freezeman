@@ -15,41 +15,6 @@ import { withToken } from '../../../utils/api'
 
 import mergedListQueryParams from '../../../utils/mergedListQueryParams'
 
-/**
- * 
- * @param {number | string} number
- * @param {number} sigfig
- */
-function truncateNumberWithSigFig(number, sigfig) {
-    const numberString = number.toString().replace(/^0+/, '') // remove leading zeros
-    if (!numberString) {
-        return '0'
-    }
-    
-    const [integerPart, decimalPart] = numberString.split('.')
-    
-    if (integerPart.length >= sigfig) {
-        return integerPart
-    }
-    if (!decimalPart) {
-        return integerPart ? integerPart : '0'
-    }
-
-    const strippedDecimalPart = decimalPart.replace(/0+$/, '') // remove trailing zeros
-    const [leadingZerosAfterDecimal] = strippedDecimalPart.match(/^0+/) ?? ['']
-
-    if (leadingZerosAfterDecimal.length >= sigfig - integerPart.length) {
-        return integerPart ? integerPart : '0'
-    }
-
-    const afterLeadingZeros = strippedDecimalPart.slice(leadingZerosAfterDecimal.length)
-    
-    const finalBeforeRounding = `${(integerPart ? integerPart : '0')}.${leadingZerosAfterDecimal}${afterLeadingZeros.slice(0, sigfig - integerPart.length - leadingZerosAfterDecimal.length)}`
-    if (finalBeforeRounding.length < numberString.length && parseInt(numberString[finalBeforeRounding.length]) >= 5) {
-        return `${finalBeforeRounding.slice(0, -1)}${(parseInt(finalBeforeRounding[finalBeforeRounding.length - 1]) + 1)}`
-    }
-}
-
 const getTableColumns = (sampleKinds) => {
     return [
         {    
@@ -81,7 +46,7 @@ const getTableColumns = (sampleKinds) => {
             title: "Volume Ratio",
             dataIndex: "volume_ratio",
             sorter: true,
-            render: (_, pooledSample) => <div>{truncateNumberWithSigFig(pooledSample.volume_ratio, 5)}</div>
+            render: (_, pooledSample) => <div>{parseFloat(pooledSample.volume_ratio).toPrecision(5)}</div>
         },
         {
             title: "Kind",
