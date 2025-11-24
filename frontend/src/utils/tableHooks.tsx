@@ -268,7 +268,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
     }
 ] {
 	const [defaultSelection, setDefaultSelection] = useState(false)
-	const [exceptedItems, setExceptedItems] = useState<React.Key[]>(initialExceptedItems ?? [])
+	const [exceptedItems, setExceptedItems] = useState<React.Key[]>([])
 	const allIsSelected = (!defaultSelection && exceptedItems.length === totalCount) || (defaultSelection && exceptedItems.length === 0)
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === totalCount)
 
