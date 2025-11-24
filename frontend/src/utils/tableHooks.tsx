@@ -107,7 +107,7 @@ function usePagination(defaultPageSize: number): {
     }), [current, pageSize, setCurrentPageAndPageSize, total])
 }
 
-export function useTableColumns<ColumnID extends string, RowData extends AntdAnyObject>(
+export function useTableColumnsProps<ColumnID extends string, RowData extends AntdAnyObject>(
     setFilter: (searchKey: ColumnID, value: string) => void,
     filters: Partial<Record<ColumnID, string>>,
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
@@ -188,7 +188,7 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     }
 }
 
-export function useTableSortBy<ColumnID extends string, RowData extends AntdAnyObject>(): [
+export function useTableSortByProps<ColumnID extends string, RowData extends AntdAnyObject>(): [
     Required<Pick<TableProps<RowData>, 'onChange'>>,
     {
         sortBy: SortBy<ColumnID>,
@@ -227,7 +227,7 @@ export function useTableSortBy<ColumnID extends string, RowData extends AntdAnyO
     ] as const
 }
 
-export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: readonly RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]): [
+export function useSmartSelectionProps<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: readonly RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]): [
     Required<Pick<TableProps<RowData>, 'rowSelection'>>,
     {
         resetSelection: () => void,

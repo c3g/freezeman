@@ -3,7 +3,7 @@ import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } f
 import { Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, usePaginatedDataProps, useSmartSelection, useTableColumns, useTableSortBy } from "../../utils/tableHooks"
+import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, usePaginatedDataProps, useSmartSelectionProps, useTableColumnsProps, useTableSortByProps } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -119,15 +119,16 @@ export function IndexCuration() {
     }, [dispatch])
 
     const [filters, setFilters] = useState<Partial<Record<PooledSampleColumnID, string>>>({})
-    const [tableSortProps, { sortBy, setSortBy }] = useTableSortBy<PooledSampleColumnID, FMSPooledSample>()
 
-    const paginationProps = usePaginatedDataProps(
+    const [tableSortByProps, { sortBy, setSortBy }] = useTableSortByProps<PooledSampleColumnID, FMSPooledSample>()
+
+    const paginationDataProps = usePaginatedDataProps(
         defaultPageSize,
         fetchPooledSamples,
         filters,
         sortBy,
     )
-    const { dataSource, pagination } = paginationProps
+    const { dataSource, pagination } = paginationDataProps
 
     const [
         smartSelectionProps,
@@ -137,7 +138,7 @@ export function IndexCuration() {
             exceptedItems,
             totalSelectionCount
         }
-    ] = useSmartSelection<FMSPooledSample>(
+    ] = useSmartSelectionProps<FMSPooledSample>(
         pagination.total ?? 0,
         dataSource,
         ROW_KEY,
@@ -157,7 +158,7 @@ export function IndexCuration() {
             }
         })
     }, [defaultPageSize, pagination.pageSize, paginationOnChange, resetSelection])
-    const columnsProps = useTableColumns<PooledSampleColumnID, FMSPooledSample>(
+    const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>(
         mySetFilter,
         filters,
         COLUMN_DEFINITIONS,
@@ -212,10 +213,10 @@ export function IndexCuration() {
                         setSortBy({})
                     }} />
                     <Table<FMSPooledSample>
-                        {...paginationProps}
+                        {...tableSortByProps}
+                        {...paginationDataProps}
                         {...smartSelectionProps}
-                        {...columnsProps}
-                        {...tableSortProps}
+                        {...tableColumnsProps}
                         rowKey={ROW_KEY}
                         scroll={{ y: '75vh' }}
                         bordered
