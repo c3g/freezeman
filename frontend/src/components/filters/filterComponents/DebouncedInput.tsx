@@ -7,12 +7,16 @@ export function useDebouncedEffect(
     effect: () => void,
     delay: number = DEFAULT_DEBOUNCE_TIME,
 ) {
+    const handler = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
     useEffect(() => {
-        const handler = setTimeout(() => {
+        clearTimeout(handler.current)
+        handler.current = setTimeout(() => {
             effect()
         }, delay)
 
-        return () => clearTimeout(handler)
+        return () => {
+            clearTimeout(handler.current)
+        }
     }, [effect, delay])
 }
 
