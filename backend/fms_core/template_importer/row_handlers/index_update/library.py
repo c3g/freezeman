@@ -39,8 +39,8 @@ class IndexUpdateRowHandler(GenericRowHandler):
                         derived_sample_lineage = get_derived_samples(root_library_derived_sample)
 
                         # Apply the new index to the library identified
-                        for updated_derived_sample in derived_sample_lineage:
-                            _, self.errors["index_update"], self.warnings["index_update"] = update_library(derived_sample=updated_derived_sample, index=index_obj)
+                        for derived_sample_to_update in derived_sample_lineage:
+                            _, self.errors["index_update"], self.warnings["index_update"] = update_library(derived_sample=derived_sample_to_update, index=index_obj)
 
                         if len(derived_sample_lineage) > 1:
                             self.warnings["multiple updates"] = f"A total of {len(derived_sample_lineage)} derived libraries that share lineage with the updated library were changed."

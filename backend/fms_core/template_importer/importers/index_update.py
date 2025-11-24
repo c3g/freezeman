@@ -42,8 +42,8 @@ class IndexUpdateImporter(GenericImporter):
                 **index_update_kwargs,
             )
             mapping_index_to_rows[index['new_index']].append(row_id)
-            samples_affected_by_row[row_id].update(row_object["Samples Impacted"])
-            samples_affected.update(row_object["Samples Impacted"])
+            samples_affected_by_row[row_id].update(row_object.get("Samples Impacted", []))
+            samples_affected.update(row_object.get("Samples Impacted", []))
         
         # Once all updates are done validate collisions for all affected samples
         warnings_by_row = defaultdict(list)
