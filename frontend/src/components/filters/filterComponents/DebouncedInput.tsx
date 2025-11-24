@@ -1,25 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Input } from 'antd'
 
-const DEFAULT_DEBOUNCE_TIME = 500
-
-export function useDebouncedEffect(
-    effect: () => void,
-    delay: number = DEFAULT_DEBOUNCE_TIME,
-) {
-    const handler = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-    useEffect(() => {
-        clearTimeout(handler.current)
-        handler.current = setTimeout(() => {
-            effect()
-        }, delay)
-
-        return () => {
-            clearTimeout(handler.current)
-        }
-    }, [effect, delay])
-}
-
 /**
  * A hook to debounce function calls until after the specified time.
  * This is used to avoid triggering calls to the backend while the user

@@ -5,7 +5,6 @@ import { Checkbox, Input, InputRef, Spin } from "antd"
 import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
 import { SearchOutlined } from "@ant-design/icons"
-import { useDebouncedEffect } from "../components/filters/filterComponents/DebouncedInput"
 import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue } from "../models/paged_items"
 import { ABORT_ERROR_NAME } from "./api"
 
@@ -67,7 +66,27 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
             })
         }
     }, [currentPage, pageSize, fetchRowData, filters, sortBy, setTotal])
-    useDebouncedEffect(myFetchRowData)
+
+    const handler = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+    const lastCurrentPage = useRef<typeof currentPage>(currentPage)
+    const lastPageSize = useRef<typeof pageSize>(pageSize)
+    useEffect(() => {
+        clearTimeout(handler.current)
+
+        if (lastCurrentPage.current !== currentPage || lastPageSize.current !== pageSize) {
+            myFetchRowData()
+            lastCurrentPage.current = currentPage
+            lastPageSize.current = pageSize
+        } else {
+            handler.current = setTimeout(() => {
+                myFetchRowData()
+            }, DEFAULT_DEBOUNCE_TIME)
+        }
+
+        return () => {
+            clearTimeout(handler.current)
+        }
+    }, [currentPage, myFetchRowData, pageSize])
 
     return {
         dataSource: loading && bodySpinStyle ? [] : dataSource,
@@ -426,3 +445,5 @@ export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters
 
     return filterSet
 }
+
+export const DEFAULT_DEBOUNCE_TIME = 500
