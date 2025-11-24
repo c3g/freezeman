@@ -119,21 +119,18 @@ export function IndexCuration() {
     }, [dispatch])
 
     const [filters, setFilters] = useState<Partial<Record<PooledSampleColumnID, string>>>({})
-    const [onChange, { sortBy, setSortBy }] = useTableSortBy<PooledSampleColumnID, FMSPooledSample>()
+    const [tableSortProps, { sortBy, setSortBy }] = useTableSortBy<PooledSampleColumnID, FMSPooledSample>()
 
-    const {
-        dataSource,
-        pagination,
-        loading
-    } = usePaginatedDataProps(
+    const paginationProps = usePaginatedDataProps(
         defaultPageSize,
         fetchPooledSamples,
         filters,
         sortBy,
     )
+    const { dataSource, pagination } = paginationProps
 
     const [
-        rowSelection,
+        smartSelectionProps,
         {
             resetSelection,
             defaultSelection,
@@ -160,7 +157,7 @@ export function IndexCuration() {
             }
         })
     }, [defaultPageSize, pagination.pageSize, paginationOnChange, resetSelection])
-    const columns = useTableColumns<PooledSampleColumnID, FMSPooledSample>(
+    const columnsProps = useTableColumns<PooledSampleColumnID, FMSPooledSample>(
         mySetFilter,
         filters,
         COLUMN_DEFINITIONS,
@@ -215,14 +212,12 @@ export function IndexCuration() {
                         setSortBy({})
                     }} />
                     <Table<FMSPooledSample>
-                        dataSource={dataSource}
-                        pagination={pagination}
-                        loading={loading}
-                        rowSelection={rowSelection}
-                        columns={columns}
+                        {...paginationProps}
+                        {...smartSelectionProps}
+                        {...columnsProps}
+                        {...tableSortProps}
                         rowKey={ROW_KEY}
                         scroll={{ y: '75vh' }}
-                        onChange={onChange}
                         bordered
                     />
                 </Space>

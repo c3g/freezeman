@@ -33,11 +33,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     fetchRowData: FetchRowData<ColumnID, RowData>,
     filters: Partial<Record<ColumnID, string>>,
     sortBy: SortBy<ColumnID>
-): {
-    dataSource: RowData[],
-    loading: boolean,
-    pagination: TablePaginationConfig,
-} {
+): Required<Pick<TableProps<RowData>, 'dataSource' | 'loading'>> & { pagination: TablePaginationConfig } {
     const { pagination, setTotal } = usePagination(defaultPageSize)
     
     const { current: currentPage, pageSize } = pagination
@@ -117,7 +113,7 @@ export function useTableColumns<ColumnID extends string, RowData extends AntdAny
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
     searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
     sortBy: SortBy<ColumnID>,
-): ColumnsType<RowData> {
+): Required<Pick<TableProps<RowData>, 'columns'>> {
     const searchInput = useRef<InputRef>(null)
     return useMemo(() => {
         const columns: ColumnsType<RowData> = []
@@ -140,7 +136,7 @@ export function useTableColumns<ColumnID extends string, RowData extends AntdAny
 
             columns.push(column)
         }
-        return columns
+        return { columns }
     }, [columnDefinitions, filters, searchPropertyDefinitions, setFilter, sortBy])
 }
 
@@ -193,7 +189,7 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
 }
 
 export function useTableSortBy<ColumnID extends string, RowData extends AntdAnyObject>(): [
-    NonNullable<TableProps<RowData>['onChange']>,
+    Required<Pick<TableProps<RowData>, 'onChange'>>,
     {
         sortBy: SortBy<ColumnID>,
         setSortBy: React.Dispatch<React.SetStateAction<SortBy<ColumnID>>>,
@@ -223,7 +219,7 @@ export function useTableSortBy<ColumnID extends string, RowData extends AntdAnyO
     }, [])
 
     return [
-        onChange,
+        { onChange },
         {
             sortBy,
             setSortBy,
@@ -231,8 +227,8 @@ export function useTableSortBy<ColumnID extends string, RowData extends AntdAnyO
     ] as const
 }
 
-export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]): [
-    TableRowSelection<RowData>,
+export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: readonly RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]): [
+    Required<Pick<TableProps<RowData>, 'rowSelection'>>,
     {
         resetSelection: () => void,
         defaultSelection: boolean,
@@ -344,7 +340,7 @@ export function useSmartSelection<RowData extends AntdAnyObject>(totalCount: num
     const totalSelectionCount = defaultSelection ? totalCount - exceptedItems.length : exceptedItems.length
 
     return useMemo(() => ([
-        rowSelection,
+        { rowSelection },
         {
             resetSelection,
             defaultSelection,
