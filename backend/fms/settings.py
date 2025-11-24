@@ -202,11 +202,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
 
 # Directory where data release triggers are deposited
-TRIGGERS_OUTPUT_PATH = os.path.join(BASE_DIR, 'triggers/')
+TRIGGERS_OUTPUT_PARENT_PATH = os.path.join(BASE_DIR, 'triggers/')
 # Directory where experiment run info files are output
-RUN_INFO_OUTPUT_PATH = os.environ.get("FMS_RUN_INFO_PATH", os.path.join(TRIGGERS_OUTPUT_PATH, 'lims-run-info'))
-VALIDATED_FILES_OUTPUT_PATH = os.environ.get("FMS_VALIDATED_FILES_PATH", os.path.join(TRIGGERS_OUTPUT_PATH, 'lims-validation-info'))
-RELEASED_FILES_OUTPUT_PATH = os.environ.get("FMS_RELEASED_FILES_PATH", os.path.join(TRIGGERS_OUTPUT_PATH, 'lims-release-info'))
+RUN_INFO_OUTPUT_PATH = os.environ.get("FMS_RUN_INFO_PATH", os.path.join(TRIGGERS_OUTPUT_PARENT_PATH, 'lims-run-info'))
+VALIDATED_FILES_OUTPUT_PATH = os.environ.get("FMS_VALIDATED_FILES_PATH", os.path.join(TRIGGERS_OUTPUT_PARENT_PATH, 'lims-validation-info'))
+RELEASED_FILES_OUTPUT_PATH = os.environ.get("FMS_RELEASED_FILES_PATH", os.path.join(TRIGGERS_OUTPUT_PARENT_PATH, 'lims-release-info'))
 
 # Directory where folders are created for Axiom experiment run data
 FMS_AUTOMATIONS_WORK_PATH = os.environ.get("FMS_AUTOMATIONS_WORK_PATH", os.path.join(BASE_DIR, "automations_work"))

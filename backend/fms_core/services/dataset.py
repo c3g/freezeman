@@ -188,7 +188,6 @@ def set_experiment_run_lane_validation_status(experiment_run_id: int, lane: int,
 
     if not errors:
         for dataset in Dataset.objects.filter(experiment_run_id=experiment_run_id, lane=lane): # May be more than one dataset due to projects
-            is_status_revocation = False
             for readset in Readset.objects.filter(dataset=dataset).all():
                 previous_status = readset.validation_status
                 readset.validation_status = validation_status
@@ -271,13 +270,13 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
             dataset_obj = Dataset.objects.get(id=dataset_id)
         except Exception as e:
             errors.append(f"Failed to get Dataset {dataset_id}.")
+            return None, errors, warnings # no good outcome to be expected.
         readset_ids = [int(i) for i in readsets_release_status.keys()]
         readsets = Readset.objects.filter(dataset=dataset_id, id__in=readset_ids)
 
         try:
             release_status_timestamp = timezone.now()
             for readset in readsets:
-                is_status_revocation = False
                 release_status = readsets_release_status[str(readset.id)]
                 previous_status = readset.release_status
                 readset.release_status = release_status
@@ -366,7 +365,7 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
             fp.write(json.dumps(validated_data, indent=4))
     except Exception as err:
         file_path = None
-        errors.append(f"Failed to create validation file trigger for Dataset {dataset_obj.id}.")
+        errors.append(f"Failed to create validation file trigger for Dataset {dataset_obj.id}. Error : {str(err)}.")
 
     return file_path, errors, warnings
 
@@ -415,7 +414,7 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
             fp.write(json.dumps(released_data, indent=4))
     except Exception as err:
         file_path = None
-        errors.append(f"Failed to create release file trigger for Dataset {dataset_obj.id}.")
+        errors.append(f"Failed to create release file trigger for Dataset {dataset_obj.id}. Error : {str(err)}.")
 
     return file_path, errors, warnings    
     
