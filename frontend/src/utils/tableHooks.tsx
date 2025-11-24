@@ -109,7 +109,7 @@ function usePagination(defaultPageSize: number): {
         setCurrentPageAndPageSize(1, defaultPageSize)
     }, [defaultPageSize, setCurrentPageAndPageSize])
 
-    return useMemo(() => ({
+    return {
         pagination: {
             current,
             pageSize,
@@ -117,7 +117,7 @@ function usePagination(defaultPageSize: number): {
             onChange: setCurrentPageAndPageSize,
         },
         setTotal,
-    }), [current, pageSize, setCurrentPageAndPageSize, total])
+    }
 }
 
 interface UseTableColumnsPropsArguments<ColumnID extends string, RowData extends AntdAnyObject> {
@@ -325,30 +325,29 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 			? itemsOnPage.map((record) => getKey(rowKey, record)).filter((key) => !exceptedItems.includes(key))
 			: exceptedItems,
 	[defaultSelection, itemsOnPage, exceptedItems, rowKey])
-    const rowSelection = useMemo<TableRowSelection<RowData>>(() => {
-        const indeterminate = !allIsSelected && !noneIsSelected
-        return {
-            type: 'checkbox',
-            selectedRowKeys,
-            onChange(selectedRowKeys, selectedRows, info) {
-                if (info.type === 'all') {
-                    onSelectAll()
-                }
-                if (info.type === 'multiple') {
-                    // shift is held
-                    onSelectMultiple(selectedRowKeys)
-                }
-            },
-            onSelect: onSelectSingle,
-            columnTitle: (
-                <Checkbox
-                    checked={!noneIsSelected}
-                    indeterminate={indeterminate}
-                    onChange={onSelectAll}
-                />
-            )
-        }
-	}, [allIsSelected, noneIsSelected, onSelectAll, onSelectSingle, onSelectMultiple, selectedRowKeys])
+    
+    const indeterminate = !allIsSelected && !noneIsSelected
+    const rowSelection: TableRowSelection<RowData> = {
+        type: 'checkbox',
+        selectedRowKeys,
+        onChange: useCallback<NonNullable<TableRowSelection<RowData>['onChange']>>((selectedRowKeys, selectedRows, info) => {
+            if (info.type === 'all') {
+                onSelectAll()
+            }
+            if (info.type === 'multiple') {
+                // shift is held
+                onSelectMultiple(selectedRowKeys)
+            }
+        }, [onSelectAll, onSelectMultiple]),
+        onSelect: onSelectSingle,
+        columnTitle: (
+            <Checkbox
+                checked={!noneIsSelected}
+                indeterminate={indeterminate}
+                onChange={onSelectAll}
+            />
+        )
+    }
 
 	const useInitialExceptedItems = useRef(Boolean(initialExceptedItems))
 	useEffect(() => {
@@ -362,7 +361,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 	}, [initialExceptedItems, setDefaultSelectionAndExceptedItems])
 
     // make sure to reset selections when filters change
-    // to avoid confusion for selectAll and selectedItems logic
+    // to avoid confusion when items are no longer filtered in
     const resetSelection = useCallback(() => {
         setDefaultSelectionAndExceptedItems(false, [])
     }, [setDefaultSelectionAndExceptedItems])
@@ -370,7 +369,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 
     const totalSelectionCount = defaultSelection ? totalCount - exceptedItems.length : exceptedItems.length
 
-    return useMemo(() => ([
+    return [
         { rowSelection },
         {
             resetSelection,
@@ -378,7 +377,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
             exceptedItems,
             totalSelectionCount,
         }
-    ] as const), [defaultSelection, exceptedItems, resetSelection, rowSelection, totalSelectionCount])
+    ]
 }
 
 export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Partial<Record<ColumnID, string>>): Record<string, string> {

@@ -127,7 +127,7 @@ export function IndexCuration() {
         fetchRowData: fetchPooledSamples,
         filters,
         sortBy,
-        bodySpinStyle: useMemo(() => ({ height: '75vh', alignContent: 'center' }), [])
+        bodySpinStyle: { height: '75vh', alignContent: 'center' }
     })
     const { dataSource, pagination } = paginationDataProps
 
