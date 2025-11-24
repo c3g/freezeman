@@ -7,6 +7,7 @@ import { FILTER_TYPE } from "../constants"
 import { SearchOutlined } from "@ant-design/icons"
 import { useDebouncedEffect } from "../components/filters/filterComponents/DebouncedInput"
 import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue } from "../models/paged_items"
+import { ABORT_ERROR_NAME } from "./api"
 
 type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>, sortBy: SortBy<ColumnID>) => Promise<{ total: number, data: RowData[] }>
 
@@ -48,10 +49,12 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
             ).then(({ total: newTotal, data }) => {
                 setDataSource(data)
                 setTotal(newTotal)
+                setLoading(false)
             }).catch((e) => {
                 console.error('Error fetching data for table:', e)
-            }).finally(() => {
-                setLoading(false)
+                if (e.name !== ABORT_ERROR_NAME) {
+                    setLoading(false)
+                }
             })
         }
     }, [currentPage, pageSize, fetchRowData, filters, sortBy, setTotal])
