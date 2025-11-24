@@ -122,12 +122,13 @@ export function IndexCuration() {
 
     const [tableSortByProps, { sortBy, setSortBy }] = useTableSortByProps<PooledSampleColumnID, FMSPooledSample>()
 
-    const paginationDataProps = usePaginatedDataProps(
+    const paginationDataProps = usePaginatedDataProps({
         defaultPageSize,
-        fetchPooledSamples,
+        fetchRowData: fetchPooledSamples,
         filters,
         sortBy,
-    )
+        bodySpinStyle: useMemo(() => ({ height: '75vh', alignContent: 'center' }), [])
+    })
     const { dataSource, pagination } = paginationDataProps
 
     const [
@@ -138,11 +139,11 @@ export function IndexCuration() {
             exceptedItems,
             totalSelectionCount
         }
-    ] = useSmartSelectionProps<FMSPooledSample>(
-        pagination.total ?? 0,
-        dataSource,
-        ROW_KEY,
-    )
+    ] = useSmartSelectionProps<FMSPooledSample>({
+        totalCount: pagination.total ?? 0,
+        itemsOnPage: dataSource,
+        rowKey: ROW_KEY,
+    })
 
     const paginationOnChange = pagination.onChange
     const mySetFilter = useCallback((searchKey: PooledSampleColumnID, text: string) => {
@@ -158,13 +159,13 @@ export function IndexCuration() {
             }
         })
     }, [defaultPageSize, pagination.pageSize, paginationOnChange, resetSelection])
-    const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>(
-        mySetFilter,
+    const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>({
+        setFilter: mySetFilter,
         filters,
-        COLUMN_DEFINITIONS,
-        SEARCH_DEFINITIONS,
+        columnDefinitions: COLUMN_DEFINITIONS,
+        searchPropertyDefinitions: SEARCH_DEFINITIONS,
         sortBy,
-    )
+    })
 
     const [templateActions, setTemplateActions] = useState<{ items: FMSTemplateAction[] }>({ items: [] })
     useEffect(() => {

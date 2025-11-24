@@ -1,7 +1,7 @@
 import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Checkbox, Input, InputRef } from "antd"
+import { Checkbox, Input, InputRef, Spin } from "antd"
 import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
 import { SearchOutlined } from "@ant-design/icons"
@@ -29,19 +29,28 @@ function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: 
 type SortBy<ColumnID extends string> = Partial<Record<ColumnID, 'ascend' | 'descend'>>
 export type SortKeys<ColumnID extends string> = Record<ColumnID, string>
 
-export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>(
+interface UsePaginatedDataPropsArguments<ColumnID extends string, RowData extends AntdAnyObject> {
     defaultPageSize: number,
     fetchRowData: FetchRowData<ColumnID, RowData>,
     filters: Partial<Record<ColumnID, string>>,
-    sortBy: SortBy<ColumnID>
-): Required<Pick<TableProps<RowData>, 'dataSource' | 'loading'>> & { pagination: TablePaginationConfig } {
+    sortBy: SortBy<ColumnID>,
+    bodySpinStyle?: NonNullable<React.CSSProperties>,
+}
+export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>({
+    defaultPageSize,
+    fetchRowData,
+    filters,
+    sortBy,
+    bodySpinStyle,
+}: UsePaginatedDataPropsArguments<ColumnID, RowData>): Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'locale'>> & { pagination: TablePaginationConfig }
+{
     const { pagination, setTotal } = usePagination(defaultPageSize)
     
     const { current: currentPage, pageSize } = pagination
     
     const [dataSource, setDataSource] = useState<RowData[]>([])
-    const [loading, setLoading] = useState<boolean>(false)
-    const debouncedEffect = useCallback(() => {
+    const [loading, setLoading] = useState<boolean>(true)
+    const myFetchRowData = useCallback(() => {
         if (currentPage !== undefined && pageSize !== undefined) {
             setLoading(true)
             fetchRowData(
@@ -58,12 +67,13 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
             })
         }
     }, [currentPage, pageSize, fetchRowData, filters, sortBy, setTotal])
-    useDebouncedEffect(debouncedEffect)
+    useDebouncedEffect(myFetchRowData)
 
     return {
-        dataSource,
-        loading,
+        dataSource: loading && bodySpinStyle ? [] : dataSource,
         pagination,
+        loading: loading && !bodySpinStyle,
+        locale: loading && bodySpinStyle ? { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } : {},
     }
 }
 
@@ -110,13 +120,20 @@ function usePagination(defaultPageSize: number): {
     }), [current, pageSize, setCurrentPageAndPageSize, total])
 }
 
-export function useTableColumnsProps<ColumnID extends string, RowData extends AntdAnyObject>(
+interface UseTableColumnsPropsArguments<ColumnID extends string, RowData extends AntdAnyObject> {
     setFilter: (searchKey: ColumnID, value: string) => void,
     filters: Partial<Record<ColumnID, string>>,
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
     searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
     sortBy: SortBy<ColumnID>,
-): Required<Pick<TableProps<RowData>, 'columns'>> {
+}
+export function useTableColumnsProps<ColumnID extends string, RowData extends AntdAnyObject>({
+    setFilter,
+    filters,
+    columnDefinitions,
+    searchPropertyDefinitions,
+    sortBy,
+}: UseTableColumnsPropsArguments<ColumnID, RowData>): Required<Pick<TableProps<RowData>, 'columns'>> {
     const searchInput = useRef<InputRef>(null)
     return useMemo(() => {
         const columns: ColumnsType<RowData> = []
@@ -230,7 +247,18 @@ export function useTableSortByProps<ColumnID extends string, RowData extends Ant
     ] as const
 }
 
-export function useSmartSelectionProps<RowData extends AntdAnyObject>(totalCount: number, itemsOnPage: readonly RowData[], rowKey: RowKey<RowData>, initialExceptedItems?: React.Key[]): [
+interface UseSmartSelectionPropsArguments<RowData extends AntdAnyObject> {
+    totalCount: number,
+    itemsOnPage: readonly RowData[],
+    rowKey: RowKey<RowData>,
+    initialExceptedItems?: React.Key[],
+}
+export function useSmartSelectionProps<RowData extends AntdAnyObject>({
+    totalCount,
+    itemsOnPage,
+    rowKey,
+    initialExceptedItems,
+}: UseSmartSelectionPropsArguments<RowData>): [
     Required<Pick<TableProps<RowData>, 'rowSelection'>>,
     {
         resetSelection: () => void,
