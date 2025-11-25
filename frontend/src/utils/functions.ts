@@ -1,8 +1,7 @@
+import { useCallback, useRef } from "react"
 import { CoordinateSpec, FMSId } from "../models/fms_api_models"
 import { ContainerKind } from "../models/frontend_models"
 import { CellIdentifier } from "../modules/placement/models"
-import { AppDispatch, RootState } from "../store"
-import { APIFetchOptions } from "./api"
 
 export function constVal<T>(x: T) {
     return () => x
@@ -106,4 +105,39 @@ export function smartQuerySetLookup(field: string, defaultSelection: boolean, ex
     } else {
         return { [`${field}__in`]: exceptedIDs.join(',') }
     }
+}
+
+export default function debounce<F extends (...args: any[]) => void>(delay: number, fn: F) {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  let savedArgs: Parameters<F>
+  return (...args: Parameters<F>) => {
+    savedArgs = args
+    if (timeout)
+      clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      fn(...savedArgs)
+      timeout = undefined
+    }, delay)
+  }
+}
+
+/**
+ * A hook to debounce function calls until after the specified time.
+ * This is used to avoid triggering calls to the backend while the user
+ * is typing in a filter.
+ */
+export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction: F, debounceTime = 500) => {
+    const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+    return useCallback(function caller(...args: Parameters<F>) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const context = this
+        if (timer.current) {
+            clearTimeout(timer.current)
+        }
+        timer.current = setTimeout(
+        () => {
+            timer.current = undefined
+            debouncedFunction.apply(context, args)
+        }, debounceTime)
+    }, [debounceTime, debouncedFunction])
 }

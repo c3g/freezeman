@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import {Select, Tag, Typography} from "antd";
 
-import debounce from "../utils/debounce";
+import debounce from "../utils/functions";
 import api, {withToken} from "../utils/api";
 
 const {Text} = Typography;

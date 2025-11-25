@@ -80,7 +80,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         } else {
             handler.current = setTimeout(() => {
                 myFetchRowData()
-            }, DEFAULT_DEBOUNCE_TIME)
+            }, 500)
         }
 
         return () => {
@@ -445,5 +445,3 @@ export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters
 
     return filterSet
 }
-
-export const DEFAULT_DEBOUNCE_TIME = 500

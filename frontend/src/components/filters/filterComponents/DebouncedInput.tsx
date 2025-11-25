@@ -1,27 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Input } from 'antd'
-
-/**
- * A hook to debounce function calls until after the specified time.
- * This is used to avoid triggering calls to the backend while the user
- * is typing in a filter.
- */
-export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction: F, debounceTime = DEFAULT_DEBOUNCE_TIME) => {
-    const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-    function caller(...args: Parameters<F>) {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const context = this
-        if (timer.current) {
-            clearTimeout(timer.current)
-        }
-        timer.current = setTimeout(
-        () => {
-            timer.current = undefined
-            debouncedFunction.apply(context, args)
-        }, debounceTime)
-    }
-    return useCallback(caller, [debounceTime, debouncedFunction])
-}
+import { useDebounce } from '../../../utils/functions'
 
 
 export interface DebouncedInputProps extends React.ComponentProps<typeof Input> {
