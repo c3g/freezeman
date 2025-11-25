@@ -49,44 +49,45 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     
     const [dataSource, setDataSource] = useState<RowData[]>([])
     const [loading, setLoading] = useState<boolean>(true)
-    const myFetchRowData = useCallback(() => {
-        if (currentPage !== undefined && pageSize !== undefined) {
-            setLoading(true)
-            fetchRowData(
-                currentPage, pageSize, filters, sortBy
-            ).then(({ total: newTotal, data }) => {
-                setDataSource(data)
-                setTotal(newTotal)
-                setLoading(false)
-            }).catch((e) => {
-                console.error('Error fetching data for table:', e)
-                if (e.name !== ABORT_ERROR_NAME) {
-                    setLoading(false)
-                }
-            })
-        }
-    }, [currentPage, pageSize, fetchRowData, filters, sortBy, setTotal])
 
-    const handler = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+    const handler = useRef<ReturnType<typeof setTimeout>>()
     const lastCurrentPage = useRef<typeof currentPage>(currentPage)
     const lastPageSize = useRef<typeof pageSize>(pageSize)
     useEffect(() => {
+        function wrappedFetchRowData() {
+            if (currentPage !== undefined && pageSize !== undefined) {
+                setLoading(true)
+                fetchRowData(
+                    currentPage, pageSize, filters, sortBy
+                ).then(({ total: newTotal, data }) => {
+                    setDataSource(data)
+                    setTotal(newTotal)
+                    setLoading(false)
+                }).catch((e) => {
+                    console.error('Error fetching data for table:', e)
+                    if (e.name !== ABORT_ERROR_NAME) {
+                        setLoading(false)
+                    }
+                })
+            }
+        }
+
         clearTimeout(handler.current)
 
         if (lastCurrentPage.current !== currentPage || lastPageSize.current !== pageSize) {
-            myFetchRowData()
+            wrappedFetchRowData()
             lastCurrentPage.current = currentPage
             lastPageSize.current = pageSize
         } else {
             handler.current = setTimeout(() => {
-                myFetchRowData()
+                wrappedFetchRowData()
             }, 500)
         }
 
         return () => {
             clearTimeout(handler.current)
         }
-    }, [currentPage, myFetchRowData, pageSize])
+    }, [currentPage, fetchRowData, filters, pageSize, setTotal, sortBy])
 
     return {
         dataSource: loading && bodySpinStyle ? [] : dataSource,
