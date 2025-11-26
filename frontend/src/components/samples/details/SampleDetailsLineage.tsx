@@ -23,7 +23,7 @@ interface SampleDetailsLineageProps {
 function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }: SampleDetailsLineageProps) {
     const dispatch = useAppDispatch()
 
-    const [cy, setCy] = React.useState<cytoscape.Core | undefined>(undefined)
+    const [cy, setCy] = React.useState<cytoscape.Core>()
 
     useEffect(() => {
         const cy = cytoscape()
@@ -147,13 +147,13 @@ function Details() {
         <Card>
             <Space direction={"vertical"} size={"small"}>
                 <Text>
-                    Click on node to visit the sample.
+                    Click on node to change the active sample.
                 </Text>
                 <Text>
                     Click on edge to visit the process.
                 </Text>
                 <Text>
-                    Use the mouse to move and zoom the graph.
+                    You can pan the view by dragging while holding left mouse button and zoom with the scroll wheel.
                 </Text>
             </Space>
         </Card>
@@ -188,7 +188,7 @@ function Legend() {
 
     const entries: EntryProps[] = useMemo(() => [
         { symbol: { shape: "star", color: "black" }, text: "You are here" },
-        { symbol: { shape: "circle", color: "black" }, text: "Awaiting QC" },
+        { symbol: { shape: "circle", color: "black" }, text: "No available QC" },
         { symbol: { shape: "circle", color: "red" }, text: "Failed QC" },
         { symbol: { shape: "circle", color: "green" }, text: "Passed QC" },
     ], [])
@@ -230,6 +230,8 @@ function resetLineageLayout() {
                 'text-valign': 'top',
                 'text-halign': 'left',
                 'shape': 'data(shape)',
+                "font-weight": "bold",
+                "font-size": "1.5em",
             }
         },
 
@@ -242,6 +244,8 @@ function resetLineageLayout() {
                 'line-color': '#9dbaea',
                 'target-arrow-color': '#9dbaea',
                 'width': 4,
+                "font-weight": "bold",
+                "font-size": "1.5em",
             }
         }
     ]).update()
