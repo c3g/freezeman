@@ -230,6 +230,7 @@ function resetLineageLayout() {
                 'text-valign': 'top',
                 'text-halign': 'left',
                 'shape': 'data(shape)',
+                'font-family': 'Arial',
                 "font-weight": "bold",
                 "font-size": "1.5em",
             }
@@ -244,6 +245,7 @@ function resetLineageLayout() {
                 'line-color': '#9dbaea',
                 'target-arrow-color': '#9dbaea',
                 'width': 4,
+                'font-family': 'Arial',
                 "font-weight": "bold",
                 "font-size": "1.5em",
             }
