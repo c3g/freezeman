@@ -1,6 +1,6 @@
 import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox, Input, InputRef, Spin } from "antd"
 import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
@@ -8,102 +8,73 @@ import { SearchOutlined } from "@ant-design/icons"
 import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue } from "../models/paged_items"
 import { ABORT_ERROR_NAME } from "./api"
 
-type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (pageNumber: number, pageSize: number, filters: Partial<Record<ColumnID, string>>, sortBy: SortBy<ColumnID>) => Promise<{ total: number, data: RowData[] }>
-
-export type ColumnDefinitions<ColumnID extends string, RowData> = Record<ColumnID, ColumnType<RowData>>
-
-export type FilterKeys<ColumnID extends string> = Record<ColumnID, string>
-
-export type FilterDescription = { type: typeof FILTER_TYPE.INPUT, lookup_type: 'exact' | 'startswith' }
-export type FilterDescriptions<ColumnID extends string> = Record<ColumnID, FilterDescription>
-
-export interface SearchPropertyDefinition { placeholder?: string }
-export type SearchPropertiesDefinitions<ColumnID extends string> = Record<ColumnID, SearchPropertyDefinition>
-
-export type RowKey<RowData extends AntdAnyObject> = NonNullable<TableProps<RowData>['rowKey']>
-function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: RowData): React.Key {
-    return rowKey instanceof Function ? rowKey(record) : record[rowKey as keyof RowData] as React.Key
-}
-
-type SortBy<ColumnID extends string> = Partial<Record<ColumnID, 'ascend' | 'descend'>>
-export type SortKeys<ColumnID extends string> = Record<ColumnID, string>
-
-interface UsePaginatedDataPropsArguments<ColumnID extends string, RowData extends AntdAnyObject> {
-    defaultPageSize: number,
-    fetchRowData: FetchRowData<ColumnID, RowData>,
-    filters: Partial<Record<ColumnID, string>>,
-    sortBy: SortBy<ColumnID>,
-    bodySpinStyle?: NonNullable<React.CSSProperties>,
-}
-export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>({
-    defaultPageSize,
+export function useTableDataAndLoadingProps<ColumnID extends string, RowData extends AntdAnyObject>({
     fetchRowData,
-    filters,
-    sortBy,
     bodySpinStyle,
-}: UsePaginatedDataPropsArguments<ColumnID, RowData>): Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'locale'>> & { pagination: TablePaginationConfig }
-{
-    const { pagination, setTotal } = usePagination(defaultPageSize)
-    
-    const { current: currentPage, pageSize } = pagination
-    
+}: UseTableDataAndLoadingArguments<ColumnID, RowData>): [
+    Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'locale'>>,
+    {
+        fetchRowData: (args: Partial<FetchRowDataArguments<ColumnID>>) => Promise<RowData[]>,
+        total: number,
+    }
+] {
+    const [total, setTotal] = useState<number>(0)
     const [dataSource, setDataSource] = useState<RowData[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
-    const handler = useRef<ReturnType<typeof setTimeout>>()
-    const lastCurrentPage = useRef<typeof currentPage>(currentPage)
-    const lastPageSize = useRef<typeof pageSize>(pageSize)
-    useEffect(() => {
-        function wrappedFetchRowData() {
-            if (currentPage !== undefined && pageSize !== undefined) {
-                setLoading(true)
-                fetchRowData(
-                    currentPage, pageSize, filters, sortBy
-                ).then(({ total: newTotal, data }) => {
-                    setDataSource(data)
-                    setTotal(newTotal)
-                    setLoading(false)
-                }).catch((e) => {
-                    console.error('Error fetching data for table:', e)
-                    if (e.name !== ABORT_ERROR_NAME) {
-                        setLoading(false)
-                    }
+    const oldPageNumber = useRef<number>()
+    const oldPageSize = useRef<number>()
+    const oldFilters = useRef<Filters<ColumnID>>()
+    const oldSortBy = useRef<Partial<Record<ColumnID, 'ascend' | 'descend'>>>()
+    const wrappedFetchRowData = useCallback(async ({
+        pageNumber = oldPageNumber.current, pageSize = oldPageSize.current, filters = oldFilters.current, sortBy = oldSortBy.current
+    }: Partial<FetchRowDataArguments<ColumnID>>) => {
+        oldPageNumber.current = pageNumber
+        oldPageSize.current = pageSize
+        oldFilters.current = filters
+        oldSortBy.current = sortBy
+
+        if (pageNumber !== undefined && pageSize !== undefined) {
+            setLoading(true)
+            try {
+                const { total: newTotal, data } = await fetchRowData({
+                    pageNumber, pageSize, filters: filters ?? {}, sortBy: sortBy ?? {}
                 })
+                setDataSource(data)
+                setTotal?.(newTotal)
+                setLoading(false)
+                return data
+            } catch (e) {
+                console.error('Error fetching data for table:', e)
+                if (e.name !== ABORT_ERROR_NAME) {
+                    setLoading(false)
+                }
             }
         }
+        return []
+    }, [fetchRowData, setTotal])
 
-        clearTimeout(handler.current)
-
-        if (lastCurrentPage.current !== currentPage || lastPageSize.current !== pageSize) {
-            wrappedFetchRowData()
-            lastCurrentPage.current = currentPage
-            lastPageSize.current = pageSize
-        } else {
-            handler.current = setTimeout(() => {
-                wrappedFetchRowData()
-            }, 500)
+    return [
+        {
+            dataSource: loading && bodySpinStyle ? [] : dataSource,
+            loading: loading && !bodySpinStyle,
+            locale: loading && bodySpinStyle ? { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } : {},
+        },
+        {
+            fetchRowData: wrappedFetchRowData,
+            total,
         }
-
-        return () => {
-            clearTimeout(handler.current)
-        }
-    }, [currentPage, fetchRowData, filters, pageSize, setTotal, sortBy])
-
-    return {
-        dataSource: loading && bodySpinStyle ? [] : dataSource,
-        pagination,
-        loading: loading && !bodySpinStyle,
-        locale: loading && bodySpinStyle ? { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } : {},
-    }
+    ]
 }
 
-function usePagination(defaultPageSize: number): {
-    pagination: TablePaginationConfig,
-    setTotal: (total: number) => void,
-} {
-    const [total, setTotal] = useState<number>(0)
+export function usePaginationProps(defaultPageSize: number, total: number, onPaginationChange?: (pageNumber: number, pageSize: number) => void): [
+    { pagination: TablePaginationConfig },
+ ] {
     const [current, setCurrent] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
+
+    const oldPageNumber = useRef<number>(defaultPageSize)
+    const oldPageSize = useRef<number>(defaultPageSize)
 
     const setCurrentPageAndPageSize = useCallback((newCurrentPage?: number, newPageSize?: number) => {
         newCurrentPage = newCurrentPage ?? current
@@ -115,9 +86,20 @@ function usePagination(defaultPageSize: number): {
             newCurrentPage = 1
         }
 
+        // Avoid calling onPaginationChange if pagination did not change.
+        // This can happen because Antd Table calls onChange for filter and sort changes too.
+        if (oldPageNumber.current === newCurrentPage && oldPageSize.current === newPageSize) {
+            // No change
+            return
+        } else {
+            oldPageNumber.current = newCurrentPage
+            oldPageSize.current = newPageSize
+        }
+
         setCurrent(newCurrentPage)
         setPageSize(newPageSize)
-    }, [current, pageSize, total])
+        onPaginationChange?.(newCurrentPage, newPageSize)
+    }, [current, onPaginationChange, pageSize, total])
 
     // Reset page size and current page if defaultPageSize changes
     const pastDefaultPageSize = useRef<number>(0)
@@ -129,26 +111,69 @@ function usePagination(defaultPageSize: number): {
         setCurrentPageAndPageSize(1, defaultPageSize)
     }, [defaultPageSize, setCurrentPageAndPageSize])
 
-    return {
-        pagination: {
-            current,
-            pageSize,
-            total,
-            onChange: setCurrentPageAndPageSize,
+    return [
+        {
+            pagination: {
+                current,
+                pageSize,
+                total,
+                onChange: setCurrentPageAndPageSize,
+            }
         },
-        setTotal,
-    }
+    ]
 }
 
-interface UseTableColumnsPropsArguments<ColumnID extends string, RowData extends AntdAnyObject> {
-    setFilter: (searchKey: ColumnID, value: string) => void,
-    filters: Partial<Record<ColumnID, string>>,
-    columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
-    searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
-    sortBy: SortBy<ColumnID>,
+export function useTableSortByProps<ColumnID extends string, RowData extends AntdAnyObject>(onSortChange?: (sortBy: SortBy<ColumnID>) => void): [
+    Required<Pick<TableProps<RowData>, 'onChange'>>,
+    {
+        sortBy: SortBy<ColumnID>,
+        setSortBy: React.Dispatch<React.SetStateAction<SortBy<ColumnID>>>,
+    }
+] {
+    const [sortBy, setSortBy] = useState<SortBy<ColumnID>>({})
+
+    const onChange = useCallback<NonNullable<TableProps<RowData>['onChange']>>((pagination, filters, sorter) => {
+        let newSortBy: SortBy<ColumnID> = {}
+        if (Array.isArray(sorter)) {
+            setSortBy((sortBy) => {
+                newSortBy = sorter.reduce<typeof sortBy>((newSortBy, sortItem) => {
+                    if (sortItem.order && sortItem.columnKey) {
+                        newSortBy[sortItem.columnKey as ColumnID] = sortItem.order
+                    }
+                    return newSortBy
+                }, {})
+                return newSortBy
+            })
+        } else {
+            if (sorter.order && sorter.columnKey) {
+                newSortBy = { [sorter.columnKey as ColumnID]: sorter.order } as SortBy<ColumnID>
+            } else {
+                newSortBy = {}
+            }
+        }
+
+        // Don't trigger onSortChange if sortBy did not change
+        // This can happen because Antd Table calls onChange for filter and pagination changes too.
+        const combineKeys = new Set([...Object.keys(sortBy), ...Object.keys(newSortBy)])
+        const sortByChanged = [...combineKeys].some((key) => sortBy[key as ColumnID] !== newSortBy[key as ColumnID])
+        if (sortByChanged) {
+            onSortChange?.(newSortBy)
+        }
+
+        setSortBy(newSortBy)
+    }, [onSortChange, sortBy])
+
+    return [
+        { onChange },
+        {
+            sortBy,
+            setSortBy,
+        }
+    ] as const
 }
+
 export function useTableColumnsProps<ColumnID extends string, RowData extends AntdAnyObject>({
-    setFilter,
+    setFilters,
     filters,
     columnDefinitions,
     searchPropertyDefinitions,
@@ -164,7 +189,7 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
             const searchPropsArgs = searchPropertyDefinitions[columnID]
             if (searchPropsArgs) {
                 Object.assign(column, getColumnSearchProps(
-                    setFilter,
+                    setFilters,
                     columnID,
                     filters[columnID],
                     searchInput,
@@ -177,11 +202,11 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
             columns.push(column)
         }
         return { columns }
-    }, [columnDefinitions, filters, searchPropertyDefinitions, setFilter, sortBy])
+    }, [columnDefinitions, filters, searchPropertyDefinitions, setFilters, sortBy])
 }
 
-function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
-    setFilter: (searchKey: SearchKey, value: string) => void,
+function getColumnSearchProps<SearchKey extends string, T extends AntdAnyObject>(
+    setFilters: UseTableColumnsPropsArguments<SearchKey, T>['setFilters'],
     searchKey: SearchKey,
     currentFilterValue: string | undefined,
     searchInput: React.RefObject<InputRef>,
@@ -195,7 +220,10 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
                     placeholder={`Search ${searchPropsArgs.placeholder ?? searchKey}`}
                     value={currentFilterValue ?? ''}
                     onChange={(e) => {
-                        setFilter(searchKey, e.target.value)
+                        setFilters((prevFilters => ({
+                            ...prevFilters,
+                            [searchKey]: e.target.value,
+                        })))
                         confirm({ closeDropdown: false })
                     }}
                     onPressEnter={() => {
@@ -208,7 +236,7 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
                     }}
                     onClear={() => {
                         confirm()
-                        setFilter(searchKey, '')
+                        setFilters({})
                     }}
                     allowClear
                     style={{ marginBottom: 8 }}
@@ -228,43 +256,23 @@ function getColumnSearchProps<SearchKey extends string, T = AntdAnyObject>(
     }
 }
 
-export function useTableSortByProps<ColumnID extends string, RowData extends AntdAnyObject>(): [
-    Required<Pick<TableProps<RowData>, 'onChange'>>,
-    {
-        sortBy: SortBy<ColumnID>,
-        setSortBy: React.Dispatch<React.SetStateAction<SortBy<ColumnID>>>,
-    }
-] {
-    const [sortBy, setSortBy] = useState<SortBy<ColumnID>>({})
+export function useFilters<ColumnID extends string>(defaultFilters: Filters<ColumnID>, onChange: (filters: Filters<ColumnID>) => void) {
+    const [filters, setFilters] = useState<Filters<ColumnID>>(defaultFilters)
 
-    const onChange = useCallback<NonNullable<TableProps<RowData>['onChange']>>((pagination, filters, sorter) => {
-        if (Array.isArray(sorter)) {
-            setSortBy((sortBy) => {
-                return sorter.reduce<typeof sortBy>((newSortBy, sortItem) => {
-                    if (sortItem.order && sortItem.columnKey) {
-                        newSortBy[sortItem.columnKey as ColumnID] = sortItem.order
-                    }
-                    return newSortBy
-                }, {})
+    const mySetFilters = useCallback<typeof setFilters>((newFilters) => {
+        if (typeof newFilters === 'function') {
+            setFilters((prevFilters) => {
+                const updatedFilters = newFilters(prevFilters)
+                onChange(updatedFilters)
+                return updatedFilters
             })
         } else {
-            if (sorter.order && sorter.columnKey) {
-                setSortBy({
-                    [sorter.columnKey as ColumnID]: sorter.order
-                } as SortBy<ColumnID>)
-            } else {
-                setSortBy({})
-            }
+            onChange(newFilters)
+            setFilters(newFilters)
         }
-    }, [])
+    }, [onChange])
 
-    return [
-        { onChange },
-        {
-            sortBy,
-            setSortBy,
-        }
-    ] as const
+    return [filters, mySetFilters] as const
 }
 
 interface UseSmartSelectionPropsArguments<RowData extends AntdAnyObject> {
@@ -400,7 +408,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
     ]
 }
 
-export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Partial<Record<ColumnID, string>>): Record<string, string> {
+export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Filters<ColumnID>): Record<string, string> {
     return Object.entries(filters).reduce<Record<string, string>>((acc, [key, value]) => {
         if (value) {
             const filterKey = filterKeys[key as ColumnID]
@@ -423,7 +431,7 @@ export function createQueryParamsFromSortBy<ColumnID extends string>(sortKeys: S
     }
 }
 
-export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters: Partial<Record<ColumnID, string>>, filterDescriptions: FilterDescriptions<ColumnID>, filterKeys: FilterKeys<ColumnID>, searchProperties: SearchPropertiesDefinitions<ColumnID>): OldFilterSet {
+export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters: Filters<ColumnID>, filterDescriptions: FilterDescriptions<ColumnID>, filterKeys: FilterKeys<ColumnID>, searchProperties: SearchPropertiesDefinitions<ColumnID>): OldFilterSet {
     const filterSet: OldFilterSet = {}
 
     for (const columnID in filters) {
@@ -445,4 +453,45 @@ export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters
     }
 
     return filterSet
+}
+
+interface FetchRowDataArguments<ColumnID extends string> {
+    pageNumber: number,
+    pageSize: number,
+    filters: Filters<ColumnID>,
+    sortBy: Partial<Record<ColumnID, 'ascend' | 'descend'>>,
+}
+export type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (args: FetchRowDataArguments<ColumnID>) => Promise<{ total: number, data: RowData[] }>
+
+export type ColumnDefinitions<ColumnID extends string, RowData> = Record<ColumnID, ColumnType<RowData>>
+
+export type FilterKeys<ColumnID extends string> = Record<ColumnID, string>
+
+export type FilterDescription = { type: typeof FILTER_TYPE.INPUT, lookup_type: 'exact' | 'startswith' }
+export type FilterDescriptions<ColumnID extends string> = Record<ColumnID, FilterDescription>
+
+export interface SearchPropertyDefinition { placeholder?: string }
+export type SearchPropertiesDefinitions<ColumnID extends string> = Record<ColumnID, SearchPropertyDefinition>
+
+export type RowKey<RowData extends AntdAnyObject> = NonNullable<TableProps<RowData>['rowKey']>
+function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: RowData): React.Key {
+    return rowKey instanceof Function ? rowKey(record) : record[rowKey as keyof RowData] as React.Key
+}
+
+export type Filters<ColumnID extends string> = Partial<Record<ColumnID, string>>
+
+export type SortBy<ColumnID extends string> = Partial<Record<ColumnID, 'ascend' | 'descend'>>
+export type SortKeys<ColumnID extends string> = Record<ColumnID, string>
+
+interface UseTableDataAndLoadingArguments<ColumnID extends string, RowData extends AntdAnyObject> {
+    fetchRowData: FetchRowData<ColumnID, RowData>,
+    bodySpinStyle?: NonNullable<React.CSSProperties>,
+}
+
+interface UseTableColumnsPropsArguments<ColumnID extends string, RowData extends AntdAnyObject> {
+    setFilters: (newFilters: SetStateAction<Filters<ColumnID>>) => void,
+    filters: Filters<ColumnID>,
+    columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
+    searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
+    sortBy: SortBy<ColumnID>,
 }

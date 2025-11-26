@@ -10,8 +10,8 @@ import {
 } from "@ant-design/icons";
 import {Select, Tag, Typography} from "antd";
 
-import debounce from "../utils/functions";
 import api, {withToken} from "../utils/api";
+import { debounced } from "../utils/functions";
 
 const {Text} = Typography;
 const {Option} = Select;
@@ -44,7 +44,7 @@ const JumpBar = (props) => {
   const history = useNavigate();
   const selectRef = useRef();
 
-  const search = useMemo(() => debounce(500, async query => {
+  const search = useMemo(() => debounced(500, async query => {
     try {
       const response = await withToken(token, api.query.search)(query)
       if (response && response.data) {

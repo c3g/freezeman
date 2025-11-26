@@ -107,7 +107,7 @@ export function smartQuerySetLookup(field: string, defaultSelection: boolean, ex
     }
 }
 
-export default function debounce<F extends (...args: any[]) => void>(delay: number, fn: F) {
+export function debounced<F extends (...args: any[]) => void>(delay: number, fn: F) {
   let timeout: ReturnType<typeof setTimeout> | undefined
   let savedArgs: Parameters<F>
   return (...args: Parameters<F>) => {

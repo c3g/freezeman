@@ -3,7 +3,7 @@ import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } f
 import { Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FilterDescriptions, FilterKeys, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, usePaginatedDataProps, useSmartSelectionProps, useTableColumnsProps, useTableSortByProps } from "../../utils/tableHooks"
+import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, useFilters, usePaginationProps, useSmartSelectionProps, useTableColumnsProps, useTableDataAndLoadingProps, useTableSortByProps } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -11,7 +11,7 @@ import PageContent from "../PageContent"
 import { Link } from "react-router-dom"
 import { ActionDropdown } from "../../utils/templateActions"
 import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates"
-import { smartQuerySetLookup } from "../../utils/functions"
+import { smartQuerySetLookup, useDebounce } from "../../utils/functions"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 
 enum PooledSampleColumnID {
@@ -98,7 +98,9 @@ const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
 export function IndexCuration() {
     const dispatch = useAppDispatch()
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
-    const fetchPooledSamples = useCallback(async (pageNumber: number, pageSize: number, filters: Partial<Record<PooledSampleColumnID, string>>, sortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
+    const fetchPooledSamples = useCallback<FetchRowData<PooledSampleColumnID, FMSPooledSample>>(async ({
+        pageNumber, pageSize, filters, sortBy
+    }) => {
         const response = await dispatch(api.pooledSamples.list(
             {
                 ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
@@ -118,18 +120,24 @@ export function IndexCuration() {
         }
     }, [dispatch])
 
-    const [filters, setFilters] = useState<Partial<Record<PooledSampleColumnID, string>>>({})
 
-    const [tableSortByProps, { sortBy, setSortBy }] = useTableSortByProps<PooledSampleColumnID, FMSPooledSample>()
-
-    const paginationDataProps = usePaginatedDataProps({
-        defaultPageSize,
+    const [dataAndLoadingProps, { fetchRowData, total }] = useTableDataAndLoadingProps({
         fetchRowData: fetchPooledSamples,
-        filters,
-        sortBy,
         bodySpinStyle: { height: '75vh', alignContent: 'center' }
     })
-    const { dataSource, pagination } = paginationDataProps
+
+    // this one already fetches initial data
+    const [paginationProps] = usePaginationProps(defaultPageSize, total, (pageNumber, pageSize) => {
+        console.info('Fetching page', pageNumber, 'with page size', pageSize)
+        fetchRowData({ pageNumber, pageSize })
+    })
+
+    const debouncedOnSort = useDebounce(useCallback((newSortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
+        console.info('Sorting by', newSortBy)
+        paginationProps.pagination.onChange?.(1, paginationProps.pagination.pageSize ?? defaultPageSize)
+        fetchRowData({ sortBy: newSortBy })
+    }, [defaultPageSize, fetchRowData, paginationProps.pagination]), DEBOUNCE_DELAY)
+    const [tableSortByProps, { sortBy, setSortBy }] = useTableSortByProps<PooledSampleColumnID, FMSPooledSample>(debouncedOnSort)
 
     const [
         smartSelectionProps,
@@ -140,28 +148,22 @@ export function IndexCuration() {
             totalSelectionCount
         }
     ] = useSmartSelectionProps<FMSPooledSample>({
-        totalCount: pagination.total ?? 0,
-        itemsOnPage: dataSource,
+        totalCount: total ?? 0,
+        itemsOnPage: dataAndLoadingProps.dataSource,
         rowKey: ROW_KEY,
     })
 
-    const paginationOnChange = pagination.onChange
-    const mySetFilter = useCallback((searchKey: PooledSampleColumnID, text: string) => {
-        paginationOnChange?.(1, pagination.pageSize ?? defaultPageSize)
+    const debouncedOnFilter = useDebounce(useCallback((newFilters: Filters<PooledSampleColumnID>) => {
+        console.info('Filtering by', newFilters)
+        paginationProps.pagination.onChange?.(1, paginationProps.pagination.pageSize ?? defaultPageSize)
         resetSelection()
-        setFilters((prev) => {
-            if (text) {
-                return { ...prev, [searchKey]: text }
-            } else {
-                const newFilters = { ...prev }
-                delete newFilters[searchKey]
-                return newFilters
-            }
-        })
-    }, [defaultPageSize, pagination.pageSize, paginationOnChange, resetSelection])
+        fetchRowData({ filters: newFilters })
+    }, [defaultPageSize, fetchRowData, paginationProps.pagination, resetSelection]), DEBOUNCE_DELAY)
+    const [filters, setFilters] = useFilters<PooledSampleColumnID>({}, debouncedOnFilter)
+
     const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>({
-        setFilter: mySetFilter,
         filters,
+        setFilters,
         columnDefinitions: COLUMN_DEFINITIONS,
         searchPropertyDefinitions: SEARCH_DEFINITIONS,
         sortBy,
@@ -215,7 +217,8 @@ export function IndexCuration() {
                     }} />
                     <Table<FMSPooledSample>
                         {...tableSortByProps}
-                        {...paginationDataProps}
+                        {...paginationProps}
+                        {...dataAndLoadingProps}
                         {...smartSelectionProps}
                         {...tableColumnsProps}
                         rowKey={ROW_KEY}
@@ -227,3 +230,5 @@ export function IndexCuration() {
         </>
     )
 }
+
+const DEBOUNCE_DELAY = 500
