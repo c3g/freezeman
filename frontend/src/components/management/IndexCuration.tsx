@@ -128,12 +128,10 @@ export function IndexCuration() {
 
     // this one already fetches initial data
     const [paginationProps] = usePaginationProps(defaultPageSize, total, (pageNumber, pageSize) => {
-        console.info('Fetching page', pageNumber, 'with page size', pageSize)
         fetchRowData({ pageNumber, pageSize })
     })
 
     const debouncedOnSort = useDebounce(useCallback((newSortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
-        console.info('Sorting by', newSortBy)
         paginationProps.pagination.onChange?.(1, paginationProps.pagination.pageSize ?? defaultPageSize)
         fetchRowData({ sortBy: newSortBy })
     }, [defaultPageSize, fetchRowData, paginationProps.pagination]), DEBOUNCE_DELAY)
@@ -154,7 +152,6 @@ export function IndexCuration() {
     })
 
     const debouncedOnFilter = useDebounce(useCallback((newFilters: Filters<PooledSampleColumnID>) => {
-        console.info('Filtering by', newFilters)
         paginationProps.pagination.onChange?.(1, paginationProps.pagination.pageSize ?? defaultPageSize)
         resetSelection()
         fetchRowData({ filters: newFilters })
