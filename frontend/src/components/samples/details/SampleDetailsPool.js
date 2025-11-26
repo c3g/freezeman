@@ -14,39 +14,7 @@ import api from '../../../utils/api'
 import { withToken } from '../../../utils/api'
 
 import mergedListQueryParams from '../../../utils/mergedListQueryParams'
-
-/**
- * 
- * @param {number | string} number 
- * @param {number} precision 
- * @returns 
- */
-function humanFriendlyFixed(number, precision) {
-    // assumes wholeNumber has at least one digit
-    const [wholeNumber, fractionalPart = ''] = number.toString().replace(/^0+/, '').split('.')
-    
-    // If the whole number part is longer than the precision, return just the whole number part.
-    if (wholeNumber.length > precision) {
-        return wholeNumber
-    }
-    // If there is a non-zero whole number part, return the number rounded to the specified precision.
-    if (wholeNumber && parseInt(wholeNumber) !== 0) {
-        return parseFloat(`${wholeNumber}.${fractionalPart}`).toFixed(precision)
-    }
-
-    const [leadingZeros] = fractionalPart.match(/^0+/) ?? ['']
-
-    // If there are only leading zeros in the fractional part, return '0'.
-    if (leadingZeros.length === fractionalPart.replace(/0+$/, '').length) {
-        return '0'
-    }
-
-    // Otherwise, return the number with leading zeros preserved and rounded to the specified precision.
-    const withoutLeadingZeros = fractionalPart.slice(leadingZeros.length)
-    const withPrecision = parseFloat(`0.${withoutLeadingZeros}`).toFixed(precision)
-    return `0.${leadingZeros}${withPrecision.slice(2)}`
-}
-window.humanFriendlyFixed = humanFriendlyFixed
+import { DecimalNumber } from '../../../utils/DecimalNumber';
 
 const getTableColumns = (sampleKinds) => {
     return [
@@ -79,7 +47,7 @@ const getTableColumns = (sampleKinds) => {
             title: "Volume Ratio",
             dataIndex: "volume_ratio",
             sorter: true,
-            render: (_, pooledSample) => <div>{humanFriendlyFixed(pooledSample.volume_ratio, 5)}</div>
+            render: (_, pooledSample) => <div>{(new DecimalNumber(pooledSample.volume_ratio)).decimalPartUpToSignificantFigures(5)}</div>
         },
         {
             title: "Kind",
