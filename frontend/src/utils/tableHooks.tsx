@@ -1,6 +1,6 @@
 import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
-import React, { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox, Input, InputRef, Spin } from "antd"
 import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
@@ -16,13 +16,13 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'locale'>> & ReturnType<typeof usePaginationProps>[0],
     {
         fetchRowData: (args: Partial<FetchRowDataArguments<ColumnID>>, debounceTime?: number) => void,
-        total: number,
+        totalCount: number,
     }
 ] {
     const [dataSource, setDataSource] = useState<RowData[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
-    const [paginatedProps, { setPagination }] = usePaginationProps(defaultPageSize)
+    const [paginatedProps, { setPagination, setOnChange }] = usePaginationProps(defaultPageSize)
 
     const handler = useRef<ReturnType<typeof setTimeout>>()
     useEffect(() => {
@@ -73,6 +73,12 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         }, debounceTime ?? 0)
     }, [fetchRowData, setPagination])
 
+    useEffect(() => {
+        setOnChange(() => (newPageNumber: number, newPageSize: number) => {
+            wrappedFetchRowData({ pageNumber: newPageNumber, pageSize: newPageSize })
+        })
+    }, [setOnChange, wrappedFetchRowData])
+
     return [
         {
             dataSource: loading && bodySpinStyle ? [] : dataSource,
@@ -82,7 +88,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         },
         {
             fetchRowData: wrappedFetchRowData,
-            total: paginatedProps.pagination.total ?? 0,
+            totalCount: paginatedProps.pagination.total ?? 0,
         }
     ]
 }
@@ -90,17 +96,22 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
 export function usePaginationProps(defaultPageSize: number): [
     { pagination: TablePaginationConfig },
     {
-        setPagination: (newCurrentPage: number, newPageSize: number, total: number) => void,
+        setPagination: (newCurrentPage: number, newPageSize: number, totalCount: number) => void,
+        setOnChange: Dispatch<SetStateAction<NonNullable<TablePaginationConfig['onChange']>>>,
     }
  ] {
     const [pageNumber, setPageNumber] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
-    const [total, setTotal] = useState<number>(0)
+    const [totalCount, setTotalCount] = useState<number>(0)
+    const [onChange, setOnChange] = useState<NonNullable<TablePaginationConfig['onChange']>>((pageNumber, pageSize) => {
+        setPageNumber(pageNumber)
+        setPageSize(pageSize)
+    })
 
     const oldPageSize = useRef<number>(pageSize)
-    const setPagination = useCallback((newPageNumber: number, newPageSize: number, total: number) => {
-        if ((newPageNumber - 1) * newPageSize >= total) {
-            newPageNumber = newPageSize > 0 ? Math.max(Math.ceil(total / newPageSize), 1) : 1
+    const setPagination = useCallback((newPageNumber: number, newPageSize: number, newTotalCount: number) => {
+        if ((newPageNumber - 1) * newPageSize >= newTotalCount) {
+            newPageNumber = newPageSize > 0 ? Math.max(Math.ceil(newTotalCount / newPageSize), 1) : 1
         }
         if (newPageSize !== oldPageSize.current) {
             newPageNumber = 1
@@ -109,12 +120,7 @@ export function usePaginationProps(defaultPageSize: number): [
         setPageNumber(newPageNumber)
         setPageSize(newPageSize)
         oldPageSize.current = newPageSize
-        setTotal(total)
-    }, [])
-
-    const onChange = useCallback<NonNullable<TablePaginationConfig['onChange']>>((pageNumber, pageSize) => {
-        setPageNumber(pageNumber)
-        setPageSize(pageSize)
+        setTotalCount(newTotalCount)
     }, [])
 
     // Reset page size and current page if defaultPageSize changes
@@ -133,12 +139,13 @@ export function usePaginationProps(defaultPageSize: number): [
             pagination: {
                 current: pageNumber,
                 pageSize,
-                total,
+                total: totalCount,
                 onChange, // i trust antd to not pass invalid page numbers or page sizes
             }
         },
         {
             setPagination,
+            setOnChange,
         }
     ]
 }

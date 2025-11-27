@@ -121,7 +121,7 @@ export function IndexCuration() {
     }, [dispatch])
 
 
-    const [paginatedDataProps, { fetchRowData, total }] = usePaginatedDataProps({
+    const [paginatedDataProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
         defaultPageSize,
         fetchRowData: fetchPooledSamples,
         bodySpinStyle: { height: '75vh', alignContent: 'center' }
@@ -141,7 +141,7 @@ export function IndexCuration() {
             totalSelectionCount
         }
     ] = useSmartSelectionProps<FMSPooledSample>({
-        totalCount: total ?? 0,
+        totalCount: totalCount ?? 0,
         itemsOnPage: paginatedDataProps.dataSource,
         rowKey: ROW_KEY,
     })
