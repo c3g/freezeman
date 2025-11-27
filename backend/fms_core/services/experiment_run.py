@@ -252,7 +252,7 @@ def start_experiment_run_processing(pk):
     if run_info is not None:
         try:
             file_name_base = (experiment_run.name if experiment_run.name else 'experiment_run') + '.json'
-            file_name = make_timestamped_filename(file_name_base)
+            file_name, _ = make_timestamped_filename(file_name_base)
 
             run_info_file_path = os.path.join(settings.RUN_INFO_OUTPUT_PATH, file_name)
 

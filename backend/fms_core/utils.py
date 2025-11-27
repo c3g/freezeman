@@ -173,7 +173,7 @@ def make_generator(obj: Union[T, None, Iterable[T]]) -> Generator[T, None, None]
         except TypeError:
             yield obj
 
-def make_timestamped_filename(file_name: str) -> str:
+def make_timestamped_filename(file_name: str) -> tuple[str, str]:
     """
     Creates a file name composed of a base file name followed by a timestamp, followed
     by the file extension, eg "MyFile_2022-11-25_08-13-45.json".
@@ -184,12 +184,14 @@ def make_timestamped_filename(file_name: str) -> str:
         `file_name`: A file name (or file path).
 
     Returns:
-        A file name (or file path), with a timestamp inserted before the extension.
+        a tuple with file name (or file path), with a timestamp inserted before the extension, and the timestamp used in isoformat.
     """
     name, extension = os.path.splitext(file_name)
     os.environ["TZ"] = settings.LOCAL_TZ
     time.tzset()
-    return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
+    timestamp = datetime.datetime.now()
+    str_timestamp = timestamp.strftime('%Y-%m-%d_%H-%M-%S')
+    return f"{name}_{str_timestamp}{extension}", timestamp.isoformat()
 
 
 Warnings = NewType('Warnings', dict[str, tuple[str] | str | list[str] | list[tuple[str, list]]])
