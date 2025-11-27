@@ -108,8 +108,8 @@ export function usePaginationProps(defaultPageSize: number): [
         setPageNumber(pageNumber)
         setPageSize(pageSize)
     })
-    const setOnChange = useCallback<(newOnChange: NonNullable<TablePaginationConfig['onChange']>) => void>((setOnChange) => {
-        _setOnChange(() => setOnChange)
+    const setOnChange = useCallback<(newOnChange: NonNullable<TablePaginationConfig['onChange']>) => void>((newOnChange) => {
+        _setOnChange(() => newOnChange)
     }, [])
 
     const oldPageSize = useRef<number>(pageSize)
