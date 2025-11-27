@@ -74,7 +74,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     }, [fetchRowData, setPagination])
 
     useEffect(() => {
-        setOnChange(() => (newPageNumber: number, newPageSize: number) => {
+        setOnChange((newPageNumber, newPageSize) => {
             wrappedFetchRowData({ pageNumber: newPageNumber, pageSize: newPageSize })
         })
     }, [setOnChange, wrappedFetchRowData])
@@ -97,16 +97,20 @@ export function usePaginationProps(defaultPageSize: number): [
     { pagination: TablePaginationConfig },
     {
         setPagination: (newCurrentPage: number, newPageSize: number, totalCount: number) => void,
-        setOnChange: Dispatch<SetStateAction<NonNullable<TablePaginationConfig['onChange']>>>,
+        setOnChange: (newOnChange: NonNullable<TablePaginationConfig['onChange']>) => void,
     }
  ] {
     const [pageNumber, setPageNumber] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
     const [totalCount, setTotalCount] = useState<number>(0)
-    const [onChange, setOnChange] = useState<NonNullable<TablePaginationConfig['onChange']>>((pageNumber, pageSize) => {
+
+    const [onChange, _setOnChange] = useState<NonNullable<TablePaginationConfig['onChange']>>(() => (pageNumber: number, pageSize: number) => {
         setPageNumber(pageNumber)
         setPageSize(pageSize)
     })
+    const setOnChange = useCallback<(newOnChange: NonNullable<TablePaginationConfig['onChange']>) => void>((setOnChange) => {
+        _setOnChange(() => setOnChange)
+    }, [])
 
     const oldPageSize = useRef<number>(pageSize)
     const setPagination = useCallback((newPageNumber: number, newPageSize: number, newTotalCount: number) => {
