@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react"
 import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } from "../../models/fms_api_models"
 import { Space, Table } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import api from "../../utils/api"
-import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, useFilters, usePaginationProps, useSmartSelectionProps, useTableColumnsProps, useTableDataAndLoadingProps, useTableSortByProps } from "../../utils/tableHooks"
+import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, useFilters, usePaginationProps, useSmartSelectionProps, useTableColumnsProps, usePaginatedDataProps, useTableSortByProps } from "../../utils/tableHooks"
 import { selectCurrentPreference } from "../../modules/profiles/selectors"
 import { FILTER_TYPE } from "../../constants"
 import AppPageHeader from "../AppPageHeader"
@@ -11,7 +11,7 @@ import PageContent from "../PageContent"
 import { Link } from "react-router-dom"
 import { ActionDropdown } from "../../utils/templateActions"
 import { PrefilledTemplatesDropdown } from "../../utils/prefillTemplates"
-import { smartQuerySetLookup, useDebounce } from "../../utils/functions"
+import { smartQuerySetLookup } from "../../utils/functions"
 import FiltersBar from "../filters/filtersBar/FiltersBar"
 
 enum PooledSampleColumnID {
@@ -121,20 +121,15 @@ export function IndexCuration() {
     }, [dispatch])
 
 
-    const [dataAndLoadingProps, { fetchRowData, total }] = useTableDataAndLoadingProps({
+    const [paginatedDataProps, { fetchRowData, total }] = usePaginatedDataProps({
+        defaultPageSize,
         fetchRowData: fetchPooledSamples,
         bodySpinStyle: { height: '75vh', alignContent: 'center' }
     })
 
-    // this one already fetches initial data
-    const [paginationProps] = usePaginationProps(defaultPageSize, total, (pageNumber, pageSize) => {
-        fetchRowData({ pageNumber, pageSize })
-    })
-
-    const debouncedOnSort = useDebounce(useCallback((newSortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
-        paginationProps.pagination.onChange?.(1, paginationProps.pagination.pageSize ?? defaultPageSize)
-        fetchRowData({ sortBy: newSortBy })
-    }, [defaultPageSize, fetchRowData, paginationProps.pagination]), DEBOUNCE_DELAY)
+    const debouncedOnSort = useCallback((newSortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
+        fetchRowData({ sortBy: newSortBy, pageNumber: 1 }, DEBOUNCE_DELAY)
+    }, [fetchRowData])
     const [tableSortByProps, { sortBy, setSortBy }] = useTableSortByProps<PooledSampleColumnID, FMSPooledSample>(debouncedOnSort)
 
     const [
@@ -147,15 +142,14 @@ export function IndexCuration() {
         }
     ] = useSmartSelectionProps<FMSPooledSample>({
         totalCount: total ?? 0,
-        itemsOnPage: dataAndLoadingProps.dataSource,
+        itemsOnPage: paginatedDataProps.dataSource,
         rowKey: ROW_KEY,
     })
 
-    const debouncedOnFilter = useDebounce(useCallback((newFilters: Filters<PooledSampleColumnID>) => {
-        paginationProps.pagination.onChange?.(1, paginationProps.pagination.pageSize ?? defaultPageSize)
+    const debouncedOnFilter = useCallback((newFilters: Filters<PooledSampleColumnID>) => {
         resetSelection()
-        fetchRowData({ filters: newFilters })
-    }, [defaultPageSize, fetchRowData, paginationProps.pagination, resetSelection]), DEBOUNCE_DELAY)
+        fetchRowData({ filters: newFilters, pageNumber: 1 }, DEBOUNCE_DELAY)
+    }, [fetchRowData, resetSelection])
     const [filters, setFilters] = useFilters<PooledSampleColumnID>({}, debouncedOnFilter)
 
     const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>({
@@ -197,6 +191,12 @@ export function IndexCuration() {
 
     const filterSet = useMemo(() => newFilterDefinitionsToFilterSet(filters, FILTER_DESCRIPTIONS, FILTER_KEYS, SEARCH_DEFINITIONS), [filters])
 
+    const fetchRowDataRef = useRef<typeof fetchRowData>()
+    useEffect(() => {
+        fetchRowDataRef.current = fetchRowData
+        fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
+    }, [defaultPageSize, fetchRowData])
+
     return (
         <>
             <AppPageHeader
@@ -213,9 +213,8 @@ export function IndexCuration() {
                         setSortBy({})
                     }} />
                     <Table<FMSPooledSample>
+                        {...paginatedDataProps}
                         {...tableSortByProps}
-                        {...paginationProps}
-                        {...dataAndLoadingProps}
                         {...smartSelectionProps}
                         {...tableColumnsProps}
                         rowKey={ROW_KEY}

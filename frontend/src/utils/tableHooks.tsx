@@ -8,98 +8,114 @@ import { SearchOutlined } from "@ant-design/icons"
 import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue } from "../models/paged_items"
 import { ABORT_ERROR_NAME } from "./api"
 
-export function useTableDataAndLoadingProps<ColumnID extends string, RowData extends AntdAnyObject>({
+export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>({
+    defaultPageSize,
     fetchRowData,
     bodySpinStyle,
 }: UseTableDataAndLoadingArguments<ColumnID, RowData>): [
-    Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'locale'>>,
+    Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'locale'>> & ReturnType<typeof usePaginationProps>[0],
     {
-        fetchRowData: (args: Partial<FetchRowDataArguments<ColumnID>>) => Promise<RowData[]>,
+        fetchRowData: (args: Partial<FetchRowDataArguments<ColumnID>>, debounceTime?: number) => void,
         total: number,
     }
 ] {
-    const [total, setTotal] = useState<number>(0)
     const [dataSource, setDataSource] = useState<RowData[]>([])
     const [loading, setLoading] = useState<boolean>(true)
+
+    const [paginatedProps, { setPagination }] = usePaginationProps(defaultPageSize)
+
+    const handler = useRef<ReturnType<typeof setTimeout>>()
+    useEffect(() => {
+        return () => {
+            clearTimeout(handler.current)
+        }
+    }, [])
 
     const oldPageNumber = useRef<number>()
     const oldPageSize = useRef<number>()
     const oldFilters = useRef<Filters<ColumnID>>()
     const oldSortBy = useRef<Partial<Record<ColumnID, 'ascend' | 'descend'>>>()
-    const wrappedFetchRowData = useCallback(async ({
-        pageNumber = oldPageNumber.current, pageSize = oldPageSize.current, filters = oldFilters.current, sortBy = oldSortBy.current
-    }: Partial<FetchRowDataArguments<ColumnID>>) => {
+    const oldTotal = useRef<number>(0)
+    const wrappedFetchRowData = useCallback(({
+        pageNumber = oldPageNumber.current,
+        pageSize = oldPageSize.current,
+        filters = oldFilters.current,
+        sortBy = oldSortBy.current
+    }: Partial<FetchRowDataArguments<ColumnID>>,
+        debounceTime?: number
+    ) => {
         oldPageNumber.current = pageNumber
         oldPageSize.current = pageSize
         oldFilters.current = filters
         oldSortBy.current = sortBy
 
-        if (pageNumber !== undefined && pageSize !== undefined) {
-            setLoading(true)
-            try {
-                const { total: newTotal, data } = await fetchRowData({
-                    pageNumber, pageSize, filters: filters ?? {}, sortBy: sortBy ?? {}
-                })
-                setDataSource(data)
-                setTotal?.(newTotal)
-                setLoading(false)
-                return data
-            } catch (e) {
-                console.error('Error fetching data for table:', e)
-                if (e.name !== ABORT_ERROR_NAME) {
+        clearTimeout(handler.current)
+        handler.current = setTimeout(async () => {
+            if (pageNumber !== undefined && pageSize !== undefined) {
+                setPagination(pageNumber, pageSize, oldTotal.current)
+                setLoading(true)
+                try {
+                    const { total: newTotal, data } = await fetchRowData({
+                        pageNumber, pageSize, filters: filters ?? {}, sortBy: sortBy ?? {}
+                    })
+                    setDataSource(data)
+                    oldTotal.current = newTotal
+                    setPagination(pageNumber, pageSize, newTotal)
                     setLoading(false)
+                    return data
+                } catch (e) {
+                    console.error('Error fetching data for table:', e)
+                    if (e.name !== ABORT_ERROR_NAME) {
+                        setLoading(false)
+                    }
                 }
             }
-        }
-        return []
-    }, [fetchRowData, setTotal])
+        }, debounceTime ?? 0)
+    }, [fetchRowData, setPagination])
 
     return [
         {
             dataSource: loading && bodySpinStyle ? [] : dataSource,
             loading: loading && !bodySpinStyle,
             locale: loading && bodySpinStyle ? { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } : {},
+            ...paginatedProps,
         },
         {
             fetchRowData: wrappedFetchRowData,
-            total,
+            total: paginatedProps.pagination.total ?? 0,
         }
     ]
 }
 
-export function usePaginationProps(defaultPageSize: number, total: number, onPaginationChange?: (pageNumber: number, pageSize: number) => void): [
+export function usePaginationProps(defaultPageSize: number): [
     { pagination: TablePaginationConfig },
+    {
+        setPagination: (newCurrentPage: number, newPageSize: number, total: number) => void,
+    }
  ] {
-    const [current, setCurrent] = useState<number>(1)
+    const [pageNumber, setPageNumber] = useState<number>(1)
     const [pageSize, setPageSize] = useState<number>(defaultPageSize)
+    const [total, setTotal] = useState<number>(0)
 
-    const oldPageNumber = useRef<number>(defaultPageSize)
-    const oldPageSize = useRef<number>(defaultPageSize)
-
-    const setCurrentPageAndPageSize = useCallback((newCurrentPage?: number, newPageSize?: number) => {
-        newCurrentPage = newCurrentPage ?? current
-        newPageSize = newPageSize ?? pageSize
-        if ((newCurrentPage - 1) * newPageSize >= total) {
-            newCurrentPage = newPageSize > 0 ? Math.max(Math.ceil(total / newPageSize), 1) : 1
+    const oldPageSize = useRef<number>(pageSize)
+    const setPagination = useCallback((newPageNumber: number, newPageSize: number, total: number) => {
+        if ((newPageNumber - 1) * newPageSize >= total) {
+            newPageNumber = newPageSize > 0 ? Math.max(Math.ceil(total / newPageSize), 1) : 1
         }
-        if (newPageSize !== pageSize) {
-            newCurrentPage = 1
+        if (newPageSize !== oldPageSize.current) {
+            newPageNumber = 1
         }
 
-        // Avoid calling onPaginationChange if pagination did not change.
-        // This can happen because Antd Table calls onChange for filter and sort changes too.
-        if (oldPageNumber.current === newCurrentPage && oldPageSize.current === newPageSize) {
-            // No change
-            return
-        } else {
-            oldPageNumber.current = newCurrentPage
-            oldPageSize.current = newPageSize
-        }
-
-        setCurrent(newCurrentPage)
+        setPageNumber(newPageNumber)
         setPageSize(newPageSize)
-        onPaginationChange?.(newCurrentPage, newPageSize)
-    }, [current, onPaginationChange, pageSize, total])
+        oldPageSize.current = newPageSize
+        setTotal(total)
+    }, [])
+
+    const onChange = useCallback<NonNullable<TablePaginationConfig['onChange']>>((pageNumber, pageSize) => {
+        setPageNumber(pageNumber)
+        setPageSize(pageSize)
+    }, [])
 
     // Reset page size and current page if defaultPageSize changes
     const pastDefaultPageSize = useRef<number>(0)
@@ -108,18 +124,22 @@ export function usePaginationProps(defaultPageSize: number, total: number, onPag
             return
         }
         pastDefaultPageSize.current = defaultPageSize
-        setCurrentPageAndPageSize(1, defaultPageSize)
-    }, [defaultPageSize, setCurrentPageAndPageSize])
+        setPageNumber(1)
+        setPageSize(defaultPageSize)
+    }, [defaultPageSize])
 
     return [
         {
             pagination: {
-                current,
+                current: pageNumber,
                 pageSize,
                 total,
-                onChange: setCurrentPageAndPageSize,
+                onChange, // i trust antd to not pass invalid page numbers or page sizes
             }
         },
+        {
+            setPagination,
+        }
     ]
 }
 
@@ -484,6 +504,7 @@ export type SortBy<ColumnID extends string> = Partial<Record<ColumnID, 'ascend' 
 export type SortKeys<ColumnID extends string> = Record<ColumnID, string>
 
 interface UseTableDataAndLoadingArguments<ColumnID extends string, RowData extends AntdAnyObject> {
+    defaultPageSize: number,
     fetchRowData: FetchRowData<ColumnID, RowData>,
     bodySpinStyle?: NonNullable<React.CSSProperties>,
 }
