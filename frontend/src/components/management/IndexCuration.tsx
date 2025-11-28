@@ -130,7 +130,7 @@ export function IndexCuration() {
     const debouncedOnSort = useCallback((newSortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
         fetchRowData({ sortBy: newSortBy, pageNumber: 1 }, DEBOUNCE_DELAY)
     }, [fetchRowData])
-    const [tableSortByProps, { sortBy, setSortBy }] = useTableSortByProps<PooledSampleColumnID, FMSPooledSample>(debouncedOnSort)
+    const [tableSortByProps, { sortBy }] = useTableSortByProps<PooledSampleColumnID, FMSPooledSample>(debouncedOnSort)
 
     const [
         smartSelectionProps,
