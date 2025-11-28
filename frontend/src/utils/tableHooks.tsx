@@ -144,7 +144,7 @@ export function usePaginationProps(defaultPageSize: number): [
                 current: pageNumber,
                 pageSize,
                 total: totalCount,
-                onChange, // i trust antd to not pass invalid page numbers or page sizes
+                onChange,
             }
         },
         {
