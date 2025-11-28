@@ -248,6 +248,24 @@ INDEX_CREATION_TEMPLATE = {
   "placement info": [],
 }
 
+INDEX_UPDATE_TEMPLATE = {
+  "identity": {"description": "Template to replace a library index", "file": static("submission_templates/Library_index_update_v5_4_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Library',
+          'headers': ['Library Name', 'Library Container Barcode', 'Library Container Coord', 'Old Index Name', 'New Index Name'],
+          'batch': False,
+      },],
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("Library", "Library Name", "derived_sample__biosample__alias", None, None),
+      ("Library", "Library Container Barcode", "sample__container__barcode", None, None),
+      ("Library", "Library Container Coord", "sample__coordinate__name", None, None),
+      ("Library", "Old Index Name", "derived_sample__library__index__name", None, None),
+  ],
+  "placement info": [],
+}
+
 LIBRARY_CAPTURE_TEMPLATE = {
   "identity": {"description": "Template to prepare captured libraries",
                "file": static("submission_templates/Library_capture_v4_4_0.xlsx"),

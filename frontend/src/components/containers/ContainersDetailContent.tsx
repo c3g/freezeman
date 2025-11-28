@@ -18,7 +18,7 @@ import { Container } from "../../models/frontend_models";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 import { isNullish } from "../../utils/functions";
 import { SampleColumnID } from "../samples/SampleTableColumns";
-import { useNavigateToWorkflowAssignment } from "../management/WorkflowAssigmentPage";
+import { useNavigateToWorkflowAssignment } from "../management/WorkflowAssignmentPage";
 
 const pageStyle = {
   padding: 0,

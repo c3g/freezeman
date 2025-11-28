@@ -22,6 +22,7 @@ from .sample_pooling_planning import SamplePoolingPlanningImporter
 from .axiom_preparation import AxiomPreparationImporter
 from .qc_integration_spark import QCIntegrationSparkImporter
 from .sample_identity_qc import SampleIdentityQCImporter
+from .index_update import IndexUpdateImporter
 
 
 __all__ = [
@@ -48,5 +49,6 @@ __all__ = [
     "SamplePoolingPlanningImporter",
     "AxiomPreparationImporter",
     "QCIntegrationSparkImporter",
-    "SampleIdentityQCImporter"
+    "SampleIdentityQCImporter",
+    "IndexUpdateImporter"
 ]
