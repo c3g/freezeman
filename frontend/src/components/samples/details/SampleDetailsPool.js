@@ -14,7 +14,19 @@ import api from '../../../utils/api'
 import { withToken } from '../../../utils/api'
 
 import mergedListQueryParams from '../../../utils/mergedListQueryParams'
-import { DecimalNumber } from '../../../utils/DecimalNumber';
+import { Decimal } from 'decimal.js';
+
+function poolRatioFormatter(value, decimalPlaces) {
+    value = new Decimal(value);
+    if (!(value.abs().greaterThanOrEqualTo(1) || value.isZero())) {
+        const leadingZerosCount = value.abs().log(10).abs().floor()
+        decimalPlaces += leadingZerosCount.toNumber()
+    }
+    return value.toFixed(decimalPlaces).toString().replace(/0+$/, ''); // Remove trailing zeros
+}
+
+window.poolRatioFormatter = poolRatioFormatter;
+window.Decimal = Decimal;
 
 const getTableColumns = (sampleKinds) => {
     return [
@@ -47,7 +59,7 @@ const getTableColumns = (sampleKinds) => {
             title: "Volume Ratio",
             dataIndex: "volume_ratio",
             sorter: true,
-            render: (_, pooledSample) => <div>{(new DecimalNumber(pooledSample.volume_ratio)).decimalPartUpToSignificantFigures(5)}</div>
+            render: (_, pooledSample) => <div>{(poolRatioFormatter(pooledSample.volume_ratio, 5))}</div>
         },
         {
             title: "Kind",
