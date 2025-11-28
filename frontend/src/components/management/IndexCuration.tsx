@@ -191,9 +191,7 @@ export function IndexCuration() {
 
     const filterSet = useMemo(() => newFilterDefinitionsToFilterSet(filters, FILTER_DESCRIPTIONS, FILTER_KEYS, SEARCH_DEFINITIONS), [filters])
 
-    const fetchRowDataRef = useRef<typeof fetchRowData>()
     useEffect(() => {
-        fetchRowDataRef.current = fetchRowData
         fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
     }, [defaultPageSize, fetchRowData])
 
