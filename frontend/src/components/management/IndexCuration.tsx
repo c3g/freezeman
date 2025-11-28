@@ -208,7 +208,6 @@ export function IndexCuration() {
                 <Space direction={"vertical"} style={{ width: '100%' }}>
                     <FiltersBar filters={filterSet} clearFilters={() => {
                         setFilters({})
-                        setSortBy({})
                     }} />
                     <Table<FMSPooledSample>
                         {...paginatedDataProps}
