@@ -1,6 +1,6 @@
 import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
-import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Checkbox, Input, InputRef, Spin } from "antd"
 import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
