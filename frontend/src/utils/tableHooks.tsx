@@ -24,10 +24,10 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
 
     const [paginatedProps, { setPagination, setOnChange }] = usePaginationProps(defaultPageSize)
 
-    const handler = useRef<ReturnType<typeof setTimeout>>()
+    const timeoutHandler = useRef<ReturnType<typeof setTimeout>>()
     useEffect(() => {
         return () => {
-            clearTimeout(handler.current)
+            clearTimeout(timeoutHandler.current)
         }
     }, [])
 
@@ -49,8 +49,8 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         oldFilters.current = filters
         oldSortBy.current = sortBy
 
-        clearTimeout(handler.current)
-        handler.current = setTimeout(async () => {
+        clearTimeout(timeoutHandler.current)
+        timeoutHandler.current = setTimeout(async () => {
             if (pageNumber !== undefined && pageSize !== undefined) {
                 setPagination(pageNumber, pageSize, oldTotal.current)
                 setLoading(true)
