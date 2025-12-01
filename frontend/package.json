@@ -40,7 +40,6 @@
     "date-fns": "^2.15.0",
     "dayjs": "^1.11.13",
     "debounce": "^1.2.0",
-    "decimal.js": "^10.6.0",
     "dompurify": "^2.2.7",
     "dotenv": "^10.0.0",
     "fuse.js": "^6.4.0",
