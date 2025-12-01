@@ -351,9 +351,9 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
     external_project_id = dataset_obj.project.external_id
     lane = str(dataset_obj.lane)
 
-    filename = make_timestamped_filename(file_prefix[is_validation_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
+    filename, timestamp = make_timestamped_filename(file_prefix[is_validation_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
     file_path = path.join(VALIDATED_FILES_OUTPUT_PATH, filename)
-    validated_data = {"external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_id, "lane": lane, "files": {}}
+    validated_data = {"data_release_action": file_prefix[is_validation_revocation], "timestamp": timestamp, "external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_obj.id, "lane": dataset_obj.lane, "files": {}}
     dataset_files = DatasetFile.objects.filter(readset__dataset=dataset_obj)
 
     for dataset_file in dataset_files:
@@ -400,9 +400,9 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
     external_project_id = dataset_obj.project.external_id
     lane = str(dataset_obj.lane)
 
-    filename = make_timestamped_filename(file_prefix[is_release_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
+    filename, timestamp = make_timestamped_filename(file_prefix[is_release_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
     file_path = path.join(RELEASED_FILES_OUTPUT_PATH, filename)
-    released_data = {"external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_id, "lane": lane, "files": {}}
+    released_data = {"data_release_action": file_prefix[is_release_revocation], "timestamp": timestamp, "external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_obj.id, "lane": dataset_obj.lane, "files": {}}
     dataset_files = DatasetFile.objects.filter(readset__in=readsets_obj)
 
     for dataset_file in dataset_files:

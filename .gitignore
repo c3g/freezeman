@@ -3,8 +3,10 @@ node_modules/
 .env
 .DS_Store
 backend/fms.log
+backend/triggers/
+instance/
 launch.json
-fms.log
+fms.log*
 .python-version
 .coverage
 TODO.txt
