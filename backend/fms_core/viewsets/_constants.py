@@ -290,13 +290,17 @@ _dataset_file_filterset_fields: FiltersetFields = {
 }
 
 _pooled_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
     "sample__id": PK_FILTERS,
+    "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("sample__coordinate__", _coordinate_filterset_fields),
     "sample__fragment_size": SCALAR_FILTERS,
     "project__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
     "volume_ratio": SCALAR_FILTERS,
     **_prefix_keys("derived_sample__library__library_type__", _library_type_filterset_fields),
     **_prefix_keys("derived_sample__library__library_selection__", _library_selection_filterset_fields),
+    "derived_sample__library": NULLABLE_FK_FILTERS,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("derived_sample__sample_kind__", _sample_kind_filterset_fields),
     "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,

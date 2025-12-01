@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSProcessMeasurement, FMSSampleLineageGraph } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -159,8 +159,17 @@ const api = {
   },
 
   pooledSamples: {
-    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, { abort }),
+    list: (options: any, apiOptions?: APIFetchOptions) => get<JsonResponse<FMSPagedResultsReponse<FMSPooledSample>>>("/pooled-samples/", options, apiOptions),
     listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
+    template: {
+      actions: () => get<JsonResponse<FMSTemplateAction[]>>(`/pooled-samples/template_actions/`),
+      check:  (action, template) => post(`/pooled-samples/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/pooled-samples/template_submit/`, form({ action, template })),
+    },
+    prefill: {
+      templates: () => get<JsonResponse<FMSTemplatePrefillOption[]>>(`/pooled-samples/list_prefills/`),
+      request: (options: any, template: number) => filteredpost(`/pooled-samples/prefill_template/`, {...options}, form({ template: template })),
+    },
   },
 
   processes: {
@@ -369,8 +378,9 @@ export function withToken<R extends ResponseWithData<any>, Args extends any[]>(t
 const ongoingRequests: Record<string, AbortController> = {}
 
 type HTTPMethod = 'GET' | 'POST' | 'DELETE' | 'PATCH'
-interface APIFetchOptions {
+export interface APIFetchOptions {
     abort?: boolean
+    requestID?: string
     notifyError?: boolean
 }
 
@@ -390,19 +400,21 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
 
         if (!isFormData(body) && isObject(body))
             headers["content-type"] = "application/json"
+        
+        const requestID = options.requestID ?? baseRoute
 
         // For abortable requests
         let signal: AbortSignal | undefined
         if (options.abort) {
             const controller = new AbortController()
             signal = controller.signal
-            if (ongoingRequests[baseRoute]) {
-                ongoingRequests[baseRoute].abort({
+            if (ongoingRequests[requestID]) {
+                ongoingRequests[requestID].abort({
                     name: ABORT_ERROR_NAME,
-                    message: `Request aborted for request to ${baseRoute}`,
+                    message: `Request aborted for request to ${requestID}`,
                 })
             }
-            ongoingRequests[baseRoute] = controller
+            ongoingRequests[requestID] = controller
         }
 
         const request = fetch(`${API_BASE_PATH}${route}`, {
@@ -421,7 +433,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
         return request
           .then(res => {
               if (options.abort) {
-                  delete ongoingRequests[baseRoute]
+                  delete ongoingRequests[requestID]
               }
               return res
           })
@@ -436,7 +448,7 @@ function apiFetch<R extends ResponseWithData<any>>(method: HTTPMethod, route: st
                     detail = detail.join('; ')
                   }
                   dispatch(notifyError({
-                    id: baseRoute,
+                    id: requestID,
                     title: detail || 'API request failed',
                   }))
               }
