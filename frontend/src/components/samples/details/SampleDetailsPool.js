@@ -33,8 +33,6 @@ function poolRatioFormatter(value, decimalPlaces) {
     return `0.${leadingZeros}${rounded}`.replace(/\.?0+$/, '')
 }
 
-window.poolRatioFormatter = poolRatioFormatter;
-
 const getTableColumns = (sampleKinds) => {
     return [
         {    
