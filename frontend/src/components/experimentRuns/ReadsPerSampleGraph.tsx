@@ -96,7 +96,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 			<XAxis tick={false} />
 			<YAxis type="number" width={100} tickFormatter={(value: any, index: number) => value.toLocaleString('fr')} />
 			<Tooltip content={<SampleTooltip />} />
-			<Bar dataKey="nbReads" fill="#8884d8" isAnimationActive={false} onClick={handleBarClick} />
+			<Bar dataKey="nbReads" fill="#8884d8" maxBarSize={100} isAnimationActive={false} onClick={handleBarClick} />
 		</BarChart>
 	)
 }
