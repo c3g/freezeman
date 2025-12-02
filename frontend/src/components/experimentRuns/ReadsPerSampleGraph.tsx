@@ -26,7 +26,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 
 	const data = lane.readsPerSample?.sampleReads ?? []
 
-	function handleBarClick(_: BarRectangleItem, index: number) {
+	function handleBarClick(_: BarRectangleItem, dataIndex: number) {
 		// TODO confirm that this approach is correct...
 		// Given a derived sample ID, fetch the sample it is associated with, and
 		// navigate to the sample details page. For this to work, there has to be
@@ -53,8 +53,8 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 			}
 		}
 
-		if (data[index].derivedSampleID) {
-			goToSampleDetails(data[index].derivedSampleID, data[index].readsetID)
+		if (data[dataIndex].derivedSampleID) {
+			goToSampleDetails(data[dataIndex].derivedSampleID, data[dataIndex].readsetID)
 		}
 	}
 
@@ -86,7 +86,7 @@ function ReadsPerSampleGraph({ lane }: ReadsPerSampleGraphProps) {
 
 	return (
 		<BarChart
-			style={{ width: '100%', aspectRatio: 1.618 }}
+			style={{ width: '100%', aspectRatio: 2 }}
 			responsive={true}
 			barCategoryGap={0}
 			barGap={0}
