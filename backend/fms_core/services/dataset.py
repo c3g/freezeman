@@ -519,3 +519,28 @@ def ingest_run_validation_report(report_json):
         errors.append("Experiment run ID missing.")
 
     return (datasets, dataset_files, errors, warnings)
+
+def get_dataset_root_folder(dataset_id: int) -> tuple[str, list[str], list[str]]:
+    """
+    Function taking a dataset_id as parameter and returning the longest common path from dataset_files.
+
+    Args:
+        `dataset_id`: Dataset ID from Freezeman.
+
+    Returns:
+        Tuple with the following content:
+        `root_folder_path`: String with the root folder for the dataset.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
+    root_folder_path = None
+    errors = []
+    warnings = []
+
+    file_paths = DatasetFile.objects.filter(readset__dataset_id=dataset_id).distinct().values_list("file_path", flat=True)
+    try:
+        root_folder_path = path.commonpath(file_paths)
+    except ValueError as err:
+        errors.append(f'Could not find a common path. Error: {err}.')
+
+    return root_folder_path, errors, warnings
