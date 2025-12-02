@@ -27,7 +27,7 @@ function poolRatioFormatter(value, maximumSignificantDecimalPlaces) {
     }
     const [_, decimalPart] = value.toString().split('.')
     const [leadingZeros] = decimalPart.match(/^0+/) ?? ['']
-    const afterLeadingZeros = decimalPart.slice(leadingZeros.length)
+    const afterLeadingZeros = decimalPart.slice(leadingZeros.length) || '0'
     const temporary = `${afterLeadingZeros.slice(0, maximumSignificantDecimalPlaces)}.${afterLeadingZeros.slice(maximumSignificantDecimalPlaces) || '0'}`
     const rounded = Math.round(Number(temporary)).toString()
     return `0.${leadingZeros}${rounded}`.replace(/\.?0+$/, '')
