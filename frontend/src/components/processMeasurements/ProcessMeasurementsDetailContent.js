@@ -59,7 +59,12 @@ const ProcessMeasurementsDetailContent = ({
       <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
         <TabPane tab="Overview" key="overview" style={{ marginTop: 8 }}>
           <Descriptions bordered={true} size="small" column={4}>
-            <Descriptions.Item label="Protocol" span={4}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>
+            <Descriptions.Item label="Protocol" span={2}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>
+            <Descriptions.Item label="Batch Process ID" span={2}>
+              {
+                <Link to={`/processes/${processMeasurement.process}`}>{processMeasurement.process}</Link>
+              }
+            </Descriptions.Item>
             <Descriptions.Item label="Applied To Sample" span={2}>
               <Link to={`/samples/${processMeasurement.source_sample}`}>
                 {withSample(samplesByID, processMeasurement.source_sample, sample => sample.name, "Loading...")}
