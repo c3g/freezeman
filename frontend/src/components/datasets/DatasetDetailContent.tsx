@@ -1,4 +1,4 @@
-import { Descriptions, Spin } from "antd"
+import { Descriptions, Spin, Button } from "antd"
 import React, { useCallback, useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { useAppDispatch, useAppSelector } from '../../hooks'
@@ -11,6 +11,8 @@ import { ValidationStatus } from "../../modules/experimentRunLanes/models"
 import api from "../../utils/api"
 import LaneValidationStatus from "../experimentRuns/LaneValidationStatus"
 import ReadsetsListContent from "../readsets/ReadsetsListContent"
+import { FMSId } from "../../models/fms_api_models"
+import { CheckCircleTwoTone, CopyOutlined } from "@ant-design/icons"
 
 
 const DatasetDetailContent = () => {
@@ -19,6 +21,9 @@ const DatasetDetailContent = () => {
     const { id: datasetId } = useParams();
     const dataset: Dataset | undefined = datasetId ? datasetsById[datasetId] : undefined
     const [laneValidationStatus, setLaneValidationStatus] = useState<ValidationStatus>()
+    const [rootFolder, setRootFolder] = useState<string | undefined>(undefined)
+    const [copiedToClipboard, setCopiedToClipboard] = useState<boolean>(false)
+
     useEffect(() => {
         if (!dataset) {
             dispatch(get(datasetId))
@@ -46,6 +51,24 @@ const DatasetDetailContent = () => {
         if (datasetId) {
             await dispatch(get(datasetId))
         }
+    }, [datasetId, dispatch])
+
+    const handleSaveToClipboard = async (rootFolder: string | undefined) => {
+      rootFolder && navigator.clipboard.writeText(rootFolder)
+      setCopiedToClipboard(true)
+    }
+
+    useEffect(() => {
+      async function fetchDatasetRootFolder(datasetId: FMSId) {
+        const request = await dispatch(api.datasets.getRootFolder(datasetId))
+        return request.data
+      }
+
+      if (datasetId) {
+        fetchDatasetRootFolder(parseInt(datasetId, 10)).then((rootFolder) => {
+          setRootFolder(rootFolder)
+        })
+      }
     }, [datasetId, dispatch])
 
     return <>
@@ -78,8 +101,13 @@ const DatasetDetailContent = () => {
                             <span>Unavailable</span>
                         }
                     </Descriptions.Item>
-                    <Descriptions.Item label={"Total Readsets"} span={1}>{loading(dataset?.readset_count)}</Descriptions.Item>
-                    <Descriptions.Item label={"Readsets Released"} span={1}>{loading(dataset?.released_status_count)}</Descriptions.Item>
+                    <Descriptions.Item label={"Total Readsets"} span={2}>{loading(dataset?.readset_count)}</Descriptions.Item>
+                    <Descriptions.Item label={"Readsets Released"} span={2}>{loading(dataset?.released_status_count)}</Descriptions.Item>
+                    <Descriptions.Item label={"Dataset Root Folder"} span={4}>{
+                      <Button onClick={() => handleSaveToClipboard(rootFolder)}>
+                        {loading(rootFolder)} {copiedToClipboard ? <CheckCircleTwoTone twoToneColor="#52c41a"/> : <CopyOutlined/>}
+                      </Button>}
+                    </Descriptions.Item>
                 </Descriptions>
                 {dataset && laneValidationStatus !== undefined
                     ? <ReadsetsListContent dataset={dataset} laneValidationStatus={laneValidationStatus} refreshDataset={refreshDataset} />

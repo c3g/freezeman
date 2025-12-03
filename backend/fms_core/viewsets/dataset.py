@@ -81,3 +81,10 @@ class DatasetViewSet(viewsets.ModelViewSet):
             return HttpResponseBadRequest(errors.pop())
         else:
             return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)
+        
+    @action(detail=True, methods=["get"])
+    def get_dataset_files_root_folder(self, request, pk):
+        root_folder, errors, warnings = service.get_dataset_root_folder(pk)
+        if errors:
+            root_folder = "No valid root folder found."
+        return Response(root_folder)

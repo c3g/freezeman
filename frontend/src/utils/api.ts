@@ -57,7 +57,8 @@ const api = {
       id: FMSDataset["id"],
       updates: Record<FMSReadset["id"], ReleaseStatus>,
     ) => patch<StringResponse>(`/datasets/${id}/set_release_status/`, updates),
-    addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment })
+    addArchivedComment: (id, comment) => post(`/datasets/${id}/add_archived_comment/`, { comment }),
+    getRootFolder: (id) => get(`/datasets/${id}/get_dataset_files_root_folder/`)
   },
 
   readsets: {
