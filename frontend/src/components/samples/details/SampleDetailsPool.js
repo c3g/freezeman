@@ -15,6 +15,24 @@ import { withToken } from '../../../utils/api'
 
 import mergedListQueryParams from '../../../utils/mergedListQueryParams'
 
+/**
+ * 
+ * @param {number | string} value 
+ * @param {number} maximumSignificantDecimalPlaces 
+ * @returns 
+ */
+function poolRatioFormatter(value, maximumSignificantDecimalPlaces) {
+    if (value >= 1 || value === 0) {
+        return value.toFixed(maximumSignificantDecimalPlaces).replace(/\.?0+$/, '')
+    }
+    const [_, decimalPart] = value.toString().split('.')
+    const [leadingZeros] = decimalPart.match(/^0+/) ?? ['']
+    const afterLeadingZeros = decimalPart.slice(leadingZeros.length) || '0'
+    const temporary = `${afterLeadingZeros.slice(0, maximumSignificantDecimalPlaces)}.${afterLeadingZeros.slice(maximumSignificantDecimalPlaces) || '0'}`
+    const rounded = Math.round(Number(temporary)).toString()
+    return `0.${leadingZeros}${rounded}`.replace(/\.?0+$/, '')
+}
+
 const getTableColumns = (sampleKinds) => {
     return [
         {    
@@ -46,7 +64,7 @@ const getTableColumns = (sampleKinds) => {
             title: "Volume Ratio",
             dataIndex: "volume_ratio",
             sorter: true,
-            render: (_, pooledSample) => <div>{parseFloat(pooledSample.volume_ratio)}</div>
+            render: (_, pooledSample) => <div>{(poolRatioFormatter(pooledSample.volume_ratio, 3))}</div>
         },
         {
             title: "Kind",
