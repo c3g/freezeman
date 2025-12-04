@@ -23,8 +23,8 @@
 // place after placement-cell in html
 .tiny-placement-cell
 {
-  height: 1.15vw;
-  width: 1.15vw;
+  height: 1.5vw;
+  width: 1.5vw;
   font-size: .5vw;
   font-weight: bold;
 }
@@ -40,7 +40,7 @@
     flex-direction: column;
     border: solid grey 1px;
     width: 100%;
-    height: 32em;
+    height: 30vw;
     align-self: center;
     justify-content: space-evenly;
 
