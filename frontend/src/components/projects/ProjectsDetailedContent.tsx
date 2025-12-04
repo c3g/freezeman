@@ -1,5 +1,5 @@
-import { Button, Tabs } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Button, Tabs, TabsProps } from 'antd'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
@@ -96,6 +96,24 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 
 	const navigateToWorkflowAssignment = useNavigateToWorkflowAssignment()
 
+	const tabs = useMemo<NonNullable<TabsProps['items']>>(() => [
+		{
+			key: 'overview',
+			label: 'Overview',
+			children: <ProjectOverview project={project} />
+		},
+		{
+			key: 'samples',
+			label: 'Associated Samples',
+			children: <ProjectsAssociatedSamples projectID={project.id} />
+		},
+		...studies.map(study => ({
+			key: createStudyTabKey(study.id),
+			label: `Study ${study.letter}`,
+			children: <StudyDetails studyId={study.id} handleRemoveStudy={handleRemoveStudy} />
+		}))
+	], [handleRemoveStudy, project, studies])
+
 	return (
 		<>
 			<AppPageHeader title={title} extra={<>
@@ -105,21 +123,14 @@ const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentPro
 			{project && (
 				<PageContent loading={false} style={undefined}>
 					{ project && 
-						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" tabBarExtraContent={addStudyButton}>
-							<TabPane tab="Overview" key="overview" style={tabStyle}>
-								<ProjectOverview project={project} />
-							</TabPane>
-							<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
-								<ProjectsAssociatedSamples projectID={project.id} />
-							</TabPane>	
-							{studies.map(study => {
-								return (
-									<TabPane tab={`Study ${study.letter}`} key={createStudyTabKey(study.id)} style={tabStyle}>
-										<StudyDetails studyId={study.id} handleRemoveStudy={handleRemoveStudy}/>
-									</TabPane>
-								)
-							})}
-						</Tabs>
+						<Tabs
+							activeKey={activeKey}
+							onChange={setActiveKey}
+							size="large"
+							type="card"
+							tabBarExtraContent={addStudyButton}
+							items={tabs}
+						/>
 					}
 				</PageContent>
 			)}
