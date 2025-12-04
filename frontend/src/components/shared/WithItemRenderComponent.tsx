@@ -43,7 +43,7 @@ import { createWithItem, withContainer, withCoordinate, withIndex, withIndividua
 
 
 type WithItemFunc = ReturnType<typeof createWithItem>
-type ItemRenderFunc<T extends FMSTrackedModel> = (item: T) => React.ReactElement
+type ItemRenderFunc<T extends FMSTrackedModel> = (item: T) => React.ReactNode
 type ItemsByIDSelectorFunc<T extends FMSTrackedModel> = (state: any) => ItemsByID<T>
 
 /**
