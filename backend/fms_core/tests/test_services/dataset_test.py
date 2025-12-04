@@ -6,7 +6,8 @@ from fms_core.services.dataset import (create_dataset,
                                        create_dataset_file,
                                        reset_dataset_content,
                                        set_experiment_run_lane_validation_status,
-                                       get_experiment_run_lane_validation_status)
+                                       get_experiment_run_lane_validation_status,
+                                       get_dataset_root_folder)
 from fms_core.models._constants import ReleaseStatus, ValidationStatus, INDEX_READ_FORWARD, INDEX_READ_REVERSE
 from fms_core.models import (
     RunType,
@@ -214,3 +215,59 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset_file.readset.validation_status, ValidationStatus.FAILED)
         self.assertIsNotNone(dataset_file.readset.validation_status_timestamp)
         self.assertEqual(dataset_file.readset.validated_by, self.currentuser)
+
+    def test_get_dataset_root_folder(self):
+        ROOT_FOLDER_PATH_1 = "/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24"
+        ROOT_FOLDER_PATH_2 = "/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1"
+        ROOT_FOLDER_PATH_3 = None
+        TEST_READSETS_1 = [("readset_1", [("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_FG_GL_19T_443_639936/FG_GL_19T_443_639936_S1_L001_R1_001.fastq.gz", 12),
+                                          ("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_FG_GL_19T_443_639936/FG_GL_19T_443_639936_S1_L001_R2_001.fastq.gz", 1611)]),
+                           ("readset_3", [("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_WB_LL_19T_257_639937/WB_LL_19T_257_639937_S2_L001_R1_001.fastq.gz", 2451),
+                                          ("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_WB_LL_19T_257_639937/WB_LL_19T_257_639937_S2_L001_R2_001.fastq.gz", 41111)]),
+                           ("readset_5", [("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_SR_CL_19T_174_639942/SR_CL_19T_174_639942_S7_L001_R1_001.fastq.gz", 3144)])]
+        dataset_obj, _, _ = create_dataset(project_id=self.project.id, experiment_run_id=self.experiment_run.id, lane=1)
+
+        for readset_name, files_info in TEST_READSETS_1:
+            readset_obj = Readset.objects.create(name=readset_name, sample_name=readset_name, dataset=dataset_obj)
+            for file_info in files_info:
+                file_path, size = file_info
+                create_dataset_file(readset=readset_obj, file_path=file_path, size=size)
+
+        root_folder_path, errors, warnings = get_dataset_root_folder(dataset_obj.id)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(root_folder_path, ROOT_FOLDER_PATH_1)
+
+        TEST_READSETS_2 = [("readset_2", [("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_25/Sample_FG_GL_19T_443_639936/FG_GL_19T_443_639936_S1_L001_R1_001.fastq.gz", 12),
+                                          ("/lb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_25/Sample_FG_GL_19T_443_639936/FG_GL_19T_443_639936_S1_L001_R2_001.fastq.gz", 1611)])]
+
+        for readset_name, files_info in TEST_READSETS_2:
+            readset_obj = Readset.objects.create(name=readset_name, sample_name=readset_name, dataset=dataset_obj)
+            for file_info in files_info:
+                file_path, size = file_info
+                create_dataset_file(readset=readset_obj, file_path=file_path, size=size)
+
+        root_folder_path, errors, warnings = get_dataset_root_folder(dataset_obj.id)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(root_folder_path, ROOT_FOLDER_PATH_2)
+
+        TEST_READSETS_3 = [("readset_4", [("test/nb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_WB_LL_19T_257_639937/WB_LL_19T_257_639937_S2_L001_R1_001.fastq.gz", 2451),
+                                          ("test/nb/robot/research/freezeman-processing/novaseq/2023/230913_A01861_0132_AHJMNCDSX7_AlaskaRun02-novaseq/Unaligned.1/Project_24/Sample_WB_LL_19T_257_639937/WB_LL_19T_257_639937_S2_L001_R2_001.fastq.gz", 41111)])]
+
+        for readset_name, files_info in TEST_READSETS_3:
+            readset_obj = Readset.objects.create(name=readset_name, sample_name=readset_name, dataset=dataset_obj)
+            for file_info in files_info:
+                file_path, size = file_info
+                create_dataset_file(readset=readset_obj, file_path=file_path, size=size)
+
+        root_folder_path, errors, warnings = get_dataset_root_folder(dataset_obj.id)
+
+        self.assertEqual(errors, ["Could not find a common path. Error: Can't mix absolute and relative paths."])
+        self.assertEqual(warnings, [])
+        self.assertEqual(root_folder_path, ROOT_FOLDER_PATH_3)
+
+
+        
