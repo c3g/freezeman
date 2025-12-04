@@ -648,3 +648,25 @@ export interface FMSSampleLineageGraph {
     nodes: Pick<FMSSample, 'id' | 'name' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>[],
     edges: (Pick<FMSProcessMeasurement, 'id' | 'source_sample' | 'child_sample'> & { protocol_name: string })[]
 }
+
+export interface FMSVersion {
+  id: number
+  object_id: string
+  db: string
+  format: string
+  serialized_data: string
+  object_repr: string
+  revision: FMSRevision
+  content_type: FMSContentType
+}
+export interface FMSRevision {
+  id: number
+  date_created: string
+  comment: string
+  user: number
+}
+export interface FMSContentType {
+  id: number
+  app_label: string
+  model: string
+}
