@@ -1,316 +1,265 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { RefCallback, useCallback, useEffect, useMemo } from "react";
 
-import { Typography, Card, Space, Popover, Button, Spin } from 'antd';
+import { Typography, Card, Space, Button, Popover } from 'antd';
 
 const { Text } = Typography;
 
-import { Graph, GraphConfiguration, GraphData, GraphLink, GraphNode } from "freezeman-d3-graph"
-
-import dagre, { GraphLabel, Node } from "dagre"
 import api from "../../../utils/api";
-import { isNullish } from "../../../utils/functions";
 import { useAppDispatch } from '../../../hooks'
-import { useResizeObserver } from "../../../utils/ref"
-import { ProcessMeasurement, Sample } from "../../../models/frontend_models";
-import { FMSProcessMeasurement, FMSSample } from "../../../models/fms_api_models";
+import { Sample } from "../../../models/frontend_models";
+import { FMSProcessMeasurement, FMSSample } from "../../../models/fms_api_models"
+import { Property } from "csstype"
+
+import "./SampleDetailsLineage.scss"
+import cytoscape from 'cytoscape';
+import dagre from 'cytoscape-dagre';
 
 interface SampleDetailsLineageProps {
-  sample: Partial<Sample>
-  handleSampleClick?: (id: FMSSample['id']) => void
-  handleProcessClick?: (id: FMSProcessMeasurement['id']) => void
+    sample: Partial<Sample>
+    handleSampleClick?: (id: FMSSample['id']) => void
+    handleProcessClick?: (id: FMSProcessMeasurement['id']) => void
 }
 
-interface PositionedGraphNode extends GraphNode {
-  x: number
-  y: number
-}
+function SampleDetailsLineage({ sample, handleSampleClick, handleProcessClick }: SampleDetailsLineageProps) {
+    const dispatch = useAppDispatch()
 
-type SampleLineageGraphSample = Pick<Sample, 'id' | 'name' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>
-type SampleLineageGraphProcessMeasurement = (Pick<ProcessMeasurement, 'id' | 'source_sample' | 'child_sample'> & { protocol_name: string })
+    const [cy, setCy] = React.useState<cytoscape.Core>()
 
-function SampleDetailsLineage({sample, handleSampleClick, handleProcessClick} : SampleDetailsLineageProps) {
-  const dispatch = useAppDispatch()
-
-  const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
-
-  const nodeSize = { width: 10, height: 10 }
-
-  // maxSize.height is sometimes outrageously large or extremely small
-  const graphSize = { width: maxSize.width - 50, height: maxSize.height - 150 }
-  const graphConfig: GraphConfiguration<any, any> = {
-    ...graphSize,
-    staticGraphWithDragAndDrop: true,
-    maxZoom: 12,
-    minZoom: 0.05,
-    panAndZoom: true,
-    node: {
-      color: "#d3d3d3",
-      fontColor: "black",
-      fontSize: 14,
-      renderLabel: true,
-      labelProperty: node => `${node.label}`,
-      labelPosition: "bottom",
-    },
-    link: {
-      color: "lightgray",
-      fontColor: "black",
-      fontSize: 14,
-      strokeWidth: 5,
-      type: "STRAIGHT",
-      renderLabel: true,
-      labelProperty: link => `${link.label}`
-    },
-    // extra parameters typescript forces me to initialize
-    automaticRearrangeAfterDropNode: false,
-    collapsible: false,
-    directed: true,
-    focusZoom: 0,
-    focusAnimationDuration: 1,
-    nodeHighlightBehavior: false,
-    linkHighlightBehavior: false,
-    highlightDegree: 0,
-    highlightOpacity: 0,
-    initialZoom: null,
-    staticGraph: false,
-    d3: {}
-  }
-
-  const dagreConfig: GraphLabel = {
-    rankdir: "LR",
-    ranksep: 150,
-    nodesep: 150,
-    marginx: 50,
-    marginy: 50
-  }
-
-  const [graphData, setGraphData] = useState<GraphData<PositionedGraphNode, GraphLink>>({ nodes: [], links: [] })
-  const [nodesToEdges, setNodesToEdges] = useState<{ [key: string]: SampleLineageGraphProcessMeasurement }> ({})
-  
-  useEffect(() => {
-    (async () => {
-      if (sample.id === undefined) {
-        return;
-      }
-      const result = await dispatch(api.sample_lineage.get(sample.id))
-
-      // the node is a subset of Sample
-      // the edges is a subset of process measurement with annotation
-      const {data} : { data: {
-        nodes: SampleLineageGraphSample[],
-        edges: SampleLineageGraphProcessMeasurement[]
-      } } = result
-
-      const samples = data.nodes.reduce((prev: { [key: string]: SampleLineageGraphSample }, curr: SampleLineageGraphSample) => ({
-        ...prev,
-        [curr.id.toString()]: curr
-      }), {})
-
-      // use dagre to position nodes
-      const g = new dagre.graphlib.Graph({ directed: true })
-        .setGraph(dagreConfig)
-        .setDefaultEdgeLabel(function () { return {}; })
-      for (const sample of data.nodes) {
-        g.setNode(sample.id.toString(), { id: sample.id.toString(), ...nodeSize })
-      }
-      for (const process of data.edges) {
-        if (process.child_sample) {
-          g.setEdge(process.source_sample.toString(), process.child_sample.toString())
+    useEffect(() => {
+        const cy = cytoscape()
+        window.lineageCy = cy // expose lineageCy to the browser console
+        setCy(cy)
+        return () => {
+            cy.destroy()
+            delete window.lineageCy
         }
-      }
-      dagre.layout(g)
+    }, [])
 
-      // create final nodes and links for graphData for react-d3-graph
+    useEffect(() => {
+        if (!cy) return;
+        const sampleID = sample.id;
+        if (sampleID === undefined) return;
 
-      const nodes = g.nodes()
-        .map((v) => {
-          // 'id' is set by g.setNode but typedef is dumb :(
-          const n: Node & { id: string } = g.node(v) as Node & { id: string }
-          const curr_sample = samples[n.id]
-          let color = "black"
-          if (!isNullish(curr_sample.quality_flag) || !isNullish(curr_sample.quantity_flag) || !isNullish(curr_sample.identity_flag)) {
-            const flags = [curr_sample.quality_flag, curr_sample.quantity_flag, curr_sample.identity_flag]
-            color = flags.some((flag) => flag === false) ? "red" : "green"
-          }
-          return {
-            ...n,
-            id: v,
-            color,
-            label: curr_sample.name,
-            symbolType: curr_sample.id === sample.id ? "star" : "circle",
-          }
+        dispatch(api.sample_lineage.get(sampleID)).then(({ data }) => {
+            cy.remove("*")
+            cy.add({
+                nodes: data.nodes.reduce<cytoscape.NodeDefinition[]>((prev, node) => {
+                    const QCs = [node.quality_flag, node.quantity_flag]
+                    const color = QCs.some((f) => f === false) ? "red" : (QCs.every((f) => f === true) ? "green" : "black")
+                    const shape = node.id === sampleID ? "star" : "circle"
+                    prev.push({
+                        data: {
+                            id: node.id.toString(),
+                            name: node.name,
+                            color,
+                            shape
+                        }
+                    })
+                    return prev
+                }, []),
+                edges: data.edges.reduce<cytoscape.EdgeDefinition[]>((prev, edge) => {
+                    if (edge.child_sample) {
+                        prev.push({
+                            data: {
+                                source: edge.source_sample.toString(),
+                                target: edge.child_sample.toString(),
+                                protocol_name: edge.protocol_name,
+                                id: edge.id.toString()
+                            }
+                        })
+                    }
+                    return prev
+                }, [])
+            })
+            currentNode = cy.$(`node[id="${sampleID}"]`)
+            resetLineageLayout()
         })
-      const links: GraphLink[] = data.edges.filter((p) => p.child_sample !== null).map((p) => {
-        return {
-          id: p.id.toString(),
-          source: p.source_sample.toString(),
-          target: p.child_sample?.toString() as string,
-          label: p.protocol_name,
-        }
-      })
-      setGraphData({nodes, links})
+    }, [cy, dispatch, sample.id])
 
-      setNodesToEdges(
-        data.edges.filter((process) => process.child_sample)
-        .reduce((prev, p) => {
-          return {
-            ...prev,
-            [`${p.source_sample}:${p.child_sample}`]: p
-          }
-        }, {})
-        )
-    })()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sample?.id])
+    useEffect(() => {
+        if (!cy) return;
 
-  const adjustedGraphData: typeof graphData = useMemo(() => {
-    const { nodes, links } = graphData
-    let dx = 0
-    let dy = 0
-    if (nodes.length > 0 && sample.id !== undefined) {
-      // Find the node that matches the current sample.
-      const currentNode = nodes.find((n) => n.id === sample.id?.toString())
-      if (currentNode) {
-        const enclosedWidth = Math.max(...nodes.map((n) => n.x))
-        const { x: cx, y: cy } = currentNode
-
-        // if graph too wide
-        if (enclosedWidth > (graphSize.width - nodeSize.width)) {
-          dx = graphSize.width / 2 - cx
-        }
-        dy = (graphSize.height) / 2 - cy
-      }
-    }
-
-    return {
-      nodes: nodes.map((n) => ({
-        ...n,
-        x: n.x + dx,
-        y: n.y + dy
-      })),
-      links,
-    }
-  }, [graphData, graphSize.height, graphSize.width, nodeSize.width, sample?.id])
-
-    const [reset, setReset] = useState(false)
-
-    // Take advantage of the fact that
-    // useEffect runs after rendering page.
-    // The graph will be remounted after
-    // being unmounted.
-  useEffect(() => {
-    if (reset) {
-      setReset(false)
-    }
-  }, [reset])
-
-  return (
-    <>
-      <Space direction={"vertical"} style={{ height: "100%", width: "100%" }}>
-        <Space>
-          <Button
-            type="primary"
-            style={{ width: "fit-content" }}
-            onClick={() => setReset(true)}
-          >
-            Reset
-          </Button>
-          <Popover
-            content={<Details />}
-            placement={"topLeft"}
-          >
-            <Button
-              type="primary"
-              style={{ width: "fit-content" }}
-            >
-              ?
-            </Button>
-          </Popover>
-        </Space>
-        <div ref={resizeRef} style={{ height: "100%", width: "100%", position: "absolute" }}>
-          <div style={{ ...graphSize, border: "solid 1px gray" }}>
-            {
-              // graphData must contain at least one node
-              // after fetching all nodes and edges
-              graphData.nodes.length == 0 || reset
-                ? <Spin size={"large"} />
-                : <Graph
-                    id="graph-id"
-                    data={adjustedGraphData}
-                    config={graphConfig}
-                    // tabPaneKey is used to generate a hash url for the lineage tab.
-                    // Without the hash url, clicking a node navigates the user to the Overview tab
-                    // rather than staying in the graph.
-                    onClickNode={(id) => {
-                      if (id && handleSampleClick) {
-                        handleSampleClick(Number(id))
-                      }
-                    }}
-                    onClickLink={(source, target) => {
-                      const linkId = nodesToEdges[`${source}:${target}`].id
-                      if (linkId && handleProcessClick) {
-                        handleProcessClick(linkId)
-                      }
-                    }}
-                  />
+        cy.on("click", "node", (event) => {
+            if (handleSampleClick) {
+                const node = event.target.data()
+                handleSampleClick(parseInt(node.id))
             }
-          </div>
-        </div>
-      </Space>
+        })
+        cy.on("click", "edge", (event) => {
+            if (handleProcessClick) {
+                const edge = event.target.data()
+                handleProcessClick(parseInt(edge.id))
+            }
+        })
+        return () => {
+            cy.removeAllListeners()
+        }
+    }, [cy, handleProcessClick, handleSampleClick])
+
+    const lineageDivRefCallback = useCallback<RefCallback<HTMLDivElement>>((divNode) => {
+        if (!cy) return;
+        if (divNode === null) return;
+
+        // cytoscape swaps container if already mounted
+        cy.mount(divNode)
+
+        // div unmount is already handled in a useEffect cleanup
+    }, [cy])
+
+    return <>
+        <Space>
+            <Button
+                type="primary"
+                style={{ width: "fit-content" }}
+                onClick={resetLineageLayout}
+            >
+                Reset
+            </Button>
+            <Button
+                type="primary"
+                style={{ width: "fit-content" }}
+                onClick={recenter}
+            >
+                Recenter
+            </Button>
+            <Popover
+                content={<Details />}
+                placement={"topLeft"}
+            >
+                <Button
+                    type="primary"
+                    style={{ width: "fit-content" }}
+                >
+                    ?
+                </Button>
+            </Popover>
+        </Space>
+        
+        <div ref={lineageDivRefCallback} id="sample-details-lineage-div" />
     </>
-  )
 }
 
 function Details() {
-  return <div>
-    <Card>
-      <Legend />
-    </Card>
-    <Card>
-      <Space direction={"vertical"} size={"small"}>
-        <Text>
-          Click on node to visit the sample.
-        </Text>
-        <Text>
-          Click on edge to visit the process.
-        </Text>
-        <Text>
-          Use the mouse to move and zoom the graph.
-        </Text>
-      </Space>
-    </Card>
-  </div>
+    return <div>
+        <Card>
+            <Legend />
+        </Card>
+        <Card>
+            <Space direction={"vertical"} size={"small"}>
+                <Text>
+                    Click on node to change the active sample.
+                </Text>
+                <Text>
+                    Click on edge to visit the process.
+                </Text>
+                <Text>
+                    You can pan the view by dragging while holding left mouse button and zoom with the scroll wheel.
+                </Text>
+            </Space>
+        </Card>
+    </div>
 }
 
 function Legend() {
-  function Symbol({ shape, color }) {
-    const output = {
-      "circle": <>&#9679;</>,
-      "star": <>&#9733;</>
+    interface SymbolProps {
+        shape: "circle" | "star",
+        color: Property.Color
     }
-    return <Text style={{ fontSize: 20, color }}>
-      {output[shape]}
-    </Text>
-  }
+    function Symbol({ shape, color }: SymbolProps) {
+        const output = {
+            "circle": <>&#9679;</>,
+            "star": <>&#9733;</>
+        }
+        return <Text style={{ fontSize: 20, color }}>
+            {output[shape]}
+        </Text>
+    }
 
-  const Entry = ({ symbol, text }) => {
-    return <Space direction={"horizontal"} size={"small"}>
-      <Symbol {...symbol} />
-      <Text>{text}</Text>
-    </Space>
-  }
+    interface EntryProps {
+        symbol: SymbolProps,
+        text: string
+    }
+    const Entry = ({ symbol, text }: EntryProps) => {
+        return <Space direction={"horizontal"} size={"small"}>
+            <Symbol {...symbol} />
+            <Text>{text}</Text>
+        </Space>
+    }
 
-  const entries = [
-    ["star", "black", "You are here"],
-    ["circle", "black", "Awaiting QC"],
-    ["circle", "red", "Failed QC"],
-    ["circle", "green", "Passed QC"],
-  ].map(([shape, color, text]) => ({ symbol: { shape, color }, text }))
+    const entries: EntryProps[] = useMemo(() => [
+        { symbol: { shape: "star", color: "black" }, text: "You are here" },
+        { symbol: { shape: "circle", color: "black" }, text: "No available QC" },
+        { symbol: { shape: "circle", color: "red" }, text: "Failed QC" },
+        { symbol: { shape: "circle", color: "green" }, text: "Passed QC" },
+    ], [])
 
-  return <>
-    <Space direction={"vertical"}>
-      {entries.map((entry, index) => <Entry key={index} {...entry} />)}
-    </Space>
-  </>
+    return <>
+        <Space direction={"vertical"}>
+            {entries.map((entry, index) => <Entry key={index.toString()} {...entry} />)}
+        </Space>
+    </>
 }
 
-export default SampleDetailsLineage;
+export default SampleDetailsLineage
+
+cytoscape.use(dagre)
+
+let currentNode: cytoscape.NodeSingular | null = null
+function recenter() {
+    const lineageCy = window.lineageCy as cytoscape.Core | undefined
+    if (!lineageCy) return;
+
+    if (currentNode) {
+        lineageCy.zoom(0.75)
+        lineageCy.center(currentNode)
+    }
+}
+
+function resetLineageLayout() {
+    const lineageCy = window.lineageCy as cytoscape.Core | undefined
+    if (!lineageCy) return;
+
+    lineageCy.style([
+        {
+            selector: 'node',
+            style: {
+                'content': 'data(name)',
+                'background-color': 'data(color)',
+                'color': 'data(color)',
+                'text-opacity': 1,
+                'text-valign': 'top',
+                'text-halign': 'left',
+                'shape': 'data(shape)',
+                'font-family': 'Arial',
+                "font-weight": "bold",
+                "font-size": "1.5em",
+            }
+        },
+
+        {
+            selector: 'edge',
+            style: {
+                'content': 'data(protocol_name)',
+                'curve-style': 'bezier',
+                'target-arrow-shape': 'triangle',
+                'line-color': '#9dbaea',
+                'target-arrow-color': '#9dbaea',
+                'width': 4,
+                'font-family': 'Arial',
+                "font-weight": "bold",
+                "font-size": "1.5em",
+            }
+        }
+    ]).update()
+    lineageCy.layout({
+        name: 'dagre',
+        rankDir: 'LR',
+        nodeDimensionsIncludeLabels: true,
+        avoidOverlap: true,
+        nodeSep: 150,
+        rankSep: 150,
+        zoomingEnabled: true,
+        panningEnabled: true,
+    }).run()
+    recenter()
+}

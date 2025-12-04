@@ -288,6 +288,9 @@ export interface FMSPooledSample extends FMSTrackedModel {
     parent_sample_id: FMSId,            // The id of the sample that was added to this pool
     parent_sample_name: string,         // The name of the sample that was added to this pool
     sample_kind: string,                // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
+    container_id: FMSId
+    container_barcode: string,
+    coordinates: string
 
     // Library fields                   // Library fields are only defined if pool contains libraries
     index?: string,                     // Name of index
@@ -534,6 +537,12 @@ export interface FMSTemplateAction {
     }[]
 }
 
+export interface FMSTemplatePrefillOption {
+    id: number
+    description: string
+    prefillFields: Record<string, 'number' | 'text' | 'date' | string[]> | null
+}
+
 export interface FMSUser extends FMSTrackedModel {
     // The user model is defined by Django
     username: string                    // Django user name
@@ -633,4 +642,9 @@ export interface FMSReportData {
         time_window_data: null | { [key: string]: string | number }[]
         time_window_label: string
     }[]
+}
+
+export interface FMSSampleLineageGraph {
+    nodes: Pick<FMSSample, 'id' | 'name' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>[],
+    edges: (Pick<FMSProcessMeasurement, 'id' | 'source_sample' | 'child_sample'> & { protocol_name: string })[]
 }

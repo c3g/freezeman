@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { FMSId } from "../../models/fms_api_models";
 import { selectWorkflowAssignmentState } from "../../modules/workflowAssignment/selectors";
 
-export function WorkflowAssigmentPage() {
+export function WorkflowAssignmentPage() {
   const initialExceptSampleIDs = useAppSelector(selectWorkflowAssignmentState).initialExceptedSampleIDs
 
   return (<>

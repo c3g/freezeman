@@ -11,7 +11,8 @@ from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
                                                    LIBRARY_QC_QUANTITY_INSTRUMENTS,
                                                    SAMPLE_QC_QUALITY_INSTRUMENTS,
-                                                   SAMPLE_QC_QUANTITY_INSTRUMENTS)
+                                                   SAMPLE_QC_QUANTITY_INSTRUMENTS,
+                                                   INDEX_SETS_FOR_LIBRARY_PREPARATION)
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment, custom_prefill_8x12_container_biosample_names
@@ -247,6 +248,24 @@ INDEX_CREATION_TEMPLATE = {
   "placement info": [],
 }
 
+INDEX_UPDATE_TEMPLATE = {
+  "identity": {"description": "Template to replace a library index", "file": static("submission_templates/Library_index_update_v5_4_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Library',
+          'headers': ['Library Name', 'Library Container Barcode', 'Library Container Coord', 'Old Index Name', 'New Index Name'],
+          'batch': False,
+      },],
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("Library", "Library Name", "derived_sample__biosample__alias", None, None),
+      ("Library", "Library Container Barcode", "sample__container__barcode", None, None),
+      ("Library", "Library Container Coord", "sample__coordinate__name", None, None),
+      ("Library", "Old Index Name", "derived_sample__library__index__name", None, None),
+  ],
+  "placement info": [],
+}
+
 LIBRARY_CAPTURE_TEMPLATE = {
   "identity": {"description": "Template to prepare captured libraries",
                "file": static("submission_templates/Library_capture_v4_4_0.xlsx"),
@@ -353,7 +372,11 @@ LIBRARY_PREPARATION_TEMPLATE = {
       },
   ],
   "user prefill info": {
-      "Strandedness": STRANDEDNESS_CHOICES
+      "Sample Volume Used (uL)": "text",
+      "Library Volume (uL)": "number",
+      "Index Set": INDEX_SETS_FOR_LIBRARY_PREPARATION,
+      "Strandedness": STRANDEDNESS_CHOICES,
+      "Comment": "text"
   },
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [

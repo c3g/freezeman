@@ -34,6 +34,15 @@ export const actionsToButtonList = (urlBase, actions, fullWidth = false) =>
     </Link>
   );
 
+/**
+ * 
+ * @param {{
+ *  urlBase: string,
+ *  actions: { items: Array<{ id: number, name: string }> },
+ *  fullWidth?: boolean
+ * }} param0 
+ * @returns 
+ */
 export function ActionDropdown({ urlBase, actions, fullWidth = true }) {
   const history = useNavigate();
   const renderActions = actions.items.length > 0;

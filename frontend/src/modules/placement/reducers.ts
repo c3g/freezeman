@@ -1,7 +1,7 @@
 import { Draft, PayloadAction, createSlice, original } from "@reduxjs/toolkit"
 import { Sample } from "../../models/frontend_models"
 import { CoordinateSpec } from "../../models/fms_api_models"
-import { CellIdentifier, ParentContainerIdentifier, PlacementDirections, PlacementGroupOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
+import { CellIdentifier, ParentContainerIdentifier, PlacementDirections, PlacementSequentialOptions, PlacementOptions, PlacementState, PlacementType, RealParentContainerIdentifier, SampleIdentifier, TubesWithoutParentContainerIdentifier } from "./models"
 import { PlacementClass, SamplePlacement, SamplePlacementIdentifier } from "./classes"
 
 export type LoadContainerPayload = LoadParentContainerPayload | LoadTubesWithoutParentPayload
@@ -40,8 +40,8 @@ export interface PlaceAllSourcePayload {
     destination: RealParentContainerIdentifier
 }
 
-const initialState: PlacementState = {
-    placementType: PlacementType.GROUP,
+export const INITIAL_STATE: PlacementState = {
+    placementType: PlacementType.SEQUENTIAL,
     placementDirection: PlacementDirections.COLUMN,
     tubesWithoutParentContainer: { name: null, samples: {} },
     realParentContainers: {},
@@ -51,7 +51,7 @@ const initialState: PlacementState = {
 
 const slice = createSlice({
     name: 'PLACEMENT',
-    initialState,
+    initialState: INITIAL_STATE,
     reducers: {
         loadContainer: reducerWithThrows((state, payload: LoadContainerPayload) =>
             new PlacementClass(state, undefined).loadContainerPayload(payload)
@@ -59,7 +59,7 @@ const slice = createSlice({
         setPlacementType(state, action: PayloadAction<PlacementOptions['type']>) {
             state.placementType = action.payload
         },
-        setPlacementDirection(state, action: PayloadAction<PlacementGroupOptions['direction']>) {
+        setPlacementDirection(state, action: PayloadAction<PlacementSequentialOptions['direction']>) {
             state.placementDirection = action.payload
         },
         clickCell: reducerWithThrows((state, payload: MouseOnCellPayload) =>
@@ -80,7 +80,7 @@ const slice = createSlice({
                 const container = placement.getTubesWithoutParent()
 
                 if (payload.type === 'all') {
-                    samples.push(...container.getSamples())
+                    samples.push(...container.getSamples().map((s) => s.rawIdentifier()))
                 } else if (payload.type === 'sample-ids') {
                     samples.push(...payload.samples)
                 }
@@ -115,10 +115,10 @@ const slice = createSlice({
                 }
                 if (payload.forcedSelectedValue !== undefined) {
                     for (const samplePlacement of samplePlacements) {
-                        container.setSelectionOfPlacement(samplePlacement, payload.forcedSelectedValue)
+                        container.setSelectionOfPlacement(samplePlacement.rawIdentifier(), payload.forcedSelectedValue)
                     }
                 } else {
-                    container.togglePlacementSelections(...samplePlacements)
+                    container.togglePlacementSelections(...samplePlacements.map((sp) => sp.rawIdentifier()))
                 }
             }
         }),
@@ -148,7 +148,7 @@ const slice = createSlice({
             }
         },
         flushPlacement(state) {
-            Object.assign(state, initialState)
+            Object.assign(state, INITIAL_STATE)
         }
     }
 })
@@ -174,7 +174,7 @@ function reducerWithThrows<P>(func: (state: Draft<PlacementState>, action: P) =>
             state.error = undefined
             func(state, action.payload)
         } catch (error) {
-            const originalState = original(state) ?? initialState
+            const originalState = original(state) ?? INITIAL_STATE
             Object.assign(state, originalState)
             state.error = `${error.message}\n${error.stack}`
         }

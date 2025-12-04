@@ -8,10 +8,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from fms_core.filters import DatasetFilter
 from fms_core.models.dataset import Dataset
-from fms_core.services.archived_comment import create_archived_comment_for_model, AUTOMATED_COMMENT_DATASET_RELEASED, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED
+from fms_core.services.archived_comment import create_archived_comment_for_model
 from fms_core.models._constants import ReleaseStatus
 from fms_core.serializers import  DatasetSerializer
-from fms_core.models.readset import Readset
 
 import fms_core.services.dataset as service
 
@@ -61,42 +60,16 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=["patch"])
     def set_release_status(self, request, pk):
-        readset_updates: dict[str, ReleaseStatus] = request.data
-
-        readset_ids = [int(i) for i in readset_updates.keys()]
-        readsets = Readset.objects.filter(dataset=pk, id__in=readset_ids)
-        is_status_revocation = False
-
-        try:
-            release_status_timestamp = timezone.now()
-            for readset in readsets:
-                release_status = readset_updates[str(readset.id)]
-                readset.release_status = release_status
-                if release_status == ReleaseStatus.AVAILABLE:
-                    is_status_revocation = True
-                    readset.release_status_timestamp = None
-                    readset.released_by = None
-                else:
-                    readset.release_status_timestamp = release_status_timestamp
-                    readset.released_by = request.user
-                readset.save()
-        except Exception as e:
+        readsets_release_status: dict[str, ReleaseStatus] = request.data
+        released_count, errors, _ = service.set_dataset_release_status(pk, readsets_release_status, request.user)
+        if errors:
+            response = HttpResponseServerError(errors)
             transaction.set_rollback(True)
-            return HttpResponseServerError(f"Error updating release status: {e}")
-
-        # Validate that all release status are set (released or blocked) at once.
-        readsets = list(Readset.objects.filter(dataset=pk).all())
-        readset_count = len(readsets)
-        unset_count = len([readset.id for readset in readsets if readset.release_status==ReleaseStatus.AVAILABLE])
-        if unset_count > 0 and unset_count < readset_count:
-            transaction.set_rollback(True)
-            return HttpResponseServerError(f"Cannot set only a subset of a dataset readsets status.")
-
-        if is_status_revocation:
-            create_archived_comment_for_model(Dataset, pk, AUTOMATED_COMMENT_DATASET_RELEASE_REVOKED())
+        elif released_count == 0:
+            response = Response("No release status was set.")
         else:
-            create_archived_comment_for_model(Dataset, pk, AUTOMATED_COMMENT_DATASET_RELEASED())
-        return Response(status=204)
+            response = Response("Release status set successfully.")
+        return response
     
     @action(detail=True, methods=["post"])
     def add_archived_comment(self, request, pk):
@@ -108,3 +81,10 @@ class DatasetViewSet(viewsets.ModelViewSet):
             return HttpResponseBadRequest(errors.pop())
         else:
             return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)
+        
+    @action(detail=True, methods=["get"])
+    def get_dataset_files_root_folder(self, request, pk):
+        root_folder, errors, warnings = service.get_dataset_root_folder(pk)
+        if errors:
+            root_folder = "No valid root folder found."
+        return Response(root_folder)

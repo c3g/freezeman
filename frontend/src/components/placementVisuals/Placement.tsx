@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
+import { Button, Col, Flex, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -139,6 +139,12 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         dispatch(setPlacementType(e.target.value))
     }, [dispatch])
 
+    useEffect(() => {
+        if (activeSourceContainer && activeSourceContainer.name === null) {
+            dispatch(setPlacementType(PlacementType.SEQUENTIAL))
+        }
+    }, [activeSourceContainer, activeSourceContainer?.name, dispatch])
+
     const canTransferAllSamples = useMemo(() => {
         if (!activeSourceContainer || !activeDestinationContainer) return false
         const sourceContainer = activeSourceContainer
@@ -166,100 +172,78 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         <>
             <PageContainer>
                 <PageContent>
-                    <Row justify="end" style={{ padding: "10px" }}>
-                        <Col span={3}>
+                    <div id="placement-div">
+                        <Row justify="end">
                             <AddPlacementContainer onConfirm={onConfirmAddDestinationContainer} existingContainers={loadedContainers} />
-                        </Col>
-                        {usesSamplesheet && <Col span={3} >
-                            <Button
-                                onClick={handleGetSamplesheet}
-                            // disabled={!isPlacementComplete}
-                            >
-                                Get Samplesheet
-                            </Button>
-                        </Col>}
-                    </Row>
-                    <Row justify="start" style={{ paddingTop: "20px", paddingBottom: "40px" }}>
-                        <Col span={12}>
-                            <div className={"flex-row"}>
-                                <div className={"flex-column"}>
-                                    {
-                                        activeSourceContainer !== undefined && <>
-                                            <ContainerNameScroller
-                                                names={sourceContainers.map((c) => c.name)}
-                                                name={activeSourceContainer.name}
-                                                changeContainer={changeSourceContainer} />
-                                            <PlacementContainer
-                                                container={activeSourceContainer.name}
-                                            />
-                                        </>
-                                    }
-                                    <Col span={12}>
-                                        <div className={"flex-row"}>
-                                            <div className={"flex-column"} />
-                                        </div>
-                                    </Col>
-                                </div>
-                            </div>
-                        </Col>
-                        <Col span={12}>
-                            <div className={"flex-row"}>
-                                <div className={"flex-column"}>
-                                    {activeDestinationContainer &&
-                                        <>
-                                            <ContainerNameScroller
-                                                names={destinationContainers.map((c) => c.name)}
-                                                name={activeDestinationContainer.name}
-                                                changeContainer={changeDestinationContainer} />
-                                            <PlacementContainer
-                                                container={activeDestinationContainer.name}
-                                            />
-                                        </>
-                                    }
-                                </div>
-                            </div>
-                        </Col>
-                        <Col span={12}>
-                            <div className={"flex-row"}>
-                                <div className={"flex-column"} />
-                            </div>
-                        </Col>
-                    </Row>
-                    <Row justify="end" style={{ padding: "10px" }}>
-                        <Col span={5}>
-                            <Radio.Group onChange={updatePlacementType} value={placementType}>
-                                <Radio.Button value={PlacementType.PATTERN}> Pattern </Radio.Button>
-                                <Radio.Button value={PlacementType.GROUP}> Group </Radio.Button>
-                            </Radio.Group>
-                        </Col>
-                        <Col span={5}>
-                            <Radio.Group
-                                disabled={placementType !== PlacementType.GROUP}
-                                value={placementDirection}
-                                onChange={updatePlacementDirection}>
-                                <Radio.Button value={PlacementDirections.ROW}> row </Radio.Button>
-                                <Radio.Button value={PlacementDirections.COLUMN}> column </Radio.Button>
-                            </Radio.Group>
-                        </Col>
-                        <Col span={8}>
-                            <Button onClick={transferAllSamples} disabled={!canTransferAllSamples}>Place All Source</Button>
-                            <Popconfirm
-                                title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
-                                onConfirm={undoPlacementsCallback}
-                                placement={'bottomRight'}
-                            >
-                                <Button> Undo Placement</Button>
-                            </Popconfirm>
-                        </Col>
-                    </Row>
-                    <Row justify="space-evenly" style={{ padding: "10px" }}>
-                        <Col span={10}>
-                            {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name}/>}
-                        </Col>
-                        <Col span={10}>
-                            {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name}/>}
-                        </Col>
-                    </Row>
+                            {usesSamplesheet &&
+                                <Button
+                                    onClick={handleGetSamplesheet}
+                                >
+                                    Get Samplesheet
+                                </Button>
+                            }
+                        </Row>
+                        <Row id="placement-row-main">
+                            { activeSourceContainer !== undefined && <Col span={12}>
+                                <Row>
+                                    <ContainerNameScroller
+                                        names={sourceContainers.map((c) => c.name)}
+                                        name={activeSourceContainer.name}
+                                        changeContainer={changeSourceContainer} />
+                                    </Row>
+                                <Row>
+                                    <PlacementContainer
+                                        container={activeSourceContainer.name}
+                                    />
+                                </Row>
+                                <Row>
+                                    <Flex justify={"space-between"} style={{ width: "100%" }}>    
+                                        <Radio.Group onChange={updatePlacementType} value={placementType}>
+                                            <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>{PlacementType.SEQUENTIAL}</Radio.Button>
+                                            <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.SOURCE_PATTERN}</Radio.Button>
+                                            <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.QUADRANT_PATTERN}</Radio.Button>
+                                        </Radio.Group>
+                                        <Radio.Group
+                                            disabled={placementType !== PlacementType.SEQUENTIAL}
+                                            value={placementDirection}
+                                            onChange={updatePlacementDirection}>
+                                            <Radio.Button value={PlacementDirections.ROW}>Row</Radio.Button>
+                                            <Radio.Button value={PlacementDirections.COLUMN}>Column</Radio.Button>
+                                        </Radio.Group>
+                                    </Flex>
+                                </Row>
+                                <Row>
+                                    {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name}/>}
+                                </Row>
+                            </Col>}
+                            {activeDestinationContainer && <Col span={12}>
+                                <Row>
+                                    <ContainerNameScroller
+                                        names={destinationContainers.map((c) => c.name)}
+                                        name={activeDestinationContainer.name}
+                                        changeContainer={changeDestinationContainer} />
+                                </Row>
+                                <Row>
+                                    <PlacementContainer
+                                        container={activeDestinationContainer.name}
+                                    />
+                                </Row>
+                                <Row justify={"center"}>
+                                    <Button onClick={transferAllSamples} disabled={!canTransferAllSamples} style={{ marginRight: '1em' }}>Place All Source</Button>
+                                    <Popconfirm
+                                        title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
+                                        onConfirm={undoPlacementsCallback}
+                                        placement={'bottomRight'}
+                                    >
+                                        <Button> Undo Placement</Button>
+                                    </Popconfirm>
+                                </Row>
+                                <Row>
+                                    {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name}/>}
+                                </Row>
+                            </Col>}
+                        </Row>
+                    </div>
                 </PageContent>
             </PageContainer>
         </>

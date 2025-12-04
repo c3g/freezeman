@@ -490,12 +490,13 @@ export function prefillTemplate(template: LabworkPrefilledTemplateDescriptor, st
 			placementData = destinationContainers.reduce((placementData, destinationContainer) => {
 				const container = selectRealParentContainer(getState())(destinationContainer)
 				for (const { sample, cell } of container.getPlacements()) {
-					if (sample.fromCell && sample.fromCell.sameCellAs(cell))
+					const fromCell = sample.getFromCell()
+					if (fromCell && fromCell.sameCellAs(cell.rawIdentifier()))
 						// skip if the sample is existing in the cell
 						continue
-					placementData[sample.id] ??= []
-					placementData[sample.id].push({
-						coordinates: cell.coordinates,
+					placementData[sample.getId()] ??= []
+					placementData[sample.getId()].push({
+						coordinates: cell.getCoordinates(),
 						container_name: destinationContainer.name,
 						container_barcode: destinationContainer.barcode as string,
 						container_kind: destinationContainer.kind as string

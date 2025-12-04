@@ -1,3 +1,4 @@
+import { useCallback, useRef } from "react"
 import { CoordinateSpec, FMSId } from "../models/fms_api_models"
 import { ContainerKind } from "../models/frontend_models"
 import { CellIdentifier } from "../modules/placement/models"
@@ -67,6 +68,7 @@ export interface PlacementSample {
     containerName: string
     coordinates?: string // only for real parent containers
     fromCell: CellIdentifier | null // null for tubes without parent
+    placementCount: number
 }
 export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, spec?: ContainerKind['coordinate_spec']) {
     const MAX = 1
@@ -92,4 +94,50 @@ export function comparePlacementSamples(a: PlacementSample, b: PlacementSample, 
     if (a.containerName > b.containerName) orderB -= MAX / 16
 
     return orderA - orderB
+}
+
+export function smartQuerySetLookup(field: string, defaultSelection: boolean, exceptedIDs: FMSId[]) {
+    if (exceptedIDs.length === 0) {
+        return {}
+    }
+    if (defaultSelection) {
+        return { [`${field}__not__in`]: exceptedIDs.join(',') }
+    } else {
+        return { [`${field}__in`]: exceptedIDs.join(',') }
+    }
+}
+
+export function debounced<F extends (...args: any[]) => void>(delay: number, fn: F) {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  let savedArgs: Parameters<F>
+  return (...args: Parameters<F>) => {
+    savedArgs = args
+    if (timeout)
+      clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      fn(...savedArgs)
+      timeout = undefined
+    }, delay)
+  }
+}
+
+/**
+ * A hook to debounce function calls until after the specified time.
+ * This is used to avoid triggering calls to the backend while the user
+ * is typing in a filter.
+ */
+export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction: F, debounceTime = 500) => {
+    const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+    return useCallback(function caller(...args: Parameters<F>) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const context = this
+        if (timer.current) {
+            clearTimeout(timer.current)
+        }
+        timer.current = setTimeout(
+        () => {
+            timer.current = undefined
+            debouncedFunction.apply(context, args)
+        }, debounceTime)
+    }, [debounceTime, debouncedFunction])
 }

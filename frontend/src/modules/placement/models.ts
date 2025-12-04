@@ -2,7 +2,7 @@ import { CoordinateSpec } from "../../models/fms_api_models"
 
 export interface PlacementState {
     placementType: PlacementOptions['type']
-    placementDirection: PlacementGroupOptions['direction']
+    placementDirection: PlacementSequentialOptions['direction']
     tubesWithoutParentContainer: TubesWithoutParentContainerState
     realParentContainers: Record<ContainerName, RealParentContainerState | undefined>
     samples: Record<SampleID, SampleState | undefined>
@@ -10,22 +10,25 @@ export interface PlacementState {
 }
 
 export enum PlacementType {
-    PATTERN,
-    GROUP,
+    SEQUENTIAL = 'Sequential',
+    SOURCE_PATTERN = 'Source Pattern',
+    QUADRANT_PATTERN = 'Quadrant Pattern',
 }
-export interface PlacementPatternOptions {
-    type: PlacementType.PATTERN
+export interface PlacementSequentialOptions {
+    type: PlacementType.SEQUENTIAL
+    direction: PlacementDirections
+}
+export interface PlacementSourcePatternOptions {
+    type: PlacementType.SOURCE_PATTERN
+}
+export interface PlacementQuadrantPatternOptions {
+    type: PlacementType.QUADRANT_PATTERN
 }
 export enum PlacementDirections {
     ROW,
     COLUMN
 }
-export interface PlacementGroupOptions {
-    type: PlacementType.GROUP
-    direction: PlacementDirections
-}
-export type PlacementOptions = PlacementPatternOptions | PlacementGroupOptions
-
+export type PlacementOptions = PlacementSequentialOptions | PlacementSourcePatternOptions | PlacementQuadrantPatternOptions
 export interface RealParentContainerState extends RealParentContainerIdentifier {
     cells: Record<Coordinates, CellState>
     spec: CoordinateSpec

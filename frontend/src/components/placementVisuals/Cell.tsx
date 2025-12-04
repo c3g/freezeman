@@ -4,10 +4,10 @@ import './Placement.scss'
 import { clickCell, onCellEnter, onCellExit } from "../../modules/placement/reducers"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Popover } from "antd"
-import { selectActiveSourceContainer } from "../../modules/labworkSteps/selectors"
+import { selectActiveSourceContainer, selectSourceContainers } from "../../modules/labworkSteps/selectors"
 import { selectCell, selectPlacementState } from "../../modules/placement/selectors"
 import { RootState } from "../../store"
-import { CellIdentifier, ParentContainerIdentifier, SampleState } from "../../modules/placement/models"
+import { CellIdentifier, SampleState } from "../../modules/placement/models"
 import { PlacementClass } from "../../modules/placement/classes"
 
 export interface CellProps {
@@ -16,10 +16,47 @@ export interface CellProps {
     cellSize: string
 }
 
+const EMPTY_CELL_COLOR = "#F2F3F4" // light grey
+// assume maximum 12 source containers
+const ACTIVE_CELL_COLORS = [
+    "#4169E1",
+    "#2cb12cff",
+    "#ac38acff",
+    "#FFD700",
+    "#008080",
+    "#00ff00",
+    "#cc5490",
+    "#FF8C00",
+    "#40E0D0",
+    "#9ACD32",
+    "#a04242ff",
+    "#9b7a52ff",
+]
+const INACTIVE_CELL_COLOR = "#808080" // grey
+const SELECTION_CELL_COLOR = "#86EBC1" // light green
+// assume maximum 11 source containers
+const VALID_PREVIEW_CELL_COLORS = [
+    "#939CED",
+    "#90E182",
+    "#BD81B9",
+    "#FFE167",
+    "#9DC4C3",
+    "#B3FFB3",
+    "#E7A4C1",
+    "#FFC183",
+    "#98ECE1",
+    "#C2DF83",
+    "#D19999",
+    "#CFC1A3",
+]
+const INVALID_PREVIEW_CELL_COLOR = "#FFC0CB" // light pink
+const ERROR_CELL_COLOR = "#FF0000" // red
+
 // component is used to represent individual cells in visualization of the placement transfer tab
 const Cell = ({ container, coordinates, cellSize }: CellProps) => {
-    const fromContainer = useMemo(() => ({ name: container }), [container])
+    const fromContainer = React.useMemo(() => ({ name: container }), [container])
     const dispatch = useAppDispatch()
+
     const activeSourceContainer = useAppSelector((state) => selectActiveSourceContainer(state))
     
     const cell = useAppSelector((state) => selectCell(state)({ fromContainer, coordinates }).state)
@@ -98,7 +135,21 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
     }, [activeSourceContainer, dispatch, fromContainer, coordinates])
 
 
-    const cellColor = useAppSelector((state) => selectCellColor(state, { fromContainer, coordinates }, activeSourceContainer))
+    const cellColor = useAppSelector((state) => selectCellColor(state, { fromContainer, coordinates }))
+
+    let cellContent = ''
+    if (cell.preview) {
+        cellContent = cell.preview
+    } else if (placedAt.length > 0) {
+        cellContent = placedAt.length.toString()
+    } else if (placedFrom.length > 0) {
+        const cell = placedFrom[0]
+        if (typeof cell === 'string') {
+            cellContent = ''
+        } else {
+            cellContent = cell.coordinates
+        }
+    }
 
     return (
         <Popover
@@ -110,7 +161,7 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                     : placedFrom).join(", ")}</div> : undefined}
                 {placedAt.length > 0 ? <div>{'At: '}{placedAt.map((placedAt) => `${placedAt.fromContainer.name}@${placedAt.coordinates}`).join(", ")}</div> : undefined}
             </>}
-            destroyTooltipOnHide={{ keepParent: false }}
+            destroyTooltipOnHide={true}
             open={popOverOpen}
         >
             <div
@@ -119,38 +170,77 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
-                style={{ backgroundColor: cellColor }}
+                style={{ background: cell.preview ? cellColor : `radial-gradient(white 0%, ${cellColor} 85%, ${cellColor} 100%)` }}
             >
-                {cell.preview ? cell.preview : ''}
-                {!cell.preview && placedAt.length > 0 ? placedAt.length : ''}
-                {!cell.preview && placedFrom.length > 1 ? placedFrom.length : ''}
+                {cellContent}
             </div>
         </Popover>
     )
 }
 export default Cell
 
-function selectCellColor(state: RootState, cellID: CellIdentifier, sourceContainer?: ParentContainerIdentifier) {
+function selectCellColor(state: RootState, cellID: CellIdentifier) {
     const placementState = selectPlacementState(state)
     const placement = new PlacementClass(placementState, undefined)
     const cell = placement.getCell(cellID)
+
     try {
         const placements = cell.getSamplePlacements(true)
-        const existingSample = cell.findExistingSample()
-        const selections = placements.filter((sample) => sample.selected)
 
-        if (selections.length > 0) return "#86ebc1"
-        if (cell.preview !== null) return placementState.error ? "pink" : "#74bbfc"
-        const isSource = cellID.fromContainer.name === sourceContainer?.name
-        if (
-            (isSource && existingSample) ||
-            (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample)))
-        ) return "#1890ff"
-        if (!isSource && existingSample) return "grey"
-        return "white"
+        const sourceContainers = selectSourceContainers(state)
+        const activeSourceContainer = selectActiveSourceContainer(state)
+        if (!activeSourceContainer) throw new Error("No active source container when selecting cell color")
+
+        // if no existing sample, no placed sample, and no preview, then it is empty
+        if (placements.length === 0 && cell.getPreview() === null) return EMPTY_CELL_COLOR
+
+        // is being preview?
+        if (cell.getPreview() !== null) {
+            let containerIndex = sourceContainers.findIndex((container) => container.name === activeSourceContainer.name)
+            if (containerIndex === -1) {
+                console.error(`For preview cell, couldn't find container index for ${activeSourceContainer.name}`)
+                return EMPTY_CELL_COLOR
+            }
+            if (containerIndex >= VALID_PREVIEW_CELL_COLORS.length) {
+                containerIndex = VALID_PREVIEW_CELL_COLORS.length - 1
+            }
+            return placementState.error ? INVALID_PREVIEW_CELL_COLOR : VALID_PREVIEW_CELL_COLORS[containerIndex]
+        }
+
+        // is selected?
+        const selections = placements.filter((sample) => sample.getSelected())
+        if (selections.length > 0) {
+            return SELECTION_CELL_COLOR
+        }
+
+        const isSource = activeSourceContainer.name === cellID.fromContainer.name
+        const existingSample = cell.findExistingSample()
+        if (// source cell with existing sample
+            (isSource && existingSample)
+            ||
+            // destination cell with a placed sample (and not already existing in that cell)
+            (!isSource && placements.some((placement) => !existingSample || !placement.sample.sameSampleAs(existingSample.rawIdentifier())))
+        ) {
+            // assume only one sample per cell. placements also should include existing samples.
+            const sample = placements[0].sample
+            const containerSource = sample.getFromCell()?.getFromContainer()
+            let containerIndex = sourceContainers.findIndex((container) => container.name === (
+                // null is tubes without parent
+                // now that i think about it, cell is never visible for tubes without parent
+                containerSource ? containerSource.getName() : null
+            ))
+            if (containerIndex === -1)
+                throw new Error(`For cell ${cell.toString()}, couldn't find container index for sample ${containerSource?.getName()}`)
+            if (containerIndex >= ACTIVE_CELL_COLORS.length)
+                containerIndex = ACTIVE_CELL_COLORS.length - 1
+            return ACTIVE_CELL_COLORS[containerIndex]
+        }
+
+        // a cell should only be inactive if it's at the destination side with existing sample
+        return INACTIVE_CELL_COLOR
     } catch (e) {
         console.info(cell.state, e)
-        return "red"
+        return ERROR_CELL_COLOR
     }
 }
 
