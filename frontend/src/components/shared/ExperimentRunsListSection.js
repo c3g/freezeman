@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 
 import {List} from "antd";
 import {Link} from "react-router-dom";
 import {list as listExperimentRuns} from "../../modules/experimentRuns/actions";
+import { useAppDispatch } from "../../hooks";
 
 
 const mapStateToProps = state => ({
@@ -20,13 +21,17 @@ const ExperimentRunsListSection = ({
   runTypesByID,
   instrumentsByID,
 }) => {
+  const dispatch = useAppDispatch()
+
   const hasExperimentRuns = experimentRunsIDs.length
   const experimentRunsLoaded = hasExperimentRuns && experimentRunsByID[experimentRunsIDs[0]]
   const experimentRunsReady = experimentRunsIDs && (!hasExperimentRuns|| experimentRunsLoaded)
   let experimentRuns = []
 
-  if (hasExperimentRuns && !experimentRunsLoaded)
-    listExperimentRuns({id__in: experimentRunsIDs.join()})
+  useEffect(() => {
+    if (hasExperimentRuns && !experimentRunsLoaded)
+      dispatch(listExperimentRuns({id__in: experimentRunsIDs.join()}))
+  }, [dispatch, experimentRunsIDs, experimentRunsLoaded, hasExperimentRuns])
 
   if (experimentRunsLoaded)
     experimentRuns = experimentRunsIDs?.map(erID => experimentRunsByID[erID])
