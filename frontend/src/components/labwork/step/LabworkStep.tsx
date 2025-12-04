@@ -1,4 +1,4 @@
-import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
+import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip, TabsProps } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
@@ -377,11 +377,61 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		</Space>
 	)
 
+	/** Tabs */
+	const tabItems = useMemo(() => {
+		const items = [] as NonNullable<TabsProps['items']>
+		items.push({
+			key: GROUPED_SAMPLES_TAB_KEY,
+			label: 'Samples',
+			children: <LabworkStepOverview
+				step={step}
+				refreshing={isRefreshing}
+				stepSamples={stepSamples}
+				clearFilters={localClearFilters}
+				hasFilter={true}
+				columns={columnsForSamples}
+				filterDefinitions={filterDefinitions}
+				filterKeys={filterKeys}
+				filters={stepSamples.pagedItems.filters}
+				setFilter={handleSetFilter}
+				setFilterOptions={handleSetFilterOptions}
+				selection={selectionProps(onSelectChange)}
+				sortByList={stepSamples.pagedItems.sortByList}
+				setSortByList={handleSetSortByList}
+				pagination={pagination}
+			/>
+		})
+		items.push({
+			key: SELECTION_TAB_KEY,
+			label: selectedTabTitle,
+			children: <LabworkSelection
+					stepSamples={stepSamples}
+					step={step}
+					protocol={protocol}
+					setSortByList={handleSelectionTableSortChange}
+				/>
+		})
+		if (step.needs_placement) {
+			items.push({
+				key: PLACEMENT_TAB_KEY,
+				label: <Tooltip title="Place selected samples">Placement</Tooltip>,
+				children: <Placement
+						stepID={step.id}
+						sampleIDs={stepSamples.selectedSamples.items}
+					/>,
+				disabled: stepSamples.selectedSamples.items.length == 0
+			})
+		}
+
+		return items
+	}, [columnsForSamples, filterDefinitions, filterKeys, handleSelectionTableSortChange, handleSetFilter, handleSetFilterOptions, handleSetSortByList, isRefreshing, localClearFilters, onSelectChange, pagination, protocol, selectedTabTitle, selectionProps, step, stepSamples])
+
 	return (
 		<>
 			<AppPageHeader title={step.name} extra={buttonBar} />
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<Tabs defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyInactiveTabPane tabBarExtraContent={
+			<Tabs
+				defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyInactiveTabPane tabBarExtraContent={
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY &&
 							<>
@@ -406,43 +456,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							<Button disabled={stepSamples.selectedSamples.items.length == 0} title='Deselect all samples'>Clear Selection</Button>
 						</Popconfirm>
 					</Space>
-				} onChange={onTabChange}>
-					<Tabs.TabPane tab='Samples' key={GROUPED_SAMPLES_TAB_KEY}>
-						<LabworkStepOverview
-							step={step}
-							refreshing={isRefreshing}
-							stepSamples={stepSamples}
-							clearFilters={localClearFilters}
-							hasFilter={true}
-							columns={columnsForSamples}
-							filterDefinitions={filterDefinitions}
-							filterKeys={filterKeys}
-							filters={stepSamples.pagedItems.filters}
-							setFilter={handleSetFilter}
-							setFilterOptions={handleSetFilterOptions}
-							selection={selectionProps(onSelectChange)}
-							sortByList={stepSamples.pagedItems.sortByList}
-							setSortByList={handleSetSortByList}
-							pagination={pagination}
-						/>
-					</Tabs.TabPane>
-					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
-						<LabworkSelection
-							stepSamples={stepSamples}
-							step={step}
-							protocol={protocol}
-							setSortByList={handleSelectionTableSortChange}
-						/>
-					</Tabs.TabPane>
-					{step.needs_placement ?
-						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={stepSamples.selectedSamples.items.length == 0}>
-							<Placement
-								stepID={step.id}
-								sampleIDs={stepSamples.selectedSamples.items}
-							/>
-						</Tabs.TabPane>
-						: ''}
-				</Tabs>
+				}
+				onChange={onTabChange}
+				items={tabItems}
+			/>
 			</PageContent>
 		</>
 	)

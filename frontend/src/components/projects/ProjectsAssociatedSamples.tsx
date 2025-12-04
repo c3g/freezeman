@@ -119,12 +119,13 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
                         return 0
                     }
                 })
-                ?.reduce<ReactElement[]>((tags, studyStep) => {
+                ?.reduce<React.ReactNode[]>((tags, studyStep) => {
                     const studyLetter = studiesByID[studyStep.study]
                     const stepOrder = stepOrderByStepOrderID[studyStep.step_order]
                     if (studyLetter && stepOrder) {
                         tags.push(
                             <Popover
+                                key={`${studyLetter}-${stepOrder.order}`}
                                 content={
                                     <>
                                         <div>
@@ -135,20 +136,19 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
                                         </div>
                                     </>
                                 }
-                                destroyTooltipOnHide={{ keepParent: false }}
                             >
                                 <Tag>{studyLetter}-{stepOrder.order}</Tag>
                             </Popover>
                         )
                     } else {
-                        tags.push(<>...</>)
+                        tags.push('...')
                     }
                     return tags
                 }, [])
-                ?? [<></>]
+                ?? []
             return tags
         } else {
-            return [<></>]
+            return []
         }
     }, [stepOrderByStepOrderID, studiesByID, studyStepsBySampleID])
 
