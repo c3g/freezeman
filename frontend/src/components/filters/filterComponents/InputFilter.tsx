@@ -13,9 +13,10 @@ export interface InputFilterProps {
     setFilterOption: SetFilterOptionFunc
     confirm: () => boolean
     visible: boolean
+    debounceDelay?: number
 }
 
-const InputFilter = ({ value, options, description, filterKey, setFilter, setFilterOption, confirm, visible }: InputFilterProps) => {
+const InputFilter = ({ value, options, description, filterKey, setFilter, setFilterOption, confirm, visible, debounceDelay }: InputFilterProps) => {
 
     const inputRef = useRef<any>()
 
@@ -56,6 +57,7 @@ const InputFilter = ({ value, options, description, filterKey, setFilter, setFil
                 onInputChange={onSearch}
                 onPressEnter={confirm}
                 onKeyDown={onKeyDown}
+                debounceDelay={debounceDelay}
             />
             <Flex justify={"space-evenly"} style={{ marginTop: 8 }}>
                 <Switch

@@ -5,6 +5,7 @@ import { Project } from "../../models/frontend_models"
 import { FilterDescription } from '../../models/paged_items'
 import { IdentifiedTableColumnType } from '../pagedItemsTable/PagedItemsColumns'
 import { UNDEFINED_FILTER_KEY } from '../pagedItemsTable/PagedItemsFilters'
+import { FMSProject } from '../../models/fms_api_models'
 
 export enum ProjectColumnID {
 	ID = 'ID',
@@ -19,7 +20,7 @@ export enum ProjectColumnID {
 
 
 export interface ObjectWithProject {
-	project: Project
+	project: FMSProject
 }
 
 export type ProjectColumn = IdentifiedTableColumnType<ObjectWithProject>
@@ -27,6 +28,7 @@ export type ProjectColumn = IdentifiedTableColumnType<ObjectWithProject>
 export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColumn } = {
 	[ProjectColumnID.ID]: {
 		columnID: ProjectColumnID.ID,
+		key: ProjectColumnID.ID,
 		title: 'ID',
 		dataIndex: ['project', 'id'],
 		sorter: { multiple: 1 },
@@ -39,6 +41,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 	},
 	[ProjectColumnID.NAME]: {
 		columnID: ProjectColumnID.NAME,
+		key: ProjectColumnID.NAME,
 		title: 'Name',
 		dataIndex: ['project', 'name'],
 		sorter: { multiple: 1 },
@@ -51,13 +54,15 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 	},
     	[ProjectColumnID.EXTERNAL_ID]: {
 		columnID: ProjectColumnID.EXTERNAL_ID,
+		key: ProjectColumnID.EXTERNAL_ID,
 		title: 'External ID',
 		dataIndex: ['project', 'external_id'],
 		sorter: { multiple: 1 },
-		width: 70,
+		width: 50,
 	},
 	[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: {
 		columnID: ProjectColumnID.PRINCIPAL_INVESTIGATOR,
+		key: ProjectColumnID.PRINCIPAL_INVESTIGATOR,
 		title: 'Principal Investigator',
 		dataIndex: ['project', 'principal_investigator'],
 		sorter: { multiple: 1 },
@@ -65,6 +70,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 	},
 	[ProjectColumnID.REQUESTOR_NAME]: {
 		columnID: ProjectColumnID.REQUESTOR_NAME,
+		key: ProjectColumnID.REQUESTOR_NAME,
 		title: 'Requestor Name',
 		dataIndex: ['project', 'requestor_name'],
 		sorter: { multiple: 1 },
@@ -72,6 +78,7 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 	},
 	[ProjectColumnID.REQUESTOR_EMAIL]: {
 		columnID: ProjectColumnID.REQUESTOR_EMAIL,
+		key: ProjectColumnID.REQUESTOR_EMAIL,
 		title: 'Requestor Email',
 		dataIndex: ['project', 'requestor_email'],
 		sorter: false,
@@ -79,17 +86,19 @@ export const PROJECT_COLUMN_DEFINITIONS: { [key in ProjectColumnID]: ProjectColu
 	},
 	[ProjectColumnID.TARGETED_END_DATE]: {
 		columnID: ProjectColumnID.TARGETED_END_DATE,
+		key: ProjectColumnID.TARGETED_END_DATE,
 		title: 'Targeted End Date',
 		dataIndex: ['project', 'targeted_end_date'],
 		sorter: { multiple: 1 },
-		width: 80,
+		width: 65,
 	},
 	[ProjectColumnID.STATUS]: {
 		columnID: ProjectColumnID.STATUS,
+		key: ProjectColumnID.STATUS,
 		title: 'Status',
 		dataIndex: ['project', 'status'],
 		sorter: { multiple: 1 },
-		width: 50,
+		width: 40,
 	},
 }
 

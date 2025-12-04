@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSSampleIdentityMatch, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption, FMSVersion } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSSampleIdentityMatch, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption, FMSVersion, FMSExperimentRun } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -75,7 +75,7 @@ const api = {
 
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}/`),
-    list: (options, abort?: boolean) => get("/experiment-runs/", options, {abort}),
+    list: (options, abort?: boolean, requestID?: string) => get<JsonResponse<FMSPagedResultsReponse<FMSExperimentRun>>>("/experiment-runs/", options, {abort, requestID}),
     listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
     template: {
       actions: () => get(`/experiment-runs/template_actions/`),
@@ -192,7 +192,7 @@ const api = {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
-    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSProject>>>("/projects/", options, { abort }),
+    list: (options, abort?: boolean, requestID?: string) => get<JsonResponse<FMSPagedResultsReponse<FMSProject>>>("/projects/", options, { abort, requestID }),
     listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
     summary: () => get("/projects/summary/"),
     template: {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import DebouncedInput from './DebouncedInput'
 
-const InputNumberFilter = ({value, validationFunc, description, filterKey, setFilter, confirm, visible}) => {
+const InputNumberFilter = ({value, validationFunc, description, filterKey, setFilter, confirm, visible, debounceDelay = 500}) => {
 
     const [isValid, setIsValid] = useState(true)
     const inputRef = useRef()
@@ -48,6 +48,7 @@ const InputNumberFilter = ({value, validationFunc, description, filterKey, setFi
               onPressEnter={confirm}
               onKeyDown={ev => onKeyDown(ev, confirm)}
               status={isValid ? undefined : 'error'}
+              debounceDelay={debounceDelay}
             />
         </div>
     )

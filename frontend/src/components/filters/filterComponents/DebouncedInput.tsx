@@ -5,12 +5,13 @@ import { useDebounce } from '../../../utils/functions'
 
 export interface DebouncedInputProps extends React.ComponentProps<typeof Input> {
     value: string | undefined
+    debounceDelay?: number
     onInputChange: (value: string) => void
 }
 
 // DebouncedInput uses a forwardRef. This allows a ref to created by the component
 // using DebouncedInput that gets passed down to the Input element.
-const DebouncedInput = ({ value, onInputChange, ...rest }: DebouncedInputProps, ref: React.ForwardedRef<any>) => {
+const DebouncedInput = ({ value, onInputChange, debounceDelay, ...rest }: DebouncedInputProps, ref: React.ForwardedRef<any>) => {
 
     // The input box keeps its current value in this state.
     // The value is initialized with the filter value received as props, but
@@ -19,7 +20,7 @@ const DebouncedInput = ({ value, onInputChange, ...rest }: DebouncedInputProps, 
     const [filterText, setFilterText] = useState(value)
 
     // Create a debounced version of onChange
-    const debouncedOnChange = useDebounce(onInputChange)
+    const debouncedOnChange = useDebounce(onInputChange, debounceDelay)
 
     // Reset the filter text if value has changed - normally because the user has cleared
     // all filters and the filter value has been reset to undefined.
