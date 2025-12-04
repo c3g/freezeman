@@ -8,6 +8,7 @@ import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard";
 import { WithContainerRenderComponent } from "../shared/WithItemRenderComponent";
 import { Link } from "react-router-dom";
 import { Tag } from "antd";
+import { selectExperimentRunLaunches, selectInstrumentsByID, selectRunTypesByID } from "../../selectors";
 
 export interface ObjectWithExperimentRun {
     experimentRun: ExperimentRun
@@ -24,7 +25,11 @@ export enum ExperimentRunColumnID {
     LAUNCH = "LAUNCH"
 }
 
-export function getColumnsForExperimentRun(launchesById, runTypesById, instrumentsById): ExperimentRunColumn[] {
+export function getColumnsForExperimentRun(
+    launchesById: ReturnType<typeof selectExperimentRunLaunches>['launchesById'],
+    runTypesById: ReturnType<typeof selectRunTypesByID>,
+    instrumentsById: ReturnType<typeof selectInstrumentsByID>,
+): ExperimentRunColumn[] {
     const columnDefinitions = EXPERIMENT_RUN_COLUMN_DEFINITIONS(launchesById, runTypesById, instrumentsById)
     return [
         columnDefinitions.ID,
@@ -39,17 +44,21 @@ export function getColumnsForExperimentRun(launchesById, runTypesById, instrumen
 }
 
 
-const SMALL_COLUMN_WIDTH = 90
 const MEDIUM_COLUMN_WIDTH = 150
 const LARGE_COLUMN_WIDTH = 270
 
-export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, instrumentsById): { [key in ExperimentRunColumnID]: ExperimentRunColumn } => ({
+export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (
+    launchesById: ReturnType<typeof selectExperimentRunLaunches>['launchesById'],
+    runTypesById: ReturnType<typeof selectRunTypesByID>,
+    instrumentsById: ReturnType<typeof selectInstrumentsByID>,
+): { [key in ExperimentRunColumnID]: ExperimentRunColumn } => ({
     [ExperimentRunColumnID.ID]: {
         columnID: ExperimentRunColumnID.ID,
         title: 'ID',
         dataIndex: ['experimentRun', 'id'],
         sorter: { multiple: 1 },
-        width: (SMALL_COLUMN_WIDTH + MEDIUM_COLUMN_WIDTH)/2,
+        width: 65,
+        align: 'center',
         render: (_, { experimentRun }) => {
             return (experimentRun.id &&
                 <Link to={`/experiment-runs/${experimentRun.id}`}>
@@ -74,7 +83,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         sorter: { multiple: 1 },
         width: MEDIUM_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
-            return <Tag variant="outlined">{runTypesById[experimentRun.run_type]?.name}</Tag>
+            return <Tag variant={"outlined"}>{runTypesById[experimentRun.run_type]?.name}</Tag>
         }
     },
     [ExperimentRunColumnID.INSTRUMENT]: {
@@ -115,7 +124,8 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         title: 'Start date',
         dataIndex: ['experimentRun', 'start_date'],
         sorter: { multiple: 1 },
-        width: MEDIUM_COLUMN_WIDTH,
+        width: 90,
+        align: 'center',
         render: (_, { experimentRun }) => {
             return <div>{experimentRun.start_date}</div>
         }
@@ -124,7 +134,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         columnID: ExperimentRunColumnID.LAUNCH,
         title: 'Launch',
         dataIndex: ['experimentRun', 'launch'],
-        width: (MEDIUM_COLUMN_WIDTH + LARGE_COLUMN_WIDTH)/2 + 10,
+        width: 150,
         render: (_, { experimentRun }) => {
             return (<div>
                 {
