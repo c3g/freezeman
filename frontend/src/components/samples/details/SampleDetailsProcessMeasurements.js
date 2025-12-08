@@ -78,6 +78,7 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
         pagination={false}
         columns={columns}
         dataSource={processMeasurements}
+        rowKey={"id"}
       />
     );
 }
