@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect} from "react";
 import {useParams} from "react-router-dom";
-import {Menu, Dropdown, Button} from "antd";
+import {Dropdown, Button, MenuProps} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
 
 import { isNullish } from "../utils/functions"
@@ -75,22 +75,22 @@ export default function ActionContent({templateType}: { templateType: keyof type
 
   const action = actions[actionIndex] || LOADING_ACTION;
 
-  const templateChoiceMenu = (
-      <Menu>
-        {actions[actionIndex]
-          ? action.template.map((template, i) =>
-            <Menu.Item key={i} onClick={() => window.location.assign(template.file)}>{template.description}</Menu.Item>) :
-            <Menu.Item>Loading ...</Menu.Item>
-        }
-      </Menu>
-    ) ;
+  const templateChoiceMenu: MenuProps = {
+    items: actions[actionIndex]
+      ? action.template.map((template, i) => ({
+        key: i,
+        onClick: () => window.location.assign(template.file),
+        label: template.description
+      }))
+      : [{ key: 'loading', label: 'Loading...' }]
+  }
 
   return <>
     <AppPageHeader
       title={action.name}
       extra={
         actions[actionIndex] && action.template.length > 1 ?
-          <Dropdown overlay={templateChoiceMenu} placement="bottomRight">
+          <Dropdown menu={templateChoiceMenu} placement="bottomRight">
             <Button>
               <DownloadOutlined /> Download Template...
             </Button>
