@@ -12,7 +12,7 @@ __all__ = ["SampleIdentityMatch"]
 class SampleIdentityMatch(TrackedModel):
     tested = models.ForeignKey("SampleIdentity", on_delete=models.PROTECT, related_name="tested_identity_match", help_text="Match found while testing this sample identity.")
     matched = models.ForeignKey("SampleIdentity", on_delete=models.PROTECT, related_name="matched_identity_match", help_text="Match found to be referencing this sample identity.")
-    readset = models.ForeignKey("Readset", on_delete=models.PROTECT, related_name="readset_identity_match", help_text="Match found by comparing sequencing data to identity signature.")
+    readset = models.ForeignKey("Readset", null=True, blank=True, on_delete=models.PROTECT, related_name="readset_identity_match", help_text="Match found by comparing sequencing data to identity signature.")
     matching_site_ratio = models.DecimalField(max_digits=6, decimal_places=5, help_text="Ratio of the compared sites that are matching.")
     compared_sites = models.PositiveIntegerField(help_text="Number of marker sites that have a value for both samples.")
 
