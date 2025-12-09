@@ -1,5 +1,6 @@
 import json
 from os import path
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -13,6 +14,7 @@ from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.readset import Readset
 from fms_core.models._constants import ReleaseStatus, ValidationStatus
+from fms_core.models.sample_identity import SampleIdentity
 
 from fms_report.models.production_data import ProductionData
 from fms_report.models.production_tracking import ProductionTracking
@@ -23,6 +25,7 @@ from fms_core.utils import make_timestamped_filename
 
 from fms_core.services.readset import create_readset
 from fms_core.services.metric import create_metrics_from_run_validation_data
+from fms_core.services.sample_identity import create_sample_identity_matches
 from fms_core.services.archived_comment import (create_archived_comment_for_model,
                                                 AUTOMATED_COMMENT_DATASET_VALIDATED,
                                                 AUTOMATED_COMMENT_DATASET_NEW_DATA,
@@ -515,6 +518,37 @@ def ingest_run_validation_report(report_json):
                                                                                 run_validation_data=run_validation)
             errors.extend(newerrors)
             warnings.extend(newwarnings)
+            # ingest readset identity matches if they are present
+            self_match = run_validation["qc"].get("self_snp_array_match", None)
+            other_matches = run_validation["qc"].get("other_snp_array_matches", None)
+            if not self_match is None or not other_matches is None:
+                tested_biosample_id = readset_obj.derived_sample.biosample_id
+                try:
+                    tested_identity = SampleIdentity.objects.get(biosample_id=tested_biosample_id)
+                except SampleIdentity.DoesNotExist:
+                    tested_identity = None
+                    errors.append(f"Sample identity for biosample {tested_biosample_id} does not exist.")
+                matches_by_biosample_id = {}
+                if self_match:
+                    match_values = self_match.values()[0]
+                    self_biosample_id = int(match_values["biosample_id"])
+                    self_matching_site_ratio = match_values["percent_match"]
+                    self_compared_sites = match_values["n_sites"]
+                    matches_by_biosample_id[self_biosample_id] = {"matching_site_ratio": (Decimal(str(self_matching_site_ratio))/100).quantize(Decimal("0.00001")), "compared_sites": self_compared_sites}
+                    if tested_biosample_id != self_biosample_id:
+                        warnings.append(("Self match biosample ID {0} does not match current readset biosample id {1}. Ingested as matching the reported biosample {0}.", [self_biosample_id, tested_biosample_id]))
+                if other_matches:
+                    other_match_values = other_matches.values()
+                    for other_match_values in other_match_values:
+                        other_biosample_id = int(other_match_values["biosample_id"])
+                        other_matching_site_ratio = other_match_values["percent_match"]
+                        other_compared_sites = other_match_values["n_sites"]
+                        matches_by_biosample_id[other_biosample_id] = {"matching_site_ratio": (Decimal(str(other_matching_site_ratio))/100).quantize(Decimal("0.00001")), "compared_sites": other_compared_sites}
+                        
+                errors_matches, warnings_matches = create_sample_identity_matches(tested_identity, matches_by_biosample_id, readset_obj)
+                errors.extend(errors_matches)
+                warnings.extend(warnings_matches)
+
     else:
         errors.append("Experiment run ID missing.")
 
