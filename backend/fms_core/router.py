@@ -46,7 +46,7 @@ from .viewsets import (
     SamplesheetViewSet,
     ReportViewSet,
     SampleIdentityViewSet,
-    SampleIdentityMatchViewset,
+    SampleIdentityMatchViewSet,
     ProfileViewSet,
 )
 
