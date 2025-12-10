@@ -431,7 +431,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			<AppPageHeader title={step.name} extra={buttonBar} />
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
 			<Tabs
-				defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyOnHidden tabBarExtraContent={
+				defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyInactiveTabPane tabBarExtraContent={
 					<Space>
 						{selectedTab === SELECTION_TAB_KEY &&
 							<>
