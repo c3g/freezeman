@@ -228,6 +228,27 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
     )
 
     render.push(<Title level={2} style={{ marginTop: '1rem' }} key={'versions-title'}>Versions</Title>)
+    const timeLineItems = useMemo<TimelineItemProps[]>(() => {
+        if (versions === undefined) {
+            return [{ icon: <LoadingOutlined />, title: " ", content: "Loading..." }]
+        }
+        return versions.reduce<TimelineItemProps[]>((acc, version, i) => {
+            const diff = renderSampleDiff(versions[i + 1], version, usersByID)
+            if (!diff)
+                return acc
+            acc.push({
+                key: i,
+                title: renderTimelineLabel(version, usersByID),
+                content: (
+                    <>
+                        <strong>{version.revision.comment}</strong>
+                        {diff}
+                    </>
+                )
+            })
+            return acc
+        }, [])
+    }, [usersByID, versions])
     render.push(
         <Row key={'versions-timeline'}>
             <Col sm={24} md={24}>
@@ -237,28 +258,9 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
                             versions?.length === 0
                             ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                             : <Timeline
-                                mode="left"
+                                mode="start"
                                 style={{ marginLeft: timelineMarginLeft }}
-                                items={
-                                    versions === undefined
-                                    ? [{ dot: <LoadingOutlined />, label: " ", children: "Loading..." }]
-                                    : versions.reduce<TimelineItemProps[]>((acc, version, i) => {
-                                        const diff = renderSampleDiff(versions[i + 1], version, usersByID)
-                                        if (!diff)
-                                            return acc
-                                        acc.push({
-                                            key: i,
-                                            label: renderTimelineLabel(version, usersByID),
-                                            children: (
-                                                <>
-                                                    <strong>{version.revision.comment}</strong>
-                                                    {diff}
-                                                </>
-                                            )
-                                        })
-                                        return acc
-                                    }, [])
-                                }
+                                items={timeLineItems}
                             />
                         }
                     </Card>
