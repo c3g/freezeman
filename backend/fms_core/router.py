@@ -46,6 +46,7 @@ from .viewsets import (
     SamplesheetViewSet,
     ReportViewSet,
     SampleIdentityViewSet,
+    SampleIdentityMatchViewset,
     ProfileViewSet,
 )
 
@@ -97,4 +98,5 @@ router.register(r"metrics", MetricViewSet)
 router.register(r"samplesheets", SamplesheetViewSet, basename="samplesheets")
 router.register(r"reports", ReportViewSet, basename="reports")
 router.register(r"sample-identities", SampleIdentityViewSet)
+router.register(r"sample-identity-matches", SampleIdentityMatchViewSet)
 router.register(r"profiles", ProfileViewSet, basename="profiles")

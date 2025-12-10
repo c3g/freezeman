@@ -129,6 +129,19 @@ _sample_identity_filterset_fields: FiltersetFields = {
     "predicted_sex": CATEGORICAL_FILTERS,
 }
 
+_sample_identity_match_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "tested": FK_FILTERS,
+    "matched": FK_FILTERS,
+    "tested__biosample_id": FK_FILTERS,
+    "matched__biosample_id": FK_FILTERS,
+    "readset": FK_FILTERS,
+    "readset__derived_sample": FK_FILTERS,
+    "readset__derived_sample__samples": FK_FILTERS,
+    "matching_site_ratio": SCALAR_FILTERS,
+    "compared_sites": SCALAR_FILTERS,
+}
+
 _protocol_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
