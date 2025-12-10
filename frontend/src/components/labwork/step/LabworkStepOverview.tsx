@@ -150,7 +150,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
         <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
       </div>
       <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-			<Collapse accordion destroyOnHidden={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'} items={collapseItems} />
+			<Collapse accordion destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'} items={collapseItems} />
 		</>
 	)
 }
