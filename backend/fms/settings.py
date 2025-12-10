@@ -222,8 +222,8 @@ TEST_RUNNER = "fms_core.management.runner.PytestTestRunner"
 # Logging
 handler = {}
 logger = {}
-MAX_SIZE_LOG = 1
-LOG_BACKUP_COUNT = 0
+MAX_SIZE_LOG = 2000000000
+LOG_BACKUP_COUNT = 1
 if FMS_ENV == "PROD":
     handler = {
         "console": {
