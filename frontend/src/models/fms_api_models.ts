@@ -420,6 +420,7 @@ export interface FMSSampleIdentity extends FMSTrackedModel {
 export interface FMSSampleIdentityMatch extends FMSTrackedModel {
     tested_biosample_id: FMSId  // Match found while testing this sample identity.
     matched_biosample_id: FMSId // Match found to be referencing this sample identity.
+    readset_id?: FMSId          // Readset from which the match is established. Present only for experiment data testing.
     matching_site_ratio: number // Ratio of the compared sites that are matching.
     compared_sites: number      // Number of marker sites that have a value for both samples.
 }

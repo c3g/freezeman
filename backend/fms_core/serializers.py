@@ -1039,6 +1039,7 @@ class SampleIdentityMatchSerializer(serializers.ModelSerializer):
         fields = ["id",
                   "tested_biosample_id",
                   "matched_biosample_id",
+                  "readset_id",
                   "matching_site_ratio",
                   "compared_sites"]
 
