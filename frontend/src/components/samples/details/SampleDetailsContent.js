@@ -27,8 +27,12 @@ import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { selectAuthTokenAccess, selectContainersByID, selectLibrariesByID, selectSampleKindsByID, selectSamplesByID, selectUsersByID } from "../../../selectors";
 import SampleDetailsContentOverview from "./SampleDetailsContentOverview";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const { TabPane } = Tabs;
 
+const usernameStyle = {
+  cursor: 'default',
+}
 
 const depletedStyle = {
   display: "inline-block",
@@ -70,12 +74,16 @@ const SampleDetailsContent = () => {
   const { id } = useParams();
 
 
+  /**
+   * @typedef {import("../../../models/frontend_models").Sample} Sample
+   * @type {Sample | Record<string, undefined>}
+   */
   const sample = useMemo(() => samplesByID[id] || {}, [id, samplesByID])
   const error = sample.error?.name !== 'APIError' ? sample.error : undefined;
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
-  const sampleKind = sample ? sampleKindsByID[sample.sample_kind]?.name ?? (sample.is_pool ? "Pool" : "") : ""
-  const container = sample ? containersByID[sample.container] : undefined
+  const sampleKind = sampleKindsByID[sample.sample_kind]?.name ?? (sample.is_pool ? "Pool" : "")
+  const container = containersByID[sample.container]
   const [processMeasurements, setProcessMeasurements] = useState([])
   const experimentRunsIDs = useMemo(() => isLoaded && container?.experiment_run ? [container.experiment_run] : [], [container?.experiment_run, isLoaded])
   const [sampleMetadata, setSampleMetadata] = useState([])
@@ -128,70 +136,6 @@ const SampleDetailsContent = () => {
     })
   }, [sample, token])
 
-  const tabs = useMemo(() => {
-    /**
-     * @type {NonNullable<import("antd").TabsProps['items']>>}
-     */
-    const tabs = [
-      {
-        key: 'overview',
-        label: 'Overview',
-        style: tabStyle,
-        children: id && <SampleDetailsContentOverview sampleID={Number(id)} />
-      },
-      {
-        key: 'processes',
-        label: `Processes (${processMeasurements.length})`,
-        style: tabStyle,
-        children: <SampleDetailsProcessMeasurements processMeasurements={processMeasurements} />
-      },
-      {
-        key: 'experiment',
-        label: `Experiment (${experimentRunsIDs.length})`,
-        style: tabStyle,
-        children: <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
-      },
-      {
-        key: 'associated-projects',
-        label: 'Associated Projects',
-        style: tabStyle,
-        children: <SamplesAssociatedProjects sampleID={sample.id} />
-      },
-      {
-        key: 'metadata',
-        label: 'Metadata',
-        style: tabStyle,
-        children: <>
-        <Title level={5} style={{ marginTop: '1rem'}}> Metadata </Title>
-          <Descriptions bordered={true} size="small">
-            {
-              sampleMetadata.map((metadata, index) => {
-                return <Descriptions.Item key={index} label={metadata?.name}>{metadata?.value} </Descriptions.Item>
-              })
-            }
-
-          </Descriptions>
-        </>
-      },
-      {
-        key: 'lineage',
-        label: 'Lineage',
-        style: lineageStyle,
-        children: <SampleDetailsLineage sample={sample} 
-            handleSampleClick={navigateToSample}
-            handleProcessClick={navigateToProcess}
-          />
-      },
-      {
-        key: 'pool',
-        label: 'Pool',
-        style: tabStyle,
-        children: <SampleDetailsPool sample={sample}></SampleDetailsPool>
-      }
-    ]
-    return tabs
-  }, [experimentRunsIDs, id, navigateToProcess, navigateToSample, processMeasurements, sample, sampleMetadata])
-
   return <>
     <AppPageHeader
       title={`Sample ${sample.name || id}`}
@@ -212,14 +156,46 @@ const SampleDetailsContent = () => {
       {error &&
         <ErrorMessage error={error} />
       }
-      <Tabs
-        activeKey={activeKey}
-        onChange={setActiveKey}
-        size="large"
-        type="card"
-        className={(activeKey === 'lineage' ? 'lineage-tab-active' : '')}
-        items={tabs}
-      />
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" className={(activeKey === 'lineage' ? 'lineage-tab-active' : '')}>
+        <TabPane tab="Overview" key="overview" style={tabStyle}>
+          {id && <SampleDetailsContentOverview sampleID={Number(id)} />}
+        </TabPane>
+
+        <TabPane tab={`Processes (${processMeasurements.length})`} key="processes" style={tabStyle}>
+          <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
+        </TabPane>
+
+        <TabPane tab={`Experiment (${experimentRunsIDs.length})`} key="experiment" style={tabStyle}>
+           <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+        </TabPane>
+
+        <TabPane tab={"Associated Projects"} key="associated-projects" style={tabStyle}>
+          <SamplesAssociatedProjects sampleID={sample.id} />
+        </TabPane>
+
+        <TabPane tab={`Metadata`} key="metadata" style={tabStyle}>
+          <Title level={5} style={{ marginTop: '1rem'}}> Metadata </Title>
+          <Descriptions bordered={true} size="small">
+            {
+              sampleMetadata.map((metadata, index) => {
+                return <Descriptions.Item key={index} label={metadata?.name}>{metadata?.value} </Descriptions.Item>
+              })
+            }
+
+          </Descriptions>
+        </TabPane>
+
+        <TabPane tab={`Lineage`} key="lineage" style={lineageStyle}>
+          <SampleDetailsLineage sample={sample} 
+            handleSampleClick={navigateToSample}
+            handleProcessClick={navigateToProcess}
+          />
+        </TabPane>
+
+        <TabPane tab={`Pool`} key="pool" style={tabStyle}>
+          <SampleDetailsPool sample={sample}></SampleDetailsPool>
+        </TabPane>
+      </Tabs>
 
     </PageContent>
   </>;

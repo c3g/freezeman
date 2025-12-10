@@ -1,4 +1,4 @@
-import { Collapse, Typography, Button, Space, Tag, notification, CollapseProps } from 'antd'
+import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
@@ -101,9 +101,17 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
     return finalColumns
   }, [activeGrouping, columns])
 
-  const collapseItems = useMemo<NonNullable<CollapseProps['items']>>(() => {
-    return labworkStepSummary && labworkStepSummary.groups
-      ? labworkStepSummary.groups.map<NonNullable<CollapseProps['items']>[0]>((group: LabworkStepSamplesGroup) => {
+	return (
+		<>
+      <div>
+        <GroupingButton grouping={GROUPING_PROJECT} selected={activeGrouping===GROUPING_PROJECT} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+				<GroupingButton grouping={GROUPING_CONTAINER} selected={activeGrouping===GROUPING_CONTAINER} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+        <GroupingButton grouping={GROUPING_CREATION_DATE} selected={activeGrouping===GROUPING_CREATION_DATE} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+        <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+      </div>
+      <div style={{ display: 'flex', marginBottom: '1em' }}></div>
+			<Collapse accordion destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'}>
+				{labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
           const sample_ids = Object.keys(group.sample_locators).map((id) => Number(id))
           const selectedCount = Object.keys(group.selected_samples).length
           const ButtonsSelectAndClear = (
@@ -114,11 +122,9 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
             </Space>
           )
 
-					return {
-						  key: group.name,
-              label: group.name,
-              extra: ButtonsSelectAndClear,
-              children: <LabworkStepOverviewPanel
+					return (
+						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
+							<LabworkStepOverviewPanel
 							  refreshing={refreshing || labworkStepSummary.isFetching}
 							  grouping={activeGrouping}
 							  groupingValue={group.name}
@@ -136,21 +142,10 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 							  pagination={pagination}
 							  stepID={step.id}
 							/>
-          }
-				})
-      : []
-  }, [activeGrouping, clearFilters, filterDefinitions, filterKeys, filters, finalColumns, handleClearGroup, handleSelectGroup, labworkStepSummary, loading, pagination, refreshing, selection, setFilter, setFilterOptions, setSortByList, sortByList, step.id])
-
-	return (
-		<>
-      <div>
-        <GroupingButton grouping={GROUPING_PROJECT} selected={activeGrouping===GROUPING_PROJECT} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-				<GroupingButton grouping={GROUPING_CONTAINER} selected={activeGrouping===GROUPING_CONTAINER} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-        <GroupingButton grouping={GROUPING_CREATION_DATE} selected={activeGrouping===GROUPING_CREATION_DATE} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-        <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-      </div>
-      <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-			<Collapse accordion destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'} items={collapseItems} />
+						</Collapse.Panel>
+					)
+				})}
+			</Collapse>
 		</>
 	)
 }

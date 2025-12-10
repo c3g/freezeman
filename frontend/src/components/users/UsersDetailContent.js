@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { set } from "object-path-immutable";
@@ -47,6 +47,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = { get, listRevisions, listVersions };
 
 const ReportsUserContent = ({ isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions }) => {
+  const history = useNavigate();
   const { id } = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
   const [isLoadRevisions, setIsLoadRevisions] = useState(false);
@@ -109,36 +110,9 @@ function UserReport({ user, groupsByID, expandedGroups, setExpandedGroups, onLoa
   const revisions = user.revisions;
   const hasRevisions = revisions?.results !== undefined
   const isFetchingRevisions = user.revisions?.isFetching;
-  const groups = useMemo(() => hasRevisions ? revisions.results : [], [hasRevisions, revisions?.results])
+  const groups = hasRevisions ? revisions.results : [];
 
-  const timelineItems = useMemo(() => {
-    /**
-     * @type {import("antd").TimelineItemProps[]}
-     */
-    const timelineItems = []
-    if (revisions === undefined && isFetching) {
-      timelineItems.push({
-        icon: <LoadingOutlined />,
-        title: "Loading...",
-        key: "loading",
-      })
-    }
-    if (revisions) {
-      groups.forEach((revision, i) => {
-        timelineItems.push({
-          key: `revision-${i}`,
-          title: renderTimelineLabel(revision),
-          content: <TimelineEntry
-            revision={revision}
-            expandedGroups={expandedGroups}
-            setExpandedGroups={setExpandedGroups}
-            listVersions={listVersions}
-          />,
-        })
-      })
-    }
-    return timelineItems
-  }, [expandedGroups, groups, isFetching, listVersions, revisions, setExpandedGroups])
+  const [timelineMarginLeft, timelineRef] = useTimeline();
 
   return (
     <>
@@ -166,9 +140,28 @@ function UserReport({ user, groupsByID, expandedGroups, setExpandedGroups, onLoa
       </Title>
       <Row>
         <Col sm={24} md={24}>
+          <div ref={timelineRef}>
             <Card>
               {
-                <Timeline mode="start" items={timelineItems}>
+                <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
+                  {revisions === undefined && isFetching &&
+                    <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
+                  }
+                  {revisions && groups.map((revision, i) => {
+                    return (
+                      <Timeline.Item
+                        key={i}
+                        label={renderTimelineLabel(revision)}
+                      >
+                        <TimelineEntry
+                          revision={revision}
+                          expandedGroups={expandedGroups}
+                          setExpandedGroups={setExpandedGroups}
+                          listVersions={listVersions}
+                        />
+                      </Timeline.Item>
+                    )
+                  })}
                   {((hasRevisions && revisions.next) || (!hasRevisions && isFetchingRevisions)) &&
                     <Button
                       block
@@ -183,6 +176,7 @@ function UserReport({ user, groupsByID, expandedGroups, setExpandedGroups, onLoa
                 </Timeline>
               }
             </Card>
+          </div>
         </Col>
       </Row>
     </>
