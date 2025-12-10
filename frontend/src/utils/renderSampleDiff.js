@@ -44,7 +44,7 @@ function renderUnknownDelta(name, delta, oldVersion, newVersion) {
   return (
     <div key={name}>
       <code>{name}:</code>{' '}
-        <Tag color="red" >
+        <Tag variant="outlined" color="red" >
           unknown modification (please report this): <code>{JSON.stringify(delta)}</code>
         </Tag>
     </div>
@@ -57,9 +57,9 @@ function renderJSONDelta(key, delta, oldVersion, newVersion) {
   return (
     <div key={key}>
       <code>{key}:</code>{' '}
-      <Tag color="red" style={removedStyle}>{oldValue}</Tag>
+      <Tag variant="outlined" color="red" style={removedStyle}>{oldValue}</Tag>
       <SwapRightOutlined style={arrowStyle} />
-      <Tag color="green" className='diff__added'>{newValue}</Tag>
+      <Tag variant="outlined" color="green" className='diff__added'>{newValue}</Tag>
     </div>
   );
 }
@@ -72,7 +72,7 @@ function renderArrayDelta(key, delta, oldVersion, newVersion, usersByID) {
     return (
       <div key={key}>
         <code>{key}:</code>{' '}
-        <Tag color="green" className='diff__added'>{renderDeltaValue(delta[0], key, usersByID)}</Tag>
+        <Tag variant="outlined" color="green" className='diff__added'>{renderDeltaValue(delta[0], key, usersByID)}</Tag>
       </div>
     );
 
@@ -81,9 +81,9 @@ function renderArrayDelta(key, delta, oldVersion, newVersion, usersByID) {
     return (
       <div key={key}>
         <code>{key}:</code>{' '}
-        <Tag color="red" style={removedStyle}>{renderDeltaValue(delta[0], key, usersByID)}</Tag>
+        <Tag variant="outlined" color="red" style={removedStyle}>{renderDeltaValue(delta[0], key, usersByID)}</Tag>
         <SwapRightOutlined style={arrowStyle} />
-        <Tag color="green" className='diff__added'>{renderDeltaValue(delta[1], key, usersByID)}</Tag>
+        <Tag variant="outlined" color="green" className='diff__added'>{renderDeltaValue(delta[1], key, usersByID)}</Tag>
       </div>
     );
 
@@ -91,7 +91,7 @@ function renderArrayDelta(key, delta, oldVersion, newVersion, usersByID) {
   if (delta.length === 3 && delta[1] === 0 && delta[2] === 0)
     return (
       <div key={key}>
-        <Tag color="red" style={removedStyle}>
+        <Tag variant="outlined" color="red" style={removedStyle}>
           <code>{key}:</code> {renderDeltaValue(delta[0], key, usersByID)}
         </Tag>
       </div>

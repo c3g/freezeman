@@ -64,7 +64,7 @@ const IndicesValidationResult = ({
       render: id => {
         return (
           <Tooltip placement="right" title={indicesByID[id]?.name}>
-            <Tag>{id}</Tag>
+            <Tag variant="outlined">{id}</Tag>
           </Tooltip>
         )
       }
@@ -74,7 +74,7 @@ const IndicesValidationResult = ({
         title: () => {
           return (
             <Tooltip placement="bottom" title={indicesByID[i]?.name}>
-              <Tag>{i}</Tag>
+              <Tag variant="outlined">{i}</Tag>
             </Tooltip>
           )
         },
@@ -86,11 +86,11 @@ const IndicesValidationResult = ({
           {
             distances?.map((distance, j) => {
               if ( distance < 0 )
-              return <Tag key={`${i}, ${j}`} color="gray"></Tag>
+              return <Tag variant="outlined" key={`${i}, ${j}`} color="gray"></Tag>
               else if (distance <= results.threshold )
-              return <Tag key={`${i}, ${j}`} color="red"> {distance} </Tag>
+              return <Tag variant="outlined" key={`${i}, ${j}`} color="red"> {distance} </Tag>
               else
-              return <Tag key={`${i}, ${j}`} color="green"> {distance} </Tag>
+              return <Tag variant="outlined" key={`${i}, ${j}`} color="green"> {distance} </Tag>
             })
           }
           </span>
@@ -139,7 +139,7 @@ const IndicesValidationResult = ({
         <Descriptions.Item label="Validation Length 3 Prime">{results.validation_length_3prime}</Descriptions.Item>
         <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_5prime}</Descriptions.Item>
         <Descriptions.Item label="Validation status">
-          {results.is_valid ? <Tag color="green">Passed</Tag> : <Tag color="red">Failed</Tag> }
+          {results.is_valid ? <Tag variant="outlined" color="green">Passed</Tag> : <Tag variant="outlined" color="red">Failed</Tag> }
         </Descriptions.Item>
         <Descriptions.Item label="Validation Length Calculated">{results.validation_length_is_calculated ? "Yes" : "No"} </Descriptions.Item>
         <Descriptions.Item label="Indices with collision (distance <= threshold)" size={'default'}>
@@ -167,8 +167,8 @@ const IndicesValidationResult = ({
               <div>
                 Distance for both indices (3 prime and 5 prime) are shown together for each pair of indices.
                 <div>
-                  <Tag color="green"> If greater than threshold</Tag>
-                  <Tag color="red"> If smaller than threshold </Tag>
+                  <Tag variant="outlined" color="green"> If greater than threshold</Tag>
+                  <Tag variant="outlined" color="red"> If smaller than threshold </Tag>
                 </div>
               </div>
             )

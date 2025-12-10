@@ -43,7 +43,7 @@ const getTableColumns = (protocols) => [
       width: 200,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, processMeasurement) =>
-          <Tag>{protocols?.itemsByID[processMeasurement.protocol]?.name}</Tag>,
+          <Tag variant="outlined">{protocols?.itemsByID[processMeasurement.protocol]?.name}</Tag>,
     },
     {
       title: "Source Sample",

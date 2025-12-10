@@ -198,10 +198,10 @@ const SampleDetailsContent = () => {
       extra={isLoaded ?
         <Space>
           <div key="kind" style={{ display: "inline-block", verticalAlign: "top", marginTop: "4px" }}>
-            <Tag>{sampleKind}</Tag>
+            <Tag variant="outlined">{sampleKind}</Tag>
           </div>
           <div key="depleted" style={depletedStyle}>
-            <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
+            <Tag variant="outlined" color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
           </div>
           <EditButton url={`/samples/${id}/update`} />
         </Space>

@@ -137,7 +137,7 @@ function useStudySteps(sampleIDs: readonly Sample['id'][]) {
                                     </>
                                 }
                             >
-                                <Tag>{studyLetter}-{stepOrder.order}</Tag>
+                                <Tag variant="outlined">{studyLetter}-{stepOrder.order}</Tag>
                             </Popover>
                         )
                     } else {

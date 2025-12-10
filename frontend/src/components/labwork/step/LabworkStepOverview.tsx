@@ -108,7 +108,7 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
           const selectedCount = Object.keys(group.selected_samples).length
           const ButtonsSelectAndClear = (
             <Space orientation="horizontal" style={{width: '100%', justifyContent: 'center'}}>
-              <Tag><Title style={{ margin: 0 }} level={4}>{`${selectedCount}/${group.count}`}</Title></Tag>
+              <Tag variant="outlined"><Title style={{ margin: 0 }} level={4}>{`${selectedCount}/${group.count}`}</Title></Tag>
               <Button disabled={loading || group.count === 0 || selectedCount === group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
               <Button disabled={loading || selectedCount === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
             </Space>

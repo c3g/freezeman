@@ -39,7 +39,7 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
         key: 'protocol',
         render: (protocolID, _) =>
             <div>
-              {protocolsByID?.[protocolID] && <Tag> {protocolsByID[protocolID].name} </Tag>}
+              {protocolsByID?.[protocolID] && <Tag variant="outlined"> {protocolsByID[protocolID].name} </Tag>}
             </div>
       },
       {

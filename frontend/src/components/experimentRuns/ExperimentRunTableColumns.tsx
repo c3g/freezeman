@@ -74,7 +74,7 @@ export const EXPERIMENT_RUN_COLUMN_DEFINITIONS = (launchesById, runTypesById, in
         sorter: { multiple: 1 },
         width: MEDIUM_COLUMN_WIDTH,
         render: (_, { experimentRun }) => {
-            return <Tag>{runTypesById[experimentRun.run_type]?.name}</Tag>
+            return <Tag variant="outlined">{runTypesById[experimentRun.run_type]?.name}</Tag>
         }
     },
     [ExperimentRunColumnID.INSTRUMENT]: {

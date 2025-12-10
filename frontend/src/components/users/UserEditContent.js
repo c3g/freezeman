@@ -162,7 +162,7 @@ function UserEditContent() {
                 options={groups.map(Options.renderGroup)}
               /> :
               user?.groups?.length > 0 ?
-                user?.groups.map(groupId => groupsByID[groupId]).map(Options.renderGroup).map(o => <Tag key={o.value}>{o.label}</Tag>) :
+                user?.groups.map(groupId => groupsByID[groupId]).map(Options.renderGroup).map(o => <Tag variant="outlined" key={o.value}>{o.label}</Tag>) :
                 null
             }
           </Form.Item>
