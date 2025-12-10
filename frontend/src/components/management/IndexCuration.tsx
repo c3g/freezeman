@@ -205,7 +205,7 @@ export function IndexCuration() {
                 ]}
 			/>
             <PageContent>
-                <Space direction={"vertical"} style={{ width: '100%' }}>
+                <Space orientation={"vertical"} style={{ width: '100%' }}>
                     <FiltersBar filters={filterSet} clearFilters={() => {
                         setFilters({})
                     }} />

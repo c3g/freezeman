@@ -145,7 +145,7 @@ function Details() {
             <Legend />
         </Card>
         <Card>
-            <Space direction={"vertical"} size={"small"}>
+            <Space orientation={"vertical"} size={"small"}>
                 <Text>
                     Click on node to change the active sample.
                 </Text>
@@ -180,7 +180,7 @@ function Legend() {
         text: string
     }
     const Entry = ({ symbol, text }: EntryProps) => {
-        return <Space direction={"horizontal"} size={"small"}>
+        return <Space orientation={"horizontal"} size={"small"}>
             <Symbol {...symbol} />
             <Text>{text}</Text>
         </Space>
@@ -194,7 +194,7 @@ function Legend() {
     ], [])
 
     return <>
-        <Space direction={"vertical"}>
+        <Space orientation={"vertical"}>
             {entries.map((entry, index) => <Entry key={index.toString()} {...entry} />)}
         </Space>
     </>
