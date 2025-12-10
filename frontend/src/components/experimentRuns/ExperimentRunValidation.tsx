@@ -111,7 +111,7 @@ function ExperimentRunValidation({ experimentRunId }: ExperimentRunValidationPro
 						<Collapse.Panel 
 							key={createLaneKey(lane)}
 							header={<Title level={5}>{`Lane ${lane.laneNumber}`}</Title>}
-							extra={<Space orientation={'horizontal'}>
+							extra={<Space direction={'horizontal'}>
 								<LaneValidationStatus validationStatus={lane.validationStatus} isValidationInProgress={isValidationInProgress}/>
 								{lane.validationTime ? ['-', `${new Date(lane.validationTime).toLocaleDateString("fr-CA")}`] : ''}
 							</Space>}

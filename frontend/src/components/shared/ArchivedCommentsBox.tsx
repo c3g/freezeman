@@ -111,11 +111,11 @@ export default function ArchivedCommentsBox({ comments, handleAddComment }: Comm
             {(comments ?? []).sort((a, b) => b.id - a.id).map((comment) => {
                 return <div key={comment.id}>
                     <Flex justify={"space-between"}>
-                        <Space orientation={"horizontal"}>
+                        <Space direction={"horizontal"}>
                                 <Text strong>Added at:</Text>
                                 {dateToString(new Date(comment.updated_at), "compact")}
                         </Space>
-                        <Space orientation={"horizontal"}>
+                        <Space direction={"horizontal"}>
                                 <Text strong>By:</Text>
                                 {usersByID[comment.created_by]?.username}
                         </Space>
