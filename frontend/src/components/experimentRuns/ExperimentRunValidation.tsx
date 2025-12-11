@@ -1,4 +1,4 @@
-import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
+import { Button, Collapse, List, Popconfirm, Space, Typography, Layout, Modal } from 'antd'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { shallowEqual } from 'react-redux'
@@ -13,6 +13,7 @@ import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
 import { Dataset } from '../../models/frontend_models'
 import api from '../../utils/api'
 import { FMSId } from '../../models/fms_api_models'
+import { WarningTwoTone } from "@ant-design/icons"
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography
@@ -176,6 +177,42 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
       setDatasets(values as Dataset[])})
 	}, [dispatch, lane.datasets])
 
+  const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState({})
+  useEffect(() => {
+    console.log(lane.datasets)
+    if (!lane.datasets)
+      return
+
+    const laneDatasetsIds = lane.datasets.map((dataset) => dataset.datasetID.toString()).join(",")
+    dispatch(api.readsets.list({dataset_id__in: laneDatasetsIds, derived_sample__biosample__sample_identity__conclusive: true})) // Only gets readsets that have a conclusive identity
+    .then((readsets_response) => {
+      dispatch(api.sampleIdentityMatch.list({readset__dataset_id__in: laneDatasetsIds}))
+      .then((sampleIdentityMatches_response) => {
+        const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => current.readset_id ? acc[current.readset_id] ? acc[current.readset_id].append(current) : acc[current.readset_id] = [current] : acc, {})
+        const readsets = readsets_response.data.results
+        
+        const warnings = readsets.reduce((acc, current) => {
+          let concordant_biosample_id = null 
+          
+          matchesByReadset[current.id] && matchesByReadset[current.id].forEach(match => {
+            if (match.tested_biosample_id == match.matched_biosample_id){
+              concordant_biosample_id = match.matched_biosample_id
+            }
+            else {
+              const warning_params = [current.id, match.tested_biosample_id, match.matched_biosample_id]
+              acc["contamination_warnings"] ? acc["contamination_warnings"].concat([warning_params]) : acc["contamination_warnings"] = [warning_params]
+            }
+          })
+          if (concordant_biosample_id) {
+            acc["concordance_warnings"] = [current.id, concordant_biosample_id]
+          }
+          return acc
+        }, {})
+        setMixupAndContaminationWarnings(warnings)
+      })
+    })
+	}, [dispatch, datasets])
+
   const handleAddComment = useCallback(
     (id, comment) => {
         return dispatch(addArchivedComment(id, comment))
@@ -206,6 +243,8 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
   const siderStyle = {
     backgroundColor: '#fff',
   }
+
+  const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
 
 	return (
 		<>
@@ -267,6 +306,18 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
         <Content style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <ReadsPerSampleGraph lane={lane} />
           <Title level={5}>{title}</Title>
+          {(mixupAndContaminationWarnings["contamination_warnings"] || mixupAndContaminationWarnings["concordance_warnings"]) &&
+          <>
+            <Button onClick={()=>setWarningModalVisible(true)}>
+              <WarningTwoTone twoToneColor={'red'}/> Mixup & Contamination warnings...
+            </Button>
+            <Modal title={"Mixup & Contamination warnings"} open={WarningModalVisible} onCancel={()=>setWarningModalVisible(false)} width={'45rem'}>
+                <Typography.Paragraph>
+                    Validation of the sequencing data against the sample identity have raised some warnings.
+                </Typography.Paragraph>
+            </Modal>
+          </>
+          }
         </Content>
         <Sider width="30%" style={siderStyle}>
           <DatasetArchivedCommentsBox datasets={datasets} handleAddComment={handleAddComment}/>

@@ -136,6 +136,7 @@ _sample_identity_match_filterset_fields: FiltersetFields = {
     "tested__biosample_id": FK_FILTERS,
     "matched__biosample_id": FK_FILTERS,
     "readset": FK_FILTERS,
+    "readset__dataset": FK_FILTERS,
     "readset__derived_sample": FK_FILTERS,
     "readset__derived_sample__samples": FK_FILTERS,
     "matching_site_ratio": SCALAR_FILTERS,
@@ -292,6 +293,7 @@ _readset_filterset_fields: FiltersetFields = {
     "validation_status_timestamp": DATE_FILTERS,
     "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__sample_identity__conclusive": ["exact"],
     **_prefix_keys("dataset__", _dataset_filterset_fields),
 }
 
