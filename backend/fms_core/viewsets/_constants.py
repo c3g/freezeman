@@ -136,9 +136,9 @@ _sample_identity_match_filterset_fields: FiltersetFields = {
     "tested__biosample_id": FK_FILTERS,
     "matched__biosample_id": FK_FILTERS,
     "readset": FK_FILTERS,
-    "readset__dataset": FK_FILTERS,
-    "readset__derived_sample": FK_FILTERS,
-    "readset__derived_sample__samples": FK_FILTERS,
+    "readset__dataset_id": FK_FILTERS,
+    "readset__derived_sample_id": FK_FILTERS,
+    "readset__derived_sample__samples__id": FK_FILTERS,
     "matching_site_ratio": SCALAR_FILTERS,
     "compared_sites": SCALAR_FILTERS,
 }
