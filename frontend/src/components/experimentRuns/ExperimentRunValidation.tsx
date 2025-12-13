@@ -252,7 +252,6 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
   if (!mixupAndContaminationWarnings){
     setMixupAndContaminationWarnings(TEST_WARNINGS) // TEST 
   }
-  console.log(mixupAndContaminationWarnings)
 	return (
 		<>
 			<FlexBar style={{padding: '1em'}}>
@@ -272,6 +271,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 				) : (
 					<Text italic>(Run metrics unavailable)</Text>
 				)}
+        <IdentityWarningsButton mixupAndContaminationWarnings={mixupAndContaminationWarnings}/>
 				<Space>
 					{canValidate && 
 						<Text strong>Validate lane:</Text>
@@ -313,7 +313,6 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
         <Content style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
           <ReadsPerSampleGraph lane={lane} />
           <Title level={5}>{title}</Title>
-          <IdentityWarningsButton mixupAndContaminationWarnings={mixupAndContaminationWarnings}/>
         </Content>
         <Sider width="30%" style={siderStyle}>
           <DatasetArchivedCommentsBox datasets={datasets} handleAddComment={handleAddComment}/>

@@ -51,15 +51,15 @@ const CONCORDANCE_TABLE_COLUMNS = [
   {
 		columnID: IdentityConcordanceColumnID.READSET_ID,
 		title: 'Readset ID',
-		dataIndex: ['warning', 'readset_id'],
-		render: (_, warning) => warning.readset_id,
+		dataIndex: 'readset_id',
+    key: 'readset_id',
 		width: 90,
 	},
   {
 		columnID: IdentityConcordanceColumnID.BIOSAMPLE_ID,
 		title: 'Biosample ID',
-		dataIndex: ['warning', 'biosample_id'],
-		render: (warning) => warning.biosample_id,
+		dataIndex: 'biosample_id',
+    key: 'biosample_id',
 		width: 90,
 	},
 ]
@@ -70,19 +70,61 @@ export enum IdentityContaminationColumnID {
   MATCHED_BIOSAMPLE_ID = "MATCHED_BIOSAMPLE_ID"
 }
 
+const CONTAMINATION_TABLE_COLUMNS = [
+  {
+		columnID: IdentityContaminationColumnID.READSET_ID,
+		title: 'Readset ID',
+		dataIndex: 'readset_id',
+    key: 'readset_id',
+		width: 90,
+	},
+  {
+		columnID: IdentityContaminationColumnID.TESTED_BIOSAMPLE_ID,
+		title: 'Tested Biosample ID',
+		dataIndex: 'tested_biosample_id',
+    key: 'tested_biosample_id',
+		width: 90,
+	},
+  {
+		columnID: IdentityContaminationColumnID.MATCHED_BIOSAMPLE_ID,
+		title: 'Matched Biosample ID',
+		dataIndex: 'matched_biosample_id',
+    key: 'matched_biosample_id',
+		width: 90,
+	},
+]
 
-export function IdentityWarningsButton(mixupAndContaminationWarnings: MixupAndContaminationWarnings){
+export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAndContaminationWarnings | undefined){
   const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
-  return (mixupAndContaminationWarnings &&
+  console.log(mixupAndContaminationWarnings.concordance_warnings)
+  return (mixupAndContaminationWarnings && 
       <>
         <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
           <WarningTwoTone twoToneColor={'red'}/> Mixup & Contamination warnings...
         </Button>
-        <Modal title={"Mixup & Contamination warnings"} open={WarningModalVisible} footer={null} onCancel={()=>setWarningModalVisible(false)} width={'45rem'}>
-            <Typography.Paragraph>
-                Validation of the sequencing data against the sample identity have raised some warnings.
-            </Typography.Paragraph>
+        <Modal 
+          title={"Mixup & Contamination warnings"} 
+          open={WarningModalVisible} 
+          width={'60vw'}
+          footer={null} 
+          onCancel={()=>setWarningModalVisible(false)}
+        >
+          { mixupAndContaminationWarnings.concordance_warnings.length > 0 &&
+          <>
+            <Typography.Title level={4}>
+              {CONCORDANCE_WARNING_MESSAGE}
+            </Typography.Title>
             <Table dataSource={mixupAndContaminationWarnings.concordance_warnings} columns={CONCORDANCE_TABLE_COLUMNS} />
+          </>
+          }
+          { mixupAndContaminationWarnings.contamination_warnings.length > 0 &&
+          <>
+            <Typography.Title level={4}>
+              {CONTAMINATION_WARNING_MESSAGE}
+            </Typography.Title>
+            <Table dataSource={mixupAndContaminationWarnings.contamination_warnings} columns={CONTAMINATION_TABLE_COLUMNS} />
+          </>
+          }
         </Modal>
       </>
       
