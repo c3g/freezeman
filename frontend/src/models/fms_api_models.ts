@@ -51,6 +51,8 @@ export interface FMSTrackedModel {
 export interface FMSBiosample extends FMSTrackedModel {
     id: FMSId                           // Unique ID of object in database
     alias: string                       // Alternate name for biosample
+    individual?: FMSId                  // ID of the individual from which the sample was taken
+    collection_site?: string            // Geographical site where the sample was taken
 }
 
 export interface FMSContainer extends FMSTrackedModel {

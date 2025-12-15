@@ -1,8 +1,12 @@
-import React, { useState } from 'react'
-import { Button, Table, Typography,  Modal } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { Button, Table, Typography,  Modal, Card, Divider } from 'antd'
 import { WarningTwoTone } from "@ant-design/icons"
 
 import { FMSId } from '../../models/fms_api_models'
+import { list } from '../../modules/biosamples/actions'
+import { DEFAULT_PAGE_SIZE } from '../../constants'
+import { useAppDispatch, useAppSelector } from '../../hooks'
+import { selectBiosamplesByID } from '../../selectors'
 
 export const CONCORDANCE_WARNING_MESSAGE = "Tested readset data failed to match corresponding sample identity."
 export const CONTAMINATION_WARNING_MESSAGE = "Tested readset data matched other sample identity. Possible contamination or Mix-up."
@@ -20,83 +24,149 @@ export class ContaminationWarningValues {
   readset_id: FMSId
   tested_biosample_id: FMSId
   matched_biosample_id: FMSId
-  constructor(readset_id, tested_biosample_id, matched_biosample_id){
+  matching_site_ratio: number
+  compared_sites: number
+  constructor(readset_id, tested_biosample_id, matched_biosample_id, matching_site_ratio, compared_sites){
     this.readset_id = readset_id
     this.tested_biosample_id = tested_biosample_id
     this.matched_biosample_id = matched_biosample_id
+    this.matching_site_ratio = matching_site_ratio
+    this.compared_sites = compared_sites
   }
 }
 
 export class MixupAndContaminationWarnings {
+  protected biosample_ids: Set<FMSId>
 	concordance_warnings: ConcordanceWarningValues[]
 	contamination_warnings: ContaminationWarningValues[]
   constructor(){
+    this.biosample_ids = new Set()
     this.concordance_warnings = []
     this.contamination_warnings = []
   }
   addConcordanceWarning(warning: ConcordanceWarningValues){
+    this.biosample_ids.add(warning.biosample_id)
     this.concordance_warnings.length > 0 ? this.concordance_warnings = this.concordance_warnings.concat([warning]) : this.concordance_warnings = [warning]
   }
   addContaminationWarning(warning: ContaminationWarningValues){
+    this.biosample_ids.add(warning.tested_biosample_id)
+    this.biosample_ids.add(warning.matched_biosample_id)
     this.contamination_warnings.length > 0 ? this.contamination_warnings = this.contamination_warnings.concat([warning]) : this.contamination_warnings = [warning]
+  }
+  fetchBiosamples(dispatch){
+    const array_ids = [...this.biosample_ids]
+    for (let start = 0; start < array_ids.length; start = start + DEFAULT_PAGE_SIZE) {
+      dispatch(list({id__in: array_ids.slice(start, start + DEFAULT_PAGE_SIZE)}))
+    }
   }
 }
 
 export enum IdentityConcordanceColumnID {
 	READSET_ID  = 'READSET_ID',
-  BIOSAMPLE_ID = "BIOSAMPLE_ID"
+  SAMPLE_ALIAS = "SAMPLE_ALIAS"
 }
-
-const CONCORDANCE_TABLE_COLUMNS = [
-  {
-		columnID: IdentityConcordanceColumnID.READSET_ID,
-		title: 'Readset ID',
-		dataIndex: 'readset_id',
-    key: 'readset_id',
-		width: 90,
-	},
-  {
-		columnID: IdentityConcordanceColumnID.BIOSAMPLE_ID,
-		title: 'Biosample ID',
-		dataIndex: 'biosample_id',
-    key: 'biosample_id',
-		width: 90,
-	},
-]
 
 export enum IdentityContaminationColumnID {
 	READSET_ID  = 'READSET_ID',
-  TESTED_BIOSAMPLE_ID = "TESTED_BIOSAMPLE_ID",
-  MATCHED_BIOSAMPLE_ID = "MATCHED_BIOSAMPLE_ID"
+  TESTED_SAMPLE_ALIAS = "TESTED_SAMPLE_ALIAS",
+  MATCHED_SAMPLE_ALIAS = "MATCHED_SAMPLE_ALIAS",
+  MATCHING_SITE_RATIO = "MATCHING_SITE_RATIO",
+  COMPARED_SITES = "COMPARED_SITES"
 }
 
-const CONTAMINATION_TABLE_COLUMNS = [
-  {
+export function getColumnsForConcordance(biosamplesById) {
+  const columnDefinitions = CONCORDANCE_TABLE_COLUMNS(biosamplesById)
+  return [
+      columnDefinitions.READSET_ID,
+      columnDefinitions.SAMPLE_ALIAS,
+  ]
+}
+
+
+export const CONCORDANCE_TABLE_COLUMNS = (biosamplesById): { [key in IdentityConcordanceColumnID]: any } => ({
+  [IdentityConcordanceColumnID.READSET_ID]: {
+    columnID: IdentityConcordanceColumnID.READSET_ID,
+    title: 'Readset ID',
+    dataIndex: 'readset_id',
+    key: 'readset_id',
+    width: '50vw',
+  },
+  [IdentityConcordanceColumnID.SAMPLE_ALIAS]: {
+    columnID: IdentityConcordanceColumnID.SAMPLE_ALIAS,
+    title: 'Sample',
+    dataIndex: 'biosample_id',
+    key: 'biosample_id',
+    render: (biosample_id) => biosamplesById[biosample_id] ? biosamplesById[biosample_id].alias : "Unknown",
+    width: '50vw',
+  }
+})
+
+export function getColumnsForContamination(biosamplesById) {
+  const columnDefinitions = CONTAMINATION_TABLE_COLUMNS(biosamplesById)
+  return [
+      columnDefinitions.READSET_ID,
+      columnDefinitions.TESTED_SAMPLE_ALIAS,
+      columnDefinitions.MATCHED_SAMPLE_ALIAS,
+      columnDefinitions.MATCHING_SITE_RATIO,
+      columnDefinitions.COMPARED_SITES
+  ]
+}
+
+export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById): { [key in IdentityContaminationColumnID]: any } => ({
+  [IdentityContaminationColumnID.READSET_ID]: {
 		columnID: IdentityContaminationColumnID.READSET_ID,
 		title: 'Readset ID',
 		dataIndex: 'readset_id',
     key: 'readset_id',
-		width: 90,
+		width: '10vw',
 	},
-  {
-		columnID: IdentityContaminationColumnID.TESTED_BIOSAMPLE_ID,
-		title: 'Tested Biosample ID',
+  [IdentityContaminationColumnID.TESTED_SAMPLE_ALIAS]: {
+		columnID: IdentityContaminationColumnID.TESTED_SAMPLE_ALIAS,
+		title: 'Tested Sample',
 		dataIndex: 'tested_biosample_id',
     key: 'tested_biosample_id',
-		width: 90,
+    render: (tested_biosample_id) => biosamplesById[tested_biosample_id] ? biosamplesById[tested_biosample_id].alias : "Unknown",
+		width: '25vw',
 	},
-  {
-		columnID: IdentityContaminationColumnID.MATCHED_BIOSAMPLE_ID,
-		title: 'Matched Biosample ID',
+  [IdentityContaminationColumnID.MATCHED_SAMPLE_ALIAS]: {
+		columnID: IdentityContaminationColumnID.MATCHED_SAMPLE_ALIAS,
+		title: 'Matched Sample',
 		dataIndex: 'matched_biosample_id',
     key: 'matched_biosample_id',
-		width: 90,
+    render: (matched_biosample_id) => biosamplesById[matched_biosample_id] ? biosamplesById[matched_biosample_id].alias : "Unknown",
+		width: '25vw',
 	},
-]
+  [IdentityContaminationColumnID.MATCHING_SITE_RATIO]: {
+		columnID: IdentityContaminationColumnID.MATCHING_SITE_RATIO,
+		title: 'Matching Ratio',
+		dataIndex: 'matching_site_ratio',
+    key: 'matching_site_ratio',
+		width: '10vw',
+	},
+  [IdentityContaminationColumnID.COMPARED_SITES]: {
+		columnID: IdentityContaminationColumnID.COMPARED_SITES,
+		title: 'Compared Sites',
+		dataIndex: 'compared_sites',
+    key: 'compared_sites',
+		width: '10vw',
+	}
+})
 
 export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAndContaminationWarnings | undefined){
   const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
-  console.log(mixupAndContaminationWarnings.concordance_warnings)
+  const dispatch = useAppDispatch()
+  const biosamplesById = useAppSelector(selectBiosamplesByID)
+
+  useEffect(() => {
+    mixupAndContaminationWarnings.fetchBiosamples(dispatch)
+  }, [mixupAndContaminationWarnings, dispatch])
+
+  if (!mixupAndContaminationWarnings)
+    return
+  
+  const concordanceColumns = getColumnsForConcordance(biosamplesById)
+  const contaminationColumns = getColumnsForContamination(biosamplesById)
+  
   return (mixupAndContaminationWarnings && 
       <>
         <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
@@ -110,20 +180,15 @@ export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAnd
           onCancel={()=>setWarningModalVisible(false)}
         >
           { mixupAndContaminationWarnings.concordance_warnings.length > 0 &&
-          <>
-            <Typography.Title level={4}>
-              {CONCORDANCE_WARNING_MESSAGE}
-            </Typography.Title>
-            <Table dataSource={mixupAndContaminationWarnings.concordance_warnings} columns={CONCORDANCE_TABLE_COLUMNS} />
-          </>
+          <Card title={<Typography.Title level={4}>{CONCORDANCE_WARNING_MESSAGE}</Typography.Title>}>
+            <Table dataSource={mixupAndContaminationWarnings.concordance_warnings} columns={concordanceColumns} />
+          </Card>
           }
+          <Divider />
           { mixupAndContaminationWarnings.contamination_warnings.length > 0 &&
-          <>
-            <Typography.Title level={4}>
-              {CONTAMINATION_WARNING_MESSAGE}
-            </Typography.Title>
-            <Table dataSource={mixupAndContaminationWarnings.contamination_warnings} columns={CONTAMINATION_TABLE_COLUMNS} />
-          </>
+          <Card title={<Typography.Title level={4}>{CONTAMINATION_WARNING_MESSAGE}</Typography.Title>}>
+            <Table dataSource={mixupAndContaminationWarnings.contamination_warnings} columns={contaminationColumns} />
+          </Card>
           }
         </Modal>
       </>

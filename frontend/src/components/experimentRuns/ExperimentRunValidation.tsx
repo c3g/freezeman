@@ -199,7 +199,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
               concordant_biosample_id = match.matched_biosample_id
             }
             else {
-              const contaminationWarning = new ContaminationWarningValues(currentReadset.id, match.tested_biosample_id, match.matched_biosample_id)
+              const contaminationWarning = new ContaminationWarningValues(currentReadset.id, match.tested_biosample_id, match.matched_biosample_id, match.matching_site_ratio, match.compared_sites)
               warnings.addContaminationWarning(contaminationWarning)
             }
           })
@@ -245,13 +245,6 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
     backgroundColor: '#fff',
   }
 
-  const TEST_WARNINGS = new MixupAndContaminationWarnings()
-  TEST_WARNINGS.addConcordanceWarning(new ConcordanceWarningValues(5124, 512))
-  TEST_WARNINGS.addContaminationWarning(new ContaminationWarningValues(5124, 512, 277))
-  
-  if (!mixupAndContaminationWarnings){
-    setMixupAndContaminationWarnings(TEST_WARNINGS) // TEST 
-  }
 	return (
 		<>
 			<FlexBar style={{padding: '1em'}}>

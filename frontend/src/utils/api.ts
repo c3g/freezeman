@@ -15,6 +15,7 @@ const api = {
 
   biosamples: {
     get: (biosampleId: FMSId) => get<JsonResponse<FMSBiosample>>(`/biosamples/${biosampleId}/`),
+    list: (options, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSBiosample>>>(`/biosamples/`, options, { abort }),
   },
 
   containerKinds: {

@@ -9,6 +9,7 @@
 
 import {
   FMSArchivedComment,
+  FMSBiosample,
 	FMSContainer,
 	FMSContainerKind,
 	FMSCoordinate,
@@ -109,6 +110,7 @@ export function mergeItemsByID<T extends FMSTrackedModel>(itemsByID: ItemsByID<T
 }
 
 export type ObjectId = FMSId
+export interface Biosample extends Readonly<FMSBiosample>, FetchedObject {}
 export interface Container extends Readonly<FMSContainer>, FetchedObject {
 	parents?: Array<Container["id"]>
 }
