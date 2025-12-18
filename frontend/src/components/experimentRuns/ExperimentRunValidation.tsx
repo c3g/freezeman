@@ -12,7 +12,7 @@ import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
 import { Dataset } from '../../models/frontend_models'
 import api from '../../utils/api'
-import { FMSId } from '../../models/fms_api_models'
+import { FMSId, FMSReadset } from '../../models/fms_api_models'
 import {IdentityWarningsButton, MixupAndContaminationWarnings, ContaminationWarningValues, ConcordanceWarningValues} from './IdentityWarningsButton'
 
 const { Sider, Content } = Layout;
@@ -93,7 +93,7 @@ function ExperimentRunValidation({ experimentRunId }: ExperimentRunValidationPro
 		}
 	}, [dispatch, runLanes])
 
-	const expandedLaneKeys: string[] = []
+  const expandedLaneKeys: string[] = []
 	const lanesUX = experimentRunLanesState.ux[experimentRunId]
 	if (lanesUX && runLanes) {
 		for (const laneNumber of lanesUX.expandedLanes) {
@@ -190,11 +190,20 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
         return
       dispatch(api.sampleIdentityMatch.list({readset__dataset_id__in: laneDatasetsIds}))
       .then((sampleIdentityMatches_response) => {
-        const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => current.readset_id ? acc[current.readset_id] ? acc[current.readset_id].append(current) : acc[current.readset_id] = [current] : acc, {})
+        const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => {
+          if (current.readset_id) {
+            if (acc[current.readset_id]) {
+              acc[current.readset_id].push(current)
+            } else {
+              acc[current.readset_id] = [current]
+            }
+          }
+          return acc
+        }, {})
         const warnings = readsets.reduce((warnings, currentReadset) => {
           let concordant_biosample_id = null 
           
-          matchesByReadset[currentReadset.id] && matchesByReadset[currentReadset.id].forEach(match => {
+          matchesByReadset[currentReadset.id] && matchesByReadset[currentReadset.id].forEach(async match => {
             if (match.tested_biosample_id == match.matched_biosample_id){
               concordant_biosample_id = match.matched_biosample_id
             }
@@ -203,9 +212,11 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
               warnings.addContaminationWarning(contaminationWarning)
             }
           })
-          if (concordant_biosample_id) {
-            const concordanceWarnings = new ConcordanceWarningValues(currentReadset.id, concordant_biosample_id)
-            warnings.addConcordanceWarning(concordanceWarnings)
+          if (!concordant_biosample_id) {
+            dispatch(api.samples.get(currentReadset.sample_source)).then((response) => {
+              const concordanceWarnings = new ConcordanceWarningValues(currentReadset.id, response.data.biosample_id)
+              warnings.addConcordanceWarning(concordanceWarnings)
+            })
           }
           return warnings
         }, new MixupAndContaminationWarnings())
@@ -244,7 +255,6 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
   const siderStyle = {
     backgroundColor: '#fff',
   }
-
 	return (
 		<>
 			<FlexBar style={{padding: '1em'}}>

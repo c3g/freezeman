@@ -44,6 +44,9 @@ export class MixupAndContaminationWarnings {
     this.concordance_warnings = []
     this.contamination_warnings = []
   }
+  hasWarnings(): boolean{
+    return !!this.biosample_ids.size
+  }
   addConcordanceWarning(warning: ConcordanceWarningValues){
     this.biosample_ids.add(warning.biosample_id)
     this.concordance_warnings.length > 0 ? this.concordance_warnings = this.concordance_warnings.concat([warning]) : this.concordance_warnings = [warning]
@@ -56,7 +59,7 @@ export class MixupAndContaminationWarnings {
   fetchBiosamples(dispatch){
     const array_ids = [...this.biosample_ids]
     for (let start = 0; start < array_ids.length; start = start + DEFAULT_PAGE_SIZE) {
-      dispatch(list({id__in: array_ids.slice(start, start + DEFAULT_PAGE_SIZE)}))
+      dispatch(list({id__in: array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(',')}))
     }
   }
 }
@@ -158,7 +161,7 @@ export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAnd
   const biosamplesById = useAppSelector(selectBiosamplesByID)
 
   useEffect(() => {
-    mixupAndContaminationWarnings.fetchBiosamples(dispatch)
+    mixupAndContaminationWarnings && mixupAndContaminationWarnings.hasWarnings() && mixupAndContaminationWarnings.fetchBiosamples(dispatch)
   }, [mixupAndContaminationWarnings, dispatch])
 
   if (!mixupAndContaminationWarnings)
@@ -167,7 +170,7 @@ export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAnd
   const concordanceColumns = getColumnsForConcordance(biosamplesById)
   const contaminationColumns = getColumnsForContamination(biosamplesById)
   
-  return (mixupAndContaminationWarnings && 
+  return (mixupAndContaminationWarnings.hasWarnings() && 
       <>
         <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
           <WarningTwoTone twoToneColor={'red'}/> Mixup & Contamination warnings...

@@ -538,8 +538,7 @@ def ingest_run_validation_report(report_json):
                     if tested_biosample_id != self_biosample_id:
                         warnings.append(("Self match biosample ID {0} does not match current readset biosample id {1}. Ingested as matching the reported biosample {0}.", [self_biosample_id, tested_biosample_id]))
                 if other_matches:
-                    other_match_values = other_matches.values()
-                    for other_match_values in other_match_values:
+                    for other_match_values in other_matches.values():
                         other_biosample_id = int(other_match_values["biosample_id"])
                         other_matching_site_ratio = other_match_values["percent_match"]
                         other_compared_sites = other_match_values["n_sites"]

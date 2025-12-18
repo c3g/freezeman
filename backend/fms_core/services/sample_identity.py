@@ -83,7 +83,7 @@ def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_b
                                                                           matching_site_ratio=match_info["matching_site_ratio"],
                                                                           compared_sites=match_info["compared_sites"])
             # Create the reverse relation if the match is not with itself
-            if matched_identity != tested_identity:
+            if readset_obj is None:
                 _, matched_created = SampleIdentityMatch.objects.get_or_create(tested=matched_identity,
                                                                                matched=tested_identity,
                                                                                readset=readset_obj,
