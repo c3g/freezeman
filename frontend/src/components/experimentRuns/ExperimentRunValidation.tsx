@@ -166,6 +166,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
   useEffect(() => {
     const refreshedDatasets = lane.datasets.map((dataset) => datasetsById[dataset.datasetID])
     setDatasets(refreshedDatasets as Dataset[])
+    console.log("Moo")
 	}, [datasetsById])
 
   useEffect(() => {
@@ -175,20 +176,23 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
     }))
     .then((values) => {
       setDatasets(values as Dataset[])})
+      console.log("Poo")
 	}, [dispatch, lane.datasets])
 
-  const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings | undefined>()
+  const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings | undefined>(undefined)
   useEffect(() => {
-    if (!lane.datasets)
+    if (!lane.datasets || lane.datasets.length == 0)
       return
-
-    const laneDatasetsIds = lane.datasets.map((dataset) => dataset.datasetID.toString()).join(",")
+    const laneDatasetsIds = lane.datasets.map((dataset) => dataset && dataset.datasetID.toString()).join(",")
+    console.log(laneDatasetsIds)
     dispatch(api.readsets.list({dataset__id__in: laneDatasetsIds, derived_sample__biosample__sample_identity__conclusive: true})) // Only gets readsets that have a conclusive identity
     .then((readsets_response) => {
-      const readsets = readsets_response.data.results
+      const readsets: FMSReadset[] = readsets_response.data.results
       if (readsets.length == 0) // Make sure there is some readsets with identities
         return
-      dispatch(api.sampleIdentityMatch.list({readset__dataset_id__in: laneDatasetsIds}))
+      const readsetsIds = readsets.map((readset) => readset.id.toString()).join(",")
+      console.log(readsetsIds)
+      dispatch(api.sampleIdentityMatch.list({readset__in: readsetsIds}))
       .then((sampleIdentityMatches_response) => {
         const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => {
           if (current.readset_id) {
@@ -201,23 +205,27 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
           return acc
         }, {})
         const warnings = readsets.reduce((warnings, currentReadset) => {
-          let concordant_biosample_id = null 
+          let match_self = false 
           
-          matchesByReadset[currentReadset.id] && matchesByReadset[currentReadset.id].forEach(async match => {
+          matchesByReadset[currentReadset.id] && matchesByReadset[currentReadset.id].forEach(match => {
+            console.log(match)
             if (match.tested_biosample_id == match.matched_biosample_id){
-              concordant_biosample_id = match.matched_biosample_id
+              match_self = true
+              console.log("Matchitoss")
             }
             else {
               const contaminationWarning = new ContaminationWarningValues(currentReadset.id, match.tested_biosample_id, match.matched_biosample_id, match.matching_site_ratio, match.compared_sites)
               warnings.addContaminationWarning(contaminationWarning)
             }
           })
-          if (!concordant_biosample_id) {
+          if (!match_self) {
             dispatch(api.samples.get(currentReadset.sample_source)).then((response) => {
+              console.log(response.data.biosample_id)
               const concordanceWarnings = new ConcordanceWarningValues(currentReadset.id, response.data.biosample_id)
               warnings.addConcordanceWarning(concordanceWarnings)
+              return warnings
             })
-          }
+          } 
           return warnings
         }, new MixupAndContaminationWarnings())
         setMixupAndContaminationWarnings(warnings)

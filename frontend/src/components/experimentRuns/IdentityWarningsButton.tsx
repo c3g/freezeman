@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Table, Typography,  Modal, Card, Divider } from 'antd'
 import { WarningTwoTone } from "@ant-design/icons"
 
@@ -36,7 +36,7 @@ export class ContaminationWarningValues {
 }
 
 export class MixupAndContaminationWarnings {
-  protected biosample_ids: Set<FMSId>
+  biosample_ids: Set<FMSId>
 	concordance_warnings: ConcordanceWarningValues[]
 	contamination_warnings: ContaminationWarningValues[]
   constructor(){
@@ -45,19 +45,21 @@ export class MixupAndContaminationWarnings {
     this.contamination_warnings = []
   }
   hasWarnings(): boolean{
-    return !!this.biosample_ids.size
+    return this.biosample_ids.size > 0
   }
   addConcordanceWarning(warning: ConcordanceWarningValues){
+    console.log(warning)
     this.biosample_ids.add(warning.biosample_id)
-    this.concordance_warnings.length > 0 ? this.concordance_warnings = this.concordance_warnings.concat([warning]) : this.concordance_warnings = [warning]
+    this.concordance_warnings.push(warning)
   }
   addContaminationWarning(warning: ContaminationWarningValues){
     this.biosample_ids.add(warning.tested_biosample_id)
     this.biosample_ids.add(warning.matched_biosample_id)
-    this.contamination_warnings.length > 0 ? this.contamination_warnings = this.contamination_warnings.concat([warning]) : this.contamination_warnings = [warning]
+    this.contamination_warnings.push(warning)
   }
   fetchBiosamples(dispatch){
     const array_ids = [...this.biosample_ids]
+    console.log(array_ids)
     for (let start = 0; start < array_ids.length; start = start + DEFAULT_PAGE_SIZE) {
       dispatch(list({id__in: array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(',')}))
     }
@@ -155,22 +157,25 @@ export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById): { [key in IdentityC
 	}
 })
 
-export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAndContaminationWarnings | undefined){
+export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAndContaminationWarnings){
   const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
   const dispatch = useAppDispatch()
   const biosamplesById = useAppSelector(selectBiosamplesByID)
 
-  useEffect(() => {
+  useMemo(() => {
+    console.log(mixupAndContaminationWarnings && mixupAndContaminationWarnings.biosample_ids)
     mixupAndContaminationWarnings && mixupAndContaminationWarnings.hasWarnings() && mixupAndContaminationWarnings.fetchBiosamples(dispatch)
-  }, [mixupAndContaminationWarnings, dispatch])
+  }, [dispatch, mixupAndContaminationWarnings])
 
   if (!mixupAndContaminationWarnings)
     return
   
   const concordanceColumns = getColumnsForConcordance(biosamplesById)
   const contaminationColumns = getColumnsForContamination(biosamplesById)
+  const paginationConcordance = mixupAndContaminationWarnings.concordance_warnings.length > 10 ? {pageSize: 10} : false
+  const paginationContamination = mixupAndContaminationWarnings.contamination_warnings.length > 10 ? {pageSize: 10} : false
   
-  return (mixupAndContaminationWarnings.hasWarnings() && 
+  return (mixupAndContaminationWarnings && mixupAndContaminationWarnings.hasWarnings() && 
       <>
         <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
           <WarningTwoTone twoToneColor={'red'}/> Mixup & Contamination warnings...
@@ -184,13 +189,13 @@ export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAnd
         >
           { mixupAndContaminationWarnings.concordance_warnings.length > 0 &&
           <Card title={<Typography.Title level={4}>{CONCORDANCE_WARNING_MESSAGE}</Typography.Title>}>
-            <Table dataSource={mixupAndContaminationWarnings.concordance_warnings} columns={concordanceColumns} />
+            <Table dataSource={mixupAndContaminationWarnings.concordance_warnings} columns={concordanceColumns} pagination={paginationConcordance} size='small'/>
           </Card>
           }
           <Divider />
           { mixupAndContaminationWarnings.contamination_warnings.length > 0 &&
           <Card title={<Typography.Title level={4}>{CONTAMINATION_WARNING_MESSAGE}</Typography.Title>}>
-            <Table dataSource={mixupAndContaminationWarnings.contamination_warnings} columns={contaminationColumns} />
+            <Table dataSource={mixupAndContaminationWarnings.contamination_warnings} columns={contaminationColumns} pagination={paginationContamination} size='small'/>
           </Card>
           }
         </Modal>
