@@ -45,6 +45,7 @@ from .report import ReportViewSet
 from .sample_identity import SampleIdentityViewSet
 from .sample_identity_match import SampleIdentityMatchViewSet
 from .profile import ProfileViewSet
+from .derived_sample import DerivedSampleViewSet
 
 __all__ = [
     "BiosampleViewSet",
@@ -94,4 +95,5 @@ __all__ = [
     "SampleIdentityViewSet",
     "SampleIdentityMatchViewSet",
     "ProfileViewSet",
+    "DerivedSampleViewSet",
 ]

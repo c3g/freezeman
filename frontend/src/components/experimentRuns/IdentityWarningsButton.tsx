@@ -57,11 +57,11 @@ export class MixupAndContaminationWarnings {
     this.biosample_ids.add(warning.matched_biosample_id)
     this.contamination_warnings.push(warning)
   }
-  fetchBiosamples(dispatch){
+  async fetchBiosamples(dispatch){
     const array_ids = [...this.biosample_ids]
     console.log(array_ids)
     for (let start = 0; start < array_ids.length; start = start + DEFAULT_PAGE_SIZE) {
-      dispatch(list({id__in: array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(',')}))
+      await dispatch(list({id__in: array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(',')}))
     }
   }
 }
@@ -157,25 +157,42 @@ export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById): { [key in IdentityC
 	}
 })
 
-export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAndContaminationWarnings){
-  const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
+export interface warningButtonProps {
+  warnings: MixupAndContaminationWarnings | undefined
+}
+
+export function IdentityWarningsButton({warnings}: warningButtonProps){
   const dispatch = useAppDispatch()
   const biosamplesById = useAppSelector(selectBiosamplesByID)
+  const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  useMemo(() => {
-    console.log(mixupAndContaminationWarnings && mixupAndContaminationWarnings.biosample_ids)
-    mixupAndContaminationWarnings && mixupAndContaminationWarnings.hasWarnings() && mixupAndContaminationWarnings.fetchBiosamples(dispatch)
-  }, [dispatch, mixupAndContaminationWarnings])
+  console.log("CHIEN VACHE")
+  useEffect(() => {
+    if (!warnings || warnings.biosample_ids.size == 0)
+      return
+    
+    warnings.fetchBiosamples(dispatch).then(() => setIsLoading(false))
+  }, [dispatch, warnings])
 
-  if (!mixupAndContaminationWarnings)
+  useEffect(() => {
+    console.log("Loaded")
+    console.log(isLoading)
+  }, [isLoading])
+
+  if (!warnings || isLoading)
     return
   
+  console.log("Ratatouille")
+  console.log(warnings)
+  console.log(warnings.hasWarnings())
+
   const concordanceColumns = getColumnsForConcordance(biosamplesById)
   const contaminationColumns = getColumnsForContamination(biosamplesById)
-  const paginationConcordance = mixupAndContaminationWarnings.concordance_warnings.length > 10 ? {pageSize: 10} : false
-  const paginationContamination = mixupAndContaminationWarnings.contamination_warnings.length > 10 ? {pageSize: 10} : false
+  const paginationConcordance = warnings.concordance_warnings.length > 10 ? {pageSize: 10} : false
+  const paginationContamination = warnings.contamination_warnings.length > 10 ? {pageSize: 10} : false
   
-  return (mixupAndContaminationWarnings && mixupAndContaminationWarnings.hasWarnings() && 
+  return (warnings && warnings.hasWarnings() && 
       <>
         <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
           <WarningTwoTone twoToneColor={'red'}/> Mixup & Contamination warnings...
@@ -187,15 +204,15 @@ export function IdentityWarningsButton({mixupAndContaminationWarnings}: MixupAnd
           footer={null} 
           onCancel={()=>setWarningModalVisible(false)}
         >
-          { mixupAndContaminationWarnings.concordance_warnings.length > 0 &&
+          { warnings.concordance_warnings.length > 0 &&
           <Card title={<Typography.Title level={4}>{CONCORDANCE_WARNING_MESSAGE}</Typography.Title>}>
-            <Table dataSource={mixupAndContaminationWarnings.concordance_warnings} columns={concordanceColumns} pagination={paginationConcordance} size='small'/>
+            <Table dataSource={warnings.concordance_warnings} columns={concordanceColumns} pagination={paginationConcordance} size='small'/>
           </Card>
           }
           <Divider />
-          { mixupAndContaminationWarnings.contamination_warnings.length > 0 &&
+          { warnings.contamination_warnings.length > 0 &&
           <Card title={<Typography.Title level={4}>{CONTAMINATION_WARNING_MESSAGE}</Typography.Title>}>
-            <Table dataSource={mixupAndContaminationWarnings.contamination_warnings} columns={contaminationColumns} pagination={paginationContamination} size='small'/>
+            <Table dataSource={warnings.contamination_warnings} columns={contaminationColumns} pagination={paginationContamination} size='small'/>
           </Card>
           }
         </Modal>

@@ -19,6 +19,16 @@ _biosample_filterset_fields: FiltersetFields = {
     "alias": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_derived_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "biosample": FK_FILTERS,
+    "sample_kind": FK_FILTERS,
+    "tissue_source": FK_FILTERS,
+    "library": FK_FILTERS,
+    "derived_from": FK_FILTERS,
+    "readsets__id": FK_FILTERS,
+}
+
 _coordinate_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,

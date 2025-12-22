@@ -55,6 +55,16 @@ export interface FMSBiosample extends FMSTrackedModel {
     collection_site?: string            // Geographical site where the sample was taken
 }
 
+export interface FMSDerivedSample extends FMSTrackedModel {
+  id: FMSId                           // Unique ID of object in database
+  biosample: FMSId                    // ID of the biosample tied to the derived sample
+  sample_kind: FMSId                  // ID of the Sample Kind 
+  experimental_group: string[]        // List of descriptors associated to the experiment
+  tissue_source?: FMSId               // ID of the Tissue Source (Sample kind of the source sample)
+  library?: FMSId                     // ID of Library object if the sample is a library
+  derived_from?: FMSId                // ID of the derived sample from which the derived sample is derived
+}
+
 export interface FMSContainer extends FMSTrackedModel {
     kind: string                        // The type of container (eg. 96-well-plate)
     name: string                        // Container name

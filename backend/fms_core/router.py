@@ -48,12 +48,14 @@ from .viewsets import (
     SampleIdentityViewSet,
     SampleIdentityMatchViewSet,
     ProfileViewSet,
+    DerivedSampleViewSet,
 )
 
 __all__ = ["router"]
 
 router = routers.DefaultRouter()
 router.register(r"biosamples", BiosampleViewSet)
+router.register(r"derivedsamples", DerivedSampleViewSet)
 router.register(r"container-kinds", ContainerKindViewSet, basename="container-kind")
 router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)
