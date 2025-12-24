@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Button, Col, Flex, Popconfirm, Radio, RadioChangeEvent, Row } from "antd"
+import { Button, Col, Dropdown, Flex, Popconfirm, Radio, RadioChangeEvent, Row, Space } from "antd"
 import PageContainer from "../PageContainer"
 import PageContent from "../PageContent"
 import AddPlacementContainer, { AddPlacementContainerProps, DestinationContainer } from "./AddPlacementContainer"
@@ -14,6 +14,7 @@ import { selectLabworkStepPlacement } from "../../modules/labworkSteps/selectors
 import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, setPlacementDirection, setPlacementType, undoPlacements } from "../../modules/placement/reducers"
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
+import { MenuProps } from "antd/lib"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -168,6 +169,53 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
     }, [activeDestinationContainer, dispatch])
 
+    const invertSelections = useCallback(() => {
+        if (activeSourceContainer) {
+            dispatch(multiSelect({
+                type: 'all',
+                parentContainer: activeSourceContainer,
+                invert: true,
+                context: { source: activeSourceContainer }
+            }))
+        }
+    }, [activeSourceContainer, dispatch])
+
+    const quadrantSelection = useCallback((quadrant: 1 | 2 | 3 | 4) => {
+        if (activeSourceContainer?.name) {
+            dispatch(multiSelect({
+                type: 'quadrant',
+                parentContainer: activeSourceContainer,
+                quadrant,
+                context: { source: activeSourceContainer }
+            }))
+        }
+    }, [activeSourceContainer, dispatch])
+    const quadrantSelectionMenu = useMemo<MenuProps>(() => ({
+        items: [
+            {
+                key: 'quadrant-1',
+                label: 'Quadrant 1',
+                onClick: () => quadrantSelection(1)
+            },
+            {
+                key: 'quadrant-2',
+                label: 'Quadrant 2',
+                onClick: () => quadrantSelection(2)
+            },
+            {
+                key: 'quadrant-3',
+                label: 'Quadrant 3',
+                onClick: () => quadrantSelection(3)
+            },
+            {
+                key: 'quadrant-4',
+                label: 'Quadrant 4',
+                onClick: () => quadrantSelection(4)
+            }
+        ]
+    }), [quadrantSelection])
+
+
     return (
         <>
             <PageContainer>
@@ -184,25 +232,32 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                             }
                         </Row>
                         <Row id="placement-row-main">
-                            { activeSourceContainer !== undefined && <Col span={12}>
+                            {activeSourceContainer !== undefined && <Col span={12}>
                                 <Row>
                                     <ContainerNameScroller
                                         names={sourceContainers.map((c) => c.name)}
                                         name={activeSourceContainer.name}
                                         changeContainer={changeSourceContainer} />
-                                    </Row>
+                                </Row>
                                 <Row>
                                     <PlacementContainer
                                         container={activeSourceContainer.name}
                                     />
                                 </Row>
                                 <Row>
-                                    <Flex justify={"space-between"} style={{ width: "100%" }}>    
+                                    <Flex justify={"space-between"} style={{ width: "100%" }}>
                                         <Radio.Group onChange={updatePlacementType} value={placementType}>
                                             <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>{PlacementType.SEQUENTIAL}</Radio.Button>
                                             <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.SOURCE_PATTERN}</Radio.Button>
                                             <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.QUADRANT_PATTERN}</Radio.Button>
                                         </Radio.Group>
+                                        <Space size={"small"}>
+                                            <Button onClick={invertSelections} disabled={activeSourceContainer.name === null}>Invert Selections</Button>
+                                            <Dropdown menu={quadrantSelectionMenu}>
+                                                <Button>Quandrant Selections</Button>
+                                            </Dropdown>
+                                            <Button>Clear Selections</Button>
+                                        </Space>
                                         <Radio.Group
                                             disabled={placementType !== PlacementType.SEQUENTIAL}
                                             value={placementDirection}
@@ -213,7 +268,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                     </Flex>
                                 </Row>
                                 <Row>
-                                    {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name}/>}
+                                    {activeSourceContainer !== undefined && <PlacementSamplesTable parentContainerName={activeSourceContainer.name} />}
                                 </Row>
                             </Col>}
                             {activeDestinationContainer && <Col span={12}>
@@ -239,7 +294,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                     </Popconfirm>
                                 </Row>
                                 <Row>
-                                    {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name}/>}
+                                    {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name} />}
                                 </Row>
                             </Col>}
                         </Row>
