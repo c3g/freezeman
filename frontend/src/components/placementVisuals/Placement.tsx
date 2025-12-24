@@ -215,6 +215,17 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         ]
     }), [quadrantSelection])
 
+    const clearSelections = useCallback(() => {
+        if (activeSourceContainer) {
+            dispatch(multiSelect({
+                type: 'all',
+                parentContainer: activeSourceContainer,
+                context: { source: activeSourceContainer },
+                forcedSelectedValue: false,
+            }))
+        }
+    }, [activeSourceContainer, dispatch])
+
 
     return (
         <>
@@ -246,25 +257,34 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 </Row>
                                 <Row>
                                     <Flex justify={"space-between"} style={{ width: "100%" }}>
-                                        <Radio.Group onChange={updatePlacementType} value={placementType}>
-                                            <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>{PlacementType.SEQUENTIAL}</Radio.Button>
-                                            <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.SOURCE_PATTERN}</Radio.Button>
-                                            <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.QUADRANT_PATTERN}</Radio.Button>
-                                        </Radio.Group>
-                                        <Space size={"small"}>
-                                            <Button onClick={invertSelections} disabled={activeSourceContainer.name === null}>Invert Selections</Button>
-                                            <Dropdown menu={quadrantSelectionMenu}>
-                                                <Button>Quandrant Selections</Button>
-                                            </Dropdown>
-                                            <Button>Clear Selections</Button>
+                                        <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
+                                            <span>Selection:</span>
+                                            <span>
+                                                <Button onClick={clearSelections}>Clear</Button>
+                                                <Button onClick={invertSelections} disabled={activeSourceContainer.name === null}>Invert</Button>
+                                                <Dropdown menu={quadrantSelectionMenu}>
+                                                    <Button>Quandrant</Button>
+                                                </Dropdown>
+                                            </span>
                                         </Space>
-                                        <Radio.Group
-                                            disabled={placementType !== PlacementType.SEQUENTIAL}
-                                            value={placementDirection}
-                                            onChange={updatePlacementDirection}>
-                                            <Radio.Button value={PlacementDirections.ROW}>Row</Radio.Button>
-                                            <Radio.Button value={PlacementDirections.COLUMN}>Column</Radio.Button>
-                                        </Radio.Group>
+                                        <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
+                                            <span>Placement:</span>
+                                            <Radio.Group onChange={updatePlacementType} value={placementType}>
+                                                <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>{PlacementType.SEQUENTIAL}</Radio.Button>
+                                                <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.SOURCE_PATTERN}</Radio.Button>
+                                                <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>{PlacementType.QUADRANT_PATTERN}</Radio.Button>
+                                            </Radio.Group>
+                                        </Space>
+                                        <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
+                                            <span>Direction:</span>
+                                            <Radio.Group
+                                                disabled={placementType !== PlacementType.SEQUENTIAL}
+                                                value={placementDirection}
+                                                onChange={updatePlacementDirection}>
+                                                <Radio.Button value={PlacementDirections.ROW}>Row</Radio.Button>
+                                                <Radio.Button value={PlacementDirections.COLUMN}>Column</Radio.Button>
+                                            </Radio.Group>
+                                        </Space>
                                     </Flex>
                                 </Row>
                                 <Row>
