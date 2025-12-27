@@ -10,4 +10,5 @@ fms.log*
 .python-version
 .coverage
 TODO.txt
-
+*.sock
+*.log

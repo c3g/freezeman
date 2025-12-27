@@ -1,0 +1,22 @@
+FROM docker.io/library/python:3.11.14-slim-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential libffi-dev git libpq-dev
+
+# Set the working directory inside the container
+WORKDIR /app/backend/
+
+# Set environment variables 
+# Prevents Python from writing pyc files to disk
+ENV PYTHONDONTWRITEBYTECODE=1
+#Prevents Python from buffering stdout and stderr
+ENV PYTHONUNBUFFERED=1 
+
+# run this command to install all dependencies
+COPY ./backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir gunicorn eventlet
+
+# Expose the Django port
+EXPOSE 8000
+
+# Run Django’s development server
+ENTRYPOINT ["python3", "-m", "gunicorn", "fms.wsgi"]
