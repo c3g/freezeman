@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 # Set the working directory inside the container
 WORKDIR /app/backend/
 
-# run this command to install all dependencies 
+# run this command to install all dependencies
+COPY ./backend/requirements.txt .
 RUN pip install -r requirements.txt
 
 # Expose the Django port
