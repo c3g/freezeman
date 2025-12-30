@@ -165,9 +165,7 @@ EMAIL_SSL_CERTFILE  = os.environ.get('FMS_SSL_CERTFILE', None)
 FMS_ENV             = os.environ.get('FMS_ENV', 'LOCAL')
 
 # Security
-ALLOWED_HOSTS = (([os.environ.get("FMS_HOST", "")] if FMS_ENV == "PROD" 
-             else [os.environ.get("FMS_HOST", ""), "localhost"]) if not DEBUG 
-             else [])
+ALLOWED_HOSTS = [os.environ.get("FMS_HOST", ""), "127.0.0.1"] if not DEBUG else []
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/

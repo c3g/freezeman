@@ -36,6 +36,7 @@ raw_env = [
 
     # Database
     f"PG_DATABASE={os.getenv('PG_DATABASE', 'fms')}",
+    f"PG_HOST={os.getenv('PG_HOST', 'localhost')}",
     f"PG_USER={os.getenv('PG_USER', 'fmsuser')}",
     f"PG_PASSWORD={os.getenv('PG_PASSWORD', 'fmspassword')}",
 ]
