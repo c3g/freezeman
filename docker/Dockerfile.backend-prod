@@ -36,6 +36,7 @@ RUN pip install --no-cache-dir /wheels/*
 # COPY --chown=app:app ./backend/ /app/backend/
 # USER app # TODO: Uncomment this line if you are copying the project with chown
 
-EXPOSE 8000
+EXPOSE 80
+ENV FMS_PORT=80
 
 ENTRYPOINT ["gunicorn", "fms.wsgi:application", "--worker-class=eventlet"]
