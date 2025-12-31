@@ -33,8 +33,8 @@ podman network create freezeman-network
 ### Integration
 
 ```sh
-podman container run --name freezeman-db --network freezeman-network localhost/freezeman-db
-podman container run --name 'freezeman-backend' -v $(pwd):/app --network freezeman-network --env 'PG_HOST=freezeman-db' localhost/freezeman-backend
+podman container run --name freezeman-db       --network freezeman-network localhost/freezeman-db
+podman container run --name freezeman-backend  --network freezeman-network --env 'PG_HOST=freezeman-db' localhost/freezeman-backend
 podman container run --name freezeman-frontend --network freezeman-network localhost/freezeman-frontend
-podman container run --name freezeman-nginx -v $(pwd)/docker/freezeman.nginx.conf:/etc/nginx/nginx.conf:ro -p 8000:80 --network freezeman-network --rm docker.io/library/nginx:1.29.4-alpine
+podman container run --name freezeman-nginx    --network freezeman-network -v $(pwd)/docker/freezeman.nginx.conf:/etc/nginx/nginx.conf:ro -p 8000:80 --rm docker.io/library/nginx:1.29.4-alpine
 ```
