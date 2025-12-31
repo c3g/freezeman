@@ -32,6 +32,7 @@ RUN apk add --no-cache libpq libffi tzdata git \
 COPY --from=build /wheels /wheels
 RUN pip install --no-cache-dir /wheels/*
 
+# COPY --chown=app:app ./VERSION ./.git/ /app/
 # COPY --chown=app:app ./backend/ /app/backend/
 # USER app # TODO: Uncomment this line if you are copying the project with chown
 
