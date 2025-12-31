@@ -1,6 +1,6 @@
 
 # syntax=docker/dockerfile:1
-FROM python:3.11-alpine AS build
+FROM docker.io/library/python:3.11.14-alpine3.23 AS build
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -16,7 +16,7 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt \
     && pip wheel --no-cache-dir --wheel-dir /wheels gunicorn eventlet
 
 # -----------------------
-FROM python:3.11-alpine AS runtime
+FROM docker.io/library/python:3.11.14-alpine3.23 AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

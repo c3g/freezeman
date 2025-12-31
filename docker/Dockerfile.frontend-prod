@@ -1,0 +1,14 @@
+FROM docker.io/library/node:25.2.1-alpine3.23 AS builder
+
+RUN apk add --no-cache git
+
+WORKDIR /app/frontend
+
+COPY ./frontend/package*.json ./
+
+RUN npm ci --no-audit --no-fund
+
+COPY ./frontend/ /app/frontend/
+COPY ./.git ./VERSION /app/
+
+RUN npm run build
