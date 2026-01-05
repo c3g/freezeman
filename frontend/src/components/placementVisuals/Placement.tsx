@@ -257,11 +257,11 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 </Row>
                                 <Row>
                                     <ButtonsWithSmallerPadding>
-                                        <Flex style={{ width: "100%" }} wrap={"wrap"} gap={"0.2em 0.1em"}>
+                                        <Flex style={{ width: "100%" }} wrap={"wrap"} gap={"0.3em 0.3em"}>
                                             <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
-                                                <span>Selection:</span>
+                                                <span>Select:</span>
                                                 <Flex wrap={"nowrap"} gap={"0.2em"}>
-                                                    <Button onClick={clearSelections}>Clear</Button>
+                                                    <Button onClick={clearSelections}>None</Button>
                                                     <Button onClick={invertSelections} disabled={activeSourceContainer.name === null}>Invert</Button>
                                                     <Dropdown menu={quadrantSelectionMenu}>
                                                         <Button>Quandrant</Button>
@@ -269,15 +269,15 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                                 </Flex>
                                             </Space>
                                             <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
-                                                <span>Place:</span>
+                                                <span>Place as:</span>
                                                 <Radio.Group onChange={updatePlacementType} value={placementType} style={{ whiteSpace: 'nowrap' }}>
-                                                    <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>Sequentially</Radio.Button>
-                                                    <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>as Source</Radio.Button>
-                                                    <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>as Quadrant</Radio.Button>
+                                                    <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>Sequential</Radio.Button>
+                                                    <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>Source</Radio.Button>
+                                                    <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>Quadrant</Radio.Button>
                                                 </Radio.Group>
                                             </Space>
                                             <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
-                                                <span>Direction:</span>
+                                                <span>Place by:</span>
                                                 <Radio.Group
                                                     disabled={placementType !== PlacementType.SEQUENTIAL}
                                                     value={placementDirection}
