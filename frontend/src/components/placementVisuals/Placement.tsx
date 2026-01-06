@@ -15,6 +15,7 @@ import { loadContainer as loadPlacementContainer, multiSelect, placeAllSource, s
 import { loadDestinationContainer, setActiveDestinationContainer, setActiveSourceContainer } from "../../modules/labworkSteps/reducers"
 import { PlacementDirections, PlacementType } from "../../modules/placement/models"
 import { MenuProps } from "antd/lib"
+import { PlacementClass } from "../../modules/placement/classes"
 
 const EXPERIMENT_RUN_ILLUMINA_STEP = "Experiment Run Illumina"
 
@@ -226,6 +227,22 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
         }
     }, [activeSourceContainer, dispatch])
 
+    const placementState = useAppSelector((state) => state.placement)
+    const placementClass = useMemo(() => new PlacementClass(placementState, undefined), [placementState])
+    const destinationContainer = useMemo(() => {
+        if (activeDestinationContainer?.name) {
+            // destination container must be a real parent container (not tubes without parent)
+            return placementClass.getRealParentContainer(activeDestinationContainer)
+        }
+        return null
+    }, [activeDestinationContainer, placementClass])
+    const destinationSelectionCount = useMemo(() => {
+        if (destinationContainer) {
+            // assume at most one sample per cell for placement
+            return destinationContainer.getPlacements(true).length
+        }
+        return 0
+    }, [destinationContainer])
 
     return (
         <>
@@ -310,8 +327,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 <Row justify={"center"}>
                                     <Button onClick={transferAllSamples} disabled={!canTransferAllSamples} style={{ marginRight: '1em' }}>Place All Source</Button>
                                     <Popconfirm
-                                        title={`Are you sure you want to undo 
-                                             samples? If there are no selected samples, it will undo all placements.`}
+                                        title={(destinationSelectionCount === 0 ? 'You are about to undo all placements.' : `You are about to undo ${destinationSelectionCount} placements.`) + ' Do you want to proceed?'}
                                         onConfirm={undoPlacementsCallback}
                                         placement={'bottomRight'}
                                     >
