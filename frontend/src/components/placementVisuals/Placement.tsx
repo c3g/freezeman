@@ -271,7 +271,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                             <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
                                                 <span>Place as:</span>
                                                 <Radio.Group onChange={updatePlacementType} value={placementType} style={{ whiteSpace: 'nowrap' }}>
-                                                    <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>Sequential</Radio.Button>
+                                                    <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>Sequence</Radio.Button>
                                                     <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>Source</Radio.Button>
                                                     <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>Quadrant</Radio.Button>
                                                 </Radio.Group>
