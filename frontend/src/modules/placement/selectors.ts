@@ -1,4 +1,4 @@
-import { RootState } from "../../store";
+import store, { RootState } from "../../store";
 import { PlacementClass } from "./classes";
 import { CellIdentifier, ParentContainerIdentifier, PlacementState, RealParentContainerIdentifier } from "./models";
 
@@ -29,4 +29,9 @@ export const selectCell = selectorWrapper((placement) => {
 
 function selectorWrapper<T>(selector: (state: PlacementState) => T) {
     return (state: RootState) => selector(selectPlacementState(state))
+}
+
+window.placement = (containerID: ParentContainerIdentifier | undefined) => {
+    const placementState = selectPlacementState(store.getState())
+    return new PlacementClass(placementState, containerID)
 }

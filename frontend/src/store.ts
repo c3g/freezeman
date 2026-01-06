@@ -81,6 +81,7 @@ const store = configureStore({
 	// not considered serializable.
 	middleware: (getDefaultMiddleware) => getDefaultMiddleware({immutableCheck: false, serializableCheck: false}).concat(logger).concat(notificationError)
 })
+window.store = store // for debugging
 
 export type RootState = ReturnType<typeof store.getState>
 export type GetState = typeof store.getState
