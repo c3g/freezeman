@@ -24,16 +24,11 @@ import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 import useHashURL from "../../../hooks/useHashURL";
 import { fetchProcessMeasurements } from "../../../modules/cache/cache";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
-import { selectAuthTokenAccess, selectContainersByID, selectLibrariesByID, selectSampleKindsByID, selectSamplesByID, selectUsersByID } from "../../../selectors";
+import { selectAuthTokenAccess, selectContainersByID, selectLibrariesByID, selectSampleKindsByID, selectSamplesByID } from "../../../selectors";
 import SampleDetailsContentOverview from "./SampleDetailsContentOverview";
-import { BiosampleIDToAlias } from "../SampleIdentityColumns";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { TabPane } = Tabs;
-
-const usernameStyle = {
-  cursor: 'default',
-}
 
 const depletedStyle = {
   display: "inline-block",
@@ -136,84 +131,6 @@ const SampleDetailsContent = () => {
       setSampleMetadata(metadata)
     })
   }, [sample, token])
-
-
-  /**
-   * @typedef {import("../../../models/fms_api_models").FMSSampleIdentity} FMSSampleIdentity
-   * @type {[FMSSampleIdentity | undefined, (value: FMSSampleIdentity) => void]}
-   */
-  const sampleIdentityState = useState(undefined);
-  const [sampleIdentity, setSampleIdentity] = sampleIdentityState
-  const [sampleIdentityMatches, setSampleIdentityMatches] = useState([]) // Only retains the identity QC matches. Matches with readsets were generated during run processing report ingestion.
-  useEffect(() => {
-    const biosampleId = sample?.biosample_id
-    if (biosampleId) {
-      const identities = dispatch(api.sampleIdentity.list({ "biosample": biosampleId }))
-      identities.then(({ data }) => {
-        if (data.count > 0) {
-          setSampleIdentity(data.results[0])
-        }
-      })
-    }
-  }, [dispatch, sample?.biosample_id, setSampleIdentity])
-  useEffect(() => {
-    setSampleIdentityMatches(sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)))
-  }, [sampleIdentity])
-  const sampleIdentityItems = useMemo(() => {
-    /**
-     * @type {NonNullable<import("antd").DescriptionsProps['items']>}
-     */
-    const items = [
-      {
-        label: "Conclusive",
-        key: "conclusive",
-        children: sampleIdentity?.conclusive === undefined
-          ? ""
-          : sampleIdentity.conclusive ? "Yes" : "No"
-      },
-      {
-        label: "Predicted Sex",
-        key: "predicted_sex",
-        children: sampleIdentity?.predicted_sex ?? ""
-      },
-      {
-        label: "Sex Concordance",
-        key: "sex_concordance",
-        children: sampleIdentity?.sex_concordance === undefined
-                        ? ""
-                        : sampleIdentity.sex_concordance === null
-                            ? "Inconclusive"
-                            : sampleIdentity.sex_concordance ? "Match" : "Mismatch"
-      },
-    ]
-    return items
-  }, [sampleIdentity])
-  const sampleIdentityMatchesColumns = useMemo(() => {
-    /**
-     * @type {NonNullable<import("antd").TableProps<import("../../../models/fms_api_models").FMSSampleIdentityMatch>['columns']>}
-     */
-    const columns = [
-      {
-        title: "Matching Biosample (Alias)",
-        dataIndex: "matched_biosample_id",
-        key: "biosample_alias",
-        render: (matched_biosample_id) => {
-          return <BiosampleIDToAlias biosampleID={matched_biosample_id} />
-        }
-      },
-      {
-        title: "Matching Site Ratio",
-        dataIndex: "matching_site_ratio",
-        key: "matching_site_ratio"
-      },
-      {
-        title: "Compared Sites",
-        dataIndex: "compared_sites",
-        key: "compared_sites"
-      }
-    ]
-    return columns
-  }, [])
 
   return <>
     <AppPageHeader

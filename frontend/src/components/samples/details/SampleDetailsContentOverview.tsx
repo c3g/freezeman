@@ -50,6 +50,7 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
     const concentration_nm = library && library.concentration_nm ? library.concentration_nm.toFixed(3) : undefined
 
     const [sampleIdentity, setSampleIdentity] = useState<FMSSampleIdentity>()
+    const [sampleIdentityMatches, setSampleIdentityMatches] = useState<FMSSampleIdentityMatch[]>([]) // Only retains the identity QC matches. Matches with readsets were generated during run processing report ingestion.
     useEffect(() => {
         const biosampleId = sample?.biosample_id
         if (biosampleId) {
@@ -86,6 +87,9 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
             },
         ]
         return items
+    }, [sampleIdentity])
+    useEffect(() => {
+      setSampleIdentityMatches(sampleIdentity ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [])
     }, [sampleIdentity])
     const sampleIdentityMatchesColumns = useMemo(() => {
         const columns: NonNullable<TableProps<FMSSampleIdentityMatch>['columns']> = [
@@ -217,8 +221,8 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
                 <Title level={5} style={{ marginTop: '1rem' }}> Identity QC </Title>
                     <Descriptions bordered={true} size="small" column={3} items={sampleIdentityItems} />
                     <div style={{ marginTop: '1rem' }} />
-                    {sampleIdentity.identity_matches.length > 0 &&
-                        <Table dataSource={sampleIdentity.identity_matches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
+                    {sampleIdentityMatches.length > 0 &&
+                        <Table dataSource={sampleIdentityMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
             </div>
         )
     }
