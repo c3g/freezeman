@@ -36,11 +36,6 @@ function ExperimentRunListContent() {
         callbacks.setFilterOptionsCallback
     )
 
-    useEffect(() => {
-        // default setting set at the redux level
-        callbacks.setFilterCallback([RUN_TYPES.ILLUMINA], EXPERIMENT_RUNS_PLATFORM_NAME_FILTER)
-    }, [])
-
     return (
         <>
             <Flexbar style={{alignItems: 'center', paddingLeft: "0.5em", paddingTop: "0.5em", paddingBottom: "0.5em"}}>
