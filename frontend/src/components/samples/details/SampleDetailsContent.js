@@ -1,32 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { QCFlag } from "../../QCFlag";
-import { LoadingOutlined, UserOutlined } from "@ant-design/icons";
 import {
-  Card,
-  Col,
   Descriptions,
-  Empty,
-  Row,
   Space,
-  Table,
   Tabs,
   Tag,
-  Timeline,
   Typography
 } from "antd";
 
-import dateToString from "../../../utils/dateToString";
-import useTimeline from "../../../utils/useTimeline";
-import renderSampleDiff from "../../../utils/renderSampleDiff";
 import AppPageHeader from "../../AppPageHeader";
 import PageContent from "../../PageContent";
 import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
-import TrackingFieldsContent from "../../TrackingFieldsContent";
 import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
-import { Depletion } from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import SampleDetailsLineage from "./SampleDetailsLineage";
 import SampleDetailsPool from './SampleDetailsPool'
@@ -35,13 +22,10 @@ import { get as getLibrary } from "../../../modules/libraries/actions";
 import api, { withToken } from "../../../utils/api";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 import useHashURL from "../../../hooks/useHashURL";
-import { isNullish } from "../../../utils/functions";
 import { fetchProcessMeasurements } from "../../../modules/cache/cache";
-import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithIndexRenderComponent, WithIndividualRenderComponent, WithSampleRenderComponent } from "../../shared/WithItemRenderComponent";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { selectAuthTokenAccess, selectContainersByID, selectLibrariesByID, selectSampleKindsByID, selectSamplesByID, selectUsersByID } from "../../../selectors";
-import { BiosampleIDToAlias } from "../SampleIdentityColumns";
-import DropdownListItems from "../../DropdownListItems";
+import SampleDetailsContentOverview from "./SampleDetailsContentOverview";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -84,13 +68,11 @@ const SampleDetailsContent = () => {
   const sampleKindsByID = useAppSelector(selectSampleKindsByID)
   const librariesByID = useAppSelector(selectLibrariesByID)
   const containersByID = useAppSelector(selectContainersByID)
-  const usersByID = useAppSelector(selectUsersByID)
   const token = useAppSelector(selectAuthTokenAccess)
 
   const history = useNavigate();
   const { id } = useParams();
 
-  const [timelineMarginLeft, timelineRef] = useTimeline();
 
   /**
    * @typedef {import("../../../models/frontend_models").Sample} Sample
@@ -101,18 +83,9 @@ const SampleDetailsContent = () => {
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
   const sampleKind = sampleKindsByID[sample.sample_kind]?.name ?? (sample.is_pool ? "Pool" : "")
-  const tissueSource = sampleKindsByID[sample.tissue_source]?.name
-  const volume = isNullish(sample.volume) ? '' : parseFloat(sample.volume).toFixed(3)
   const container = containersByID[sample.container]
-  const experimentalGroups = useMemo(() => sample.experimental_group || [], [sample.experimental_group])
-  const versions = sample.versions;
-  const isVersionsEmpty = versions && versions.length === 0;
-  const flags = useMemo(() => ({ quantity: sample.quantity_flag, quality: sample.quality_flag , identity: sample.identity_flag}), [sample.quantity_flag, sample.quality_flag, sample.identity_flag])
   const [processMeasurements, setProcessMeasurements] = useState([])
   const experimentRunsIDs = useMemo(() => isLoaded && container?.experiment_run ? [container.experiment_run] : [], [container?.experiment_run, isLoaded])
-  const library = librariesByID[id]
-  const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
-  const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
   const [activeKey, setActiveKey] = useHashURL('overview')
 
@@ -163,90 +136,16 @@ const SampleDetailsContent = () => {
     })
   }, [sample, token])
 
-
-  /**
-   * @typedef {import("../../../models/fms_api_models").FMSSampleIdentity} FMSSampleIdentity
-   * @type {[FMSSampleIdentity | undefined, (value: FMSSampleIdentity) => void]}
-   */
-  const sampleIdentityState = useState(undefined);
-  const [sampleIdentity, setSampleIdentity] = sampleIdentityState
-  useEffect(() => {
-    const biosampleId = sample?.biosample_id
-    if (biosampleId) {
-      const identities = dispatch(api.sampleIdentity.list({ "biosample": biosampleId }))
-      identities.then(({ data }) => {
-        if (data.count > 0) {
-          setSampleIdentity(data.results[0])
-        }
-      })
-    }
-  }, [dispatch, sample?.biosample_id, setSampleIdentity])
-  const sampleIdentityItems = useMemo(() => {
-    /**
-     * @type {NonNullable<import("antd").DescriptionsProps['items']>}
-     */
-    const items = [
-      {
-        label: "Conclusive",
-        key: "conclusive",
-        children: sampleIdentity?.conclusive === undefined
-          ? ""
-          : sampleIdentity.conclusive ? "Yes" : "No"
-      },
-      {
-        label: "Predicted Sex",
-        key: "predicted_sex",
-        children: sampleIdentity?.predicted_sex ?? ""
-      },
-      {
-        label: "Sex Concordance",
-        key: "sex_concordance",
-        children: sampleIdentity?.sex_concordance === undefined
-                        ? ""
-                        : sampleIdentity.sex_concordance === null
-                            ? "Inconclusive"
-                            : sampleIdentity.sex_concordance ? "Match" : "Mismatch"
-      },
-    ]
-    return items
-  }, [sampleIdentity])
-  const sampleIdentityMatchesColumns = useMemo(() => {
-    /**
-     * @type {NonNullable<import("antd").TableProps<import("../../../models/fms_api_models").FMSSampleIdentityMatch>['columns']>}
-     */
-    const columns = [
-      {
-        title: "Matching Biosample (Alias)",
-        dataIndex: "matched_biosample_id",
-        key: "biosample_alias",
-        render: (matched_biosample_id) => {
-          return <BiosampleIDToAlias biosampleID={matched_biosample_id} />
-        }
-      },
-      {
-        title: "Matching Site Ratio",
-        dataIndex: "matching_site_ratio",
-        key: "matching_site_ratio"
-      },
-      {
-        title: "Compared Sites",
-        dataIndex: "compared_sites",
-        key: "compared_sites"
-      }
-    ]
-    return columns
-  }, [])
-
   return <>
     <AppPageHeader
       title={`Sample ${sample.name || id}`}
       extra={isLoaded ?
         <Space>
           <div key="kind" style={{ display: "inline-block", verticalAlign: "top", marginTop: "4px" }}>
-            <Tag>{sampleKind}</Tag>
+            <Tag variant="outlined">{sampleKind}</Tag>
           </div>
           <div key="depleted" style={depletedStyle}>
-            <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
+            <Tag variant="outlined" color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
           </div>
           <EditButton url={`/samples/${id}/update`} />
         </Space>
@@ -259,137 +158,7 @@ const SampleDetailsContent = () => {
       }
       <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" className={(activeKey === 'lineage' ? 'lineage-tab-active' : '')}>
         <TabPane tab="Overview" key="overview" style={tabStyle}>
-          <Descriptions bordered={true} size="small">
-            <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
-            <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
-            <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
-            <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
-            <Descriptions.Item label="Volume (µL)">{volume}</Descriptions.Item>
-            <Descriptions.Item label="Concentration (ng/µL)">
-              {sample.concentration == null
-                ? "—"
-                : `${parseFloat(sample.concentration).toFixed(3)}`}
-            </Descriptions.Item>
-            <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
-          </Descriptions>
-          <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
-            <Descriptions.Item label="Individual Name">
-              {sample.individual &&
-                <Link to={`/individuals/${sample.individual}`}>
-                    <WithIndividualRenderComponent objectID={sample.individual} render={(individual) => individual.name} placeholder={"Loading..."} />
-                </Link>
-              }
-            </Descriptions.Item>
-            <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
-            <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
-            <Descriptions.Item label="Experimental Groups" span={2}>
-              {experimentalGroups.map((g, i) =>
-                <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
-            <Descriptions.Item label="Container Barcode">
-              {sample.container &&
-                <Link to={`/containers/${sample.container}`}>
-                  <WithContainerRenderComponent objectID={sample.container} render={(container) => container.barcode} placeholder={"Loading..."} />
-                </Link>
-              }
-            </Descriptions.Item>
-            <Descriptions.Item label="Coordinates">
-              {sample.coordinate
-                ? <WithCoordinateRenderComponent objectID={sample.coordinate} render={(coordinate) => coordinate.name} placeholder={"Loading..."} />
-                : "—"}
-            </Descriptions.Item>
-            <Descriptions.Item label="QC Flag">
-              {!isNullish(flags.quantity) || !isNullish(flags.quality) || !isNullish(flags.identity)
-                ? <QCFlag flags={flags} />
-                : null}
-            </Descriptions.Item>
-            <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
-          </Descriptions>
-          {sample.extracted_from ? (
-            <Descriptions bordered={true} size="small" title="Extraction Details" style={{ marginTop: "24px" }}>
-              <Descriptions.Item label="Extracted From">
-                <Link to={`/samples/${sample.extracted_from}`}>
-                  <WithSampleRenderComponent objectID={sample.extracted_from} render={(sample) => sample.name} placeholder={"Loading..."}/>
-                </Link>
-                {" ("}
-                <WithSampleRenderComponent objectID={sample.extracted_from} render={(sample) => <WithContainerRenderComponent
-                  objectID={sample.container} render={(container) => container.barcode} placeholder={"..."}
-                />} placeholder={"..."} />
-                <WithSampleRenderComponent objectID={sample.extracted_from} render={(sample) => <WithCoordinateRenderComponent
-                  objectID={sample.coordinate} render={(coordinates) => ` at ${coordinates.name}`}
-                />} />
-                {")"}
-              </Descriptions.Item>
-            </Descriptions>
-          ) : null}
-
-          {sample && sample.is_library ? (
-            <>
-              <Title level={5} style={{ marginTop: '1rem' }}> Library Information </Title>
-              <Descriptions bordered={true} size="small">
-                <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
-                <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
-                <Descriptions.Item label="Index">
-                  {library?.index && 
-                  <Link to={`/indices/${library?.index}`}>
-                    <WithIndexRenderComponent objectID={library?.index} render={(index) => index.name} placeholder={"Loading..."}/>
-                  </Link>}
-                </Descriptions.Item>
-                <Descriptions.Item label="Library Size (bp)">{sample?.fragment_size}</Descriptions.Item>
-                <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
-                <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
-              </Descriptions>
-              <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
-                <Descriptions.Item label="Library Selection Method">{library?.library_selection}</Descriptions.Item>
-                <Descriptions.Item label="Library Selection Target">{library?.library_selection_target}</Descriptions.Item>
-              </Descriptions>
-            </>
-          ) : null}
-
-          {sampleIdentity &&
-            <>
-              <Title level={5} style={{ marginTop: '1rem' }}> Identity QC </Title>
-              <Descriptions bordered={true} size="small" column={3} items={sampleIdentityItems}/>
-              <div style={{ marginTop: '1rem' }} />
-              {sampleIdentity.identity_matches.length > 0 &&
-                <Table dataSource={sampleIdentity.identity_matches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
-            </>
-          }
-
-          <TrackingFieldsContent entity={sample} />
-          <Title level={2} style={{ marginTop: '1rem' }}>Versions</Title>
-          <Row>
-            <Col sm={24} md={24}>
-              <div ref={timelineRef}>
-                <Card>
-                  {
-                    isVersionsEmpty ?
-                      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
-                      <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
-                        {versions === undefined && isFetching &&
-                          <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
-                        }
-                        {versions && versions.map((version, i) => {
-                          const diff = renderSampleDiff(versions[i + 1], version, usersByID);
-                          if (!diff)
-                            return diff;
-                          return (
-                            <Timeline.Item
-                              key={i}
-                              label={renderTimelineLabel(version, usersByID)}
-                            >
-                              <strong>{version.revision.comment}</strong>
-                              {diff}
-                            </Timeline.Item>
-                          )
-                        })}
-                      </Timeline>
-                  }
-                </Card>
-              </div>
-            </Col>
-          </Row>
+          {id && <SampleDetailsContentOverview sampleID={Number(id)} />}
         </TabPane>
 
         <TabPane tab={`Processes (${processMeasurements.length})`} key="processes" style={tabStyle}>
@@ -431,17 +200,5 @@ const SampleDetailsContent = () => {
     </PageContent>
   </>;
 };
-
-function renderTimelineLabel(version, usersByID) {
-  const user = usersByID[version.revision.user];
-  const username = user?.username ?? "Loading...";
-
-  return (
-    <div>
-      <div><Text type="secondary">{dateToString(version.revision.date_created)}</Text></div>
-      <div><Text disabled style={usernameStyle}><UserOutlined /> {username}</Text></div>
-    </div>
-  )
-}
 
 export default SampleDetailsContent

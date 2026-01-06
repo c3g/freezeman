@@ -63,7 +63,7 @@ export const INSTRUMENT_COLUMN_DEFINITIONS = (instrumentTypesById): { [key in In
         title: 'Type',
         dataIndex: ['instrument', 'type'],
         render: (_, { instrument }) => {
-            return <Tag>{instrumentTypesById[instrument.type]?.type}</Tag>
+            return <Tag variant="outlined">{instrumentTypesById[instrument.type]?.type}</Tag>
         },
 		sorter: { multiple: 1 }
     }

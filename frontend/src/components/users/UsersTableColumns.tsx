@@ -45,7 +45,7 @@ function UserGroupList({groupIDs}: UserGroupListProps) {
 			{groupIDs.map(groupID => {
 				const group = groupsByID[groupID]
 				return group ?
-					<Tag key={groupID}>{group.name}</Tag>
+					<Tag variant="outlined" key={groupID}>{group.name}</Tag>
 					:
 					null
 			})}

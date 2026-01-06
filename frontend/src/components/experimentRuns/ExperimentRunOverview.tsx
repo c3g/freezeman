@@ -38,7 +38,7 @@ function ExperimentRunOverview({ experimentRun, container, process }: Experiment
 					{experimentRun?.external_name}
 				</Descriptions.Item>
 				<Descriptions.Item label="Run Type" span={3}>
-					<Tag>{runTypesByID[experimentRun.run_type]?.name}</Tag>
+					<Tag variant="outlined">{runTypesByID[experimentRun.run_type]?.name}</Tag>
 				</Descriptions.Item>
 				<Descriptions.Item label="Instrument" span={3}>
 					{instrumentsByID[experimentRun.instrument]?.name}

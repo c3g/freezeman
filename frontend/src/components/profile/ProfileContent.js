@@ -147,7 +147,7 @@ const ProfileContent = ({ isFetching, groupsByID, user, error, updateSelf }) => 
               <Input />
             </Form.Item>
             <Form.Item label="Groups">
-              {user?.groups.map(groupId => groupsByID[groupId]).map(Options.renderGroup).map(o => <Tag key={o.value}>{o.label}</Tag>)}
+              {user?.groups.map(groupId => groupsByID[groupId]).map(Options.renderGroup).map(o => <Tag variant="outlined" key={o.value}>{o.label}</Tag>)}
               {user?.groups.length === 0 && 'None'}
             </Form.Item>
             <Form.Item label="Is Staff">

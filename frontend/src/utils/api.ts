@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption, FMSVersion } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -232,7 +232,7 @@ const api = {
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
-    listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
+    listVersions: sampleId => get<JsonResponse<FMSVersion[]>>(`/samples/${sampleId}/versions/`),
     summary: () => get("/samples/summary/"),
     template: {
       actions: () => get(`/samples/template_actions/`),

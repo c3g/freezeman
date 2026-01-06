@@ -17,7 +17,10 @@ import {
 } from "@ant-design/icons";
 import {get, listChildren} from "../../modules/containers/actions";
 import platform, * as PLATFORM from "../../utils/platform";
-import {withSample, withCoordinate} from "../../utils/withItem";
+import { useAppSelector } from "../../hooks";
+import { selectContainersByID, selectCoordinatesByID, selectSampleKindsState, selectSamplesByID } from "../../selectors";
+import { WithCoordinateRenderComponent } from "../shared/WithItemRenderComponent";
+import { fetchSamples } from "../../modules/cache/cache";
 
 const {Text} = Typography;
 
@@ -76,7 +79,13 @@ const renderEntry = content =>
     {content}
   </span>;
 
-const renderSample = (sample, sampleKind, coordinatesByID) => {
+/**
+ * 
+ * @param {ReturnType<typeof selectSamplesByID>[number]} sample 
+ * @param {ReturnType<typeof selectSampleKindsState>['items'][0]} sampleKind 
+ * @returns 
+ */
+const renderSample = (sample, sampleKind) => {
   return (
     <span style={entryStyle}>
        <Link to={`/samples/${sample.id}`} onClick={onClick}>
@@ -86,30 +95,34 @@ const renderSample = (sample, sampleKind, coordinatesByID) => {
          }
          {' '}
         <b>{sample.name}</b> sample ({sampleKind}){' '}
-        {sample.coordinate &&
-          `@ ${withCoordinate(coordinatesByID, sample.coordinate, coordinate => coordinate.name, "Loading...")}`
+        {sample.coordinate && <>
+          {`@ `}
+          <WithCoordinateRenderComponent objectID={sample.coordinate} render={coordinate => coordinate.name} placeholder={"Loading..."} />
+        </>
         }
       </Link>
     </span>
   )
 }
 
-const mapStateToProps = state => ({
-  containersByID: state.containers.itemsByID,
-  samplesByID: state.samples.itemsByID,
-  coordinatesByID: state.coordinates.itemsByID,
-  sampleKinds: state.sampleKinds,
-});
-
 const actionCreators = {get, listChildren};
 
-const ContainerHierarchy = ({container, containersByID, samplesByID, coordinatesByID, sampleKinds, listChildren}) => {
+/**
+ * 
+ * @param {{
+ * container: import("../../models/frontend_models").Container | undefined,
+ * listChildren: (...args: Parameters<typeof listChildren>) => ReturnType<ReturnType<typeof listChildren>>
+ * }} param0 
+ * @returns 
+ */
+const ContainerHierarchy = ({container, listChildren}) => {
+  const containersByID = useAppSelector(selectContainersByID)
+  const samplesByID = useAppSelector(selectSamplesByID);
+  const coordinatesByID = useAppSelector(selectCoordinatesByID);
+  const sampleKinds = useAppSelector(selectSampleKindsState);
 
   const [explodedKeys, setExplodedKeys] = useState({});
   useEffect(() => { setExplodedKeys({}) }, [container?.id]);
-
-  if (!container || !container.parents)
-    return <LoadingOutlined />;
 
   const context = {
     containersByID,
@@ -119,6 +132,17 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
     explodedKeys,
   }
 
+  useEffect(() => {
+    if (container?.samples) {
+      fetchSamples(container.samples);
+    }
+  }, [container?.samples])
+
+  /**
+   * 
+   * @param {typeof context.containersByID[number]} container 
+   * @returns 
+   */
   const renderContainer = container => {
     return (
         <span style={entryStyle}>
@@ -132,7 +156,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
             </Text>{' '}
             {container.coordinate &&
             <Text type="secondary">
-              @ {withCoordinate(coordinatesByID, container.coordinate, coordinate => coordinate.name, "Loading...")}
+              @ {<WithCoordinateRenderComponent objectID={container.coordinate} render={coordinate => coordinate.name} placeholder={"Loading..."} />}
             </Text>
             }
             <Text type="secondary">
@@ -144,8 +168,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
 
           <ul>
             { container.samples?.map(sampleId => {
-              const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
-              const sample = context.samplesByID[id]
+              const sample = context.samplesByID[sampleId]
               const sampleKind = sample?.sample_kind ? context.sampleKinds.itemsByID[sample?.sample_kind]?.name : "POOL"
               return <li key={`container_sample_${sampleId}`}>
                 {sample ?
@@ -164,6 +187,12 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
     )
   }
 
+  /**
+   * 
+   * @param {typeof context} context 
+   * @param {*} path 
+   * @returns 
+   */
   const buildContainerTreeFromPath = (context, path) => {
     if (path.length === 0)
       return [];
@@ -214,7 +243,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
     }]
   };
 
-  const path = container.parents.concat([container.id]);
+  const path = container?.parents?.concat([container.id]) ?? []
   const tree = buildContainerTreeFromPath(context, path);
 
   const expandCollapsedNode = async node => {
@@ -244,6 +273,8 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
       await expandCollapsedChildren(node)
   }
 
+  if (!container || !container.parents)
+    return <LoadingOutlined />;
 
   return (
     <Tree
@@ -253,7 +284,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
       switcherIcon={<DownOutlined />}
       selectedKeys={[path[path.length - 1]]}
       treeData={tree}
-      defaultExpandedKeys={container.parents}
+      defaultExpandedKeys={container?.parents ?? []}
       loadData={onLoadData}
       height={400}
       virtual={false}
@@ -261,7 +292,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(ContainerHierarchy);
+export default connect(undefined, actionCreators)(ContainerHierarchy);
 
 // Helpers
 

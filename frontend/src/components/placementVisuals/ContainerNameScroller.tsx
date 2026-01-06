@@ -16,7 +16,7 @@ const ContainerNameScroller = ({ names, name, changeContainer }: ContainerNameSc
             <Button disabled={index === 0 || names.length === 1} onClick={() => changeContainer(-1)}>
                 Previous
             </Button>
-            <Tag style={{ height: "32px", paddingTop: "3px", textAlign: 'center', marginRight: '0' }}><Text strong style={{ fontSize: '1.125rem' }}>{names[index] ?? 'Tubes without parent'}</Text></Tag>
+            <Tag variant="outlined" style={{ height: "32px", paddingTop: "3px", textAlign: 'center', marginRight: '0' }}><Text strong style={{ fontSize: '1.125rem' }}>{names[index] ?? 'Tubes without parent'}</Text></Tag>
             <Button disabled={index === names.length - 1 || names.length === 1} onClick={() => changeContainer(1)}>
                 Next
             </Button >
