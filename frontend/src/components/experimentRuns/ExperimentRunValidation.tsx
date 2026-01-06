@@ -166,7 +166,6 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
   useEffect(() => {
     const refreshedDatasets = lane.datasets.map((dataset) => datasetsById[dataset.datasetID])
     setDatasets(refreshedDatasets as Dataset[])
-    console.log("Moo")
 	}, [datasetsById])
 
   useEffect(() => {
@@ -176,34 +175,30 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
     }))
     .then((values) => {
       setDatasets(values as Dataset[])})
-      console.log("Poo")
 	}, [dispatch, lane.datasets])
 
   const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings>()
   useEffect(() => {
     const fetchWarningsForLane = async () => {
       const laneDatasetsIds = lane.datasets.map((dataset) => dataset && dataset.datasetID.toString()).join(",")
-      console.log(laneDatasetsIds)
       const warnings = await dispatch(api.readsets.list({dataset__id__in: laneDatasetsIds, derived_sample__biosample__sample_identity__conclusive: true})) // Only gets readsets that have a conclusive identity
-      .then((readsets_response) => {
+      .then(async (readsets_response) => {
         const readsets: FMSReadset[] = readsets_response.data.results
         if (readsets.length == 0) // Make sure there is some readsets with identities
           return
 
         const readsetsIds = readsets.map((readset) => readset.id.toString()).join(",")
         const fetchBiosampleIds = async (readsets) => {
-          console.log("readsetsIds")
           const biosampleIdByReadsetId = {}
-          readsets.map(async (readset) => {
-            await dispatch(api.derivedSamples.list({readsets__id__in: readset.id.toString()}))
-            .then(response => {biosampleIdByReadsetId[readset.id] = response.data.results[0]})
-          })
-          console.log(biosampleIdByReadsetId)
+          await Promise.all(readsets.map(async (readset) => {
+            dispatch(api.derivedSamples.list({readsets__id__in: readset.id.toString()}))
+            .then(response => {biosampleIdByReadsetId[readset.id] = response.data.results[0].biosample})
+          }))
           return biosampleIdByReadsetId
         }
-        const biosampleIdByReadsetId = fetchBiosampleIds(readsets)
-        console.log(readsetsIds)
-        const warnings = dispatch(api.sampleIdentityMatch.list({readset__in: readsetsIds}))
+
+        const biosampleIdByReadsetId = await fetchBiosampleIds(readsets)
+        const warnings = await dispatch(api.sampleIdentityMatch.list({readset__in: readsetsIds}))
         .then((sampleIdentityMatches_response) => {
           const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => {
             if (current.readset_id) {
@@ -219,10 +214,8 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
             let match_self = false 
             
             matchesByReadset[currentReadset.id] && matchesByReadset[currentReadset.id].forEach(match => {
-              console.log(match)
               if (match.tested_biosample_id == match.matched_biosample_id){
                 match_self = true
-                console.log("Matchitoss")
               }
               else {
                 const contaminationWarning = new ContaminationWarningValues(currentReadset.id, match.tested_biosample_id, match.matched_biosample_id, match.matching_site_ratio, match.compared_sites)
@@ -295,8 +288,6 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 				) : (
 					<Text italic>(Run metrics unavailable)</Text>
 				)}
-        {console.log("MOOOOOOOOOOOOOOOOOOOO")}
-        {console.log(mixupAndContaminationWarnings)}
         <IdentityWarningsButton warnings={mixupAndContaminationWarnings}/>
 				<Space>
 					{canValidate && 

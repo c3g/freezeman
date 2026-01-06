@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 
 ADMIN_USERNAME = 'biobankadmin'
 
+# Test experiment 1323
 def create_identity_test_data(apps, schema_editor):
     IDENTITIES = [620362, 620363, 620364, 620365]
     READSET_MATCHES = [(74445, 620362, 620362), (None, 620363, 620364), (None, 620364, 620363), (74446, 620363, 620364), (74447, 620364, 620364), (74447, 620364, 620365)]

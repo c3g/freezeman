@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button, Table, Typography,  Modal, Card, Divider } from 'antd'
 import { WarningTwoTone } from "@ant-design/icons"
 
@@ -48,7 +48,6 @@ export class MixupAndContaminationWarnings {
     return this.biosample_ids.size > 0
   }
   addConcordanceWarning(warning: ConcordanceWarningValues){
-    console.log(warning)
     this.biosample_ids.add(warning.biosample_id)
     this.concordance_warnings.push(warning)
   }
@@ -59,10 +58,13 @@ export class MixupAndContaminationWarnings {
   }
   async fetchBiosamples(dispatch){
     const array_ids = [...this.biosample_ids]
-    console.log(array_ids)
+    const batches: string[] = []
+    // prepare batches - array of id arrays as comma separated strings
     for (let start = 0; start < array_ids.length; start = start + DEFAULT_PAGE_SIZE) {
-      await dispatch(list({id__in: array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(',')}))
+      batches.push(array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(','))
     }
+
+    await Promise.all(batches.map((ids) => dispatch(list({id__in: ids}))))
   }
 }
 
@@ -167,31 +169,21 @@ export function IdentityWarningsButton({warnings}: warningButtonProps){
   const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  console.log("CHIEN VACHE")
   useEffect(() => {
     if (!warnings || warnings.biosample_ids.size == 0)
       return
-    
+
     warnings.fetchBiosamples(dispatch).then(() => setIsLoading(false))
   }, [dispatch, warnings])
 
-  useEffect(() => {
-    console.log("Loaded")
-    console.log(isLoading)
-  }, [isLoading])
-
   if (!warnings || isLoading)
     return
-  
-  console.log("Ratatouille")
-  console.log(warnings)
-  console.log(warnings.hasWarnings())
 
   const concordanceColumns = getColumnsForConcordance(biosamplesById)
   const contaminationColumns = getColumnsForContamination(biosamplesById)
   const paginationConcordance = warnings.concordance_warnings.length > 10 ? {pageSize: 10} : false
   const paginationContamination = warnings.contamination_warnings.length > 10 ? {pageSize: 10} : false
-  
+
   return (warnings && warnings.hasWarnings() && 
       <>
         <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
