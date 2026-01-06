@@ -262,8 +262,8 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                                 <span>Select:</span>
                                                 <Flex wrap={"nowrap"} gap={"0.2em"}>
                                                     <Button onClick={clearSelections}>None</Button>
-                                                    <Button onClick={invertSelections} disabled={activeSourceContainer.name === null}>Invert</Button>
-                                                    <Dropdown menu={quadrantSelectionMenu}>
+                                                    <Button onClick={invertSelections}>Invert</Button>
+                                                    <Dropdown menu={quadrantSelectionMenu} disabled={activeSourceContainer.name === null}>
                                                         <Button>Quandrant</Button>
                                                     </Dropdown>
                                                 </Flex>
@@ -310,7 +310,8 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 <Row justify={"center"}>
                                     <Button onClick={transferAllSamples} disabled={!canTransferAllSamples} style={{ marginRight: '1em' }}>Place All Source</Button>
                                     <Popconfirm
-                                        title={`Are you sure you want to undo selected samples? If there are no selected samples, it will undo all placements.`}
+                                        title={`Are you sure you want to undo 
+                                             samples? If there are no selected samples, it will undo all placements.`}
                                         onConfirm={undoPlacementsCallback}
                                         placement={'bottomRight'}
                                     >
