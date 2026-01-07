@@ -2,7 +2,7 @@ from fms_core.schema_validators import SAMPLE_IDENTITY_REPORT_VALIDATOR
 from django.core.exceptions import ValidationError
 from fms_core.models import  SampleIdentity, SampleIdentityMatch, Readset
 from fms_core.models._constants import SEX_UNKNOWN, SEX_MALE, SEX_FEMALE
-from typing import TypedDict
+from typing import TypedDict, Optional
 from decimal import Decimal
 
 class Identity_match_info(TypedDict):
@@ -57,7 +57,7 @@ def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: s
     
     return sample_identity, kept_existing_identity, errors, warnings
 
-def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_biosample_id: dict[int, Identity_match_info], readset_obj: Readset = None):
+def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_biosample_id: dict[int, Identity_match_info], readset_obj: Optional[Readset] = None):
     """
     Create sample identity matches with the provided information.
 

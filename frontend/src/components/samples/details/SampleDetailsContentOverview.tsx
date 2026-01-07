@@ -51,6 +51,7 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
 
     const [sampleIdentity, setSampleIdentity] = useState<FMSSampleIdentity>()
     const [sampleIdentityMatches, setSampleIdentityMatches] = useState<FMSSampleIdentityMatch[]>([]) // Only retains the identity QC matches. Matches with readsets were generated during run processing report ingestion.
+    const [sampleContaminationMatches, setSampleContaminationMatches] = useState<FMSSampleIdentityMatch[]>([])
     useEffect(() => {
         const biosampleId = sample?.biosample_id
         if (biosampleId) {
@@ -91,6 +92,14 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
     useEffect(() => {
       setSampleIdentityMatches(sampleIdentity ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [])
     }, [sampleIdentity])
+    useEffect(() => {
+      setSampleContaminationMatches(sampleIdentity && sample ? sampleIdentity.identity_matches.filter(async (identityMatch) => {
+        if (!identityMatch.readset_id || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
+          return false
+
+        return await dispatch(api.readsets.list({ "id": identityMatch.readset_id, "derived_sample__samples__id": sample.id })).then(response => response.data.results.length != 0)
+      }) : [])
+    }, [dispatch, sample, sampleIdentity])
     const sampleIdentityMatchesColumns = useMemo(() => {
         const columns: NonNullable<TableProps<FMSSampleIdentityMatch>['columns']> = [
             {
@@ -225,6 +234,16 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
                         <Table dataSource={sampleIdentityMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
             </div>
         )
+    }
+
+    if (sample && sample.is_library && !sample.is_pool && sampleIdentity && sampleContaminationMatches.length > 0) {
+      render.push(
+          <div key={'library-contamination'}>
+              <Title level={5} type='danger' style={{ marginTop: '1rem' }}> Contamination warnings </Title>
+                  <div style={{ marginTop: '1rem' }} />
+                  <Table dataSource={sampleContaminationMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />
+          </div>
+      )
     }
 
     render.push(
