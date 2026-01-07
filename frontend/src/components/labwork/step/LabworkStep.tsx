@@ -1,6 +1,6 @@
 import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
@@ -26,7 +26,6 @@ import { flushContainers as flushLabworkStepPlacementContainers } from '../../..
 import { SAMPLE_IDENTITY_COLUMN_FILTERS } from '../../samples/SampleIdentityColumns'
 import { useNavigateToWorkflowAssignment } from '../../management/WorkflowAssignmentPage'
 import { selectCurrentPreferences } from '../../../modules/profiles/selectors'
-import { TabsProps } from 'antd/lib'
 
 const { Text } = Typography
 
@@ -378,7 +377,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		</Space>
 	)
 
-	const tabItems = useMemo<NonNullable<TabsProps['items']>>(() => [
+	const tabItems = useMemo<NonNullable<ComponentProps<typeof Tabs>['items']>>(() => [
 		{
 			key: GROUPED_SAMPLES_TAB_KEY,
 			label: 'Samples',
