@@ -161,7 +161,7 @@ const Cell = ({ container, coordinates, cellSize }: CellProps) => {
                     : placedFrom).join(", ")}</div> : undefined}
                 {placedAt.length > 0 ? <div>{'At: '}{placedAt.map((placedAt) => `${placedAt.fromContainer.name}@${placedAt.coordinates}`).join(", ")}</div> : undefined}
             </>}
-            destroyTooltipOnHide={true}
+            destroyOnHidden={true}
             open={popOverOpen}
         >
             <div

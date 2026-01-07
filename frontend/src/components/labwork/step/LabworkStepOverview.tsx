@@ -1,5 +1,5 @@
 import { Collapse, Typography, Button, Space, Tag, notification } from 'antd'
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, ComponentProps } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FILTER_TYPE } from '../../../constants'
 import { getLabworkStepSummary, setSelectedSamples, setSelectedSamplesInGroups, unselectSamples } from '../../../modules/labworkSteps/actions'
@@ -101,30 +101,22 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
     return finalColumns
   }, [activeGrouping, columns])
 
-	return (
-		<>
-      <div>
-        <GroupingButton grouping={GROUPING_PROJECT} selected={activeGrouping===GROUPING_PROJECT} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-				<GroupingButton grouping={GROUPING_CONTAINER} selected={activeGrouping===GROUPING_CONTAINER} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-        <GroupingButton grouping={GROUPING_CREATION_DATE} selected={activeGrouping===GROUPING_CREATION_DATE} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-        <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
-      </div>
-      <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-			<Collapse accordion destroyInactivePanel={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'}>
-				{labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
+  const collapsePanels = useMemo<NonNullable<ComponentProps<typeof Collapse>['items']>>(() => (labworkStepSummary && labworkStepSummary.groups?.map((group: LabworkStepSamplesGroup) => {
           const sample_ids = Object.keys(group.sample_locators).map((id) => Number(id))
           const selectedCount = Object.keys(group.selected_samples).length
           const ButtonsSelectAndClear = (
-            <Space direction="horizontal" style={{width: '100%', justifyContent: 'center'}}>
+            <Space orientation="horizontal" style={{width: '100%', justifyContent: 'center'}}>
               <Tag variant="outlined"><Title style={{ margin: 0 }} level={4}>{`${selectedCount}/${group.count}`}</Title></Tag>
               <Button disabled={loading || group.count === 0 || selectedCount === group.count} title='Select group samples' onClick={() => handleSelectGroup(sample_ids)}>Select All</Button>
               <Button disabled={loading || selectedCount === 0} title='Deselect group samples' onClick={() => handleClearGroup(sample_ids)}>Clear Selection</Button>
             </Space>
           )
 
-					return (
-						<Collapse.Panel key={group.name} header={group.name} extra={ButtonsSelectAndClear}>
-							<LabworkStepOverviewPanel
+					return {
+              key: group.name,
+              label: group.name,
+              extra: ButtonsSelectAndClear,
+              children: <LabworkStepOverviewPanel
 							  refreshing={refreshing || labworkStepSummary.isFetching}
 							  grouping={activeGrouping}
 							  groupingValue={group.name}
@@ -142,10 +134,19 @@ const LabworkStepOverview = ({step, refreshing, stepSamples, columns, filterDefi
 							  pagination={pagination}
 							  stepID={step.id}
 							/>
-						</Collapse.Panel>
-					)
-				})}
-			</Collapse>
+            }
+				})) ?? [], [activeGrouping, clearFilters, filterDefinitions, filterKeys, filters, finalColumns, handleClearGroup, handleSelectGroup, labworkStepSummary, loading, pagination, refreshing, selection, setFilter, setFilterOptions, setSortByList, sortByList, step.id])
+
+	return (
+		<>
+      <div>
+        <GroupingButton grouping={GROUPING_PROJECT} selected={activeGrouping===GROUPING_PROJECT} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+				<GroupingButton grouping={GROUPING_CONTAINER} selected={activeGrouping===GROUPING_CONTAINER} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+        <GroupingButton grouping={GROUPING_CREATION_DATE} selected={activeGrouping===GROUPING_CREATION_DATE} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+        <GroupingButton grouping={GROUPING_CREATED_BY} selected={activeGrouping===GROUPING_CREATED_BY} refreshing={labworkStepSummary.isFetching} onClick={handleChangeActiveGrouping}/>
+      </div>
+      <div style={{ display: 'flex', marginBottom: '1em' }}></div>
+			<Collapse accordion destroyOnHidden={true} collapsible={labworkStepSummary.isFetching ? 'disabled' : 'icon'} items={collapsePanels} />
 		</>
 	)
 }

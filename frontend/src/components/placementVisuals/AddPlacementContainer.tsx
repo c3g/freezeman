@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react"
+import React, { ComponentProps, useCallback, useMemo, useState } from "react"
 import { Button, Select, Tabs, notification, Row } from "antd"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectCoordinatesByID, selectContainerKindsByID } from "../../selectors"
@@ -179,28 +179,35 @@ const AddPlacementContainer = ({ onConfirm, existingContainers }: AddPlacementCo
         setNewContainer(container)
     }, [newContainer])
 
+    const tabsItems = useMemo<NonNullable<ComponentProps<typeof Tabs>['items']>>(() => [
+        {
+            key: 'new',
+            label: 'New Container',
+            children: <>
+                <Row style={{ padding: "10px" }}>
+                    <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')} maxLength={MAX_CONTAINER_BARCODE_LENGTH}></Input>
+                </Row>
+                <Row style={{ padding: "10px" }}>
+                    <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')} maxLength={MAX_CONTAINER_NAME_LENGTH}></Input>
+                </Row>
+                <Row style={{ padding: "10px" }}>
+                    <Select value={newContainer.container_kind} allowClear={true} placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>
+                </Row>
+            </>
+        },
+        {
+            key: 'load',
+            label: 'Load Container',
+            children: <SearchContainer exceptKinds={["tube"]} handleOnChange={(value) => handleContainerLoad(value)} />
+        }
+    ], [getContainerKindOptions, handleContainerLoad, handleOnChange, newContainer.container_barcode, newContainer.container_kind, newContainer.container_name])
+
     return (
         <>
             <Button onClick={() => setIsPopup(true)}>Add Destination</Button>
             <Modal title="Add Destination" open={isPopup} onOk={handleConfirm} onCancel={() => setIsPopup(false)} width={'40vw'}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)}>
-                        <Tabs.TabPane tab='New Container' key={'new'}>
-                            <Row style={{ padding: "10px" }}>
-                                <Input value={newContainer.container_barcode} placeholder="Barcode" onChange={(e) => handleOnChange(e, 'container_barcode')} maxLength={MAX_CONTAINER_BARCODE_LENGTH}></Input>
-                            </Row>
-                            <Row style={{ padding: "10px" }}>
-                                <Input value={newContainer.container_name} placeholder="Name (optional)" onChange={(e) => handleOnChange(e, 'container_name')} maxLength={MAX_CONTAINER_NAME_LENGTH}></Input>
-                            </Row>
-                            <Row style={{ padding: "10px" }}>
-                                <Select value={newContainer.container_kind} allowClear={true} placeholder="Container kind" onChange={(e) => handleOnChange(e, 'container_kind')} style={{ width: "100%" }} options={getContainerKindOptions()}></Select>
-                            </Row>
-                        </Tabs.TabPane>
-                        <Tabs.TabPane tab='Load Container' key={'load'}>
-                            <SearchContainer exceptKinds={["tube"]} handleOnChange={(value) => handleContainerLoad(value)} />
-                        </Tabs.TabPane>
-                    </Tabs>
-
+                    <Tabs defaultActiveKey={'New'} activeKey={selectedTab} onTabClick={(e) => setSelectedTab(e)} items={tabsItems} />
                 </div>
             </Modal>
         </>
