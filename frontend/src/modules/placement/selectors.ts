@@ -1,4 +1,5 @@
 import store, { RootState } from "../../store";
+import { fms_env } from "../../utils/functions";
 import { PlacementClass } from "./classes";
 import { CellIdentifier, ParentContainerIdentifier, PlacementState, RealParentContainerIdentifier } from "./models";
 
@@ -31,7 +32,9 @@ function selectorWrapper<T>(selector: (state: PlacementState) => T) {
     return (state: RootState) => selector(selectPlacementState(state))
 }
 
-window.placement = (containerID: ParentContainerIdentifier | undefined) => {
-    const placementState = selectPlacementState(store.getState())
-    return new PlacementClass(placementState, containerID)
+if (!fms_env()) {
+    window.placement = (containerID: ParentContainerIdentifier | undefined) => {
+        const placementState = selectPlacementState(store.getState())
+        return new PlacementClass(placementState, containerID)
+    }
 }
