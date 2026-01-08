@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo, useRef } from "react"
 import { FMSId } from "../../models/fms_api_models"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Button, Col, ConfigProvider, Dropdown, Flex, Popconfirm, Radio, RadioChangeEvent, Row, Space } from "antd"
@@ -275,7 +275,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                 <Row>
                                     <ButtonsWithSmallerPadding>
                                         <Flex style={{ width: "100%" }} wrap={"wrap"} gap={"0.3em 0.3em"}>
-                                            <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
+                                            <Border>
                                                 <span>Select:</span>
                                                 <Flex wrap={"nowrap"} gap={"0.2em"}>
                                                     <Button onClick={clearSelections}>None</Button>
@@ -284,16 +284,16 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                                         <Button>Quadrant</Button>
                                                     </Dropdown>
                                                 </Flex>
-                                            </Space>
-                                            <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
+                                            </Border>
+                                            <Border>
                                                 <span>Place as:</span>
                                                 <Radio.Group onChange={updatePlacementType} value={placementType} style={{ whiteSpace: 'nowrap' }}>
                                                     <Radio.Button key={PlacementType.SEQUENTIAL} value={PlacementType.SEQUENTIAL}>Sequence</Radio.Button>
                                                     <Radio.Button key={PlacementType.SOURCE_PATTERN} value={PlacementType.SOURCE_PATTERN} disabled={activeSourceContainer.name === null}>Source</Radio.Button>
                                                     <Radio.Button key={PlacementType.QUADRANT_PATTERN} value={PlacementType.QUADRANT_PATTERN} disabled={activeSourceContainer.name === null}>Quadrant</Radio.Button>
                                                 </Radio.Group>
-                                            </Space>
-                                            <Space size={"small"} style={{ border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }}>
+                                            </Border>
+                                            <Border>
                                                 <span>Place by:</span>
                                                 <Radio.Group
                                                     disabled={placementType !== PlacementType.SEQUENTIAL}
@@ -304,7 +304,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                                     <Radio.Button value={PlacementDirections.ROW}>Row</Radio.Button>
                                                     <Radio.Button value={PlacementDirections.COLUMN}>Column</Radio.Button>
                                                 </Radio.Group>
-                                            </Space>
+                                            </Border>
                                         </Flex>
                                     </ButtonsWithSmallerPadding>
                                 </Row>
@@ -324,15 +324,19 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                         container={activeDestinationContainer.name}
                                     />
                                 </Row>
-                                <Row justify={"center"}>
-                                    <Button onClick={transferAllSamples} disabled={!canTransferAllSamples} style={{ marginRight: '1em' }}>Place All Source</Button>
-                                    <Popconfirm
-                                        title={(destinationSelectionCount === 0 ? 'You are about to undo all placements.' : `You are about to undo ${destinationSelectionCount} placements.`) + ' Do you want to proceed?'}
-                                        onConfirm={undoPlacementsCallback}
-                                        placement={'bottomRight'}
-                                    >
-                                        <Button> Undo Placement</Button>
-                                    </Popconfirm>
+                                <Row>
+                                    <Flex justify={"center"} style={{ width: "100%" }} wrap={"wrap"} gap={"0.3em 0.3em"}>
+                                        <Border>
+                                            <Button onClick={transferAllSamples} disabled={!canTransferAllSamples}>Place All Source</Button>
+                                            <Popconfirm
+                                                title={(destinationSelectionCount === 0 ? 'You are about to undo all placements.' : `You are about to undo ${destinationSelectionCount} placements.`) + ' Do you want to proceed?'}
+                                                onConfirm={undoPlacementsCallback}
+                                                placement={'bottomRight'}
+                                            >
+                                                <Button> Undo Placement</Button>
+                                            </Popconfirm>
+                                        </Border>
+                                    </Flex>
                                 </Row>
                                 <Row>
                                     {activeDestinationContainer !== undefined && <PlacementSamplesTable parentContainerName={activeDestinationContainer.name} />}
@@ -364,4 +368,13 @@ function ButtonsWithSmallerPadding({ children }: { children: React.ReactNode }) 
     >
         {children}
     </ConfigProvider>
+}
+
+const borderStyle = { border: 'solid', borderColor: 'lightgray', borderWidth: '1px', padding: '0.5em' }
+function Border({ children }: { children: React.ReactNode }) {
+    return (
+        <Space size={"small"} style={borderStyle}>
+            {children}
+        </Space>
+    )
 }
