@@ -142,14 +142,9 @@ export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction
     }, [debounceTime, debouncedFunction])
 }
 
-/**
- * I don't know the exact return type when it's in
- * development mode but I do know that it is falsy.
- * @returns 
- */
 export function fms_env() {
     try {
-        return FMS_ENV as 'PROD' | 'QC' | '' | undefined
+        return FMS_ENV as 'PROD' | 'QC' | 'LOCAL'
     } catch {
         // ReferenceError: FMS_ENV is not defined
         return undefined

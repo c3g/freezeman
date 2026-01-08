@@ -32,7 +32,7 @@ function selectorWrapper<T>(selector: (state: PlacementState) => T) {
     return (state: RootState) => selector(selectPlacementState(state))
 }
 
-if (!fms_env()) {
+if (fms_env() === 'LOCAL') {
     window.placement = (containerID: ParentContainerIdentifier | undefined) => {
         const placementState = selectPlacementState(store.getState())
         return new PlacementClass(placementState, containerID)
