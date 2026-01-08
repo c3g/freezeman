@@ -87,11 +87,11 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
         ]
         return items
     }, [sampleIdentity])
-    const sampleIdentityMatches = useMemo(() => sampleIdentity ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [], [sampleIdentity])
+    const sampleIdentityMatches = useMemo(() => sampleIdentity && sampleIdentity.identity_matches ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [], [sampleIdentity])
     const sampleContaminationMatches = useMemo(() => {
         const filteredIdentityMatches: FMSSampleIdentityMatch[] = []
         
-        if (sampleIdentity && sample){
+        if (sample && sampleIdentity && sampleIdentity.identity_matches){
             sampleIdentity.identity_matches.forEach(async (identityMatch) => {
                 if (isNullish(identityMatch.readset_id) || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
                     return

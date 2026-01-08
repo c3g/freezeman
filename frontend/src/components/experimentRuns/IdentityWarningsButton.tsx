@@ -3,7 +3,7 @@ import { Button, Table, Typography,  Modal, Card, Divider } from 'antd'
 import { WarningTwoTone } from "@ant-design/icons"
 
 import { FMSId } from '../../models/fms_api_models'
-import { list } from '../../modules/biosamples/actions'
+import { list as listBiosamples} from '../../modules/biosamples/actions'
 import { DEFAULT_PAGE_SIZE } from '../../constants'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectBiosamplesByID } from '../../selectors'
@@ -64,7 +64,7 @@ export class MixupAndContaminationWarnings {
       idBatches.push(array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(','))
     }
 
-    await Promise.all(idBatches.map((ids) => dispatch(list({id__in: ids}))))
+    await Promise.all(idBatches.map((ids) => dispatch(listBiosamples({id__in: ids}))))
   }
 }
 
@@ -159,11 +159,11 @@ export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById): { [key in IdentityC
 	}
 })
 
-export interface warningButtonProps {
+export interface WarningButtonProps {
   warnings: MixupAndContaminationWarnings | undefined
 }
 
-export function IdentityWarningsButton({warnings}: warningButtonProps){
+export function IdentityWarningsButton({warnings}: WarningButtonProps){
   const dispatch = useAppDispatch()
   const biosamplesById = useAppSelector(selectBiosamplesByID)
   const [WarningModalVisible, setWarningModalVisible] = useState<boolean>(false)
