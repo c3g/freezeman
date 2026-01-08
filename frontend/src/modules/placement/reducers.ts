@@ -12,6 +12,7 @@ export interface MouseOnCellPayload extends CellIdentifier {
 }
 export type MultiSelectPayload = {
     forcedSelectedValue?: boolean
+    invert?: boolean
     context: {
         source: ParentContainerIdentifier
     }
@@ -34,6 +35,10 @@ export type MultiSelectPayload = {
     parentContainer: TubesWithoutParentContainerIdentifier
     type: 'sample-ids'
     samples: Array<SampleIdentifier>
+} | {
+    parentContainer: RealParentContainerIdentifier,
+    type: 'quadrant',
+    quadrant: 1 | 2 | 3 | 4
 })
 export interface PlaceAllSourcePayload {
     source: ParentContainerIdentifier
@@ -88,6 +93,8 @@ const slice = createSlice({
                     for (const sample of samples) {
                         container.setSelectionOfSample(sample, payload.forcedSelectedValue)
                     }
+                } else if (payload.invert) {
+                    container.invertSelections(...samples)
                 } else {
                     container.toggleSelections(...samples)
                 }
@@ -112,11 +119,17 @@ const slice = createSlice({
                         samplePlacements.push(...container.getCellsInRow(payload.row).flatMap((c) => c.getSamplePlacements()))
                         break
                     }
+                    case 'quadrant': {
+                        samplePlacements.push(...container.getCellsInQuadrant(payload.quadrant).flatMap((c) => c.getSamplePlacements()))
+                        break
+                    }
                 }
                 if (payload.forcedSelectedValue !== undefined) {
                     for (const samplePlacement of samplePlacements) {
                         container.setSelectionOfPlacement(samplePlacement.rawIdentifier(), payload.forcedSelectedValue)
                     }
+                } else if (payload.invert) {
+                    container.invertPlacementSelections(...samplePlacements.map((sp) => sp.rawIdentifier()))
                 } else {
                     container.togglePlacementSelections(...samplePlacements.map((sp) => sp.rawIdentifier()))
                 }

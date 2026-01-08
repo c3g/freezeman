@@ -141,3 +141,12 @@ export const useDebounce = <F extends (...args: any[]) => any>(debouncedFunction
         }, debounceTime)
     }, [debounceTime, debouncedFunction])
 }
+
+export function fms_env() {
+    try {
+        return FMS_ENV as 'PROD' | 'QC' | 'LOCAL'
+    } catch {
+        // ReferenceError: FMS_ENV is not defined
+        return undefined
+    }
+}

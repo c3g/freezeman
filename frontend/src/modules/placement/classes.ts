@@ -284,6 +284,20 @@ export class RealParentContainerClass extends ParentContainerClass {
         const cells = axisRow.map((row) => this.getCell({ coordinates: `${row}${axisCol[col]}` }))
         return cells
     }
+    getCellsInQuadrant(quadrant: 1 | 2 | 3 | 4): CellClass[] {
+        const startRow = quadrant === 1 || quadrant === 2 ? 0 : 1
+        const startCol = quadrant === 1 || quadrant === 3 ? 0 : 1
+        
+        const [axisRow = [''], axisCol = ['']] = this.getSpec()
+        const cells: CellClass[] = []
+        for (let r = startRow; r < axisRow.length; r += 2) {
+            for (let c = startCol; c < axisCol.length; c += 2) {
+                cells.push(this.getCell({ coordinates: `${axisRow[r]}${axisCol[c]}` }))
+            }
+        }
+
+        return cells
+    }
 
     placeAllSamples(sourceContainer: ParentContainerIdentifier) {
         const samples: SampleClass[] = []
@@ -334,6 +348,11 @@ export class RealParentContainerClass extends ParentContainerClass {
         const allSelected = entries.every(s => this.isPlacementSelected(s))
         for (const entry of entries) {
             this.setSelectionOfPlacement(entry, !allSelected)
+        }
+    }
+    invertPlacementSelections(...entries: SamplePlacementIdentifier[]) {
+        for (const entry of entries) {
+            this.setSelectionOfPlacement(entry, !this.isPlacementSelected(entry))
         }
     }
 
@@ -526,6 +545,11 @@ export class TubesWithoutParentClass extends ParentContainerClass {
         const allSelected = sampleIDs.every(s => this.isSampleSelected(s))
         for (const sampleID of sampleIDs) {
             this.setSelectionOfSample(sampleID, !allSelected)
+        }
+    }
+    invertSelections(...sampleIDs: SampleIdentifier[]) {
+        for (const sampleID of sampleIDs) {
+            this.setSelectionOfSample(sampleID, !this.isSampleSelected(sampleID))
         }
     }
 

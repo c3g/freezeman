@@ -125,7 +125,7 @@ const PlacementSamplesTable = ({ parentContainerName }: PlacementSamplesTablePro
             return <>
                 <>{`${range[0]}-${range[1]} of ${total} items.`}</>
                 <>{' '}</>
-                <b style={{ color: '#1890ff' }}>{`${selectedRowKeys.length} selected`}</b>
+                <b style={{ color: '#1890ff' }}>{`${selectedRowKeys.length}/${total} selected`}</b>
                 .
             </>
         }
