@@ -93,12 +93,17 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
       setSampleIdentityMatches(sampleIdentity ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [])
     }, [sampleIdentity])
     useEffect(() => {
-      setSampleContaminationMatches(sampleIdentity && sample ? sampleIdentity.identity_matches.filter(async (identityMatch) => {
-        if (!identityMatch.readset_id || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
-          return false
-
-        return await dispatch(api.readsets.list({ "id": identityMatch.readset_id, "derived_sample__samples__id": sample.id })).then(response => response.data.results.length != 0)
-      }) : [])
+      const filteredIdentityMatches: FMSSampleIdentityMatch[] = []
+      
+      if (sampleIdentity && sample){
+        sampleIdentity.identity_matches.forEach(async (identityMatch) => {
+          if (isNullish(identityMatch.readset_id) || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
+            return
+          if (await dispatch(api.readsets.list({ "id": identityMatch.readset_id, "derived_sample__samples__id": sample.id })).then(response => response.data.results.length != 0))
+            filteredIdentityMatches.push(identityMatch)
+        })
+      }
+      setSampleContaminationMatches(filteredIdentityMatches)
     }, [dispatch, sample, sampleIdentity])
     const sampleIdentityMatchesColumns = useMemo(() => {
         const columns: NonNullable<TableProps<FMSSampleIdentityMatch>['columns']> = [
@@ -237,12 +242,20 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
     }
 
     if (sample && sample.is_library && !sample.is_pool && sampleIdentity && sampleContaminationMatches.length > 0) {
+      const cardStyle = {
+        root: {
+          borderColor: '#A1181D',
+          boxShadow: '0 2px 8px #A1181D',
+          borderRadius: 8,
+        },
+        title: {
+          fontSize: 16,
+        },
+      }
       render.push(
-          <div key={'library-contamination'}>
-              <Title level={5} type='danger' style={{ marginTop: '1rem' }}> Contamination warnings </Title>
-                  <div style={{ marginTop: '1rem' }} />
+          <Card title='Contamination warnings' styles={cardStyle}>
                   <Table dataSource={sampleContaminationMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />
-          </div>
+          </Card>
       )
     }
 
