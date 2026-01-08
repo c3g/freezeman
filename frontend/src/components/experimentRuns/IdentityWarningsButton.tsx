@@ -14,7 +14,7 @@ export const CONTAMINATION_WARNING_MESSAGE = "Tested readset data matched other 
 export class ConcordanceWarningValues {
   readset_id: FMSId
   biosample_id: FMSId
-  constructor(readset_id, biosample_id){
+  constructor(readset_id: FMSId, biosample_id: FMSId){
     this.readset_id = readset_id
     this.biosample_id = biosample_id
   }
@@ -26,7 +26,7 @@ export class ContaminationWarningValues {
   matched_biosample_id: FMSId
   matching_site_ratio: number
   compared_sites: number
-  constructor(readset_id, tested_biosample_id, matched_biosample_id, matching_site_ratio, compared_sites){
+  constructor(readset_id: FMSId, tested_biosample_id: FMSId, matched_biosample_id: FMSId, matching_site_ratio: number, compared_sites: number){
     this.readset_id = readset_id
     this.tested_biosample_id = tested_biosample_id
     this.matched_biosample_id = matched_biosample_id
@@ -58,13 +58,13 @@ export class MixupAndContaminationWarnings {
   }
   async fetchBiosamples(dispatch){
     const array_ids = [...this.biosample_ids]
-    const batches: string[] = []
+    const idBatches: string[] = []
     // prepare batches - array of id arrays as comma separated strings
     for (let start = 0; start < array_ids.length; start = start + DEFAULT_PAGE_SIZE) {
-      batches.push(array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(','))
+      idBatches.push(array_ids.slice(start, start + DEFAULT_PAGE_SIZE).join(','))
     }
 
-    await Promise.all(batches.map((ids) => dispatch(list({id__in: ids}))))
+    await Promise.all(idBatches.map((ids) => dispatch(list({id__in: ids}))))
   }
 }
 
@@ -84,8 +84,8 @@ export enum IdentityContaminationColumnID {
 export function getColumnsForConcordance(biosamplesById) {
   const columnDefinitions = CONCORDANCE_TABLE_COLUMNS(biosamplesById)
   return [
-      columnDefinitions.READSET_ID,
-      columnDefinitions.SAMPLE_ALIAS,
+    columnDefinitions.READSET_ID,
+    columnDefinitions.SAMPLE_ALIAS,
   ]
 }
 
@@ -111,11 +111,11 @@ export const CONCORDANCE_TABLE_COLUMNS = (biosamplesById): { [key in IdentityCon
 export function getColumnsForContamination(biosamplesById) {
   const columnDefinitions = CONTAMINATION_TABLE_COLUMNS(biosamplesById)
   return [
-      columnDefinitions.READSET_ID,
-      columnDefinitions.TESTED_SAMPLE_ALIAS,
-      columnDefinitions.MATCHED_SAMPLE_ALIAS,
-      columnDefinitions.MATCHING_SITE_RATIO,
-      columnDefinitions.COMPARED_SITES
+    columnDefinitions.READSET_ID,
+    columnDefinitions.TESTED_SAMPLE_ALIAS,
+    columnDefinitions.MATCHED_SAMPLE_ALIAS,
+    columnDefinitions.MATCHING_SITE_RATIO,
+    columnDefinitions.COMPARED_SITES
   ]
 }
 
@@ -185,30 +185,29 @@ export function IdentityWarningsButton({warnings}: warningButtonProps){
   const paginationContamination = warnings.contamination_warnings.length > 10 ? {pageSize: 10} : false
 
   return (warnings && warnings.hasWarnings() && 
-      <>
-        <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
-          <WarningTwoTone twoToneColor={'red'}/> Mixup & Contamination warnings...
-        </Button>
-        <Modal 
-          title={"Mixup & Contamination warnings"} 
-          open={WarningModalVisible} 
-          width={'60vw'}
-          footer={null} 
-          onCancel={()=>setWarningModalVisible(false)}
-        >
-          { warnings.concordance_warnings.length > 0 &&
-          <Card title={<Typography.Title level={4}>{CONCORDANCE_WARNING_MESSAGE}</Typography.Title>}>
-            <Table dataSource={warnings.concordance_warnings} columns={concordanceColumns} pagination={paginationConcordance} size='small'/>
-          </Card>
-          }
-          <Divider />
-          { warnings.contamination_warnings.length > 0 &&
-          <Card title={<Typography.Title level={4}>{CONTAMINATION_WARNING_MESSAGE}</Typography.Title>}>
-            <Table dataSource={warnings.contamination_warnings} columns={contaminationColumns} pagination={paginationContamination} size='small'/>
-          </Card>
-          }
-        </Modal>
-      </>
-      
+    <>
+      <Button color='danger' variant='outlined' onClick={()=>setWarningModalVisible(true)}>
+        <WarningTwoTone twoToneColor={'red'}/> Mixup & Contamination warnings...
+      </Button>
+      <Modal 
+        title={"Mixup & Contamination warnings"} 
+        open={WarningModalVisible} 
+        width={'60vw'}
+        footer={null} 
+        onCancel={()=>setWarningModalVisible(false)}
+      >
+        { warnings.concordance_warnings.length > 0 &&
+        <Card title={<Typography.Title level={4}>{CONCORDANCE_WARNING_MESSAGE}</Typography.Title>}>
+          <Table dataSource={warnings.concordance_warnings} columns={concordanceColumns} pagination={paginationConcordance} size='small'/>
+        </Card>
+        }
+        <Divider />
+        { warnings.contamination_warnings.length > 0 &&
+        <Card title={<Typography.Title level={4}>{CONTAMINATION_WARNING_MESSAGE}</Typography.Title>}>
+          <Table dataSource={warnings.contamination_warnings} columns={contaminationColumns} pagination={paginationContamination} size='small'/>
+        </Card>
+        }
+      </Modal>
+    </>
   )
 }

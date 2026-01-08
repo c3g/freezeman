@@ -50,8 +50,6 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
     const concentration_nm = library && library.concentration_nm ? library.concentration_nm.toFixed(3) : undefined
 
     const [sampleIdentity, setSampleIdentity] = useState<FMSSampleIdentity>()
-    const [sampleIdentityMatches, setSampleIdentityMatches] = useState<FMSSampleIdentityMatch[]>([]) // Only retains the identity QC matches. Matches with readsets were generated during run processing report ingestion.
-    const [sampleContaminationMatches, setSampleContaminationMatches] = useState<FMSSampleIdentityMatch[]>([])
     useEffect(() => {
         const biosampleId = sample?.biosample_id
         if (biosampleId) {
@@ -89,21 +87,19 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
         ]
         return items
     }, [sampleIdentity])
-    useEffect(() => {
-      setSampleIdentityMatches(sampleIdentity ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [])
-    }, [sampleIdentity])
-    useEffect(() => {
-      const filteredIdentityMatches: FMSSampleIdentityMatch[] = []
-      
-      if (sampleIdentity && sample){
-        sampleIdentity.identity_matches.forEach(async (identityMatch) => {
-          if (isNullish(identityMatch.readset_id) || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
-            return
-          if (await dispatch(api.readsets.list({ "id": identityMatch.readset_id, "derived_sample__samples__id": sample.id })).then(response => response.data.results.length != 0))
-            filteredIdentityMatches.push(identityMatch)
-        })
-      }
-      setSampleContaminationMatches(filteredIdentityMatches)
+    const sampleIdentityMatches = useMemo(() => sampleIdentity ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [], [sampleIdentity])
+    const sampleContaminationMatches = useMemo(() => {
+        const filteredIdentityMatches: FMSSampleIdentityMatch[] = []
+        
+        if (sampleIdentity && sample){
+            sampleIdentity.identity_matches.forEach(async (identityMatch) => {
+                if (isNullish(identityMatch.readset_id) || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
+                    return
+                if (await dispatch(api.readsets.list({ "id": identityMatch.readset_id, "derived_sample__samples__id": sample.id })).then(response => response.data.results.length != 0).catch(() => console.error("Failed to list identity match readset.")))
+                    filteredIdentityMatches.push(identityMatch)
+            })
+        }
+        return filteredIdentityMatches
     }, [dispatch, sample, sampleIdentity])
     const sampleIdentityMatchesColumns = useMemo(() => {
         const columns: NonNullable<TableProps<FMSSampleIdentityMatch>['columns']> = [
@@ -242,19 +238,19 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
     }
 
     if (sample && sample.is_library && !sample.is_pool && sampleIdentity && sampleContaminationMatches.length > 0) {
-      const cardStyle = {
-        root: {
-          borderColor: '#A1181D',
-          boxShadow: '0 2px 8px #A1181D',
-          borderRadius: 8,
-        },
-        title: {
-          fontSize: 16,
-        },
-      }
+        const cardStyle = {
+            root: {
+                borderColor: '#A1181D',
+                boxShadow: '0 2px 8px #A1181D',
+                borderRadius: 8,
+            },
+            title: {
+                fontSize: 16,
+            },
+        }
       render.push(
-          <Card title='Contamination warnings' styles={cardStyle}>
-                  <Table dataSource={sampleContaminationMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />
+          <Card key={'contaminouche'} title='Contamination warnings' styles={cardStyle}>
+              <Table dataSource={sampleContaminationMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />
           </Card>
       )
     }
