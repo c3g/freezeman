@@ -24,15 +24,11 @@ import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 import useHashURL from "../../../hooks/useHashURL";
 import { fetchProcessMeasurements } from "../../../modules/cache/cache";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
-import { selectAuthTokenAccess, selectContainersByID, selectLibrariesByID, selectSampleKindsByID, selectSamplesByID, selectUsersByID } from "../../../selectors";
+import { selectAuthTokenAccess, selectContainersByID, selectLibrariesByID, selectSampleKindsByID, selectSamplesByID } from "../../../selectors";
 import SampleDetailsContentOverview from "./SampleDetailsContentOverview";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { TabPane } = Tabs;
-
-const usernameStyle = {
-  cursor: 'default',
-}
 
 const depletedStyle = {
   display: "inline-block",

@@ -12,7 +12,8 @@ import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
 import { Dataset } from '../../models/frontend_models'
 import api from '../../utils/api'
-import { FMSId } from '../../models/fms_api_models'
+import { FMSId, FMSReadset } from '../../models/fms_api_models'
+import {IdentityWarningsButton, MixupAndContaminationWarnings, ContaminationWarningValues, ConcordanceWarningValues} from './IdentityWarningsButton'
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography
@@ -92,7 +93,7 @@ function ExperimentRunValidation({ experimentRunId }: ExperimentRunValidationPro
 		}
 	}, [dispatch, runLanes])
 
-	const expandedLaneKeys: string[] = []
+  const expandedLaneKeys: string[] = []
 	const lanesUX = experimentRunLanesState.ux[experimentRunId]
 	if (lanesUX && runLanes) {
 		for (const laneNumber of lanesUX.expandedLanes) {
@@ -176,6 +177,68 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
       setDatasets(values as Dataset[])})
 	}, [dispatch, lane.datasets])
 
+  const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings>()
+  useEffect(() => {
+    const fetchWarningsForLane = async () => {
+      const laneDatasetsIds = lane.datasets.map((dataset) => dataset && dataset.datasetID.toString()).join(",")
+      const warnings = await dispatch(api.readsets.list({dataset__id__in: laneDatasetsIds, derived_sample__biosample__sample_identity__conclusive: true})) // Only gets readsets that have a conclusive identity
+      .then(async (readsets_response) => {
+        const readsets: FMSReadset[] = readsets_response.data.results
+        if (readsets.length == 0) // Make sure there is some readsets with identities
+          return
+
+        const readsetsIds = readsets.map((readset) => readset.id.toString()).join(",")
+        const fetchBiosampleIds = async (readsets) => {
+          const biosampleIdByReadsetId = {}
+          await Promise.all(readsets.map(async (readset) => {
+            dispatch(api.derivedSamples.list({readsets__id__in: readset.id.toString()}))
+            .then(response => {biosampleIdByReadsetId[readset.id] = response.data.results[0].biosample})
+          }))
+          return biosampleIdByReadsetId
+        }
+
+        const biosampleIdByReadsetId = await fetchBiosampleIds(readsets)
+        const warnings = await dispatch(api.sampleIdentityMatch.list({readset__in: readsetsIds}))
+        .then((sampleIdentityMatches_response) => {
+          const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => {
+            if (current.readset_id) {
+              if (acc[current.readset_id]) {
+                acc[current.readset_id].push(current)
+              } else {
+                acc[current.readset_id] = [current]
+              }
+            }
+            return acc
+          }, {})
+          const warnings = readsets.reduce((warnings, currentReadset) => {
+            let match_self = false 
+            
+            matchesByReadset[currentReadset.id] && matchesByReadset[currentReadset.id].forEach(match => {
+              if (match.tested_biosample_id == match.matched_biosample_id){
+                match_self = true
+              }
+              else {
+                const contaminationWarning = new ContaminationWarningValues(currentReadset.id, match.tested_biosample_id, match.matched_biosample_id, match.matching_site_ratio, match.compared_sites)
+                warnings.addContaminationWarning(contaminationWarning)
+              }
+            })
+            if (!match_self) {
+                const concordanceWarnings = new ConcordanceWarningValues(currentReadset.id, biosampleIdByReadsetId[currentReadset.id])
+                warnings.addConcordanceWarning(concordanceWarnings)
+            } 
+            return warnings
+          }, new MixupAndContaminationWarnings())
+          return warnings
+        })
+        return warnings
+      })
+      setMixupAndContaminationWarnings(warnings)
+    }
+    if (!lane.datasets || lane.datasets.length == 0)
+      return
+    fetchWarningsForLane()
+	}, [dispatch, lane.datasets])
+
   const handleAddComment = useCallback(
     (id, comment) => {
         return dispatch(addArchivedComment(id, comment))
@@ -206,7 +269,6 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
   const siderStyle = {
     backgroundColor: '#fff',
   }
-
 	return (
 		<>
 			<FlexBar style={{padding: '1em'}}>
@@ -226,6 +288,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
 				) : (
 					<Text italic>(Run metrics unavailable)</Text>
 				)}
+        <IdentityWarningsButton warnings={mixupAndContaminationWarnings}/>
 				<Space>
 					{canValidate && 
 						<Text strong>Validate lane:</Text>

@@ -1,13 +1,12 @@
 from rest_framework import viewsets
-from django.db.models import Subquery, OuterRef
-from fms_core.models import Metric, Biosample
+from fms_core.models import Biosample
 from fms_core.serializers import BiosampleSerializer
 from ._constants import _biosample_filterset_fields
 
 from ._utils import _list_keys
 
 class BiosampleViewSet(viewsets.ModelViewSet):
-    queryset = Biosample.objects.all()
+    queryset = Biosample.objects.all().distinct()
     serializer_class = BiosampleSerializer
 
     ordering_fields = (
