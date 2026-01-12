@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
-import { Card, ConfigProvider, Flex, Select, Typography } from "antd";
+import { Card, ConfigProvider, Flex, Select, Space, Typography } from "antd";
 import SimpleExperimentRunTable, { ExperimentRunColumnID } from "./experimentRuns/SimpleExperimentRunTable";
 import { DefaultOptionType } from "antd/es/select";
 
@@ -44,61 +44,65 @@ function DashboardPage() {
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
         <PageContent>
-            <Select
-                defaultValue={'last_30_days'}
-                onChange={setCurrentTimeRange}
-                options={timeRanges}
-            />
-            <Flex vertical={false} wrap={"wrap"} gap={"large"}>
-                <DashboardCard title={"Last Launched Runs"}>
-                    <SimpleExperimentRunTable
-                        defaultPageSize={10}
-                        columnIDs={lastLaunchedRunsColumns}
-                        requestIDSuffix={".dashboard.lastLaunchedRuns"}
-                        fixedQueryParams={useMemo(() => ({
-                            run_processing_launch_time__isnull: false,
-                            ordering: '-run_processing_launch_time',
-                            run_processing_launch_time__gte: timeRangeToFirstDate[currentTimeRange],
-                        }), [currentTimeRange])}
-                        tableProps={{
-                            pagination: false, style: { height: '14.5em' },
-                            locale: { emptyText: <div style={{ height: '14.5em', justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No launched runs found</div> }
-                        }}
+            <Space orientation={"vertical"} style={{ width: '100%' }}>
+                <Flex justify={"center"}>
+                    <Select
+                        defaultValue={'last_30_days'}
+                        onChange={setCurrentTimeRange}
+                        options={timeRanges}
                     />
-                </DashboardCard>
-                <DashboardCard title={"Experiments Not Launched"}>
-                    <SimpleExperimentRunTable
-                        defaultPageSize={10}
-                        columnIDs={notLaunchedColumns}
-                        requestIDSuffix={".dashboard.experimentsNotLaunched"}
-                        fixedQueryParams={useMemo(() => ({
-                            run_processing_launch_time__isnull: true,
-                            ordering: 'start_date',
-                            start_date__gte: timeRangeToFirstDate[currentTimeRange],
-                        }), [currentTimeRange])}
-                        tableProps={{
-                            pagination: false, style: { height: '14.5em' },
-                            locale: { emptyText: <div style={{ height: '14.5em', justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No experiments found</div> }
-                        }}
-                    />
-                </DashboardCard>
-                <DashboardCard title={"Processed Runs"}>
-                    <SimpleExperimentRunTable
-                        defaultPageSize={10}
-                        columnIDs={lastLaunchedRunsColumns}
-                        requestIDSuffix={".dashboard.processedRuns"}
-                        fixedQueryParams={useMemo(() => ({
-                            experiment_run_progress_stage: "processed",
-                            ordering: '-run_processing_completion_time',
-                            run_processing_completion_time__gte: timeRangeToFirstDate[currentTimeRange],
-                        }), [currentTimeRange])}
-                        tableProps={{
-                            pagination: false, style: { height: '14.5em' },
-                            locale: { emptyText: <div style={{ height: '14.5em', justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No processed runs found</div> }
-                        }}
-                    />
-                </DashboardCard>
-            </Flex>
+                </Flex>
+                <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"}>
+                    <DashboardCard title={"Last Launched Runs"}>
+                        <SimpleExperimentRunTable
+                            defaultPageSize={10}
+                            columnIDs={lastLaunchedRunsColumns}
+                            requestIDSuffix={".dashboard.lastLaunchedRuns"}
+                            fixedQueryParams={useMemo(() => ({
+                                run_processing_launch_time__isnull: false,
+                                ordering: '-run_processing_launch_time',
+                                run_processing_launch_time__gte: timeRangeToFirstDate[currentTimeRange],
+                            }), [currentTimeRange])}
+                            tableProps={{
+                                pagination: false, style: { height: '14.5em' },
+                                locale: { emptyText: <div style={{ height: '14.5em', justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No launched runs found</div> }
+                            }}
+                        />
+                    </DashboardCard>
+                    <DashboardCard title={"Experiments Not Launched"}>
+                        <SimpleExperimentRunTable
+                            defaultPageSize={10}
+                            columnIDs={notLaunchedColumns}
+                            requestIDSuffix={".dashboard.experimentsNotLaunched"}
+                            fixedQueryParams={useMemo(() => ({
+                                run_processing_launch_time__isnull: true,
+                                ordering: 'start_date',
+                                start_date__gte: timeRangeToFirstDate[currentTimeRange],
+                            }), [currentTimeRange])}
+                            tableProps={{
+                                pagination: false, style: { height: '14.5em' },
+                                locale: { emptyText: <div style={{ height: '14.5em', justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No experiments found</div> }
+                            }}
+                        />
+                    </DashboardCard>
+                    <DashboardCard title={"Processed Runs"}>
+                        <SimpleExperimentRunTable
+                            defaultPageSize={10}
+                            columnIDs={lastLaunchedRunsColumns}
+                            requestIDSuffix={".dashboard.processedRuns"}
+                            fixedQueryParams={useMemo(() => ({
+                                experiment_run_progress_stage: "processed",
+                                ordering: '-run_processing_completion_time',
+                                run_processing_completion_time__gte: timeRangeToFirstDate[currentTimeRange],
+                            }), [currentTimeRange])}
+                            tableProps={{
+                                pagination: false, style: { height: '14.5em' },
+                                locale: { emptyText: <div style={{ height: '14.5em', justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No processed runs found</div> }
+                            }}
+                        />
+                    </DashboardCard>
+                </Flex>
+            </Space>
         </PageContent>
     </PageContainer>
 }
