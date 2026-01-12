@@ -181,7 +181,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
   useEffect(() => {
     const fetchWarningsForLane = async () => {
       const laneDatasetsIds = lane.datasets.map((dataset) => dataset && dataset.datasetID.toString()).join(",")
-      const warnings = await dispatch(api.readsets.list({dataset__id__in: laneDatasetsIds, derived_sample__biosample__sample_identity__conclusive: true})) // Only gets readsets that have a conclusive identity
+      const warningsForLaneDatasetsWithIdentity = await dispatch(api.readsets.list({dataset__id__in: laneDatasetsIds, derived_sample__biosample__sample_identity__conclusive: true})) // Only gets readsets that have a conclusive identity
       .then(async (readsets_response) => {
         const readsets: FMSReadset[] = readsets_response.data.results
         if (readsets.length == 0) // Make sure there is some readsets with identities
@@ -198,7 +198,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
         }
 
         const biosampleIdByReadsetId = await fetchBiosampleIds(readsets)
-        const warnings = await dispatch(api.sampleIdentityMatch.list({readset__in: readsetsIds}))
+        const warningsForAllMatches = await dispatch(api.sampleIdentityMatch.list({readset__in: readsetsIds}))
         .then((sampleIdentityMatches_response) => {
           const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => {
             if (current.readset_id) {
@@ -210,32 +210,37 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
             }
             return acc
           }, {})
-          const warnings = readsets.reduce((warnings, currentReadset) => {
-            let match_self = false 
-            
-            matchesByReadset[currentReadset.id] && matchesByReadset[currentReadset.id].forEach(match => {
-              if (match.tested_biosample_id == match.matched_biosample_id){
-                match_self = true
+
+          const warningsBrokenDownByType = new MixupAndContaminationWarnings()
+          for (const readset of readsets){
+              let match_self = false
+              const matchesForReadset = matchesByReadset[readset.id]
+              if (matchesForReadset) {
+                for (const match of matchesForReadset){
+                  if (match.tested_biosample_id == match.matched_biosample_id){
+                    match_self = true
+                  }
+                  else {
+                    const contaminationWarning = new ContaminationWarningValues(readset.id, match.tested_biosample_id, match.matched_biosample_id, match.matching_site_ratio, match.compared_sites)
+                    warningsBrokenDownByType.addContaminationWarning(contaminationWarning)
+                  }
+                }
               }
-              else {
-                const contaminationWarning = new ContaminationWarningValues(currentReadset.id, match.tested_biosample_id, match.matched_biosample_id, match.matching_site_ratio, match.compared_sites)
-                warnings.addContaminationWarning(contaminationWarning)
+              if (!match_self) {
+                  const concordanceWarnings = new ConcordanceWarningValues(readset.id, biosampleIdByReadsetId[readset.id])
+                  warningsBrokenDownByType.addConcordanceWarning(concordanceWarnings)
               }
-            })
-            if (!match_self) {
-                const concordanceWarnings = new ConcordanceWarningValues(currentReadset.id, biosampleIdByReadsetId[currentReadset.id])
-                warnings.addConcordanceWarning(concordanceWarnings)
-            } 
-            return warnings
-          }, new MixupAndContaminationWarnings())
-          return warnings
+          }
+          return warningsBrokenDownByType
         })
-        return warnings
+        return warningsForAllMatches
       })
-      setMixupAndContaminationWarnings(warnings)
+      setMixupAndContaminationWarnings(warningsForLaneDatasetsWithIdentity)
     }
+
     if (!lane.datasets || lane.datasets.length == 0)
       return
+
     fetchWarningsForLane()
 	}, [dispatch, lane.datasets])
 
