@@ -49,7 +49,7 @@ function DashboardPage() {
                 onChange={setCurrentTimeRange}
                 options={timeRanges}
             />
-            <Flex orientation={"horizontal"} wrap={"wrap"} gap={"large"}>
+            <Flex vertical={false} wrap={"wrap"} gap={"large"}>
                 <DashboardCard title={"Last Launched Runs"}>
                     <SimpleExperimentRunTable
                         defaultPageSize={10}
