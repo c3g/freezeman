@@ -37,7 +37,7 @@ export interface SimpleExperimentRunTableProps {
     fixedQueryParams?: Record<string, any>
     columnIDs?: readonly ExperimentRunColumnID[]
     requestIDSuffix?: string
-    tableProps?: Pick<React.ComponentProps<typeof Table>, 'style' | 'styles' | 'pagination' | 'locale'>
+    tableProps?: Partial<Pick<React.ComponentProps<typeof Table>, 'style' | 'pagination' | 'locale'>>
 }
 function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs = defaultExperimentColumns, requestIDSuffix = '', tableProps }: SimpleExperimentRunTableProps) {
     const dispatch = useAppDispatch()
