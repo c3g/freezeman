@@ -32,14 +32,17 @@ const filterDescriptions: FilterDescriptions<ExperimentRunColumnID> = {
     [ExperimentRunColumnID.NAME]: { type: 'INPUT', startsWith: true, exactMatch: false },
 } as const
 
+type TableProps = React.ComponentProps<typeof Table>
+
 export interface SimpleExperimentRunTableProps {
     defaultPageSize: number
     fixedQueryParams?: Record<string, any>
     columnIDs?: readonly ExperimentRunColumnID[]
     requestIDSuffix?: string
-    tableProps?: Partial<Pick<React.ComponentProps<typeof Table>, 'style' | 'pagination' | 'locale'>>
+    tableHeight?: NonNullable<TableProps['style']>['height']
+    tableProps?: Partial<Pick<TableProps, 'pagination' | 'locale' | 'className'>>
 }
-function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs = defaultExperimentColumns, requestIDSuffix = '', tableProps }: SimpleExperimentRunTableProps) {
+function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs = defaultExperimentColumns, requestIDSuffix = '', tableHeight = '75vh', tableProps }: SimpleExperimentRunTableProps) {
     const dispatch = useAppDispatch()
 
     const launchesByID = useAppSelector(selectExperimentRunLaunches).launchesById
@@ -108,7 +111,6 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
         }
     }, [dispatch, fixedQueryParams, requestIDSuffix])
 
-    const tableHeight = tableProps?.style?.height ?? '75vh'
     const [{ locale, ...paginatedDataProps}, { fetchRowData }] = usePaginatedDataProps({
         defaultPageSize: 25,
         fetchRowData: fetchExperimentRuns,
