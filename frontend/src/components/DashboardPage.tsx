@@ -2,10 +2,11 @@ import React, { useMemo } from "react";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
-import { Card, ConfigProvider, Flex, Select, Space, Typography } from "antd";
+import { Button, Card, ConfigProvider, Flex, Select, Space, Typography } from "antd";
 import SimpleExperimentRunTable, { ExperimentRunColumnID } from "./experimentRuns/SimpleExperimentRunTable";
 import { DefaultOptionType } from "antd/es/select";
 import './DashboardPage.scss'
+import { useNavigate } from "react-router-dom";
 
 const lastLaunchedRunsColumns = [
     ExperimentRunColumnID.ID,
@@ -51,6 +52,8 @@ const CARD_HEIGHT = 20 // em
 function DashboardPage() {
     const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days');
     const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_14_days');
+
+    const navigate = useNavigate()
 
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
@@ -124,6 +127,10 @@ function DashboardPage() {
                             }), [])}
                         />
                     </DashboardCard>
+                    <DashboardCard title={"Template Shortcuts"} justify={"space-evenly"}>
+                        <Button type="primary" style={{ width: '100%' }} onClick={() => navigate('/projects/add/')}>Add Project</Button>
+                        <Button type="primary" style={{ width: '100%' }} onClick={() => navigate('/samples/actions/0/')}>Submit Samples</Button>
+                    </DashboardCard>
                 </Flex>
             </Space>
         </PageContent>
@@ -149,8 +156,9 @@ function DashboardCardTitle(props: React.ComponentProps<typeof Typography.Title>
 
 interface DashboardCardProps extends React.ComponentProps<typeof Card> {
     title: React.ReactNode
+    justify?: React.ComponentProps<typeof Flex>['justify']
 }
-function DashboardCard({ title, children, ...props }: DashboardCardProps) {
+function DashboardCard({ title, justify = 'space-between', children, ...props }: DashboardCardProps) {
     return <ConfigProvider
                 theme={{
                     components: {
@@ -162,7 +170,7 @@ function DashboardCard({ title, children, ...props }: DashboardCardProps) {
                 }}
             >
                 <Card style={{ width: '30%', height: `${CARD_HEIGHT}em` }} {...props}>
-                    <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={"space-between"}>
+                    <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={justify}>
                         <DashboardCardTitle>{title}</DashboardCardTitle>
                         {children}
                     </Flex>
