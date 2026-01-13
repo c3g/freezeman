@@ -44,7 +44,9 @@ const TABLE_HEIGHT = '10em';
 const CARD_HEIGHT = 20 // em
 
 function DashboardPage() {
-    const [currentTimeRange, setCurrentTimeRange] = React.useState<string>('last_30_days');
+    const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<string>('last_30_days');
+    const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<string>('last_30_days');
+
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
         <PageContent>
@@ -71,7 +73,7 @@ function DashboardPage() {
                         <Flex justify={"center"}>
                             <Select
                                 defaultValue={'last_30_days'}
-                                onChange={setCurrentTimeRange}
+                                onChange={setExperimentsNotLaunchedTimeRange}
                                 options={timeRanges}
                             />
                         </Flex>
@@ -82,8 +84,8 @@ function DashboardPage() {
                             fixedQueryParams={useMemo(() => ({
                                 run_processing_launch_time__isnull: true,
                                 ordering: 'start_date',
-                                start_date__gte: timeRangeToFirstDate[currentTimeRange],
-                            }), [currentTimeRange])}
+                                start_date__gte: timeRangeToFirstDate[experimentsNotLaunchedTimeRange],
+                            }), [experimentsNotLaunchedTimeRange])}
                             tableHeight={TABLE_HEIGHT}
                             tableProps={useMemo(() => ({
                                 pagination: false,
@@ -96,7 +98,7 @@ function DashboardPage() {
                         <Flex justify={"center"}>
                             <Select
                                 defaultValue={'last_30_days'}
-                                onChange={setCurrentTimeRange}
+                                onChange={setProcessedRunsTimeRange}
                                 options={timeRanges}
                             />
                         </Flex>
@@ -107,8 +109,8 @@ function DashboardPage() {
                             fixedQueryParams={useMemo(() => ({
                                 experiment_run_progress_stage: "processed",
                                 ordering: '-run_processing_completion_time',
-                                run_processing_completion_time__gte: timeRangeToFirstDate[currentTimeRange],
-                            }), [currentTimeRange])}
+                                run_processing_completion_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
+                            }), [processedRunsTimeRange])}
                             tableHeight={TABLE_HEIGHT}
                             tableProps={useMemo(() => ({
                                 pagination: false,
