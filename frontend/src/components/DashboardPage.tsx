@@ -25,6 +25,10 @@ const timeRanges: DefaultOptionType[] = [
         value: 'last_7_days',
     },
     {
+        label: 'Last 14 Days',
+        value: 'last_14_days',
+    },
+    {
         label: 'Last 30 Days',
         value: 'last_30_days',
     },
@@ -34,18 +38,19 @@ const timeRanges: DefaultOptionType[] = [
     }
 ]
 
-const timeRangeToFirstDate: Record<string, string> = {
+const timeRangeToFirstDate = {
     'last_7_days': new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    'last_14_days': new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_30_days': new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_90_days': new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-}
+} as const
 
 const TABLE_HEIGHT = '10em';
 const CARD_HEIGHT = 20 // em
 
 function DashboardPage() {
-    const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<string>('last_30_days');
-    const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<string>('last_30_days');
+    const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days');
+    const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_14_days');
 
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
@@ -97,7 +102,7 @@ function DashboardPage() {
                     <DashboardCard title={"Unvalidated Processed Runs"}>
                         <Flex justify={"center"}>
                             <Select
-                                defaultValue={'last_30_days'}
+                                defaultValue={'last_14_days'}
                                 onChange={setProcessedRunsTimeRange}
                                 options={timeRanges}
                             />
