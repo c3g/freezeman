@@ -2,11 +2,14 @@ import React, { useMemo } from "react";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
-import { Button, Card, ConfigProvider, Flex, Select, Space, Typography } from "antd";
+import { Button, Card, ConfigProvider, Flex, Select, Space, Spin, Typography } from "antd";
 import SimpleExperimentRunTable, { ExperimentRunColumnID } from "./experimentRuns/SimpleExperimentRunTable";
 import { DefaultOptionType } from "antd/es/select";
 import './DashboardPage.scss'
 import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "../hooks";
+import { selectSampleTemplateActions } from "../selectors";
+import { FMSTemplateAction } from "../models/fms_api_models";
 
 const lastLaunchedRunsColumns = [
     ExperimentRunColumnID.ID,
@@ -46,14 +49,23 @@ const timeRangeToFirstDate = {
     'last_90_days': new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 } as const
 
-const TABLE_HEIGHT = '10em';
-const CARD_HEIGHT = 20 // em
+const TABLE_HEIGHT = '20em';
+const CARD_HEIGHT = 30 // em
 
 function DashboardPage() {
-    const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days');
-    const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_14_days');
+    const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
+    const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
 
     const navigate = useNavigate()
+
+    const templates = useAppSelector((state) => selectSampleTemplateActions(state).items as FMSTemplateAction[] | undefined)
+    const templateActionButtons = useMemo(() => {
+        return templates?.filter((t) => t.name === 'Add Samples')?.map((template) => (
+            <Button key={template.id} onClick={() => navigate(`/samples/actions/${template.id}/`)}>
+                {template.name}
+            </Button>
+        )) ?? []
+    }, [templates, navigate])
 
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
@@ -80,7 +92,7 @@ function DashboardPage() {
                     <DashboardCard title={"Experiments Not Launched"}>
                         <Flex justify={"center"}>
                             <Select
-                                defaultValue={'last_30_days'}
+                                defaultValue={experimentsNotLaunchedTimeRange}
                                 onChange={setExperimentsNotLaunchedTimeRange}
                                 options={timeRanges}
                             />
@@ -105,7 +117,7 @@ function DashboardPage() {
                     <DashboardCard title={"Unvalidated Processed Runs"}>
                         <Flex justify={"center"}>
                             <Select
-                                defaultValue={'last_14_days'}
+                                defaultValue={processedRunsTimeRange}
                                 onChange={setProcessedRunsTimeRange}
                                 options={timeRanges}
                             />
@@ -127,9 +139,12 @@ function DashboardPage() {
                             }), [])}
                         />
                     </DashboardCard>
-                    <DashboardCard title={"Template Shortcuts"} justify={"space-evenly"}>
-                        <Button type="primary" style={{ width: '100%' }} onClick={() => navigate('/projects/add/')}>Add Project</Button>
-                        <Button type="primary" style={{ width: '100%' }} onClick={() => navigate('/samples/actions/0/')}>Submit Samples</Button>
+                    <DashboardCard title={"Shortcuts"}>
+                        <Flex vertical={true} gap={"1em"}>
+                            <Button onClick={() => navigate('/projects/add/')}>Add Project</Button>
+                            {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
+                        </Flex>
+                        <div></div>
                     </DashboardCard>
                 </Flex>
             </Space>
@@ -169,8 +184,8 @@ function DashboardCard({ title, justify = 'space-between', children, ...props }:
                     },
                 }}
             >
-                <Card style={{ width: '30%', height: `${CARD_HEIGHT}em` }} {...props}>
-                    <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={justify}>
+                <Card style={{ width: '40%', height: `${CARD_HEIGHT}em` }} {...props}>
+                    <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={justify} align={"center"}>
                         <DashboardCardTitle>{title}</DashboardCardTitle>
                         {children}
                     </Flex>
