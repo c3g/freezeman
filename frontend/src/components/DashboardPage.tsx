@@ -61,7 +61,7 @@ function DashboardPage() {
     const templates = useAppSelector((state) => selectSampleTemplateActions(state).items as FMSTemplateAction[] | undefined)
     const templateActionButtons = useMemo(() => {
         return templates?.filter((t) => t.name === 'Add Samples')?.map((template) => (
-            <Button key={template.id} onClick={() => navigate(`/samples/actions/${template.id}/`)}>
+            <Button key={template.id} style={{ width: '75%' }} onClick={() => navigate(`/samples/actions/${template.id}/`)}>
                 {template.name}
             </Button>
         )) ?? []
@@ -70,84 +70,82 @@ function DashboardPage() {
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
         <PageContent>
-            <Space orientation={"vertical"} style={{ width: '100%' }}>
-                <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"}>
-                    <DashboardCard title={"Last Launched Runs"}>
-                        <SimpleExperimentRunTable
-                            defaultPageSize={5}
-                            columnIDs={lastLaunchedRunsColumns}
-                            requestIDSuffix={".dashboard.lastLaunchedRuns"}
-                            fixedQueryParams={useMemo(() => ({
-                                run_processing_launch_time__isnull: false,
-                                ordering: '-run_processing_launch_time',
-                            }), [])}
-                            tableHeight={TABLE_HEIGHT}
-                            tableProps={useMemo(() => ({
-                                pagination: false,
-                                locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No launched runs found</div> },
-                                className: 'table-in-card'
-                            }), [])}
+            <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"} style={{ width: '100%' }}>
+                <DashboardCard title={"Last Launched Runs"}>
+                    <SimpleExperimentRunTable
+                        defaultPageSize={5}
+                        columnIDs={lastLaunchedRunsColumns}
+                        requestIDSuffix={".dashboard.lastLaunchedRuns"}
+                        fixedQueryParams={useMemo(() => ({
+                            run_processing_launch_time__isnull: false,
+                            ordering: '-run_processing_launch_time',
+                        }), [])}
+                        tableHeight={TABLE_HEIGHT}
+                        tableProps={useMemo(() => ({
+                            pagination: false,
+                            locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No launched runs found</div> },
+                            className: 'table-in-card'
+                        }), [])}
+                    />
+                </DashboardCard>
+                <DashboardCard title={"Experiments Not Launched"}>
+                    <Flex justify={"center"}>
+                        <Select
+                            defaultValue={experimentsNotLaunchedTimeRange}
+                            onChange={setExperimentsNotLaunchedTimeRange}
+                            options={timeRanges}
                         />
-                    </DashboardCard>
-                    <DashboardCard title={"Experiments Not Launched"}>
-                        <Flex justify={"center"}>
-                            <Select
-                                defaultValue={experimentsNotLaunchedTimeRange}
-                                onChange={setExperimentsNotLaunchedTimeRange}
-                                options={timeRanges}
-                            />
-                        </Flex>
-                        <SimpleExperimentRunTable
-                            defaultPageSize={5}
-                            columnIDs={notLaunchedColumns}
-                            requestIDSuffix={".dashboard.experimentsNotLaunched"}
-                            fixedQueryParams={useMemo(() => ({
-                                run_processing_launch_time__isnull: true,
-                                ordering: 'start_date',
-                                start_date__gte: timeRangeToFirstDate[experimentsNotLaunchedTimeRange],
-                            }), [experimentsNotLaunchedTimeRange])}
-                            tableHeight={TABLE_HEIGHT}
-                            tableProps={useMemo(() => ({
-                                pagination: false,
-                                locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No experiments found</div> },
-                                className: 'table-in-card'
-                            }), [])}
+                    </Flex>
+                    <SimpleExperimentRunTable
+                        defaultPageSize={5}
+                        columnIDs={notLaunchedColumns}
+                        requestIDSuffix={".dashboard.experimentsNotLaunched"}
+                        fixedQueryParams={useMemo(() => ({
+                            run_processing_launch_time__isnull: true,
+                            ordering: 'start_date',
+                            start_date__gte: timeRangeToFirstDate[experimentsNotLaunchedTimeRange],
+                        }), [experimentsNotLaunchedTimeRange])}
+                        tableHeight={TABLE_HEIGHT}
+                        tableProps={useMemo(() => ({
+                            pagination: false,
+                            locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No experiments found</div> },
+                            className: 'table-in-card'
+                        }), [])}
+                    />
+                </DashboardCard>
+                <DashboardCard title={"Unvalidated Processed Runs"}>
+                    <Flex justify={"center"}>
+                        <Select
+                            defaultValue={processedRunsTimeRange}
+                            onChange={setProcessedRunsTimeRange}
+                            options={timeRanges}
                         />
-                    </DashboardCard>
-                    <DashboardCard title={"Unvalidated Processed Runs"}>
-                        <Flex justify={"center"}>
-                            <Select
-                                defaultValue={processedRunsTimeRange}
-                                onChange={setProcessedRunsTimeRange}
-                                options={timeRanges}
-                            />
-                        </Flex>
-                        <SimpleExperimentRunTable
-                            defaultPageSize={5}
-                            columnIDs={lastLaunchedRunsColumns}
-                            requestIDSuffix={".dashboard.processedRuns"}
-                            fixedQueryParams={useMemo(() => ({
-                                experiment_run_progress_stage: "processed",
-                                ordering: '-run_processing_completion_time',
-                                run_processing_completion_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
-                            }), [processedRunsTimeRange])}
-                            tableHeight={TABLE_HEIGHT}
-                            tableProps={useMemo(() => ({
-                                pagination: false,
-                                locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No processed runs found</div> },
-                                className: 'table-in-card'
-                            }), [])}
-                        />
-                    </DashboardCard>
-                    <DashboardCard title={"Shortcuts"}>
-                        <Flex vertical={true} gap={"1em"}>
-                            <Button onClick={() => navigate('/projects/add/')}>Add Project</Button>
-                            {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
-                        </Flex>
-                        <div></div>
-                    </DashboardCard>
-                </Flex>
-            </Space>
+                    </Flex>
+                    <SimpleExperimentRunTable
+                        defaultPageSize={5}
+                        columnIDs={lastLaunchedRunsColumns}
+                        requestIDSuffix={".dashboard.processedRuns"}
+                        fixedQueryParams={useMemo(() => ({
+                            experiment_run_progress_stage: "processed",
+                            ordering: '-run_processing_completion_time',
+                            run_processing_completion_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
+                        }), [processedRunsTimeRange])}
+                        tableHeight={TABLE_HEIGHT}
+                        tableProps={useMemo(() => ({
+                            pagination: false,
+                            locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No processed runs found</div> },
+                            className: 'table-in-card'
+                        }), [])}
+                    />
+                </DashboardCard>
+                <DashboardCard title={"Shortcuts"}>
+                    <Flex vertical={true} gap={"1em"} align={"center"} style={{ width: '100%' }}>
+                        <Button style={{ width: '75%' }} onClick={() => navigate('/projects/add/')}>Add Project</Button>
+                        {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
+                    </Flex>
+                    <div></div>
+                </DashboardCard>
+            </Flex>
         </PageContent>
     </PageContainer>
 }
@@ -184,7 +182,7 @@ function DashboardCard({ title, justify = 'space-between', children, ...props }:
                     },
                 }}
             >
-                <Card style={{ width: '40%', height: `${CARD_HEIGHT}em` }} {...props}>
+                <Card style={{ width: '49%', height: `${CARD_HEIGHT}em` }} styles={{ root: { border: '2px solid var(--ant-blue-3)' } }} {...props}>
                     <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={justify} align={"center"}>
                         <DashboardCardTitle>{title}</DashboardCardTitle>
                         {children}
