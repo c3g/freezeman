@@ -90,8 +90,8 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
     const sampleIdentityMatches = useMemo(() => sampleIdentity && sampleIdentity.identity_matches ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [], [sampleIdentity])
     const sampleContaminationMatches = useMemo(() => {
         const filteredIdentityMatches: FMSSampleIdentityMatch[] = []
-        
-        if (sample && sampleIdentity && sampleIdentity.identity_matches){
+
+        if (sample && sampleIdentity && sampleIdentity.identity_matches) {
             sampleIdentity.identity_matches.forEach(async (identityMatch) => {
                 if (isNullish(identityMatch.readset_id) || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
                     return
@@ -229,10 +229,10 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
         render.push(
             <div key={'identity-qc'}>
                 <Title level={5} style={{ marginTop: '1rem' }}> Identity QC </Title>
-                    <Descriptions bordered={true} size="small" column={3} items={sampleIdentityItems} />
-                    <div style={{ marginTop: '1rem' }} />
-                    {sampleIdentityMatches.length > 0 &&
-                        <Table dataSource={sampleIdentityMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
+                <Descriptions bordered={true} size="small" column={3} items={sampleIdentityItems} />
+                <div style={{ marginTop: '1rem' }} />
+                {sampleIdentityMatches.length > 0 &&
+                    <Table dataSource={sampleIdentityMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
             </div>
         )
     }
@@ -248,11 +248,11 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
                 fontSize: 16,
             },
         }
-      render.push(
-          <Card key={'contaminouche'} title='Contamination warnings' styles={cardStyle}>
-              <Table dataSource={sampleContaminationMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />
-          </Card>
-      )
+        render.push(
+            <Card key={'contaminouche'} title='Contamination warnings' styles={cardStyle}>
+                <Table dataSource={sampleContaminationMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />
+            </Card>
+        )
     }
 
     render.push(
@@ -288,12 +288,12 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
                     <Card>
                         {
                             versions?.length === 0
-                            ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                            : <Timeline
-                                mode="start"
-                                style={{ marginLeft: timelineMarginLeft }}
-                                items={timeLineItems}
-                            />
+                                ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                : <Timeline
+                                    mode="start"
+                                    style={{ marginLeft: timelineMarginLeft }}
+                                    items={timeLineItems}
+                                />
                         }
                     </Card>
                 </div>
@@ -305,7 +305,7 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
 }
 
 const usernameStyle = {
-  cursor: 'default',
+    cursor: 'default',
 }
 
 function renderTimelineLabel(version: FMSVersion, usersByID: ReturnType<typeof selectUsersByID>) {
