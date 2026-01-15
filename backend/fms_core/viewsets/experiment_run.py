@@ -12,12 +12,13 @@ from fms_core.services.experiment_run import (start_experiment_run_processing,
                                               get_run_info_for_experiment,
                                               set_experiment_run_end_time,
                                               set_run_processing_start_time,
-                                              set_run_processing_end_time)
+                                              set_run_processing_end_time,
+                                              LAUNCH_MODES)
 from fms_core.services.dataset import  set_experiment_run_lane_validation_status, get_experiment_run_lane_validation_status
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _experiment_run_filterset_fields
-
+from fms_core.permissions import LaunchExperimentRun, RelaunchExperimentRun
 
 
 class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
@@ -42,6 +43,15 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     template_action_list = []
 
     filterset_class = ExperimentRunFilter
+
+    def get_permissions(self):
+        if self.action == "launch_run_processing":
+            permission_classes = [IsAuthenticated & LaunchExperimentRun]
+        elif self.action == "relaunch_run_processing":
+            permission_classes = [IsAuthenticated & RelaunchExperimentRun]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -115,6 +125,8 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         '''
         Generates a run info file for an experiment, which triggers run processing
         and sets the experiment's run processing launch time to the current date.
+        This does the same thing as relaunch_run_processing but does not execute unless
+        there is no launch time assigned to the experiment run.
 
         Args:
             The experiment ID.
@@ -126,7 +138,34 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             On error:
             {'ok': False, message: <error message>}
         '''
-        _, errors, _ = start_experiment_run_processing(pk)
+        _, errors, _ = start_experiment_run_processing(pk, LAUNCH_MODES.LAUNCH)
+
+        response = None
+        if(errors):
+            response = HttpResponseServerError("\n".join(errors))
+        else:
+            response = Response('Launched successfully')
+        return response
+
+    @action(detail=True, methods=["patch"])
+    def relaunch_run_processing(self, _request, pk=None):
+        '''
+        Generates a run info file for an experiment, which triggers run processing
+        and sets the experiment's run processing launch time to the current date.
+        This does the same thing as launch_run_processing but does not execute unless
+        there is already a launch time assigned to the experiment run.
+
+        Args:
+            The experiment ID.
+
+        Returns:
+            On success:
+            {'ok': True}
+
+            On error:
+            {'ok': False, message: <error message>}
+        '''
+        _, errors, _ = start_experiment_run_processing(pk, LAUNCH_MODES.RELAUNCH)
 
         response = None
         if(errors):

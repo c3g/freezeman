@@ -13,6 +13,11 @@ from .process import create_process
 from .property_value import create_process_properties, create_process_measurement_properties
 from .sample import transfer_sample
 
+class LAUNCH_MODES():
+    DEFAULT="DEFAULT"
+    LAUNCH="LAUNCH"
+    RELAUNCH="RELAUNCH"
+
 def get_experiment_run(name):
     """
     Get an existing experiment run object using its unique name.
@@ -218,7 +223,7 @@ def set_run_processing_end_time(experiment_run_id: int = None):
     return experiment_run, errors, warnings
 
 
-def start_experiment_run_processing(pk):
+def start_experiment_run_processing(experiment_run_id, mode=LAUNCH_MODES.DEFAULT):
     '''
     Generates a run info file for an experiment and drops it in a spool directory
     watched by Tech Dev, which triggers run processing to be scheduled.
@@ -227,7 +232,10 @@ def start_experiment_run_processing(pk):
     timestamp is updated with the current date and time.
 
     Args:
-        The ID of the experiment.
+        experiment_run_id: The ID of the experiment.
+        mode: DEFAULT - Allows both initial launch and relaunch.
+              LAUNCH - Allows only for an initial launch (run_processing_launch_time must be None).
+              RELAUNCH = Allows only for a relaunch (run_processing_launch_time must not be None).
 
     Returns:
         The path to the run info file that was created, and a list of errors and warnings.
@@ -238,15 +246,20 @@ def start_experiment_run_processing(pk):
     
     experiment_run = None
     try:
-        experiment_run = ExperimentRun.objects.get(id=pk)
+        experiment_run = ExperimentRun.objects.get(id=experiment_run_id)
     except ExperimentRun.DoesNotExist:
-        errors.append(f'Experiment run with id {pk} not found.')
+        errors.append(f'Experiment run with id {experiment_run_id} not found.')
 
     if experiment_run is not None:
-        try:
-            run_info = generate_run_info(experiment_run)
-        except Exception as err:
-            errors.append(f'An error occured while generating experiment run info. {str(err)}')
+        if experiment_run.run_processing_launch_time is None and mode==LAUNCH_MODES.RELAUNCH:
+            errors.append(f'Experiment run with id {experiment_run_id} is not yet launched.')
+        elif experiment_run.run_processing_launch_time is not None and mode==LAUNCH_MODES.LAUNCH:
+            errors.append(f'Experiment run with id {experiment_run_id} has already been launched.')
+        else:
+            try:
+                run_info = generate_run_info(experiment_run)
+            except Exception as err:
+                errors.append(f'An error occured while generating experiment run info. {str(err)}')
 
     run_info_file_path = None
     if run_info is not None:
