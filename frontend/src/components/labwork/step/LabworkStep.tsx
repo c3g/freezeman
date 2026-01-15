@@ -1,6 +1,6 @@
 import { Button, Popconfirm, Radio, Select, Space, Tabs, Typography, notification, Tooltip } from 'antd'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
@@ -377,38 +377,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		</Space>
 	)
 
-	return (
-		<>
-			<AppPageHeader title={step.name} extra={buttonBar} />
-			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<Tabs defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyInactiveTabPane tabBarExtraContent={
-					<Space>
-						{selectedTab === SELECTION_TAB_KEY &&
-							<>
-								<Typography.Text>Sort Coordinates: </Typography.Text>
-								<Radio.Group
-									value={stepSamples.selectedSamples.sortDirection.orientation}
-									onChange={(evt) => { evt.target && handleCoordinateSortOrientation(evt.target.value) }}
-								>
-									<Radio.Button value='row'>by Row</Radio.Button>
-									<Radio.Button value='column'>by Column</Radio.Button>
-								</Radio.Group>
-							</>
-						}
-						<Popconfirm
-							disabled={stepSamples.selectedSamples.items.length == 0}
-							title={'Clear the entire selection?'}
-							okText={'Yes'}
-							cancelText={'No'}
-							placement={'rightTop'}
-							onConfirm={() => handleClearSelection()}
-						>
-							<Button disabled={stepSamples.selectedSamples.items.length == 0} title='Deselect all samples'>Clear Selection</Button>
-						</Popconfirm>
-					</Space>
-				} onChange={onTabChange}>
-					<Tabs.TabPane tab='Samples' key={GROUPED_SAMPLES_TAB_KEY}>
-						<LabworkStepOverview
+	const tabItems = useMemo<NonNullable<ComponentProps<typeof Tabs>['items']>>(() => [
+		{
+			key: GROUPED_SAMPLES_TAB_KEY,
+			label: 'Samples',
+			children: <LabworkStepOverview
 							step={step}
 							refreshing={isRefreshing}
 							stepSamples={stepSamples}
@@ -424,25 +397,62 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							sortByList={stepSamples.pagedItems.sortByList}
 							setSortByList={handleSetSortByList}
 							pagination={pagination}
-						/>
-					</Tabs.TabPane>
-					<Tabs.TabPane tab={selectedTabTitle} key={SELECTION_TAB_KEY}>
-						<LabworkSelection
+						/>,
+		},
+		{
+			key: SELECTION_TAB_KEY,
+			label: selectedTabTitle,
+			children: <LabworkSelection
 							stepSamples={stepSamples}
 							step={step}
 							protocol={protocol}
 							setSortByList={handleSelectionTableSortChange}
 						/>
-					</Tabs.TabPane>
-					{step.needs_placement ?
-						<Tabs.TabPane tab={<Tooltip title="Place selected samples">Placement</Tooltip>} key={PLACEMENT_TAB_KEY} disabled={stepSamples.selectedSamples.items.length == 0}>
-							<Placement
-								stepID={step.id}
-								sampleIDs={stepSamples.selectedSamples.items}
-							/>
-						</Tabs.TabPane>
-						: ''}
-				</Tabs>
+		},
+		...(step.needs_placement ? [{
+			key: PLACEMENT_TAB_KEY,
+			label: <Tooltip title="Place selected samples">Placement</Tooltip>,
+			children: <Placement
+							stepID={step.id}
+							sampleIDs={stepSamples.selectedSamples.items}
+						/>,
+			disabled: stepSamples.selectedSamples.items.length == 0
+		}] : [])
+	], [columnsForSamples, filterDefinitions, filterKeys, handleSelectionTableSortChange, handleSetFilter, handleSetFilterOptions, handleSetSortByList, isRefreshing, localClearFilters, onSelectChange, pagination, protocol, selectedTabTitle, selectionProps, step, stepSamples])
+
+	return (
+		<>
+			<AppPageHeader title={step.name} extra={buttonBar} />
+			<PageContent loading={stepSamples.pagedItems.isFetching} >
+				<Tabs defaultActiveKey={GROUPED_SAMPLES_TAB_KEY} activeKey={selectedTab} destroyOnHidden tabBarExtraContent={
+						<Space>
+							{selectedTab === SELECTION_TAB_KEY &&
+								<>
+									<Typography.Text>Sort Coordinates: </Typography.Text>
+									<Radio.Group
+										value={stepSamples.selectedSamples.sortDirection.orientation}
+										onChange={(evt) => { evt.target && handleCoordinateSortOrientation(evt.target.value) }}
+									>
+										<Radio.Button value='row'>by Row</Radio.Button>
+										<Radio.Button value='column'>by Column</Radio.Button>
+									</Radio.Group>
+								</>
+							}
+							<Popconfirm
+								disabled={stepSamples.selectedSamples.items.length == 0}
+								title={'Clear the entire selection?'}
+								okText={'Yes'}
+								cancelText={'No'}
+								placement={'rightTop'}
+								onConfirm={() => handleClearSelection()}
+							>
+								<Button disabled={stepSamples.selectedSamples.items.length == 0} title='Deselect all samples'>Clear Selection</Button>
+							</Popconfirm>
+						</Space>
+					}
+					onChange={onTabChange}
+					items={tabItems}
+				/>
 			</PageContent>
 		</>
 	)
