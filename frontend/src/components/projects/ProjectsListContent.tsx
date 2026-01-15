@@ -1,40 +1,57 @@
-import React, { useCallback, useState } from 'react'
+import React from 'react'
 
-import { useAppDispatch, useAppSelector } from '../../hooks'
-import { selectProjectTemplateActions } from '../../selectors'
+import { useAppSelector } from '../../hooks'
+import { Project } from '../../models/frontend_models'
+import ProjectsTableActions from '../../modules/projectsTable/actions'
+import { selectProjectTemplateActions, selectProjectsByID, selectProjectsTable } from '../../selectors'
 import api from '../../utils/api'
 import { ActionDropdown } from '../../utils/templateActions'
 import AddButton from '../AddButton'
 import AppPageHeader from '../AppPageHeader'
 import ExportButton from '../ExportButton'
 import PageContent from '../PageContent'
-import ProjectTable from './ProjectTable'
-import { ProjectColumnID } from './ProjectsTableColumns'
-import ListExportContext from './ListExportContext'
-import { FilterDescriptions } from '../../utils/tableHooks'
-import { FILTER_TYPE, PROJECT_STATUS } from '../../constants'
+import PagedItemsTable from '../pagedItemsTable/PagedItemsTable'
+import { useFilteredColumns } from '../pagedItemsTable/useFilteredColumns'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { useItemsByIDToDataObjects } from '../pagedItemsTable/useItemsByIDToDataObjects'
+import { ObjectWithProject, PROJECT_COLUMN_DEFINITIONS, PROJECT_FILTERS, PROJECT_FILTER_KEYS } from './ProjectsTableColumns'
+import useListExportCallback from '../pagedItemsTable/useListExportCallback'
+
+
+const projectsListContentColumns = [
+	PROJECT_COLUMN_DEFINITIONS.ID,
+	PROJECT_COLUMN_DEFINITIONS.NAME,
+  PROJECT_COLUMN_DEFINITIONS.EXTERNAL_ID,
+	PROJECT_COLUMN_DEFINITIONS.PRINCIPAL_INVESTIGATOR,
+	PROJECT_COLUMN_DEFINITIONS.REQUESTOR_NAME,
+	PROJECT_COLUMN_DEFINITIONS.REQUESTOR_EMAIL,
+	PROJECT_COLUMN_DEFINITIONS.TARGETED_END_DATE,
+	PROJECT_COLUMN_DEFINITIONS.STATUS
+]
+
+function wrapProject(project: Project) {
+	return {project}
+}
 
 const ProjectsListContent = () => {
-	const dispatch = useAppDispatch()
-
-	const [filterDescriptions, setFilterDescriptions] = useState<FilterDescriptions<ProjectColumnID>>({
-		[ProjectColumnID.ID]: { type: FILTER_TYPE.INPUT_OBJECT_ID },
-		[ProjectColumnID.NAME]: { type: FILTER_TYPE.INPUT, exactMatch: false, startsWith: false },
-		[ProjectColumnID.EXTERNAL_ID]: { type: FILTER_TYPE.INPUT_OBJECT_ID },
-		[ProjectColumnID.PRINCIPAL_INVESTIGATOR]: { type: FILTER_TYPE.INPUT, exactMatch: false, startsWith: false },
-		[ProjectColumnID.REQUESTOR_NAME]: { type: FILTER_TYPE.INPUT, exactMatch: false, startsWith: false },
-		[ProjectColumnID.REQUESTOR_EMAIL]: { type: FILTER_TYPE.INPUT, exactMatch: false, startsWith: false },
-		[ProjectColumnID.TARGETED_END_DATE]: { type: FILTER_TYPE.DATE_RANGE },
-		[ProjectColumnID.STATUS]: { type: FILTER_TYPE.SELECT, options: PROJECT_STATUS.map(x => ({ label: x, value: x })), },
-	})
-
+	const projectsTableState  = useAppSelector(selectProjectsTable)
+	const { filters, sortByList, totalCount } = projectsTableState
 	const templateActions = useAppSelector(selectProjectTemplateActions)
 
-	const contextValue = React.useState<{ itemsCount: number, options: any }>({ itemsCount: 0, options: {} })
-	const [{ options, itemsCount }] = contextValue
-	const listExport = useCallback(() => {
-		return dispatch(api.projects.listExport(options)).then(response => response.data)
-	}, [dispatch, options])
+	const listExport = useListExportCallback(api.projects.listExport, filters, sortByList)
+
+	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
+
+	const columns = useFilteredColumns(
+		projectsListContentColumns,
+		PROJECT_FILTERS,
+		PROJECT_FILTER_KEYS,
+		filters,
+		projectsTableCallbacks.setFilterCallback,
+		projectsTableCallbacks.setFilterOptionsCallback
+	)
+
+	const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, wrapProject)
 
 	return (
 		<>
@@ -43,32 +60,20 @@ const ProjectsListContent = () => {
 				extra={[
 					<AddButton key="add" url="/projects/add" />,
 					<ActionDropdown key="actions" urlBase={'/projects'} actions={templateActions} />,
-					<ExportButton key="export" exportType={undefined} exportFunction={listExport} filename="projects" itemsCount={itemsCount} />,
+					<ExportButton key="export" exportType={undefined} exportFunction={listExport} filename="projects" itemsCount={totalCount} />,
 				]}
 			/>
 			<PageContent>
-				<ListExportContext.Provider value={contextValue}>
-					<ProjectTable
-						defaultPageSize={25}
-						columnIDs={columnIDs}
-						requestIDSuffix={".ProjectsListContent"}
-						filterDescriptions={filterDescriptions} setFilterDescriptions={setFilterDescriptions}
-					/>
-				</ListExportContext.Provider>
+				<PagedItemsTable<ObjectWithProject>
+					getDataObjectsByID={mapProjectIDs}
+					pagedItems={projectsTableState}
+					columns={columns}
+					usingFilters={true}
+					{...projectsTableCallbacks}
+				/>
 			</PageContent>
 		</>
 	)
 }
 
 export default ProjectsListContent
-
-const columnIDs = [
-	ProjectColumnID.ID,
-	ProjectColumnID.NAME,
-  	ProjectColumnID.EXTERNAL_ID,
-	ProjectColumnID.PRINCIPAL_INVESTIGATOR,
-	ProjectColumnID.REQUESTOR_NAME,
-	ProjectColumnID.REQUESTOR_EMAIL,
-	ProjectColumnID.TARGETED_END_DATE,
-	ProjectColumnID.STATUS
-]
