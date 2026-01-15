@@ -17,6 +17,7 @@ from .models import (
     Container,
     Dataset,
     DatasetFile,
+    DerivedSample,
     Readset,
     DerivedBySample,
     ExperimentRun,
@@ -120,6 +121,7 @@ __all__ = [
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
     "ProfileSerializer",
+    "DerivedSampleSerializer"
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -137,6 +139,10 @@ class ContainerSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_fields = ('experiment_run')
 
+class DerivedSampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DerivedSample
+        fields = "__all__"
 
 class SimpleContainerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1039,6 +1045,7 @@ class SampleIdentityMatchSerializer(serializers.ModelSerializer):
         fields = ["id",
                   "tested_biosample_id",
                   "matched_biosample_id",
+                  "readset_id",
                   "matching_site_ratio",
                   "compared_sites"]
 

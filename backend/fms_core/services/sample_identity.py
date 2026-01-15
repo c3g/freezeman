@@ -1,8 +1,8 @@
 from fms_core.schema_validators import SAMPLE_IDENTITY_REPORT_VALIDATOR
 from django.core.exceptions import ValidationError
-from fms_core.models import  SampleIdentity, SampleIdentityMatch
+from fms_core.models import  SampleIdentity, SampleIdentityMatch, Readset
 from fms_core.models._constants import SEX_UNKNOWN, SEX_MALE, SEX_FEMALE
-from typing import TypedDict
+from typing import TypedDict, Optional
 from decimal import Decimal
 
 class Identity_match_info(TypedDict):
@@ -57,13 +57,14 @@ def create_sample_identity(biosample_id: int, conclusive: bool, predicted_sex: s
     
     return sample_identity, kept_existing_identity, errors, warnings
 
-def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_biosample_id: dict[int, Identity_match_info]):
+def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_biosample_id: dict[int, Identity_match_info], readset_obj: Optional[Readset] = None):
     """
     Create sample identity matches with the provided information.
 
     Args:
-        `tested_identity`: Biosample ID for the sample identity.
+        `tested_identity`: Identity object for the sample tested.
         `matches_by_biosample_id`: Dictionary of identity match information to other biosamples.
+        `readset_obj`: (optional) Readset object to specify the readset sequencing data being matched. This parameter does not apply to identity QC.
 
     Returns:
         Tuple with the following content:
@@ -78,15 +79,18 @@ def create_sample_identity_matches(tested_identity: SampleIdentity, matches_by_b
             # Create the tested relation
             _, tested_created = SampleIdentityMatch.objects.get_or_create(tested=tested_identity,
                                                                           matched=matched_identity,
+                                                                          readset=readset_obj,
                                                                           matching_site_ratio=match_info["matching_site_ratio"],
                                                                           compared_sites=match_info["compared_sites"])
-            # Create the reverse relation
-            _, matched_created = SampleIdentityMatch.objects.get_or_create(tested=matched_identity,
-                                                                           matched=tested_identity,
-                                                                           matching_site_ratio=match_info["matching_site_ratio"],
-                                                                           compared_sites=match_info["compared_sites"])
-            if any([not tested_created, not matched_created]):
-                warnings.append(f"Identity matches between identity {tested_identity.id} and {matched_identity.id} already exist.")
+            # Create the reverse relation if the match is not with itself
+            if readset_obj is None:
+                _, matched_created = SampleIdentityMatch.objects.get_or_create(tested=matched_identity,
+                                                                               matched=tested_identity,
+                                                                               readset=readset_obj,
+                                                                               matching_site_ratio=match_info["matching_site_ratio"],
+                                                                               compared_sites=match_info["compared_sites"])
+                if any([not tested_created, not matched_created]):
+                    warnings.append(f"Identity matches between identity {tested_identity.id} and {matched_identity.id} already exist.")
         except Exception as err:
             errors.append(err)
     

@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage";
 
 import { app } from "./modules/app/reducers";
 import { auth } from "./modules/auth/reducers";
+import { biosamples } from "./modules/biosamples/reducers";
 import {
     containerKinds,
     containerPrefillTemplates,
@@ -115,6 +116,7 @@ const AUTH_PERSIST_CONFIG = {
 const allReducers = combineReducers({
     auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
     app,
+    biosamples,
     containerKinds,
     containersSummary,
     containerTemplateActions,
