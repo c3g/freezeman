@@ -1,7 +1,6 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { shallowEqual } from 'react-redux'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
@@ -10,9 +9,9 @@ import { addArchivedComment, get } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
-import { Dataset } from '../../models/frontend_models'
+import { Dataset, Readset } from '../../models/frontend_models'
 import api from '../../utils/api'
-import { FMSId, FMSReadset } from '../../models/fms_api_models'
+import { FMSDerivedSample, FMSId, FMSReadset, FMSSampleIdentityMatch } from '../../models/fms_api_models'
 import { IdentityWarningsButton, MixupAndContaminationWarnings, ContaminationWarningValues, ConcordanceWarningValues } from './IdentityWarningsButton'
 
 const { Sider, Content } = Layout;
@@ -134,7 +133,7 @@ function ExperimentRunValidation({ experimentRunId }: ExperimentRunValidationPro
     )
 }
 
-function FlexBar(props) {
+function FlexBar(props: { children: React.ReactNode }) {
     // Displays children in a horizontal flexbox, maximizing the space between the children.
     // Two children will appear at the left and right ends of the bar with whitespace in between.
     return <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1em' }}>{props.children}</div>
@@ -152,31 +151,27 @@ interface LanePanelProps {
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
     const dispatch = useAppDispatch()
-    const datasetsById = useAppSelector((state) => lane.datasets.map((dataset) => {
-        const datasetSelector = selectDatasetsByID(state)[dataset.datasetID]
-        return datasetSelector
-    }).reduce((selectors, dataset) => {
+    const datasetsByIdAll = useAppSelector(selectDatasetsByID)
+    const datasetsById = useMemo(() => lane.datasets.reduce((selectors, dataset) => {
         if (dataset) {
-            selectors[dataset.id] = dataset;
+            selectors[dataset.datasetID] = datasetsByIdAll[dataset.datasetID]
         }
         return selectors;
-    }, {}), shallowEqual
-    )
+    }, {} as Record<FMSId, Dataset>), [datasetsByIdAll, lane.datasets])
     const [datasets, setDatasets] = useState<Dataset[]>([])
 
     useEffect(() => {
         const refreshedDatasets = lane.datasets.map((dataset) => datasetsById[dataset.datasetID])
         setDatasets(refreshedDatasets as Dataset[])
-    }, [datasetsById])
+    }, [datasetsById, lane.datasets])
 
     useEffect(() => {
         Promise.all(lane.datasets.map(async (dataset) => {
             const response = await dispatch(api.datasets.get(dataset.datasetID))
             return response.data
-        }))
-            .then((values) => {
-                setDatasets(values as Dataset[])
-            })
+        })).then((values) => {
+            setDatasets(values as Dataset[])
+        })
     }, [dispatch, lane.datasets])
 
     const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings>()
@@ -190,12 +185,12 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
                         return
 
                     const readsetsIds = readsets.map((readset) => readset.id.toString()).join(",")
-                    const fetchBiosampleIds = async (readsets) => {
-                        const biosampleIdByReadsetId = {}
-                        await Promise.all(readsets.map(async (readset) => {
+                    const fetchBiosampleIds = async (readsets: FMSReadset[]) => {
+                        const biosampleIdByReadsetId: Record<Readset['id'], FMSDerivedSample['biosample']> = {}
+                        await Promise.all(readsets.map(async (readset) =>
                             dispatch(api.derivedSamples.list({ readsets__id__in: readset.id.toString() }))
                                 .then(response => { biosampleIdByReadsetId[readset.id] = response.data.results[0].biosample })
-                        }))
+                        ))
                         return biosampleIdByReadsetId
                     }
 
@@ -211,7 +206,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
                                     }
                                 }
                                 return acc
-                            }, {})
+                            }, {} as Record<Readset['id'], FMSSampleIdentityMatch[]>)
 
                             const warningsBrokenDownByType = new MixupAndContaminationWarnings()
                             for (const readset of readsets) {

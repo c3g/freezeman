@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { Button, Table, Typography, Modal, Card, Divider } from 'antd'
 import { WarningTwoTone } from "@ant-design/icons"
 
-import { FMSId } from '../../models/fms_api_models'
+import { FMSId, FMSSampleIdentityMatch } from '../../models/fms_api_models'
 import { list as listBiosamples } from '../../modules/biosamples/actions'
 import { DEFAULT_PAGE_SIZE } from '../../constants'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectBiosamplesByID } from '../../selectors'
+import { AppDispatch } from '../../store'
 
 export const CONCORDANCE_WARNING_MESSAGE = "Tested readset data failed to match corresponding sample identity."
 export const CONTAMINATION_WARNING_MESSAGE = "Tested readset data matched other sample identity. Possible contamination or Mix-up."
@@ -56,7 +57,7 @@ export class MixupAndContaminationWarnings {
         this.biosample_ids.add(warning.matched_biosample_id)
         this.contamination_warnings.push(warning)
     }
-    async fetchBiosamples(dispatch) {
+    async fetchBiosamples(dispatch: AppDispatch) {
         const array_ids = [...this.biosample_ids]
         const idBatches: string[] = []
         // prepare batches - array of id arrays as comma separated strings
@@ -81,7 +82,7 @@ export enum IdentityContaminationColumnID {
     COMPARED_SITES = "COMPARED_SITES"
 }
 
-export function getColumnsForConcordance(biosamplesById) {
+export function getColumnsForConcordance(biosamplesById: BiosampleById) {
     const columnDefinitions = CONCORDANCE_TABLE_COLUMNS(biosamplesById)
     return [
         columnDefinitions.READSET_ID,
@@ -90,7 +91,7 @@ export function getColumnsForConcordance(biosamplesById) {
 }
 
 
-export const CONCORDANCE_TABLE_COLUMNS = (biosamplesById): { [key in IdentityConcordanceColumnID]: any } => ({
+export const CONCORDANCE_TABLE_COLUMNS = (biosamplesById: BiosampleById): { [key in IdentityConcordanceColumnID]: any } => ({
     [IdentityConcordanceColumnID.READSET_ID]: {
         columnID: IdentityConcordanceColumnID.READSET_ID,
         title: 'Readset ID',
@@ -103,12 +104,12 @@ export const CONCORDANCE_TABLE_COLUMNS = (biosamplesById): { [key in IdentityCon
         title: 'Sample',
         dataIndex: 'biosample_id',
         key: 'biosample_id',
-        render: (biosample_id) => biosamplesById[biosample_id] ? biosamplesById[biosample_id].alias : "Unknown",
+        render: (biosample_id: Biosample['id']) => biosamplesById[biosample_id] ? biosamplesById[biosample_id].alias : "Unknown",
         width: '50vw',
     }
 })
 
-export function getColumnsForContamination(biosamplesById) {
+export function getColumnsForContamination(biosamplesById: BiosampleById) {
     const columnDefinitions = CONTAMINATION_TABLE_COLUMNS(biosamplesById)
     return [
         columnDefinitions.READSET_ID,
@@ -119,7 +120,7 @@ export function getColumnsForContamination(biosamplesById) {
     ]
 }
 
-export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById): { [key in IdentityContaminationColumnID]: any } => ({
+export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById: BiosampleById): { [key in IdentityContaminationColumnID]: any } => ({
     [IdentityContaminationColumnID.READSET_ID]: {
         columnID: IdentityContaminationColumnID.READSET_ID,
         title: 'Readset ID',
@@ -132,7 +133,7 @@ export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById): { [key in IdentityC
         title: 'Tested Sample',
         dataIndex: 'tested_biosample_id',
         key: 'tested_biosample_id',
-        render: (tested_biosample_id) => biosamplesById[tested_biosample_id] ? biosamplesById[tested_biosample_id].alias : "Unknown",
+        render: (tested_biosample_id: FMSSampleIdentityMatch['tested_biosample_id']) => biosamplesById[tested_biosample_id] ? biosamplesById[tested_biosample_id].alias : "Unknown",
         width: '25vw',
     },
     [IdentityContaminationColumnID.MATCHED_SAMPLE_ALIAS]: {
@@ -140,7 +141,7 @@ export const CONTAMINATION_TABLE_COLUMNS = (biosamplesById): { [key in IdentityC
         title: 'Matched Sample',
         dataIndex: 'matched_biosample_id',
         key: 'matched_biosample_id',
-        render: (matched_biosample_id) => biosamplesById[matched_biosample_id] ? biosamplesById[matched_biosample_id].alias : "Unknown",
+        render: (matched_biosample_id: FMSSampleIdentityMatch['matched_biosample_id']) => biosamplesById[matched_biosample_id] ? biosamplesById[matched_biosample_id].alias : "Unknown",
         width: '25vw',
     },
     [IdentityContaminationColumnID.MATCHING_SITE_RATIO]: {
@@ -173,7 +174,7 @@ export function IdentityWarningsButton({ warnings }: WarningButtonProps) {
         if (!warnings || warnings.biosample_ids.size == 0)
             return
 
-        warnings.fetchBiosamples(dispatch).then(() => setIsLoading(false))
+        warnings.fetchBiosamples(dispatch).finally(() => setIsLoading(false))
     }, [dispatch, warnings])
 
     if (!warnings || isLoading)
@@ -211,3 +212,6 @@ export function IdentityWarningsButton({ warnings }: WarningButtonProps) {
         </>
     )
 }
+
+type BiosampleById = ReturnType<typeof selectBiosamplesByID>
+type Biosample = BiosampleById[number]
