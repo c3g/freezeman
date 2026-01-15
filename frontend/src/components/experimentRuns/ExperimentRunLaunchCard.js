@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Button, Col, Row, Space, Spin, Typography } from 'antd'
+import { Button, Col, Row, Space, Spin, Typography, notification } from 'antd'
 import { CheckOutlined, CloseOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons"
 
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers"
-import {launchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
+import {launchExperimentRun, relaunchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
 import dayjs from 'dayjs'
 
 const { Text } = Typography
@@ -43,6 +43,11 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     // Launch the run
     const launchRunProcessing = () => {
       dispatch(launchExperimentRun(experimentRun.id))
+    }
+
+    // Relaunch the run
+    const relaunchRunProcessing = () => {
+      dispatch(relaunchExperimentRun(experimentRun.id))
     }
   
     // Flushes the experiment run launch info from redux
@@ -82,7 +87,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         const isFirstLaunch = !experimentRun.run_processing_launch_time
 
         const launchButton = <Button type="primary" onClick={launchRunProcessing}>Launch Run</Button>
-        const relaunchButton = <Button style={{background: 'orange'}} onClick={launchRunProcessing} disabled={!isUserStaff}>Relaunch Run</Button>
+        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!isUserStaff}>Relaunch Run</Button>
 
         return (
           <Space align='end'>

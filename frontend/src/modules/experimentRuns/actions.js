@@ -73,7 +73,21 @@ export const launchExperimentRun = (experimentRunId) => async (dispatch, getStat
     // Dispatch the network action
     await dispatch(networkAction(LAUNCH_EXPERIMENT_RUN, api.experimentRuns.launchRunProcessing(experimentRunId), {meta}))
     dispatch(get(experimentRunId))
+}
 
+export const relaunchExperimentRun = (experimentRunId) => async (dispatch, getState) => {
+  const meta = {
+      experimentRunId
+  }
+  // Make sure the run isn't already launched
+  const launchState = getState().experimentRunLaunches[experimentRunId]
+  if (launchState && launchState.status === 'LAUNCHING') {
+      return
+  }
+
+  // Dispatch the network action
+  await dispatch(networkAction(LAUNCH_EXPERIMENT_RUN, api.experimentRuns.relaunchRunProcessing(experimentRunId), {meta}))
+  dispatch(get(experimentRunId))
 }
 
 export const flushExperimentRunLaunch = (experimentRunId) => {

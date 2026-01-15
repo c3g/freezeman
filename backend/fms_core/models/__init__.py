@@ -51,6 +51,8 @@ from .sample_identity_match import SampleIdentityMatch
 from .sample_identity import SampleIdentity
 from .freezeman_user import FreezemanUser
 from .profile import Profile
+from .freezeman_permission import FreezemanPermission
+from .freezeman_permission_by_user import FreezemanPermissionByUser
 
 __all__ = [
     "Biosample",
@@ -105,4 +107,6 @@ __all__ = [
     "SampleIdentity",
     "FreezemanUser",
     "Profile",
+    "FreezemanPermission",
+    "FreezemanPermissionByUser",
 ]
