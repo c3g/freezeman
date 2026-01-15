@@ -56,6 +56,8 @@ from .models import (
     SampleIdentityMatch,
     SampleIdentity,
     FreezemanUser,
+    FreezemanPermission,
+    FreezemanPermissionByUser,
     Profile,
 )
 
@@ -120,6 +122,8 @@ __all__ = [
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
     "ProfileSerializer",
+    "FreezemanPermissionSerializer",
+    "FreezemanPermissionByUser",
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -1061,3 +1065,15 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data
+
+class FreezemanPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FreezemanPermission
+        fields = "__all__"
+
+class FreezemanPermissionByUserSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(read_only=True, source="freezeman_user.user_id")
+    permission_id = serializers.IntegerField(read_only=True, source="freezeman_permission.id")
+    class Meta:
+        model = FreezemanPermissionByUser
+        fields = ["id", "user_id", "permission_id", "created_at", "created_by", "updated_at", "updated_by", "deleted"]

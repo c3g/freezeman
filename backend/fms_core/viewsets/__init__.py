@@ -44,6 +44,8 @@ from .samplesheet import SamplesheetViewSet
 from .report import ReportViewSet
 from .sample_identity import SampleIdentityViewSet
 from .profile import ProfileViewSet
+from .permission import PermissionViewSet
+from .permission_by_user import PermissionByUserViewSet
 
 __all__ = [
     "BiosampleViewSet",
@@ -92,4 +94,6 @@ __all__ = [
     "ReportViewSet",
     "SampleIdentityViewSet",
     "ProfileViewSet",
+    "PermissionViewSet",
+    "PermissionByUserViewSet",
 ]

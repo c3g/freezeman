@@ -1,6 +1,6 @@
 from dataclasses import asdict
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import HttpResponseServerError, HttpResponseNotFound
@@ -46,9 +46,9 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     def get_permissions(self):
         if self.action == "launch_run_processing":
-            permission_classes = [IsAuthenticated & LaunchExperimentRun]
+            permission_classes = [(IsAuthenticated & LaunchExperimentRun) | IsAdminUser]
         elif self.action == "relaunch_run_processing":
-            permission_classes = [IsAuthenticated & RelaunchExperimentRun]
+            permission_classes = [(IsAuthenticated & RelaunchExperimentRun) | IsAdminUser]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]

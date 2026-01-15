@@ -47,6 +47,9 @@ from .viewsets import (
     ReportViewSet,
     SampleIdentityViewSet,
     ProfileViewSet,
+    PermissionViewSet,
+    PermissionByUserViewSet,
+
 )
 
 __all__ = ["router"]
@@ -98,3 +101,5 @@ router.register(r"samplesheets", SamplesheetViewSet, basename="samplesheets")
 router.register(r"reports", ReportViewSet, basename="reports")
 router.register(r"sample-identities", SampleIdentityViewSet)
 router.register(r"profiles", ProfileViewSet, basename="profiles")
+router.register(r"permissions", PermissionViewSet)
+router.register(r"permissions-by-user", PermissionByUserViewSet)
