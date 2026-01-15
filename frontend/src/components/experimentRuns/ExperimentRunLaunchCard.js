@@ -3,6 +3,8 @@ import { useDispatch } from 'react-redux'
 import { Button, Col, Row, Space, Spin, Typography, notification } from 'antd'
 import { CheckOutlined, CloseOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons"
 
+import api from '../../utils/api'
+import PERMISSIONS from '../../permissions'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers"
 import {launchExperimentRun, relaunchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
@@ -12,7 +14,7 @@ const { Text } = Typography
 
 
 
-const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
+const ExperimentRunLaunchCard = async ({experimentRun, experimentRunLaunch}) => {
     /*
       Cases:
         - run has never been launched
@@ -25,6 +27,8 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     const dispatch = useDispatch()
     const currentUser = useCurrentUser()
     const isUserStaff = currentUser?.is_staff ?? false
+    const hasLaunchPermission = await dispatch(api.permissionsByUser.list({ freezeman_permission__name: PERMISSIONS.LAUNCH_EXPERIMENT_RUN, freezeman_user__user__id: currentUser.id })).finally((response) => response.data.count > 0)
+    const hasRelaunchPermission = await dispatch(api.permissionsByUser.list({ freezeman_permission__name: PERMISSIONS.RELAUNCH_EXPERIMENT_RUN, freezeman_user__user__id: currentUser.id })).finally((response) => response.data.count > 0)
   
     // Controls whether launch button and launch state is displayed
     const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
@@ -86,8 +90,8 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         // Show the button to launch or relaunch run processing.
         const isFirstLaunch = !experimentRun.run_processing_launch_time
 
-        const launchButton = <Button type="primary" onClick={launchRunProcessing}>Launch Run</Button>
-        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!isUserStaff}>Relaunch Run</Button>
+        const launchButton = <Button type="primary" onClick={launchRunProcessing} disabled={!hasLaunchPermission | !isUserStaff}>Launch Run</Button>
+        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!hasRelaunchPermission | !isUserStaff}>Relaunch Run</Button>
 
         return (
           <Space align='end'>

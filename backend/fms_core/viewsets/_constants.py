@@ -419,3 +419,17 @@ _metric_filterset_fields: FiltersetFields = {
     "readset__dataset__experiment_run__name": CATEGORICAL_FILTERS_LOOSE,
     "readset__dataset__lane": CATEGORICAL_FILTERS,
 }
+
+_permission_filterset_fields:  FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS,
+    "users_by_permission__freezeman_user__user__id": FK_FILTERS,
+}
+
+_permission_by_user_filterset_fields:  FiltersetFields = {
+    "id": PK_FILTERS,
+    "freezeman_user__id": FK_FILTERS,
+    "freezeman_user__user__id": FK_FILTERS,
+    "freezeman_permission__id": FK_FILTERS,
+    "freezeman_permission__name": CATEGORICAL_FILTERS,
+}
