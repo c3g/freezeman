@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
-import { Button, Card, ConfigProvider, Flex, Select, Space, Spin, Typography } from "antd";
+import { Button, Card, ConfigProvider, Divider, Flex, Select, Space, Spin, Typography } from "antd";
 import SimpleExperimentRunTable, { ExperimentRunColumnID } from "./experimentRuns/SimpleExperimentRunTable";
 import { DefaultOptionType } from "antd/es/select";
 import './DashboardPage.scss'
@@ -153,18 +153,31 @@ function DashboardPage() {
 export default DashboardPage
 
 function DashboardCardTitle(props: React.ComponentProps<typeof Typography.Title>) {
-    return <ConfigProvider
-        theme={{
-            components: {
-                Typography: {
-                    titleMarginBottom: '0.25em',
-                    titleMarginTop: '0.25em',
+    return <div style={{ width: '100%' }}>
+        <ConfigProvider
+            theme={{
+                components: {
+                    Typography: {
+                        titleMarginBottom: '0.25em',
+                        titleMarginTop: '0.25em',
+                    }
                 }
-            },
-        }}
-    >
-        <Typography.Title level={4} style={{ marginTop: '0.25em', textAlign: 'center' }} {...props} />
-    </ConfigProvider>
+            }}
+        >
+            <Typography.Title level={4} style={{ marginTop: '0.25em', textAlign: 'center' }} {...props} />
+            <ConfigProvider
+                theme={{
+                    token: {
+                        margin: 0,
+                        marginLG: 0,
+                        marginXL: 0,
+                    }
+                }}
+            >
+                <Divider orientation={"horizontal"} />
+            </ConfigProvider>
+        </ConfigProvider>
+    </div>
 }
 
 interface DashboardCardProps extends React.ComponentProps<typeof Card> {
