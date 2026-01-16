@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Button, Col, Row, Space, Spin, Typography, notification } from 'antd'
+import { Button, Col, Row, Space, Spin, Typography } from 'antd'
 import { CheckOutlined, CloseOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons"
 
-import api from '../../utils/api'
+import userHasPermissionForAction from '../../utils/userHasPermissionForAction'
 import PERMISSIONS from '../../permissions'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers"
@@ -27,9 +27,9 @@ const ExperimentRunLaunchCard = async ({experimentRun, experimentRunLaunch}) => 
     const dispatch = useDispatch()
     const currentUser = useCurrentUser()
     const isUserStaff = currentUser?.is_staff ?? false
-    const hasLaunchPermission = await dispatch(api.permissionsByUser.list({ freezeman_permission__name: PERMISSIONS.LAUNCH_EXPERIMENT_RUN, freezeman_user__user__id: currentUser.id })).finally((response) => response.data.count > 0)
-    const hasRelaunchPermission = await dispatch(api.permissionsByUser.list({ freezeman_permission__name: PERMISSIONS.RELAUNCH_EXPERIMENT_RUN, freezeman_user__user__id: currentUser.id })).finally((response) => response.data.count > 0)
-  
+    const hasLaunchPermission = userHasPermissionForAction(dispatch, PERMISSIONS.LAUNCH_EXPERIMENT_RUN, currentUser.id)
+    const hasRelaunchPermission = userHasPermissionForAction(dispatch, PERMISSIONS.RELAUNCH_EXPERIMENT_RUN, currentUser.id)
+
     // Controls whether launch button and launch state is displayed
     const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
 

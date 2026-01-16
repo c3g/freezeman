@@ -1066,10 +1066,6 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data
 
-class FreezemanPermissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FreezemanPermission
-        fields = "__all__"
 
 class FreezemanPermissionByUserSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True, source="freezeman_user.user_id")
