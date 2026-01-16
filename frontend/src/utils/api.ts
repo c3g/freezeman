@@ -152,10 +152,6 @@ const api = {
     getReadsPerSampleForLane: (experimentRunId, lane) => get(`/metrics/`, {limit: 100000, name: 'nb_reads', metric_group: 'qc', readset__dataset__experiment_run_id: experimentRunId, readset__dataset__lane: lane})
   },
 
-  permissionsByUser: {
-    list: (options, abort?: boolean) => get("/permissions-by-user/", options, { abort }),
-  },
-
   platforms: {
     get: platformId => get(`/platforms/${platformId}/`),
     list: (options, abort?: boolean) => get("/platforms/", options, { abort }),
