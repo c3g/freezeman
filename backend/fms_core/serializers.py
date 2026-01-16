@@ -56,10 +56,8 @@ from .models import (
     IndexBySet,
     SampleIdentityMatch,
     SampleIdentity,
-    FreezemanUser,
-    FreezemanPermission,
-    FreezemanPermissionByUser,
     Profile,
+    FreezemanPermission
 )
 
 from .models._constants import ReleaseStatus
