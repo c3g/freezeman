@@ -24,7 +24,6 @@ import {
 	FMSInstrumentType,
 	FMSLibrary,
 	FMSLibraryType,
-  FMSPermissionByUser,
 	FMSPlatform,
 	FMSPooledSample,
 	FMSProcess,
@@ -126,7 +125,6 @@ export interface Instrument extends Readonly<FMSInstrument>, FetchedObject {}
 export interface InstrumentType extends Readonly<FMSInstrumentType>, FetchedObject {}
 export interface Library extends Readonly<FMSLibrary>, FetchedObject {}
 export interface LibraryType extends Readonly<FMSLibraryType>, FetchedObject {}
-export interface PermissionByUser extends Readonly<FMSPermissionByUser>, FetchedObject {}
 export interface Platform extends Readonly<FMSPlatform>, FetchedObject {}
 export interface PooledSample extends Readonly<FMSPooledSample>, FetchedObject {}
 export interface Process extends Readonly<FMSProcess>, FetchedObject {}
