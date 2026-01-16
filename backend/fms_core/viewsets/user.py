@@ -14,7 +14,7 @@ from fms_core.serializers import UserSerializer
 from ._constants import _user_filterset_fields
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.prefetch_related("freezeman_user__permissions")
     serializer_class = UserSerializer
     filterset_fields = _user_filterset_fields
 

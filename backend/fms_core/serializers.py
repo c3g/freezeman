@@ -56,6 +56,7 @@ from .models import (
     SampleIdentityMatch,
     SampleIdentity,
     FreezemanUser,
+    FreezemanPermission,
     Profile,
 )
 
@@ -120,6 +121,7 @@ __all__ = [
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
     "ProfileSerializer",
+    "FreezemanPermissionSerializer",
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -555,10 +557,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.IntegerField(read_only=True, source="freezeman_user.profile.id")
+    permissions = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined", "profile")
+        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined", "profile", "permissions")
         extra_kwargs = {
             "password": {"write_only": True}
         }
@@ -568,6 +571,11 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+    def get_permissions(self, instance):
+        permissions_queryset = instance.freezeman_user.permissions.all()
+        serialized_data = FreezemanPermissionSerializer(permissions_queryset, many=True)
+        return serialized_data.data
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1061,3 +1069,9 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data
+
+
+class FreezemanPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FreezemanPermission
+        fields = "__all__"

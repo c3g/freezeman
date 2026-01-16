@@ -9,6 +9,7 @@ from .tracked_model import TrackedModel
 class FreezemanUser(TrackedModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='freezeman_user')
     profile = models.ForeignKey(Profile, on_delete=models.PROTECT, related_name='freezeman_users')
+    permissions = models.ManyToManyField("FreezemanPermission", blank=True, through="FreezemanPermissionByUser", symmetrical=False, related_name="freezeman_users")
 
     @property
     def username(self):
