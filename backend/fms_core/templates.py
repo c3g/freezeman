@@ -717,8 +717,6 @@ SAMPLE_EXTRACTION_TEMPLATE = {
   "user prefill info": {
       # "Extraction Type": ["DNA", "RNA"], # already prefilled by workflow
       "Volume Used (uL)": "number",
-      # borrowed from extraction template
-      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
       "Volume (uL)": "number",
       "Source Depleted": ["YES"],
       "Extraction Date (YYYY-MM-DD)": "date",
@@ -759,8 +757,6 @@ SAMPLE_TRANSFER_TEMPLATE = {
       },
   ],
   "user prefill info": {
-      # borrowed from transfer template
-      "Destination Container Kind": list(SAMPLE_NON_RUN_CONTAINER_KINDS),
       "Source Depleted": ["YES"],
       "Volume Used (uL)": "text",
       "Transfer Date (YYYY-MM-DD)": "date",
