@@ -6,5 +6,7 @@ export const PERMISSIONS = {
 } as const
 
 export function hasPermission(user: FMSUser, permissionName: string) : boolean {
-  return user && (user.permissions.filter(permission => permission.name===permissionName).length > 0)
+  if (!user)
+    return false
+  return user.permissions.filter(permission => permission.name===permissionName).length > 0
 }

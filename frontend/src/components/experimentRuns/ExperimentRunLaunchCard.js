@@ -11,7 +11,7 @@ import dayjs from 'dayjs'
 
 const { Text } = Typography
 
-const ExperimentRunLaunchCard = async ({experimentRun, experimentRunLaunch}) => {
+const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     /*
       Cases:
         - run has never been launched
@@ -24,8 +24,8 @@ const ExperimentRunLaunchCard = async ({experimentRun, experimentRunLaunch}) => 
     const dispatch = useDispatch()
     const currentUser = useCurrentUser()
     const isUserStaff = currentUser?.is_staff ?? false
-    const hasLaunchPermission = useMemo(currentUser => hasPermission(currentUser, PERMISSIONS.LAUNCH_EXPERIMENT_RUN), [])
-    const hasRelaunchPermission = useMemo(currentUser => hasPermission(currentUser, PERMISSIONS.RELAUNCH_EXPERIMENT_RUN), [])
+    const hasLaunchPermission = hasPermission(currentUser, PERMISSIONS.LAUNCH_EXPERIMENT_RUN)
+    const hasRelaunchPermission = hasPermission(currentUser, PERMISSIONS.RELAUNCH_EXPERIMENT_RUN)
 
     // Controls whether launch button and launch state is displayed
     const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
@@ -87,8 +87,8 @@ const ExperimentRunLaunchCard = async ({experimentRun, experimentRunLaunch}) => 
         // Show the button to launch or relaunch run processing.
         const isFirstLaunch = !experimentRun.run_processing_launch_time
 
-        const launchButton = <Button type="primary" onClick={launchRunProcessing} disabled={!hasLaunchPermission | !isUserStaff}>Launch Run</Button>
-        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!hasRelaunchPermission | !isUserStaff}>Relaunch Run</Button>
+        const launchButton = <Button type="primary" onClick={launchRunProcessing} disabled={!hasLaunchPermission & !isUserStaff}>Launch Run</Button>
+        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!hasRelaunchPermission & !isUserStaff}>Relaunch Run</Button>
 
         return (
           <Space align='end'>
