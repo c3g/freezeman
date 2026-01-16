@@ -38,11 +38,11 @@ const SORT_KEYS: SortKeys<PooledSampleColumnID> = {
 }
 
 const FILTER_DESCRIPTIONS: FilterDescriptions<PooledSampleColumnID> = {
-    [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
-    [PooledSampleColumnID.CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
-    [PooledSampleColumnID.COORDINATES]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
-    [PooledSampleColumnID.PROJECT]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
-    [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, lookup_type: 'startswith' },
+    [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
+    [PooledSampleColumnID.CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
+    [PooledSampleColumnID.COORDINATES]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
+    [PooledSampleColumnID.PROJECT]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
+    [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
 } as const
 
 const ROW_KEY = "id"
@@ -120,13 +120,13 @@ export function IndexCuration() {
         }
     }, [dispatch])
 
-
     const [paginatedDataProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
         defaultPageSize,
         fetchRowData: fetchPooledSamples,
-        bodySpinStyle: { height: '75vh', alignContent: 'center' }
+        bodySpinStyle: useMemo(() => ({ height: TABLE_HEIGHT, alignContent: 'center' }), [])
     })
 
+    const DEBOUNCE_DELAY = 500
     const debouncedOnSort = useCallback((newSortBy: Partial<Record<PooledSampleColumnID, 'ascend' | 'descend'>>) => {
         fetchRowData({ sortBy: newSortBy, pageNumber: 1 }, DEBOUNCE_DELAY)
     }, [fetchRowData])
@@ -155,6 +155,7 @@ export function IndexCuration() {
     const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>({
         filters,
         setFilters,
+        filterDescriptions: FILTER_DESCRIPTIONS,
         columnDefinitions: COLUMN_DEFINITIONS,
         searchPropertyDefinitions: SEARCH_DEFINITIONS,
         sortBy,
@@ -189,7 +190,21 @@ export function IndexCuration() {
         ))
     }, [defaultSelection, dispatch, exceptedItems, filters, sortBy])
 
-    const filterSet = useMemo(() => newFilterDefinitionsToFilterSet(filters, FILTER_DESCRIPTIONS, FILTER_KEYS, SEARCH_DEFINITIONS), [filters])
+    const filterSet = useMemo(() => Object.entries(filters).reduce((acc, [columnID, filterValue]) => {
+        const filterDescription = FILTER_DESCRIPTIONS[columnID as PooledSampleColumnID]
+        if (!filterDescription) {
+            return acc
+        }
+        return {
+            ...acc,
+            ...newFilterDefinitionsToFilterSet(
+                columnID as PooledSampleColumnID,
+                filterValue,
+                filterDescription,
+                SEARCH_DEFINITIONS[columnID as PooledSampleColumnID]
+            )
+        }
+    }, {} as ReturnType<typeof newFilterDefinitionsToFilterSet>), [filters])
 
     useEffect(() => {
         fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
@@ -215,7 +230,7 @@ export function IndexCuration() {
                         {...smartSelectionProps}
                         {...tableColumnsProps}
                         rowKey={ROW_KEY}
-                        scroll={{ y: '75vh' }}
+                        scroll={{ y: TABLE_HEIGHT }}
                         bordered
                     />
                 </Space>
@@ -224,4 +239,4 @@ export function IndexCuration() {
     )
 }
 
-const DEBOUNCE_DELAY = 500
+const TABLE_HEIGHT = '75vh'

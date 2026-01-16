@@ -1,19 +1,22 @@
 import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
 import React, { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Checkbox, Input, InputRef, Spin } from "antd"
+import { Checkbox, InputRef, Spin } from "antd"
 import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
-import { SearchOutlined } from "@ant-design/icons"
-import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue } from "../models/paged_items"
-import { ABORT_ERROR_NAME } from "./api"
+import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue, MetadataFilterValue, FilterOptions } from "../models/paged_items"
+import { ABORT_ERROR_NAME, QueryParams } from "./api"
+import { addFiltersToColumns } from "../components/pagedItemsTable/MergeColumnsAndFilters"
+import produce from "immer"
+import { paramsForFilterKeyAndSetting } from "../components/pagedItemsTable/serializeFilterParamsTS"
 
 export function usePaginatedDataProps<ColumnID extends string, RowData extends AntdAnyObject>({
     defaultPageSize,
     fetchRowData,
     bodySpinStyle,
+    pagination = true,
 }: UseTableDataAndLoadingArguments<ColumnID, RowData>): [
-    Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'locale'>> & ReturnType<typeof usePaginationProps>[0],
+    Required<Pick<TableProps<RowData>, 'dataSource' | 'loading'>> & Pick<TableProps<RowData>, 'pagination' | 'locale'>,
     {
         fetchRowData: (args: Partial<FetchRowDataArguments<ColumnID>>, debounceTime?: number) => void,
         totalCount: number,
@@ -31,8 +34,10 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         }
     }, [])
 
-    const oldPageNumber = useRef<number>()
-    const oldPageSize = useRef<number>()
+    // useRefs to keep track of the latest values between calls
+    // and help reduce the number of dependencies for calling wrappedFetchRowData
+    const oldPageNumber = useRef<number>(1)
+    const oldPageSize = useRef<number>(defaultPageSize)
     const oldFilters = useRef<Filters<ColumnID>>()
     const oldSortBy = useRef<Partial<Record<ColumnID, 'ascend' | 'descend'>>>()
     const oldTotal = useRef<number>(0)
@@ -49,29 +54,33 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         oldFilters.current = filters
         oldSortBy.current = sortBy
 
+        if (bodySpinStyle) {
+            // If using bodySpinStyle, we want to show the spinner in the body immediately
+            // since the user will be able to use the filters and sorters while data is loading
+            setLoading(true)
+        }
+
         clearTimeout(timeoutHandler.current)
         timeoutHandler.current = setTimeout(async () => {
-            if (pageNumber !== undefined && pageSize !== undefined) {
-                setPagination(pageNumber, pageSize, oldTotal.current)
-                setLoading(true)
-                try {
-                    const { total: newTotal, data } = await fetchRowData({
-                        pageNumber, pageSize, filters: filters ?? {}, sortBy: sortBy ?? {}
-                    })
-                    setDataSource(data)
-                    oldTotal.current = newTotal
-                    setPagination(pageNumber, pageSize, newTotal)
+            setPagination(pageNumber, pageSize, oldTotal.current)
+            setLoading(true)
+            try {
+                const { total: newTotal, data } = await fetchRowData({
+                    pageNumber, pageSize, filters: filters ?? {}, sortBy: sortBy ?? {}
+                })
+                setDataSource(data)
+                oldTotal.current = newTotal
+                setPagination(pageNumber, pageSize, newTotal)
+                setLoading(false)
+                return data
+            } catch (e) {
+                console.error('Error fetching data for table:', e)
+                if (e.name !== ABORT_ERROR_NAME) {
                     setLoading(false)
-                    return data
-                } catch (e) {
-                    console.error('Error fetching data for table:', e)
-                    if (e.name !== ABORT_ERROR_NAME) {
-                        setLoading(false)
-                    }
                 }
             }
         }, debounceTime ?? 0)
-    }, [fetchRowData, setPagination])
+    }, [bodySpinStyle, fetchRowData, setPagination])
 
     useEffect(() => {
         setOnChange((newPageNumber, newPageSize) => {
@@ -83,8 +92,8 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         {
             dataSource: loading && bodySpinStyle ? [] : dataSource,
             loading: loading && !bodySpinStyle,
-            locale: loading && bodySpinStyle ? { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } : {},
-            ...paginatedProps,
+            ...(loading && bodySpinStyle ? { locale: { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } } : undefined),
+            ...(pagination ? paginatedProps : { pagination: false }),
         },
         {
             fetchRowData: wrappedFetchRowData,
@@ -149,7 +158,7 @@ export function usePaginationProps(defaultPageSize: number): [
         },
         {
             setPagination,
-            setOnChange,
+            setOnChange, // expose setOnChange to allow updating onChange handler especially in usePaginatedDataProps
         }
     ]
 }
@@ -166,15 +175,12 @@ export function useTableSortByProps<ColumnID extends string, RowData extends Ant
     const onChange = useCallback<NonNullable<TableProps<RowData>['onChange']>>((pagination, filters, sorter) => {
         let newSortBy: SortBy<ColumnID> = {}
         if (Array.isArray(sorter)) {
-            setSortBy((sortBy) => {
-                newSortBy = sorter.reduce<typeof sortBy>((newSortBy, sortItem) => {
-                    if (sortItem.order && sortItem.columnKey) {
-                        newSortBy[sortItem.columnKey as ColumnID] = sortItem.order
-                    }
-                    return newSortBy
-                }, {})
+            newSortBy = sorter.reduce<typeof sortBy>((newSortBy, sortItem) => {
+                if (sortItem.order && sortItem.columnKey) {
+                    newSortBy[sortItem.columnKey as ColumnID] = sortItem.order
+                }
                 return newSortBy
-            })
+            }, {})
         } else {
             if (sorter.order && sorter.columnKey) {
                 newSortBy = { [sorter.columnKey as ColumnID]: sorter.order } as SortBy<ColumnID>
@@ -205,7 +211,9 @@ export function useTableSortByProps<ColumnID extends string, RowData extends Ant
 
 export function useTableColumnsProps<ColumnID extends string, RowData extends AntdAnyObject>({
     setFilters,
+    setFilterDescriptions,
     filters,
+    filterDescriptions,
     columnDefinitions,
     searchPropertyDefinitions,
     sortBy,
@@ -218,13 +226,16 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
             Object.assign(column, columnDefinitions[columnID])
 
             const searchPropsArgs = searchPropertyDefinitions[columnID]
-            if (searchPropsArgs) {
+            const filterDescription = filterDescriptions[columnID]
+            if (searchPropsArgs && filterDescription) {
                 Object.assign(column, getColumnSearchProps(
                     setFilters,
                     columnID,
                     filters[columnID],
                     searchInput,
-                    searchPropsArgs
+                    searchPropsArgs,
+                    filterDescription,
+                    setFilterDescriptions,
                 ))
             }
 
@@ -233,50 +244,46 @@ export function useTableColumnsProps<ColumnID extends string, RowData extends An
             columns.push(column)
         }
         return { columns }
-    }, [columnDefinitions, filters, searchPropertyDefinitions, setFilters, sortBy])
+    }, [columnDefinitions, filterDescriptions, filters, searchPropertyDefinitions, setFilterDescriptions, setFilters, sortBy])
 }
 
 function getColumnSearchProps<SearchKey extends string, T extends AntdAnyObject>(
     setFilters: UseTableColumnsPropsArguments<SearchKey, T>['setFilters'],
     searchKey: SearchKey,
-    currentFilterValue: string | undefined,
+    currentFilterValue: FilterValue | undefined,
     searchInput: React.RefObject<InputRef>,
     searchPropsArgs: SearchPropertyDefinition,
-): ColumnType<T> {
+    filterDescription: FilterDescription,
+    setFilterDescriptions?: UseTableColumnsPropsArguments<SearchKey, T>['setFilterDescriptions'],
+): ColumnDefinition<T> {
+    const [{
+        filterDropdown,
+        filterIcon,
+    }] = addFiltersToColumns(
+        [{ columnID: searchKey, sorter: false }],
+        { [searchKey]: newFilterDefinitionToOldFilterDescription(searchKey as string, filterDescription, searchPropsArgs) },
+        { [searchKey]: searchKey as string },
+        newFilterDefinitionsToFilterSet(searchKey, currentFilterValue, filterDescription, searchPropsArgs),
+        (filterKey: string, value: FilterValue, description: OldFilterDescription) => {
+            setFilters((prevFilters) => ({
+                ...prevFilters,
+                [searchKey]: value,
+            }))
+        },
+        (filterKey: string, propertyName: string, value: boolean, description: OldFilterDescription) => {
+            setFilterDescriptions?.((prevDescriptions) => produce(prevDescriptions, (draft) => {
+                const desc = draft[searchKey as keyof typeof draft] as FilterDescription
+                if (desc.type === FILTER_TYPE.INPUT || desc.type === FILTER_TYPE.INPUT_NUMBER) {
+                    desc[propertyName as 'startsWith' | 'exactMatch'] = value
+                }
+            }))
+        },
+        undefined, // addSorter
+        0, // debounceDelay
+    )
     return {
-        filterDropdown: ({ confirm, close }) => (
-            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
-                <Input
-                    ref={searchInput}
-                    placeholder={`Search ${searchPropsArgs.placeholder ?? searchKey}`}
-                    value={currentFilterValue ?? ''}
-                    onChange={(e) => {
-                        setFilters((prevFilters => ({
-                            ...prevFilters,
-                            [searchKey]: e.target.value,
-                        })))
-                        confirm({ closeDropdown: false })
-                    }}
-                    onPressEnter={() => {
-                        confirm()
-                    }}
-                    onKeyDown={(ev) => {
-                        if (ev.key === 'Escape') {
-                            close()
-                        }
-                    }}
-                    onClear={() => {
-                        confirm()
-                        setFilters({})
-                    }}
-                    allowClear
-                    style={{ marginBottom: 8 }}
-                />
-            </div>
-        ),
-        filterIcon: () => (
-            <SearchOutlined style={{ color: currentFilterValue ? '#1677ff' : undefined }} />
-        ),
+        filterIcon,
+        filterDropdown,
         filterDropdownProps: {
             onOpenChange(open) {
                 if (open) {
@@ -439,51 +446,114 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
     ]
 }
 
-export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Filters<ColumnID>): Record<string, string> {
-    return Object.entries(filters).reduce<Record<string, string>>((acc, [key, value]) => {
-        if (value) {
-            const filterKey = filterKeys[key as ColumnID]
-            const description = descriptions[key as ColumnID]
-            if (description === undefined) {
-                acc[filterKey] = value as string
-            } else if (description.type === FILTER_TYPE.INPUT) {
-                acc[`${filterKey}__${description.lookup_type}`] = value as string
+export function createQueryParamsFromFilters<ColumnID extends string>(filterKeys: FilterKeys<ColumnID>, descriptions: FilterDescriptions<ColumnID>, filters: Filters<ColumnID>): NonNullable<QueryParams> {
+    return Object.entries(filters).reduce((acc, [key, value]) => {
+        if (!value) {
+            return acc
+        }
+
+        const filterKey = filterKeys[key as ColumnID]
+        if (!filterKey) {
+            console.error(`No filter key for filter column ID ${key}`)
+            return acc
+        }
+
+        const description = descriptions[key as ColumnID]
+
+        if (!description) {
+            console.error(`No filter description for filter key ${key}`)
+            return acc
+        }
+
+        let filterOptions: FilterOptions | undefined = undefined
+        if (description.type === FILTER_TYPE.INPUT || description.type === FILTER_TYPE.INPUT_NUMBER) {
+            filterOptions = {
+                startsWith: description.startsWith,
+                exactMatch: description.exactMatch,
             }
         }
-        return acc
-    }, {})
+        const params = paramsForFilterKeyAndSetting(
+            filterKey,
+            value,
+            newFilterDefinitionToOldFilterDescription(
+                key,
+                description,
+                {}
+            ),
+            filterOptions
+        )
+        return { ...acc, ...params }
+    }, {} as NonNullable<QueryParams>)
 }
 
 export function createQueryParamsFromSortBy<ColumnID extends string>(sortKeys: SortKeys<ColumnID>, sortBy: SortBy<ColumnID>): Record<string, string> {
+    const entries = Object.entries(sortBy)
+    if (entries.length === 0) {
+        return {}
+    }
     return  {
-        ordering: Object.entries(sortBy).map(([columnID, order]) => {
+        ordering: entries.map(([columnID, order]) => {
             return order === 'ascend' ? sortKeys[columnID as ColumnID] : `-${sortKeys[columnID as ColumnID]}`
         }).join(',')
     }
 }
 
-export function newFilterDefinitionsToFilterSet<ColumnID extends string>(filters: Filters<ColumnID>, filterDescriptions: FilterDescriptions<ColumnID>, filterKeys: FilterKeys<ColumnID>, searchProperties: SearchPropertiesDefinitions<ColumnID>): OldFilterSet {
-    const filterSet: OldFilterSet = {}
-
-    for (const columnID in filters) {
-        const newValue = filters[columnID as ColumnID]
-        const newFilterDescription = filterDescriptions[columnID as ColumnID]
-        const newFilterKey = filterKeys[columnID as ColumnID]
-        const newFilterSearchProps = searchProperties[columnID as ColumnID]
-
-        if (newFilterDescription.type === FILTER_TYPE.INPUT) {
-            filterSet[newFilterKey] = {
-                value: newValue as OldFilterValue,
-                description: {
-                    type: FILTER_TYPE.INPUT,
-                    key: newFilterKey,
-                    label: newFilterSearchProps.placeholder ?? columnID,
-                } as OldFilterDescription
+export function newFilterDefinitionToOldFilterDescription(columnKey: string, filterDescription: FilterDescription, searchPropertyDefinition: SearchPropertyDefinition): OldFilterDescription {
+    switch (filterDescription.type) {
+        case FILTER_TYPE.INPUT:
+        case FILTER_TYPE.INPUT_NUMBER: 
+        case FILTER_TYPE.INPUT_OBJECT_ID: {
+            return {
+                type: filterDescription.type,
+                key: columnKey,
+                label: searchPropertyDefinition?.placeholder ?? columnKey,
+            }
+        }
+        case FILTER_TYPE.SELECT: {
+            return {
+                type: FILTER_TYPE.SELECT,
+                key: columnKey,
+                label: searchPropertyDefinition?.placeholder ?? columnKey,
+                options: filterDescription.options,
+            }
+        }
+        case FILTER_TYPE.DATE_RANGE: {
+            return {
+                type: FILTER_TYPE.DATE_RANGE,
+                key: columnKey,
+                label: searchPropertyDefinition?.placeholder ?? columnKey,
             }
         }
     }
+    throw new Error(`Cannot convert filter description of type ${filterDescription.type} to old filter description`)
+}
 
-    return filterSet
+export function newFilterDefinitionsToFilterSet(columnID: string, filterValue: FilterValue, filterDescription: FilterDescription, searchPropertyDefinition?: SearchPropertyDefinition): OldFilterSet {
+    // Normally the keys of OldFilterSet are filter keys (Django keys), but here we are using column ID
+
+    switch (filterDescription.type) {
+        case FILTER_TYPE.INPUT:
+        case FILTER_TYPE.INPUT_NUMBER: {
+            return {
+                [columnID]: {
+                    value: filterValue as OldFilterValue,
+                    description: searchPropertyDefinition && newFilterDefinitionToOldFilterDescription(columnID, filterDescription, searchPropertyDefinition),
+                    options: {
+                        startsWith: filterDescription.startsWith,
+                        exactMatch: filterDescription.exactMatch,
+                    }
+                }
+            }
+        }
+        default: {
+            return {
+                [columnID]: {
+                    value: filterValue as OldFilterValue,
+                    description: newFilterDefinitionToOldFilterDescription(columnID, filterDescription, searchPropertyDefinition ?? {}),
+                }
+            }
+        } 
+    }
 }
 
 interface FetchRowDataArguments<ColumnID extends string> {
@@ -494,35 +564,44 @@ interface FetchRowDataArguments<ColumnID extends string> {
 }
 export type FetchRowData<ColumnID extends string, RowData extends AntdAnyObject> = (args: FetchRowDataArguments<ColumnID>) => Promise<{ total: number, data: RowData[] }>
 
-export type ColumnDefinitions<ColumnID extends string, RowData> = Record<ColumnID, ColumnType<RowData>>
+export type ColumnDefinition<RowData extends AntdAnyObject> = ColumnType<RowData>
+export type ColumnDefinitions<ColumnID extends string, RowData extends AntdAnyObject> = Partial<Record<ColumnID, ColumnDefinition<RowData>>>
 
-export type FilterKeys<ColumnID extends string> = Record<ColumnID, string>
+export type FilterKeys<ColumnID extends string> = Partial<Record<ColumnID, string>>
 
-export type FilterDescription = { type: typeof FILTER_TYPE.INPUT, lookup_type: 'exact' | 'startswith' }
-export type FilterDescriptions<ColumnID extends string> = Record<ColumnID, FilterDescription>
+export type FilterDescription =
+    { type: keyof Pick<typeof FILTER_TYPE, 'INPUT' | 'INPUT_NUMBER' >, startsWith: boolean, exactMatch: boolean }
+    | { type: keyof Pick<typeof FILTER_TYPE, 'INPUT_OBJECT_ID'> } // only __in lookup
+    | { type: keyof Pick<typeof FILTER_TYPE, 'SELECT'>, options: Array<{ value: string, label: string }> }
+    | { type: keyof Pick<typeof FILTER_TYPE, 'DATE_RANGE'> }
+export type FilterDescriptions<ColumnID extends string> = Partial<Record<ColumnID, FilterDescription>>
 
 export interface SearchPropertyDefinition { placeholder?: string }
-export type SearchPropertiesDefinitions<ColumnID extends string> = Record<ColumnID, SearchPropertyDefinition>
+export type SearchPropertiesDefinitions<ColumnID extends string> = Partial<Record<ColumnID, SearchPropertyDefinition>>
 
 export type RowKey<RowData extends AntdAnyObject> = NonNullable<TableProps<RowData>['rowKey']>
 function getKey<RowData extends AntdAnyObject>(rowKey: RowKey<RowData>, record: RowData): React.Key {
     return rowKey instanceof Function ? rowKey(record) : record[rowKey as keyof RowData] as React.Key
 }
 
-export type Filters<ColumnID extends string> = Partial<Record<ColumnID, string>>
+export type FilterValue = string | number | boolean | { min?: string | number, max?: string | number } | string[] | number[] | MetadataFilterValue | undefined
+export type Filters<ColumnID extends string> = Partial<Record<ColumnID, FilterValue>>
 
 export type SortBy<ColumnID extends string> = Partial<Record<ColumnID, 'ascend' | 'descend'>>
-export type SortKeys<ColumnID extends string> = Record<ColumnID, string>
+export type SortKeys<ColumnID extends string> = Partial<Record<ColumnID, string>>
 
 interface UseTableDataAndLoadingArguments<ColumnID extends string, RowData extends AntdAnyObject> {
     defaultPageSize: number,
     fetchRowData: FetchRowData<ColumnID, RowData>,
     bodySpinStyle?: NonNullable<React.CSSProperties>,
+    pagination?: boolean,
 }
 
 interface UseTableColumnsPropsArguments<ColumnID extends string, RowData extends AntdAnyObject> {
-    setFilters: (newFilters: SetStateAction<Filters<ColumnID>>) => void,
     filters: Filters<ColumnID>,
+    setFilters: (newFilters: SetStateAction<Filters<ColumnID>>) => void,
+    setFilterDescriptions?: (newDescriptions: SetStateAction<FilterDescriptions<ColumnID>>) => void,
+    filterDescriptions: FilterDescriptions<ColumnID>,
     columnDefinitions: ColumnDefinitions<ColumnID, RowData>,
     searchPropertyDefinitions: SearchPropertiesDefinitions<ColumnID>,
     sortBy: SortBy<ColumnID>,

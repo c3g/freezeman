@@ -15,17 +15,19 @@ import { IdentifiedTableColumnType } from "./PagedItemsColumns"
  * @param setFilter 			// Function to set a filter value (called by filter components)
  * @param setFilterOption 		// Function to set a filter option
  * @param addSorter				// If true, every column with a filter will include sorting controls.
+ * @param debounceDelay         // debounce delay for inputs
  * @returns 
  */
 export function addFiltersToColumns<T>(
-	columns: IdentifiedTableColumnType<T>[], 
+	columns: Pick<IdentifiedTableColumnType<T>, 'columnID' | 'sorter'>[], 
 	filterDescriptions: FilterDescriptionSet, 
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
 	setFilter : SetFilterFunc = () => false,
 	setFilterOption : SetFilterOptionFunc = () => false,
-	addSorter = true
-	) : IdentifiedTableColumnType<T>[]{
+	addSorter = true,
+	debounceDelay = 500,
+) : IdentifiedTableColumnType<T>[]{
 	const mergedColumns = columns.map(column => {
 		const columnID = column.columnID
 		let filter = filterDescriptions[columnID]
@@ -50,7 +52,7 @@ export function addFiltersToColumns<T>(
 				}
 			}
 
-			const props = getFilterPropsForDescription(filter, filterValue, setFilter, setFilterOption)
+			const props = getFilterPropsForDescription(filter, filterValue, setFilter, setFilterOption, debounceDelay)
 
 			return {
 				...column,
