@@ -1,18 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useDispatch } from 'react-redux'
 import { Button, Col, Row, Space, Spin, Typography } from 'antd'
 import { CheckOutlined, CloseOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons"
 
-import userHasPermissionForAction from '../../utils/userHasPermissionForAction'
-import PERMISSIONS from '../../permissions'
+import { PERMISSIONS, hasPermission } from '../../permissions'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers"
 import {launchExperimentRun, relaunchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
 import dayjs from 'dayjs'
 
 const { Text } = Typography
-
-
 
 const ExperimentRunLaunchCard = async ({experimentRun, experimentRunLaunch}) => {
     /*
@@ -27,8 +24,8 @@ const ExperimentRunLaunchCard = async ({experimentRun, experimentRunLaunch}) => 
     const dispatch = useDispatch()
     const currentUser = useCurrentUser()
     const isUserStaff = currentUser?.is_staff ?? false
-    const hasLaunchPermission = userHasPermissionForAction(dispatch, PERMISSIONS.LAUNCH_EXPERIMENT_RUN, currentUser.id)
-    const hasRelaunchPermission = userHasPermissionForAction(dispatch, PERMISSIONS.RELAUNCH_EXPERIMENT_RUN, currentUser.id)
+    const hasLaunchPermission = useMemo(currentUser => hasPermission(currentUser, PERMISSIONS.LAUNCH_EXPERIMENT_RUN), [])
+    const hasRelaunchPermission = useMemo(currentUser => hasPermission(currentUser, PERMISSIONS.RELAUNCH_EXPERIMENT_RUN), [])
 
     // Controls whether launch button and launch state is displayed
     const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
