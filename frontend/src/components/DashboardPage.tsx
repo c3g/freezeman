@@ -133,7 +133,7 @@ function DashboardPage() {
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
                             pagination: false,
-                            locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No processed runs found</div> },
+                            locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No unvalidated runs found</div> },
                             className: 'table-in-card'
                         }), [])}
                     />
