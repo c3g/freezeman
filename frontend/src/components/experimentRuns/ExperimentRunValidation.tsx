@@ -164,14 +164,15 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
     )
     const [datasets, setDatasets] = useState<Dataset[]>([])
 
-  useEffect(() => {
-    Promise.all(lane.datasets.map(async (dataset) => {
-      const response = await dispatch(api.datasets.get(dataset.datasetID))
-      return response.data
-    }))
-    .then((values) => {
-      setDatasets(values as Dataset[])})
-	}, [dispatch, lane.datasets, datasetsById])
+    useEffect(() => {
+        Promise.all(lane.datasets.map(async (dataset) => {
+            const response = await dispatch(api.datasets.get(dataset.datasetID))
+            return response.data
+        }))
+            .then((values) => {
+                setDatasets(values as Dataset[])
+            })
+    }, [dispatch, lane.datasets, datasetsById])
 
     const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings>()
     useEffect(() => {
