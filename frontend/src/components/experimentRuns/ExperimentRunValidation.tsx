@@ -4,8 +4,8 @@ import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
-import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
-import { addArchivedComment, get } from '../../modules/datasets/actions'
+import { selectDatasetsByID, selectExperimentRunLanesState } from '../../selectors'
+import { addArchivedComment, get as getDataset } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
@@ -13,7 +13,6 @@ import { Dataset, Readset } from '../../models/frontend_models'
 import api from '../../utils/api'
 import { FMSDerivedSample, FMSId, FMSReadset, FMSSampleIdentityMatch } from '../../models/fms_api_models'
 import { IdentityWarningsButton, MixupAndContaminationWarnings, ContaminationWarningValues, ConcordanceWarningValues } from './IdentityWarningsButton'
-import { shallowEqual } from 'react-redux'
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography
@@ -153,32 +152,14 @@ interface LanePanelProps {
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
     const dispatch = useAppDispatch()
 
-    const allDatasetsById = useAppSelector(selectDatasetsByID)
-    const datasetsById = useMemo(() =>
-    (
-        lane.datasets.map((dataset) => {
-            const datasetSelector = allDatasetsById[dataset.datasetID]
-            return datasetSelector
-        }).reduce((selectors, dataset) => {
-            if (dataset) {
-                selectors[dataset.id] = dataset;
-            }
-            return selectors;
-        }, {} as typeof allDatasetsById)
-    ),
-        [lane.datasets, allDatasetsById]
-    )
-    const [datasets, setDatasets] = useState<Dataset[]>([])
+    const datasetsByID = useAppSelector(selectDatasetsByID)
+    const datasets = useMemo<Dataset[]>(() => lane.datasets.map((datasetInfo) => datasetsByID[datasetInfo.datasetID]), [datasetsByID, lane.datasets])
 
     useEffect(() => {
-        Promise.all(lane.datasets.map(async (dataset) => {
-            const response = await dispatch(api.datasets.get(dataset.datasetID))
-            return response.data
-        }))
-            .then((values) => {
-                setDatasets(values as Dataset[])
-            })
-    }, [dispatch, lane.datasets, datasetsById])
+        lane.datasets.forEach(dataset => {
+            dispatch(getDataset(dataset.datasetID))
+        })
+    }, [dispatch, lane.datasets])
 
     const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings>()
     useEffect(() => {
