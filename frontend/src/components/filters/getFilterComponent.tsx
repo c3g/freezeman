@@ -24,20 +24,21 @@ export function getFilterComponent(
 	setFilter?: SetFilterFunc,
 	setFilterOption?: SetFilterOptionFunc,
 	confirm = () => true, // Used by column filters
-	visible = true // Used by column filters
+	visible = true, // Used by column filters
+	debounceDelay = 500,
 ) {
 	if (!setFilter || !setFilterOption) {
 		return null
 	}
 	switch (description.type) {
 		case FILTER_TYPE.INPUT: {
-			return getInputFilter(description, filterSetting, setFilter, setFilterOption, confirm, visible)
+			return getInputFilter(description, filterSetting, setFilter, setFilterOption, confirm, visible, debounceDelay)
 		}
 		case FILTER_TYPE.INPUT_NUMBER: {
-			return getInputNumberFilter(description, filterSetting, setFilter, confirm, visible)
+			return getInputNumberFilter(description, filterSetting, setFilter, confirm, visible, debounceDelay)
 		}
 		case FILTER_TYPE.INPUT_OBJECT_ID: {
-			return getInputObjectIdFilter(description, filterSetting, setFilter, confirm, visible)
+			return getInputObjectIdFilter(description, filterSetting, setFilter, confirm, visible, debounceDelay)
 		}
 		case FILTER_TYPE.SELECT: {
 			if (description.mode === 'multiple') {
@@ -66,7 +67,8 @@ export function getInputFilter(
 	setFilter: SetFilterFunc,
 	setFilterOption: SetFilterOptionFunc,
 	confirm = () => true, // Used by column filters
-	visible = true // Used by column filters
+	visible = true, // Used by column filters
+	debounceDelay = 500,
 ) {
 	return (
 		<InputFilter
@@ -78,6 +80,7 @@ export function getInputFilter(
 			setFilterOption={setFilterOption}
 			confirm={confirm}
 			visible={visible}
+			debounceDelay={debounceDelay}
 		/>
 	)
 }
@@ -87,7 +90,8 @@ export function getInputNumberFilter(
 	filterSetting: FilterSetting | undefined,
 	setFilter: SetFilterFunc,
 	confirm = () => true, // Used by column filters
-	visible = true // Used by column filters
+	visible = true, // Used by column filters
+	debounceDelay = 500,
 ) {
 	return (
 		<InputNumberFilter
@@ -98,6 +102,7 @@ export function getInputNumberFilter(
 			confirm={confirm}
 			visible={visible}
 			validationFunc={isValidInteger}
+			debounceDelay={debounceDelay}
 		/>
 	)
 }
@@ -107,7 +112,8 @@ export function getInputObjectIdFilter( // TODO update getFilterPropsTS
 	filterSetting: FilterSetting | undefined,
 	setFilter: SetFilterFunc,
 	confirm = () => true, // Used by column filters
-	visible = true // Used by column filters
+	visible = true, // Used by column filters
+	debounceDelay = 500,
 ) {
 	return (
 		<InputNumberFilter
@@ -118,6 +124,7 @@ export function getInputObjectIdFilter( // TODO update getFilterPropsTS
 			confirm={confirm}
 			visible={visible}
 			validationFunc={isValidObjectID}
+			debounceDelay={debounceDelay}
 		/>
 	)
 }

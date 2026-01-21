@@ -10,7 +10,7 @@ PK_FILTERS = ["in"]
 NULLABLE_FILTERS = ["isnull"]
 NULLABLE_FK_FILTERS = [*FK_FILTERS, *NULLABLE_FILTERS]
 SCALAR_FILTERS = ["exact", "lt", "lte", "gt", "gte"]
-DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
+DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day", *NULLABLE_FILTERS]
 
 FiltersetFields = Dict[str, List[str]]
 
@@ -285,6 +285,7 @@ _experiment_run_filterset_fields: FiltersetFields = {
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,
     "run_processing_launch_time": DATE_FILTERS,
+    "run_processing_end_time": DATE_FILTERS,
 
     **_prefix_keys("run_type__", _run_type_filterset_fields),
     **_prefix_keys("instrument__", _instrument_filterset_fields),
