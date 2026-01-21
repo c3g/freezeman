@@ -1,6 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption, FMSVersion } from "../models/fms_api_models";
+import { FMSDataset, FMSId, FMSPagedResultsReponse, FMSProject, FMSProtocol, FMSReadset, FMSSample, FMSSampleNextStep, FMSSampleNextStepByStudy, FMSStep, FMSStepHistory, FMSStudy, FMSWorkflow, LabworkStepInfo, ReleaseStatus, FMSReportInformation, WorkflowStepOrder, FMSReportData, FMSPooledSample, FMSSampleIdentity, FMSSampleIdentityMatch, FMSBiosample, FMSUser, FMSProfile, FMSSampleLineageGraph, FMSTemplateAction, FMSTemplatePrefillOption, FMSVersion } from "../models/fms_api_models";
 import { AnyAction, Dispatch } from "redux";
 import { RootState } from "../store";
 import { notifyError } from "../modules/notification/actions";
@@ -15,6 +15,7 @@ const api = {
 
   biosamples: {
     get: (biosampleId: FMSId) => get<JsonResponse<FMSBiosample>>(`/biosamples/${biosampleId}/`),
+    list: (options: QueryParams, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSBiosample>>>(`/biosamples/`, options, { abort }),
   },
 
   containerKinds: {
@@ -61,15 +62,15 @@ const api = {
     getRootFolder: (id) => get(`/datasets/${id}/get_dataset_files_root_folder/`)
   },
 
-  readsets: {
-    get: id => get(`/readsets/${id}/`),
-    list: (options: QueryParams, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
-  },
-
   datasetFiles: {
     get: id => get(`/dataset-files/${id}/`),
     update: dataset => patch(`/dataset-files/${dataset.id}/`, dataset),
     list: (options, abort?: boolean) => get("/dataset-files/", options, { abort }),
+  },
+
+  derivedSamples: {
+    get: (derivedSampleId: FMSId) => get<JsonResponse<FMSBiosample>>(`/derivedsamples/${derivedSampleId}/`),
+    list: (options: QueryParams, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSDerivedSample>>>(`/derivedsamples/`, options, { abort }),
   },
 
   experimentRuns: {
@@ -85,10 +86,6 @@ const api = {
     fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info/`, {}),
     setLaneValidationStatus: (experimentRunId, lane, validation_status) => post(`/experiment-runs/${experimentRunId}/set_experiment_run_lane_validation_status/`, {lane, validation_status}),
     getLaneValidationStatus: (experimentRunId, lane) => get(`/experiment-runs/${experimentRunId}/get_experiment_run_lane_validation_status/`, {lane})
-  },
-
-  runTypes: {
-    list: () => get("/run-types/"),
   },
 
   importedFiles: {
@@ -214,12 +211,21 @@ const api = {
     lastProtocols: (options, abort?: boolean) => get<JsonResponse<{sample_result: FMSSample['id'], protocol: FMSProtocol['name']}[]>>("/protocols/last_protocols/", options, { abort }),
   },
 
+  readsets: {
+    get: id => get(`/readsets/${id}/`),
+    list: (options: QueryParams, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSReadset>>>(`/readsets/`, options, { abort }),
+  },
+
   referenceGenomes: {
     get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
     add: referenceGenome => post(`/reference-genomes/`, referenceGenome),
     update: referenceGenome => patch(`/reference-genomes/${referenceGenome.id}/`, referenceGenome),
     list: (options, abort?: boolean) => get('/reference-genomes/', options, { abort }),
     search: q => get("/reference-genomes/search/", { q }),
+  },
+
+  runTypes: {
+    list: () => get("/run-types/"),
   },
 
   samples: {
@@ -249,6 +255,11 @@ const api = {
   sampleIdentity: {
     get: (id: FMSSampleIdentity['id']) => get<JsonResponse<FMSSampleIdentity>>(`/sample-identities/${id}/`),
     list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentity>>>(`/sample-identities/`, options, { abort }),
+  },
+
+  sampleIdentityMatch: {
+    get: (id: FMSSampleIdentityMatch['id']) => get<JsonResponse<FMSSampleIdentityMatch>>(`/sample-identity-matches/${id}/`),
+    list: (options: any, abort?: boolean) => get<JsonResponse<FMSPagedResultsReponse<FMSSampleIdentityMatch>>>(`/sample-identity-matches/`, options, { abort }),
   },
 
   sampleMetadata: {

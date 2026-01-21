@@ -87,6 +87,20 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
         ]
         return items
     }, [sampleIdentity])
+    const sampleIdentityMatches = useMemo(() => sampleIdentity && sampleIdentity.identity_matches ? sampleIdentity.identity_matches.filter((identityMatch) => isNullish(identityMatch.readset_id)) : [], [sampleIdentity])
+    const sampleContaminationMatches = useMemo(() => {
+        const filteredIdentityMatches: FMSSampleIdentityMatch[] = []
+
+        if (sample && sampleIdentity && sampleIdentity.identity_matches) {
+            sampleIdentity.identity_matches.forEach(async (identityMatch) => {
+                if (isNullish(identityMatch.readset_id) || identityMatch.tested_biosample_id === identityMatch.matched_biosample_id)
+                    return
+                if (await dispatch(api.readsets.list({ "id": identityMatch.readset_id, "derived_sample__samples__id": sample.id })).then(response => response.data.results.length != 0).catch(() => console.error("Failed to list identity match readset.")))
+                    filteredIdentityMatches.push(identityMatch)
+            })
+        }
+        return filteredIdentityMatches
+    }, [dispatch, sample, sampleIdentity])
     const sampleIdentityMatchesColumns = useMemo(() => {
         const columns: NonNullable<TableProps<FMSSampleIdentityMatch>['columns']> = [
             {
@@ -215,11 +229,29 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
         render.push(
             <div key={'identity-qc'}>
                 <Title level={5} style={{ marginTop: '1rem' }}> Identity QC </Title>
-                    <Descriptions bordered={true} size="small" column={3} items={sampleIdentityItems} />
-                    <div style={{ marginTop: '1rem' }} />
-                    {sampleIdentity.identity_matches.length > 0 &&
-                        <Table dataSource={sampleIdentity.identity_matches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
+                <Descriptions bordered={true} size="small" column={3} items={sampleIdentityItems} />
+                <div style={{ marginTop: '1rem' }} />
+                {sampleIdentityMatches.length > 0 &&
+                    <Table dataSource={sampleIdentityMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />}
             </div>
+        )
+    }
+
+    if (sample && sample.is_library && !sample.is_pool && sampleIdentity && sampleContaminationMatches.length > 0) {
+        const cardStyle = {
+            root: {
+                borderColor: '#A1181D',
+                boxShadow: '0 2px 8px #A1181D',
+                borderRadius: 8,
+            },
+            title: {
+                fontSize: 16,
+            },
+        }
+        render.push(
+            <Card key={'contaminouche'} title='Contamination warnings' styles={cardStyle}>
+                <Table dataSource={sampleContaminationMatches} columns={sampleIdentityMatchesColumns} size={"small"} pagination={false} />
+            </Card>
         )
     }
 
@@ -256,12 +288,12 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
                     <Card>
                         {
                             versions?.length === 0
-                            ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                            : <Timeline
-                                mode="start"
-                                style={{ marginLeft: timelineMarginLeft }}
-                                items={timeLineItems}
-                            />
+                                ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                : <Timeline
+                                    mode="start"
+                                    style={{ marginLeft: timelineMarginLeft }}
+                                    items={timeLineItems}
+                                />
                         }
                     </Card>
                 </div>
@@ -273,7 +305,7 @@ export default function SampleDetailsContentOverview({ sampleID }: SampleDetails
 }
 
 const usernameStyle = {
-  cursor: 'default',
+    cursor: 'default',
 }
 
 function renderTimelineLabel(version: FMSVersion, usersByID: ReturnType<typeof selectUsersByID>) {

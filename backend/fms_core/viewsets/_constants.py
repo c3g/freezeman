@@ -19,6 +19,16 @@ _biosample_filterset_fields: FiltersetFields = {
     "alias": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_derived_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "biosample": FK_FILTERS,
+    "sample_kind": FK_FILTERS,
+    "tissue_source": FK_FILTERS,
+    "library": FK_FILTERS,
+    "derived_from": FK_FILTERS,
+    "readsets__id": FK_FILTERS,
+}
+
 _coordinate_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -127,6 +137,20 @@ _sample_identity_filterset_fields: FiltersetFields = {
     "biosample": FK_FILTERS,
     "conclusive": ["exact"],
     "predicted_sex": CATEGORICAL_FILTERS,
+}
+
+_sample_identity_match_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "tested": FK_FILTERS,
+    "matched": FK_FILTERS,
+    "tested__biosample_id": FK_FILTERS,
+    "matched__biosample_id": FK_FILTERS,
+    "readset": FK_FILTERS,
+    "readset__dataset_id": FK_FILTERS,
+    "readset__derived_sample_id": FK_FILTERS,
+    "readset__derived_sample__samples__id": FK_FILTERS,
+    "matching_site_ratio": SCALAR_FILTERS,
+    "compared_sites": SCALAR_FILTERS,
 }
 
 _protocol_filterset_fields: FiltersetFields = {
@@ -279,6 +303,8 @@ _readset_filterset_fields: FiltersetFields = {
     "validation_status_timestamp": DATE_FILTERS,
     "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__sample_identity__conclusive": ["exact"],
+    "derived_sample__samples__id": ["exact"],
     **_prefix_keys("dataset__", _dataset_filterset_fields),
 }
 
