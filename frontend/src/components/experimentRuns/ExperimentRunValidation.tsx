@@ -1,5 +1,5 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
@@ -152,15 +152,21 @@ interface LanePanelProps {
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
     const dispatch = useAppDispatch()
-    const datasetsById = useAppSelector((state) => lane.datasets.map((dataset) => {
-        const datasetSelector = selectDatasetsByID(state)[dataset.datasetID]
-        return datasetSelector
-    }).reduce((selectors, dataset) => {
-        if (dataset) {
-            selectors[dataset.id] = dataset;
-        }
-        return selectors;
-    }, {}), shallowEqual
+
+    const allDatasetsById = useAppSelector(selectDatasetsByID)
+    const datasetsById = useMemo(() =>
+    (
+        lane.datasets.map((dataset) => {
+            const datasetSelector = allDatasetsById[dataset.datasetID]
+            return datasetSelector
+        }).reduce((selectors, dataset) => {
+            if (dataset) {
+                selectors[dataset.id] = dataset;
+            }
+            return selectors;
+        }, {} as typeof allDatasetsById)
+    ),
+        [lane.datasets, allDatasetsById]
     )
     const [datasets, setDatasets] = useState<Dataset[]>([])
 
