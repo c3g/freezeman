@@ -114,6 +114,21 @@ CONTAINER_RENAME_TEMPLATE = {
   "placement info": [],
 }
 
+from fms_core.workbooks.sample_rename import create_workbook as create_sample_rename_workbook
+SAMPLE_RENAME_TEMPLATE = {
+    "identity": {"description": "Template to rename samples", "workbook": create_sample_rename_workbook},
+    "sheets info": [
+        {
+            'name': 'SampleRename',
+            'headers': ['Old Sample Barcode', 'New Sample Barcode', 'New Sample Name', 'Update Comment'],
+            'batch': False,
+        },],
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+    "prefill info": [
+        ("SampleRename", "Old Sample Barcode", "barcode", None, None),],
+    "placement info": [],
+}
+
 # Extracted sheet info for experiment run because it is shared between all templates of this category
 EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
