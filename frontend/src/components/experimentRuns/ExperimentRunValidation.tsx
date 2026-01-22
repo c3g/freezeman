@@ -5,7 +5,7 @@ import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
 import { selectDatasetsByID, selectExperimentRunLanesState } from '../../selectors'
-import { addArchivedComment, get as getDataset } from '../../modules/datasets/actions'
+import { addArchivedComment, list as listDataset } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
@@ -62,7 +62,7 @@ function ExperimentRunValidation({ experimentRunId }: ExperimentRunValidationPro
     }, [experimentRunId, experimentRunLanesState])
 
     const updateLane = useCallback((lane: LaneInfo) => {
-        Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() => {
+        dispatch(listDataset({ 'id__in': lane.datasets.map(dataset => dataset.datasetID).join(',') })).finally(() => {
             dispatch(setRunLaneValidationTime(lane)).finally(() => {
                 setIsValidationInProgress(false)
             })
@@ -153,12 +153,18 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
     const dispatch = useAppDispatch()
 
     const datasetsByID = useAppSelector(selectDatasetsByID)
-    const datasets = useMemo<Dataset[]>(() => lane.datasets.map((datasetInfo) => datasetsByID[datasetInfo.datasetID]), [datasetsByID, lane.datasets])
+    const datasets = useMemo<Dataset[]>(() => lane.datasets.reduce<Dataset[]>((acc, datasetInfo) => {
+        const dataset = datasetsByID[datasetInfo.datasetID]
+        if (dataset) {
+            acc.push(dataset)
+        }
+        return acc
+    }, []), [lane.datasets, datasetsByID])
 
     useEffect(() => {
-        lane.datasets.forEach(dataset => {
-            dispatch(getDataset(dataset.datasetID))
-        })
+        dispatch(listDataset({
+            'id__in': lane.datasets.map(dataset => dataset.datasetID).join(','),
+        }))
     }, [dispatch, lane.datasets])
 
     const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings>()
