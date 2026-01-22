@@ -278,6 +278,11 @@ export interface FMSMetric extends FMSTrackedModel {
     value_string?: string               // Metric value, if text
 }
 
+export interface FMSPermission extends FMSTrackedModel {
+    name: string                        // Unique name of the permission
+    description: string                 // Short descriptor text for the permission
+}
+
 export interface FMSPlatform extends FMSTrackedModel {
     name: string                        // Platform name eg "ILLUMINA" or "DNBSEQ"
 }
@@ -568,6 +573,7 @@ export interface FMSUser extends FMSTrackedModel {
     is_active: boolean                  // Active flag
     date_joined: string                 // Timestamp user was created
     profile: FMSId                      // Current Profile ID
+    permissions: FMSPermission[]        // Array of the users' own permissions
 }
 
 export interface FMSProfilePreferences {

@@ -83,6 +83,7 @@ const api = {
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
     launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}),
+    relaunchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/relaunch_run_processing/`, {}),
     fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info/`, {}),
     setLaneValidationStatus: (experimentRunId, lane, validation_status) => post(`/experiment-runs/${experimentRunId}/set_experiment_run_lane_validation_status/`, {lane, validation_status}),
     getLaneValidationStatus: (experimentRunId, lane) => get(`/experiment-runs/${experimentRunId}/get_experiment_run_lane_validation_status/`, {lane})
