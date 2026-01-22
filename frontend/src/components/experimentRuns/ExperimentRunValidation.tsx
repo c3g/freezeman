@@ -1,11 +1,11 @@
 import { Button, Collapse, List, Popconfirm, Space, Typography, Layout } from 'antd'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { flushExperimentRunLanes, initExperimentRunLanes, setExpandedLanes, setRunLaneValidationStatus, setRunLaneValidationTime } from '../../modules/experimentRunLanes/actions'
 import { ExperimentRunLanes, LaneInfo, ValidationStatus } from '../../modules/experimentRunLanes/models'
-import { selectExperimentRunLanesState, selectDatasetsByID } from '../../selectors'
-import { addArchivedComment, get } from '../../modules/datasets/actions'
+import { selectDatasetsByID, selectExperimentRunLanesState } from '../../selectors'
+import { addArchivedComment, list as listDataset } from '../../modules/datasets/actions'
 import LaneValidationStatus from './LaneValidationStatus'
 import ReadsPerSampleGraph from './ReadsPerSampleGraph'
 import DatasetArchivedCommentsBox from './DatasetArchivedCommentsBox'
@@ -13,7 +13,6 @@ import { Dataset, Readset } from '../../models/frontend_models'
 import api from '../../utils/api'
 import { FMSDerivedSample, FMSId, FMSReadset, FMSSampleIdentityMatch } from '../../models/fms_api_models'
 import { IdentityWarningsButton, MixupAndContaminationWarnings, ContaminationWarningValues, ConcordanceWarningValues } from './IdentityWarningsButton'
-import { shallowEqual } from 'react-redux'
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography
@@ -63,7 +62,7 @@ function ExperimentRunValidation({ experimentRunId }: ExperimentRunValidationPro
     }, [experimentRunId, experimentRunLanesState])
 
     const updateLane = useCallback((lane: LaneInfo) => {
-        Promise.allSettled(lane.datasets.map((dataset) => dispatch(get(dataset.datasetID)))).finally(() => {
+        dispatch(listDataset({ 'id__in': lane.datasets.map(dataset => dataset.datasetID).join(',') })).finally(() => {
             dispatch(setRunLaneValidationTime(lane)).finally(() => {
                 setIsValidationInProgress(false)
             })
@@ -152,31 +151,20 @@ interface LanePanelProps {
 
 function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPassed, setFailed, setAvailable }: LanePanelProps) {
     const dispatch = useAppDispatch()
-    const datasetsById = useAppSelector((state) => lane.datasets.map((dataset) => {
-        const datasetSelector = selectDatasetsByID(state)[dataset.datasetID]
-        return datasetSelector
-    }).reduce((selectors, dataset) => {
-        if (dataset) {
-            selectors[dataset.id] = dataset;
+
+    const datasetsByID = useAppSelector(selectDatasetsByID)
+    const datasets = useMemo<Dataset[]>(() => lane.datasets.reduce<Dataset[]>((acc, datasetInfo) => {
+        const dataset = datasetsByID[datasetInfo.datasetID]
+        if (dataset?.isLoaded) {
+            acc.push(dataset)
         }
-        return selectors;
-    }, {}), shallowEqual
-    )
-    const [datasets, setDatasets] = useState<Dataset[]>([])
+        return acc
+    }, []), [lane.datasets, datasetsByID])
 
     useEffect(() => {
-        const refreshedDatasets = lane.datasets.map((dataset) => datasetsById[dataset.datasetID])
-        setDatasets(refreshedDatasets as Dataset[])
-    }, [datasetsById])
-
-    useEffect(() => {
-        Promise.all(lane.datasets.map(async (dataset) => {
-            const response = await dispatch(api.datasets.get(dataset.datasetID))
-            return response.data
+        dispatch(listDataset({
+            'id__in': lane.datasets.map(dataset => dataset.datasetID).join(','),
         }))
-            .then((values) => {
-                setDatasets(values as Dataset[])
-            })
     }, [dispatch, lane.datasets])
 
     const [mixupAndContaminationWarnings, setMixupAndContaminationWarnings] = useState<MixupAndContaminationWarnings>()
