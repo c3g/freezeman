@@ -155,7 +155,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
     const datasetsByID = useAppSelector(selectDatasetsByID)
     const datasets = useMemo<Dataset[]>(() => lane.datasets.reduce<Dataset[]>((acc, datasetInfo) => {
         const dataset = datasetsByID[datasetInfo.datasetID]
-        if (dataset) {
+        if (dataset?.isLoaded) {
             acc.push(dataset)
         }
         return acc
