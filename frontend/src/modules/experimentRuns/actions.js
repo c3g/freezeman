@@ -64,7 +64,7 @@ export const launchExperimentRun = (experimentRunId) => async (dispatch, getStat
     const meta = {
         experimentRunId
     }
-    // Make sure the run isn't already launched
+    // Make sure the run isn't already launching
     const launchState = getState().experimentRunLaunches[experimentRunId]
     if (launchState && launchState.status === 'LAUNCHING') {
         return
@@ -79,7 +79,7 @@ export const relaunchExperimentRun = (experimentRunId) => async (dispatch, getSt
   const meta = {
       experimentRunId
   }
-  // Make sure the run isn't already launched
+  // Make sure the run isn't already launching
   const launchState = getState().experimentRunLaunches[experimentRunId]
   if (launchState && launchState.status === 'LAUNCHING') {
       return

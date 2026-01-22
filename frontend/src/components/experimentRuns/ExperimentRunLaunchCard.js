@@ -87,8 +87,8 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         // Show the button to launch or relaunch run processing.
         const isFirstLaunch = !experimentRun.run_processing_launch_time
 
-        const launchButton = <Button type="primary" onClick={launchRunProcessing} disabled={!hasLaunchPermission & !isUserStaff}>Launch Run</Button>
-        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!hasRelaunchPermission & !isUserStaff}>Relaunch Run</Button>
+        const launchButton = <Button type="primary" onClick={launchRunProcessing} disabled={!(hasLaunchPermission || isUserStaff)}>Launch Run</Button>
+        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!(hasRelaunchPermission || isUserStaff)}>Relaunch Run</Button>
 
         return (
           <Space align='end'>

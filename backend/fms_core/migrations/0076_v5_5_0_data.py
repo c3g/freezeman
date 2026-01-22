@@ -3,6 +3,7 @@ import reversion
 from django.contrib.auth import get_user_model
 from django.db import migrations
 
+from fms_core.permissions import LaunchExperimentRun, RelaunchExperimentRun
 
 ADMIN_USERNAME = 'biobankadmin'
 
@@ -11,8 +12,8 @@ def create_freezeman_permissions(apps, schema_editor):
 
     PERMISSIONS = [
         #{name, description},
-        {"name": "launch_experiment_run", "description": "Allow launching an experiment run for the first run processsing."},
-        {"name": "relaunch_experiment_run", "description": "Allow launching an experiment run for a run reprocesssing."},
+        {"name": LaunchExperimentRun.PERMISSION_NAME, "description": "Allow launching an experiment run for the first run processsing."},
+        {"name": RelaunchExperimentRun.PERMISSION_NAME, "description": "Allow launching an experiment run for a run reprocesssing."},
     ]
 
     with reversion.create_revision(manage_manually=True):
