@@ -21,7 +21,7 @@ def create_workbook():
         descriptors=[
             [
                 CD(
-                    value="Old Sample Barcode",
+                    value="Container Barcode",
                     comment="The current barcode of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
@@ -31,13 +31,18 @@ def create_workbook():
                     apply_cell=style_section_name,
                 ),
                 CD(
+                    value="Old Sample Alias",
+                    comment="The current alias of the sample to be renamed.",
+                    apply_cell=style_section_name,
+                ),
+                CD(
                     value="New Sample Name",
                     comment="The new name to assign to the sample.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value="Update Comment",
-                    comment="A comment describing the reason for the rename.",
+                    value="New Sample Alias",
+                    comment="The new alias to assign to the sample.",
                     apply_cell=style_section_name,
                 ),
             ],

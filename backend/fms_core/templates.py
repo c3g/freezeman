@@ -116,16 +116,23 @@ CONTAINER_RENAME_TEMPLATE = {
 
 from fms_core.workbooks.sample_rename import create_workbook as create_sample_rename_workbook
 SAMPLE_RENAME_TEMPLATE = {
-    "identity": {"description": "Template to rename samples", "workbook": create_sample_rename_workbook},
+    "identity": {
+        "description": "Template to rename samples",
+        "file": static("submission_templates/Sample_rename_v3_6_0.xlsx"),
+        "workbook": create_sample_rename_workbook
+    },
     "sheets info": [
         {
             'name': 'SampleRename',
-            'headers': ['Old Sample Barcode', 'New Sample Barcode', 'New Sample Name', 'Update Comment'],
+            'headers': ['Container Barcode', 'Old Sample Name', 'Old Sample Alias', 'New Sample Name', 'New Sample Alias'],
             'batch': False,
         },],
     # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
     "prefill info": [
-        ("SampleRename", "Old Sample Barcode", "barcode", None, None),],
+        ("SampleRename", "Container Barcode", "container__barcode", "container_barcode", None),
+        ("SampleRename", "Old Sample Name", "name", "name", None),
+        ("SampleRename", "Old Sample Alias", "alias", "alias", None),
+    ],
     "placement info": [],
 }
 
