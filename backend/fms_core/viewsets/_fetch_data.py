@@ -497,12 +497,12 @@ class FetchLibraryData(FetchData):
         Returns:
             Returns a tuple of a list of serialized data dictionary (libraries) and the count before pagination
         """
-
+        start = datetime.datetime.now()
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
-
+        print(datetime.datetime.now() - start)
         self.queryset = self.queryset.values('id')
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
-        
+        print(datetime.datetime.now() - start)
         self.queryset = self.filter_queryset(self.get_queryset())
         if len(ids) > 0:
             self.queryset = self.queryset.filter(id__in=ids)
@@ -522,10 +522,10 @@ class FetchLibraryData(FetchData):
             'identity_flag',
             'depleted',
         )
-
+        print(datetime.datetime.now() - start)
         if self.fetch_limit is not None and self.fetch_offset is not None:
             self.queryset = self.queryset[self.fetch_offset:self.fetch_offset+self.fetch_limit] # page the queryset
-
+        print(datetime.datetime.now() - start)
         if not self.queryset:
             return ([], 0) # Do not lose time processing data for an empty queryset
         else:
@@ -551,7 +551,7 @@ class FetchLibraryData(FetchData):
             derived_by_samples = defaultdict(list)
             for dbs in derived_by_sample_values_queryset:
                 derived_by_samples[dbs["sample_id"]].append(dbs)
-
+            print(datetime.datetime.now() - start)
             serialized_data = []
             for sample in samples.values():
                 derived_by_sample = derived_by_samples[sample["id"]][0]
@@ -586,6 +586,7 @@ class FetchLibraryData(FetchData):
                     'derived_samples_count': len(derived_by_samples[sample["id"]])
                 }
                 serialized_data.append(data)
+            print(datetime.datetime.now() - start)
             return (serialized_data, count)
 
 
