@@ -114,28 +114,6 @@ CONTAINER_RENAME_TEMPLATE = {
   "placement info": [],
 }
 
-from fms_core.workbooks.sample_rename import create_workbook as create_sample_rename_workbook
-SAMPLE_RENAME_TEMPLATE = {
-    "identity": {
-        "description": "Template to rename samples",
-        "file": static("submission_templates/Sample_rename_v3_6_0.xlsx"),
-        "workbook": create_sample_rename_workbook
-    },
-    "sheets info": [
-        {
-            'name': 'SampleRename',
-            'headers': ['Container Barcode', 'Old Sample Name', 'Old Sample Alias', 'New Sample Name', 'New Sample Alias'],
-            'batch': False,
-        },],
-    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
-    "prefill info": [
-        ("SampleRename", "Container Barcode", "container__barcode", "container_barcode", None),
-        ("SampleRename", "Old Sample Name", "name", "name", None),
-        ("SampleRename", "Old Sample Alias", "alias", "alias", None),
-    ],
-    "placement info": [],
-}
-
 # Extracted sheet info for experiment run because it is shared between all templates of this category
 EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
@@ -284,6 +262,24 @@ INDEX_UPDATE_TEMPLATE = {
       ("Library", "Library Container Barcode", "sample__container__barcode", None, None),
       ("Library", "Library Container Coord", "sample__coordinate__name", None, None),
       ("Library", "Old Index Name", "derived_sample__library__index__name", None, None),
+  ],
+  "placement info": [],
+}
+
+SAMPLE_RENAME_TEMPLATE = {
+  "identity": {"description": "Template to replace a library index", "file": static("submission_templates/Library_index_update_v5_4_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'SampleRename',
+          'headers': ['Container Barcode', 'Container Coord', 'Index Name', 'Old Sample Name', 'New Sample Name'],
+          'batch': False,
+      },],
+  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+  "prefill info": [
+      ("SampleRename", "Container Barcode", "sample__container__barcode", None, None),
+      ("SampleRename", "Container Coord", "sample__coordinate__name", None, None),
+      ("SampleRename", "Index Name", "derived_sample__library__index__name", None, None),
+      ("SampleRename", "Old Sample Name", "derived_sample__biosample__alias", None, None),
   ],
   "placement info": [],
 }
