@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery
+from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery, Prefetch
 from collections import defaultdict
 
 from fms_core.filters import LibraryFilter
@@ -27,6 +27,8 @@ from fms_core.template_importer.importers import ( ExperimentRunImporter,
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._fetch_data import FetchLibraryData
 from ._constants import _library_filterset_fields
+
+from datetime import datetime
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchLibraryData):
     queryset = Sample.objects.none() # Should not be called directly
@@ -182,7 +184,6 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
                                                         SELECT * FROM parent''', params=[container_ids])
 
             return self.queryset.filter(container__in=parent_containers)
-
         return self.queryset
 
     def retrieve(self, _request, pk=None, *args, **kwargs):
@@ -191,8 +192,10 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         return Response(serialized_data[0] if serialized_data else {})
 
     def list(self, _request, *args, **kwargs):
+        tic = datetime.now()
         self.queryset = self.filter_queryset(self.get_queryset())
         serialized_data, count = self.fetch_data()
+        print(datetime.now() - tic)
         return Response({"results": serialized_data, "count": count})
 
     @action(detail=False, methods=["get"])
