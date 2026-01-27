@@ -3,6 +3,8 @@ Contains constants pointing to the paths of templates for template actions for
 various viewsets. Can be used to calculate URIs for the template files too.
 """
 
+from collections.abc import Callable
+from typing import NotRequired, TypedDict
 from django.templatetags.static import static
 
 from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
@@ -45,6 +47,20 @@ __all__ = [
     "PROJECT_STUDY_LINK_SAMPLES_TEMPLATE",
     "MAX_HEADER_OFFSET"
 ]
+
+SheetInfo = TypedDict('SheetInfo', {
+    'name': str,
+    'headers': list[str],
+    'stitch_column': NotRequired[str],
+    'batch': bool,
+})
+TemplateDefinition = TypedDict('TemplateDefinition', {
+    'identity': dict,
+    'sheets info': list[SheetInfo],
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+    'prefill info': list[tuple[str, str, str, str | None, Callable | None]],
+    'placement info': list[tuple],
+})
 
 MAX_HEADER_OFFSET = 20
 
@@ -267,7 +283,7 @@ INDEX_UPDATE_TEMPLATE = {
 }
 
 from fms_core.workbooks.sample_rename import create_workbook as sample_rename_workbook_generator
-SAMPLE_RENAME_TEMPLATE = {
+SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
   "identity": {
       "description": "Template to rename sample (and its alias)",
       "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
