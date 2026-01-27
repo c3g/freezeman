@@ -266,8 +266,13 @@ INDEX_UPDATE_TEMPLATE = {
   "placement info": [],
 }
 
+from fms_core.workbooks.sample_rename import create_workbook as sample_rename_workbook_generator
 SAMPLE_RENAME_TEMPLATE = {
-  "identity": {"description": "Template to replace a library index", "file": static("submission_templates/Library_index_update_v5_4_0.xlsx")},
+  "identity": {
+      "description": "Template to rename sample (and its alias)",
+      "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
+      "workbook_generator": sample_rename_workbook_generator
+    },
   "sheets info": [
       {
           'name': 'SampleRename',

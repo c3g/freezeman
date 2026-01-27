@@ -12,6 +12,7 @@ class SampleRenameImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
+        self.workbook_generator = SAMPLE_RENAME_TEMPLATE["identity"].get("workbook_generator", None)
 
     def import_template_inner(self):
         sample_rename_sheet = self.sheets['SampleRename']

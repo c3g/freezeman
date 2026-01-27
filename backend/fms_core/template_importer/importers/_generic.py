@@ -3,7 +3,7 @@ from typing import Callable
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from openpyxl import Workbook
-from pandas import pandas as pd
+import pandas as pd
 from django.db import transaction
 import time
 import reversion
@@ -34,12 +34,13 @@ class GenericImporter():
         self.output_file = None
         self.workbook_generator: Callable[[], Workbook] | None = None
 
-    def import_template(self, file, dry_run, user = None):
+    def import_template(self, file, dry_run, user = None, workbook_generator: Callable[[], Workbook] | None = None):
         self.file = file
         self.dry_run = dry_run
         file_name, file_format = os.path.splitext(file.name)
         self.format = file_format
         file_path = None
+        self.workbook_generator = workbook_generator
 
         if not (self.format == ".xlsx" or self.format == ".json") and len(self.SHEETS_INFO) > 1:
             self.base_errors.append(f"Templates with multiple sheets need to be submitted as xlsx files.")
@@ -124,8 +125,11 @@ class GenericImporter():
                 if self.workbook_generator is None:
                     pd_sheet = pd.read_excel(self.preprocess_file(self.file), sheet_name=name, header=None)
                 else:
-                    wb = self.workbook_generator()
-                    wb.
+                    pd_sheet = pd.DataFrame()
+                    workbook = self.workbook_generator()
+                    worksheet = workbook[name]
+                    for row in worksheet.values:
+                        pd_sheet.loc[len(pd_sheet)] = pd.Series(row)
             elif self.format == ".csv" or self.format == ".txt" or self.format == ".asc":
                 pd_sheet = pd.read_csv(self.preprocess_file(self.file), header=None)
             elif self.format == ".tsv":
