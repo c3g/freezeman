@@ -4,6 +4,7 @@ from io import StringIO, BytesIO
 from django.core.exceptions import ValidationError
 from django.conf import settings
 import pandas as pd
+from pandas.io.common import ReadCsvBuffer
 from django.db import transaction
 import time
 import reversion
@@ -24,12 +25,12 @@ class GenericImporter():
 
     def __init__(self):
         # public variables
-        self.base_errors = []
+        self.base_errors: list[str | Exception] = []
         self.errors_count = 0
 
         self.preloaded_data = {}
-        self.imported_file = None
-        self.sheets = {}
+        self.imported_file: ImportedFile | None = None
+        self.sheets: dict[str, SheetData] = {}
         self.dry_run = None
 
         assert self.SHEETS_INFO is not None, "SHEETS_INFO must be defined in the child class"
@@ -41,7 +42,7 @@ class GenericImporter():
         self._previews_info = []
         self._output_file = None
 
-    def import_template(self, file: FileArgType, dry_run: bool, user = None, file_name: str | None = None) -> dict:
+    def import_template(self, file: FileArgType, dry_run: bool, user = None, file_name_with_ext: str | None = None) -> dict:
         self._file_arg = file
         self.dry_run = dry_run
         if isinstance(file, Path):
@@ -49,10 +50,10 @@ class GenericImporter():
         elif isinstance(file, (str, bytes, os.PathLike)):
             file_name, file_format = os.path.splitext(os.path.basename(file))
         elif isinstance(file, BytesIO):
-            assert file_name is not None, "file_name must be provided when file is a BytesIO"
-            file_name, file_format = os.path.splitext(file_name)
+            assert file_name_with_ext is not None, "file_name_with_ext must be provided when file is a BytesIO"
+            file_name, file_format = os.path.splitext(file_name_with_ext)
         else:
-            self.base_errors.append(f"Unsupported file type: {type(file)}")
+            self.base_errors.append(f"Unsupported file: {file}")
             return {
                 'valid': False,
                 'has_warnings': False,
@@ -110,8 +111,9 @@ class GenericImporter():
             if self.is_valid and file_path is not None:
                 try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
                     with open(file_path, "xb") as output:
-                        for line in self._file_arg:
-                            output.write(line)
+                        with handle_file_arg(self._file_arg) as file_arg:
+                            for line in file_arg:
+                                output.write(line)
                 except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
                     self.base_errors.append(f"Could not save the template on server. Operation aborted. Contact support.")
 
@@ -130,28 +132,26 @@ class GenericImporter():
                          'output_file': self._output_file
                          }
         return import_result
-    
-    def preprocess_file(self, path: os.PathLike) -> os.PathLike | StringIO:
-        return path
 
-    def create_sheet_data(self, name, headers):
+    def create_sheet_data(self, name, headers) -> SheetData | None:
         try:
             shared_data = None
+            assert self._file_arg
             if self._format == ".json":
-                with open(self._file_arg, 'r') as file:
+                with handle_file_arg(self._file_arg) as file:
                     file_content = file.read()
                 json_content = json.loads(file_content)
                 sheet_data = StringIO(json.dumps(json_content["datasheets"][name]["sheet_data"]))
                 shared_data = json_content["datasheets"][name].get("shared_data", {})
                 pd_sheet = pd.read_json(sheet_data, orient="records")
             elif self._format == ".xlsx":
-                pd_sheet = pd.read_excel(self.preprocess_file(self._file_arg), sheet_name=name, header=None)
+                pd_sheet = pd.read_excel(self._file_arg, sheet_name=name, header=None)
             elif self._format == ".csv" or self._format == ".txt" or self._format == ".asc":
-                pd_sheet = pd.read_csv(self.preprocess_file(self._file_arg), header=None)
+                pd_sheet = pd.read_csv(self._file_arg, header=None)
             elif self._format == ".tsv":
-                pd_sheet = pd.read_csv(self.preprocess_file(self._file_arg), sep="\t", header=None)
+                pd_sheet = pd.read_csv(self._file_arg, sep="\t", header=None)
             else:
-                self.base_errors.append(f"Template file format " + self._format + " not supported.")
+                self.base_errors.append(f"Template file format " + str(self._format) + " not supported.")
                 return None
             # Convert blank and NaN cells to None and Store it in self.sheets
             dataframe = pd_sheet.map(blank_and_nan_to_none).map(str_normalize)
@@ -194,7 +194,14 @@ class GenericImporter():
 
         else:
             return len(self.base_errors) == 0 and all(s.is_valid == True for s in list(self.sheets.values()))
-    
+
+    def import_template_inner(self):
+        """
+        A child class is expected to implement this to call `self.handle_row` for
+        each (relevant) row in each (relevant) sheet in `self.sheets`.
+        """
+        pass
+
 @contextmanager
 def handle_file_arg(file_arg: FileArgType):
     if isinstance(file_arg, BytesIO):
