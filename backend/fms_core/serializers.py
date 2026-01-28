@@ -57,6 +57,7 @@ from .models import (
     SampleIdentityMatch,
     SampleIdentity,
     Profile,
+    FreezemanUser,
     FreezemanPermission
 )
 
@@ -562,7 +563,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.IntegerField(read_only=True, source="freezeman_user.profile.id")
-    permissions = serializers.SerializerMethodField(read_only=True)
+    permissions = serializers.SerializerMethodField(read_only=True, required=False)
 
     class Meta:
         model = User
@@ -575,6 +576,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = super(UserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
         user.save()
+        FreezemanUser.objects.create(user=user, profile=Profile.objects.get(name="Default"))
         return user
 
     def get_permissions(self, instance):
