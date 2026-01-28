@@ -48,3 +48,5 @@ def create_workbook():
             ],
         ],
     )
+
+    return workbook

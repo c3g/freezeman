@@ -1,6 +1,4 @@
-from collections.abc import Callable
 from pathlib import Path
-from openpyxl import Workbook
 import reversion
 
 APP_DATA_ROOT = Path(__file__).parent.parent / "valid_templates"
