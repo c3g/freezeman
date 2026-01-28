@@ -53,7 +53,7 @@ class UserViewSet(viewsets.ModelViewSet):
         try:
             response = super().create(request, *args, **kwargs)
         except Exception as err:
-            errors.update(err.__dict__.get("detail", {"username": err}))
+            errors.update(err.__dict__.get("detail", {"username": "An unexpected error happened during creation."}))
         if errors:
             transaction.set_rollback(True)
             raise ValidationError(errors)
