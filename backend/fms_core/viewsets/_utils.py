@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Tuple, Union, List
+from typing import Any, Dict, Tuple, TypedDict, Union, List
 from tablib import Dataset
 from django.db.models import CharField, Func, Value
 from django.db import transaction
@@ -15,6 +15,8 @@ from reversion.models import Version
 import json
 import os
 
+from fms_core.template_importer.importers._generic import GenericImporter
+from fms_core.templates import TemplateIdentity
 from fms_core import automations
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
@@ -109,14 +111,20 @@ class AutomationsMixin:
                 "warnings": warnings,
         }
         return Response(results)
-    
+
+class TemplateActionDefinition(TypedDict):
+    name: str
+    description: str
+    template: list[TemplateIdentity]
+    importer: type[GenericImporter]
+
 class TemplateActionsMixin:
     # When this mixin is used, this list will be overridden to provide a list
     # of template actions for the viewset implementation.
-    template_action_list = []
+    template_action_list: list[TemplateActionDefinition] = []
 
     @classmethod
-    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[dict, Dataset]]]:
+    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[TemplateActionDefinition, Dataset]]]:
         """
         Gets template action from request data. Requests should be
         multipart/form-data, with two key-value pairs:
@@ -186,7 +194,8 @@ class TemplateActionsMixin:
         """
 
         error, action_data = self._get_action(request)
-        if error:
+        # error being true and action_data being string indicates error from self._get_action
+        if error or isinstance(action_data, str):
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
         action_def, file = action_data

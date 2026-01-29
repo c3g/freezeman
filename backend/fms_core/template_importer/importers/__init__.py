@@ -23,6 +23,7 @@ from .axiom_preparation import AxiomPreparationImporter
 from .qc_integration_spark import QCIntegrationSparkImporter
 from .sample_identity_qc import SampleIdentityQCImporter
 from .index_update import IndexUpdateImporter
+from .sample_rename import SampleRenameImporter
 
 
 __all__ = [
@@ -50,5 +51,6 @@ __all__ = [
     "AxiomPreparationImporter",
     "QCIntegrationSparkImporter",
     "SampleIdentityQCImporter",
-    "IndexUpdateImporter"
+    "IndexUpdateImporter",
+    "SampleRenameImporter",
 ]
