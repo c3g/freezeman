@@ -1,4 +1,4 @@
-from io import StringIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -35,7 +35,7 @@ class GenericImporter():
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
 
-    def import_template(self, file: Path | InMemoryUploadedFile, dry_run, user = None):
+    def import_template(self, file: Path | InMemoryUploadedFile | BytesIO, dry_run, user = None):
         self.file = file
         self.dry_run = dry_run
         file_name, file_format = os.path.splitext(file.name)
