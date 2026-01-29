@@ -301,7 +301,7 @@ SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
   "sheets info": [
       {
           'name': 'SampleRename',
-          'headers': ['Container Barcode', 'Container Coord', 'Index Name', 'Old Sample Name', 'New Sample Name'],
+          'headers': ['Container Barcode', 'Container Coord', 'Index Name', 'Old Sample Name', 'Old Sample Alias', 'New Sample Name', 'New Sample Alias'],
           'batch': False,
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
@@ -309,7 +309,8 @@ SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
       ("SampleRename", "Container Barcode", "sample__container__barcode", None, None),
       ("SampleRename", "Container Coord", "sample__coordinate__name", None, None),
       ("SampleRename", "Index Name", "derived_sample__library__index__name", None, None),
-      ("SampleRename", "Old Sample Name", "derived_sample__biosample__alias", None, None),
+      ("SampleRename", "Old Sample Name", "sample__name", None, None),
+      ("SampleRename", "Old Sample Alias", "derived_sample__biosample__alias", None, None),
   ],
   "placement info": [],
 }
