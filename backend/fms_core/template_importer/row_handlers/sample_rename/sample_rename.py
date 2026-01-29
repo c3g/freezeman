@@ -17,8 +17,6 @@ class SampleRenameRowHandler(GenericRowHandler):
         if sample["new_alias"] is None:
             self.errors["alias"].append(f"A new value for the index needs to be provided.")
 
-        samples_impacted: Set[Sample] = set()
-
         if not self.errors["alias"]:
             sq_query = Q()
             try:
@@ -37,7 +35,6 @@ class SampleRenameRowHandler(GenericRowHandler):
 
                 derived_sample.biosample.alias = sample["new_alias"]
                 derived_sample.biosample.save()
-                samples_impacted.add(derived_sample.biosample)
 
             except DerivedSample.DoesNotExist:
                 self.errors["alias"].append(f"No sample found with the provided criteria {sq_query}; please refine your criteria.")
@@ -51,5 +48,4 @@ class SampleRenameRowHandler(GenericRowHandler):
                 "Container Barcode": sample["barcode"],
                 "Container Coord": sample["coordinates"],
                 "Index Name": sample["index"],
-                "Samples Impacted": [sample for sample in samples_impacted]
             }

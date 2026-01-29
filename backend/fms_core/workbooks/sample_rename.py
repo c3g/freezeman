@@ -20,6 +20,17 @@ def create_workbook():
         order="row",
         descriptors=[
             [
+                CD(value="Sample Rename Template")
+            ],
+            [
+                CD(value="Naming Rules")
+            ],
+            [
+                CD(
+                    "- Only use the following characters for Sample Name and Sample Alias: a-z, A-Z, 0-9, underscore (_), hyphen (-)",
+                )
+            ],
+            [
                 CD(
                     value="Container Barcode",
                     comment="The current barcode of the sample to be renamed.",
