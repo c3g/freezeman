@@ -1,10 +1,8 @@
-from datetime import datetime
 from typing import Any, Dict, Tuple, TypedDict, Union, List
-from tablib import Dataset
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import CharField, Func, Value
 from django.db import transaction
-from wsgiref.util import FileWrapper
-from django.http import HttpResponseBadRequest, HttpResponse, StreamingHttpResponse
+from django.http import HttpResponseBadRequest, HttpResponse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -124,7 +122,7 @@ class TemplateActionsMixin:
     template_action_list: list[TemplateActionDefinition] = []
 
     @classmethod
-    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[TemplateActionDefinition, Dataset]]]:
+    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[TemplateActionDefinition, InMemoryUploadedFile]]]:
         """
         Gets template action from request data. Requests should be
         multipart/form-data, with two key-value pairs:
@@ -133,10 +131,10 @@ class TemplateActionsMixin:
         Returns a tuple of:
             bool
                 True if an error occurred, False if the request was processed
-                to the point of reading the file into a dataset.
-            Union[str, Tuple[dict, Dataset]]
+                to the point of reading the file into a InMemoryUploadedFile.
+            Union[str, Tuple[dict, InMemoryUploadedFile]]
                 str if an error occured, where the string is the error message.
-                Dataset otherwise, with the contents of the uploaded file.
+                InMemoryUploadedFile otherwise, with the contents of the uploaded file.
         """
 
         action_id = request.POST.get("action")
