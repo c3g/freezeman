@@ -1,19 +1,23 @@
-from io import StringIO
+from contextlib import contextmanager
+from pathlib import Path
+from io import StringIO, BytesIO
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from pandas import pandas as pd
+import pandas as pd
+from pandas.io.common import ReadCsvBuffer
 from django.db import transaction
 import time
 import reversion
 import os
 import json
+from tablib import Dataset as TablibDataset
+
 
 from ..sheet_data import SheetData
 from .._utils import blank_and_nan_to_none
 from fms_core.utils import str_normalize
-
 from fms_core.models import ImportedFile
-
+from fms_core.templates import SheetInfo
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
@@ -31,7 +35,7 @@ class GenericImporter():
         self.dry_run = None
         self.output_file = None
 
-    def import_template(self, file, dry_run, user = None):
+    def import_template(self, file: Path | TablibDataset, dry_run, user = None):
         self.file = file
         self.dry_run = dry_run
         file_name, file_format = os.path.splitext(file.name)
