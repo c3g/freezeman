@@ -1,5 +1,6 @@
 import os
 from io import BytesIO
+from openpyxl import Workbook
 from openpyxl.reader.excel import load_workbook
 from ._utils import load_position_dict, find_worksheet_header_offset, is_sheet_true_batch
 from django.conf import settings
@@ -18,7 +19,10 @@ def PrefillTemplate(template_path, template_info, queryset):
     """
     out_stream = BytesIO()
 
-    workbook = load_workbook(filename=template_path)
+    if os.path.exists(template_path):
+        workbook = load_workbook(filename=template_path)
+    else:
+        workbook: Workbook = template_info["identity"]["workbook"]()
     position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]
