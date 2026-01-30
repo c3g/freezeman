@@ -46,13 +46,16 @@ from .viewsets import (
     SamplesheetViewSet,
     ReportViewSet,
     SampleIdentityViewSet,
+    SampleIdentityMatchViewSet,
     ProfileViewSet,
+    DerivedSampleViewSet,
 )
 
 __all__ = ["router"]
 
 router = routers.DefaultRouter()
 router.register(r"biosamples", BiosampleViewSet)
+router.register(r"derivedsamples", DerivedSampleViewSet)
 router.register(r"container-kinds", ContainerKindViewSet, basename="container-kind")
 router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)
@@ -97,4 +100,5 @@ router.register(r"metrics", MetricViewSet)
 router.register(r"samplesheets", SamplesheetViewSet, basename="samplesheets")
 router.register(r"reports", ReportViewSet, basename="reports")
 router.register(r"sample-identities", SampleIdentityViewSet)
+router.register(r"sample-identity-matches", SampleIdentityMatchViewSet)
 router.register(r"profiles", ProfileViewSet, basename="profiles")

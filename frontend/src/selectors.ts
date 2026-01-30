@@ -1,4 +1,5 @@
 import {
+  Biosample,
 	Container,
 	Coordinate,
 	Dataset,
@@ -54,6 +55,7 @@ export const selectAppInitialized = (state: RootState) => state.app.initialized
 export const selectAuthState = (state: RootState) => state.auth
 export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access as unknown as string | undefined
 export const selectAuthCurrentUserID = (state: RootState) => state.auth?.currentUserID as unknown as string | undefined
+export const selectBiosamplesByID = (state: RootState) => state.biosamples.itemsByID as ItemsByID<Biosample>
 export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
 export const selectContainerPrefillTemplates = (state: RootState) => state.containerPrefillTemplates
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID as ItemsByID<Container>

@@ -72,7 +72,7 @@ const getTableColumns = (sampleKinds) => {
             sorter: true,
             options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
             render: (_, sample) =>
-                <Tag>{sample.sample_kind ? sample.sample_kind : "POOL"}</Tag>,
+                <Tag variant="outlined">{sample.sample_kind ? sample.sample_kind : "POOL"}</Tag>,
         },
         {
             title: "Library Type",

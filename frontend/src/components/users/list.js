@@ -38,7 +38,7 @@ const reports = [
         <span>
           <strong>{item.username}</strong>{' '}
           {item.groups.map(g =>
-            <Tag>{g.name}</Tag>
+            <Tag variant="outlined">{g.name}</Tag>
           )}
         </span>
 

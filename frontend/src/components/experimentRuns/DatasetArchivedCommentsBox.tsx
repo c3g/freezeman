@@ -48,7 +48,7 @@ export default function DatasetArchivedCommentsBox({datasets, handleAddComment}:
       <Row justify="space-between">
         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
           <Tooltip title="Previous Project"><Button icon={<LeftCircleOutlined/>} onClick={handlePreviousDataset} disabled={datasetIndex==0}/></Tooltip>
-          <Tag style={styleTag}><Title level={5}><Text strong>{currentDataset && <FixedLengthText text={currentDataset.project_name} fixedLength={36} elipsisPosition={MIDDLE_ELIPSIS} />}</Text></Title></Tag>
+          <Tag variant="outlined" style={styleTag}><Title level={5}><Text strong>{currentDataset && <FixedLengthText text={currentDataset.project_name} fixedLength={36} elipsisPosition={MIDDLE_ELIPSIS} />}</Text></Title></Tag>
           <Tooltip title="Next Project"><Button icon={<RightCircleOutlined/>} onClick={handleNextDataset} disabled={datasetIndex==(datasets.length - 1)}/></Tooltip>
         </div>
       </Row>

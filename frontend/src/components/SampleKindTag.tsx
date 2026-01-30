@@ -7,7 +7,7 @@ import { selectSampleKindsByID } from '../selectors'
 const SampleKindTag = ({sampleKindID} : {sampleKindID: number}) => {
 	const sampleKindsByID = useAppSelector(selectSampleKindsByID)
 	return (
-		<Tag>{sampleKindID ? sampleKindsByID[sampleKindID]?.name : "POOL"}</Tag>
+		<Tag variant="outlined">{sampleKindID ? sampleKindsByID[sampleKindID]?.name : "POOL"}</Tag>
 	)
 }
 

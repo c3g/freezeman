@@ -164,7 +164,7 @@ function renderSample(sample, sampleKindsByID) {
       <strong>{sample.name}</strong>{' '}
       {sampleKind &&
         <>
-          <Tag style={tagStyle}>{sampleKind}</Tag>{' '}
+          <Tag variant="outlined" style={tagStyle}>{sampleKind}</Tag>{' '}
         </>
       }
       <Text type="secondary">sample</Text>{' '}

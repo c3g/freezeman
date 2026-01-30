@@ -6,8 +6,8 @@ import { getFilterComponent } from '../getFilterComponent'
 import FilterContainer from './FilterContainer'
 
 // TODO: Clean up the setFilter function definition and define this in one place.
-type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
-type SetFilterOptionCallback = (description: FilterDescription, options: FilterOptions) => void
+export type SetFilterCallback = (value: FilterValue, description: FilterDescription) => void
+export type SetFilterOptionCallback = (description: FilterDescription, options: FilterOptions) => void
 
 interface FilterPanelProps {
 	descriptions: FilterDescription[]

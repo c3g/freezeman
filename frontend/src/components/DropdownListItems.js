@@ -1,17 +1,21 @@
-import React from "react";
-import {Dropdown, Menu} from "antd";
+import React, { useMemo } from "react";
+import {Dropdown} from "antd";
 import {CloseOutlined, LineOutlined, MenuOutlined} from "@ant-design/icons";
 
+/**
+ * 
+ * @param {{ listItems: React.ReactNode[] }} param0
+ * @returns 
+ */
 const DropdownListItems = ({listItems}) => {
-  const menuListItems = (
-    <Menu>
-      {listItems ? listItems.map((item, i) => <Menu.Item key={i.toString()}>{item}</Menu.Item>) : <Menu.Item/>}
-    </Menu>
-  );
+  const menuListItems = useMemo(() => listItems.map((item, i) => ({
+    key: i.toString(),
+    label: item
+  })), [listItems])
 
   return (
     listItems && listItems.length > 1 ? 
-    <Dropdown overlay={menuListItems} placement="bottomRight">
+    <Dropdown menu={{ items: menuListItems }} placement="bottomRight">
       <div>
         <MenuOutlined /> {listItems && "Expand list..."}
       </div>

@@ -9,6 +9,7 @@
 
 import {
   FMSArchivedComment,
+  FMSBiosample,
 	FMSContainer,
 	FMSContainerKind,
 	FMSCoordinate,
@@ -43,6 +44,7 @@ import {
 	FMSTaxon,
 	FMSTrackedModel,
 	FMSUser,
+	FMSVersion,
 	FMSWorkflow,
 } from './fms_api_models'
 
@@ -108,6 +110,7 @@ export function mergeItemsByID<T extends FMSTrackedModel>(itemsByID: ItemsByID<T
 }
 
 export type ObjectId = FMSId
+export interface Biosample extends Readonly<FMSBiosample>, FetchedObject {}
 export interface Container extends Readonly<FMSContainer>, FetchedObject {
 	parents?: Array<Container["id"]>
 }
@@ -147,4 +150,9 @@ export interface Workflow extends Readonly<FMSWorkflow>, FetchedObject {}
 export interface WorkflowStepRange {
 	start: number
 	end: number
+}
+
+export interface SampleVersion extends Readonly<FMSVersion> {
+	key: string
+	fields: any
 }

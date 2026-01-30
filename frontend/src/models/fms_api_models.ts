@@ -51,6 +51,18 @@ export interface FMSTrackedModel {
 export interface FMSBiosample extends FMSTrackedModel {
     id: FMSId                           // Unique ID of object in database
     alias: string                       // Alternate name for biosample
+    individual?: FMSId                  // ID of the individual from which the sample was taken
+    collection_site?: string            // Geographical site where the sample was taken
+}
+
+export interface FMSDerivedSample extends FMSTrackedModel {
+  id: FMSId                           // Unique ID of object in database
+  biosample: FMSId                    // ID of the biosample tied to the derived sample
+  sample_kind: FMSId                  // ID of the Sample Kind 
+  experimental_group: string[]        // List of descriptors associated to the experiment
+  tissue_source?: FMSId               // ID of the Tissue Source (Sample kind of the source sample)
+  library?: FMSId                     // ID of Library object if the sample is a library
+  derived_from?: FMSId                // ID of the derived sample from which the derived sample is derived
 }
 
 export interface FMSContainer extends FMSTrackedModel {
@@ -266,6 +278,11 @@ export interface FMSMetric extends FMSTrackedModel {
     value_string?: string               // Metric value, if text
 }
 
+export interface FMSPermission extends FMSTrackedModel {
+    name: string                        // Unique name of the permission
+    description: string                 // Short descriptor text for the permission
+}
+
 export interface FMSPlatform extends FMSTrackedModel {
     name: string                        // Platform name eg "ILLUMINA" or "DNBSEQ"
 }
@@ -420,6 +437,7 @@ export interface FMSSampleIdentity extends FMSTrackedModel {
 export interface FMSSampleIdentityMatch extends FMSTrackedModel {
     tested_biosample_id: FMSId  // Match found while testing this sample identity.
     matched_biosample_id: FMSId // Match found to be referencing this sample identity.
+    readset_id?: FMSId          // Readset from which the match is established. Present only for experiment data testing.
     matching_site_ratio: number // Ratio of the compared sites that are matching.
     compared_sites: number      // Number of marker sites that have a value for both samples.
 }
@@ -555,6 +573,7 @@ export interface FMSUser extends FMSTrackedModel {
     is_active: boolean                  // Active flag
     date_joined: string                 // Timestamp user was created
     profile: FMSId                      // Current Profile ID
+    permissions: FMSPermission[]        // Array of the users' own permissions
 }
 
 export interface FMSProfilePreferences {
@@ -647,4 +666,26 @@ export interface FMSReportData {
 export interface FMSSampleLineageGraph {
     nodes: Pick<FMSSample, 'id' | 'name' | 'quality_flag' | 'quantity_flag' | 'identity_flag'>[],
     edges: (Pick<FMSProcessMeasurement, 'id' | 'source_sample' | 'child_sample'> & { protocol_name: string })[]
+}
+
+export interface FMSVersion {
+  id: number
+  object_id: string
+  db: string
+  format: string
+  serialized_data: string
+  object_repr: string
+  revision: FMSRevision
+  content_type: FMSContentType
+}
+export interface FMSRevision {
+  id: number
+  date_created: string
+  comment: string
+  user: number
+}
+export interface FMSContentType {
+  id: number
+  app_label: string
+  model: string
 }

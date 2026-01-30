@@ -10,13 +10,23 @@ PK_FILTERS = ["in"]
 NULLABLE_FILTERS = ["isnull"]
 NULLABLE_FK_FILTERS = [*FK_FILTERS, *NULLABLE_FILTERS]
 SCALAR_FILTERS = ["exact", "lt", "lte", "gt", "gte"]
-DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
+DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day", *NULLABLE_FILTERS]
 
 FiltersetFields = Dict[str, List[str]]
 
 _biosample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "alias": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_derived_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "biosample": FK_FILTERS,
+    "sample_kind": FK_FILTERS,
+    "tissue_source": FK_FILTERS,
+    "library": FK_FILTERS,
+    "derived_from": FK_FILTERS,
+    "readsets__id": FK_FILTERS,
 }
 
 _coordinate_filterset_fields: FiltersetFields = {
@@ -127,6 +137,20 @@ _sample_identity_filterset_fields: FiltersetFields = {
     "biosample": FK_FILTERS,
     "conclusive": ["exact"],
     "predicted_sex": CATEGORICAL_FILTERS,
+}
+
+_sample_identity_match_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "tested": FK_FILTERS,
+    "matched": FK_FILTERS,
+    "tested__biosample_id": FK_FILTERS,
+    "matched__biosample_id": FK_FILTERS,
+    "readset": FK_FILTERS,
+    "readset__dataset_id": FK_FILTERS,
+    "readset__derived_sample_id": FK_FILTERS,
+    "readset__derived_sample__samples__id": FK_FILTERS,
+    "matching_site_ratio": SCALAR_FILTERS,
+    "compared_sites": SCALAR_FILTERS,
 }
 
 _protocol_filterset_fields: FiltersetFields = {
@@ -261,6 +285,7 @@ _experiment_run_filterset_fields: FiltersetFields = {
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,
     "run_processing_launch_time": DATE_FILTERS,
+    "run_processing_end_time": DATE_FILTERS,
 
     **_prefix_keys("run_type__", _run_type_filterset_fields),
     **_prefix_keys("instrument__", _instrument_filterset_fields),
@@ -279,6 +304,8 @@ _readset_filterset_fields: FiltersetFields = {
     "validation_status_timestamp": DATE_FILTERS,
     "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__sample_identity__conclusive": ["exact"],
+    "derived_sample__samples__id": ["exact"],
     **_prefix_keys("dataset__", _dataset_filterset_fields),
 }
 
@@ -391,4 +418,12 @@ _metric_filterset_fields: FiltersetFields = {
     "readset__dataset__experiment_run_id": FK_FILTERS,
     "readset__dataset__experiment_run__name": CATEGORICAL_FILTERS_LOOSE,
     "readset__dataset__lane": CATEGORICAL_FILTERS,
+}
+
+_permission_by_user_filterset_fields:  FiltersetFields = {
+    "id": PK_FILTERS,
+    "freezeman_user__id": FK_FILTERS,
+    "freezeman_user__user__id": FK_FILTERS,
+    "freezeman_permission__id": FK_FILTERS,
+    "freezeman_permission__name": CATEGORICAL_FILTERS,
 }

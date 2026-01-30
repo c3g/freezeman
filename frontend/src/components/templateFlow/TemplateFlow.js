@@ -1,7 +1,5 @@
-import React, { useState } from "react";
-import { connect } from "react-redux"
-import PropTypes from "prop-types";
-import { Button, Steps, Row, Col, notification } from "antd";
+import React, { useMemo, useState } from "react";
+import { Button, Steps, Row, Col, notification, Flex } from "antd";
 import { downloadFromFile } from "../../utils/download";
 
 import {
@@ -15,6 +13,7 @@ import { fetchSummariesData } from "../../modules/shared/actions";
 import { UploadStep } from "./steps/UploadStep";
 import { ReviewStep } from "./steps/ReviewStep";
 import { ConfirmationStep } from "./steps/ConfirmationStep";
+import { useAppDispatch } from "../../hooks";
 
 
 const STEPS = [
@@ -38,10 +37,22 @@ STEPS.UPLOAD = 0
 STEPS.REVIEW = 1
 STEPS.CONFIRM = 2
 
-const actionCreators = { fetchSummariesData };
+/**
+ * 
+ * @param {{
+ * action: import("../../models/fms_api_models").FMSTemplateAction,
+ * actionIndex: number,
+ * checkRequest: (actionIndex: number, file: any) => Promise<any>,
+ * submitRequest: (actionIndex: number, file: any) => Promise<any>,
+ * }} props 
+ * @returns
+ */
+const TemplateFlow = (props) => {
+  const dispatch = useAppDispatch()
 
-const TemplateFlow = ({ fetchSummariesData, ...props }) => {
-  const [step, setStep] = useState(0);
+  const { action, actionIndex, checkRequest, submitRequest } = props;
+
+  const [currentStep, setCurrentStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -50,8 +61,7 @@ const TemplateFlow = ({ fetchSummariesData, ...props }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitResult, setSubmitResult] = useState(null);
 
-  const { action, actionIndex, checkRequest, submitRequest } = props;
-  const StepContent = STEPS[step].content;
+  const StepContent = STEPS[currentStep].content;
 
   if (file && !isChecked && !isChecking) {
     setIsChecking(true)
@@ -75,7 +85,7 @@ const TemplateFlow = ({ fetchSummariesData, ...props }) => {
     setIsChecked(false)
     setIsChecking(false)
     setFile(file)
-    setStep(step + 1)
+    setCurrentStep(currentStep + 1)
   }
 
   const onSubmit = () => {
@@ -107,24 +117,27 @@ const TemplateFlow = ({ fetchSummariesData, ...props }) => {
           error,
         })
       })
-      .then(fetchSummariesData)
+      .then(() => dispatch(fetchSummariesData()))
       .finally(() => {
         setIsSubmitted(true)
         setIsSubmitting(false)
       })
-    setStep(step + 1)
+    setCurrentStep(currentStep + 1)
   }
 
+  const stepsItems = useMemo(() => {
+    /**
+     * @type {NonNullable<import("antd").StepsProps['items']>}
+     */
+    const steps = STEPS.map((s) => ({
+      title: s.title,
+      description: s.description(action.description),
+    }))
+    return steps
+  }, [action.description])
+
   return <>
-    <Steps current={step}>
-      {STEPS.map((s, i) =>
-        <Steps.Step
-          key={i}
-          title={s.title}
-          description={s.description(action.description)}
-        />
-      )}
-    </Steps>
+    <Steps current={currentStep} items={stepsItems} />
 
     <div style={{ padding: "24px 0", minHeight: "150px" }}>
       <StepContent
@@ -140,47 +153,40 @@ const TemplateFlow = ({ fetchSummariesData, ...props }) => {
       />
     </div>
 
-    <Row>
-      <Col>
+    <Flex justify={"space-between"}>
         <Button
-          disabled={step === 0}
-          onClick={() => setStep(step - 1)} style={{ marginRight: "8px" }}
+          disabled={currentStep === 0}
+          onClick={() => setCurrentStep(currentStep - 1)} style={{ marginRight: "8px" }}
         >
           <ArrowLeftOutlined /> Previous
         </Button>
-      </Col>
-      <Col flex="1"></Col>
-      <Col>
         {
-          step === STEPS.UPLOAD &&
-          <Button
+          currentStep === STEPS.UPLOAD
+          ? <Button
             type="primary"
             disabled={
-              step === STEPS.length - 1 ||
-              (step === STEPS.UPLOAD && !file)
+              currentStep === STEPS.length - 1 ||
+              (currentStep === STEPS.UPLOAD && !file)
             }
-            onClick={() => setStep(step + 1)}
+            onClick={() => setCurrentStep(currentStep + 1)}
           >
             Next <ArrowRightOutlined />
           </Button>
+          : null
         }
         {
-          step === STEPS.REVIEW &&
-          <Button
+          currentStep === STEPS.REVIEW
+          ? <Button
             type="primary"
             disabled={!checkResult || !checkResult.valid}
             onClick={onSubmit}
           >
             <CheckOutlined /> Submit
           </Button>
+          : null
         }
-      </Col>
-    </Row>
-  </>;
-};
+    </Flex>
+  </>
+}
 
-TemplateFlow.propTypes = {
-  uploadText: PropTypes.string,
-};
-
-export default connect(undefined, actionCreators)(TemplateFlow);
+export default TemplateFlow

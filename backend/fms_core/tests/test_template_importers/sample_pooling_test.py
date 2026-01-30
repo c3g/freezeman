@@ -23,8 +23,7 @@ class SamplePoolingTestCase(TestCase):
         self.importer = SamplePoolingImporter()
         self.file = APP_DATA_ROOT / "Sample_pooling_v4_12_0.xlsx"
 
-        self.invalid_template_tests = ["Sample_pooling_v4_12_0_different_individuals.xlsx",
-                                       "Sample_pooling_v4_12_0_different_kinds.xlsx",
+        self.invalid_template_tests = ["Sample_pooling_v4_12_0_different_kinds.xlsx",
                                        "Sample_pooling_v4_12_0_different_types.xlsx",
                                        "Sample_pooling_v4_12_0_missing_library_size.xlsx"]
 

@@ -1,16 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useDispatch } from 'react-redux'
 import { Button, Col, Row, Space, Spin, Typography } from 'antd'
 import { CheckOutlined, CloseOutlined, RightOutlined, WarningOutlined } from "@ant-design/icons"
 
+import { PERMISSIONS, hasPermission } from '../../permissions'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers"
-import {launchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
+import {launchExperimentRun, relaunchExperimentRun, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions"
 import dayjs from 'dayjs'
 
 const { Text } = Typography
-
-
 
 const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     /*
@@ -25,7 +24,9 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     const dispatch = useDispatch()
     const currentUser = useCurrentUser()
     const isUserStaff = currentUser?.is_staff ?? false
-  
+    const hasLaunchPermission = hasPermission(currentUser, PERMISSIONS.LAUNCH_EXPERIMENT_RUN)
+    const hasRelaunchPermission = hasPermission(currentUser, PERMISSIONS.RELAUNCH_EXPERIMENT_RUN)
+
     // Controls whether launch button and launch state is displayed
     const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
 
@@ -43,6 +44,11 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     // Launch the run
     const launchRunProcessing = () => {
       dispatch(launchExperimentRun(experimentRun.id))
+    }
+
+    // Relaunch the run
+    const relaunchRunProcessing = () => {
+      dispatch(relaunchExperimentRun(experimentRun.id))
     }
   
     // Flushes the experiment run launch info from redux
@@ -81,8 +87,8 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         // Show the button to launch or relaunch run processing.
         const isFirstLaunch = !experimentRun.run_processing_launch_time
 
-        const launchButton = <Button type="primary" onClick={launchRunProcessing}>Launch Run</Button>
-        const relaunchButton = <Button style={{background: 'orange'}} onClick={launchRunProcessing} disabled={!isUserStaff}>Relaunch Run</Button>
+        const launchButton = <Button type="primary" onClick={launchRunProcessing} disabled={!(hasLaunchPermission || isUserStaff)}>Launch Run</Button>
+        const relaunchButton = <Button style={{background: 'orange'}} onClick={relaunchRunProcessing} disabled={!(hasRelaunchPermission || isUserStaff)}>Relaunch Run</Button>
 
         return (
           <Space align='end'>

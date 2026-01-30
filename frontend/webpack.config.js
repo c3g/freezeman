@@ -83,5 +83,8 @@ module.exports = (env, argv) => ({
         target: "http://localhost:8000"
       }
     },
+    client: {
+      overlay: false,
+    }
   },
 });

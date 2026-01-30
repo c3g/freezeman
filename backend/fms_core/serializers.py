@@ -17,6 +17,7 @@ from .models import (
     Container,
     Dataset,
     DatasetFile,
+    DerivedSample,
     Readset,
     DerivedBySample,
     ExperimentRun,
@@ -55,8 +56,9 @@ from .models import (
     IndexBySet,
     SampleIdentityMatch,
     SampleIdentity,
-    FreezemanUser,
     Profile,
+    FreezemanUser,
+    FreezemanPermission
 )
 
 from .models._constants import ReleaseStatus
@@ -120,6 +122,8 @@ __all__ = [
     "SampleIdentityMatchSerializer",
     "SampleIdentitySerializer",
     "ProfileSerializer",
+    "DerivedSampleSerializer"
+    "FreezemanPermissionSerializer",
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -137,6 +141,10 @@ class ContainerSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_fields = ('experiment_run')
 
+class DerivedSampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DerivedSample
+        fields = "__all__"
 
 class SimpleContainerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -555,10 +563,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.IntegerField(read_only=True, source="freezeman_user.profile.id")
+    permissions = serializers.SerializerMethodField(read_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined", "profile")
+        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "is_active", "date_joined", "profile", "permissions")
         extra_kwargs = {
             "password": {"write_only": True}
         }
@@ -567,7 +576,13 @@ class UserSerializer(serializers.ModelSerializer):
         user = super(UserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
         user.save()
+        FreezemanUser.objects.create(user=user, profile=Profile.objects.get(name="Default"))
         return user
+
+    def get_permissions(self, instance):
+        permissions_queryset = instance.freezeman_user.permissions.all()
+        serialized_data = FreezemanPermissionSerializer(permissions_queryset, many=True)
+        return serialized_data.data
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1039,6 +1054,7 @@ class SampleIdentityMatchSerializer(serializers.ModelSerializer):
         fields = ["id",
                   "tested_biosample_id",
                   "matched_biosample_id",
+                  "readset_id",
                   "matching_site_ratio",
                   "compared_sites"]
 
@@ -1061,3 +1077,8 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data
+
+class FreezemanPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FreezemanPermission
+        fields = "__all__"

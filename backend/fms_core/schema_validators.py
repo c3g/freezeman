@@ -135,14 +135,14 @@ RUN_PROCESSING_SCHEMA = {
                     "index": {
                         "type": "object",
                         "properties": {
-                            "pct_on_index_in_lane": {"type": "number", "minimum": 0, "maximum": 100},
-                            "pct_of_the_lane": {"type": "number", "minimum": 0, "maximum": 100},
-                            "pct_perfect_barcode": {"type": "number", "minimum": 0, "maximum": 100},
-                            "pct_one_mismatch_barcode": {"type": "number", "minimum": 0, "maximum": 100},
-                            "pf_clusters": {"type": "integer"},
-                            "yield": {"type": "integer"},
-                            "mean_quality_score": {"type": "number"},
-                            "pct_q30_bases": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pct_on_index_in_lane": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "pct_of_the_lane": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "pct_perfect_barcode": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "pct_one_mismatch_barcode": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "pf_clusters": {"type": ["integer", "null"]},
+                            "yield": {"type": ["integer", "null"]},
+                            "mean_quality_score": {"type": ["number", "null"]},
+                            "pct_q30_bases": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
                         },
                     },
                     "qc": {
@@ -151,6 +151,8 @@ RUN_PROCESSING_SCHEMA = {
                             "avg_qual": {"type": ["number", "null"]},
                             "duplicate_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
                             "nb_reads": {"type": "number"},
+                            "mean_read_length": {"type": ["number", "null"]},
+                            "median_read_length": {"type": ["number", "null"]},
                         },
                     },
                     "blast": {

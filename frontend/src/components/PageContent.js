@@ -7,6 +7,11 @@ const defaultStyle = {
   overflowY: "auto",
 };
 
+/**
+ * 
+ * @param {{ children: React.ReactNode, style?: React.CSSProperties, tabs?: boolean, loading?: boolean }} param0 
+ * @returns 
+ */
 const PageContent = ({children, style = undefined, tabs = false, loading = false}) =>
   <div
     className={'PageContent' + (tabs ? ' --with-tabs' : '')}

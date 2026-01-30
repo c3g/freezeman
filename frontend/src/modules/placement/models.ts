@@ -11,8 +11,8 @@ export interface PlacementState {
 
 export enum PlacementType {
     SEQUENTIAL = 'Sequential',
-    SOURCE_PATTERN = 'Source Pattern',
-    QUADRANT_PATTERN = 'Quadrant Pattern',
+    SOURCE_PATTERN = 'Source',
+    QUADRANT_PATTERN = 'Quadrant',
 }
 export interface PlacementSequentialOptions {
     type: PlacementType.SEQUENTIAL

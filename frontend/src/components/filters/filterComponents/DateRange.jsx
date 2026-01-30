@@ -15,11 +15,12 @@ const { RangePicker } = DatePicker
  * setFilter: import('../../../models/paged_items').SetFilterFunc,
  * confirm: () => void,
  * visible: boolean,
- * description: import('../../../models/paged_items').FilterDescription
+ * description: import('../../../models/paged_items').FilterDescription,
+ * style?: React.CSSProperties
  * }} props 
  * @returns 
  */
-const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, description}) => {
+const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, description, style}) => {
     const onSearch = (values) => {
       setFilter(filterKey, values, description)
     }
@@ -36,7 +37,7 @@ const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, des
     }
   
     return (
-      <div>
+      <div style={style}>
         <Input.Group compact style={{ marginBottom: 8 }}>
           <RangePicker
             style={{ width: 300 }}

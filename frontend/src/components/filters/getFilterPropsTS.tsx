@@ -59,7 +59,9 @@ export function getFilterPropsForDescription(
   description: FilterDescription, 
   filterSetting: FilterSetting | undefined, 
   setFilter: SetFilterFunc, 
-  setFilterOption: SetFilterOptionFunc) {
+  setFilterOption: SetFilterOptionFunc,
+  debounceDelay = 500
+) {
 	return {
 		filterIcon: getFilterIcon(Boolean(filterSetting?.value)),
 		filterDropdown: ({ confirm, visible }) => {
@@ -71,7 +73,8 @@ export function getFilterPropsForDescription(
 						setFilter,
 						setFilterOption,
 						confirm,
-						visible
+						visible,
+						debounceDelay
 					)}
 				</div>
 		)},
