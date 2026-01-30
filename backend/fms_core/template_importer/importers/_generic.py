@@ -16,6 +16,11 @@ from fms_core.utils import str_normalize
 from fms_core.models import ImportedFile
 from fms_core.templates import SheetInfo
 
+class BytesIOWithName(BytesIO):
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+
 class GenericImporter():
     ERRORS_CUTOFF = 20
 
@@ -35,7 +40,7 @@ class GenericImporter():
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
 
-    def import_template(self, file: Path | InMemoryUploadedFile | BytesIO, dry_run, user = None):
+    def import_template(self, file: Path | InMemoryUploadedFile | BytesIOWithName, dry_run, user = None):
         self.file = file
         self.dry_run = dry_run
         file_name, file_format = os.path.splitext(file.name)
