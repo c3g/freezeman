@@ -7,6 +7,7 @@ headerPatternFill = PatternFill(start_color="92d050", end_color="92d050", fill_t
 def style_section_name(cell):
     cell.fill = headerPatternFill
 
+HEADERS_ROW = 4 # 1-indexed
 def create_workbook():
     workbook = Workbook()
 
@@ -34,6 +35,16 @@ def create_workbook():
                 CD(
                     value="Container Barcode",
                     comment="The current barcode of the sample to be renamed.",
+                    apply_cell=style_section_name,
+                ),
+                CD(
+                    value="Container Coord",
+                    comment="The current coordinate of the sample to be renamed.",
+                    apply_cell=style_section_name,
+                ),
+                CD(
+                    value="Index Name",
+                    comment="The index name associated with the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
