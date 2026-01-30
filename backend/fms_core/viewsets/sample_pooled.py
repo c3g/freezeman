@@ -9,8 +9,8 @@ from fms_core.serializers import PooledSampleSerializer, PooledSampleExportSeria
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from fms_core.templates import INDEX_UPDATE_TEMPLATE
-from fms_core.template_importer.importers import IndexUpdateImporter
+from fms_core.templates import INDEX_UPDATE_TEMPLATE, SAMPLE_RENAME_TEMPLATE
+from fms_core.template_importer.importers import IndexUpdateImporter, SampleRenameImporter
 
 from fms_core.filters import PooledSamplesFilter
 
@@ -41,10 +41,17 @@ class PooledSamplesViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Template
             "template": [INDEX_UPDATE_TEMPLATE["identity"]],
             "importer": IndexUpdateImporter,
         },
+        {
+            "name": "Rename Sample",
+            "description": "Rename the selected samples.",
+            "template": [SAMPLE_RENAME_TEMPLATE["identity"]],
+            "importer": SampleRenameImporter
+        }
     ]
 
     template_prefill_list = [
         {"template": INDEX_UPDATE_TEMPLATE},
+        {"template": SAMPLE_RENAME_TEMPLATE},
     ]
 
     def get_queryset(self):

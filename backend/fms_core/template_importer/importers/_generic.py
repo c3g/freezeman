@@ -1,7 +1,9 @@
-from io import StringIO
+from io import BytesIO, StringIO
+from pathlib import Path
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
-from pandas import pandas as pd
+import pandas as pd
 from django.db import transaction
 import time
 import reversion
@@ -11,9 +13,13 @@ import json
 from ..sheet_data import SheetData
 from .._utils import blank_and_nan_to_none
 from fms_core.utils import str_normalize
-
 from fms_core.models import ImportedFile
+from fms_core.templates import SheetInfo
 
+class BytesIOWithName(BytesIO):
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
@@ -31,7 +37,10 @@ class GenericImporter():
         self.dry_run = None
         self.output_file = None
 
-    def import_template(self, file, dry_run, user = None):
+        # self.SHEETS_INFO is expected to be defined in child classes
+        self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
+
+    def import_template(self, file: Path | InMemoryUploadedFile | BytesIOWithName, dry_run, user = None):
         self.file = file
         self.dry_run = dry_run
         file_name, file_format = os.path.splitext(file.name)
@@ -79,11 +88,17 @@ class GenericImporter():
                 preview_info = sheet.generate_preview_info_from_rows_results(rows_results=sheet.rows_results)
                 self.previews_info.append(preview_info)
 
+            # If user is None, file_path remains None and file is not saved on server.
+            # This case is useful for tests because that's the only time self.file
+            # is a Path object instead of an InMemoryUploadedFile.
+
             # Save the template on the server if the template is valid.
             if self.is_valid and file_path is not None:
                 try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
                     with open(file_path, "xb") as output:
-                        for line in self.file:
+                        # self.file is always an InMemoryUploadedFile in this case
+                        # as user should be not None
+                        for line in self.file: # type: ignore
                             output.write(line)
                 except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
                     self.base_errors.append(f"Could not save the template on server. Operation aborted. Contact support.")
@@ -103,9 +118,6 @@ class GenericImporter():
                          'output_file': self.output_file
                          }
         return import_result
-    
-    def preprocess_file(self, path: os.PathLike) -> os.PathLike | StringIO:
-        return path
 
     def create_sheet_data(self, name, headers):
         try:
@@ -118,11 +130,11 @@ class GenericImporter():
                 shared_data = json_content["datasheets"][name].get("shared_data", {})
                 pd_sheet = pd.read_json(sheet_data, orient="records")
             elif self.format == ".xlsx":
-                pd_sheet = pd.read_excel(self.preprocess_file(self.file), sheet_name=name, header=None)
+                pd_sheet = pd.read_excel(self.file, sheet_name=name, header=None)
             elif self.format == ".csv" or self.format == ".txt" or self.format == ".asc":
-                pd_sheet = pd.read_csv(self.preprocess_file(self.file), header=None)
+                pd_sheet = pd.read_csv(self.file, header=None)
             elif self.format == ".tsv":
-                pd_sheet = pd.read_csv(self.preprocess_file(self.file), sep="\t", header=None)
+                pd_sheet = pd.read_csv(self.file, sep="\t", header=None)
             else:
                 self.base_errors.append(f"Template file format " + self.format + " not supported.")
                 return None
@@ -167,3 +179,6 @@ class GenericImporter():
 
         else:
             return len(self.base_errors) == 0 and all(s.is_valid == True for s in list(self.sheets.values()))
+    
+    def import_template_inner(self):
+        raise NotImplementedError("import_template_inner must be implemented in child classes")
