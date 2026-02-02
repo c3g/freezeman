@@ -534,12 +534,13 @@ export function fetchSamplesheet(activeDestinationContainer: LabworkStepPlacemen
 		try {
 			const container = selectRealParentContainer(getState())(activeDestinationContainer)
 			for (const { sample, cell } of container.getPlacements()) {
-				if (sample.fromCell && sample.fromCell.sameCellAs(cell))
+				const fromCell = sample.getFromCell()
+				if (fromCell && fromCell.sameCellAs(cell.rawIdentifier()))
 					// skip if the sample is existing in the cell
 					continue
 				placementData.push({
-					coordinates: cell.coordinates,
-					sample_id: sample.id,
+					coordinates: cell.getCoordinates(),
+					sample_id: sample.getId(),
 				})
 			}
 		} catch (e) {
