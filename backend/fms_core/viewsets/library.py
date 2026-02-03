@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery, Prefetch
+from django.db.models import Q, When, Count, Case, BooleanField, F, OuterRef, Subquery
 
 from fms_core.filters import LibraryFilter
 from fms_core.models import Sample, DerivedBySample
@@ -103,7 +103,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     ]
 
     def get_queryset(self):
-        self.queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
+        self.queryset = Sample.objects.select_related("container").all().distinct()
+        self.queryset = self.queryset.filter(derived_samples__library__isnull=False)
         self.queryset = self.queryset.annotate(
             qc_flag=Case(
                 When(Q(quality_flag=False) | Q(quantity_flag=False)| Q(identity_flag=False), then=False),
@@ -130,10 +131,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         return Response(serialized_data[0] if serialized_data else {})
 
     def list(self, _request, *args, **kwargs):
-        tic = datetime.now()
         self.queryset = self.filter_queryset(self.get_queryset())
         serialized_data, count = self.fetch_data()
-        print(datetime.now() - tic)
         return Response({"results": serialized_data, "count": count})
 
     @action(detail=False, methods=["get"])

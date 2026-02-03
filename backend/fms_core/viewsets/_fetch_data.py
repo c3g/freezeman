@@ -497,60 +497,10 @@ class FetchLibraryData(FetchData):
         Returns:
             Returns a tuple of a list of serialized data dictionary (libraries) and the count before pagination
         """
-        start = datetime.datetime.now()
-        print("Start")
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
-        print(datetime.datetime.now() - start)
-        """#
-        print("insert>>")
-        print(datetime.datetime.now() - start)
-
-        prefetch_qs = DerivedBySample.objects.select_related("derived_sample__biosample",
-                                                             "derived_sample__library__index",
-                                                             "derived_sample__library__library_type",
-                                                             "derived_sample__library__platform",
-                                                             "derived_sample__library__library_selection")
-        prefetch_qs = prefetch_qs.only("project_id",
-                                       "derived_sample_id",
-                                       "derived_sample__biosample_id",
-                                       "derived_sample__library_id",
-                                       "derived_sample__library__index_id",
-                                       "derived_sample__library__index__name",
-                                       "derived_sample__library__library_type_id",
-                                       "derived_sample__library__library_type__name",
-                                       "derived_sample__library__platform_id",
-                                       "derived_sample__library__platform__name",
-                                       "derived_sample__library__library_selection_id",
-                                       "derived_sample__library__library_selection__name",
-                                       "derived_sample__library__library_selection__target")
-        derived_by_sample_prefetch = Prefetch("derived_by_samples", queryset=prefetch_qs, to_attr="pool_info")
-
-        combined_qs = self.queryset.prefetch_related(derived_by_sample_prefetch).only(
-            'id',
-            'name',
-            'container_id',
-            'coordinate_id',
-            'volume',
-            'concentration',
-            'fragment_size',
-           # 'quantity_ng',
-            'creation_date',
-            'quality_flag',
-            'quantity_flag',
-            'identity_flag',
-            'depleted',
-        )
-        combined_qs = self.filter_queryset(combined_qs)
-        if self.fetch_limit is not None and self.fetch_offset is not None:
-            combined_qs = combined_qs[self.fetch_offset:self.fetch_offset+self.fetch_limit]
-        print(combined_qs[0].pool_info[0].derived_sample.biosample)
-        print(combined_qs[0].quantity_ng)
-        print(datetime.datetime.now() - start)
-        print("<<insert")
-        #"""
         self.queryset = self.queryset.values('id')
         count = self.queryset.count() # Get count after value to have rows merged but before paging to have complete count
-        print(datetime.datetime.now() - start)
+
         self.queryset = self.filter_queryset(self.get_queryset())
         if len(ids) > 0:
             self.queryset = self.queryset.filter(id__in=ids)
@@ -570,12 +520,9 @@ class FetchLibraryData(FetchData):
             'identity_flag',
             'depleted',
         )
-        print(self.queryset.query)
-        print(self.queryset.explain(verbose=True, analyze=True))
-        print(datetime.datetime.now() - start)
         if self.fetch_limit is not None and self.fetch_offset is not None:
             self.queryset = self.queryset[self.fetch_offset:self.fetch_offset+self.fetch_limit] # page the queryset
-        print(datetime.datetime.now() - start)
+
         if not self.queryset:
             return ([], 0) # Do not lose time processing data for an empty queryset
         else:
@@ -605,7 +552,7 @@ class FetchLibraryData(FetchData):
             derived_by_samples = defaultdict(list)
             for dbs in derived_by_sample_values_queryset:
                 derived_by_samples[dbs["sample_id"]].append(dbs)
-            print(datetime.datetime.now() - start)
+
             serialized_data = []
             for sample in samples.values():
                 derived_by_sample = derived_by_samples[sample["id"]][0]
@@ -640,8 +587,6 @@ class FetchLibraryData(FetchData):
                     'derived_samples_count': len(derived_by_samples[sample["id"]])
                 }
                 serialized_data.append(data)
-            print(datetime.datetime.now() - start)
-            print("end")
             return (serialized_data, count)
 
 
