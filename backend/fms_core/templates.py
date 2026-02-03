@@ -424,7 +424,7 @@ LIBRARY_QC_TEMPLATE = {
     ("LibraryQC", "Library Container Barcode", "container__barcode", "container_barcode", None),
     ("LibraryQC", "Library Container Coord", "coordinate__name", "coordinates", None),
     ("LibraryQC", "Current Volume (uL)", "volume", "volume", None),
-    ("LibraryQC", "Strandedness", "sample_strandedness", "strandedness", None),
+    ("LibraryQC", "Strandedness", "derived_samples__library__strandedness", "strandedness", None),
     ],
   "placement info": [],
 }

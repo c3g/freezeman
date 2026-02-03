@@ -65,12 +65,4 @@ class Migration(migrations.Migration):
             name='permissions',
             field=models.ManyToManyField(blank=True, related_name='freezeman_users', through='fms_core.FreezemanPermissionByUser', to='fms_core.freezemanpermission'),
         ),
-        migrations.AddIndex(
-            model_name='index',
-            index=models.Index(fields=['name'], name='index_name_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='librarytype',
-            index=models.Index(fields=['name'], name='librarytype_name_idx'),
-        ),
     ]

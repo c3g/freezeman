@@ -585,12 +585,16 @@ class FetchLibraryData(FetchData):
             derived_by_sample_values_queryset = (
                 DerivedBySample.objects
                 .filter(sample_id__in=samples_ids)
-                .select_related("derived_sample", "derived_sample__library", "derived_sample__library__library_selection", "derived_sample__library__library_type__name")
+                .select_related("derived_sample",
+                                "derived_sample__library",
+                                "derived_sample__library__library_selection",
+                                "derived_sample__library__library_type",
+                                "derived_sample__library__platform")
                 .values(
                     "id",
                     "sample_id",
                     "project_id",
-                    "derived_sample__biosample_id",
+                    "derived_sample__biosample",
                     "derived_sample__library__library_type__name",
                     "derived_sample__library__platform__name",
                     "derived_sample__library__index_id",
@@ -612,7 +616,7 @@ class FetchLibraryData(FetchData):
                                                                                              sample["concentration"])
                 data = {
                     'id': sample["id"],
-                    'biosample_id': derived_by_sample["derived_sample__biosample_id"] if not is_pool else None,
+                    'biosample_id': derived_by_sample["derived_sample__biosample"] if not is_pool else None,
                     'name': sample["name"],
                     'volume': sample["volume"],
                     'depleted': sample["depleted"],
@@ -683,15 +687,15 @@ class FetchLibraryData(FetchData):
                 .select_related("derived_sample",
                                 "derived_sample__library",
                                 "derived_sample__library__library_selection",
-                                "derived_sample__library__library_type__name",
-                                "derived_sample__library__index__name",
-                                "derived_sample__library__platform__name",
+                                "derived_sample__library__library_type",
+                                "derived_sample__library__index",
+                                "derived_sample__library__platform",
                                 )
                 .values(
                     "id",
                     "sample_id",
                     "project_id",
-                    "derived_sample__biosample_id",
+                    "derived_sample__biosample",
                     "derived_sample__library__library_type__name",
                     "derived_sample__library__platform__name",
                     "derived_sample__library__index__name",
@@ -720,7 +724,7 @@ class FetchLibraryData(FetchData):
                                                                                              sample["concentration"])
                 data = {
                     'id': sample["id"],
-                    'biosample_id': derived_by_samples["derived_sample__biosample_id"] if not is_pool else None,
+                    'biosample_id': derived_by_sample["derived_sample__biosample"] if not is_pool else None,
                     'name': sample["name"],
                     'volume': sample["volume"],
                     'depleted': sample["depleted"],

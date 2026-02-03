@@ -32,7 +32,6 @@ from datetime import datetime
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchLibraryData):
     queryset = Sample.objects.none() # Should not be called directly
-    #serializer_class = LibrarySerializer
 
     ordering_fields = (
         *_list_keys(_library_filterset_fields),
@@ -114,10 +113,6 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
                 output_field=BooleanField()
             )
         )
-        """
-        self.queryset = self.queryset.annotate(
-            count_derived_samples=Count("derived_samples")
-        )"""
         self.queryset = self.queryset.annotate(
             quantity_ng=F('concentration')*F('volume')
         )
@@ -128,35 +123,6 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
                 .values_list("volume_ratio", flat=True)[:1]
             )
         )
-        """
-        self.queryset = self.queryset.annotate(
-            first_project_id=Subquery(
-                DerivedBySample.objects
-                .filter(sample=OuterRef("pk"))
-                .values_list("project_id", flat=True)[:1]
-            )
-        )
-        self.queryset = self.queryset.annotate(
-            is_pooled=Case(
-                When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
-                default=False,
-                output_field=BooleanField()
-            )
-        )
-        self.queryset = self.queryset.annotate(
-            sample_strandedness=Case(
-                When(Q(is_pooled__exact=True), then=None),
-                When(Q(is_pooled__exact=False), then=F('derived_samples__library__strandedness')),
-                default=None,
-                output_field=CharField())
-        )
-        self.queryset = self.queryset.annotate(
-            first_derived_sample=Subquery(
-                DerivedBySample.objects
-                .filter(sample=OuterRef("pk"))
-                .values_list("derived_sample", flat=True)[:1]
-            )
-        )"""
         return self.queryset
 
     def retrieve(self, _request, pk=None, *args, **kwargs):
