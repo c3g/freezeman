@@ -48,7 +48,7 @@ import useUserInputExpiration from "../../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { setAppInitialized } from "../../modules/app/actions";
 import { logOut } from "../../modules/auth/actions";
-import { fetchListedData, fetchStaticData, fetchSummariesData } from "../../modules/shared/actions";
+import { fetchStaticData } from "../../modules/shared/actions";
 import { get } from "../../modules/users/actions";
 import { selectAppInitialized } from "../../selectors";
 import DatasetsPage from "../datasets/DatasetsPage";
@@ -135,7 +135,6 @@ const App = ({userID, usersByID, logOut }) => {
       }
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
-      dispatch(fetchSummariesData())
     }
 
     if (isLoggedIn) {

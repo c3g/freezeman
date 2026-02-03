@@ -2,11 +2,10 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery, Prefetch
-from collections import defaultdict
 
 from fms_core.filters import LibraryFilter
-from fms_core.models import Sample, Container, DerivedBySample
-from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
+from fms_core.models import Sample, DerivedBySample
+from fms_core.serializers import LibraryExportSerializer
 
 from fms_core.templates import ( EXPERIMENT_MGI_TEMPLATE,
                                  EXPERIMENT_ILLUMINA_TEMPLATE,

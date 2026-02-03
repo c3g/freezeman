@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppDispatch } from '../../hooks'
 import { refreshAuthToken } from '../../modules/auth/actions'
-import { fetchLabworkSummary, fetchSummariesData } from '../../modules/shared/actions'
+import { fetchLabworkSummary} from '../../modules/shared/actions'
 
 /*
 	This hook runs an interval that refreshes the user's auth token and also fetches
@@ -31,7 +31,6 @@ export function useRefreshHook(isLoggedIn: boolean) {
 				const interval = setInterval(async () => {
 					const hasValidToken = await dispatch(refreshAuthToken())
 					if (hasValidToken) {
-						dispatch(fetchSummariesData())
 						dispatch(fetchLabworkSummary())
 					}
 				}, REFRESH_INTERVAL)
