@@ -55,11 +55,11 @@ const CARD_HEIGHT = 30 // em
 
 const QUICK_ACCESS_BUTTON_WIDTH = 'fit-content'
 const QUICK_ACCESS_TEXT_STYLE: React.CSSProperties = {
-    fontSize: '2em',
+    fontSize: '1.5em',
     fontWeight: 'bold',
 }
 const QUICK_ACCESS_ICON_STYLE: React.CSSProperties = {
-    fontSize: '6em'
+    fontSize: '1.5em'
 }
 
 function DashboardPage() {
@@ -72,9 +72,9 @@ function DashboardPage() {
     const templateActionButtons = useMemo(() => {
         return templates?.filter((t) => t.name === 'Add Samples')?.map((template) => (
             <Button key={template.id} style={{ width: QUICK_ACCESS_BUTTON_WIDTH }} onClick={() => navigate(`/samples/actions/${template.id}/`)} styles={{ root: { height: 'fit-content' } }}>
-                <Flex vertical={true} align={"center"} gap={"small"}>
-                    <div style={QUICK_ACCESS_TEXT_STYLE}>{template.name}</div>
+                <Flex vertical={false} align={"center"} gap={"small"}>
                     <ExperimentOutlined style={QUICK_ACCESS_ICON_STYLE} />
+                    <div style={QUICK_ACCESS_TEXT_STYLE}>{template.name}</div>
                 </Flex>
             </Button>
         )) ?? []
@@ -83,6 +83,26 @@ function DashboardPage() {
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
         <PageContent>
+            <Flex vertical={false} gap={"1em"} align={"center"} justify={"start"} style={{ width: '100%' }}>
+                <Button style={{ width: QUICK_ACCESS_BUTTON_WIDTH }} onClick={() => navigate('/projects/add/')} styles={{ root: { height: 'fit-content' } }}>
+                    <Flex vertical={false} align={"center"} gap={"small"}>
+                        <ProjectOutlined style={QUICK_ACCESS_ICON_STYLE} />
+                        <div style={QUICK_ACCESS_TEXT_STYLE}>Add Project</div>
+                    </Flex>
+                </Button>
+                {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
+            </Flex>
+            <ConfigProvider
+                theme={{
+                    token: {
+                        margin: 12,
+                        marginLG: 12,
+                        marginXL: 12,
+                    }
+                }}
+            >
+                <Divider orientation={"horizontal"} />
+            </ConfigProvider>
             <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"} style={{ width: '100%' }}>
                 <DashboardCard title={"Last Launched Runs"}>
                     <SimpleExperimentRunTable
@@ -150,18 +170,6 @@ function DashboardPage() {
                             className: 'table-in-card'
                         }), [])}
                     />
-                </DashboardCard>
-                <DashboardCard title={"Quick Access"}>
-                    <Flex vertical={false} gap={"1em"} align={"center"} justify={"center"} style={{ width: '100%' }}>
-                        <Button style={{ width: QUICK_ACCESS_BUTTON_WIDTH }} onClick={() => navigate('/projects/add/')} styles={{ root: { height: 'fit-content' } }}>
-                            <Flex vertical={true} align={"center"} gap={"small"}>
-                                <div style={QUICK_ACCESS_TEXT_STYLE}>Add Project</div>
-                                <ProjectOutlined style={QUICK_ACCESS_ICON_STYLE} />
-                            </Flex>
-                        </Button>
-                        {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
-                    </Flex>
-                    <div></div>
                 </DashboardCard>
             </Flex>
         </PageContent>
