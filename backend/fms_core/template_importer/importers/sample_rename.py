@@ -29,9 +29,8 @@ class SampleRenameImporter(GenericImporter):
                 sample=sample,
             )
 
-            if alias_updates.get(sample['old_alias']) == sample['new_alias']:
-                continue
-            else:
+            if sample['old_alias'] in alias_updates and alias_updates[sample['old_alias']] != sample['new_alias']:
+                # Check for different new names for the same old name
                 sample_rename_sheet.rows_results[row_id]["warnings"].append(f"Replacing new name [{alias_updates.get(sample['old_alias'])}] for sample [{sample['old_alias']}] to another new name [{sample['new_alias']}].")
 
             (result, row_object) = self.handle_row(

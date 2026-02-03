@@ -65,7 +65,7 @@ def test_sample_rename():
         for col_num, header in enumerate(HEADERS, start=1):
             ws.cell(row=row_num, column=col_num).value = data_row[header] # type: ignore    
     
-    wb_bytes = BytesIOWithName("sauce_poivre.xslx")
+    wb_bytes = BytesIOWithName("sauce_poivre.xlsx")
     wb.save(wb_bytes)
     result = load_template(importer=importer, file=wb_bytes)
     assert result['valid'] is True
