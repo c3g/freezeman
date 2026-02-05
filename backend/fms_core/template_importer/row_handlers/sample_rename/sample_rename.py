@@ -30,7 +30,7 @@ class SampleRenameRowHandler(GenericRowHandler):
                     sq_query &= Q(sample__container__barcode=sample["barcode"])
 
                 sq_query &= Q(derived_sample__biosample__alias=sample["old_alias"])
-                
+
                 derived_by_sample = DerivedBySample.objects.get(sq_query)
 
                 derived_by_sample.derived_sample.biosample.alias = sample["new_alias"]
