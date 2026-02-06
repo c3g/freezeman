@@ -22,8 +22,10 @@ class SampleRenameImporter(GenericImporter):
                 'barcode': str_cast_and_normalize(row_data['Container Barcode']),
                 'coordinates': str_cast_and_normalize(row_data['Container Coord']),
                 'index': str_cast_and_normalize(row_data['Index Name']),
-                'old_alias': str_cast_and_normalize(row_data['Old Sample Name']),
-                'new_alias': str_cast_and_normalize(row_data['New Sample Name']),
+                'old_alias': str_cast_and_normalize(row_data['Old Sample Alias']),
+                'new_alias': str_cast_and_normalize(row_data['New Sample Alias']),
+                'old_name': str_cast_and_normalize(row_data['Old Sample Name']),
+                'new_name': str_cast_and_normalize(row_data['New Sample Name']),
             }
             sample_rename_kwargs = dict(
                 sample=sample,
