@@ -1,6 +1,7 @@
 import datetime
 import pytest
 
+from fms_core.models.derived_by_sample import DerivedBySample
 from fms_core.models.platform import Platform
 from fms_core.models._constants import DOUBLE_STRANDED
 from fms_core.services.library import create_library
@@ -21,6 +22,7 @@ HEADERS = ['Container Barcode', 'Container Coord', 'Index Name', 'Old Sample Nam
 
 valid_templates = [
     [
+        # library in a tube in a box
         {
             'Container Barcode': 'CONT1',
             'Container Coord': 'A01',
@@ -32,9 +34,10 @@ valid_templates = [
         },
     ],
     [
+        # library in tube
         {
             'Container Barcode': 'CONT1',
-            'Container Coord': '',
+            'Container Coord': None,
             'Index Name': 'Index1',
             'Old Sample Name': 'SampleOld',
             'Old Sample Alias': 'SampleAliasOld',
@@ -43,10 +46,11 @@ valid_templates = [
         },
     ],
     [
+        # sample in a tube
         {
             'Container Barcode': 'CONT1',
-            'Container Coord': '',
-            'Index Name': '',
+            'Container Coord': None,
+            'Index Name': None,
             'Old Sample Name': 'SampleOld',
             'Old Sample Alias': 'SampleAliasOld',
             'New Sample Name': 'SampleNew',
@@ -54,25 +58,39 @@ valid_templates = [
         },
     ],
     [
+        # rename only alias of sample in a tube
         {
             'Container Barcode': 'CONT1',
-            'Container Coord': '',
-            'Index Name': '',
+            'Container Coord': None,
+            'Index Name': None,
             'Old Sample Name': 'SampleOld',
             'Old Sample Alias': 'SampleAliasOld',
-            'New Sample Name': '',
+            'New Sample Name': None,
             'New Sample Alias': 'SampleAliasNew',
         },
     ],
     [
+        # rename only name of sample in a tube
         {
             'Container Barcode': 'CONT1',
-            'Container Coord': '',
-            'Index Name': '',
+            'Container Coord': None,
+            'Index Name': None,
             'Old Sample Name': 'SampleOld',
             'Old Sample Alias': 'SampleAliasOld',
             'New Sample Name': 'SampleNew',
-            'New Sample Alias': '',
+            'New Sample Alias': None,
+        },
+    ],
+    [
+        # rename only name of sample in a tube without alias provided
+        {
+            'Container Barcode': 'CONT1',
+            'Container Coord': None,
+            'Index Name': None,
+            'Old Sample Name': 'SampleOld',
+            'Old Sample Alias': None,
+            'New Sample Name': 'SampleNew',
+            'New Sample Alias': None,
         },
     ],
 ]
@@ -89,7 +107,7 @@ def test_create_workbook():
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("valid_template", valid_templates)
-def test_sample_rename(valid_template: list[dict[str, str]]):
+def test_valid_sample_rename(valid_template: list[dict[str, str]]):
     importer = SampleRenameImporter()
 
     wb = create_workbook()
@@ -117,11 +135,13 @@ def test_sample_rename(valid_template: list[dict[str, str]]):
             )
             assert parent_container is not None
 
-        container, created_entity, errors, warnings = get_or_create_container(
-            barcode='YouTube', kind='Tube', name='YouTube',
+        child_container_barcode = 'YouTube' if data_row['Container Coord'] else data_row['Container Barcode']
+        container, *_ = get_or_create_container(
+            barcode=child_container_barcode, kind='Tube', name=child_container_barcode,
             container_parent=parent_container,
             coordinates=data_row['Container Coord'],
         )
+        assert container is not None
 
         library = None
         if data_row['Index Name']:
@@ -141,6 +161,7 @@ def test_sample_rename(valid_template: list[dict[str, str]]):
         if not Sample.objects.filter(name=data_row['Old Sample Name']).exists():
             create_full_sample(
                 name=data_row['Old Sample Name'],
+                alias=data_row['Old Sample Alias'],
                 volume=100,
                 concentration=25,
                 collection_site='TestCaseSite',
@@ -153,3 +174,10 @@ def test_sample_rename(valid_template: list[dict[str, str]]):
         wb.save(wb_bytes)
         result = load_template(importer=importer, file=wb_bytes)
         assert result['valid'] is True
+
+    for row_num, data_row in enumerate(valid_template, start=HEADERS_ROW + 1):
+        dbs = DerivedBySample.objects.all().get()
+        if data_row['New Sample Name']:
+            assert dbs.sample.name == data_row['New Sample Name']
+        if data_row['New Sample Alias']:
+            assert dbs.derived_sample.biosample.alias == data_row['New Sample Alias']
