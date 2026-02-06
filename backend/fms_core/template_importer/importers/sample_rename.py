@@ -16,7 +16,6 @@ class SampleRenameImporter(GenericImporter):
 
     def import_template_inner(self):
         sample_rename_sheet = self.sheets['SampleRename']
-        alias_updates = dict[str, str]()
         for row_id, row_data in enumerate(sample_rename_sheet.rows):
             sample = {
                 'barcode': str_cast_and_normalize(row_data['Container Barcode']),
@@ -30,10 +29,6 @@ class SampleRenameImporter(GenericImporter):
             sample_rename_kwargs = dict(
                 sample=sample,
             )
-
-            if sample['old_alias'] in alias_updates and alias_updates[sample['old_alias']] != sample['new_alias']:
-                # Check for different new names for the same old name
-                sample_rename_sheet.rows_results[row_id]["warnings"].append(f"Replacing new name [{alias_updates.get(sample['old_alias'])}] for sample [{sample['old_alias']}] to another new name [{sample['new_alias']}].")
 
             (result, row_object) = self.handle_row(
                 row_handler_class=SampleRenameRowHandler,

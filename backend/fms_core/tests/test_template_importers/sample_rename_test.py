@@ -20,6 +20,16 @@ from fms_core.workbooks.sample_rename import create_workbook, HEADERS_ROW
 
 HEADERS = ['Container Barcode', 'Container Coord', 'Index Name', 'Old Sample Name', 'Old Sample Alias', 'New Sample Name', 'New Sample Alias']
 
+def test_create_workbook():
+    wb = create_workbook()
+    ws = wb.active
+    assert ws is not None
+    assert ws.title == "SampleRename"
+
+    # Check headers
+    for col_num, header in enumerate(HEADERS, start=1):
+        assert ws.cell(row=HEADERS_ROW, column=col_num).value == header
+
 valid_templates = [
     [
         # library in a tube in a box
@@ -95,16 +105,6 @@ valid_templates = [
     ],
 ]
 
-def test_create_workbook():
-    wb = create_workbook()
-    ws = wb.active
-    assert ws is not None
-    assert ws.title == "SampleRename"
-
-    # Check headers
-    for col_num, header in enumerate(HEADERS, start=1):
-        assert ws.cell(row=HEADERS_ROW, column=col_num).value == header
-
 @pytest.mark.django_db
 @pytest.mark.parametrize("valid_template", valid_templates)
 def test_valid_sample_rename(valid_template: list[dict[str, str]]):
@@ -115,8 +115,7 @@ def test_valid_sample_rename(valid_template: list[dict[str, str]]):
     assert ws is not None # already checked in previous test, mainly for type checker
 
     sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
-    taxon = Taxon.objects.get(name='Homo sapiens')
-    individual, *_ = get_or_create_individual(name='Individual4SampleQC', taxon=taxon)
+    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
 
     library_type = LibraryType.objects.get(name="PCR-free")
     platform = Platform.objects.get(name="ILLUMINA")
@@ -159,7 +158,7 @@ def test_valid_sample_rename(valid_template: list[dict[str, str]]):
             assert library is not None
         
         if not Sample.objects.filter(name=data_row['Old Sample Name']).exists():
-            create_full_sample(
+            sample, *_ = create_full_sample(
                 name=data_row['Old Sample Name'],
                 alias=data_row['Old Sample Alias'],
                 volume=100,
@@ -169,15 +168,57 @@ def test_valid_sample_rename(valid_template: list[dict[str, str]]):
                 container=container, individual=individual, sample_kind=sample_kind,
                 library=library,
             )
+            assert sample is not None
         
         wb_bytes = BytesIOWithName("sauce_poivre.xlsx")
         wb.save(wb_bytes)
         result = load_template(importer=importer, file=wb_bytes)
         assert result['valid'] is True
 
+    dbs = DerivedBySample.objects.all().get()
     for row_num, data_row in enumerate(valid_template, start=HEADERS_ROW + 1):
-        dbs = DerivedBySample.objects.all().get()
         if data_row['New Sample Name']:
             assert dbs.sample.name == data_row['New Sample Name']
         if data_row['New Sample Alias']:
             assert dbs.derived_sample.biosample.alias == data_row['New Sample Alias']
+
+@pytest.mark.django_db
+def test_double_sample_rename():
+    importer = SampleRenameImporter()
+
+    wb = create_workbook()
+    ws = wb.active
+    assert ws is not None # already checked in previous test, mainly for type checker
+
+    sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
+
+    container, *_ = get_or_create_container(
+        barcode="YouTube", kind='Tube'
+    )
+    assert container is not None
+
+    sample, *_ = create_full_sample(
+        name="SampleOldName",
+        alias="SampleOldAlias",
+        volume=100,
+        concentration=25,
+        collection_site='TestCaseSite',
+        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+        container=container, individual=individual, sample_kind=sample_kind,
+    )
+    assert sample is not None
+
+    for i in range(2):
+        ws.cell(row=HEADERS_ROW + i + 1, column=1).value = "YouTube"
+        ws.cell(row=HEADERS_ROW + i + 1, column=2).value = None
+        ws.cell(row=HEADERS_ROW + i + 1, column=3).value = None
+        ws.cell(row=HEADERS_ROW + i + 1, column=4).value = "SampleOldName"
+        ws.cell(row=HEADERS_ROW + i + 1, column=5).value = "SampleOldAlias"
+        ws.cell(row=HEADERS_ROW + i + 1, column=6).value = f"SampleNewName_{i}"
+        ws.cell(row=HEADERS_ROW + i + 1, column=7).value = f"SampleNewAlias_{i}"
+
+    wb_bytes = BytesIOWithName("sauce_poivre.xlsx")
+    wb.save(wb_bytes)
+    result = load_template(importer=importer, file=wb_bytes)
+    assert result['valid'] is True

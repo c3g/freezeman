@@ -45,8 +45,8 @@ class SampleRenameRowHandler(GenericRowHandler):
 
         if not self.has_errors():
             self.row_object = {
-                "Old Sample Name": sample["old_alias"],
-                "New Sample Name": sample["new_alias"],
+                "Sample Name": sample["new_name"] or sample["old_name"],
+                "Sample Alias":  sample["new_alias"] or sample["old_alias"],
                 "Container Barcode": sample["barcode"],
                 "Container Coord": sample["coordinates"],
                 "Index Name": sample["index"],
