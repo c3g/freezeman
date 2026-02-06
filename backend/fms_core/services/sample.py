@@ -19,7 +19,7 @@ from fms_core._constants import WorkflowAction
 def create_full_sample(name, volume, creation_date, container, sample_kind,
                        collection_site=None, library=None, project=None, individual=None,
                        coordinates=None, alias=None, concentration=None, fragment_size=None, tissue_source=None,
-                       experimental_group=None, comment=None) -> Tuple[Sample, List[str], List[str]]:
+                       experimental_group=None, comment=None) -> Tuple[Sample | None, List[str], List[str]]:
     sample = None
     errors = []
     warnings = []
