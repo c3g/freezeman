@@ -230,3 +230,24 @@ def test_double_sample_rename():
     assert result['valid'] is True
     assert not DerivedBySample.objects.filter(sample__name="SampleNewName", derived_sample__biosample__alias="SampleNewAlias").exists()
     assert DerivedBySample.objects.filter(sample__name="SampleNewNewName", derived_sample__biosample__alias="SampleNewNewAlias").exists()
+
+@pytest.mark.django_db
+def test_nonexistent_sample_rename():
+    importer = SampleRenameImporter()
+
+    wb = create_workbook()
+    ws = wb.active
+    assert ws is not None # already checked in previous test, mainly for type checker
+
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(CONTAINER_BARCODE) + 1).value = "NonExistentContainer"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(CONTAINER_COORD) + 1).value = None
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(INDEX_NAME) + 1).value = None
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(OLD_SAMPLE_NAME) + 1).value = "NonExistentSample"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(OLD_SAMPLE_ALIAS) + 1).value = "NonExistentAlias"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(NEW_SAMPLE_NAME) + 1).value = f"SampleNewName"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(NEW_SAMPLE_ALIAS) + 1).value = f"SampleNewAlias"
+
+    wb_bytes = BytesIOWithName("sauce_poivre.xlsx")
+    wb.save(wb_bytes)
+    result = load_template(importer=importer, file=wb_bytes)
+    assert result['valid'] is False
