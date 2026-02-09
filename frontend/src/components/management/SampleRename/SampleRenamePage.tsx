@@ -4,8 +4,7 @@ import ActionContent from "../../ActionContent";
 import SampleRename from "./index";
 import {Navigate, Route, Routes} from "react-router-dom";
 
-
-export function IndexCurationPage() {
+export function SampleRenamePage() {
   return (<>
         <PageContainer>
           <Routes>
@@ -16,3 +15,4 @@ export function IndexCurationPage() {
         </PageContainer>
   </>)
 }
+export default SampleRenamePage
