@@ -16,9 +16,7 @@ from fms_core.services.sample import create_full_sample
 from fms_core.template_importer.importers._generic import BytesIOWithName
 from fms_core.template_importer.importers.sample_rename import SampleRenameImporter
 from fms_core.tests.test_template_importers._utils import load_template
-from fms_core.workbooks.sample_rename import create_workbook, HEADERS_ROW
-
-HEADERS = ['Container Barcode', 'Container Coord', 'Index Name', 'Old Sample Name', 'Old Sample Alias', 'New Sample Name', 'New Sample Alias']
+from fms_core.workbooks.sample_rename import CONTAINER_BARCODE, CONTAINER_COORD, INDEX_NAME, NEW_SAMPLE_ALIAS, NEW_SAMPLE_NAME, OLD_SAMPLE_ALIAS, OLD_SAMPLE_NAME, create_workbook, HEADERS_ROW, HEADERS
 
 def test_create_workbook():
     wb = create_workbook()
@@ -184,12 +182,6 @@ def test_valid_sample_rename(valid_template: list[dict[str, str]]):
 
 @pytest.mark.django_db
 def test_double_sample_rename():
-    importer = SampleRenameImporter()
-
-    wb = create_workbook()
-    ws = wb.active
-    assert ws is not None # already checked in previous test, mainly for type checker
-
     sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
     individual, *_ = get_or_create_individual(name='IndividualOfJustice')
 
@@ -209,16 +201,32 @@ def test_double_sample_rename():
     )
     assert sample is not None
 
-    for i in range(2):
-        ws.cell(row=HEADERS_ROW + i + 1, column=1).value = "YouTube"
-        ws.cell(row=HEADERS_ROW + i + 1, column=2).value = None
-        ws.cell(row=HEADERS_ROW + i + 1, column=3).value = None
-        ws.cell(row=HEADERS_ROW + i + 1, column=4).value = "SampleOldName"
-        ws.cell(row=HEADERS_ROW + i + 1, column=5).value = "SampleOldAlias"
-        ws.cell(row=HEADERS_ROW + i + 1, column=6).value = f"SampleNewName_{i}"
-        ws.cell(row=HEADERS_ROW + i + 1, column=7).value = f"SampleNewAlias_{i}"
+    wb = create_workbook()
+    ws = wb.active
+    assert ws is not None # already checked in previous test, mainly for type checker
+
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(CONTAINER_BARCODE) + 1).value = "YouTube"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(CONTAINER_COORD) + 1).value = None
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(INDEX_NAME) + 1).value = None
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(OLD_SAMPLE_NAME) + 1).value = "SampleOldName"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(OLD_SAMPLE_ALIAS) + 1).value = "SampleOldAlias"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(NEW_SAMPLE_NAME) + 1).value = f"SampleNewName"
+    ws.cell(row=HEADERS_ROW + 1, column=HEADERS.index(NEW_SAMPLE_ALIAS) + 1).value = f"SampleNewAlias"
+
+    ws.cell(row=HEADERS_ROW + 2, column=HEADERS.index(CONTAINER_BARCODE) + 1).value = "YouTube"
+    ws.cell(row=HEADERS_ROW + 2, column=HEADERS.index(CONTAINER_COORD) + 1).value = None
+    ws.cell(row=HEADERS_ROW + 2, column=HEADERS.index(INDEX_NAME) + 1).value = None
+    ws.cell(row=HEADERS_ROW + 2, column=HEADERS.index(OLD_SAMPLE_NAME) + 1).value = "SampleNewName"
+    ws.cell(row=HEADERS_ROW + 2, column=HEADERS.index(OLD_SAMPLE_ALIAS) + 1).value = "SampleNewAlias"
+    ws.cell(row=HEADERS_ROW + 2, column=HEADERS.index(NEW_SAMPLE_NAME) + 1).value = f"SampleNewNewName"
+    ws.cell(row=HEADERS_ROW + 2, column=HEADERS.index(NEW_SAMPLE_ALIAS) + 1).value = f"SampleNewNewAlias"
 
     wb_bytes = BytesIOWithName("sauce_poivre.xlsx")
     wb.save(wb_bytes)
+
+    importer = SampleRenameImporter()
     result = load_template(importer=importer, file=wb_bytes)
+    
     assert result['valid'] is True
+    assert not DerivedBySample.objects.filter(sample__name="SampleNewName", derived_sample__biosample__alias="SampleNewAlias").exists()
+    assert DerivedBySample.objects.filter(sample__name="SampleNewNewName", derived_sample__biosample__alias="SampleNewNewAlias").exists()
