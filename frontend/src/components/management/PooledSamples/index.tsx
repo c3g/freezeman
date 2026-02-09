@@ -7,12 +7,12 @@ import { FILTER_TYPE } from "../../../constants"
 import api from "../../../utils/api"
 import { Link } from "react-router-dom"
 import { smartQuerySetLookup } from "../../../utils/functions"
-import { Space, Table } from "antd"
-import { PrefilledTemplatesDropdown } from "../../../utils/prefillTemplates"
-import { ActionDropdown } from "../../../utils/templateActions"
+import { Button, Space, Table } from "antd"
 import AppPageHeader from "../../AppPageHeader"
 import FiltersBar from "../../filters/filtersBar/FiltersBar"
 import PageContent from "../../PageContent"
+import { EditOutlined } from "@ant-design/icons"
+import PrefillTemplateButton from "../../PrefillTemplateButton"
 
 export enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
@@ -113,9 +113,10 @@ export interface PooledSamplesProps {
     tableHeight: number | string
     title: string
     actionUrlBase: string
-    action: FMSTemplateAction
+    templateAction?: FMSTemplateAction
+    templatePrefill?: FMSTemplatePrefillOption
 }
-export function PooledSamples({ columns, tableHeight, title, actionUrlBase }: PooledSamplesProps) {
+export function PooledSamples({ columns, tableHeight, title, actionUrlBase, templateAction, templatePrefill }: PooledSamplesProps) {
     const dispatch = useAppDispatch()
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
     const fetchPooledSamples = useCallback<FetchRowData<PooledSampleColumnID, FMSPooledSample>>(async ({
@@ -186,24 +187,6 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase }: Po
         sortBy,
     })
 
-    const [templateActions, setTemplateActions] = useState<{ items: FMSTemplateAction[] }>({ items: [] })
-    useEffect(() => {
-        dispatch(api.pooledSamples.template.actions()).then(response => {
-            setTemplateActions({
-                items: response.data
-            })
-        })
-    }, [dispatch])
-
-    const [prefills, setPrefills] = useState<{ items: FMSTemplatePrefillOption[] }>({ items: [] })
-    useEffect(() => {
-        dispatch(api.pooledSamples.prefill.templates()).then(response => {
-            setPrefills({
-                items: response.data
-            })
-        })
-    }, [dispatch])
-
     const prefillTemplate = useCallback(({ template }: { template: FMSId }) => {
         return dispatch(api.pooledSamples.prefill.request(
             {
@@ -235,14 +218,39 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase }: Po
         fetchRowData({ pageNumber: 1, pageSize: defaultPageSize })
     }, [defaultPageSize, fetchRowData])
 
+    const appPageHeaderExtra = useMemo(() => {
+        const extra: React.ReactNode[] = []
+        if (templateAction) {
+            extra.push(
+                <Link key={"action"} to={`${actionUrlBase}/actions/${templateAction.id}/`}>
+                    <Button icon={<EditOutlined />}>
+                        Submit Template
+                    </Button>
+                </Link>
+            )
+        }
+        if (templatePrefill) {
+            extra.push(
+                <PrefillTemplateButton
+                    style={{ width: '100%', border: 0, textAlign: 'left' }}
+                    key={'prefill'}
+                    exportFunction={prefillTemplate}
+                    filename={templatePrefill.description}
+                    description={templatePrefill.description}
+                    itemsCount={totalSelectionCount}
+                    template={templatePrefill.id}
+                    icon={<EditOutlined />}
+                />
+            )
+        }
+        return extra
+    }, [actionUrlBase, prefillTemplate, templateAction, templatePrefill, totalSelectionCount])
+
     return (
         <>
             <AppPageHeader
 				title = {title}
-                extra = {[
-                    <ActionDropdown key="actions" urlBase={actionUrlBase} actions={templateActions} />,
-                    <PrefilledTemplatesDropdown key='prefills' prefillTemplate={prefillTemplate} totalCount={totalSelectionCount} prefills={prefills}/>,
-                ]}
+                extra = {appPageHeaderExtra}
 			/>
             <PageContent>
                 <Space orientation={"vertical"} style={{ width: '100%' }}>

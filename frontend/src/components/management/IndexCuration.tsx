@@ -1,5 +1,8 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import PooledSamples, { PooledSampleColumnID } from "./PooledSamples"
+import { FMSTemplateAction, FMSTemplatePrefillOption } from "../../models/fms_api_models"
+import api from "../../utils/api"
+import { useAppDispatch } from "../../hooks"
 
 const columns = [
     PooledSampleColumnID.ALIAS,
@@ -12,11 +15,35 @@ const columns = [
 const TABLE_HEIGHT = '75vh'
 
 export function IndexCuration() {
+    const dispatch = useAppDispatch()
+
+    const [templateAction, setTemplateAction] = useState<FMSTemplateAction>()
+    useEffect(() => {
+        dispatch(api.pooledSamples.template.actions()).then(response => {
+            setTemplateAction(
+                response.data.find(action => action.name === "Update Library Index")
+            )
+        })
+    }, [dispatch])
+
+    const [templatePrefill, setTemplatePrefill] = useState<FMSTemplatePrefillOption>()
+    useEffect(() => {
+        dispatch(api.pooledSamples.prefill.templates()).then(response => {
+            setTemplatePrefill(
+                response.data.find(prefill => prefill.description === "Template to replace a library index")
+            )
+        })
+    }, [dispatch])
+
+
     return <PooledSamples
         columns={columns}
         tableHeight={TABLE_HEIGHT}
         title={"Index Curation"}
         actionUrlBase={"/management/index-curations"}
+        templateAction={templateAction}
+        templatePrefill={templatePrefill}
     />
 }
 export default IndexCuration
+

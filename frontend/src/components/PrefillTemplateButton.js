@@ -48,7 +48,7 @@ const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }
 
   }
   return (
-    <Button icon={rest.icon || <DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
+    <Button variant={"outlined"} icon={rest.icon || <DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
         { rest.description ?  rest.description : 'Prefill Template' }
     </Button>
   )
