@@ -9,24 +9,30 @@ def style_section_name(cell):
 
 HEADERS_ROW = 4 # 1-indexed
 
-CONTAINER_BARCODE = 'Container Barcode'
-CONTAINER_COORD = 'Container Coord'
-INDEX_NAME = 'Index Name'
-OLD_SAMPLE_NAME = 'Old Sample Name'
-OLD_SAMPLE_ALIAS = 'Old Sample Alias'
-NEW_SAMPLE_NAME = 'New Sample Name'
-NEW_SAMPLE_ALIAS = 'New Sample Alias'
+class HeaderNames:
+    CONTAINER_BARCODE = 'Container Barcode'
+    CONTAINER_COORD = 'Container Coord'
+    INDEX_NAME = 'Index Name'
+    OLD_SAMPLE_NAME = 'Old Sample Name'
+    OLD_SAMPLE_ALIAS = 'Old Sample Alias'
+    NEW_SAMPLE_NAME = 'New Sample Name'
+    NEW_SAMPLE_ALIAS = 'New Sample Alias'
 
 # beware that column numbers are 1-indexed when using openpyxl, but 0-indexed in the HEADERS list
 HEADERS = [
-    CONTAINER_BARCODE,
-    CONTAINER_COORD,
-    INDEX_NAME,
-    OLD_SAMPLE_NAME,
-    OLD_SAMPLE_ALIAS,
-    NEW_SAMPLE_NAME,
-    NEW_SAMPLE_ALIAS,
+    HeaderNames.CONTAINER_BARCODE,
+    HeaderNames.CONTAINER_COORD,
+    HeaderNames.INDEX_NAME,
+    HeaderNames.OLD_SAMPLE_NAME,
+    HeaderNames.OLD_SAMPLE_ALIAS,
+    HeaderNames.NEW_SAMPLE_NAME,
+    HeaderNames.NEW_SAMPLE_ALIAS,
 ]
+def header_to_column(header_name):
+    try:
+        return HEADERS.index(header_name) + 1
+    except ValueError:
+        raise ValueError(f"Header '{header_name}' not found in HEADERS list.")
 
 def create_workbook():
     workbook = Workbook()
@@ -53,37 +59,37 @@ def create_workbook():
             ],
             [
                 CD(
-                    value=CONTAINER_BARCODE,
+                    value=HeaderNames.CONTAINER_BARCODE,
                     comment="The current barcode of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value=CONTAINER_COORD,
+                    value=HeaderNames.CONTAINER_COORD,
                     comment="The current coordinate of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value=INDEX_NAME,
+                    value=HeaderNames.INDEX_NAME,
                     comment="The index name associated with the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value=OLD_SAMPLE_NAME,
+                    value=HeaderNames.OLD_SAMPLE_NAME,
                     comment="The current name of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value=OLD_SAMPLE_ALIAS,
+                    value=HeaderNames.OLD_SAMPLE_ALIAS,
                     comment="The current alias of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value=NEW_SAMPLE_NAME,
+                    value=HeaderNames.NEW_SAMPLE_NAME,
                     comment="The new name to assign to the sample.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value=NEW_SAMPLE_ALIAS,
+                    value=HeaderNames.NEW_SAMPLE_ALIAS,
                     comment="The new alias to assign to the sample.",
                     apply_cell=style_section_name,
                 ),

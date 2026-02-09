@@ -291,7 +291,7 @@ INDEX_UPDATE_TEMPLATE: TemplateDefinition = {
   "placement info": [],
 }
 
-from fms_core.workbooks.sample_rename import create_workbook as sample_rename_workbook_generator
+from fms_core.workbooks.sample_rename import create_workbook as sample_rename_workbook_generator, HEADERS as SAMPLE_RENAME_HEADERS, HeaderNames as sample_rename_headers
 SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
   "identity": {
       "description": "Template to rename sample (and its alias)",
@@ -301,16 +301,16 @@ SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
   "sheets info": [
       {
           'name': 'SampleRename',
-          'headers': ['Container Barcode', 'Container Coord', 'Index Name', 'Old Sample Name', 'Old Sample Alias', 'New Sample Name', 'New Sample Alias'],
+          'headers': SAMPLE_RENAME_HEADERS,
           'batch': False,
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
-      ("SampleRename", "Container Barcode", "sample__container__barcode", None, None),
-      ("SampleRename", "Container Coord", "sample__coordinate__name", None, None),
-      ("SampleRename", "Index Name", "derived_sample__library__index__name", None, None),
-      ("SampleRename", "Old Sample Name", "sample__name", None, None),
-      ("SampleRename", "Old Sample Alias", "derived_sample__biosample__alias", None, None),
+      ("SampleRename", sample_rename_headers.CONTAINER_BARCODE, "sample__container__barcode", None, None),
+      ("SampleRename", sample_rename_headers.CONTAINER_COORD, "sample__coordinate__name", None, None),
+      ("SampleRename", sample_rename_headers.INDEX_NAME, "derived_sample__library__index__name", None, None),
+      ("SampleRename", sample_rename_headers.OLD_SAMPLE_NAME, "sample__name", None, None),
+      ("SampleRename", sample_rename_headers.OLD_SAMPLE_ALIAS, "derived_sample__biosample__alias", None, None),
   ],
   "placement info": [],
 }
