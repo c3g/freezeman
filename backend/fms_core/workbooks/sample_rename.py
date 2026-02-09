@@ -8,6 +8,26 @@ def style_section_name(cell):
     cell.fill = headerPatternFill
 
 HEADERS_ROW = 4 # 1-indexed
+
+CONTAINER_BARCODE = 'Container Barcode'
+CONTAINER_COORD = 'Container Coord'
+INDEX_NAME = 'Index Name'
+OLD_SAMPLE_NAME = 'Old Sample Name'
+OLD_SAMPLE_ALIAS = 'Old Sample Alias'
+NEW_SAMPLE_NAME = 'New Sample Name'
+NEW_SAMPLE_ALIAS = 'New Sample Alias'
+
+# beware that column numbers are 1-indexed when using openpyxl, but 0-indexed in the HEADERS list
+HEADERS = [
+    CONTAINER_BARCODE,
+    CONTAINER_COORD,
+    INDEX_NAME,
+    OLD_SAMPLE_NAME,
+    OLD_SAMPLE_ALIAS,
+    NEW_SAMPLE_NAME,
+    NEW_SAMPLE_ALIAS,
+]
+
 def create_workbook():
     workbook = Workbook()
 
@@ -33,37 +53,37 @@ def create_workbook():
             ],
             [
                 CD(
-                    value="Container Barcode",
+                    value=CONTAINER_BARCODE,
                     comment="The current barcode of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value="Container Coord",
+                    value=CONTAINER_COORD,
                     comment="The current coordinate of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value="Index Name",
+                    value=INDEX_NAME,
                     comment="The index name associated with the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value="Old Sample Name",
+                    value=OLD_SAMPLE_NAME,
                     comment="The current name of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value="Old Sample Alias",
+                    value=OLD_SAMPLE_ALIAS,
                     comment="The current alias of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value="New Sample Name",
+                    value=NEW_SAMPLE_NAME,
                     comment="The new name to assign to the sample.",
                     apply_cell=style_section_name,
                 ),
                 CD(
-                    value="New Sample Alias",
+                    value=NEW_SAMPLE_ALIAS,
                     comment="The new alias to assign to the sample.",
                     apply_cell=style_section_name,
                 ),
