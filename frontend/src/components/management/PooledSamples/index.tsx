@@ -223,7 +223,7 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
         if (templateAction) {
             extra.push(
                 <Link key={"action"} to={`${actionUrlBase}/actions/${templateAction.id}/`}>
-                    <Button icon={<EditOutlined />}>
+                    <Button variant={"outlined"} icon={<EditOutlined />}>
                         Submit Template
                     </Button>
                 </Link>
@@ -232,11 +232,11 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
         if (templatePrefill) {
             extra.push(
                 <PrefillTemplateButton
-                    style={{ width: '100%', border: 0, textAlign: 'left' }}
+                    style={{ width: '100%', textAlign: 'left' }}
                     key={'prefill'}
                     exportFunction={prefillTemplate}
                     filename={templatePrefill.description}
-                    description={templatePrefill.description}
+                    description={'Prefill Template'}
                     itemsCount={totalSelectionCount}
                     template={templatePrefill.id}
                     icon={<EditOutlined />}

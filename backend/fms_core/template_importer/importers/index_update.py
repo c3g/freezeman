@@ -42,6 +42,8 @@ class IndexUpdateImporter(GenericImporter):
                 **index_update_kwargs,
             )
             mapping_index_to_rows[index['new_index']].append(row_id)
+            
+            row_object = row_object if row_object is not None else {}
             samples_affected_by_row[row_id].update(row_object.get("Samples Impacted", []))
             samples_affected.update(row_object.get("Samples Impacted", []))
         
