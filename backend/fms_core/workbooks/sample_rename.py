@@ -1,10 +1,11 @@
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill
+from openpyxl.cell.cell import Cell
 
 from fms_core.services.workbook_utils import insert_cells, CD
 
 headerPatternFill = PatternFill(start_color="92d050", end_color="92d050", fill_type="solid")
-def style_section_name(cell):
+def style_section_name(cell: Cell):
     cell.fill = headerPatternFill
 
 HEADERS_ROW = 4 # 1-indexed
@@ -38,11 +39,11 @@ def create_workbook():
     workbook = Workbook()
 
     workbook.create_sheet(title="SampleRename")
-    samplesheet = workbook["SampleRename"]
+    worksheet = workbook["SampleRename"]
     del workbook["Sheet"]
 
     insert_cells(
-        samplesheet,
+        worksheet,
         first_cell_location=(1, 1),
         order="row",
         descriptors=[
@@ -96,5 +97,9 @@ def create_workbook():
             ],
         ],
     )
+
+    for col in "ABCDEFG":
+        CM_TO_WHATEVER = 4.489795918
+        worksheet.column_dimensions[col].width = 6.60 * CM_TO_WHATEVER
 
     return workbook
