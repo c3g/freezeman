@@ -165,12 +165,15 @@ class TemplateActionsMixin:
         for i, action in enumerate(self.template_action_list):  # Make a list out of the actions
             list_templates = []
             for template in action["template"]:
+                template = template.copy() # avoid modifying the original dict
                 current_template_protocol_name = template.get("protocol", None)
                 if protocol and current_template_protocol_name and protocol.name != current_template_protocol_name:
                     pass
                 else:
                     file = template.get("file", None)
                     template["file"] = request.build_absolute_uri(template["file"]) if file is not None else file # Return the file as an URI
+                    if "workbook" in template:
+                        del template["workbook"] # Remove the "workbook" key since it contains function
                     list_templates.append(template)
             if len(list_templates) > 0:
                 action_dict = {}
