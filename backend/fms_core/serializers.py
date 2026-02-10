@@ -782,6 +782,7 @@ class PooledSampleSerializer(serializers.ModelSerializer):
     # Return the id of the pool containing this sample. This allows api clients to request
     # a list of samples from multiple pools and then group them by pool on the client side.
     pool_id = serializers.IntegerField(read_only=True, source='sample.id')
+    pool_name = serializers.CharField(read_only=True, source='sample.name')
 
     volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
@@ -832,6 +833,7 @@ class PooledSampleSerializer(serializers.ModelSerializer):
             'coordinates',
             'platform',
             'pool_id',
+            'pool_name',
             'project_id',
             'project_name',
             'sample_kind',

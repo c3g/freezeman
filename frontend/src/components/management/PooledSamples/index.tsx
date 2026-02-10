@@ -63,7 +63,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
         dataIndex: 'sample_name',
         key: PooledSampleColumnID.NAME,
         render: (_: any, record: FMSPooledSample) => (
-            <Link to={`/samples/${record.parent_sample_id}`}>{record.parent_sample_name}</Link>
+            <Link to={`/samples/${record.pool_id}`}>{record.pool_name}</Link>
         ),
         sorter: { multiple: 1 }
     },
@@ -101,7 +101,8 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
 } as const
 
 const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
-    [PooledSampleColumnID.ALIAS]: { placeholder: 'Sample Name' },
+    [PooledSampleColumnID.ALIAS]: { placeholder: 'Sample Alias' },
+    [PooledSampleColumnID.NAME]: { placeholder: 'Sample Name' },
     [PooledSampleColumnID.CONTAINER_BARCODE]: { placeholder: 'Container Barcode' },
     [PooledSampleColumnID.COORDINATES]: { placeholder: 'Coordinates' },
     [PooledSampleColumnID.PROJECT]: { placeholder: 'Project Name' },

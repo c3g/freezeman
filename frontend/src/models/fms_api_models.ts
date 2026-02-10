@@ -291,6 +291,7 @@ export interface FMSPooledSample extends FMSTrackedModel {
     // Pooled sample is a flattened version of the pooled sample data returned by the endpoint.
     // The id is the ID of the pool's derived sample.
     pool_id: number,                    // The id of the parent sample pool containing this derived sample
+    pool_name: string,
     volume_ratio: number,               // Derived sample volume as a ratio of the total pool volume
 
     project_id: FMSId,                  // Project associated with the derived sample
