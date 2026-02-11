@@ -12,6 +12,7 @@ HEADERS_ROW = 4 # 1-indexed
 
 class HeaderNames:
     CONTAINER_BARCODE = 'Container Barcode'
+    PARENT_CONTAINER_BARCODE = 'Parent Container Barcode'
     CONTAINER_COORD = 'Container Coord'
     INDEX_NAME = 'Index Name'
     OLD_SAMPLE_NAME = 'Old Sample Name'
@@ -22,6 +23,7 @@ class HeaderNames:
 # beware that column numbers are 1-indexed when using openpyxl, but 0-indexed in the HEADERS list
 HEADERS = [
     HeaderNames.CONTAINER_BARCODE,
+    HeaderNames.PARENT_CONTAINER_BARCODE,
     HeaderNames.CONTAINER_COORD,
     HeaderNames.INDEX_NAME,
     HeaderNames.OLD_SAMPLE_NAME,
@@ -65,6 +67,11 @@ def create_workbook():
                     apply_cell=style_section_name,
                 ),
                 CD(
+                    value=HeaderNames.PARENT_CONTAINER_BARCODE,
+                    comment="The current barcode of the parent container of the sample to be renamed.",
+                    apply_cell=style_section_name,
+                ),
+                CD(
                     value=HeaderNames.CONTAINER_COORD,
                     comment="The current coordinate of the sample to be renamed.",
                     apply_cell=style_section_name,
@@ -98,7 +105,8 @@ def create_workbook():
         ],
     )
 
-    for col in "ABCDEFG":
+    for col_num in range(ord('A'), ord('A') + len(HEADERS)):
+        col = chr(col_num)
         CM_TO_WHATEVER = 4.489795918
         worksheet.column_dimensions[col].width = 6.60 * CM_TO_WHATEVER
 

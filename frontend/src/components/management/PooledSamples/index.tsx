@@ -18,6 +18,7 @@ export enum PooledSampleColumnID {
     ALIAS = 'ALIAS',
     NAME = 'NAME',
     CONTAINER_BARCODE = 'CONTAINER_BARCODE',
+    PARENT_CONTAINER_BARCODE = 'PARENT_CONTAINER_BARCODE',
     COORDINATES = 'COORDINATES',
     PROJECT = 'PROJECT',
     INDEX = 'INDEX',
@@ -27,6 +28,7 @@ const FILTER_KEYS: FilterKeys<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: 'derived_sample__biosample__alias',
     [PooledSampleColumnID.NAME]: 'sample__name',
     [PooledSampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
+    [PooledSampleColumnID.PARENT_CONTAINER_BARCODE]: 'sample__container__location__barcode',
     [PooledSampleColumnID.COORDINATES]: 'sample__coordinate__name',
     [PooledSampleColumnID.PROJECT]: 'project__name',
     [PooledSampleColumnID.INDEX]: 'derived_sample__library__index__name',
@@ -35,6 +37,7 @@ const SORT_KEYS: SortKeys<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: 'derived_sample__biosample__alias',
     [PooledSampleColumnID.NAME]: 'sample__name',
     [PooledSampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
+    [PooledSampleColumnID.PARENT_CONTAINER_BARCODE]: 'sample__container__location__barcode',
     [PooledSampleColumnID.COORDINATES]: 'sample__coordinate__id',
     [PooledSampleColumnID.PROJECT]: 'project__name',
     [PooledSampleColumnID.INDEX]: 'derived_sample__library__index__name',
@@ -44,6 +47,7 @@ const FILTER_DESCRIPTIONS: FilterDescriptions<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
     [PooledSampleColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
     [PooledSampleColumnID.CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
+    [PooledSampleColumnID.PARENT_CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
     [PooledSampleColumnID.COORDINATES]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
     [PooledSampleColumnID.PROJECT]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
     [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
@@ -74,6 +78,18 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
         render: (_: any, record: FMSPooledSample) => (
             <Link to={`/containers/${record.container_id}`}>{record.container_barcode}</Link>
         ),
+        sorter: { multiple: 1 }
+    },
+    [PooledSampleColumnID.PARENT_CONTAINER_BARCODE]: {
+        title: 'Parent Container Barcode',
+        dataIndex: 'parent_container_barcode',
+        key: PooledSampleColumnID.PARENT_CONTAINER_BARCODE,
+        render: (_: any, record: FMSPooledSample) => {
+            if (record.parent_container_id && record.parent_container_barcode) {
+                return <Link to={`/containers/${record.parent_container_id}`}>{record.parent_container_barcode}</Link>
+            }
+            return null
+        },
         sorter: { multiple: 1 }
     },
     [PooledSampleColumnID.COORDINATES]: {
