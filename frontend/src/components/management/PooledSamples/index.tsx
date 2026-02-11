@@ -64,7 +64,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
     },
     [PooledSampleColumnID.NAME]: {
         title: 'Sample Name',
-        dataIndex: 'sample_name',
+        dataIndex: 'pool_name',
         key: PooledSampleColumnID.NAME,
         render: (_: any, record: FMSPooledSample) => (
             <Link to={`/samples/${record.pool_id}`}>{record.pool_name}</Link>
