@@ -307,6 +307,7 @@ SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
   "prefill info": [
       ("SampleRename", sample_rename_headers.CONTAINER_BARCODE, "sample__container__barcode", None, None),
+      ("SampleRename", sample_rename_headers.PARENT_CONTAINER_BARCODE, "sample__container__location__barcode", None, None),
       ("SampleRename", sample_rename_headers.CONTAINER_COORD, "sample__coordinate__name", None, None),
       ("SampleRename", sample_rename_headers.INDEX_NAME, "derived_sample__library__index__name", None, None),
       ("SampleRename", sample_rename_headers.OLD_SAMPLE_NAME, "sample__name", None, None),
