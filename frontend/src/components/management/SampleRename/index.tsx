@@ -5,10 +5,11 @@ import { useAppDispatch } from "../../../hooks"
 import api from "../../../utils/api"
 
 const columns = [
-    PooledSampleColumnID.CONTAINER_BARCODE,
-    PooledSampleColumnID.COORDINATES,
     PooledSampleColumnID.ALIAS,
     PooledSampleColumnID.NAME,
+    PooledSampleColumnID.CONTAINER_BARCODE,
+    PooledSampleColumnID.PARENT_CONTAINER_BARCODE,
+    PooledSampleColumnID.COORDINATES,
     PooledSampleColumnID.INDEX,
 ] as const
 

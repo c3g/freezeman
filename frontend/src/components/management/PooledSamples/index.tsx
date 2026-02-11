@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import { useAppDispatch, useAppSelector } from "../../../hooks"
 import { selectCurrentPreference } from "../../../modules/profiles/selectors"
 import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, useFilters, usePaginatedDataProps, useSmartSelectionProps, useTableColumnsProps, useTableSortByProps } from "../../../utils/tableHooks"
@@ -88,7 +88,7 @@ const COLUMN_DEFINITIONS: ColumnDefinitions<PooledSampleColumnID, FMSPooledSampl
             if (record.parent_container_id && record.parent_container_barcode) {
                 return <Link to={`/containers/${record.parent_container_id}`}>{record.parent_container_barcode}</Link>
             }
-            return null
+            return "N/A"
         },
         sorter: { multiple: 1 }
     },
@@ -120,6 +120,7 @@ const SEARCH_DEFINITIONS: SearchPropertiesDefinitions<PooledSampleColumnID> = {
     [PooledSampleColumnID.ALIAS]: { placeholder: 'Sample Alias' },
     [PooledSampleColumnID.NAME]: { placeholder: 'Sample Name' },
     [PooledSampleColumnID.CONTAINER_BARCODE]: { placeholder: 'Container Barcode' },
+    [PooledSampleColumnID.PARENT_CONTAINER_BARCODE]: { placeholder: 'Parent Container Barcode' },
     [PooledSampleColumnID.COORDINATES]: { placeholder: 'Coordinates' },
     [PooledSampleColumnID.PROJECT]: { placeholder: 'Project Name' },
     [PooledSampleColumnID.INDEX]: { placeholder: 'Index Name' },
@@ -190,16 +191,19 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
     }, [fetchRowData, resetSelection])
     const [filters, setFilters] = useFilters<PooledSampleColumnID>({}, debouncedOnFilter)
 
-    const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>({
-        filters,
-        setFilters,
-        filterDescriptions: FILTER_DESCRIPTIONS,
-        columnDefinitions: Object.entries(COLUMN_DEFINITIONS).reduce((acc, [columnID, definition]) => {
+    const columnDefinitions = useMemo(() => {
+        return Object.entries(COLUMN_DEFINITIONS).reduce((acc, [columnID, definition]) => {
             if (columns.includes(columnID as PooledSampleColumnID)) {
                 acc[columnID as PooledSampleColumnID] = definition
             }
             return acc
-        }, {} as typeof COLUMN_DEFINITIONS),
+        }, {} as typeof COLUMN_DEFINITIONS)
+    }, [columns])
+    const tableColumnsProps = useTableColumnsProps<PooledSampleColumnID, FMSPooledSample>({
+        filters,
+        setFilters,
+        filterDescriptions: FILTER_DESCRIPTIONS,
+        columnDefinitions,
         searchPropertyDefinitions: SEARCH_DEFINITIONS,
         sortBy,
     })

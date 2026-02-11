@@ -1,5 +1,6 @@
 from typing import Set, TypedDict
 
+from fms_core.workbooks.sample_rename import HeaderNames
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.models import DerivedBySample, Index, Sample
@@ -23,7 +24,12 @@ class SampleRenameRowHandler(GenericRowHandler):
 
     def process_row_inner(self, sample: SampleRenameKwargs):
         sq_query = Q()
-        derived_by_sample = None
+        dbs = None
+
+        if not sample["new_alias"] and not sample["new_name"]:
+            self.errors["rename"].append(f"At least one of '{HeaderNames.NEW_SAMPLE_ALIAS}' or '{HeaderNames.NEW_SAMPLE_NAME}' must be provided for renaming.")
+            return
+
         try:
             if sample["index"]:
                 sq_query &= Q(derived_sample__library__index__name=sample["index"])
@@ -33,22 +39,23 @@ class SampleRenameRowHandler(GenericRowHandler):
 
             if sample["parent_barcode"]:
                 sq_query &= Q(sample__container__location__barcode=sample["parent_barcode"])
+
             if sample["coordinates"]:
-                sq_query &= Q(sample__container__coordinate__name=sample["coordinates"])
+                sq_query &= Q(sample__coordinate__name=sample["coordinates"])
 
             if sample["old_alias"]:
                 sq_query &= Q(derived_sample__biosample__alias=sample["old_alias"])
             if sample["old_name"]:
                 sq_query &= Q(sample__name=sample["old_name"])
 
-            derived_by_sample = DerivedBySample.objects.get(sq_query)
+            dbs = DerivedBySample.objects.get(sq_query)
 
             if sample["new_alias"]:
-                derived_by_sample.derived_sample.biosample.alias = sample["new_alias"]
-                derived_by_sample.derived_sample.biosample.save()
+                dbs.derived_sample.biosample.alias = sample["new_alias"]
+                dbs.derived_sample.biosample.save()
             if sample["new_name"]:
-                derived_by_sample.sample.name = sample["new_name"]
-                derived_by_sample.sample.save()
+                dbs.sample.name = sample["new_name"]
+                dbs.sample.save()
 
         except DerivedBySample.DoesNotExist:
             self.errors["rename"].append(f"No sample found with the criteria provided; please refine your criteria.")
@@ -58,10 +65,10 @@ class SampleRenameRowHandler(GenericRowHandler):
 
         if not self.has_errors():
             self.row_object = {
-                "Sample Name": derived_by_sample.sample.name if derived_by_sample else sample["old_name"],
-                "Sample Alias": derived_by_sample.derived_sample.biosample.alias if derived_by_sample else sample["old_alias"],
-                "Container Barcode": derived_by_sample.sample.container.barcode if derived_by_sample else sample["barcode"],
-                "Parent Container Barcode": derived_by_sample.sample.container.location.barcode if derived_by_sample else sample["parent_barcode"],
-                "Container Coordinate": derived_by_sample.sample.container.coordinate.name if derived_by_sample else sample["coordinates"],
-                "Index Name": derived_by_sample.derived_sample.library.index.name if derived_by_sample and derived_by_sample.derived_sample.library.index else sample["index"],
+                "Sample Name": dbs.sample.name if dbs else None,
+                "Sample Alias": dbs.derived_sample.biosample.alias if dbs else None,
+                "Container Barcode": dbs.sample.container.barcode if dbs else None,
+                "Parent Container Barcode": dbs.sample.container.location.barcode if dbs and dbs.sample.container.location else None,
+                "Container Coordinate": dbs.sample.coordinate.name if dbs else None,
+                "Index Name": dbs.derived_sample.library.index.name if dbs and dbs.derived_sample.library else None,
             }
