@@ -861,8 +861,6 @@ class PooledSampleExportSerializer(serializers.Serializer):
     parent_sample_id = serializers.CharField(read_only=True)
     parent_sample_name = serializers.CharField(read_only=True)
     container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
-    parent_container_barcode = serializers.CharField(read_only=True, source='sample.container.location.barcode')
-    parent_container_id = serializers.IntegerField(read_only=True, source='sample.container.location.id')
     coordinates = serializers.CharField(read_only=True, source='sample.coordinate.name')
     sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
 
@@ -921,8 +919,6 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'parent_sample_id',
             'parent_sample_name',
             'container_barcode',
-            'parent_container_barcode',
-            'parent_container_id',
             'coordinates',
             'volume_ratio',
             'project_id',
