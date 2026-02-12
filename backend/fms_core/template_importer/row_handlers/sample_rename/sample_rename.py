@@ -10,7 +10,6 @@ from django.db.models import Q
 
 class SampleRenameKwargs(TypedDict):
     barcode: str | None
-    parent_barcode: str | None
     coordinates: str | None
     index: str | None
     old_alias: str | None
@@ -24,7 +23,7 @@ class SampleRenameRowHandler(GenericRowHandler):
 
     def process_row_inner(self, sample: SampleRenameKwargs):
         sq_query = Q()
-        dbs = None
+        derived_by_sample = None
 
         if not sample["new_alias"] and not sample["new_name"]:
             self.errors["rename"].append(f"At least one of '{HeaderNames.NEW_SAMPLE_ALIAS}' or '{HeaderNames.NEW_SAMPLE_NAME}' must be provided for renaming.")
@@ -37,9 +36,6 @@ class SampleRenameRowHandler(GenericRowHandler):
             if sample["barcode"]:
                 sq_query &= Q(sample__container__barcode=sample["barcode"])
 
-            if sample["parent_barcode"]:
-                sq_query &= Q(sample__container__location__barcode=sample["parent_barcode"])
-
             if sample["coordinates"]:
                 sq_query &= Q(sample__coordinate__name=sample["coordinates"])
 
@@ -48,14 +44,14 @@ class SampleRenameRowHandler(GenericRowHandler):
             if sample["old_name"]:
                 sq_query &= Q(sample__name=sample["old_name"])
 
-            dbs = DerivedBySample.objects.get(sq_query)
+            derived_by_sample = DerivedBySample.objects.get(sq_query)
 
             if sample["new_alias"]:
-                dbs.derived_sample.biosample.alias = sample["new_alias"]
-                dbs.derived_sample.biosample.save()
+                derived_by_sample.derived_sample.biosample.alias = sample["new_alias"]
+                derived_by_sample.derived_sample.biosample.save()
             if sample["new_name"]:
-                dbs.sample.name = sample["new_name"]
-                dbs.sample.save()
+                derived_by_sample.sample.name = sample["new_name"]
+                derived_by_sample.sample.save()
 
         except DerivedBySample.DoesNotExist:
             self.errors["rename"].append(f"No sample found with the criteria provided; please refine your criteria.")
@@ -65,10 +61,9 @@ class SampleRenameRowHandler(GenericRowHandler):
 
         if not self.has_errors():
             self.row_object = {
-                "Sample Name": dbs.sample.name if dbs else None,
-                "Sample Alias": dbs.derived_sample.biosample.alias if dbs else None,
-                "Container Barcode": dbs.sample.container.barcode if dbs else None,
-                "Parent Container Barcode": dbs.sample.container.location.barcode if dbs and dbs.sample.container.location else None,
-                "Container Coordinate": dbs.sample.coordinate.name if dbs else None,
-                "Index Name": dbs.derived_sample.library.index.name if dbs and dbs.derived_sample.library else None,
+                "Sample Name": derived_by_sample.sample.name if derived_by_sample else None,
+                "Sample Alias": derived_by_sample.derived_sample.biosample.alias if derived_by_sample else None,
+                "Container Barcode": derived_by_sample.sample.container.barcode if derived_by_sample else None,
+                "Container Coordinate": derived_by_sample.sample.coordinate.name if derived_by_sample and derived_by_sample.sample.coordinate else None,
+                "Index Name": derived_by_sample.derived_sample.library.index.name if derived_by_sample and derived_by_sample.derived_sample.library else None,
             }

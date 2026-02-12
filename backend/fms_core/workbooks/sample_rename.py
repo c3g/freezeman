@@ -12,7 +12,6 @@ HEADERS_ROW = 4 # 1-indexed
 
 class HeaderNames:
     CONTAINER_BARCODE = 'Container Barcode'
-    PARENT_CONTAINER_BARCODE = 'Parent Container Barcode'
     CONTAINER_COORD = 'Container Coord'
     INDEX_NAME = 'Index Name'
     OLD_SAMPLE_NAME = 'Old Sample Name'
@@ -23,7 +22,6 @@ class HeaderNames:
 # beware that column numbers are 1-indexed when using openpyxl, but 0-indexed in the HEADERS list
 HEADERS = [
     HeaderNames.CONTAINER_BARCODE,
-    HeaderNames.PARENT_CONTAINER_BARCODE,
     HeaderNames.CONTAINER_COORD,
     HeaderNames.INDEX_NAME,
     HeaderNames.OLD_SAMPLE_NAME,
@@ -32,10 +30,7 @@ HEADERS = [
     HeaderNames.NEW_SAMPLE_ALIAS,
 ]
 def header_to_column(header_name):
-    try:
-        return HEADERS.index(header_name) + 1
-    except ValueError:
-        raise ValueError(f"Header '{header_name}' not found in HEADERS list.")
+    return HEADERS.index(header_name) + 1
 
 def create_workbook():
     workbook = Workbook()
@@ -64,11 +59,6 @@ def create_workbook():
                 CD(
                     value=HeaderNames.CONTAINER_BARCODE,
                     comment="The current barcode of the sample to be renamed.",
-                    apply_cell=style_section_name,
-                ),
-                CD(
-                    value=HeaderNames.PARENT_CONTAINER_BARCODE,
-                    comment="The current barcode of the parent container of the sample to be renamed.",
                     apply_cell=style_section_name,
                 ),
                 CD(
