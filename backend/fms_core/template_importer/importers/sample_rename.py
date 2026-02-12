@@ -9,14 +9,12 @@ class SampleRenameImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        self.workbook_generator = SAMPLE_RENAME_TEMPLATE["identity"].get("workbook_generator", None)
 
     def import_template_inner(self):
         sample_rename_sheet = self.sheets['SampleRename']
         for row_id, row_data in enumerate(sample_rename_sheet.rows):
             sample: SampleRenameKwargs = {
                 'barcode': str_cast_and_normalize(row_data[HeaderNames.CONTAINER_BARCODE]),
-                'parent_barcode': str_cast_and_normalize(row_data[HeaderNames.PARENT_CONTAINER_BARCODE]),
                 'coordinates': str_cast_and_normalize(row_data[HeaderNames.CONTAINER_COORD]),
                 'index': str_cast_and_normalize(row_data[HeaderNames.INDEX_NAME]),
                 'old_alias': str_cast_and_normalize(row_data[HeaderNames.OLD_SAMPLE_ALIAS]),

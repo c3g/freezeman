@@ -1,4 +1,4 @@
-from io import BytesIO, StringIO
+from io import StringIO
 from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -15,11 +15,6 @@ from .._utils import blank_and_nan_to_none
 from fms_core.utils import str_normalize
 from fms_core.models import ImportedFile
 from fms_core.templates import SheetInfo
-
-class BytesIOWithName(BytesIO):
-    def __init__(self, name, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.name = name
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
@@ -40,7 +35,7 @@ class GenericImporter():
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
 
-    def import_template(self, file: Path | InMemoryUploadedFile | BytesIOWithName, dry_run, user = None):
+    def import_template(self, file: Path | InMemoryUploadedFile, dry_run, user = None):
         self.file = file
         self.dry_run = dry_run
         file_name, file_format = os.path.splitext(file.name)
@@ -119,6 +114,9 @@ class GenericImporter():
                          }
         return import_result
 
+    def preprocess_file(self, path) -> os.PathLike | StringIO:
+        return path
+
     def create_sheet_data(self, name, headers):
         try:
             shared_data = None
@@ -130,11 +128,11 @@ class GenericImporter():
                 shared_data = json_content["datasheets"][name].get("shared_data", {})
                 pd_sheet = pd.read_json(sheet_data, orient="records")
             elif self.format == ".xlsx":
-                pd_sheet = pd.read_excel(self.file, sheet_name=name, header=None)
+                pd_sheet = pd.read_excel(self.preprocess_file(self.file), sheet_name=name, header=None)
             elif self.format == ".csv" or self.format == ".txt" or self.format == ".asc":
-                pd_sheet = pd.read_csv(self.file, header=None)
+                pd_sheet = pd.read_csv(self.preprocess_file(self.file), header=None)
             elif self.format == ".tsv":
-                pd_sheet = pd.read_csv(self.file, sep="\t", header=None)
+                pd_sheet = pd.read_csv(self.preprocess_file(self.file), sep="\t", header=None)
             else:
                 self.base_errors.append(f"Template file format " + self.format + " not supported.")
                 return None
