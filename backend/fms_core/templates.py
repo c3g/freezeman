@@ -291,12 +291,12 @@ INDEX_UPDATE_TEMPLATE: TemplateDefinition = {
   "placement info": [],
 }
 
-from fms_core.workbooks.sample_rename import create_workbook as create_sample_rename_workbook, HEADERS as SAMPLE_RENAME_HEADERS, HeaderNames as sample_rename_headers
+from fms_core.workbooks.sample_rename import SampleRenameWorkbook
 SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
   "identity": {
       "description": "Template to rename sample (and its alias)",
       "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
-      "workbook": create_sample_rename_workbook
+      "workbook": SampleRenameWorkbook
     },
   "sheets info": [
       {
