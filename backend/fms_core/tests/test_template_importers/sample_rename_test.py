@@ -100,25 +100,23 @@ def test_valid_sample_rename(valid_data_row: dict[str, str]):
 
     container, *_ = get_or_create_container(
         barcode="YOUTUBE", kind='Tube', name="YOUTUBE",
-        coordinates=valid_data_row[HeaderNames.CONTAINER_COORD],
+        coordinates=None,
     ); assert container is not None # for the type checker
 
-    library = None
-    if valid_data_row[HeaderNames.INDEX_NAME]:
-        index, *_ = get_or_create_index(
-            index_name=valid_data_row[HeaderNames.INDEX_NAME],
-            index_structure="No_Flankers",
-        ); assert index is not None
-        library, *_ = create_library(
-            library_type=library_type,
-            index=index,
-            platform=platform,
-            strandedness=DOUBLE_STRANDED
-        ); assert library is not None # for the type checker
+    index, *_ = get_or_create_index(
+        index_name='Index1',
+        index_structure="No_Flankers",
+    ); assert index is not None
+    library, *_ = create_library(
+        library_type=library_type,
+        index=index,
+        platform=platform,
+        strandedness=DOUBLE_STRANDED
+    ); assert library is not None # for the type checker
     
-    sample, *_ = create_full_sample(
-        name=valid_data_row[HeaderNames.OLD_SAMPLE_NAME],
-        alias=valid_data_row[HeaderNames.OLD_SAMPLE_ALIAS],
+    create_full_sample(
+        name='SampleOld',
+        alias='SampleAliasOld',
         volume=100,
         concentration=25,
         collection_site='TestCaseSite',
