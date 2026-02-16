@@ -17,8 +17,20 @@ from fms_core.services.container import create_container, get_or_create_containe
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
 from fms_core.template_importer.importers.sample_rename import SampleRenameImporter
+from fms_core.templates import SAMPLE_RENAME_TEMPLATE
 from fms_core.tests.test_template_importers._utils import load_template
-from fms_core.workbooks.sample_rename import HeaderNames, create_workbook, HEADERS_ROW, HEADERS, header_to_column
+from fms_core.workbooks.sample_rename import SampleRenameWorkbook
+
+def create_workbook():
+    return SampleRenameWorkbook(headers=SAMPLE_RENAME_TEMPLATE['sheets info'][0]['headers']) # pyright: ignore[reportArgumentType]
+
+HEADER_CONTAINER_BARCODE = 'Container Barcode'
+HEADER_CONTAINER_COORD = 'Container Coordinate'
+HEADER_INDEX_NAME = 'Index Name'
+HEADER_OLD_SAMPLE_NAME = 'Old Sample Name'
+HEADER_OLD_SAMPLE_ALIAS = 'Old Sample Alias'
+HEADER_NEW_SAMPLE_NAME = 'New Sample Name'
+HEADER_NEW_SAMPLE_ALIAS = 'New Sample Alias'
 
 def test_create_workbook():
     wb = create_workbook()
@@ -27,61 +39,61 @@ def test_create_workbook():
     assert ws.title == "SampleRename"
 
     # Check headers
-    for col_num, header in enumerate(HEADERS, start=1):
-        assert ws.cell(row=HEADERS_ROW, column=col_num).value == header
+    for col_num, header in enumerate(wb.headers, start=1):
+        assert ws.cell(row=wb.headers_row_number(), column=col_num).value == header
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("valid_data_row", [
     # library in tube
     {
-        HeaderNames.CONTAINER_BARCODE: 'YOUTUBE',
-        HeaderNames.CONTAINER_COORD: None,
-        HeaderNames.INDEX_NAME: 'Index1',
-        HeaderNames.OLD_SAMPLE_NAME: None,
-        HeaderNames.OLD_SAMPLE_ALIAS: None,
-        HeaderNames.NEW_SAMPLE_NAME: 'SampleNew',
-        HeaderNames.NEW_SAMPLE_ALIAS: 'SampleAliasNew',
+        HEADER_CONTAINER_BARCODE: 'YOUTUBE',
+        HEADER_CONTAINER_COORD: None,
+        HEADER_INDEX_NAME: 'Index1',
+        HEADER_OLD_SAMPLE_NAME: None,
+        HEADER_OLD_SAMPLE_ALIAS: None,
+        HEADER_NEW_SAMPLE_NAME: 'SampleNew',
+        HEADER_NEW_SAMPLE_ALIAS: 'SampleAliasNew',
     },
     # sample in a tube
     {
-        HeaderNames.CONTAINER_BARCODE: 'YOUTUBE',
-        HeaderNames.CONTAINER_COORD: None,
-        HeaderNames.INDEX_NAME: None,
-        HeaderNames.OLD_SAMPLE_NAME: 'SampleOld',
-        HeaderNames.OLD_SAMPLE_ALIAS: 'SampleAliasOld',
-        HeaderNames.NEW_SAMPLE_NAME: 'SampleNew',
-        HeaderNames.NEW_SAMPLE_ALIAS: 'SampleAliasNew',
+        HEADER_CONTAINER_BARCODE: 'YOUTUBE',
+        HEADER_CONTAINER_COORD: None,
+        HEADER_INDEX_NAME: None,
+        HEADER_OLD_SAMPLE_NAME: 'SampleOld',
+        HEADER_OLD_SAMPLE_ALIAS: 'SampleAliasOld',
+        HEADER_NEW_SAMPLE_NAME: 'SampleNew',
+        HEADER_NEW_SAMPLE_ALIAS: 'SampleAliasNew',
     },
     # rename only alias of sample in a tube
     {
-        HeaderNames.CONTAINER_BARCODE: 'YOUTUBE',
-        HeaderNames.CONTAINER_COORD: None,
-        HeaderNames.INDEX_NAME: None,
-        HeaderNames.OLD_SAMPLE_NAME: 'SampleOld',
-        HeaderNames.OLD_SAMPLE_ALIAS: 'SampleAliasOld',
-        HeaderNames.NEW_SAMPLE_NAME: None,
-        HeaderNames.NEW_SAMPLE_ALIAS: 'SampleAliasNew',
+        HEADER_CONTAINER_BARCODE: 'YOUTUBE',
+        HEADER_CONTAINER_COORD: None,
+        HEADER_INDEX_NAME: None,
+        HEADER_OLD_SAMPLE_NAME: 'SampleOld',
+        HEADER_OLD_SAMPLE_ALIAS: 'SampleAliasOld',
+        HEADER_NEW_SAMPLE_NAME: None,
+        HEADER_NEW_SAMPLE_ALIAS: 'SampleAliasNew',
     },
 
     # rename only name of sample in a tube
     {
-        HeaderNames.CONTAINER_BARCODE: 'YOUTUBE',
-        HeaderNames.CONTAINER_COORD: None,
-        HeaderNames.INDEX_NAME: None,
-        HeaderNames.OLD_SAMPLE_NAME: 'SampleOld',
-        HeaderNames.OLD_SAMPLE_ALIAS: 'SampleAliasOld',
-        HeaderNames.NEW_SAMPLE_NAME: 'SampleNew',
-        HeaderNames.NEW_SAMPLE_ALIAS: None,
+        HEADER_CONTAINER_BARCODE: 'YOUTUBE',
+        HEADER_CONTAINER_COORD: None,
+        HEADER_INDEX_NAME: None,
+        HEADER_OLD_SAMPLE_NAME: 'SampleOld',
+        HEADER_OLD_SAMPLE_ALIAS: 'SampleAliasOld',
+        HEADER_NEW_SAMPLE_NAME: 'SampleNew',
+        HEADER_NEW_SAMPLE_ALIAS: None,
     },
     # rename only name of sample in a tube without alias provided
     {
-        HeaderNames.CONTAINER_BARCODE: 'YOUTUBE',
-        HeaderNames.CONTAINER_COORD: None,
-        HeaderNames.INDEX_NAME: None,
-        HeaderNames.OLD_SAMPLE_NAME: 'SampleOld',
-        HeaderNames.OLD_SAMPLE_ALIAS: None,
-        HeaderNames.NEW_SAMPLE_NAME: 'SampleNew',
-        HeaderNames.NEW_SAMPLE_ALIAS: None,
+        HEADER_CONTAINER_BARCODE: 'YOUTUBE',
+        HEADER_CONTAINER_COORD: None,
+        HEADER_INDEX_NAME: None,
+        HEADER_OLD_SAMPLE_NAME: 'SampleOld',
+        HEADER_OLD_SAMPLE_ALIAS: None,
+        HEADER_NEW_SAMPLE_NAME: 'SampleNew',
+        HEADER_NEW_SAMPLE_ALIAS: None,
     },
 ])
 def test_valid_sample_rename(valid_data_row: dict[str, str]):
@@ -134,10 +146,10 @@ def test_valid_sample_rename(valid_data_row: dict[str, str]):
 
     derived_by_sample = DerivedBySample.objects.all().get()
 
-    if valid_data_row[HeaderNames.NEW_SAMPLE_NAME]:
-        assert derived_by_sample.sample.name == valid_data_row[HeaderNames.NEW_SAMPLE_NAME]
-    if valid_data_row[HeaderNames.NEW_SAMPLE_ALIAS]:
-        assert derived_by_sample.derived_sample.biosample.alias == valid_data_row[HeaderNames.NEW_SAMPLE_ALIAS]
+    if valid_data_row[HEADER_NEW_SAMPLE_NAME]:
+        assert derived_by_sample.sample.name == valid_data_row[HEADER_NEW_SAMPLE_NAME]
+    if valid_data_row[HEADER_NEW_SAMPLE_ALIAS]:
+        assert derived_by_sample.derived_sample.biosample.alias == valid_data_row[HEADER_NEW_SAMPLE_ALIAS]
 
 @pytest.mark.django_db
 def test_double_sample_rename():
@@ -165,23 +177,23 @@ def test_double_sample_rename():
     TEMPLATE = [
         # row 1
         {
-            HeaderNames.CONTAINER_BARCODE: TUBE_BARCODE,
-            HeaderNames.CONTAINER_COORD: None,
-            HeaderNames.INDEX_NAME: None,
-            HeaderNames.OLD_SAMPLE_NAME: "SampleOldName",
-            HeaderNames.OLD_SAMPLE_ALIAS: "SampleOldAlias",
-            HeaderNames.NEW_SAMPLE_NAME: f"SampleNewName",
-            HeaderNames.NEW_SAMPLE_ALIAS: f"SampleNewAlias",
+            HEADER_CONTAINER_BARCODE: TUBE_BARCODE,
+            HEADER_CONTAINER_COORD: None,
+            HEADER_INDEX_NAME: None,
+            HEADER_OLD_SAMPLE_NAME: "SampleOldName",
+            HEADER_OLD_SAMPLE_ALIAS: "SampleOldAlias",
+            HEADER_NEW_SAMPLE_NAME: f"SampleNewName",
+            HEADER_NEW_SAMPLE_ALIAS: f"SampleNewAlias",
         },
         # row 2
         {
-            HeaderNames.CONTAINER_BARCODE: TUBE_BARCODE,
-            HeaderNames.CONTAINER_COORD: None,
-            HeaderNames.INDEX_NAME: None,
-            HeaderNames.OLD_SAMPLE_NAME: "SampleNewName",
-            HeaderNames.OLD_SAMPLE_ALIAS: "SampleNewAlias",
-            HeaderNames.NEW_SAMPLE_NAME: f"SampleNewNewName",
-            HeaderNames.NEW_SAMPLE_ALIAS: f"SampleNewNewAlias",
+            HEADER_CONTAINER_BARCODE: TUBE_BARCODE,
+            HEADER_CONTAINER_COORD: None,
+            HEADER_INDEX_NAME: None,
+            HEADER_OLD_SAMPLE_NAME: "SampleNewName",
+            HEADER_OLD_SAMPLE_ALIAS: "SampleNewAlias",
+            HEADER_NEW_SAMPLE_NAME: f"SampleNewNewName",
+            HEADER_NEW_SAMPLE_ALIAS: f"SampleNewNewAlias",
         }
     ]
     set_worksheet_rows(ws, TEMPLATE)
@@ -205,13 +217,13 @@ def test_nonexistent_sample_rename():
 
     set_worksheet_rows(ws, [
         {
-            HeaderNames.CONTAINER_BARCODE: "NonExistentContainer",
-            HeaderNames.CONTAINER_COORD: None,
-            HeaderNames.INDEX_NAME: None,
-            HeaderNames.OLD_SAMPLE_NAME: "NonExistentSample",
-            HeaderNames.OLD_SAMPLE_ALIAS: "NonExistentAlias",
-            HeaderNames.NEW_SAMPLE_NAME: f"SampleNewName",
-            HeaderNames.NEW_SAMPLE_ALIAS: f"SampleNewAlias",
+            HEADER_CONTAINER_BARCODE: "NonExistentContainer",
+            HEADER_CONTAINER_COORD: None,
+            HEADER_INDEX_NAME: None,
+            HEADER_OLD_SAMPLE_NAME: "NonExistentSample",
+            HEADER_OLD_SAMPLE_ALIAS: "NonExistentAlias",
+            HEADER_NEW_SAMPLE_NAME: f"SampleNewName",
+            HEADER_NEW_SAMPLE_ALIAS: f"SampleNewAlias",
         }
     ])
     wb_bytes = BytesIO()
@@ -256,7 +268,8 @@ def test_nonexistent_sample_rename():
     result = load_template(importer=importer, file=file)
     assert result['valid'] is False
 
-def set_worksheet_rows(ws, template: list[dict]):
-    for row_num, row_test_data in enumerate(template, HEADERS_ROW + 1):
+def set_worksheet_rows(ws, data: list[dict]):
+    wb = create_workbook()
+    for row_num, row_test_data in enumerate(data, wb.headers_row_number() + 1):
         for col_name, col_test_data in row_test_data.items():
-            ws.cell(row=row_num, column=header_to_column(col_name)).value = col_test_data
+            ws.cell(row=row_num, column=wb.header_to_column_number(col_name)).value = col_test_data
