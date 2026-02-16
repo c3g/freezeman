@@ -23,36 +23,8 @@ class SampleRenameRowHandler(GenericRowHandler):
 
     def process_row_inner(self, sample: SampleRenameKwargs):
         sq_query = Q()
-        derived_by_sample = None
-
-        if not sample["new_alias"] and not sample["new_name"]:
-            self.errors["rename"].append(f"At least one of 'New Sample Alias' or 'New Sample Name' must be provided for renaming.")
-            return
-
-        try:
-            if sample["index"]:
-                sq_query &= Q(derived_sample__library__index__name=sample["index"])
-
-            if sample["barcode"]:
-                sq_query &= Q(sample__container__barcode=sample["barcode"])
-
-            if sample["coordinates"]:
-                sq_query &= Q(sample__coordinate__name=sample["coordinates"])
-
-            if sample["old_alias"]:
-                sq_query &= Q(derived_sample__biosample__alias=sample["old_alias"])
-            if sample["old_name"]:
-                sq_query &= Q(sample__name=sample["old_name"])
-
-            derived_by_sample = DerivedBySample.objects.get(sq_query)
-
-            if sample["new_alias"]:
-                derived_by_sample.derived_sample.biosample.alias = sample["new_alias"]
-                derived_by_sample.derived_sample.biosample.save()
-            if sample["new_name"]:
-                derived_by_sample.sample.name = sample["new_name"]
-                derived_by_sample.sample.save()
-
+        derived_by_sample, errors, warnings = rename_sample()
+        
         except DerivedBySample.DoesNotExist:
             self.errors["rename"].append(f"No sample found with the criteria provided; please refine your criteria.")
         except DerivedBySample.MultipleObjectsReturned:
