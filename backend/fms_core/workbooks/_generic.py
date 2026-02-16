@@ -1,14 +1,42 @@
-from typing import Generic, TypeVar
+from collections.abc import Iterable
+from typing import Generic, Literal, Sequence, TypeVar, TypedDict
 from openpyxl import Workbook
 
-HeaderNameByID = TypeVar("HeaderNameByID", bound=dict[str, str])
-Header_ID = TypeVar("Header_ID", bound=str)
+from fms_core.services.workbook_utils import CellDescription, insert_cells
 
-class TemplateWorkbook(Workbook, Generic[HeaderNameByID, Header_ID]):
+Header_Name = TypeVar('Header_Name', bound=str)
 
-    def __init__(self, header_name_by_id: HeaderNameByID, header_ids: list[Header_ID]):
+class TemplateWorkbook(Workbook, Generic[Header_Name]):
+    def __init__(self, headers: Sequence[Header_Name]):
         super().__init__()
+        self.headers = headers
 
-        self.HEADER_NAME_BY_ID = header_name_by_id
-        self.HEADER_IDS = header_ids
-        self.HEADERS = [header_name_by_id[header_id] for header_id in header_ids]
+    # beware that column numbers are 1-indexed when using openpyxl, but 0-indexed in the HEADERS list
+    def header_to_column_number(self, header: Header_Name) -> int:
+        """
+        Given a header name, returns the corresponding column number in the worksheet (1-indexed).
+        
+        :returns: the corresponding column number (1-indexed) in the worksheet
+        """
+        return self.headers.index(header) + 1
+
+    def set_column_width(self, header: Header_Name, width_cm: float) -> None:
+        col_num = self.header_to_column_number(header)
+        col_ord = chr(ord('A') + col_num - 1)
+        CM_TO_WHATEVER = 4.489795918
+        self.active.column_dimensions[col_ord].width = width_cm * CM_TO_WHATEVER # pyright: ignore[reportOptionalMemberAccess] access to column_dimensions should be valid
+
+    def headers_row_number(self) -> int:
+        """
+        :return: 1-indexed row number where headers are located
+        """
+        raise NotImplementedError("Subclasses of TemplateWorkbook must implement headers_row_number() to specify where headers are located in the worksheet")
+
+    def insert_cells(self, first_cell_location: tuple[int, int], descriptors: Iterable[Iterable[CellDescription]], order: Literal["row", "col"]):
+        assert self.active is not None, "Active worksheet must be set before inserting cells"
+        insert_cells(
+            worksheet=self.active,
+            first_cell_location=first_cell_location,
+            descriptors=descriptors,
+            order=order,
+        )

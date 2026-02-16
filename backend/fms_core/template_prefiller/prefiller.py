@@ -24,7 +24,8 @@ def PrefillTemplate(template_path, template_info: TemplateDefinition, queryset):
     if os.path.exists(template_path):
         workbook = load_workbook(filename=template_path)
     else:
-        workbook = template_info["identity"]["workbook"]()
+
+        workbook = template_info["identity"]["workbook"]() # if this throws an error, someone did not properly assign value to "workbook"
     position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]

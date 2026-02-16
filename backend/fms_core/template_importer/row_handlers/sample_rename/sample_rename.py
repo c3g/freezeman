@@ -1,6 +1,6 @@
 from typing import Set, TypedDict
 
-from fms_core.workbooks.sample_rename import HeaderNames
+from fms_core.templates import SAMPLE_RENAME_HEADERS_ORDER
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.models import DerivedBySample, Index, Sample
@@ -26,7 +26,7 @@ class SampleRenameRowHandler(GenericRowHandler):
         derived_by_sample = None
 
         if not sample["new_alias"] and not sample["new_name"]:
-            self.errors["rename"].append(f"At least one of '{HeaderNames.NEW_SAMPLE_ALIAS}' or '{HeaderNames.NEW_SAMPLE_NAME}' must be provided for renaming.")
+            self.errors["rename"].append(f"At least one of 'New Sample Alias' or 'New Sample Name' must be provided for renaming.")
             return
 
         try:

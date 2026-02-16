@@ -20,6 +20,9 @@ from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment, custom_prefill_8x12_container_biosample_names
 
+from fms_core.workbooks._generic import TemplateWorkbook
+from fms_core.workbooks.sample_rename import SampleRenameWorkbook
+
 __all__ = [
     "EXPERIMENT_AXIOM_TEMPLATE",
     "AXIOM_PREPARATION_TEMPLATE",
@@ -60,7 +63,7 @@ TemplateIdentity = TypedDict('TemplateIdentity', {
     'description': str,
     'file': NotRequired[str],
     'protocol': NotRequired[str],
-    'workbook': NotRequired[Callable[[], Workbook]],
+    'workbook': NotRequired[Callable[[], TemplateWorkbook]],
 })
 TemplateDefinition = TypedDict('TemplateDefinition', {
     'identity': TemplateIdentity,
@@ -291,28 +294,37 @@ INDEX_UPDATE_TEMPLATE: TemplateDefinition = {
   "placement info": [],
 }
 
-from fms_core.workbooks.sample_rename import SampleRenameWorkbook
+SAMPLE_RENAME_HEADERS_ORDER = (
+    "Container Barcode",
+    "Container Coordinate",
+    "Index Name",
+    "Old Sample Name",
+    "Old Sample Alias",
+    "New Sample Name",
+    "New Sample Alias",
+)
 SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
-  "identity": {
-      "description": "Template to rename sample (and its alias)",
-      "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
-      "workbook": SampleRenameWorkbook
+    "identity": {
+        "description": "Template to rename sample (and its alias)",
+        "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
+        "workbook": lambda: SampleRenameWorkbook(headers=SAMPLE_RENAME_HEADERS_ORDER)
     },
-  "sheets info": [
-      {
-          'name': 'SampleRename',
-          'headers': SAMPLE_RENAME_HEADERS,
-          'batch': False,
-      },],
-  # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
-  "prefill info": [
-      ("SampleRename", sample_rename_headers.CONTAINER_BARCODE, "sample__container__barcode", None, None),
-      ("SampleRename", sample_rename_headers.CONTAINER_COORD, "sample__coordinate__name", None, None),
-      ("SampleRename", sample_rename_headers.INDEX_NAME, "derived_sample__library__index__name", None, None),
-      ("SampleRename", sample_rename_headers.OLD_SAMPLE_NAME, "sample__name", None, None),
-      ("SampleRename", sample_rename_headers.OLD_SAMPLE_ALIAS, "derived_sample__biosample__alias", None, None),
-  ],
-  "placement info": [],
+    "sheets info": [
+        {
+            'name': 'SampleRename',
+            'headers': list(SAMPLE_RENAME_HEADERS_ORDER),
+            'batch': False,
+        },
+    ],
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+    "prefill info": [
+        ("SampleRename", "Container Barcode", "sample__container__barcode", None, None),
+        ("SampleRename", "Container Coordinate", "sample__coordinate__name", None, None),
+        ("SampleRename", "Index Name", "derived_sample__library__index__name", None, None),
+        ("SampleRename", "Old Sample Name", "sample__name", None, None),
+        ("SampleRename", "Old Sample Alias", "derived_sample__biosample__alias", None, None),
+    ],
+    "placement info": [],
 }
 
 LIBRARY_CAPTURE_TEMPLATE: TemplateDefinition = {
