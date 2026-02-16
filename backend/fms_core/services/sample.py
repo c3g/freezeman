@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Tuple, List, TypeVar
 from datetime import datetime, date
 from django.db import Error
-from django.db.models import QuerySet
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, ProcessMeasurement, SampleLineage,
                              Container, Process, Library, SampleMetadata, Coordinate)
@@ -15,6 +15,8 @@ from .sample_next_step import execute_workflow_action, queue_sample_to_study_wor
 from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
 from fms_core.containers import CONTAINER_SPEC_TUBE
 from fms_core._constants import WorkflowAction
+
+
 
 def create_full_sample(name, volume, creation_date, container, sample_kind,
                        collection_site=None, library=None, project=None, individual=None,
@@ -1088,3 +1090,69 @@ def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], Lis
     except ValueError as err:
         errors.append(f"Biosample ID cannot be extracted from {biosample_name}.")
     return biosample_id, errors, warnings
+
+def rename_sample(
+        new_alias: str | None = None,
+        new_name: str | None = None,
+        *,
+        alias: str | None = None,
+        name: str | None = None,
+        index: str | None = None,
+        barcode: str | None = None,
+        coordinates: str | None = None,
+) -> tuple[DerivedBySample | None, list[str], list[str]]:
+    """
+    Renames a sample by its name or alias, and optionally with the combination of other parameters (index, barcode, coordinates) to ensure the correct sample is renamed. At least one of new_alias or new_name must be provided.
+
+    Args:
+        new_alias: The new alias for the sample's biosample.
+        new_name: The new name for the sample.
+        alias: The current alias of the sample to rename.
+        name: The current name of the sample to rename.
+        index: The index name of the sample to rename.
+        barcode: The container barcode of the sample to rename.
+        coordinates: The container coordinate of the sample to rename.
+
+    Returns:
+        A tuple with the renamed sample information, errors and warnings.
+    """
+    derived_by_sample = None
+    errors = []
+    warnings = []
+
+    sq_query = Q()
+
+    try:
+        if index:
+            sq_query &= Q(derived_sample__library__index__name=index)
+
+        if barcode:
+            sq_query &= Q(sample__container__barcode=barcode)
+
+        if coordinates:
+            sq_query &= Q(sample__coordinate__name=coordinates)
+
+        if alias:
+            sq_query &= Q(derived_sample__biosample__alias=alias)
+        if name:
+            sq_query &= Q(sample__name=name)
+
+        derived_by_sample = DerivedBySample.objects.get(sq_query)
+
+        if not new_alias and not new_name:
+            errors.append(f"At least one of 'New Sample Alias' or 'New Sample Name' must be provided for renaming.")
+            return None, errors, warnings
+
+        if new_alias:
+            derived_by_sample.derived_sample.biosample.alias = new_alias
+            derived_by_sample.derived_sample.biosample.save()
+        if new_name:
+            derived_by_sample.sample.name = new_name
+            derived_by_sample.sample.save()
+    except DerivedBySample.DoesNotExist:
+        errors.append(f"No sample found with the criteria provided; please refine your criteria.")
+    except DerivedBySample.MultipleObjectsReturned:
+        count = DerivedBySample.objects.filter(sq_query).count()
+        errors.append(f"{count} samples found with the provided criteria to rename; please refine your criteria.")
+
+    return derived_by_sample, errors, warnings
