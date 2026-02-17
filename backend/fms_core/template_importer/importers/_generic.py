@@ -178,5 +178,5 @@ class GenericImporter():
         else:
             return len(self.base_errors) == 0 and all(s.is_valid == True for s in list(self.sheets.values()))
     
-    def import_template_inner(self):
+    def import_template_inner(self, *args, **kwargs):
         raise NotImplementedError("import_template_inner must be implemented in child classes")

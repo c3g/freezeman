@@ -1,10 +1,8 @@
 from typing import Set, TypedDict
 
-from fms_core.templates import SAMPLE_RENAME_HEADERS_ORDER
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.models import DerivedBySample, Index, Sample
-from fms_core.services.library import update_library
+from fms_core.services.sample import rename_sample
 
 from django.db.models import Q
 
@@ -22,14 +20,7 @@ class SampleRenameRowHandler(GenericRowHandler):
         super().__init__()
 
     def process_row_inner(self, sample: SampleRenameKwargs):
-        sq_query = Q()
-        derived_by_sample, errors, warnings = rename_sample()
-        
-        except DerivedBySample.DoesNotExist:
-            self.errors["rename"].append(f"No sample found with the criteria provided; please refine your criteria.")
-        except DerivedBySample.MultipleObjectsReturned:
-            count = DerivedBySample.objects.filter(sq_query).count()
-            self.errors["rename"].append(f"{count} samples found with the provided criteria to rename; please refine your criteria.")
+        derived_by_sample, self.errors["rename"], self.warnings["rename"] = rename_sample(**sample)
 
         if not self.has_errors():
             self.row_object = {
