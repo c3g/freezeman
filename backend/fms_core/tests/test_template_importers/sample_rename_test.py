@@ -10,10 +10,8 @@ from fms_core.models._constants import DOUBLE_STRANDED
 from fms_core.services.library import create_library
 from fms_core.models.library_type import LibraryType
 from fms_core.services.index import get_or_create_index
-from fms_core.containers import CONTAINER_SPEC_TUBE_BOX_9X9
-from fms_core.models.sample import Sample
-from fms_core.models import SampleKind, Taxon
-from fms_core.services.container import create_container, get_or_create_container
+from fms_core.models import SampleKind
+from fms_core.services.container import get_or_create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
 from fms_core.template_importer.importers.sample_rename import SampleRenameImporter

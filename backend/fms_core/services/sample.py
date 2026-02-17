@@ -1,11 +1,11 @@
 from decimal import Decimal
-from typing import Tuple, List, TypeVar
+from typing import Tuple, List
 from datetime import datetime, date
 from django.db import Error
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, ProcessMeasurement, SampleLineage,
-                             Container, Process, Library, SampleMetadata, Coordinate)
+                             Container, Process, SampleMetadata, Coordinate)
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -1092,11 +1092,11 @@ def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], Lis
     return biosample_id, errors, warnings
 
 def rename_sample(
+        *,
         new_alias: str | None = None,
         new_name: str | None = None,
-        *,
-        alias: str | None = None,
-        name: str | None = None,
+        old_alias: str | None = None,
+        old_name: str | None = None,
         index: str | None = None,
         barcode: str | None = None,
         coordinates: str | None = None,
@@ -1117,8 +1117,8 @@ def rename_sample(
         A tuple with the renamed sample information, errors and warnings.
     """
     derived_by_sample = None
-    errors = []
-    warnings = []
+    errors = list[str]()
+    warnings = list[str]()
 
     sq_query = Q()
 
@@ -1132,10 +1132,10 @@ def rename_sample(
         if coordinates:
             sq_query &= Q(sample__coordinate__name=coordinates)
 
-        if alias:
-            sq_query &= Q(derived_sample__biosample__alias=alias)
-        if name:
-            sq_query &= Q(sample__name=name)
+        if old_alias:
+            sq_query &= Q(derived_sample__biosample__alias=old_alias)
+        if old_name:
+            sq_query &= Q(sample__name=old_name)
 
         derived_by_sample = DerivedBySample.objects.get(sq_query)
 
