@@ -307,7 +307,7 @@ SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
     "identity": {
         "description": "Template to rename sample (and its alias)",
         "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
-        "workbook": lambda: SampleRenameWorkbook(headers=SAMPLE_RENAME_HEADERS_ORDER)
+        "workbook": "SampleRenameWorkbook",
     },
     "sheets info": [
         {

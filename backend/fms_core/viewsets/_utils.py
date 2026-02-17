@@ -172,8 +172,6 @@ class TemplateActionsMixin:
                 else:
                     file = template.get("file", None)
                     template["file"] = request.build_absolute_uri(template["file"]) if file is not None else file # Return the file as an URI
-                    if "workbook" in template:
-                        del template["workbook"] # Remove the "workbook" key since it contains function
                     list_templates.append(template)
             if len(list_templates) > 0:
                 action_dict = {}
@@ -196,7 +194,7 @@ class TemplateActionsMixin:
 
         error, action_data = self._get_action(request)
         # error being true and action_data being string indicates error from self._get_action
-        if error or isinstance(action_data, str):
+        if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
         action_def, file = action_data
