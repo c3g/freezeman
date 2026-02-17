@@ -98,7 +98,6 @@ def test_valid_sample_rename(valid_data_row: dict[str, str]):
     importer = SampleRenameImporter()
 
     wb = create_workbook()
-    ws = wb.active; assert ws is not None # for type-checker
 
     sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
     individual, *_ = get_or_create_individual(name='IndividualOfJustice')
@@ -106,7 +105,7 @@ def test_valid_sample_rename(valid_data_row: dict[str, str]):
     library_type = LibraryType.objects.get(name="PCR-free")
     platform = Platform.objects.get(name="ILLUMINA")
 
-    set_worksheet_rows(ws, [valid_data_row])
+    set_worksheet_rows(wb, [valid_data_row])
 
     container, *_ = get_or_create_container(
         barcode="YOUTUBE", kind='Tube', name="YOUTUBE",
@@ -170,7 +169,6 @@ def test_double_sample_rename():
     ); assert sample is not None
 
     wb = create_workbook()
-    ws = wb.active; assert ws is not None
 
     TEMPLATE = [
         # row 1
@@ -194,7 +192,7 @@ def test_double_sample_rename():
             HEADER_NEW_SAMPLE_ALIAS: f"SampleNewNewAlias",
         }
     ]
-    set_worksheet_rows(ws, TEMPLATE)
+    set_worksheet_rows(wb, TEMPLATE)
 
     importer = SampleRenameImporter()
     wb_bytes = BytesIO()
@@ -212,8 +210,7 @@ def test_nonexistent_sample_rename():
     importer = SampleRenameImporter()
 
     wb = create_workbook(); ws = wb.active; assert ws is not None
-
-    set_worksheet_rows(ws, [
+    set_worksheet_rows(wb, [
         {
             HEADER_CONTAINER_BARCODE: "NonExistentContainer",
             HEADER_CONTAINER_COORD: None,
@@ -266,8 +263,5 @@ def test_nonexistent_sample_rename():
     result = load_template(importer=importer, file=file)
     assert result['valid'] is False
 
-def set_worksheet_rows(ws, data: list[dict]):
-    wb = create_workbook()
-    for row_num, row_test_data in enumerate(data, wb.headers_row_number() + 1):
-        for col_name, col_test_data in row_test_data.items():
-            ws.cell(row=row_num, column=wb.header_to_column_number(col_name)).value = col_test_data
+def set_worksheet_rows(wb: SampleRenameWorkbook, data: list[dict]):
+    wb.set_rows(start_row_num=wb.headers_row_number() + 1, rows_data=data)

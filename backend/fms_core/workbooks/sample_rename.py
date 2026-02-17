@@ -93,3 +93,12 @@ class SampleRenameWorkbook(TemplateWorkbook[Header_Name]):
 
     def headers_row_number(self) -> int:
         return 4
+
+    def set_row(self, row_num: int, row_data: dict[Header_Name, str]):
+        for col_num, header_name in enumerate(self.headers, start=1):
+            cell = self.sample_rename_worksheet.cell(row=row_num, column=col_num)
+            cell.value = row_data[header_name]
+    
+    def set_rows(self, start_row_num: int, rows_data: Sequence[dict[Header_Name, str]]):
+        for i, row_data in enumerate(rows_data):
+            self.set_row(row_num=start_row_num + i, row_data=row_data)
