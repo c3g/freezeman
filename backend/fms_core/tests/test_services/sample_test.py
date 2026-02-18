@@ -4,23 +4,25 @@ from django.test import TestCase
 import datetime
 from decimal import Decimal
 
+import pytest
+
 from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure, IndexBySet,
                              Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage,
                              SampleMetadata, Coordinate)
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
 
-from fms_core.services.sample import (create_full_sample, get_sample_from_container, update_sample,
+from fms_core.services.sample import (create_full_sample, get_sample_from_container, rename_sample, update_sample,
                                       inherit_sample, transfer_sample, extract_sample, pool_samples,
                                       prepare_library, _process_sample, update_qc_flags, remove_qc_flags,
                                       add_sample_metadata, update_sample_metadata, remove_sample_metadata,
-                                      validate_normalization, pool_submitted_samples)
+                                      validate_normalization, pool_submitted_samples, SampleRenameKwargs)
 from fms_core.services.derived_sample import inherit_derived_sample
-from fms_core.services.container import create_container, get_container
+from fms_core.services.container import create_container, get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.library import create_library
 from fms_core.services.project import create_project
 from fms_core.services.process import create_process
-from fms_core.services.index import get_or_create_index_set, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
+from fms_core.services.index import get_or_create_index, get_or_create_index_set, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
 
 
 
@@ -739,3 +741,103 @@ class SampleServicesTestCase(TestCase):
                 self.assertEqual(derived_sample.biosample.individual, self.test_individuals[1])
                 self.assertEqual(derived_by_sample_pool_.volume_ratio, Decimal("0.75"))
                 self.assertEqual(derived_sample.library, self.test_libraries[5])
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("valid_data_row", [
+    # library in tube
+    {
+        'barcode': 'YOUTUBE',
+        'coordinates': None,
+        'index': 'Index1',
+        'old_name': None,
+        'old_alias': None,
+        'new_name': 'SampleNew',
+        'new_alias': 'SampleAliasNew',
+    },
+    # sample in a tube
+    {
+        'barcode': 'YOUTUBE',
+        'coordinates': None,
+        'index': None,
+        'old_name': 'SampleOld',
+        'old_alias': 'SampleAliasOld',
+        'new_name': 'SampleNew',
+        'new_alias': 'SampleAliasNew',
+    },
+    # rename only alias of sample in a tube
+    {
+        'barcode': 'YOUTUBE',
+        'coordinates': None,
+        'index': None,
+        'old_name': 'SampleOld',
+        'old_alias': 'SampleAliasOld',
+        'new_name': None,
+        'new_alias': 'SampleAliasNew',
+    },
+
+    # rename only name of sample in a tube
+    {
+        'barcode': 'YOUTUBE',
+        'coordinates': None,
+        'index': None,
+        'old_name': 'SampleOld',
+        'old_alias': 'SampleAliasOld',
+        'new_name': 'SampleNew',
+        'new_alias': None,
+    },
+    # rename only name of sample in a tube without alias provided
+    {
+        'barcode': 'YOUTUBE',
+        'coordinates': None,
+        'index': None,
+        'old_name': 'SampleOld',
+        'old_alias': None,
+        'new_name': 'SampleNew',
+        'new_alias': None,
+    },
+])
+def test_rename_sample(valid_data_row: SampleRenameKwargs):
+    sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
+
+    library_type = LibraryType.objects.get(name="PCR-free")
+    platform = Platform.objects.get(name="ILLUMINA")
+
+    container, *_ = get_or_create_container(
+        barcode="YOUTUBE", kind='Tube', name="YOUTUBE",
+        coordinates=None,
+    ); assert container is not None # for the type checker
+
+    index, *_ = get_or_create_index(
+        index_name='Index1',
+        index_structure="No_Flankers",
+    ); assert index is not None
+    library, *_ = create_library(
+        library_type=library_type,
+        index=index,
+        platform=platform,
+        strandedness=DOUBLE_STRANDED
+    ); assert library is not None # for the type checker
+    
+    create_full_sample(
+        name='SampleOld',
+        alias='SampleAliasOld',
+        volume=100,
+        concentration=25,
+        collection_site='TestCaseSite',
+        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+        container=container, individual=individual, sample_kind=sample_kind,
+        library=library,
+    )
+
+    result, errors, warnings = rename_sample(**valid_data_row)
+    assert result is not None
+    assert not errors
+    assert not warnings
+
+    derived_by_sample = DerivedBySample.objects.all().get()
+
+    if valid_data_row['new_name']:
+        assert derived_by_sample.sample.name == valid_data_row['new_name']
+    if valid_data_row['new_alias']:
+        assert derived_by_sample.derived_sample.biosample.alias == valid_data_row['new_alias']

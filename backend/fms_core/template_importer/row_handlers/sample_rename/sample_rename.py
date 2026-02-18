@@ -6,14 +6,6 @@ from fms_core.services.sample import rename_sample
 
 from django.db.models import Q
 
-class SampleRenameKwargs(TypedDict):
-    barcode: str | None
-    coordinates: str | None
-    index: str | None
-    old_alias: str | None
-    new_alias: str | None
-    old_name: str | None
-    new_name: str | None
 
 class SampleRenameRowHandler(GenericRowHandler):
     def __init__(self):
