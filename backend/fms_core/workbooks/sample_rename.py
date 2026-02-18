@@ -1,35 +1,21 @@
 from typing import Sequence, Literal
-from ._generic import TemplateWorkbook
+from ._generic import SheetInfo, TemplateWorkbook
 from openpyxl.styles import PatternFill
 from openpyxl.cell.cell import Cell
 
-from fms_core.services.workbook_utils import insert_cells, CD
+from fms_core.services.workbook_utils import CD
 
+SHEET_NAMES = ["SampleRename"]
 
-Header_Name = Literal[
-    'Container Barcode',
-    'Container Coordinate',
-    'Index Name',
-    'Old Sample Name',
-    'Old Sample Alias',
-    'New Sample Name',
-    'New Sample Alias',
-]
+class SampleRenameWorkbook(TemplateWorkbook):
+    def __init__(self, sheets_info: Sequence[SheetInfo]):
+        super().__init__(sheets_info)
 
-class SampleRenameWorkbook(TemplateWorkbook[Header_Name]):
-    def __init__(self, headers: Sequence[Header_Name]):
-        super().__init__(headers)
-
-        self.create_sheet(title="SampleRename")
-        del self["Sheet"]
-        self.active = self.sample_rename_worksheet = self["SampleRename"]
-
-        headerPatternFill = PatternFill(start_color="92d050", end_color="92d050", fill_type="solid")
+        HEADER_PATTERN_FILL = PatternFill(start_color="92d050", end_color="92d050", fill_type="solid")
         def style_section_name(cell: Cell):
-            cell.fill = headerPatternFill
+            cell.fill = HEADER_PATTERN_FILL
 
-        insert_cells(
-            self.sample_rename_worksheet,
+        self.insert_cells(
             first_cell_location=(1, 1),
             order="row",
             descriptors=[
@@ -86,19 +72,11 @@ class SampleRenameWorkbook(TemplateWorkbook[Header_Name]):
                     ),
                 ],
             ],
+            sheet_name=SHEET_NAMES[0],
         )
 
-        for header_name in self.headers:
-            self.set_column_width(header=header_name, width_cm=6.60)
+        for header_name in self.sheets_info[0]['headers']:
+            self.set_column_width(header=header_name, width_cm=6.60, sheet_name=SHEET_NAMES[0])
 
-    def headers_row_number(self) -> int:
+    def headers_row_number(self, sheet_name: str | None = None) -> int:
         return 4
-
-    def set_row(self, row_num: int, row_data: dict[Header_Name, str]):
-        for col_num, header_name in enumerate(self.headers, start=1):
-            cell = self.sample_rename_worksheet.cell(row=row_num, column=col_num)
-            cell.value = row_data[header_name]
-    
-    def set_rows(self, start_row_num: int, rows_data: Sequence[dict[Header_Name, str]]):
-        for i, row_data in enumerate(rows_data):
-            self.set_row(row_num=start_row_num + i, row_data=row_data)

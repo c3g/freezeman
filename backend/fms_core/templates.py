@@ -6,7 +6,6 @@ various viewsets. Can be used to calculate URIs for the template files too.
 from collections.abc import Callable
 from typing import Any, Literal, NotRequired, TypedDict
 from django.templatetags.static import static
-from openpyxl import Workbook
 
 from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    VALID_QC_FLAG_CHOICES,
@@ -20,8 +19,6 @@ from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment, custom_prefill_8x12_container_biosample_names
 
-from fms_core.workbooks._generic import TemplateWorkbook
-from fms_core.workbooks.sample_rename import SampleRenameWorkbook
 
 __all__ = [
     "EXPERIMENT_AXIOM_TEMPLATE",
@@ -63,7 +60,8 @@ TemplateIdentity = TypedDict('TemplateIdentity', {
     'description': str,
     'file': NotRequired[str],
     'protocol': NotRequired[str],
-    'workbook': NotRequired[Callable[[], TemplateWorkbook]],
+    # name of a static field of fms_core.workbooks.Workbooks that is a subclass of fms_core.workbooks.TemplateWorkbook
+    'workbook': NotRequired[Literal['SampleRenameWorkbook']],
 })
 TemplateDefinition = TypedDict('TemplateDefinition', {
     'identity': TemplateIdentity,
@@ -294,15 +292,6 @@ INDEX_UPDATE_TEMPLATE: TemplateDefinition = {
   "placement info": [],
 }
 
-SAMPLE_RENAME_HEADERS_ORDER = (
-    "Container Barcode",
-    "Container Coordinate",
-    "Index Name",
-    "Old Sample Name",
-    "Old Sample Alias",
-    "New Sample Name",
-    "New Sample Alias",
-)
 SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
     "identity": {
         "description": "Template to rename sample (and its alias)",
@@ -312,7 +301,15 @@ SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
     "sheets info": [
         {
             'name': 'SampleRename',
-            'headers': list(SAMPLE_RENAME_HEADERS_ORDER),
+            'headers': [
+                "Container Barcode",
+                "Container Coordinate",
+                "Index Name",
+                "Old Sample Name",
+                "Old Sample Alias",
+                "New Sample Name",
+                "New Sample Alias",
+            ],
             'batch': False,
         },
     ],
