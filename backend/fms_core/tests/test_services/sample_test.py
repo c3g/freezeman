@@ -796,7 +796,7 @@ class SampleServicesTestCase(TestCase):
         'new_alias': None,
     },
 ])
-def test_rename_sample(valid_data_row: SampleRenameKwargs):
+def test_valid_rename_sample(valid_data_row: SampleRenameKwargs):
     sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
     individual, *_ = get_or_create_individual(name='IndividualOfJustice')
 
@@ -841,3 +841,56 @@ def test_rename_sample(valid_data_row: SampleRenameKwargs):
         assert derived_by_sample.sample.name == valid_data_row['new_name']
     if valid_data_row['new_alias']:
         assert derived_by_sample.derived_sample.biosample.alias == valid_data_row['new_alias']
+
+@pytest.mark.django_db
+def test_nonexistent_sample_rename():
+    tested_call = lambda: rename_sample(
+        barcode='NonExistentContainer',
+        old_name='NonExistentSample',
+        old_alias='NonExistentAlias',
+        new_name='SampleNewName',
+        new_alias='SampleNewAlias',
+    )
+    # Sample and container does not exist
+    result, errors, warnings = tested_call()
+    assert result is None
+    assert errors
+    assert not warnings
+
+    sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
+    
+    # Container exists but it contains a differently-named sample
+    container, *_ = get_or_create_container(barcode="NonExistentContainer", kind='Tube', name="NonExistentContainer",); assert container is not None
+    sample, *_ = create_full_sample(
+        name="NonExistentSample1",
+        alias="NonExistentAlias",
+        volume=100,
+        concentration=25,
+        collection_site='TestCaseSite',
+        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+        container=container, individual=individual, sample_kind=sample_kind,
+    ); assert sample is not None
+    
+    # Container exists but it contains a differently-named sample
+    result, errors, warnings = tested_call()
+    assert result is None
+    assert errors
+    assert not warnings
+
+    # Sample exists but it is in a different container
+    container2, *_ = get_or_create_container(barcode="AnotherContainer", kind='Tube', name="AnotherContainer",); assert container2 is not None
+    sample, *_ = create_full_sample(
+        name="NonExistentSample",
+        alias="NonExistentAlias",
+        volume=100,
+        concentration=25,
+        collection_site='TestCaseSite',
+        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+        container=container2, individual=individual, sample_kind=sample_kind,
+    ); assert sample is not None
+
+    result, errors, warnings = tested_call()
+    assert result is None
+    assert errors
+    assert not warnings
