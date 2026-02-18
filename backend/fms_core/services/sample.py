@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Tuple, List
+from typing import Tuple, List, TypedDict, cast
 from datetime import datetime, date
 from django.db import Error
 from django.db.models import Q
@@ -1091,15 +1091,17 @@ def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], Lis
         errors.append(f"Biosample ID cannot be extracted from {biosample_name}.")
     return biosample_id, errors, warnings
 
+class SampleRenameKwargs(TypedDict):
+    barcode: str | None
+    coordinates: str | None
+    index: str | None
+    old_alias: str | None
+    new_alias: str | None
+    old_name: str | None
+    new_name: str | None
+
 def rename_sample(
-        *,
-        new_alias: str | None = None,
-        new_name: str | None = None,
-        old_alias: str | None = None,
-        old_name: str | None = None,
-        index: str | None = None,
-        barcode: str | None = None,
-        coordinates: str | None = None,
+    **kwargs #: SampleRenameKwargs (can't annotate with SampleRenameKwargs until Python 3.12)
 ) -> tuple[DerivedBySample | None, list[str], list[str]]:
     """
     Renames a sample by its name or alias, and optionally with the combination of other parameters (index, barcode, coordinates) to ensure the correct sample is renamed. At least one of new_alias or new_name must be provided.
@@ -1121,6 +1123,15 @@ def rename_sample(
     warnings = list[str]()
 
     sq_query = Q()
+
+    kwargs = cast(SampleRenameKwargs, kwargs)
+    index = kwargs.get("index")
+    barcode = kwargs.get("barcode")
+    coordinates = kwargs.get("coordinates")
+    old_alias = kwargs.get("old_alias")
+    new_alias = kwargs.get("new_alias")
+    old_name = kwargs.get("old_name")
+    new_name = kwargs.get("new_name")
 
     try:
         if index:
