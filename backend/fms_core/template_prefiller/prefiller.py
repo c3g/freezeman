@@ -3,6 +3,7 @@ from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.reader.excel import load_workbook
 
+from fms_core.workbooks import Workbooks
 from fms_core.templates import TemplateDefinition
 from ._utils import load_position_dict, find_worksheet_header_offset, is_sheet_true_batch
 from django.conf import settings
@@ -25,7 +26,8 @@ def PrefillTemplate(template_path, template_info: TemplateDefinition, queryset):
         workbook = load_workbook(filename=template_path)
     else:
 
-        workbook = template_info["identity"]["workbook"]() # if this throws an error, someone did not properly assign value to "workbook"
+        workbook_name = template_info["identity"]["workbook"]
+        workbook = Workbooks[workbook_name](template_info['sheets info'])
     position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]

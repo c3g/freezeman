@@ -20,7 +20,7 @@ from fms_core.tests.test_template_importers._utils import load_template
 from fms_core.workbooks.sample_rename import SampleRenameWorkbook
 
 def create_workbook():
-    return SampleRenameWorkbook(headers=SAMPLE_RENAME_TEMPLATE['sheets info'][0]['headers']) # pyright: ignore[reportArgumentType]
+    return SampleRenameWorkbook(sheets_info=SAMPLE_RENAME_TEMPLATE['sheets info'])
 
 HEADER_CONTAINER_BARCODE = 'Container Barcode'
 HEADER_CONTAINER_COORD = 'Container Coordinate'
@@ -37,7 +37,7 @@ def test_create_workbook():
     assert ws.title == "SampleRename"
 
     # Check headers
-    for col_num, header in enumerate(wb.headers, start=1):
+    for col_num, header in enumerate(wb.headers(), start=1):
         assert ws.cell(row=wb.headers_row_number(), column=col_num).value == header
 
 @pytest.mark.django_db

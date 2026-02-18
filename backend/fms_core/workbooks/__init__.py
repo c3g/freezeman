@@ -1,4 +1,6 @@
-from sample_rename import SampleRenameWorkbook
+from typing import Final
+from .sample_rename import SampleRenameWorkbook
 
-class Workbooks:
-    SampleRenameWorkbook = SampleRenameWorkbook
+Workbooks: Final = {
+    "SampleRenameWorkbook": SampleRenameWorkbook
+}
