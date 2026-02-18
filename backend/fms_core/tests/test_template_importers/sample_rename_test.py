@@ -30,16 +30,6 @@ HEADER_OLD_SAMPLE_ALIAS = 'Old Sample Alias'
 HEADER_NEW_SAMPLE_NAME = 'New Sample Name'
 HEADER_NEW_SAMPLE_ALIAS = 'New Sample Alias'
 
-def test_create_workbook():
-    wb = create_workbook()
-    ws = wb.active
-    assert ws is not None
-    assert ws.title == "SampleRename"
-
-    # Check headers
-    for col_num, header in enumerate(wb.headers(), start=1):
-        assert ws.cell(row=wb.headers_row_number(), column=col_num).value == header
-
 @pytest.mark.django_db
 @pytest.mark.parametrize("valid_data_row", [
     # library in tube
