@@ -2,7 +2,7 @@ from typing import Set, TypedDict
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.sample import rename_sample
+from fms_core.services.sample import rename_sample, SampleRenameKwargs
 
 from django.db.models import Q
 
