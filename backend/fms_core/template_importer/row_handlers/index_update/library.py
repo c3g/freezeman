@@ -1,7 +1,7 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.models import DerivedSample
-from fms_core.services.index import update_library_index
+from fms_core.services.library import update_library_index
 
 class IndexUpdateRowHandler(GenericRowHandler):
     def __init__(self):
