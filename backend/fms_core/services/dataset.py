@@ -530,7 +530,7 @@ def ingest_run_validation_report(report_json):
                     errors.append(f"Sample identity for biosample {tested_biosample_id} does not exist.")
                 matches_by_biosample_id = {}
                 if self_match:
-                    match_values = self_match.values()[0]
+                    match_values = list(self_match.values())[0]
                     self_biosample_id = int(match_values["biosample_id"])
                     self_matching_site_ratio = match_values["percent_match"]
                     self_compared_sites = match_values["n_sites"]
