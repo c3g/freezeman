@@ -1101,7 +1101,13 @@ class SampleRenameKwargs(TypedDict):
     new_name: str | None
 
 def rename_sample(
-    **kwargs #: SampleRenameKwargs (can't annotate with SampleRenameKwargs until Python 3.12)
+    index: str | None = None,
+    barcode: str | None = None,
+    coordinates: str | None = None,
+    old_alias: str | None = None,
+    new_alias: str | None = None,
+    old_name: str | None = None,
+    new_name: str | None = None,
 ) -> tuple[DerivedBySample | None, list[str], list[str]]:
     """
     Renames a sample by its name or alias, and optionally with the combination of other parameters (index, barcode, coordinates) to ensure the correct sample is renamed. At least one of new_alias or new_name must be provided.
@@ -1123,15 +1129,6 @@ def rename_sample(
     warnings = list[str]()
 
     sq_query = Q()
-
-    kwargs = cast(SampleRenameKwargs, kwargs)
-    index = kwargs.get("index")
-    barcode = kwargs.get("barcode")
-    coordinates = kwargs.get("coordinates")
-    old_alias = kwargs.get("old_alias")
-    new_alias = kwargs.get("new_alias")
-    old_name = kwargs.get("old_name")
-    new_name = kwargs.get("new_name")
 
     try:
         if index:
