@@ -188,7 +188,7 @@ function LanePanel({ lane, canValidate, canReset, isValidationInProgress, setPas
                     }
 
                     const biosampleIdByReadsetId = await fetchBiosampleIds(readsets)
-                    const warningsForAllMatches = await dispatch(api.sampleIdentityMatch.list({ readset__in: readsetsIds }))
+                    const warningsForAllMatches = await dispatch(api.sampleIdentityMatch.list({ readset__in: readsetsIds, limit: 100000 }))
                         .then((sampleIdentityMatches_response) => {
                             const matchesByReadset = sampleIdentityMatches_response.data.results.reduce((acc, current) => {
                                 if (current.readset_id) {
