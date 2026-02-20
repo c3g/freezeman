@@ -110,6 +110,8 @@ def reset_dataset_content(dataset: Dataset):
                 metric.delete()
             for dataset_file in readset.files.all():
                 dataset_file.delete()
+            for identity_match in readset.readset_identity_match.all():
+                identity_match.delete()
             readset.delete()
         create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_RESET())
     except Exception as err:
@@ -544,7 +546,9 @@ def ingest_run_validation_report(report_json):
                         other_compared_sites = other_match_values["n_sites"]
                         matches_by_biosample_id[other_biosample_id] = {"matching_site_ratio": (Decimal(str(other_matching_site_ratio))/100).quantize(Decimal("0.00001")), "compared_sites": other_compared_sites}
                         
-                errors_matches, warnings_matches = create_sample_identity_matches(tested_identity, matches_by_biosample_id, readset_obj)
+                errors_matches, warnings_matches = create_sample_identity_matches(tested_identity=tested_identity,
+                                                                                  matches_by_biosample_id=matches_by_biosample_id,
+                                                                                  readset_obj=readset_obj)
                 errors.extend(errors_matches)
                 warnings.extend(warnings_matches)
 
