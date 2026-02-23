@@ -294,8 +294,12 @@ class LibraryServicesTestCase(TestCase):
                                                           library=library_obj_2,
                                                           concentration=10,
                                                           fragment_size=150)
-        sample_derived_library.derived_sample_not_pool.derived_from_id = sample_initial_library.derived_sample_not_pool.id
-        
+        derived_sample_1 = sample_derived_library.derived_sample_not_pool
+        derived_sample_2 = sample_initial_library.derived_sample_not_pool
+        derived_sample_1.derived_from = derived_sample_2
+        derived_sample_1.save()
+        derived_sample_2.refresh_from_db()
+        derived_sample_1.refresh_from_db()
         
         # test
         samples_impacted, errors, warnings = update_library_index(sample_initial_library.derived_sample_not_pool, new_index_name)
@@ -303,4 +307,4 @@ class LibraryServicesTestCase(TestCase):
         self.assertEqual(sample_initial_library.derived_sample_not_pool.library.index, new_index)
         self.assertEqual(sample_derived_library.derived_sample_not_pool.library.index, new_index)
         self.assertFalse(errors)
-        self.assertFalse(warnings)
+        self.assertEqual(warnings[0], f"A total of 2 derived libraries that share lineage with the updated library were changed.")
