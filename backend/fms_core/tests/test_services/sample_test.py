@@ -894,3 +894,56 @@ def test_nonexistent_sample_rename():
     assert result is None
     assert errors
     assert not warnings
+
+def test_rename_sample_across_lineage():
+    # biosample
+    sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
+    container, *_ = get_or_create_container(barcode="DNAContainer", kind='Tube', name="DNAContainer",); assert container is not None
+    dna_sample, *_ = create_full_sample(
+        name='DNASample',
+        alias='DNASampleAlias',
+        volume=100,
+        concentration=25,
+        collection_site='TestCaseSite',
+        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+        container=container, individual=individual, sample_kind=sample_kind,
+    ); assert dna_sample is not None
+
+    new_index = Index.objects.create(name="LibraryIndex", index_structure="No_Flankers")
+    platform = Platform.objects.get(name="ILLUMINA")
+    execution_time = datetime.date(2022, 9, 15)
+    protocol_name = "Library Preparation"
+    protocol_obj = Protocol.objects.get(name=protocol_name)
+    process_by_protocol, _, _ = create_process(protocol_obj)
+    libraries_by_derived_sample = {}
+    for derived_sample in dna_sample.derived_samples.all():
+        libraries_by_derived_sample[derived_sample.id] = {
+            "library_type": "PCR-free",
+            "index": new_index,
+            "platform": platform,
+            "strandedness": DOUBLE_STRANDED
+        }
+    
+    library_container_1, *_ = get_or_create_container(barcode="LibraryContainer", kind='Tube', name="LibraryContainer",); assert container is not None
+    prepared_library_1, *_ = prepare_library(process=process_by_protocol[protocol_obj.pk],
+                                                            sample_source=dna_sample,
+                                                            container_destination=library_container_1,
+                                                            libraries_by_derived_sample=libraries_by_derived_sample,
+                                                            volume_used=100,
+                                                            execution_date=execution_time,
+                                                            coordinates_destination="A11",
+                                                            volume_destination=150,
+                                                            comment="Preparing library"); assert prepared_library_1 is not None
+
+
+    library_container_2, *_ = get_or_create_container(barcode="LibraryContainer2", kind='Tube', name="LibraryContainer2",); assert container is not None
+    prepared_library_2, *_ = prepare_library(process=process_by_protocol[protocol_obj.pk],
+                                                            sample_source=dna_sample,
+                                                            container_destination=library_container_2,
+                                                            libraries_by_derived_sample=libraries_by_derived_sample,
+                                                            volume_used=100,
+                                                            execution_date=execution_time,
+                                                            coordinates_destination="A12",
+                                                            volume_destination=150,
+                                                            comment="Preparing library"); assert prepared_library_2 is not None

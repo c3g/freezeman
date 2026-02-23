@@ -1155,8 +1155,11 @@ def rename_sample(
             derived_by_sample.derived_sample.biosample.alias = new_alias
             derived_by_sample.derived_sample.biosample.save()
         if new_name:
-            derived_by_sample.sample.name = new_name
-            derived_by_sample.sample.save()
+            for other_derived_by_sample in DerivedBySample.objects.filter(derived_sample__biosample=derived_by_sample.derived_sample.biosample):
+                other_sample = cast(Sample, other_derived_by_sample.sample)
+                if not other_sample.is_pool:
+                    other_sample.name = new_name
+                    other_sample.save()
     except DerivedBySample.DoesNotExist:
         errors.append(f"No sample found with the criteria provided; please refine your criteria.")
     except DerivedBySample.MultipleObjectsReturned:
