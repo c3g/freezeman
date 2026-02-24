@@ -1,4 +1,5 @@
 from curses import meta
+from typing import cast
 from django.test import TestCase
  
 import datetime
@@ -6,7 +7,7 @@ from decimal import Decimal
 
 import pytest
 
-from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure, IndexBySet,
+from fms_core.models import (Sample, SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure, IndexBySet,
                              Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage,
                              SampleMetadata, Coordinate)
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
@@ -895,12 +896,13 @@ def test_nonexistent_sample_rename():
     assert errors
     assert not warnings
 
+@pytest.mark.django_db
 def test_rename_sample_across_lineage():
     # biosample
     sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
     individual, *_ = get_or_create_individual(name='IndividualOfJustice')
-    container, *_ = get_or_create_container(barcode="DNAContainer", kind='Tube', name="DNAContainer",); assert container is not None
-    dna_sample, *_ = create_full_sample(
+    container, errors, *_ = get_or_create_container(barcode="DNAContainer", kind='Tube', name="DNAContainer",); assert container is not None, errors
+    dna_sample, errors, *_ = create_full_sample(
         name='DNASample',
         alias='DNASampleAlias',
         volume=100,
@@ -908,42 +910,99 @@ def test_rename_sample_across_lineage():
         collection_site='TestCaseSite',
         creation_date=datetime.datetime(2021, 1, 15, 0, 0),
         container=container, individual=individual, sample_kind=sample_kind,
-    ); assert dna_sample is not None
+    ); assert dna_sample is not None, errors
 
-    new_index = Index.objects.create(name="LibraryIndex", index_structure="No_Flankers")
+    index_structure = IndexStructure.objects.get(name="No_Flankers")
     platform = Platform.objects.get(name="ILLUMINA")
     execution_time = datetime.date(2022, 9, 15)
     protocol_name = "Library Preparation"
     protocol_obj = Protocol.objects.get(name=protocol_name)
-    process_by_protocol, _, _ = create_process(protocol_obj)
-    libraries_by_derived_sample = {}
-    for derived_sample in dna_sample.derived_samples.all():
-        libraries_by_derived_sample[derived_sample.id] = {
-            "library_type": "PCR-free",
-            "index": new_index,
-            "platform": platform,
-            "strandedness": DOUBLE_STRANDED
+
+    new_index, *_ = Index.objects.get_or_create(name="LibraryIndex", index_structure=index_structure)
+
+    prepared_libraries = list[Sample]()
+
+    for i in range(2):
+        process_by_protocol, *_ = create_process(protocol_obj)
+        library_obj, errors, *_ = create_library(
+            library_type=LibraryType.objects.get(name="PCR-free"),
+            index=new_index,
+            platform=platform,
+            strandedness=DOUBLE_STRANDED
+        ); assert library_obj is not None, errors
+        libraries_by_derived_sample = { dna_sample.derived_samples.get().id: library_obj }
+
+        library_container, errors, *_ = get_or_create_container(barcode=f"LibraryContainer_{i}", kind='Tube', name=f"LibraryContainer_{i}",); assert library_container is not None, errors
+        prepared_library, errors, *_ = prepare_library(process=process_by_protocol[protocol_obj.pk],
+                                                    sample_source=dna_sample,
+                                                    container_destination=library_container,
+                                                    libraries_by_derived_sample=libraries_by_derived_sample,
+                                                    volume_used=25,
+                                                    execution_date=execution_time,
+                                                    volume_destination=150,
+                                                    comment="Preparing library"); assert prepared_library is not None, errors
+        prepared_libraries.append(prepared_library)
+
+    POOL_NAME = "Patate"
+    EXECUTION_DATE = datetime.date(2022, 9, 15)
+    protocol, _ = Protocol.objects.get_or_create(name="Sample pooling")
+    process, _, _ = create_process(protocol)
+    pool_container, errors, *_ = get_or_create_container(barcode="PoolContainer", kind='Tube', name="PoolContainer",); assert pool_container is not None, errors
+
+    samples_info = []
+    for i, sample in enumerate(prepared_libraries):
+        sample_info = {
+            "Source Sample": sample,
+            "Source Container Barcode": sample.container.barcode,
+            "Source Container Coordinate": sample.coordinates,
+            "Source Depleted": False,
+            "Volume Used": 20,
+            "Volume In Pool": 20,
+            "Comment": "Comment " + str(i),
         }
-    
-    library_container_1, *_ = get_or_create_container(barcode="LibraryContainer", kind='Tube', name="LibraryContainer",); assert container is not None
-    prepared_library_1, *_ = prepare_library(process=process_by_protocol[protocol_obj.pk],
-                                                            sample_source=dna_sample,
-                                                            container_destination=library_container_1,
-                                                            libraries_by_derived_sample=libraries_by_derived_sample,
-                                                            volume_used=100,
-                                                            execution_date=execution_time,
-                                                            coordinates_destination="A11",
-                                                            volume_destination=150,
-                                                            comment="Preparing library"); assert prepared_library_1 is not None
+        samples_info.append(sample_info)
+    pool, errors, *_ = pool_samples(process=process[protocol.pk],
+                            samples_info=samples_info,
+                            pool_name=POOL_NAME,
+                            container_destination=pool_container,
+                            coordinates_destination=None,
+                            execution_date=EXECUTION_DATE); assert pool is not None, errors
 
+    # Rename the pool sample
+    rename_data: SampleRenameKwargs = {
+        'barcode': cast(str, pool_container.barcode),
+        'old_name': pool.name,
+        'new_name': 'NewPoolName',
+    }
+    result, errors, warnings = rename_sample(**rename_data)
+    assert errors == ["Sample found with the provided criteria is a pool and will not be renamed."]
+    assert not warnings
+    assert result is None
 
-    library_container_2, *_ = get_or_create_container(barcode="LibraryContainer2", kind='Tube', name="LibraryContainer2",); assert container is not None
-    prepared_library_2, *_ = prepare_library(process=process_by_protocol[protocol_obj.pk],
-                                                            sample_source=dna_sample,
-                                                            container_destination=library_container_2,
-                                                            libraries_by_derived_sample=libraries_by_derived_sample,
-                                                            volume_used=100,
-                                                            execution_date=execution_time,
-                                                            coordinates_destination="A12",
-                                                            volume_destination=150,
-                                                            comment="Preparing library"); assert prepared_library_2 is not None
+    # rename library 1 in the pool but only by name
+    rename_data = {
+        'barcode': cast(str, pool_container.barcode),
+        'old_name': prepared_libraries[0].name,
+        'new_name': 'NewLibraryName1',
+    }
+    result, errors, warnings = rename_sample(**rename_data)
+    assert not errors
+    assert warnings == [
+        "Run processing uses Alias to name samples and failing "
+        "to change the alias will make this name change only affect "
+        "Freezeman and not the files generated during run processing."
+    ]
+    assert result is not None
+    assert DerivedBySample
+
+    # rename library 2 in the pool by alias
+    rename_data = {
+        'barcode': cast(str, pool_container.barcode),
+        'old_alias': prepared_libraries[1].derived_samples.first().biosample.alias,
+        'new_alias': 'NewLibraryAlias2',
+    }
+    result, errors, warnings = rename_sample(**rename_data)
+    assert not errors
+    assert not warnings
+    assert result is not None
+    assert DerivedBySample.objects.get(sample=result, derived_sample=prepared_libraries[1].derived_samples.first()).derived_sample.biosample.alias == 'NewLibraryAlias2'
