@@ -8,6 +8,7 @@ from fms_core.services.property_value import create_process_measurement_properti
 from fms_core.services.library import update_library, convert_library_concentration_from_nm_to_ngbyul
 from fms_core.services.sample_next_step import execute_workflow_action
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
+from fms_core.template_importer._constants import VALID_NON_INSTRUMENTS
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
 FLAG_PROPERTIES = ['Library Quality QC Flag', 'Library Quantity QC Flag']
@@ -125,7 +126,7 @@ class LibraryQCRowHandler(GenericRowHandler):
          # Validate instruments according to platform
         for instrument in INSTRUMENT_PROPERTIES:
             type = process_measurement_properties[instrument]['value']
-            if type is not None:
+            if type is not None and type not in VALID_NON_INSTRUMENTS:
                 try:
                     it = InstrumentType.objects.get(type=type)
                     # Validate platform and type
