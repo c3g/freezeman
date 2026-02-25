@@ -74,7 +74,7 @@ def test_double_sample_rename():
             HEADER_NEW_SAMPLE_ALIAS: f"SampleNewNewAlias",
         }
     ]
-    set_worksheet_rows(wb, TEMPLATE)
+    wb.set_rows(rows_data=TEMPLATE)
 
     importer = SampleRenameImporter()
     wb_bytes = BytesIO()
@@ -87,5 +87,93 @@ def test_double_sample_rename():
     assert not DerivedBySample.objects.filter(sample__name="SampleNewName", derived_sample__biosample__alias="SampleNewAlias").exists()
     assert DerivedBySample.objects.filter(sample__name="SampleNewNewName", derived_sample__biosample__alias="SampleNewNewAlias").exists()
 
-def set_worksheet_rows(wb: SampleRenameWorkbook, data: list[dict]):
-    wb.set_rows(start_row_num=wb.headers_row_number() + 1, rows_data=data)
+@pytest.mark.django_db
+def test_no_sample_to_rename():
+    sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
+
+    TUBE_BARCODE = "YouTube"
+    container, *_ = get_or_create_container(
+        barcode=TUBE_BARCODE, kind='Tube'
+    ); assert container is not None
+
+    sample, *_ = create_full_sample(
+        name="SampleOldName",
+        alias="SampleOldAlias",
+        volume=100,
+        concentration=25,
+        collection_site='TestCaseSite',
+        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+        container=container, individual=individual, sample_kind=sample_kind,
+    ); assert sample is not None
+
+    wb = create_workbook()
+
+    TEMPLATE = [
+        {
+            HEADER_CONTAINER_BARCODE: TUBE_BARCODE,
+            HEADER_CONTAINER_COORD: None,
+            HEADER_INDEX_NAME: None,
+            HEADER_OLD_SAMPLE_NAME: "NonExistentSampleName",
+            HEADER_OLD_SAMPLE_ALIAS: "NonExistentSampleAlias",
+            HEADER_NEW_SAMPLE_NAME: f"SampleNewName",
+            HEADER_NEW_SAMPLE_ALIAS: f"SampleNewAlias",
+        },
+    ]
+    wb.set_rows(rows_data=TEMPLATE)
+
+    importer = SampleRenameImporter()
+    wb_bytes = BytesIO()
+    wb.save(wb_bytes)
+    wb_bytes.seek(0)
+    result = load_template(importer=importer, file=SimpleUploadedFile(name="sauce_poivre.xlsx", content=wb_bytes.read()))
+    wb_bytes.close()
+
+    assert result['valid'] is False
+    assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["No sample found with the criteria provided; please refine your criteria."]
+
+@pytest.mark.django_db
+def test_multiple_sample_found_when_renaming():
+    sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
+
+
+    for i in range(2):
+        TUBE_BARCODE = f"YouTube_{i}"
+        container, *_ = get_or_create_container(
+            barcode=TUBE_BARCODE, kind='Tube'
+        ); assert container is not None
+        sample, *_ = create_full_sample(
+            name="SampleOldName",
+            alias="SampleOldAlias",
+            volume=100,
+            concentration=25,
+            collection_site='TestCaseSite',
+            creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+            container=container, individual=individual, sample_kind=sample_kind,
+        ); assert sample is not None
+
+    wb = create_workbook()
+
+    TEMPLATE = [
+        {
+            HEADER_CONTAINER_COORD: None,
+            HEADER_CONTAINER_BARCODE: None,
+            HEADER_INDEX_NAME: None,
+            HEADER_OLD_SAMPLE_NAME: "SampleOldName",
+            HEADER_OLD_SAMPLE_ALIAS: "SampleOldAlias",
+            HEADER_NEW_SAMPLE_NAME: f"SampleNewName",
+            HEADER_NEW_SAMPLE_ALIAS: f"SampleNewAlias",
+        },
+    ]
+    wb.set_rows(rows_data=TEMPLATE)
+
+    importer = SampleRenameImporter()
+    wb_bytes = BytesIO()
+    wb.save(wb_bytes)
+    wb_bytes.seek(0)
+    result = load_template(importer=importer, file=SimpleUploadedFile(name="sauce_poivre.xlsx", content=wb_bytes.read()))
+    wb_bytes.close()
+
+    assert result['valid'] is False
+    assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["2 samples found with the provided criteria to rename; please refine your criteria."]

@@ -53,8 +53,9 @@ class TemplateWorkbook(Workbook):
             cell = sheet.cell(row=row_num, column=col_num)
             cell.value = row_data[header_name]
     
-    def set_rows(self, start_row_num: int, rows_data: Sequence[dict[str, str]], sheet_name: str | None = None):
+    def set_rows(self, rows_data: Sequence[dict[str, str]], start_row_num: int | None = None, sheet_name: str | None = None):
         for i, row_data in enumerate(rows_data):
+            start_row_num = start_row_num or self.headers_row_number(sheet_name=sheet_name) + 1
             self.set_row(row_num=start_row_num + i, row_data=row_data, sheet_name=sheet_name)
     
     def get_sheet_helper(self, sheet_name: str | None = None):

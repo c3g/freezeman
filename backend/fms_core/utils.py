@@ -4,10 +4,10 @@ import unicodedata
 import os
 import time
 from django.conf import settings
+from django.db.models import Q
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Iterable, NewType, TypeVar, TypedDict, Union
-
+from typing import Any, Generator, Iterable, NewType, NotRequired, TypeVar, TypedDict, Union
 
 __all__ = [
     "RE_SEPARATOR",
@@ -256,3 +256,36 @@ def fit_string_with_ellipsis_in_middle(string: str, max_length: int, ellipsis = 
         return f"{left}{ellipsis}{right}"
     else:
         return string
+
+class DerivedBySampleQueryParams(TypedDict):
+    index: NotRequired[str]
+    barcode: NotRequired[str]
+    coordinates: NotRequired[str]
+    alias: NotRequired[str]
+    name: NotRequired[str]
+
+def get_derived_by_sample_querynode(
+    index: str | None = None,
+    barcode: str | None = None,
+    coordinates: str | None = None,
+    alias: str | None = None,
+    name: str | None = None,
+):
+    sq_query = Q()
+
+    if index:
+        sq_query &= Q(derived_sample__library__index__name=index)
+
+    if barcode:
+        sq_query &= Q(sample__container__barcode=barcode)
+
+    if coordinates:
+        sq_query &= Q(sample__coordinate__name=coordinates)
+
+    if alias:
+        sq_query &= Q(derived_sample__biosample__alias=alias)
+
+    if name:
+        sq_query &= Q(sample__name=name)
+
+    return sq_query

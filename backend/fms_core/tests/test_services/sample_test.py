@@ -7,6 +7,7 @@ from decimal import Decimal
 
 import pytest
 
+from fms_core.utils import get_derived_by_sample_querynode
 from fms_core.models import (Sample, SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure, IndexBySet,
                              Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage,
                              SampleMetadata, Coordinate)
@@ -16,7 +17,7 @@ from fms_core.services.sample import (create_full_sample, get_sample_from_contai
                                       inherit_sample, transfer_sample, extract_sample, pool_samples,
                                       prepare_library, _process_sample, update_qc_flags, remove_qc_flags,
                                       add_sample_metadata, update_sample_metadata, remove_sample_metadata,
-                                      validate_normalization, pool_submitted_samples, SampleRenameKwargs)
+                                      validate_normalization, pool_submitted_samples)
 from fms_core.services.derived_sample import inherit_derived_sample
 from fms_core.services.container import create_container, get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
@@ -25,6 +26,7 @@ from fms_core.services.project import create_project
 from fms_core.services.process import create_process
 from fms_core.services.index import get_or_create_index, get_or_create_index_set, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
 
+from fms_core.template_importer.row_handlers.sample_rename.sample_rename import SampleRenameKwargs
 
 
 class SampleServicesTestCase(TestCase):
@@ -831,10 +833,29 @@ def test_valid_rename_sample(valid_data_row: SampleRenameKwargs):
         library=library,
     )
 
-    result, errors, warnings = rename_sample(**valid_data_row)
+    q = get_derived_by_sample_querynode(
+        barcode=valid_data_row['barcode'],
+        coordinates=valid_data_row['coordinates'],
+        index=valid_data_row['index'],
+        name=valid_data_row['old_name'],
+        alias=valid_data_row['old_alias'],
+    )
+    derived_by_sample = DerivedBySample.objects.get(q)
+    result, errors, warnings = rename_sample(
+        derived_by_sample,
+        new_name=valid_data_row['new_name'],
+        new_alias=valid_data_row['new_alias'],
+    )
     assert result is not None
     assert not errors
-    assert not warnings
+    if valid_data_row['new_name'] and not valid_data_row['new_alias']:
+        assert warnings == [
+            "Run processing uses Alias to name samples and failing "
+            "to change the alias will make this name change only affect "
+            "Freezeman and not the files generated during run processing."
+        ]
+    else:
+        assert not warnings
 
     derived_by_sample = DerivedBySample.objects.all().get()
 
@@ -843,58 +864,6 @@ def test_valid_rename_sample(valid_data_row: SampleRenameKwargs):
     if valid_data_row['new_alias']:
         assert derived_by_sample.derived_sample.biosample.alias == valid_data_row['new_alias']
 
-@pytest.mark.django_db
-def test_nonexistent_sample_rename():
-    tested_call = lambda: rename_sample(
-        barcode='NonExistentContainer',
-        old_name='NonExistentSample',
-        old_alias='NonExistentAlias',
-        new_name='SampleNewName',
-        new_alias='SampleNewAlias',
-    )
-    # Sample and container does not exist
-    result, errors, warnings = tested_call()
-    assert result is None
-    assert errors
-    assert not warnings
-
-    sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
-    individual, *_ = get_or_create_individual(name='IndividualOfJustice')
-    
-    # Container exists but it contains a differently-named sample
-    container, *_ = get_or_create_container(barcode="NonExistentContainer", kind='Tube', name="NonExistentContainer",); assert container is not None
-    sample, *_ = create_full_sample(
-        name="NonExistentSample1",
-        alias="NonExistentAlias",
-        volume=100,
-        concentration=25,
-        collection_site='TestCaseSite',
-        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
-        container=container, individual=individual, sample_kind=sample_kind,
-    ); assert sample is not None
-    
-    # Container exists but it contains a differently-named sample
-    result, errors, warnings = tested_call()
-    assert result is None
-    assert errors
-    assert not warnings
-
-    # Sample exists but it is in a different container
-    container2, *_ = get_or_create_container(barcode="AnotherContainer", kind='Tube', name="AnotherContainer",); assert container2 is not None
-    sample, *_ = create_full_sample(
-        name="NonExistentSample",
-        alias="NonExistentAlias",
-        volume=100,
-        concentration=25,
-        collection_site='TestCaseSite',
-        creation_date=datetime.datetime(2021, 1, 15, 0, 0),
-        container=container2, individual=individual, sample_kind=sample_kind,
-    ); assert sample is not None
-
-    result, errors, warnings = tested_call()
-    assert result is None
-    assert errors
-    assert not warnings
 
 @pytest.mark.django_db
 def test_rename_sample_across_lineage():
@@ -970,25 +939,18 @@ def test_rename_sample_across_lineage():
                             coordinates_destination=None,
                             execution_date=EXECUTION_DATE); assert pool is not None, errors
 
-    # Rename the pool sample
-    rename_data: SampleRenameKwargs = {
-        'barcode': cast(str, pool_container.barcode),
-        'old_name': pool.name,
-        'new_name': 'NewPoolName',
-    }
-    result, errors, warnings = rename_sample(**rename_data)
-    assert errors == ["Sample found with the provided criteria is a pool and will not be renamed."]
-    assert not warnings
-    assert result is None
-
     # rename library 0 in the pool but only by name
     NEW_NAME_0 = 'DNASample_From_Library_0'
-    rename_data = {
-        'barcode': cast(str, pool_container.barcode),
-        'index': 'Index_0',
-        'new_name': NEW_NAME_0,
-    }
-    result, errors, warnings = rename_sample(**rename_data)
+    derived_by_sample = DerivedBySample.objects.get(
+        get_derived_by_sample_querynode(
+            barcode=cast(str, pool_container.barcode),
+            index='Index_0',
+        )
+    )
+    result, errors, warnings = rename_sample(
+        derived_by_sample=derived_by_sample,
+        new_name=NEW_NAME_0,
+    )
     assert not errors
     assert warnings == [
         "Run processing uses Alias to name samples and failing "
@@ -1008,12 +970,16 @@ def test_rename_sample_across_lineage():
     assert pool.name == OLD_POOL_NAME, 'The name of the pool sample should not have been changed and should still be "Patate"'
 
     NEW_NAME_1 = 'DNASample_From_Library_1'
-    rename_data = {
-        'barcode': cast(str, pool_container.barcode),
-        'index': 'Index_1',
-        'new_name': NEW_NAME_1,
-    }
-    result, errors, warnings = rename_sample(**rename_data)
+    derived_by_sample = DerivedBySample.objects.get(
+        get_derived_by_sample_querynode(
+            barcode=cast(str, pool_container.barcode),
+            index='Index_1',
+        )
+    )
+    result, errors, warnings = rename_sample(
+        derived_by_sample=derived_by_sample,
+        new_name=NEW_NAME_1,
+    )
     assert not errors
     assert warnings == [
         "Run processing uses Alias to name samples and failing "
