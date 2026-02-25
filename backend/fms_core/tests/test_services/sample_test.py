@@ -901,7 +901,7 @@ def test_rename_sample_across_lineage():
     # biosample
     sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
     individual, *_ = get_or_create_individual(name='IndividualOfJustice')
-    container, errors, *_ = get_or_create_container(barcode="DNAContainer", kind='Tube', name="DNAContainer",); assert container is not None, errors
+    dna_container, errors, *_ = get_or_create_container(barcode="DNAContainer", kind='Tube', name="DNAContainer",); assert dna_container is not None, errors
     dna_sample, errors, *_ = create_full_sample(
         name='DNASample',
         alias='DNASampleAlias',
@@ -909,21 +909,23 @@ def test_rename_sample_across_lineage():
         concentration=25,
         collection_site='TestCaseSite',
         creation_date=datetime.datetime(2021, 1, 15, 0, 0),
-        container=container, individual=individual, sample_kind=sample_kind,
+        container=dna_container, individual=individual, sample_kind=sample_kind,
     ); assert dna_sample is not None, errors
 
-    index_structure = IndexStructure.objects.get(name="No_Flankers")
     platform = Platform.objects.get(name="ILLUMINA")
     execution_time = datetime.date(2022, 9, 15)
     protocol_name = "Library Preparation"
     protocol_obj = Protocol.objects.get(name=protocol_name)
 
-    new_index, *_ = Index.objects.get_or_create(name="LibraryIndex", index_structure=index_structure)
-
     prepared_libraries = list[Sample]()
 
     for i in range(2):
         process_by_protocol, *_ = create_process(protocol_obj)
+        new_index, errors, *_ = get_or_create_index(
+            index_name=f'Index_{i}',
+            index_structure="No_Flankers",
+        ); assert new_index is not None, errors
+
         library_obj, errors, *_ = create_library(
             library_type=LibraryType.objects.get(name="PCR-free"),
             index=new_index,
@@ -943,7 +945,7 @@ def test_rename_sample_across_lineage():
                                                     comment="Preparing library"); assert prepared_library is not None, errors
         prepared_libraries.append(prepared_library)
 
-    POOL_NAME = "Patate"
+    OLD_POOL_NAME = "Patate"
     EXECUTION_DATE = datetime.date(2022, 9, 15)
     protocol, _ = Protocol.objects.get_or_create(name="Sample pooling")
     process, _, _ = create_process(protocol)
@@ -963,7 +965,7 @@ def test_rename_sample_across_lineage():
         samples_info.append(sample_info)
     pool, errors, *_ = pool_samples(process=process[protocol.pk],
                             samples_info=samples_info,
-                            pool_name=POOL_NAME,
+                            pool_name=OLD_POOL_NAME,
                             container_destination=pool_container,
                             coordinates_destination=None,
                             execution_date=EXECUTION_DATE); assert pool is not None, errors
@@ -979,11 +981,12 @@ def test_rename_sample_across_lineage():
     assert not warnings
     assert result is None
 
-    # rename library 1 in the pool but only by name
+    # rename library 0 in the pool but only by name
+    NEW_NAME_0 = 'DNASample_From_Library_0'
     rename_data = {
         'barcode': cast(str, pool_container.barcode),
-        'old_name': prepared_libraries[0].name,
-        'new_name': 'NewLibraryName1',
+        'index': 'Index_0',
+        'new_name': NEW_NAME_0,
     }
     result, errors, warnings = rename_sample(**rename_data)
     assert not errors
@@ -993,16 +996,38 @@ def test_rename_sample_across_lineage():
         "Freezeman and not the files generated during run processing."
     ]
     assert result is not None
-    assert DerivedBySample
 
-    # rename library 2 in the pool by alias
+    dna_sample.refresh_from_db()
+    assert dna_sample.name == NEW_NAME_0, f'The name of the source sample (dna_sample) should have been renamed to "{NEW_NAME_0}"'
+
+    for i, prepared_library in enumerate(prepared_libraries):
+        prepared_library.refresh_from_db()
+        assert prepared_library.name == NEW_NAME_0, f'The name of prepared library {i} should have been renamed to "{NEW_NAME_0}"'
+
+    pool.refresh_from_db()
+    assert pool.name == OLD_POOL_NAME, 'The name of the pool sample should not have been changed and should still be "Patate"'
+
+    NEW_NAME_1 = 'DNASample_From_Library_1'
     rename_data = {
         'barcode': cast(str, pool_container.barcode),
-        'old_alias': prepared_libraries[1].derived_samples.first().biosample.alias,
-        'new_alias': 'NewLibraryAlias2',
+        'index': 'Index_1',
+        'new_name': NEW_NAME_1,
     }
     result, errors, warnings = rename_sample(**rename_data)
     assert not errors
-    assert not warnings
+    assert warnings == [
+        "Run processing uses Alias to name samples and failing "
+        "to change the alias will make this name change only affect "
+        "Freezeman and not the files generated during run processing."
+    ]
     assert result is not None
-    assert DerivedBySample.objects.get(sample=result, derived_sample=prepared_libraries[1].derived_samples.first()).derived_sample.biosample.alias == 'NewLibraryAlias2'
+
+    dna_sample.refresh_from_db()
+    assert dna_sample.name == NEW_NAME_1, f'The name of the source sample (dna_sample) should have been renamed to "{NEW_NAME_1}"'
+
+    for i, prepared_library in enumerate(prepared_libraries):
+        prepared_library.refresh_from_db()
+        assert prepared_library.name == NEW_NAME_1, f'The name of prepared library {i} should have been renamed to "{NEW_NAME_1}"'
+
+    pool.refresh_from_db()
+    assert pool.name == OLD_POOL_NAME, 'The name of the pool sample should not have been changed and should still be "Patate"'
