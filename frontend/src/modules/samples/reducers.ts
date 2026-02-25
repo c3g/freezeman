@@ -4,7 +4,6 @@ import { indexByID } from "../../utils/objects";
 import { prefillTemplatesReducerFactory } from "../../utils/prefillTemplates";
 import { preprocessSampleVersions } from "../../utils/preprocessRevisions";
 import { resetTable } from "../../utils/reducers";
-import { summaryReducerFactory } from "../../utils/summary";
 import { templateActionsReducerFactory } from "../../utils/templateActions";
 
 import SAMPLES from "./actions";
@@ -43,7 +42,6 @@ export const sampleKinds = (
     }
 };
 
-export const samplesSummary = summaryReducerFactory(SAMPLES);
 export const sampleTemplateActions = templateActionsReducerFactory(SAMPLES);
 export const samplePrefillTemplates = prefillTemplatesReducerFactory(SAMPLES);
 

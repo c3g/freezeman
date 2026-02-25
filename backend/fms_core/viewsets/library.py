@@ -150,35 +150,6 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         return context
 
     @action(detail=False, methods=["get"])
-    def summary(self, _request):
-        """
-        Returns summary statistics about the current set of libraries in the
-        database.
-        """
-        self.queryset = self.filter_queryset(self.get_queryset())
-        self.queryset = self.queryset.annotate(
-            is_pooled=Case(
-                When(Q(first_volume_ratio__lt=1), then=True),
-                default=False,
-                output_field=BooleanField()
-            )
-        )
-        count_pooled = self.queryset.filter(is_pooled=True).count()
-        non_pooled_libraries = self.queryset.filter(is_pooled=False)
-        count_unpooled = non_pooled_libraries.count()
-
-        total_count = count_pooled + count_unpooled
-
-        library_type_counts = {}
-        for item in non_pooled_libraries.values("derived_samples__library__library_type").order_by("derived_samples__library__library_type").annotate(count=Count("derived_samples__library__library_type")):
-            library_type_counts[item["derived_samples__library__library_type"]] = item["count"]
-
-        return Response({
-            "total_count": total_count,
-            "library_type_counts": library_type_counts,
-        })
-
-    @action(detail=False, methods=["get"])
     def search(self, _request):
         """
         Searches for libraries that match the given query

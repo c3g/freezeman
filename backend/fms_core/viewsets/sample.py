@@ -373,14 +373,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         return context
 
     @action(detail=False, methods=["get"])
-    def summary(self, _request):
-        """
-        Returns summary statistics about the current set of samples in the
-        database.
-        """
-        return Response({"total_count": Sample.objects.all().count()})
-
-    @action(detail=False, methods=["get"])
     def list_collection_sites(self, _request):
         filtered_site = _request.GET.get("filter")
         biosample_queryset = Biosample.objects.all()

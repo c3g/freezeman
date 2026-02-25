@@ -2,14 +2,12 @@ import { merge } from "object-path-immutable"
 
 import { indexByID } from "../../utils/objects"
 import { resetTable } from "../../utils/reducers"
-import { summaryReducerFactory } from "../../utils/summary"
 import { templateActionsReducerFactory } from "../../utils/templateActions"
 
 import { AnyAction } from "redux"
 import { ItemsByID, Project } from "../../models/frontend_models"
 import PROJECTS from "./actions"
 
-export const projectsSummary = summaryReducerFactory(PROJECTS);
 export const projectTemplateActions = templateActionsReducerFactory(PROJECTS);
 
 interface ProjectsState {

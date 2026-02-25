@@ -13,7 +13,7 @@ const { TextArea } = Input
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import { add, update, summary } from "../../modules/projects/actions";
+import { add, update } from "../../modules/projects/actions";
 import { project as EMPTY_PROJECT } from "../../models/empty_models";
 import { requiredRules, nameRules, externalIdRules, emailRules } from "../../constants";
 import ProjectsTableActions from '../../modules/projectsTable/actions'
@@ -71,7 +71,6 @@ const ProjectEditContent = () => {
 		})
 		.then(() => {
       dispatch(ProjectsTableActions.refreshPage())
-      dispatch(summary())
     })
   }
 
