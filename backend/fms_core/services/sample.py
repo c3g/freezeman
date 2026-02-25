@@ -1091,35 +1091,14 @@ def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], Lis
         errors.append(f"Biosample ID cannot be extracted from {biosample_name}.")
     return biosample_id, errors, warnings
 
-class SampleRenameKwargs(TypedDict):
-    barcode: NotRequired[str]
-    coordinates: NotRequired[str]
-    index: NotRequired[str]
-    new_alias: NotRequired[str]
-    new_name: NotRequired[str]
-    old_alias: NotRequired[str]
-    old_name: NotRequired[str]
-
-def rename_sample(
-    index: str | None = None,
-    barcode: str | None = None,
-    coordinates: str | None = None,
-    old_alias: str | None = None,
-    new_alias: str | None = None,
-    old_name: str | None = None,
-    new_name: str | None = None,
-) -> tuple[DerivedBySample | None, list[str], list[str]]:
+def rename_sample(derived_by_sample: DerivedBySample, new_name: str | None = None, new_alias: str | None = None) -> tuple[DerivedBySample | None, list[str], list[str]]:
     """
     Renames a sample by its name or alias, and optionally with the combination of other parameters (index, barcode, coordinates) to ensure the correct sample is renamed. At least one of new_alias or new_name must be provided.
 
     Args:
-        new_alias: The new alias for the sample's biosample.
-        new_name: The new name for the sample.
-        alias: The current alias of the sample to rename.
-        name: The current name of the sample to rename.
-        index: The index name of the sample to rename.
-        barcode: The container barcode of the sample to rename.
-        coordinates: The container coordinate of the sample to rename.
+        `derived_by_sample`: The DerivedBySample instance of the sample to be renamed.
+        `new_name`: The new name for the sample.
+        `new_alias`: The new alias for the sample.
 
     Returns:
         A tuple with the renamed sample information, errors and warnings.
@@ -1127,64 +1106,24 @@ def rename_sample(
     errors = list[str]()
     warnings = list[str]()
     
-    sq_query = Q()
-    derived_by_sample = None
+    if not new_alias and not new_name:
+        errors.append(f"At least one of 'New Sample Alias' or 'New Sample Name' must be provided for renaming.")
+        return None, errors, warnings
+    if not new_alias:
+        warnings.append(
+            "Run processing uses Alias to name samples and failing "
+            "to change the alias will make this name change only affect "
+            "Freezeman and not the files generated during run processing."
+        )
 
-    try:
-        sq_query = get_derived_by_sample_querynode(index=index, barcode=barcode, coordinates=coordinates, alias=old_alias, name=old_name)
-        derived_by_sample = DerivedBySample.objects.get(sq_query)
-
-        if not new_alias and not new_name:
-            errors.append(f"At least one of 'New Sample Alias' or 'New Sample Name' must be provided for renaming.")
-            return None, errors, warnings
-        if not new_alias:
-            warnings.append(
-                "Run processing uses Alias to name samples and failing "
-                "to change the alias will make this name change only affect "
-                "Freezeman and not the files generated during run processing."
-            )
-
-        if new_alias:
-            derived_by_sample.derived_sample.biosample.alias = new_alias
-            derived_by_sample.derived_sample.biosample.save()
-        if new_name:
-            for other_derived_by_sample in DerivedBySample.objects.filter(derived_sample__biosample=derived_by_sample.derived_sample.biosample):
-                other_sample = cast(Sample, other_derived_by_sample.sample)
-                if not other_sample.is_pool:
-                    other_sample.name = new_name
-                    other_sample.save()
-    except DerivedBySample.DoesNotExist:
-        errors.append(f"No sample found with the criteria provided; please refine your criteria.")
-    except DerivedBySample.MultipleObjectsReturned:
-        count = DerivedBySample.objects.filter(sq_query).values_list('sample_id', flat=True).distinct().count()
-        if count == 1:
-            errors.append(f"Sample found with the provided criteria is a pool and will not be renamed.")
-        else:
-            errors.append(f"{count} samples found with the provided criteria to rename; please refine your criteria.")
+    if new_alias:
+        derived_by_sample.derived_sample.biosample.alias = new_alias
+        derived_by_sample.derived_sample.biosample.save()
+    if new_name:
+        for other_derived_by_sample in DerivedBySample.objects.filter(derived_sample__biosample=derived_by_sample.derived_sample.biosample):
+            other_sample = cast(Sample, other_derived_by_sample.sample)
+            if not other_sample.is_pool:
+                other_sample.name = new_name
+                other_sample.save()
 
     return derived_by_sample, errors, warnings
-
-def get_derived_by_sample_querynode(
-    index: str | None = None,
-    barcode: str | None = None,
-    coordinates: str | None = None,
-    alias: str | None = None,
-    name: str | None = None,
-):
-    sq_query = Q()
-
-    if index:
-        sq_query &= Q(derived_sample__library__index__name=index)
-
-    if barcode:
-        sq_query &= Q(sample__container__barcode=barcode)
-
-    if coordinates:
-        sq_query &= Q(sample__coordinate__name=coordinates)
-
-    if alias:
-        sq_query &= Q(derived_sample__biosample__alias=alias)
-    if name:
-        sq_query &= Q(sample__name=name)
-
-    return sq_query

@@ -1,5 +1,6 @@
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_rename import SampleRenameRowHandler, SampleRenameKwargs
+
 from fms_core.templates import SAMPLE_RENAME_TEMPLATE
 from fms_core.utils import str_cast_and_normalize
 
