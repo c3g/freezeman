@@ -1110,20 +1110,27 @@ def rename_sample(derived_by_sample: DerivedBySample, new_name: str | None = Non
         errors.append(f"At least one of 'New Sample Alias' or 'New Sample Name' must be provided for renaming.")
         return None, errors, warnings
     if not new_alias:
-        warnings.append(
+        warnings.append((
             "Run processing uses Alias to name samples and failing "
             "to change the alias will make this name change only affect "
-            "Freezeman and not the files generated during run processing."
-        )
+            "Freezeman and not the files generated during run processing.",
+            []
+        ))
 
     if new_alias:
-        derived_by_sample.derived_sample.biosample.alias = new_alias
-        derived_by_sample.derived_sample.biosample.save()
+        try:
+            derived_by_sample.derived_sample.biosample.alias = new_alias
+            derived_by_sample.derived_sample.biosample.save()
+        except ValidationError as e:
+            errors.append(f'New alias "{new_alias}" is not valid: {"; ".join(e.messages)}')
     if new_name:
         for other_derived_by_sample in DerivedBySample.objects.filter(derived_sample__biosample=derived_by_sample.derived_sample.biosample):
             other_sample = cast(Sample, other_derived_by_sample.sample)
             if not other_sample.is_pool:
-                other_sample.name = new_name
-                other_sample.save()
+                try:
+                    other_sample.name = new_name
+                    other_sample.save()
+                except ValidationError as e:
+                    errors.append(f'New name "{new_name}" is not valid: {"; ".join(e.messages)}')
 
     return derived_by_sample, errors, warnings

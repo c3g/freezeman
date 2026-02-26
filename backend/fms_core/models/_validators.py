@@ -14,7 +14,7 @@ __all__ = ["name_validator",
 # Names should only contain a-z, A-Z, 0-9, ., -, _
 # Barcodes can contain any character
 name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_]{1,200}$"))
-name_validator_without_dot = RegexValidator(re.compile(r"^[a-zA-Z0-9\-_]{1,200}$"))
+name_validator_without_dot = RegexValidator(re.compile(r"^[a-zA-Z0-9\-_]{1,200}$"), message="Only alphanumeric characters, dashes and underscores are allowed; periods are not allowed.")
 name_validator_with_spaces = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_ ]{1,200}$"))
 name_validator_with_spaces_and_parentheses = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_)( ]{1,200}$"))
 container_barcode_validator = RegexValidator(re.compile("^[\S]{1,200}$"))
