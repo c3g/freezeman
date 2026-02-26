@@ -21,6 +21,7 @@ LIBRARY_QC_QUALITY_INSTRUMENTS = ["Caliper LabChip", "TapeStation", "Femto Pulse
 SAMPLE_QC_QUALITY_INSTRUMENTS = ['Agarose Gel', 'TapeStation', 'NanoDrop', 'Caliper LabChip', 'Tecan Absorbance', 'BioAnalyzer']
 SAMPLE_QC_QUANTITY_INSTRUMENTS = ['PicoGreen', 'Qubit', 'NanoDrop', 'Caliper LabChip', 'Tecan Absorbance', 'BioAnalyzer', 'TapeStation']
 LIBRARY_QC_QUANTITY_INSTRUMENTS = ["qPCR", "Qubit"]
+VALID_NON_INSTRUMENTS = ["N/A - WGS Tagmentation"]
 # Marker for destination container barcode
 DESTINATION_CONTAINER_BARCODE_MARKER = "DESTINATION_CONTAINER_BARCODE => "
 # Index sets internaly used for library preparation - names do not match revamped set names.
