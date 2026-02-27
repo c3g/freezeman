@@ -4,7 +4,7 @@ import datetime
 from decimal import Decimal
 
 from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
-from fms_core.services.library import (get_library_type, get_library_selection, create_library, convert_library, capture_library, update_library,
+from fms_core.services.library import (get_library_type, get_library_selection, create_library, convert_library, capture_library, update_library, update_library_index,
                                        convert_library_concentration_from_ngbyul_to_nm, convert_library_concentration_from_nm_to_ngbyul)
 from fms_core.services.platform import get_platform
 from fms_core.services.process import create_process
@@ -249,3 +249,62 @@ class LibraryServicesTestCase(TestCase):
         self.assertEqual(ngbyul_concentration, Decimal('10'))
         self.assertFalse(errors)
         self.assertFalse(warnings)
+
+    def test_update_library_index(self):
+        # init
+        new_index_name = "TEST_INDEX_2"
+        new_index, _, _ = create_index(new_index_name, self.structure_name, self.index_set)
+        test_3prime_index = ["CGTTTTATT"]
+        test_5prime_index = ["ATTGATTCA"]
+        create_indices_3prime_by_sequence(self.index, test_3prime_index)
+        create_indices_5prime_by_sequence(self.index, test_5prime_index)
+        
+        CREATION_DATE = datetime.date(2022, 8, 15)
+        library_obj_1, _, _ = create_library(library_type=self.library_type_obj,
+                                             index=self.index,
+                                             platform=self.platform_obj,
+                                             strandedness=DOUBLE_STRANDED)
+        library_obj_2, _, _ = create_library(library_type=self.library_type_obj,
+                                             index=self.index,
+                                             platform=self.platform_obj,
+                                             strandedness=DOUBLE_STRANDED)
+        container_sample_1 = Container.objects.create(barcode="TESTBARCODE1",
+                                                      name="TestName1",
+                                                      kind="tube")
+        container_sample_2 = Container.objects.create(barcode="TESTBARCODE2",
+                                                      name="TestName2",
+                                                      kind="tube")
+        
+        kind_dna = SampleKind.objects.get(name="DNA")
+        sample_initial_library, _, _ = create_full_sample(name="LIBRARY_WITH_BAD_INDEX",
+                                                          volume=1001,
+                                                          collection_site="TestSite",
+                                                          creation_date=CREATION_DATE,
+                                                          container=container_sample_1,
+                                                          sample_kind=kind_dna,
+                                                          library=library_obj_1,
+                                                          concentration=10,
+                                                          fragment_size=150)
+        sample_derived_library, _, _ = create_full_sample(name="LIBRARY_WITH_BAD_INDEX_ALSO",
+                                                          volume=1001,
+                                                          collection_site="TestSite",
+                                                          creation_date=CREATION_DATE,
+                                                          container=container_sample_2,
+                                                          sample_kind=kind_dna,
+                                                          library=library_obj_2,
+                                                          concentration=10,
+                                                          fragment_size=150)
+        derived_sample_1 = sample_derived_library.derived_sample_not_pool
+        derived_sample_2 = sample_initial_library.derived_sample_not_pool
+        derived_sample_1.derived_from = derived_sample_2
+        derived_sample_1.save()
+        derived_sample_2.refresh_from_db()
+        derived_sample_1.refresh_from_db()
+        
+        # test
+        samples_impacted, errors, warnings = update_library_index(sample_initial_library.derived_sample_not_pool, new_index_name)
+        self.assertEqual(samples_impacted, [sample_initial_library, sample_derived_library])
+        self.assertEqual(sample_initial_library.derived_sample_not_pool.library.index, new_index)
+        self.assertEqual(sample_derived_library.derived_sample_not_pool.library.index, new_index)
+        self.assertFalse(errors)
+        self.assertEqual(warnings[0], f"A total of 2 derived libraries that share lineage with the updated library were changed.")
