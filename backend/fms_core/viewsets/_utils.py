@@ -165,7 +165,6 @@ class TemplateActionsMixin:
         for i, action in enumerate(self.template_action_list):  # Make a list out of the actions
             list_templates = []
             for template in action["template"]:
-                template = template.copy() # avoid modifying the original dict
                 current_template_protocol_name = template.get("protocol", None)
                 if protocol and current_template_protocol_name and protocol.name != current_template_protocol_name:
                     pass
