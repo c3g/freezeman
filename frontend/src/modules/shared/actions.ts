@@ -18,19 +18,6 @@ import Taxons from "../taxons/actions"
 import Users from "../users/actions"
 import Workflows from "../workflows/actions"
 
-
-export const fetchSummariesData = () => async (dispatch) => {
-    await Promise.all([
-        Containers.summary,
-        Indices.summary,
-        Samples.summary,
-        LibraryTypes.list,
-        Libraries.summary,
-        Projects.summary,
-        ProcessMeasurements.summary,
-    ].map(a => dispatch(a())))
-};
-
 export const fetchLabworkSummary = () => async (dispatch) => {
     const labworkChanged = await dispatch(refreshLabwork())
     if (labworkChanged === true) {

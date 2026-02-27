@@ -15,7 +15,11 @@ __all__ = ["LibraryType"]
 class LibraryType(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="The name of the library type.")
-    
+    class Meta:
+        indexes = [
+            models.Index(fields=['name'], name='librarytype_name_idx'),
+        ]
+
     def clean(self):
         super().clean()
         errors = {}

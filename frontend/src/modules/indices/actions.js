@@ -3,7 +3,6 @@ import api from "../../utils/api";
 
 export const GET                   = createNetworkActionTypes("INDICES.GET");
 export const LIST                  = createNetworkActionTypes("INDICES.LIST");
-export const SUMMARY               = createNetworkActionTypes("INDICES.SUMMARY");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("INDICES.LIST_TEMPLATE_ACTIONS");
 export const VALIDATE              = createNetworkActionTypes("INDICES.VALIDATE");
 
@@ -23,8 +22,6 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.indices.summary()));
-
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().indicesTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.indices.template.actions()));
@@ -40,12 +37,10 @@ export const validate = (options) => async (dispatch, getState) => {
 export default {
     GET,
     LIST,
-    SUMMARY,
     LIST_TEMPLATE_ACTIONS,
     VALIDATE,
     get,
     list,
-    summary,
     listTemplateActions,
     validate
 };

@@ -33,6 +33,11 @@ class Index(TrackedModel):
     index_sets = models.ManyToManyField("IndexSet", through="IndexBySet",
                                         symmetrical=False, related_name="set_indices")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name'], name='index_name_idx'),
+        ]
+
     @property
     def list_3prime_sequences(self) -> List["str"]:
         list_sequences = [sequence.value for sequence in self.sequences_3prime.all()]

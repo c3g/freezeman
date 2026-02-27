@@ -1,12 +1,10 @@
 import { merge } from "object-path-immutable";
 
 import { indexByID } from "../../utils/objects";
-import { summaryReducerFactory } from "../../utils/summary";
 import { templateActionsReducerFactory } from "../../utils/templateActions";
 
 import INDICES from "./actions";
 
-export const indicesSummary = summaryReducerFactory(INDICES);
 export const indicesTemplateActions = templateActionsReducerFactory(INDICES);
 
 export const indices = (

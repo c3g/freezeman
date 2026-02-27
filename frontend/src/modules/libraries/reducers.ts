@@ -2,12 +2,10 @@ import { merge } from "object-path-immutable"
 
 import { indexByID } from "../../utils/objects"
 import { prefillTemplatesReducerFactory } from "../../utils/prefillTemplates"
-import { summaryReducerFactory } from "../../utils/summary"
 import { templateActionsReducerFactory } from "../../utils/templateActions"
 
 import LIBRARIES from "./actions"
 
-export const librariesSummary = summaryReducerFactory(LIBRARIES);
 export const libraryTemplateActions = templateActionsReducerFactory(LIBRARIES);
 export const libraryPrefillTemplates = prefillTemplatesReducerFactory(LIBRARIES);
 

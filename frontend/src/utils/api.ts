@@ -31,7 +31,6 @@ const api = {
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listChildrenRecursively: id => get(`/containers/${id}/list_children_recursively/`),
-    summary: () => get("/containers/summary/"),
     template: {
       actions: () => get(`/containers/template_actions/`),
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
@@ -100,7 +99,6 @@ const api = {
     list: (options, abort?: boolean) => get("/indices/", options, { abort }),
     listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
     listSets: () => get("/indices/list_sets/"),
-    summary: () => get("/indices/summary/"),
     template: {
       actions: () => get(`/indices/template_actions/`),
       check:  (action, template) => post(`/indices/template_check/`, form({ action, template })),
@@ -130,7 +128,6 @@ const api = {
     get: libraryId => get(`/libraries/${libraryId}/`),
     list: (options, abort?: boolean) => get("/libraries/", options, { abort }),
     listExport: options => get("/libraries/list_export/", {format: "csv", ...options}),
-    summary: () => get("/libraries/summary/"),
     template: {
       actions: () => get(`/libraries/template_actions/`),
       check:  (action, template) => post(`/libraries/template_check/`, form({ action, template })),
@@ -181,7 +178,6 @@ const api = {
     list: (options, abort?: boolean) => get("/process-measurements/", options, { abort }),
     listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
     search: q => get("/process-measurements/search/", { q }),
-    summary: () => get("/process-measurements/summary/"),
     template: {
       actions: () => get(`/process-measurements/template_actions/`),
       check:  (action, template) => post(`/process-measurements/template_check/`, form({ action, template })),
@@ -195,7 +191,6 @@ const api = {
     update: project => patch(`/projects/${project.id}/`, project),
     list: (options, abort?: boolean, requestID?: string) => get<JsonResponse<FMSPagedResultsReponse<FMSProject>>>("/projects/", options, { abort, requestID }),
     listExport: options => get("/projects/list_export/", {format: "csv", ...options}),
-    summary: () => get("/projects/summary/"),
     template: {
       actions: () => get(`/projects/template_actions/`),
       check:  (action, template) => post(`/projects/template_check/`, form({ action, template })),
@@ -240,7 +235,6 @@ const api = {
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
     listVersions: sampleId => get<JsonResponse<FMSVersion[]>>(`/samples/${sampleId}/versions/`),
-    summary: () => get("/samples/summary/"),
     template: {
       actions: () => get(`/samples/template_actions/`),
       check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),

@@ -14,7 +14,6 @@ export const SET_FILTER            = "PROCESS_MEASUREMENTS.SET_FILTER";
 export const SET_FILTER_OPTION     = "PROCESS_MEASUREMENTS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "PROCESS_MEASUREMENTS.CLEAR_FILTERS";
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("PROCESS_MEASUREMENTS.LIST_TEMPLATE_ACTIONS");
-export const SUMMARY               = createNetworkActionTypes("PROCESS_MEASUREMENTS.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
     const processMeasurement = getState().processMeasurements.itemsByID[id];
@@ -94,8 +93,6 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.processMeasurements.template.actions()));
 };
 
-export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.processMeasurements.summary()));
-
 export default {
     GET,
     SET_SORT_BY,
@@ -105,7 +102,6 @@ export default {
     LIST,
     LIST_FILTER,
     LIST_TABLE,
-    SUMMARY,
     LIST_TEMPLATE_ACTIONS,
     get,
     setSortBy,
@@ -116,7 +112,6 @@ export default {
     listFilter,
     listTable,
     listTemplateActions,
-    summary,
 };
 
 // Helper to call list() after another action

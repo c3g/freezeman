@@ -9,7 +9,7 @@ const { TextArea } = Input;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import { add, update, summary } from "../../modules/containers/actions";
+import { add, update } from "../../modules/containers/actions";
 import ContainersTableActions from '../../modules/containersTable/actions'
 import { container as EMPTY_CONTAINER } from "../../models/empty_models";
 import api, { withToken } from "../../utils/api";
@@ -31,9 +31,9 @@ const mapStateToProps = state => ({
 
 const refreshTable = ContainersTableActions.refreshPage
 
-const actionCreators = { add, update, refreshTable, summary };
+const actionCreators = { add, update, refreshTable };
 
-const ContainerEditContent = ({ token, containerKinds, containersByID, add, update, refreshTable, summary }) => {
+const ContainerEditContent = ({ token, containerKinds, containersByID, add, update, refreshTable }) => {
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -96,7 +96,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(() => Promise.all([refreshTable(), summary()]))
+      .then(() => Promise.all([refreshTable()]))
   }
 
   const onCancel = useCallback(() => {
