@@ -1,12 +1,16 @@
 import os
 from io import BytesIO
+from openpyxl import Workbook
 from openpyxl.reader.excel import load_workbook
+
+from fms_core.workbooks import Workbooks
+from fms_core.templates import TemplateDefinition
 from ._utils import load_position_dict, find_worksheet_header_offset, is_sheet_true_batch
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
 
-def PrefillTemplate(template_path, template_info, queryset):
+def PrefillTemplate(template_path, template_info: TemplateDefinition, queryset):
     """
     Function that return a prefilled template byte stream.
     It fetch a designated empty template using template_path.
@@ -18,7 +22,12 @@ def PrefillTemplate(template_path, template_info, queryset):
     """
     out_stream = BytesIO()
 
-    workbook = load_workbook(filename=template_path)
+    if os.path.exists(template_path):
+        workbook = load_workbook(filename=template_path)
+    else:
+
+        workbook_name = template_info["identity"]["workbook"]
+        workbook = Workbooks[workbook_name](template_info['sheets info'])
     position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
     for sheet_name, sheet_dict in position_dict.items():
         current_sheet = workbook[sheet_name]

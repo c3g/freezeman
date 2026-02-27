@@ -782,6 +782,7 @@ class PooledSampleSerializer(serializers.ModelSerializer):
     # Return the id of the pool containing this sample. This allows api clients to request
     # a list of samples from multiple pools and then group them by pool on the client side.
     pool_id = serializers.IntegerField(read_only=True, source='sample.id')
+    pool_name = serializers.CharField(read_only=True, source='sample.name')
 
     volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
@@ -799,6 +800,8 @@ class PooledSampleSerializer(serializers.ModelSerializer):
     parent_sample_name = serializers.CharField(read_only=True)
     container_id = serializers.IntegerField(read_only=True, source='sample.container.id')
     container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
+    parent_container_barcode = serializers.CharField(read_only=True, source='sample.container.location.barcode')
+    parent_container_id = serializers.IntegerField(read_only=True, source='sample.container.location.id')
     coordinates = serializers.CharField(read_only=True, source='sample.coordinate.name')
     sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
 
@@ -829,15 +832,18 @@ class PooledSampleSerializer(serializers.ModelSerializer):
             'parent_sample_name',
             'container_id',
             'container_barcode',
+            'parent_container_barcode',
+            'parent_container_id',
             'coordinates',
             'platform',
             'pool_id',
+            'pool_name',
             'project_id',
             'project_name',
             'sample_kind',
             'strandedness',
             'volume_ratio',
-            ]
+        ]
 
 class PooledSampleExportSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample, for export to CSV.

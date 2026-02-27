@@ -27,7 +27,7 @@ def insert_cells(worksheet: Worksheet, first_cell_location: tuple[int, int], des
             if validation is not None:
                 validation.add(cell)
                 if validation not in validations:
-                    worksheet.add_data_validation(cell_description.validation)
+                    worksheet.add_data_validation(validation)
                     validations.add(validation)
 
             if cell_description.apply_cell is not None:

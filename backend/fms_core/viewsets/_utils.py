@@ -1,10 +1,8 @@
-from datetime import datetime
-from typing import Any, Dict, Tuple, Union, List
-from tablib import Dataset
+from typing import Any, Dict, Tuple, TypedDict, Union, List
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import CharField, Func, Value
 from django.db import transaction
-from wsgiref.util import FileWrapper
-from django.http import HttpResponseBadRequest, HttpResponse, StreamingHttpResponse
+from django.http import HttpResponseBadRequest, HttpResponse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -15,6 +13,8 @@ from reversion.models import Version
 import json
 import os
 
+from fms_core.template_importer.importers._generic import GenericImporter
+from fms_core.templates import TemplateIdentity
 from fms_core import automations
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
@@ -109,14 +109,20 @@ class AutomationsMixin:
                 "warnings": warnings,
         }
         return Response(results)
-    
+
+class TemplateActionDefinition(TypedDict):
+    name: str
+    description: str
+    template: list[TemplateIdentity]
+    importer: type[GenericImporter]
+
 class TemplateActionsMixin:
     # When this mixin is used, this list will be overridden to provide a list
     # of template actions for the viewset implementation.
-    template_action_list = []
+    template_action_list: list[TemplateActionDefinition] = []
 
     @classmethod
-    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[dict, Dataset]]]:
+    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[TemplateActionDefinition, InMemoryUploadedFile]]]:
         """
         Gets template action from request data. Requests should be
         multipart/form-data, with two key-value pairs:
@@ -125,10 +131,10 @@ class TemplateActionsMixin:
         Returns a tuple of:
             bool
                 True if an error occurred, False if the request was processed
-                to the point of reading the file into a dataset.
-            Union[str, Tuple[dict, Dataset]]
+                to the point of reading the file into a InMemoryUploadedFile.
+            Union[str, Tuple[dict, InMemoryUploadedFile]]
                 str if an error occured, where the string is the error message.
-                Dataset otherwise, with the contents of the uploaded file.
+                InMemoryUploadedFile otherwise, with the contents of the uploaded file.
         """
 
         action_id = request.POST.get("action")
@@ -186,6 +192,7 @@ class TemplateActionsMixin:
         """
 
         error, action_data = self._get_action(request)
+        # error being true and action_data being string indicates error from self._get_action
         if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
