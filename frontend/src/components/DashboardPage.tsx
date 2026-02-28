@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../hooks";
 import { selectSampleTemplateActions } from "../selectors";
 import { FMSTemplateAction } from "../models/fms_api_models";
+import { ExperimentOutlined, ProjectOutlined } from "@ant-design/icons";
 
 const lastLaunchedRunsColumns = [
     ExperimentRunColumnID.ID,
@@ -52,6 +53,15 @@ const timeRangeToFirstDate = {
 const TABLE_HEIGHT = '20em';
 const CARD_HEIGHT = 30 // em
 
+const QUICK_ACCESS_BUTTON_WIDTH = 'fit-content'
+const QUICK_ACCESS_TEXT_STYLE: React.CSSProperties = {
+    fontSize: '1.5em',
+    fontWeight: 'bold',
+}
+const QUICK_ACCESS_ICON_STYLE: React.CSSProperties = {
+    fontSize: '1.5em'
+}
+
 function DashboardPage() {
     const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
     const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
@@ -61,8 +71,11 @@ function DashboardPage() {
     const templates = useAppSelector((state) => selectSampleTemplateActions(state).items as FMSTemplateAction[] | undefined)
     const templateActionButtons = useMemo(() => {
         return templates?.filter((t) => t.name === 'Add Samples')?.map((template) => (
-            <Button key={template.id} style={{ width: '75%' }} onClick={() => navigate(`/samples/actions/${template.id}/`)}>
-                {template.name}
+            <Button key={template.id} style={{ width: QUICK_ACCESS_BUTTON_WIDTH }} onClick={() => navigate(`/samples/actions/${template.id}/`)} styles={{ root: { height: 'fit-content' } }}>
+                <Flex vertical={false} align={"center"} gap={"small"}>
+                    <ExperimentOutlined style={QUICK_ACCESS_ICON_STYLE} />
+                    <div style={QUICK_ACCESS_TEXT_STYLE}>{template.name}</div>
+                </Flex>
             </Button>
         )) ?? []
     }, [templates, navigate])
@@ -70,6 +83,26 @@ function DashboardPage() {
     return <PageContainer>
         <AppPageHeader title="Dashboard" />
         <PageContent>
+            <Flex vertical={false} gap={"1em"} align={"center"} justify={"start"} style={{ width: '100%' }}>
+                <Button style={{ width: QUICK_ACCESS_BUTTON_WIDTH }} onClick={() => navigate('/projects/add/')} styles={{ root: { height: 'fit-content' } }}>
+                    <Flex vertical={false} align={"center"} gap={"small"}>
+                        <ProjectOutlined style={QUICK_ACCESS_ICON_STYLE} />
+                        <div style={QUICK_ACCESS_TEXT_STYLE}>Add Project</div>
+                    </Flex>
+                </Button>
+                {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
+            </Flex>
+            <ConfigProvider
+                theme={{
+                    token: {
+                        margin: 12,
+                        marginLG: 12,
+                        marginXL: 12,
+                    }
+                }}
+            >
+                <Divider orientation={"horizontal"} />
+            </ConfigProvider>
             <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"} style={{ width: '100%' }}>
                 <DashboardCard title={"Last Launched Runs"}>
                     <SimpleExperimentRunTable
@@ -138,13 +171,6 @@ function DashboardPage() {
                         }), [])}
                     />
                 </DashboardCard>
-                <DashboardCard title={"Shortcuts"}>
-                    <Flex vertical={true} gap={"1em"} align={"center"} style={{ width: '100%' }}>
-                        <Button style={{ width: '75%' }} onClick={() => navigate('/projects/add/')}>Add Project</Button>
-                        {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
-                    </Flex>
-                    <div></div>
-                </DashboardCard>
             </Flex>
         </PageContent>
     </PageContainer>
@@ -182,9 +208,8 @@ function DashboardCardTitle(props: React.ComponentProps<typeof Typography.Title>
 
 interface DashboardCardProps extends React.ComponentProps<typeof Card> {
     title: React.ReactNode
-    justify?: React.ComponentProps<typeof Flex>['justify']
 }
-function DashboardCard({ title, justify = 'space-between', children, ...props }: DashboardCardProps) {
+function DashboardCard({ title, children, ...props }: DashboardCardProps) {
     return <ConfigProvider
                 theme={{
                     components: {
@@ -196,7 +221,7 @@ function DashboardCard({ title, justify = 'space-between', children, ...props }:
                 }}
             >
                 <Card style={{ width: '49%', height: `${CARD_HEIGHT}em` }} styles={{ root: { border: '2px solid var(--ant-blue-3)' } }} {...props}>
-                    <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={justify} align={"center"}>
+                    <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={'space-between'} align={"center"}>
                         <DashboardCardTitle>{title}</DashboardCardTitle>
                         {children}
                     </Flex>
