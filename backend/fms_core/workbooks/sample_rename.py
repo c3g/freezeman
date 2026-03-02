@@ -1,6 +1,6 @@
-from typing import Sequence, Literal
+from typing import Sequence
 from ._generic import SheetInfo, TemplateWorkbook
-from openpyxl.styles import PatternFill
+from openpyxl.styles import Color, PatternFill, Font
 from openpyxl.cell.cell import Cell
 
 from fms_core.services.workbook_utils import CD
@@ -10,6 +10,17 @@ SHEET_NAMES = ["SampleRename"]
 class SampleRenameWorkbook(TemplateWorkbook):
     def __init__(self, sheets_info: Sequence[SheetInfo]):
         super().__init__(sheets_info)
+
+        def style_title(cell: Cell):
+            cell.font = Font(name="Calibri", sz=15, family=2, b=True, i=False, color=Color(theme=1), scheme="minor")
+
+        OPTIONAL_PATTERN_FILL = PatternFill(start_color="d1d1d1", end_color="d1d1d1", fill_type="solid")
+        def style_optional_section(cell: Cell):
+            cell.fill = OPTIONAL_PATTERN_FILL
+
+        MANDATORY_PATTERN_FILL = PatternFill(start_color="ffa6a6", end_color="ffa6a6", fill_type="solid")
+        def style_mandatory_section(cell: Cell):
+            cell.fill = MANDATORY_PATTERN_FILL
 
         HEADER_PATTERN_FILL = PatternFill(start_color="92d050", end_color="92d050", fill_type="solid")
         def style_section_name(cell: Cell):
@@ -21,19 +32,30 @@ class SampleRenameWorkbook(TemplateWorkbook):
             descriptors=[
                 # row 1
                 [
-                    CD(value="Sample Rename Template")
+                    CD(value="Sample Rename Template", apply_cell=style_title)
                 ],
-                # row 2
+                [],
+                # row 3
                 [
                     CD(value="Naming Rules")
                 ],
-                # row 3
+                # row 4
                 [
                     CD(
                         "- Only use the following characters for Sample Name and Sample Alias: a-z, A-Z, 0-9, underscore (_), hyphen (-)",
                     )
                 ],
-                # row 4 (headers)
+                # row 5
+                [
+                    CD(value='', apply_cell=style_optional_section),
+                    CD(value='', apply_cell=style_optional_section),
+                    CD(value='', apply_cell=style_optional_section),
+                    CD(value='', apply_cell=style_optional_section),
+                    CD(value='', apply_cell=style_optional_section),
+                    CD(value='', apply_cell=style_mandatory_section),
+                    CD(value='', apply_cell=style_mandatory_section),
+                ],
+                # row 6 (headers)
                 [
                     CD(
                         value='Container Barcode',

@@ -199,7 +199,7 @@ const App = ({userID, usersByID, logOut }) => {
           },
           {
             url: "/management/sample-rename",
-            icon: <ExperimentOutlined />,
+            icon: <BarcodeOutlined />,
             text: "Rename Sample",
             key: "sample-rename",
           },

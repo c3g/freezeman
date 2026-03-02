@@ -310,10 +310,6 @@ export interface FMSPooledSample extends FMSTrackedModel {
     container_barcode: string,
     coordinates: string
 
-    // parent container info
-    parent_container_id?: FMSId,
-    parent_container_barcode?: string,
-
     // Library fields                   // Library fields are only defined if pool contains libraries
     index?: string,                     // Name of index
     index_id?: FMSId,                   // ID of index
