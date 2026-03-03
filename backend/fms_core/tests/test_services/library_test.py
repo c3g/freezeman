@@ -302,9 +302,9 @@ class LibraryServicesTestCase(TestCase):
         derived_sample_1.refresh_from_db()
         
         # test
-        samples_impacted, errors, warnings = update_library_index(sample_initial_library.derived_sample_not_pool, new_index_name)
+        samples_impacted, errors, warnings = update_library_index(sample_initial_library.derived_sample_not_pool, new_index)
         self.assertEqual(samples_impacted, [sample_initial_library, sample_derived_library])
         self.assertEqual(sample_initial_library.derived_sample_not_pool.library.index, new_index)
         self.assertEqual(sample_derived_library.derived_sample_not_pool.library.index, new_index)
         self.assertFalse(errors)
-        self.assertEqual(warnings[0], f"A total of 2 derived libraries that share lineage with the updated library were changed.")
+        self.assertEqual(warnings[0], f"A total of 2 libraries that share lineage with the updated library were changed.")
