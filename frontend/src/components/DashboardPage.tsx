@@ -50,8 +50,8 @@ const timeRangeToFirstDate = {
     'last_90_days': new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 } as const
 
-const TABLE_HEIGHT = '20em';
-const CARD_HEIGHT = 30 // em
+const TABLE_HEIGHT = '20em'
+const CARD_HEIGHT = '30em'
 
 const QUICK_ACCESS_BUTTON_WIDTH = 'fit-content'
 const QUICK_ACCESS_TEXT_STYLE: React.CSSProperties = {
@@ -106,6 +106,7 @@ function DashboardPage() {
             </ConfigProvider>
             <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"} style={{ width: '100%' }}>
                 <DashboardCard title={"Last Launched Runs"}>
+                    <div />
                     <SimpleExperimentRunTable
                         defaultPageSize={5}
                         columnIDs={lastLaunchedRunsColumns}
@@ -204,34 +205,6 @@ function DashboardPage() {
 
 export default DashboardPage
 
-function DashboardCardTitle(props: React.ComponentProps<typeof Typography.Title>) {
-    return <div style={{ width: '100%' }}>
-        <ConfigProvider
-            theme={{
-                components: {
-                    Typography: {
-                        titleMarginBottom: '0.25em',
-                        titleMarginTop: '0.25em',
-                    }
-                }
-            }}
-        >
-            <Typography.Title level={4} style={{ marginTop: '0.25em', textAlign: 'center' }} {...props} />
-            <ConfigProvider
-                theme={{
-                    token: {
-                        margin: 0,
-                        marginLG: 0,
-                        marginXL: 0,
-                    }
-                }}
-            >
-                <Divider orientation={"horizontal"} />
-            </ConfigProvider>
-        </ConfigProvider>
-    </div>
-}
-
 interface DashboardCardProps extends React.ComponentProps<typeof Card> {
     title: React.ReactNode
 }
@@ -246,11 +219,8 @@ function DashboardCard({ title, children, ...props }: DashboardCardProps) {
                     },
                 }}
             >
-                <Card style={{ width: '49%', height: `${CARD_HEIGHT}em` }} styles={{ root: { border: '2px solid var(--ant-blue-3)' } }} {...props}>
-                    <Flex vertical={true} style={{ height: `${CARD_HEIGHT - 1}em` }} justify={'space-between'} align={"center"}>
-                        <DashboardCardTitle>{title}</DashboardCardTitle>
+               <Card title={title} size={"small"} style={{ width: '49%', height: CARD_HEIGHT }} styles={{ root: { border: '2px solid var(--ant-blue-3)' } }} className={'card-in-dashboard'} {...props}>
                         {children}
-                    </Flex>
-                </Card>
+               </Card>
         </ConfigProvider>
 }
