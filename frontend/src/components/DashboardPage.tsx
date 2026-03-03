@@ -65,6 +65,7 @@ const QUICK_ACCESS_ICON_STYLE: React.CSSProperties = {
 function DashboardPage() {
     const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
     const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
+    const [processingRunsTimeRange, setProcessingRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
 
     const navigate = useNavigate()
 
@@ -167,6 +168,31 @@ function DashboardPage() {
                         tableProps={useMemo(() => ({
                             pagination: false,
                             locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No unvalidated runs found</div> },
+                            className: 'table-in-card'
+                        }), [])}
+                    />
+                </DashboardCard>
+                <DashboardCard title="Processing Runs">
+                    <Flex justify={"center"}>
+                        <Select
+                            defaultValue={processingRunsTimeRange}
+                            onChange={setProcessingRunsTimeRange}
+                            options={timeRanges}
+                        />
+                    </Flex>
+                    <SimpleExperimentRunTable
+                        defaultPageSize={10}
+                        columnIDs={lastLaunchedRunsColumns}
+                        requestIDSuffix={".dashboard.processingRuns"}
+                        fixedQueryParams={useMemo(() => ({
+                            ordering: 'run_processing_launch_time',
+                            run_processing_launch_time__gte: timeRangeToFirstDate[processingRunsTimeRange],
+                            run_processing_end_time__isnull: true
+                        }), [processingRunsTimeRange])}
+                        tableHeight={TABLE_HEIGHT}
+                        tableProps={useMemo(() => ({
+                            pagination: false,
+                            locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No processing runs found</div> },
                             className: 'table-in-card'
                         }), [])}
                     />
