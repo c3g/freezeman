@@ -244,6 +244,7 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
                     itemsCount={totalSelectionCount}
                     template={templatePrefill.id}
                     icon={<EditOutlined />}
+                    disabled={totalSelectionCount == 0}
                 />
             )
         }

@@ -2,6 +2,8 @@ from typing import Sequence
 from ._generic import SheetInfo, TemplateWorkbook
 from openpyxl.styles import Color, PatternFill, Font
 from openpyxl.cell.cell import Cell
+from openpyxl.cell.rich_text import TextBlock, CellRichText
+from openpyxl.cell.text import InlineFont
 
 from fms_core.services.workbook_utils import CD
 
@@ -34,18 +36,27 @@ class SampleRenameWorkbook(TemplateWorkbook):
                 [
                     CD(value="Sample Rename Template", apply_cell=style_title)
                 ],
+                # row 2
+                [
+                    CellRichText(
+                        "(",
+                        TextBlock(InlineFont(rFont="Calibri", color="00ff0000"), "*"),
+                        ") Mandatory fields",
+                    ),
+                    CD(value="Version : 5.6.0"),
+                ],
                 [],
-                # row 3
+                # row 4
                 [
                     CD(value="Naming Rules")
                 ],
-                # row 4
+                # row 5
                 [
                     CD(
                         "- Only use the following characters for Sample Name and Sample Alias: a-z, A-Z, 0-9, underscore (_), hyphen (-)",
                     )
                 ],
-                # row 5
+                # row 6
                 [
                     CD(value='', apply_cell=style_optional_section),
                     CD(value='', apply_cell=style_optional_section),
@@ -55,7 +66,7 @@ class SampleRenameWorkbook(TemplateWorkbook):
                     CD(value='', apply_cell=style_mandatory_section),
                     CD(value='', apply_cell=style_mandatory_section),
                 ],
-                # row 6 (headers)
+                # row 7 (headers)
                 [
                     CD(
                         value='Container Barcode',
@@ -101,4 +112,4 @@ class SampleRenameWorkbook(TemplateWorkbook):
             self.set_column_width(header=header_name, width_cm=6.60, sheet_name=SHEET_NAMES[0])
 
     def headers_row_number(self, sheet_name: str | None = None) -> int:
-        return 4
+        return 7

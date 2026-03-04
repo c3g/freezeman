@@ -103,7 +103,7 @@ class AutomationsMixin:
             result["success"] = False
             transaction.set_rollback(True)
 
-        results = { 
+        results = {
                 "result": result,
                 "errors": errors,
                 "warnings": warnings,
@@ -290,19 +290,19 @@ class TemplatePrefillsMixin:
 
         queryset = self.filter_queryset(self.get_queryset())
         try:
-            filename = "/".join(template["identity"]["file"].split("/")[-2:]) # Remove the /static/ from the served path to search for local path 
+            filename = "/".join(template["identity"]["file"].split("/")[-2:]) # Remove the /static/ from the served path to search for local path
             template_path = os.path.join(settings.STATIC_ROOT, filename)
             prefilled_template = PrefillTemplate(template_path, template, queryset)
         except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
-        
+
         try:
             response = HttpResponse(content=prefilled_template)
             response["Content-Type"] = "application/ms-excel"
             response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
         except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
-        
+
         return response
 
 
@@ -339,20 +339,20 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
                 return HttpResponseBadRequest(json.dumps({"detail": err.messages}), content_type="application/json")
             except Exception as err:
                 return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
-            
+
             try:
                 response = HttpResponse(content=prefilled_template)
                 response["Content-Type"] = "application/ms-excel"
                 response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
             except Exception as err:
                 return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
-            
+
             return response
 
 class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod
     def _prepare_prefill_dicts(cls, template, queryset, user_prefill_data, placement_data) -> List:
-        
+
         def default_prefilling(sample: Sample, template, user_prefill_data):
             sample_row_dict = {}
             # Use sample to extract the sample information guided by the template definition prefill info.
@@ -367,7 +367,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                 for column_name, value in user_prefill_data.items():
                     sample_row_dict[column_name] = value
             return sample_row_dict
-        
+
         def default_batch_prefilling(sample_id_list: List[int], template, batch_sheet_name, user_prefill_data):
             # Get the list of attributes to group by (prefill[0] = sheet_name, prefill[2] = queryset_name)
             batch_attributes_names = [prefill[2] for prefill in template["prefill info"] if prefill[0] == batch_sheet_name]
@@ -417,7 +417,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                 for spec in step.step_specifications.all():
                     for batch_row_dict in batch_rows_list:
                         batch_row_dict[spec.column_name] = spec.value
-            
+
             dict_sheets_rows_dicts[dict_batch_sheet[True]] = batch_rows_list
         else:
             step_dict = {}

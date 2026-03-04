@@ -557,7 +557,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ("id", "name", "preferences")
-    
+
     def get_preferences(self, instance: Profile):
         return instance.final_preferences()
 
@@ -831,7 +831,6 @@ class PooledSampleSerializer(serializers.ModelSerializer):
             'parent_sample_name',
             'container_id',
             'container_barcode',
-            'parent_container_barcode',
             'parent_container_id',
             'coordinates',
             'platform',
@@ -1078,7 +1077,7 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
 
     def get_sex_concordance(self, instance: SampleIdentity):
         return instance.sex_concordance
-    
+
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data

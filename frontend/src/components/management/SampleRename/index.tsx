@@ -8,7 +8,6 @@ const columns = [
     PooledSampleColumnID.ALIAS,
     PooledSampleColumnID.NAME,
     PooledSampleColumnID.CONTAINER_BARCODE,
-    PooledSampleColumnID.PARENT_CONTAINER_BARCODE,
     PooledSampleColumnID.COORDINATES,
     PooledSampleColumnID.INDEX,
 ] as const
@@ -26,7 +25,7 @@ export function SampleRename() {
                 )
             })
         }, [dispatch])
-    
+
     const [templatePrefill, setTemplatePrefill] = useState<FMSTemplatePrefillOption>()
         useEffect(() => {
             dispatch(api.pooledSamples.prefill.templates()).then(response => {

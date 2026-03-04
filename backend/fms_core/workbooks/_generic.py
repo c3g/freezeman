@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Generic, Literal, Sequence, TypeVar, TypedDict
+from typing import Any, Generic, Literal, Sequence, TypeVar, TypedDict
 from openpyxl import Workbook
 
 from fms_core.services.workbook_utils import CellDescription, insert_cells
@@ -21,7 +21,7 @@ class TemplateWorkbook(Workbook):
     def header_to_column_number(self, header: str, sheet_name: str | None = None) -> int:
         """
         Given a header name, returns the corresponding column number in the worksheet (1-indexed).
-        
+
         :returns: the corresponding column number (1-indexed) in the worksheet
         """
         return self.headers(sheet_name=sheet_name).index(header) + 1
@@ -39,7 +39,7 @@ class TemplateWorkbook(Workbook):
         """
         raise NotImplementedError("Subclasses of TemplateWorkbook must implement headers_row_number() to specify where headers are located in the worksheet")
 
-    def insert_cells(self, first_cell_location: tuple[int, int], descriptors: Iterable[Iterable[CellDescription]], order: Literal["row", "col"], sheet_name: str | None = None):
+    def insert_cells(self, first_cell_location: tuple[int, int], descriptors: Iterable[Iterable[CellDescription | Any]], order: Literal["row", "col"], sheet_name: str | None = None):
         insert_cells(
             worksheet=self.get_sheet_helper(sheet_name),
             first_cell_location=first_cell_location,
@@ -52,12 +52,12 @@ class TemplateWorkbook(Workbook):
         for col_num, header_name in enumerate(self.headers(), start=1):
             cell = sheet.cell(row=row_num, column=col_num)
             cell.value = row_data[header_name]
-    
+
     def set_rows(self, rows_data: Sequence[dict[str, str]], start_row_num: int | None = None, sheet_name: str | None = None):
         for i, row_data in enumerate(rows_data):
             start_row_num = start_row_num or self.headers_row_number(sheet_name=sheet_name) + 1
             self.set_row(row_num=start_row_num + i, row_data=row_data, sheet_name=sheet_name)
-    
+
     def get_sheet_helper(self, sheet_name: str | None = None):
         return self[sheet_name] if sheet_name else self.active
 
