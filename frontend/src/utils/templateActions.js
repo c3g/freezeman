@@ -58,9 +58,11 @@ export function ActionDropdown({ urlBase, actions, fullWidth = true }) {
           style: fullWidth ? { style: { width: "100%", border: 0, textAlign: 'left' } } : { style: { border: 0 } }
         }))
       }} placement="bottomRight">
-      <Button>
-        <MonitorOutlined />  Available Actions
-      </Button>
+        <span onClickCapture={(e) => e.stopPropagation()}>
+          <Button>
+            <MonitorOutlined />  Available Actions
+          </Button>
+        </span>
       </Dropdown> : null)
 }
 
