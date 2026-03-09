@@ -40,6 +40,10 @@ const timeRanges: DefaultOptionType[] = [
     {
         label: 'Last 90 Days',
         value: 'last_90_days',
+    },
+    {
+        label: 'Since April 2020',
+        value: 'since_0'
     }
 ]
 
@@ -48,6 +52,7 @@ const timeRangeToFirstDate = {
     'last_14_days': new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_30_days': new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_90_days': new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    'since_0': '2020-04-01',
 } as const
 
 const TABLE_HEIGHT = '20em'
@@ -65,7 +70,7 @@ const QUICK_ACCESS_ICON_STYLE: React.CSSProperties = {
 function DashboardPage() {
     const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
     const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
-    const [processingRunsTimeRange, setProcessingRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
+    const [processingRunsTimeRange, setProcessingRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('since_0')
 
     const navigate = useNavigate()
 
@@ -108,7 +113,7 @@ function DashboardPage() {
                 <DashboardCard title={"Last Launched Runs"}>
                     <div />
                     <SimpleExperimentRunTable
-                        defaultPageSize={5}
+                        defaultPageSize={10}
                         columnIDs={lastLaunchedRunsColumns}
                         requestIDSuffix={".dashboard.lastLaunchedRuns"}
                         fixedQueryParams={useMemo(() => ({
@@ -129,10 +134,11 @@ function DashboardPage() {
                             defaultValue={experimentsNotLaunchedTimeRange}
                             onChange={setExperimentsNotLaunchedTimeRange}
                             options={timeRanges}
+                            popupMatchSelectWidth={false}
                         />
                     </Flex>
                     <SimpleExperimentRunTable
-                        defaultPageSize={5}
+                        defaultPageSize={10}
                         columnIDs={notLaunchedColumns}
                         requestIDSuffix={".dashboard.experimentsNotLaunched"}
                         fixedQueryParams={useMemo(() => ({
@@ -154,16 +160,17 @@ function DashboardPage() {
                             defaultValue={processedRunsTimeRange}
                             onChange={setProcessedRunsTimeRange}
                             options={timeRanges}
+                            popupMatchSelectWidth={false}
                         />
                     </Flex>
                     <SimpleExperimentRunTable
-                        defaultPageSize={5}
+                        defaultPageSize={10}
                         columnIDs={lastLaunchedRunsColumns}
                         requestIDSuffix={".dashboard.processedRuns"}
                         fixedQueryParams={useMemo(() => ({
                             experiment_run_progress_stage: "processed",
-                            ordering: '-run_processing_completion_time',
-                            run_processing_completion_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
+                            ordering: '-run_processing_launch_time',
+                            run_processing_launch_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
                         }), [processedRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
@@ -179,6 +186,7 @@ function DashboardPage() {
                             defaultValue={processingRunsTimeRange}
                             onChange={setProcessingRunsTimeRange}
                             options={timeRanges}
+                            popupMatchSelectWidth={false}
                         />
                     </Flex>
                     <SimpleExperimentRunTable
@@ -188,7 +196,7 @@ function DashboardPage() {
                         fixedQueryParams={useMemo(() => ({
                             ordering: 'run_processing_launch_time',
                             run_processing_launch_time__gte: timeRangeToFirstDate[processingRunsTimeRange],
-                            run_processing_end_time__isnull: true
+                            is_processing_complete: true,
                         }), [processingRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({

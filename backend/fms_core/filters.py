@@ -279,6 +279,7 @@ class DatasetFilter(GenericFilter):
 
 class ExperimentRunFilter(GenericFilter):
     experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
+    is_processing_complete = django_filters.BooleanFilter(method="is_processing_complete_filter")
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
         queryset = queryset.annotate(
@@ -300,6 +301,15 @@ class ExperimentRunFilter(GenericFilter):
                 filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count=0, has_readsets=True)
 
         return filtered_queryset
+
+    def is_processing_complete_filter(self, queryset, name, value):
+        filtered_in= []
+        for experiment_run in queryset:
+            if experiment_run.is_processing_complete == value:
+                filtered_in.append(experiment_run.pk)
+
+        return queryset.filter(pk__in=filtered_in)
+
     class Meta:
         model = ExperimentRun
         fields = _experiment_run_filterset_fields

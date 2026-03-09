@@ -7,6 +7,9 @@ import { selectExperimentRunLaunches, selectInstrumentsByID, selectRunTypesByID 
 import { ConfigProvider, Table } from "antd";
 import dayjs from "dayjs";
 
+import relativeTime from "dayjs/plugin/relativeTime"
+dayjs.extend(relativeTime)
+
 export enum ExperimentRunColumnID {
     // Start of ExperimentRunColumnID in ExperimentRunTableColumns.tsx
     ID = 'ID',
@@ -59,7 +62,7 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
                     ...definitions[key],
                     sorter: false,
                     width: 100,
-                    render: (_, { experimentRun }) => dayjs(experimentRun.run_processing_launch_time).format("YYYY-MM-DD")
+                    render: (_, { experimentRun }) => dayjs(experimentRun.run_processing_launch_time).fromNow()
                 }
             } else if (key === ExperimentRunColumnID.PROCESSED) {
                 definitions[key] = {
@@ -75,6 +78,8 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
             } else if (key === ExperimentRunColumnID.START_DATE && definitions[key]) {
                 definitions[key] = {
                     ...definitions[key],
+                    align: 'start',
+                    render: (_, { experimentRun }) => dayjs(experimentRun.start_date).fromNow(),
                     sorter: false,
                     width: 100
                 }

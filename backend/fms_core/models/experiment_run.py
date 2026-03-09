@@ -48,6 +48,12 @@ class ExperimentRun(TrackedModel):
     run_processing_start_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing actually started for the experiment run.")
     run_processing_end_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing completed for the experiment run.")
 
+    @property
+    def is_processing_complete(self):
+        lane_count = self.container.samples.count()
+        lane_processed_count = self.datasets.distinct('lane').count()
+        return lane_count == lane_processed_count
+
     def clean(self):
         super().clean()
         errors = {}
@@ -62,7 +68,6 @@ class ExperimentRun(TrackedModel):
 
         if errors:
             raise ValidationError(errors)
-
 
     def save(self, *args, **kwargs):
         # Normalize and validate before saving, always!
