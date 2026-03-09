@@ -280,6 +280,7 @@ class DatasetFilter(GenericFilter):
 class ExperimentRunFilter(GenericFilter):
     experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
     is_processing_complete = django_filters.BooleanFilter(method="is_processing_complete_filter")
+    needs_run_processing = django_filters.BooleanFilter(method="needs_run_processing_filter")
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
         queryset = queryset.annotate(
@@ -309,6 +310,9 @@ class ExperimentRunFilter(GenericFilter):
                 filtered_in.append(experiment_run.pk)
 
         return queryset.filter(pk__in=filtered_in)
+
+    def needs_run_processing_filter(self, queryset, name, value):
+        return queryset.filter(run_type__needs_run_processing=value)
 
     class Meta:
         model = ExperimentRun

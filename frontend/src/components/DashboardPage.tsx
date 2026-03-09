@@ -119,6 +119,7 @@ function DashboardPage() {
                         fixedQueryParams={useMemo(() => ({
                             run_processing_launch_time__isnull: false,
                             ordering: '-run_processing_launch_time',
+                            needs_run_processing: true,
                         }), [])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
@@ -145,6 +146,7 @@ function DashboardPage() {
                             run_processing_launch_time__isnull: true,
                             ordering: 'start_date',
                             start_date__gte: timeRangeToFirstDate[experimentsNotLaunchedTimeRange],
+                            needs_run_processing: true,
                         }), [experimentsNotLaunchedTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
@@ -171,6 +173,7 @@ function DashboardPage() {
                             experiment_run_progress_stage: "processed",
                             ordering: '-run_processing_launch_time',
                             run_processing_launch_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
+                            needs_run_processing: true,
                         }), [processedRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
@@ -197,6 +200,7 @@ function DashboardPage() {
                             ordering: 'run_processing_launch_time',
                             run_processing_launch_time__gte: timeRangeToFirstDate[processingRunsTimeRange],
                             is_processing_complete: true,
+                            needs_run_processing: true,
                         }), [processingRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
