@@ -127,7 +127,7 @@ def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec, axis:
     else: # axis == COLUMN
         try:
             # Find the index of the letter (or letters) in the spec and starting the index at 1.
-            alpha_offset = spec_letters.index(letters, start=1)
+            alpha_offset = spec_letters.index(letters) + 1 
         except:
             raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
 
