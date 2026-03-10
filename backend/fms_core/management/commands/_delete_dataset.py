@@ -33,20 +33,31 @@ def delete_dataset(params, objects_to_delete, log):
     try:
         dataset_model = apps.get_model("fms_core", "Dataset")
         readset_model = apps.get_model("fms_core", "Readset")
-        datasetfile_model = apps.get_model("fms_core", "DatasetFile")
-        metrics_model = apps.get_model("fms_core", "Metrics")
+        productiondata_model = apps.get_model("fms_report", "ProductionData")
+        productiontracking_model = apps.get_model("fms_report", "ProductionTracking")
         count_deleted = 0
         for dataset_id in dataset_ids_array:
             try:
                 dataset = dataset_model.objects.get(id=dataset_id)
+                # Iterate through related items for deletion
+                for data in productiondata_model.objects.filter(readset__dataset=dataset).all():
+                    data.delete()
+                for tracking in productiontracking_model.objects.filter(extracted_readset__dataset=dataset).all():
+                    tracking.delete()
+                for readset in readset_model.objects.filter(dataset=dataset).all():
+                    for metric in readset.metrics.all():
+                        metric.delete()
+                    for dataset_file in readset.files.all():
+                        dataset_file.delete()
+                    for identity_match in readset.readset_identity_match.all():
+                        identity_match.delete()
+                    readset.delete()
+                # Set the dataset for deletion itself
                 log.info(f"Deleted [Dataset] id [{dataset.id}]].")
                 dataset.deleted = True
                 dataset.save(requester_id=user_id) # save using the id of the requester (using the default admin user if None)
                 objects_to_delete.append(dataset)  # Delay deletion until after the revision block so the object get a version
                 count_deleted += 1
-                 # Iterate through related items for deletion
-                 
-
             except dataset_model.DoesNotExist:
                 log.error(f"No dataset found for id [{dataset_id}].")
             except dataset_model.MultipleObjectsReturned:
