@@ -28,10 +28,8 @@ class PytestTestRunner():
         argv = ['--maxprocesses=9', '-n=logical']
         if self.verbosity == 0:
             argv.append('--quiet')
-            argv.append('--show-capture=no')
         if self.verbosity == 2:
             argv.append('--verbose')
-            argv.append('--show-capture=no')
         if self.verbosity == 3:
             argv.append('-vv')
         if self.failfast:
