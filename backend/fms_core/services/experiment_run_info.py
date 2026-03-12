@@ -439,3 +439,4 @@ def _get_capture_details(library: Library) -> Dict[str, Optional[str]]:
             pass
 
     return dict(capture_kit=kit, capture_baits=baits)
+
