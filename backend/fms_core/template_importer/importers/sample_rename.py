@@ -1,7 +1,7 @@
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_rename import SampleRenameRowHandler, SampleRenameKwargs
 
-from fms_core.templates import SAMPLE_RENAME_TEMPLATE
+from fms_core.templates import SAMPLE_RENAME_TEMPLATE, SampleRenameHeaders
 from fms_core.utils import str_cast_and_normalize
 
 class SampleRenameImporter(GenericImporter):
@@ -14,13 +14,13 @@ class SampleRenameImporter(GenericImporter):
         sample_rename_sheet = self.sheets['SampleRename']
         for row_id, row_data in enumerate(sample_rename_sheet.rows):
             sample: SampleRenameKwargs = {
-                'barcode': str_cast_and_normalize(row_data['Container Barcode']),
-                'coordinates': str_cast_and_normalize(row_data['Container Coordinate']),
-                'index': str_cast_and_normalize(row_data['Index Name']),
-                'old_alias': str_cast_and_normalize(row_data['Old Sample Alias']),
-                'old_name': str_cast_and_normalize(row_data['Old Sample Name']),
-                'new_alias': str_cast_and_normalize(row_data['New Sample Alias']),
-                'new_name': str_cast_and_normalize(row_data['New Sample Name']),
+                'barcode': str_cast_and_normalize(row_data[SampleRenameHeaders.CONTAINER_BARCODE]),
+                'coordinates': str_cast_and_normalize(row_data[SampleRenameHeaders.CONTAINER_COORDINATES]),
+                'index': str_cast_and_normalize(row_data[SampleRenameHeaders.INDEX_NAME]),
+                'old_alias': str_cast_and_normalize(row_data[SampleRenameHeaders.OLD_SAMPLE_ALIAS]),
+                'old_name': str_cast_and_normalize(row_data[SampleRenameHeaders.OLD_SAMPLE_NAME]),
+                'new_alias': str_cast_and_normalize(row_data[SampleRenameHeaders.NEW_SAMPLE_ALIAS]),
+                'new_name': str_cast_and_normalize(row_data[SampleRenameHeaders.NEW_SAMPLE_NAME]),
             }
             sample_rename_kwargs = dict(
                 sample=sample,

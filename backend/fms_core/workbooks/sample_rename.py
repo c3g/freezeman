@@ -6,6 +6,7 @@ from openpyxl.cell.rich_text import TextBlock, CellRichText
 from openpyxl.cell.text import InlineFont
 
 from fms_core.services.workbook_utils import CD
+from fms_core.templates import SampleRenameHeaders
 
 SHEET_NAMES = ["SampleRename"]
 
@@ -69,35 +70,35 @@ class SampleRenameWorkbook(TemplateWorkbook):
                 # row 7 (headers)
                 [
                     CD(
-                        value='Container Barcode',
+                        value=SampleRenameHeaders.CONTAINER_BARCODE,
                         apply_cell=style_section_name,
                     ),
                     CD(
-                        value='Container Coordinates',
+                        value=SampleRenameHeaders.CONTAINER_COORDINATES,
                         apply_cell=style_section_name,
-                        comment="To identify a sample in a well, rack, plate, box, etc.",
+                        comment="To identify a sample in a rack, plate, box, etc.",
                     ),
                     CD(
-                        value='Index Name',
+                        value=SampleRenameHeaders.INDEX_NAME,
                         apply_cell=style_section_name,
                         comment="To identify a sample within a pool",
                     ),
                     CD(
-                        value='Old Sample Name',
+                        value=SampleRenameHeaders.OLD_SAMPLE_NAME,
                         apply_cell=style_section_name,
                     ),
                     CD(
-                        value='Old Sample Alias',
+                        value=SampleRenameHeaders.OLD_SAMPLE_ALIAS,
                         apply_cell=style_section_name,
                         comment="Run processing uses Alias to name samples in the files generated during run processing.",
                     ),
                     CD(
-                        value='New Sample Name',
+                        value=SampleRenameHeaders.NEW_SAMPLE_NAME,
                         apply_cell=style_section_name,
                         comment="This name change will only affect Freezeman and not the files generated during run processing.",
                     ),
                     CD(
-                        value='New Sample Alias',
+                        value=SampleRenameHeaders.NEW_SAMPLE_ALIAS,
                         apply_cell=style_section_name,
                         comment="This Alias change will affect the files generated during run processing.",
                     ),

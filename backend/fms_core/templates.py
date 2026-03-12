@@ -293,6 +293,15 @@ INDEX_UPDATE_TEMPLATE: TemplateDefinition = {
   "placement info": [],
 }
 
+class SampleRenameHeaders:
+    CONTAINER_BARCODE = "Container Barcode"
+    CONTAINER_COORDINATES = "Container Coordinates"
+    INDEX_NAME = "Index Name"
+    OLD_SAMPLE_NAME = "Old Sample Name"
+    OLD_SAMPLE_ALIAS = "Old Sample Alias"
+    NEW_SAMPLE_NAME = "New Sample Name"
+    NEW_SAMPLE_ALIAS = "New Sample Alias"
+
 SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
     "identity": {
         "description": "Template to rename sample (and its alias)",
@@ -303,24 +312,24 @@ SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
         {
             'name': 'SampleRename',
             'headers': [
-                "Container Barcode",
-                "Container Coordinate",
-                "Index Name",
-                "Old Sample Name",
-                "Old Sample Alias",
-                "New Sample Name",
-                "New Sample Alias",
+                SampleRenameHeaders.CONTAINER_BARCODE,
+                SampleRenameHeaders.CONTAINER_COORDINATES,
+                SampleRenameHeaders.INDEX_NAME,
+                SampleRenameHeaders.OLD_SAMPLE_NAME,
+                SampleRenameHeaders.OLD_SAMPLE_ALIAS,
+                SampleRenameHeaders.NEW_SAMPLE_NAME,
+                SampleRenameHeaders.NEW_SAMPLE_ALIAS,
             ],
             'batch': False,
         },
     ],
     # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
     "prefill info": [
-        ("SampleRename", "Container Barcode", "sample__container__barcode", None, None),
-        ("SampleRename", "Container Coordinate", "sample__coordinate__name", None, None),
-        ("SampleRename", "Index Name", "derived_sample__library__index__name", None, None),
-        ("SampleRename", "Old Sample Name", "sample__name", None, None),
-        ("SampleRename", "Old Sample Alias", "derived_sample__biosample__alias", None, None),
+        ("SampleRename", SampleRenameHeaders.CONTAINER_BARCODE, "sample__container__barcode", None, None),
+        ("SampleRename", SampleRenameHeaders.CONTAINER_COORDINATES, "sample__coordinate__name", None, None),
+        ("SampleRename", SampleRenameHeaders.INDEX_NAME, "derived_sample__library__index__name", None, None),
+        ("SampleRename", SampleRenameHeaders.OLD_SAMPLE_NAME, "sample__name", None, None),
+        ("SampleRename", SampleRenameHeaders.OLD_SAMPLE_ALIAS, "derived_sample__biosample__alias", None, None),
     ],
     "placement info": [],
 }

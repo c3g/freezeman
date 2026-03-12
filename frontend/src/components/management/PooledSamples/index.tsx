@@ -192,12 +192,15 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
     })
 
     const prefillTemplate = useCallback(({ template }: { template: FMSId }) => {
-        return dispatch(api.pooledSamples.prefill.request(
+        const options = totalSelectionCount > 0 ?
             {
                 ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
                 ...createQueryParamsFromSortBy(FILTER_KEYS, sortBy),
                 ...smartQuerySetLookup('id', defaultSelection, exceptedItems.map(id => Number(id))),
-            },
+            } :
+            { id__in: '0' }
+        return dispatch(api.pooledSamples.prefill.request(
+            options,
             template
         ))
     }, [defaultSelection, dispatch, exceptedItems, filters, sortBy])
@@ -244,7 +247,6 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
                     itemsCount={totalSelectionCount}
                     template={templatePrefill.id}
                     icon={<EditOutlined />}
-                    disabled={totalSelectionCount == 0}
                 />
             )
         }
