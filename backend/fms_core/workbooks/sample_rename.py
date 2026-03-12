@@ -70,38 +70,36 @@ class SampleRenameWorkbook(TemplateWorkbook):
                 [
                     CD(
                         value='Container Barcode',
-                        comment="The current barcode of the sample to be renamed.",
                         apply_cell=style_section_name,
                     ),
                     CD(
-                        value='Container Coordinate',
-                        comment="The current coordinate of the sample to be renamed.",
+                        value='Container Coordinates',
                         apply_cell=style_section_name,
+                        comment="To identify a sample in a well, rack, plate, box, etc.",
                     ),
                     CD(
                         value='Index Name',
-                        comment="The index name associated with the sample to be renamed.",
                         apply_cell=style_section_name,
+                        comment="To identify a sample within a pool",
                     ),
                     CD(
                         value='Old Sample Name',
-                        comment="The current name of the sample to be renamed.",
                         apply_cell=style_section_name,
                     ),
                     CD(
                         value='Old Sample Alias',
-                        comment="The current alias of the sample to be renamed.",
                         apply_cell=style_section_name,
+                        comment="Run processing uses Alias to name samples in the files generated during run processing.",
                     ),
                     CD(
                         value='New Sample Name',
-                        comment="The new name to assign to the sample.",
                         apply_cell=style_section_name,
+                        comment="This name change will only affect Freezeman and not the files generated during run processing.",
                     ),
                     CD(
                         value='New Sample Alias',
-                        comment="The new alias to assign to the sample.",
                         apply_cell=style_section_name,
+                        comment="This Alias change will affect the files generated during run processing.",
                     ),
                 ],
             ],
