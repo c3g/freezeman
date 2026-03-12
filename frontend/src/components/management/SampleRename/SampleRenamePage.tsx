@@ -1,7 +1,7 @@
 import React from "react"
 import PageContainer from "../../PageContainer";
 import ActionContent from "../../ActionContent";
-import SampleRename from "./index";
+import SampleRename from ".";
 import {Navigate, Route, Routes} from "react-router-dom";
 
 export function SampleRenamePage() {
