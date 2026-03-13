@@ -281,9 +281,7 @@ function Placement({ stepID, sampleIDs }: PlacementProps) {
                                                     <Button onClick={clearSelections}>None</Button>
                                                     <Button onClick={invertSelections}>Invert</Button>
                                                     <Dropdown menu={quadrantSelectionMenu} disabled={activeSourceContainer.name === null}>
-                                                        <span onClickCapture={(e) => e.stopPropagation()}>
-                                                            <Button>Quadrant</Button>
-                                                        </span>
+                                                        <Button>Quadrant</Button>
                                                     </Dropdown>
                                                 </Flex>
                                             </Border>
