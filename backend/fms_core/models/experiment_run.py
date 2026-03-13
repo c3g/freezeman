@@ -49,10 +49,15 @@ class ExperimentRun(TrackedModel):
     run_processing_end_time = models.DateTimeField(null=True, blank=True, help_text="Last time the run processing completed for the experiment run.")
 
     @property
-    def is_processing_complete(self):
+    def run_processing_completion_time(self):
+        if self.run_processing_end_time:
+            return self.run_processing_end_time
+
         lane_count = self.container.samples.count()
-        lane_processed_count = self.datasets.distinct('lane').count()
-        return lane_count == lane_processed_count
+        datasets = self.datasets.all()
+        lane_processed_count = datasets.distinct('lane').count()
+
+        return datasets.order_by('id').last().created_at if lane_count == lane_processed_count else None
 
     def clean(self):
         super().clean()

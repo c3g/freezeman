@@ -55,7 +55,7 @@ const timeRangeToFirstDate = {
     'since_0': '2020-04-01',
 } as const
 
-const TABLE_HEIGHT = '20em'
+const TABLE_HEIGHT = '16em' // match height in css selector '.table-in-card .ant-table-body in DashboardPage.scss
 const CARD_HEIGHT = '30em'
 
 const QUICK_ACCESS_BUTTON_WIDTH = 'fit-content'
@@ -123,7 +123,6 @@ function DashboardPage() {
                         }), [])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
-                            pagination: false,
                             locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No launched runs found</div> },
                             className: 'table-in-card'
                         }), [])}
@@ -150,7 +149,6 @@ function DashboardPage() {
                         }), [experimentsNotLaunchedTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
-                            pagination: false,
                             locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No experiments found</div> },
                             className: 'table-in-card'
                         }), [])}
@@ -177,7 +175,6 @@ function DashboardPage() {
                         }), [processedRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
-                            pagination: false,
                             locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No unvalidated runs found</div> },
                             className: 'table-in-card'
                         }), [])}
@@ -199,12 +196,11 @@ function DashboardPage() {
                         fixedQueryParams={useMemo(() => ({
                             ordering: 'run_processing_launch_time',
                             run_processing_launch_time__gte: timeRangeToFirstDate[processingRunsTimeRange],
-                            is_processing_complete: true,
+                            is_processing_complete: false,
                             needs_run_processing: true,
                         }), [processingRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
-                            pagination: false,
                             locale: { emptyText: <div style={{ height: TABLE_HEIGHT, justifyContent: 'center', textAlign: 'center', alignContent: 'center' }}>No processing runs found</div> },
                             className: 'table-in-card'
                         }), [])}
