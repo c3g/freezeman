@@ -1,6 +1,6 @@
 from typing import Sequence
 from ._generic import SheetInfo, TemplateWorkbook
-from openpyxl.styles import Color, PatternFill, Font
+from openpyxl.styles import Color, PatternFill, Font, Alignment
 from openpyxl.cell.cell import Cell
 from openpyxl.cell.rich_text import TextBlock, CellRichText
 from openpyxl.cell.text import InlineFont
@@ -29,45 +29,40 @@ class SampleRenameWorkbook(TemplateWorkbook):
         def style_section_name(cell: Cell):
             cell.fill = HEADER_PATTERN_FILL
 
+        red_asterisk = TextBlock(InlineFont(rFont="Calibri", color="00ff0000"), "*")
+
         self.insert_cells(
             first_cell_location=(1, 1),
             order="row",
             descriptors=[
-                # row 1
                 [
                     CD(value="Sample Rename Template", apply_cell=style_title)
                 ],
-                # row 2
                 [
                     CellRichText(
                         "(",
-                        TextBlock(InlineFont(rFont="Calibri", color="00ff0000"), "*"),
+                        red_asterisk,
                         ") Mandatory fields",
                     ),
                     CD(value="Version : 5.6.0"),
                 ],
                 [],
-                # row 4
                 [
-                    CD(value="Naming Rules")
+                    CD("- Only use the following characters for Sample Name and Sample Alias: a-z, A-Z, 0-9, underscore (_), hyphen (-)")
                 ],
-                # row 5
                 [
-                    CD(
-                        "- Only use the following characters for Sample Name and Sample Alias: a-z, A-Z, 0-9, underscore (_), hyphen (-)",
-                    )
+                    CD("- Run Processing uses the alias of a sample to identify the sample, not the name.")
                 ],
-                # row 6
+                [],
                 [
-                    CD(value='', apply_cell=style_optional_section),
-                    CD(value='', apply_cell=style_optional_section),
-                    CD(value='', apply_cell=style_optional_section),
-                    CD(value='', apply_cell=style_optional_section),
-                    CD(value='', apply_cell=style_optional_section),
-                    CD(value='', apply_cell=style_mandatory_section),
-                    CD(value='', apply_cell=style_mandatory_section),
+                    CellRichText(red_asterisk), # barcode
+                    CD(value=''), # coordinates
+                    CD(value=''), # index name
+                    CD(value=''), # old name
+                    CD(value=''), # old alias
+                    CellRichText(red_asterisk), # new name (this will be merged with the "new alias")
+                    CellRichText(red_asterisk), # new alias
                 ],
-                # row 7 (headers)
                 [
                     CD(
                         value=SampleRenameHeaders.CONTAINER_BARCODE,
@@ -95,20 +90,28 @@ class SampleRenameWorkbook(TemplateWorkbook):
                     CD(
                         value=SampleRenameHeaders.NEW_SAMPLE_NAME,
                         apply_cell=style_section_name,
-                        comment="This name change will only affect Freezeman and not the files generated during run processing.",
+                        comment="Changing the name will only affect Freezeman and not the files generated during run processing.",
                     ),
                     CD(
                         value=SampleRenameHeaders.NEW_SAMPLE_ALIAS,
                         apply_cell=style_section_name,
-                        comment="This Alias change will affect the files generated during run processing.",
+                        comment="Changing the alias will affect the files generated during run processing.",
                     ),
                 ],
             ],
             sheet_name=SHEET_NAMES[0],
         )
 
+        center_alignment = Alignment(horizontal="center")
+
+        ws = self.get_sheet_by_name(SHEET_NAMES[0])
+        ws['A7'].alignment = center_alignment # barcode
+        ws['F7'].alignment = center_alignment # new name
+        ws['G7'].alignment = center_alignment # new alias
+
+
         for header_name in self.sheets_info[0]['headers']:
             self.set_column_width(header=header_name, width_cm=6.60, sheet_name=SHEET_NAMES[0])
 
     def headers_row_number(self, sheet_name: str | None = None) -> int:
-        return 7
+        return 8
