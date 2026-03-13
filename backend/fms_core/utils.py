@@ -271,21 +271,21 @@ def get_derived_by_sample_querynode(
     alias: str | None = None,
     name: str | None = None,
 ):
-    sq_query = Q()
+    query_node = Q()
 
     if index:
-        sq_query &= Q(derived_sample__library__index__name=index)
+        query_node &= Q(derived_sample__library__index__name=index)
 
     if barcode:
-        sq_query &= Q(sample__container__barcode=barcode)
+        query_node &= Q(sample__container__barcode=barcode)
 
     if coordinates:
-        sq_query &= Q(sample__coordinate__name=coordinates)
+        query_node &= Q(sample__coordinate__name=coordinates)
 
     if alias:
-        sq_query &= Q(derived_sample__biosample__alias=alias)
+        query_node &= Q(derived_sample__biosample__alias=alias)
 
     if name:
-        sq_query &= Q(sample__name=name)
+        query_node &= Q(sample__name=name)
 
-    return sq_query
+    return query_node

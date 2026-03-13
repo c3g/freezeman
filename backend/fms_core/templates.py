@@ -61,7 +61,7 @@ TemplateIdentity = TypedDict('TemplateIdentity', {
     'description': str,
     'file': NotRequired[str],
     'protocol': NotRequired[str],
-    # name of a static field of fms_core.workbooks.Workbooks that is a subclass of fms_core.workbooks.TemplateWorkbook
+    # name of a static field of fms_core.workbooks.Workbooks at fms_core/workbooks/__init__.py
     'workbook': NotRequired[Literal['SampleRenameWorkbook']],
 })
 TemplateDefinition = TypedDict('TemplateDefinition', {

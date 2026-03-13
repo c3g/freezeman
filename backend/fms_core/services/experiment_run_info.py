@@ -6,19 +6,19 @@ from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal, ROW, COLU
 from fms_core.containers import CONTAINER_KIND_SPECS, CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY
 from fms_core.models import (
     Biosample,
-    DerivedSample,
+    DerivedSample, 
     DerivedBySample,
-    ExperimentRun,
+    ExperimentRun, 
     Index,
     Individual,
-    Instrument,
+    Instrument, 
     Library,
     Process,
     ProcessMeasurement,
     Project,
     PropertyValue,
     Protocol,
-    Sample,
+    Sample, 
     SampleLineage,
 )
 
@@ -60,7 +60,7 @@ class RunInfoSample:
     pool_volume_ratio: Optional[float] = None
 
     # derived_sample fields
-    tissue_source: Optional[str] = None
+    tissue_source: Optional[str] = None 
 
     # individual fields
     expected_sex: Optional[str] = None
@@ -98,7 +98,7 @@ class RunInfo:
     A collection of the properties from an ExperimentRun that are
     required for run processing.
     '''
-    # Manifest version (1.0.0 to start)
+    # Manifest version (1.0.0 to start) 
     version: str
 
     # Experiment run name and id
@@ -123,14 +123,14 @@ RUN_INFO_FILE_VERSION = "5.3.0"
 
 
 def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
-    '''
+    ''' 
     Generates the run info for the experiment, including all of the derived
     samples in the experiment.
 
     Args:
         `experiment_run`: An ExperimentRun object
 
-    Returns:
+    Returns: 
         A RunInfo object as a dict.
     '''
     instrument: Instrument = experiment_run.instrument
@@ -160,9 +160,9 @@ def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
 
 
 def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSample]:
-    '''
+    ''' 
     Generates the run info for every derived sample in the experiment.
-
+    
     Args:
         `experiment_run`: An ExperimentRun object
 
@@ -183,7 +183,7 @@ def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSam
 def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> List[RunInfoSample]:
     '''
     Generates the run info for all of the derived samples in a pool.
-
+    
     Args:
         `experiment_run`: An ExperimentRun object
 
@@ -212,7 +212,7 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
             run_info_sample.external_project_name = project.external_name
             run_info_samples.append(run_info_sample)
 
-    return run_info_samples
+    return run_info_samples    
 
 def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> RunInfoSample:
     '''
@@ -323,7 +323,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     return row
 
 def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
-    '''
+    ''' 
     Given a library, find the Library Preparation process that was used to create the
     library, if any, to extract the library preparation properties (eg. Library Kit).
 
@@ -364,9 +364,9 @@ def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
                 library_to_find = Library.objects.get(derived_sample__samples=capture_lineage.parent, derived_sample__biosample=library.derived_sample.biosample)
             except Library.DoesNotExist:
                 raise Exception(f'Cannot find library sample prior to capture. Library ID: {library.pk}')
-
+  
     # Find the library preparation process measurement
-    try:
+    try: 
         lineage: SampleLineage = SampleLineage.objects.get(
             process_measurement__process__protocol_id=library_prep_protocol.pk,
             child__derived_samples__library__id=library_to_find.pk)
@@ -410,7 +410,7 @@ def _get_capture_details(library: Library) -> Dict[str, Optional[str]]:
         `library`: A library with a library_selection type of "Capture"
 
     Returns:
-        A dictionary containing capture_kit and capture_baits values.
+        A dictionary containing capture_kit and capture_baits values.  
     '''
     kit : Optional[str] = None
     baits : Optional[str] = None
@@ -425,7 +425,7 @@ def _get_capture_details(library: Library) -> Dict[str, Optional[str]]:
     # Note: capture_process will be None if the user submitted captured libraries
     # directly, without running the capture protocol in freezeman.
     if capture_process is not None:
-        try:
+        try: 
             kit = PropertyValue.objects.get(object_id=capture_process.pk,
                                             content_type=ContentType.objects.get_for_model(Process),
                                             property_type__name='Library Kit Used').value
@@ -439,4 +439,6 @@ def _get_capture_details(library: Library) -> Dict[str, Optional[str]]:
             pass
 
     return dict(capture_kit=kit, capture_baits=baits)
+
+
 

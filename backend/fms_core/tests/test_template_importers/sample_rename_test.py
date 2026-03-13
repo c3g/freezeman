@@ -1,30 +1,13 @@
 import datetime
-from io import BytesIO
 import pytest
 
-from django.core.files.uploadedfile import SimpleUploadedFile
-
 from fms_core.models.derived_by_sample import DerivedBySample
-from fms_core.models.platform import Platform
-from fms_core.models._constants import DOUBLE_STRANDED
-from fms_core.services.library import create_library
-from fms_core.models.library_type import LibraryType
-from fms_core.services.index import get_or_create_index
 from fms_core.models import SampleKind
 from fms_core.services.container import get_or_create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
 from fms_core.template_importer.importers.sample_rename import SampleRenameImporter
-from fms_core.templates import SAMPLE_RENAME_TEMPLATE
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
-
-HEADER_CONTAINER_BARCODE = 'Container Barcode'
-HEADER_CONTAINER_COORD = 'Container Coordinate'
-HEADER_INDEX_NAME = 'Index Name'
-HEADER_OLD_SAMPLE_NAME = 'Old Sample Name'
-HEADER_OLD_SAMPLE_ALIAS = 'Old Sample Alias'
-HEADER_NEW_SAMPLE_NAME = 'New Sample Name'
-HEADER_NEW_SAMPLE_ALIAS = 'New Sample Alias'
 
 valid_templates = [
     "Sample_Rename_v5_6_0_double_rename.xlsx",
