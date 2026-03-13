@@ -84,7 +84,7 @@ def test_no_sample_to_rename():
     result = load_template(importer=SampleRenameImporter(), file=TEST_DATA_ROOT / "Sample_Rename_v5_6_0_no_sample.xlsx")
 
     assert result['valid'] is False
-    assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["No sample found with the criteria provided; please refine your criteria."]
+    assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["No sample found with the criteria provided; please fix your criteria."]
 
 @pytest.mark.django_db
 def test_multiple_sample_found_when_renaming():
@@ -110,4 +110,4 @@ def test_multiple_sample_found_when_renaming():
     result = load_template(importer=SampleRenameImporter(), file=TEST_DATA_ROOT / "Sample_Rename_v5_6_0_multiple_samples.xlsx")
 
     assert result['valid'] is False
-    assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["2 samples found with the provided criteria to rename; please refine your criteria."]
+    assert result['result_previews'][0]['rows'][0]['validation_error'].messages == ["2 samples found with the provided criteria; please refine your criteria."]

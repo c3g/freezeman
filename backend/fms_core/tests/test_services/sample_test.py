@@ -850,9 +850,9 @@ def test_valid_rename_sample(valid_data_row: SampleRenameKwargs):
     assert not errors
     if valid_data_row['new_name'] and not valid_data_row['new_alias']:
         assert warnings == [
-            "Run processing uses Alias to name samples and failing "
+            ("Run processing uses Alias to name samples and failing "
             "to change the alias will make this name change only affect "
-            "Freezeman and not the files generated during run processing."
+            "Freezeman and not the files generated during run processing.", [])
         ]
     else:
         assert not warnings
@@ -953,9 +953,9 @@ def test_rename_sample_across_lineage():
     )
     assert not errors
     assert warnings == [
-        "Run processing uses Alias to name samples and failing "
+        ("Run processing uses Alias to name samples and failing "
         "to change the alias will make this name change only affect "
-        "Freezeman and not the files generated during run processing."
+        "Freezeman and not the files generated during run processing.", [])
     ]
     assert result is not None
 
@@ -982,9 +982,9 @@ def test_rename_sample_across_lineage():
     )
     assert not errors
     assert warnings == [
-        "Run processing uses Alias to name samples and failing "
+        ("Run processing uses Alias to name samples and failing "
         "to change the alias will make this name change only affect "
-        "Freezeman and not the files generated during run processing."
+        "Freezeman and not the files generated during run processing.", [])
     ]
     assert result is not None
 

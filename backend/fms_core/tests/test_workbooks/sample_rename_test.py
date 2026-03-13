@@ -3,7 +3,7 @@ from fms_core.workbooks.sample_rename import SampleRenameWorkbook
 
 EXPECTED_HEADERS = [
     'Container Barcode',
-    'Container Coordinate',
+    'Container Coordinates',
     'Index Name',
     'Old Sample Name',
     'Old Sample Alias',
@@ -17,7 +17,7 @@ def test_create_workbook():
     assert ws is not None
     assert ws.title == "SampleRename"
 
-    assert wb.headers_row_number() == 4
+    assert wb.headers_row_number() == 8
 
     # Check headers
     for col_num, expected_header in enumerate(EXPECTED_HEADERS, start=1):

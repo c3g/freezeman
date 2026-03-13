@@ -28,13 +28,13 @@ class SampleRenameRowHandler(GenericRowHandler):
             )
 
         except DerivedBySample.DoesNotExist:
-            self.errors["rename"] = ["No sample found with the criteria provided; please refine your criteria."]
+            self.errors["rename"] = ["No sample found with the criteria provided; please fix your criteria."]
         except DerivedBySample.MultipleObjectsReturned:
             count = DerivedBySample.objects.filter(q).values_list('sample_id', flat=True).distinct().count()
             if count == 1:
                 self.errors["rename"] = [f"Sample found with the provided criteria is a pool and will not be renamed."]
             else:
-                self.errors["rename"] = [f"{count} samples found with the provided criteria to rename; please refine your criteria."]
+                self.errors["rename"] = [f"{count} samples found with the provided criteria; please refine your criteria."]
 
         if not self.has_errors():
             self.row_object = {
