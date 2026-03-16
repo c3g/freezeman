@@ -102,7 +102,8 @@ export default function ActionContent({templateType}: { templateType: keyof type
         const file = action.template[0].file
         if (!isNullish(file)) {
             let onClick: ButtonProps['onClick'] = undefined
-            if (file.endsWith("Sample_Rename_v5_6_0.xlsx")) {
+            if (/Sample_Rename[^\.]*\.xlsx$/.test(file)) {
+                // id/pk 0 does not exist in our database
                 onClick = () => dispatch(api.pooledSamples.prefill.request({ id__in: 0 }, actionIndex)).then(response => {
                     downloadFromFile(response.filename, response.data)
                 })

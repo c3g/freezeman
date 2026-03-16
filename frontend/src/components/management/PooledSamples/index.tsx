@@ -198,7 +198,7 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
                 ...createQueryParamsFromSortBy(FILTER_KEYS, sortBy),
                 ...smartQuerySetLookup('id', defaultSelection, exceptedItems.map(id => Number(id))),
             } :
-            { id__in: '0' }
+            { id__in: '0' } // id/pk 0 does not exist in our database
         return dispatch(api.pooledSamples.prefill.request(
             options,
             template
