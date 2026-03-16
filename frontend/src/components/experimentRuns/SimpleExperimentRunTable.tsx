@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { ColumnDefinitions, createQueryParamsFromFilters, FetchRowData, FilterDescriptions, Filters, useFilters, usePaginatedDataProps, useTableColumnsProps, useTableSortByProps } from "../../utils/tableHooks";
-import { EXPERIMENT_RUN_COLUMN_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ExperimentRunColumn, ObjectWithExperimentRun } from "./ExperimentRunTableColumns";
+import { EXPERIMENT_RUN_COLUMN_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ExperimentRunColumn, ObjectWithExperimentRun, ExperimentRunColumnID as OriginalID } from "./ExperimentRunTableColumns";
 import api from "../../utils/api";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectExperimentRunLaunches, selectInstrumentsByID, selectRunTypesByID } from "../../selectors";
@@ -11,18 +11,16 @@ import relativeTime from "dayjs/plugin/relativeTime"
 dayjs.extend(relativeTime)
 
 export enum ExperimentRunColumnID {
-    // Start of ExperimentRunColumnID in ExperimentRunTableColumns.tsx
-    ID = 'ID',
-    NAME = "NAME",
-    RUN_TYPE = "RUN_TYPE",
-    INSTRUMENT = "INSTRUMENT",
-    INSTRUMENT_TYPE = "INSTRUMENT_TYPE",
-    CONTAINER_BARCODE = "CONTAINER_BARCODE",
-    START_DATE = "START_DATE",
-    LAUNCH = "LAUNCH",
-    // End of ExperimentRunColumnID in ExperimentRunTableColumns.tsx
+    ID = OriginalID.ID,
+    NAME = OriginalID.NAME,
+    RUN_TYPE = OriginalID.RUN_TYPE,
+    INSTRUMENT = OriginalID.INSTRUMENT,
+    INSTRUMENT_TYPE = OriginalID.INSTRUMENT_TYPE,
+    CONTAINER_BARCODE = OriginalID.CONTAINER_BARCODE,
+    START_DATE = OriginalID.START_DATE,
+    LAUNCH = OriginalID.LAUNCH,
     LAUNCHED = "LAUNCHED",
-    PROCESSED = "PROCESSED"
+    PROCESSED = "PROCESSED",
 }
 
 const defaultExperimentColumns: ExperimentRunColumnID[] = [

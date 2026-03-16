@@ -295,7 +295,7 @@ class ExperimentRunFilter(GenericFilter):
 
         match value:
             case "processed":
-                filtered_queryset = queryset.filter(unvalidated_count__gt=0)
+                filtered_queryset = self.is_processing_complete_filter(queryset, 'is_processing_complete', True)
             case "validated":
                 filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count__gt=0)
             case "released":

@@ -12,17 +12,23 @@ import { selectSampleTemplateActions } from "../selectors";
 import { FMSTemplateAction } from "../models/fms_api_models";
 import { ExperimentOutlined, ProjectOutlined } from "@ant-design/icons";
 
-const lastLaunchedRunsColumns = [
-    ExperimentRunColumnID.ID,
-    ExperimentRunColumnID.NAME,
-    ExperimentRunColumnID.LAUNCH,
-] as const
-
 const notLaunchedColumns = [
     ExperimentRunColumnID.ID,
     ExperimentRunColumnID.NAME,
     ExperimentRunColumnID.START_DATE
 ]
+
+const launchedRunsColumns = [
+    ExperimentRunColumnID.ID,
+    ExperimentRunColumnID.NAME,
+    ExperimentRunColumnID.LAUNCH,
+] as const
+
+const finishedRunsColumns = [
+    ExperimentRunColumnID.ID,
+    ExperimentRunColumnID.NAME,
+    ExperimentRunColumnID.PROCESSED,
+] as const
 
 const timeRanges: DefaultOptionType[] = [
     {
@@ -48,15 +54,15 @@ const timeRanges: DefaultOptionType[] = [
 ]
 
 const timeRangeToFirstDate = {
-    'last_7_days': new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    'last_7_days' : new Date(Date.now() -  7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_14_days': new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_30_days': new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_90_days': new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'since_0': '2020-04-01',
 } as const
 
-const TABLE_HEIGHT = '16em' // match height in css selector '.table-in-card .ant-table-body in DashboardPage.scss
-const CARD_HEIGHT = '30em'
+const TABLE_HEIGHT = '17em' // match height in css selectors '.table-in-card .ant-table-body' in DashboardPage.scss
+const CARD_HEIGHT = '30em' // most likely you would want to tweak the height in css selectors '.card-in-dashboard .ant-card-body' in DashboardPage.scss
 
 const QUICK_ACCESS_BUTTON_STYLE: React.CSSProperties = {
     width: 'fit-content',
@@ -117,12 +123,11 @@ function DashboardPage() {
                     <div />
                     <SimpleExperimentRunTable
                         defaultPageSize={10}
-                        columnIDs={lastLaunchedRunsColumns}
+                        columnIDs={launchedRunsColumns}
                         requestIDSuffix={".dashboard.lastLaunchedRuns"}
                         fixedQueryParams={useMemo(() => ({
                             run_processing_launch_time__isnull: false,
                             ordering: '-run_processing_launch_time',
-                            needs_run_processing: true,
                         }), [])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
@@ -168,13 +173,12 @@ function DashboardPage() {
                     </Flex>
                     <SimpleExperimentRunTable
                         defaultPageSize={10}
-                        columnIDs={lastLaunchedRunsColumns}
+                        columnIDs={finishedRunsColumns}
                         requestIDSuffix={".dashboard.processedRuns"}
                         fixedQueryParams={useMemo(() => ({
-                            experiment_run_progress_stage: "processed",
                             ordering: '-run_processing_launch_time',
                             run_processing_launch_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
-                            needs_run_processing: true,
+                            is_processing_complete: true,
                         }), [processedRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
                         tableProps={useMemo(() => ({
@@ -194,7 +198,7 @@ function DashboardPage() {
                     </Flex>
                     <SimpleExperimentRunTable
                         defaultPageSize={10}
-                        columnIDs={lastLaunchedRunsColumns}
+                        columnIDs={launchedRunsColumns}
                         requestIDSuffix={".dashboard.processingRuns"}
                         fixedQueryParams={useMemo(() => ({
                             ordering: 'run_processing_launch_time',

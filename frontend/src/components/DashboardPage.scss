@@ -1,5 +1,5 @@
 .table-in-card .ant-table-body {
-    height: 16em; // Match TABLE_HEIGHT in DashboardPage.tsx
+    height: 17em; // Match TABLE_HEIGHT in DashboardPage.tsx
 }
 
 .card-in-dashboard {
@@ -13,7 +13,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        height: 27em;
+        height: 27.5em;
         padding-top: 1em;
     }
 }
