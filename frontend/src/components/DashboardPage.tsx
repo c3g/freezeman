@@ -58,7 +58,10 @@ const timeRangeToFirstDate = {
 const TABLE_HEIGHT = '16em' // match height in css selector '.table-in-card .ant-table-body in DashboardPage.scss
 const CARD_HEIGHT = '30em'
 
-const QUICK_ACCESS_BUTTON_WIDTH = 'fit-content'
+const QUICK_ACCESS_BUTTON_STYLE: React.CSSProperties = {
+    width: 'fit-content',
+    padding: '0.25em',
+}
 const QUICK_ACCESS_TEXT_STYLE: React.CSSProperties = {
     fontSize: '1.5em',
     fontWeight: 'bold',
@@ -77,7 +80,7 @@ function DashboardPage() {
     const templates = useAppSelector((state) => selectSampleTemplateActions(state).items as FMSTemplateAction[] | undefined)
     const templateActionButtons = useMemo(() => {
         return templates?.filter((t) => t.name === 'Add Samples')?.map((template) => (
-            <Button key={template.id} style={{ width: QUICK_ACCESS_BUTTON_WIDTH }} onClick={() => navigate(`/samples/actions/${template.id}/`)} styles={{ root: { height: 'fit-content' } }}>
+            <Button key={template.id} style={QUICK_ACCESS_BUTTON_STYLE} onClick={() => navigate(`/samples/actions/${template.id}/`)} styles={{ root: { height: 'fit-content' } }}>
                 <Flex vertical={false} align={"center"} gap={"small"}>
                     <ExperimentOutlined style={QUICK_ACCESS_ICON_STYLE} />
                     <div style={QUICK_ACCESS_TEXT_STYLE}>{template.name}</div>
@@ -90,13 +93,13 @@ function DashboardPage() {
         <AppPageHeader title="Dashboard" />
         <PageContent>
             <Flex vertical={false} gap={"1em"} align={"center"} justify={"start"} style={{ width: '100%' }}>
-                <Button style={{ width: QUICK_ACCESS_BUTTON_WIDTH }} onClick={() => navigate('/projects/add/')} styles={{ root: { height: 'fit-content' } }}>
+                <Button style={QUICK_ACCESS_BUTTON_STYLE} onClick={() => navigate('/projects/add/')} styles={{ root: { height: 'fit-content' } }}>
                     <Flex vertical={false} align={"center"} gap={"small"}>
                         <ProjectOutlined style={QUICK_ACCESS_ICON_STYLE} />
                         <div style={QUICK_ACCESS_TEXT_STYLE}>Add Project</div>
                     </Flex>
                 </Button>
-                {templateActionButtons.length > 0 ? templateActionButtons : <Spin />}
+                {templateActionButtons.length > 0 ? templateActionButtons : <Spin size={"small"} />}
             </Flex>
             <ConfigProvider
                 theme={{
