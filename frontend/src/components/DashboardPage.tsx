@@ -178,6 +178,7 @@ function DashboardPage() {
                         fixedQueryParams={useMemo(() => ({
                             ordering: '-run_processing_launch_time',
                             run_processing_launch_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
+                            experiment_run_progress_stage: "processed",
                             is_processing_complete: true,
                         }), [processedRunsTimeRange])}
                         tableHeight={TABLE_HEIGHT}
