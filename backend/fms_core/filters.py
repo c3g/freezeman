@@ -320,7 +320,7 @@ class ExperimentRunFilter(GenericFilter):
         for experiment_run in queryset:
             run_processing_completion_time = experiment_run.run_processing_completion_time
             # the value is expected to follow the the format: 2026-03-02 20:58:37.910344+00:00
-            if run_processing_completion_time and run_processing_completion_time >= value:
+            if run_processing_completion_time and str(run_processing_completion_time) >= value:
                 filtered_in.append(experiment_run.pk)
 
         return queryset.filter(id__in=filtered_in)
