@@ -17,3 +17,12 @@
         padding-top: 1em;
     }
 }
+
+// help position the spinner for quick access buttons (e.g. Add Samples)
+.ant-spin .ant-spin-section {
+    position: unset;
+    top: unset;
+    left: unset;
+    transform: unset;
+    z-index: unset;
+}
