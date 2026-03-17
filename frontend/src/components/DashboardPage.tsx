@@ -47,10 +47,6 @@ const timeRanges: DefaultOptionType[] = [
         label: 'Last 90 Days',
         value: 'last_90_days',
     },
-    // {
-    //     label: 'Since April 2020',
-    //     value: 'since_0'
-    // }
 ]
 
 const timeRangeToFirstDate = {
@@ -58,7 +54,6 @@ const timeRangeToFirstDate = {
     'last_14_days': new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_30_days': new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_90_days': new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    // 'since_0': '2020-04-01',
 } as const
 
 const TABLE_HEIGHT = '17em' // match height in css selectors '.table-in-card .ant-table-body' in DashboardPage.scss
@@ -119,7 +114,7 @@ function DashboardPage() {
                 <Divider orientation={"horizontal"} />
             </ConfigProvider>
             <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"} style={{ width: '100%' }}>
-                <DashboardCard title={"Last Launched Runs"}>
+                <DashboardCard title={"Last Launched Experiments"}>
                     <div />
                     <SimpleExperimentRunTable
                         defaultPageSize={10}
@@ -162,7 +157,7 @@ function DashboardPage() {
                         }), [])}
                     />
                 </DashboardCard>
-                <DashboardCard title={"Unvalidated Processed Runs"}>
+                <DashboardCard title={"Unvalidated Processed Experiments"}>
                     <Flex justify={"center"}>
                         <Select
                             defaultValue={processedRunsTimeRange}
@@ -177,7 +172,7 @@ function DashboardPage() {
                         requestIDSuffix={".dashboard.processedRuns"}
                         fixedQueryParams={useMemo(() => ({
                             ordering: '-run_processing_launch_time',
-                            run_processing_launch_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
+                            run_processing_completion_time__gte: timeRangeToFirstDate[processedRunsTimeRange],
                             experiment_run_progress_stage: "processed",
                             is_processing_complete: true,
                         }), [processedRunsTimeRange])}
@@ -188,7 +183,7 @@ function DashboardPage() {
                         }), [])}
                     />
                 </DashboardCard>
-                <DashboardCard title="Processing Runs">
+                <DashboardCard title="Experiments Currently Being Processed">
                     <Flex justify={"center"}>
                         <Select
                             defaultValue={processingRunsTimeRange}
