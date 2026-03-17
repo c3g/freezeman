@@ -47,10 +47,10 @@ const timeRanges: DefaultOptionType[] = [
         label: 'Last 90 Days',
         value: 'last_90_days',
     },
-    {
-        label: 'Since April 2020',
-        value: 'since_0'
-    }
+    // {
+    //     label: 'Since April 2020',
+    //     value: 'since_0'
+    // }
 ]
 
 const timeRangeToFirstDate = {
@@ -58,7 +58,7 @@ const timeRangeToFirstDate = {
     'last_14_days': new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_30_days': new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     'last_90_days': new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    'since_0': '2020-04-01',
+    // 'since_0': '2020-04-01',
 } as const
 
 const TABLE_HEIGHT = '17em' // match height in css selectors '.table-in-card .ant-table-body' in DashboardPage.scss
@@ -79,7 +79,7 @@ const QUICK_ACCESS_ICON_STYLE: React.CSSProperties = {
 function DashboardPage() {
     const [experimentsNotLaunchedTimeRange, setExperimentsNotLaunchedTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
     const [processedRunsTimeRange, setProcessedRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
-    const [processingRunsTimeRange, setProcessingRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('since_0')
+    const [processingRunsTimeRange, setProcessingRunsTimeRange] = React.useState<keyof typeof timeRangeToFirstDate>('last_30_days')
 
     const navigate = useNavigate()
 
