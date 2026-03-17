@@ -23,6 +23,8 @@ class SampleRenameWorkbook(TemplateWorkbook):
             cell.font = Font(name="Calibri", sz=11, family=2, b=True, i=False, color=Color("ff0000"), scheme="minor")
         red_asterisk = CD(value='*', apply_cell=red_text)
 
+        empty_cell = CD(value='')
+
         self.insert_cells(
             first_cell_location=(1, 1),
             order="row",
@@ -43,11 +45,11 @@ class SampleRenameWorkbook(TemplateWorkbook):
                 [],
                 [
                     red_asterisk, # barcode
-                    CD(value=''), # coordinates
-                    CD(value=''), # index name
-                    CD(value=''), # old name
-                    CD(value=''), # old alias
-                    red_asterisk, # new name (this will be merged with the "new alias")
+                    empty_cell, # coordinates
+                    empty_cell, # index name
+                    empty_cell, # old name
+                    empty_cell, # old alias
+                    red_asterisk, # new name
                     red_asterisk, # new alias
                 ],
                 [
