@@ -46,3 +46,4 @@ export function IndexCuration() {
     />
 }
 export default IndexCuration
+
