@@ -26,7 +26,7 @@ const SelectFilter = ({value, title, options, filterKey, setFilter, confirm, vis
       <div>
           <Select
             ref={selectRef}
-            style={{ width: 200, display: 'block' }}
+            style={{ width: 200 }}
             placeholder={`Select ${title}`}
             mode='multiple'
             allowClear
