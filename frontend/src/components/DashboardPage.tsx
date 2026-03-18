@@ -115,7 +115,15 @@ function DashboardPage() {
             </ConfigProvider>
             <Flex vertical={false} wrap={"wrap"} gap={"large"} justify={"center"} style={{ width: '100%' }}>
                 <DashboardCard title={"Last Launched Experiments"}>
-                    <div />
+                    {/* Invisible button to match layout of other cards */}
+                    <Flex justify={"center"} style={{ visibility: 'hidden' }}>
+                        <Select
+                            defaultValue={experimentsNotLaunchedTimeRange}
+                            onChange={setExperimentsNotLaunchedTimeRange}
+                            options={timeRanges}
+                            popupMatchSelectWidth={false}
+                        />
+                    </Flex>
                     <SimpleExperimentRunTable
                         defaultPageSize={10}
                         columnIDs={launchedRunsColumns}

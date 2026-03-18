@@ -4,7 +4,7 @@ import { EXPERIMENT_RUN_COLUMN_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, Experime
 import api from "../../utils/api";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectExperimentRunLaunches, selectInstrumentsByID, selectRunTypesByID } from "../../selectors";
-import { ConfigProvider, Table } from "antd";
+import { ConfigProvider, Pagination, Table } from "antd";
 import dayjs from "dayjs";
 
 import relativeTime from "dayjs/plugin/relativeTime"
@@ -114,7 +114,7 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
         }
     }, [dispatch, fixedQueryParams, requestIDSuffix])
 
-    const [{ locale, ...paginatedDataProps}, { fetchRowData }] = usePaginatedDataProps({
+    const [tableDataProps, paginationProps, { fetchRowData }] = usePaginatedDataProps({
         defaultPageSize: 25,
         fetchRowData: fetchExperimentRuns,
         bodySpinStyle: useMemo(() => ({ height: tableHeight, alignContent: 'center' }), [tableHeight])
@@ -159,14 +159,17 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
         }}
         >
             <Table<ObjectWithExperimentRun>
-                {...paginatedDataProps}
+                {...tableDataProps}
                 {...tableSortByProps}
                 {...tableColumnsProps}
                 rowKey={ROW_KEY}
                 scroll={{ y: tableHeight }}
                 bordered
                 {...tableProps}
-                {...(locale ? { locale } : undefined)} // Override locale to include loading spinner if needed
+            />
+            <Pagination
+                {...paginationProps}
+                style={{ paddingBottom: '1em' }}
             />
     </ConfigProvider>)
 }

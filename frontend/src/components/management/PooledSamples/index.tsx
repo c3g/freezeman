@@ -7,7 +7,7 @@ import { FILTER_TYPE } from "../../../constants"
 import api from "../../../utils/api"
 import { Link } from "react-router-dom"
 import { smartQuerySetLookup } from "../../../utils/functions"
-import { Button, Space, Table } from "antd"
+import { Button, Pagination, Space, Table } from "antd"
 import AppPageHeader from "../../AppPageHeader"
 import FiltersBar from "../../filters/filtersBar/FiltersBar"
 import PageContent from "../../PageContent"
@@ -142,7 +142,7 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
         }
     }, [dispatch])
 
-    const [paginatedDataProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
+    const [tableDataProps, paginationProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
         defaultPageSize,
         fetchRowData: fetchPooledSamples,
         bodySpinStyle: useMemo(() => ({ height: tableHeight, alignContent: 'center' }), [tableHeight])
@@ -164,7 +164,7 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
         }
     ] = useSmartSelectionProps<FMSPooledSample>({
         totalCount: totalCount ?? 0,
-        itemsOnPage: paginatedDataProps.dataSource,
+        itemsOnPage: tableDataProps.dataSource,
         rowKey: ROW_KEY,
     })
 
@@ -265,13 +265,16 @@ export function PooledSamples({ columns, tableHeight, title, actionUrlBase, temp
                         setFilters({})
                     }} />
                     <Table<FMSPooledSample>
-                        {...paginatedDataProps}
+                        {...tableDataProps}
                         {...tableSortByProps}
                         {...smartSelectionProps}
                         {...tableColumnsProps}
                         rowKey={ROW_KEY}
                         scroll={{ y: tableHeight }}
                         bordered
+                    />
+                    <Pagination
+                        {...paginationProps}
                     />
                 </Space>
             </PageContent>

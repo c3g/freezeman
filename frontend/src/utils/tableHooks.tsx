@@ -1,7 +1,7 @@
-import { ColumnsType, ColumnType, TableProps } from "antd/es/table"
+import { ColumnsType, ColumnType } from "antd/es/table"
 import { AnyObject as AntdAnyObject } from "antd/es/_util/type"
 import React, { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Checkbox, InputRef, Spin } from "antd"
+import { Checkbox, InputRef, Spin, PaginationProps, TableProps } from "antd"
 import { SelectionSelectFn, TablePaginationConfig, TableRowSelection } from "antd/es/table/interface"
 import { FILTER_TYPE } from "../constants"
 import { FilterSet as OldFilterSet, FilterDescription as OldFilterDescription, FilterValue as OldFilterValue, MetadataFilterValue, FilterOptions } from "../models/paged_items"
@@ -16,7 +16,8 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     bodySpinStyle,
     pagination = true,
 }: UseTableDataAndLoadingArguments<ColumnID, RowData>): [
-    Required<Pick<TableProps<RowData>, 'dataSource' | 'loading'>> & Pick<TableProps<RowData>, 'pagination' | 'locale'>,
+    Required<Pick<TableProps<RowData>, 'dataSource' | 'loading' | 'pagination' | 'locale'>>,
+    PaginationProps | undefined,
     {
         fetchRowData: (args: Partial<FetchRowDataArguments<ColumnID>>, debounceTime?: number) => void,
         totalCount: number,
@@ -25,7 +26,7 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
     const [dataSource, setDataSource] = useState<RowData[]>([])
     const [loading, setLoading] = useState<boolean>(true)
 
-    const [paginatedProps, { setPagination, setOnChange }] = usePaginationProps(defaultPageSize)
+    const [paginationProps, { setPagination, setOnChange }] = usePaginationProps(defaultPageSize)
 
     const timeoutHandler = useRef<ReturnType<typeof setTimeout>>()
     useEffect(() => {
@@ -92,18 +93,19 @@ export function usePaginatedDataProps<ColumnID extends string, RowData extends A
         {
             dataSource: loading && bodySpinStyle ? [] : dataSource,
             loading: loading && !bodySpinStyle,
-            ...(loading && bodySpinStyle ? { locale: { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } } : undefined),
-            ...(pagination ? paginatedProps : { pagination: false }),
+            pagination: false,
+            locale: loading && bodySpinStyle ? { emptyText: <Spin style={bodySpinStyle} size={"large"} /> } : {},
         },
+        pagination ? paginationProps : undefined,
         {
             fetchRowData: wrappedFetchRowData,
-            totalCount: paginatedProps.pagination.total ?? 0,
+            totalCount: paginationProps.total ?? 0,
         }
     ]
 }
 
 export function usePaginationProps(defaultPageSize: number): [
-    { pagination: TablePaginationConfig },
+    PaginationProps,
     {
         setPagination: (newCurrentPage: number, newPageSize: number, totalCount: number) => void,
         setOnChange: (newOnChange: NonNullable<TablePaginationConfig['onChange']>) => void,
@@ -149,12 +151,11 @@ export function usePaginationProps(defaultPageSize: number): [
 
     return [
         {
-            pagination: {
-                current: pageNumber,
-                pageSize,
-                total: totalCount,
-                onChange,
-            }
+            current: pageNumber,
+            pageSize,
+            total: totalCount,
+            onChange,
+            align: 'end'
         },
         {
             setPagination,
