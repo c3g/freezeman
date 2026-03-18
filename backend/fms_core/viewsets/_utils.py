@@ -1,10 +1,8 @@
-from datetime import datetime
-from typing import Any, Dict, Tuple, Union, List
-from tablib import Dataset
+from typing import Any, Dict, Tuple, TypedDict, Union, List
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import CharField, Func, Value
 from django.db import transaction
-from wsgiref.util import FileWrapper
-from django.http import HttpResponseBadRequest, HttpResponse, StreamingHttpResponse
+from django.http import HttpResponseBadRequest, HttpResponse
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -15,6 +13,8 @@ from reversion.models import Version
 import json
 import os
 
+from fms_core.template_importer.importers._generic import GenericImporter
+from fms_core.templates import TemplateIdentity
 from fms_core import automations
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
@@ -103,20 +103,26 @@ class AutomationsMixin:
             result["success"] = False
             transaction.set_rollback(True)
 
-        results = { 
+        results = {
                 "result": result,
                 "errors": errors,
                 "warnings": warnings,
         }
         return Response(results)
-    
+
+class TemplateActionDefinition(TypedDict):
+    name: str
+    description: str
+    template: list[TemplateIdentity]
+    importer: type[GenericImporter]
+
 class TemplateActionsMixin:
     # When this mixin is used, this list will be overridden to provide a list
     # of template actions for the viewset implementation.
-    template_action_list = []
+    template_action_list: list[TemplateActionDefinition] = []
 
     @classmethod
-    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[dict, Dataset]]]:
+    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[TemplateActionDefinition, InMemoryUploadedFile]]]:
         """
         Gets template action from request data. Requests should be
         multipart/form-data, with two key-value pairs:
@@ -125,10 +131,10 @@ class TemplateActionsMixin:
         Returns a tuple of:
             bool
                 True if an error occurred, False if the request was processed
-                to the point of reading the file into a dataset.
-            Union[str, Tuple[dict, Dataset]]
+                to the point of reading the file into a InMemoryUploadedFile.
+            Union[str, Tuple[dict, InMemoryUploadedFile]]
                 str if an error occured, where the string is the error message.
-                Dataset otherwise, with the contents of the uploaded file.
+                InMemoryUploadedFile otherwise, with the contents of the uploaded file.
         """
 
         action_id = request.POST.get("action")
@@ -186,6 +192,7 @@ class TemplateActionsMixin:
         """
 
         error, action_data = self._get_action(request)
+        # error being true and action_data being string indicates error from self._get_action
         if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
@@ -283,19 +290,19 @@ class TemplatePrefillsMixin:
 
         queryset = self.filter_queryset(self.get_queryset())
         try:
-            filename = "/".join(template["identity"]["file"].split("/")[-2:]) # Remove the /static/ from the served path to search for local path 
+            filename = "/".join(template["identity"]["file"].split("/")[-2:]) # Remove the /static/ from the served path to search for local path
             template_path = os.path.join(settings.STATIC_ROOT, filename)
             prefilled_template = PrefillTemplate(template_path, template, queryset)
         except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
-        
+
         try:
             response = HttpResponse(content=prefilled_template)
             response["Content-Type"] = "application/ms-excel"
             response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
         except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
-        
+
         return response
 
 
@@ -332,20 +339,20 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
                 return HttpResponseBadRequest(json.dumps({"detail": err.messages}), content_type="application/json")
             except Exception as err:
                 return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
-            
+
             try:
                 response = HttpResponse(content=prefilled_template)
                 response["Content-Type"] = "application/ms-excel"
                 response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
             except Exception as err:
                 return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
-            
+
             return response
 
 class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod
     def _prepare_prefill_dicts(cls, template, queryset, user_prefill_data, placement_data) -> List:
-        
+
         def default_prefilling(sample: Sample, template, user_prefill_data):
             sample_row_dict = {}
             # Use sample to extract the sample information guided by the template definition prefill info.
@@ -360,7 +367,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                 for column_name, value in user_prefill_data.items():
                     sample_row_dict[column_name] = value
             return sample_row_dict
-        
+
         def default_batch_prefilling(sample_id_list: List[int], template, batch_sheet_name, user_prefill_data):
             # Get the list of attributes to group by (prefill[0] = sheet_name, prefill[2] = queryset_name)
             batch_attributes_names = [prefill[2] for prefill in template["prefill info"] if prefill[0] == batch_sheet_name]
@@ -410,7 +417,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                 for spec in step.step_specifications.all():
                     for batch_row_dict in batch_rows_list:
                         batch_row_dict[spec.column_name] = spec.value
-            
+
             dict_sheets_rows_dicts[dict_batch_sheet[True]] = batch_rows_list
         else:
             step_dict = {}

@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect} from "react";
+import React, {useCallback, useEffect, useMemo} from "react";
 import {useParams} from "react-router-dom";
-import {Dropdown, Button, MenuProps} from "antd";
+import {Dropdown, Button, MenuProps, ButtonProps} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
 
 import { isNullish } from "../utils/functions"
@@ -10,6 +10,7 @@ import PageContent from "./PageContent";
 import TemplateFlow from "./templateFlow/TemplateFlow";
 import { useAppDispatch } from "../hooks";
 import { FMSTemplateAction } from "../models/fms_api_models";
+import { downloadFromFile } from "../utils/download";
 
 const LOADING_ACTION: FMSTemplateAction = {
   name: 'Loading...',
@@ -85,22 +86,43 @@ export default function ActionContent({templateType}: { templateType: keyof type
       : [{ key: 'loading', label: 'Loading...' }]
   }
 
+    const extra = useMemo(() => {
+        if (action.template.length === 0) {
+            return <></>
+        }
+
+        if (actions[actionIndex] && action.template.length > 1) {
+            return <Dropdown menu={templateChoiceMenu} placement="bottomRight">
+                       <Button>
+                           <DownloadOutlined /> Download Template...
+                       </Button>
+                   </Dropdown>
+        }
+
+        const file = action.template[0].file
+        if (!isNullish(file)) {
+            let onClick: ButtonProps['onClick'] = undefined
+            if (/Sample_Rename[^\.]*\.xlsx$/.test(file)) {
+                // id/pk 0 does not exist in our database
+                onClick = () => dispatch(api.pooledSamples.prefill.request({ id__in: 0 }, actionIndex)).then(response => {
+                    downloadFromFile(response.filename, response.data)
+                })
+            } else {
+                onClick = () => window.location.assign(file)
+            }
+
+            return <Button onClick={onClick}>
+                       <DownloadOutlined /> Download Template
+                   </Button>
+        }
+
+        return <></>
+    }, [action.template, actions[actionIndex]])
+
   return <>
     <AppPageHeader
       title={action.name}
-      extra={
-        actions[actionIndex] && action.template.length > 1 ?
-          <Dropdown menu={templateChoiceMenu} placement="bottomRight">
-            <Button>
-              <DownloadOutlined /> Download Template...
-            </Button>
-          </Dropdown> :
-          isNullish(action.template[0].file) ?
-            <></> :
-            <Button onClick={() => window.location.assign(action.template[0].file)}>
-              <DownloadOutlined /> Download Template
-            </Button>
-      }
+      extra={extra}
     />
     <PageContent>
       <TemplateFlow

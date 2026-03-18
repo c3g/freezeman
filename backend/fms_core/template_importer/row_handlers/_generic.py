@@ -43,6 +43,9 @@ class GenericRowHandler():
         result = self.get_result()
         return result
 
+    def process_row_inner(self, *args, **kwargs):
+        raise NotImplementedError("process_row_inner() must be implemented in the subclass")
+
     def get_result(self):
         warnings = serialize_warnings(self.warnings)
         return {'errors': [], 'validation_error': ValidationError(self.errors), 'warnings': warnings}

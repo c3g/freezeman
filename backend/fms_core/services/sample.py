@@ -1,11 +1,11 @@
 from decimal import Decimal
-from typing import Tuple, List, TypeVar
+from typing import NotRequired, Tuple, List, TypedDict, cast
 from datetime import datetime, date
 from django.db import Error
-from django.db.models import QuerySet
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, ProcessMeasurement, SampleLineage,
-                             Container, Process, Library, SampleMetadata, Coordinate)
+                             Container, Process, SampleMetadata, Coordinate)
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -16,10 +16,12 @@ from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today,
 from fms_core.containers import CONTAINER_SPEC_TUBE
 from fms_core._constants import WorkflowAction
 
+
+
 def create_full_sample(name, volume, creation_date, container, sample_kind,
                        collection_site=None, library=None, project=None, individual=None,
                        coordinates=None, alias=None, concentration=None, fragment_size=None, tissue_source=None,
-                       experimental_group=None, comment=None) -> Tuple[Sample, List[str], List[str]]:
+                       experimental_group=None, comment=None) -> Tuple[Sample | None, List[str], List[str]]:
     sample = None
     errors = []
     warnings = []
@@ -1088,3 +1090,47 @@ def get_id_from_biosample_name(biosample_name: str) -> Tuple[int, List[str], Lis
     except ValueError as err:
         errors.append(f"Biosample ID cannot be extracted from {biosample_name}.")
     return biosample_id, errors, warnings
+
+def rename_sample(derived_by_sample: DerivedBySample, new_name: str | None = None, new_alias: str | None = None) -> tuple[DerivedBySample | None, list[str], list[str]]:
+    """
+    Renames a sample by its name or alias, and optionally with the combination of other parameters (index, barcode, coordinates) to ensure the correct sample is renamed. At least one of new_alias or new_name must be provided.
+
+    Args:
+        `derived_by_sample`: The DerivedBySample instance of the sample to be renamed.
+        `new_name`: The new name for the sample.
+        `new_alias`: The new alias for the sample.
+
+    Returns:
+        A tuple with the renamed sample information, errors and warnings.
+    """
+    errors = list[str]()
+    warnings = list[str]()
+    
+    if not new_alias and not new_name:
+        errors.append(f"At least one of 'New Sample Alias' or 'New Sample Name' must be provided for renaming.")
+        return None, errors, warnings
+    if not new_alias:
+        warnings.append((
+            "Run processing uses Alias to name samples and failing "
+            "to change the alias will make this name change only affect "
+            "Freezeman and not the files generated during run processing.",
+            []
+        ))
+
+    if new_alias:
+        try:
+            derived_by_sample.derived_sample.biosample.alias = new_alias
+            derived_by_sample.derived_sample.biosample.save()
+        except ValidationError as e:
+            errors.append(f'New alias "{new_alias}" is not valid: {"; ".join(e.messages)}')
+    if new_name:
+        for other_derived_by_sample in DerivedBySample.objects.filter(derived_sample__biosample=derived_by_sample.derived_sample.biosample):
+            other_sample = cast(Sample, other_derived_by_sample.sample)
+            if not other_sample.is_pool:
+                try:
+                    other_sample.name = new_name
+                    other_sample.save()
+                except ValidationError as e:
+                    errors.append(f'New name "{new_name}" is not valid: {"; ".join(e.messages)}')
+
+    return derived_by_sample, errors, warnings

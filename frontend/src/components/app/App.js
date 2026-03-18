@@ -27,6 +27,7 @@ import ContainersPage from "../containers/ContainersPage";
 import DashboardPage from "../DashboardPage";
 import ExperimentRunsPage from "../experimentRuns/ExperimentRunsPage";
 import { IndexCurationPage } from "../management/IndexCurationPage";
+import { SampleRenamePage } from "../management/SampleRename/SampleRenamePage";
 import IndicesPage from "../indices/IndicesPage";
 import IndividualsPage from "../individuals/IndividualsPage";
 import JumpBar from "../JumpBar";
@@ -195,6 +196,12 @@ const App = ({userID, usersByID, logOut }) => {
             icon: <BarcodeOutlined />,
             text: "Index Curation",
             key: "index-curations",
+          },
+          {
+            url: "/management/sample-rename",
+            icon: <BarcodeOutlined />,
+            text: "Rename Sample",
+            key: "sample-rename",
           },
         ]
       },
@@ -409,6 +416,11 @@ const App = ({userID, usersByID, logOut }) => {
             <Route path="/management/index-curations/*" element={
               <PrivateNavigate>
                 <IndexCurationPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/management/sample-rename/*" element={
+              <PrivateNavigate>
+                <SampleRenamePage />
               </PrivateNavigate>
             } />
             <Route path="/indices/*" element={
