@@ -70,7 +70,7 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
                     dataIndex: ['experimentRun', 'run_processing_end_time'],
                     width: 100,
                     render: (_, { experimentRun }) => {
-                        return dayjs(experimentRun.run_processing_end_time).format("YYYY-MM-DD")
+                        return dayjs(experimentRun.run_processing_end_time).fromNow()
                     }
                 }
             } else if (key === ExperimentRunColumnID.START_DATE && definitions[key]) {
