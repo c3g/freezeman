@@ -169,7 +169,6 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
             />
             <Pagination
                 {...paginationProps}
-                style={{ paddingBottom: '1em' }}
             />
     </ConfigProvider>)
 }
