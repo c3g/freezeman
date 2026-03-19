@@ -174,6 +174,7 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     instrument_type = serializers.SerializerMethodField()
     platform = serializers.SerializerMethodField()
     lanes = serializers.SerializerMethodField()
+    run_processing_end_time = serializers.SerializerMethodField()
 
     class Meta:
         model = ExperimentRun
@@ -195,6 +196,9 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
         for dimension in container_spec.coordinate_spec:
             nb_lanes = nb_lanes * len(dimension)
         return list(range(1, nb_lanes + 1))
+
+    def get_run_processing_end_time(self, obj):
+        return obj.run_processing_completion_time
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
     experiment_run_id = serializers.IntegerField(read_only=True, source="id")

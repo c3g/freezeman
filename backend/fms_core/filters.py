@@ -279,6 +279,9 @@ class DatasetFilter(GenericFilter):
 
 class ExperimentRunFilter(GenericFilter):
     experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
+    needs_run_processing = django_filters.BooleanFilter(method="needs_run_processing_filter")
+    is_processing_complete = django_filters.BooleanFilter(method="is_processing_complete_filter")
+    run_processing_completion_time__gte = django_filters.CharFilter(method="run_processing_completion_time__gte_filter")
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
         queryset = queryset.annotate(
@@ -300,6 +303,28 @@ class ExperimentRunFilter(GenericFilter):
                 filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count=0, has_readsets=True)
 
         return filtered_queryset
+
+    def is_processing_complete_filter(self, queryset, name, value):
+        filtered_in = []
+        for experiment_run in queryset:
+            if (experiment_run.run_processing_completion_time is not None) == value:
+                filtered_in.append(experiment_run.pk)
+
+        return queryset.filter(id__in=filtered_in)
+
+    def needs_run_processing_filter(self, queryset, name, value):
+        return queryset.filter(run_type__needs_run_processing=value)
+
+    def run_processing_completion_time__gte_filter(self, queryset, name, value):
+        filtered_in = []
+        for experiment_run in queryset:
+            run_processing_completion_time = experiment_run.run_processing_completion_time
+            # the value is expected to follow the the format: 2026-03-02 20:58:37.910344+00:00
+            if run_processing_completion_time and str(run_processing_completion_time) >= value:
+                filtered_in.append(experiment_run.pk)
+
+        return queryset.filter(id__in=filtered_in)
+
     class Meta:
         model = ExperimentRun
         fields = _experiment_run_filterset_fields
