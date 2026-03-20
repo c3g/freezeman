@@ -11,3 +11,6 @@ djangorestframework # rest_framework
 djangorestframework-simplejwt # rest-framework-simplejwt # rest_framework_simplejwt
 django-reversion # reversion
 psycopg2
+rfc3339-validator # for date-time json validation (https://python-jsonschema.readthedocs.io/en/stable/validate/#validating-formats)
+djangorestframework-csv # rest_framework_csv.renderers.CSVRenderer
+django-crequest # crequest
