@@ -271,14 +271,14 @@ function getColumnSearchProps<SearchKey extends string, T extends AntdAnyObject>
                 [searchKey]: value,
             }))
         },
-        (filterKey: string, propertyName: string, value: boolean, description: OldFilterDescription) => {
-            setFilterDescriptions?.((prevDescriptions) => produce(prevDescriptions, (draft) => {
+        setFilterDescriptions && ((filterKey: string, propertyName: string, value: boolean, description: OldFilterDescription) => {
+            setFilterDescriptions((prevDescriptions) => produce(prevDescriptions, (draft) => {
                 const desc = draft[searchKey as keyof typeof draft] as FilterDescription
                 if (desc.type === FILTER_TYPE.INPUT || desc.type === FILTER_TYPE.INPUT_NUMBER) {
                     desc[propertyName as 'startsWith' | 'exactMatch'] = value
                 }
             }))
-        },
+        }),
         undefined, // addSorter
         0, // debounceDelay
     )

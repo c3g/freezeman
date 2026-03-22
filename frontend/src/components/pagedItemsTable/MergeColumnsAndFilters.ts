@@ -24,7 +24,7 @@ export function addFiltersToColumns<T>(
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
 	setFilter : SetFilterFunc = () => false,
-	setFilterOption : SetFilterOptionFunc = () => false,
+	setFilterOption? : SetFilterOptionFunc,
 	addSorter = true,
 	debounceDelay = 500,
 ) : IdentifiedTableColumnType<T>[]{
