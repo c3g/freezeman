@@ -41,12 +41,12 @@ const SORT_KEYS: SortKeys<PooledSampleColumnID> = {
 }
 
 const FILTER_DESCRIPTIONS: FilterDescriptions<PooledSampleColumnID> = {
-    [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
-    [PooledSampleColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
-    [PooledSampleColumnID.CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
-    [PooledSampleColumnID.COORDINATES]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
-    [PooledSampleColumnID.PROJECT]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
-    [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, startsWith: true, exactMatch: false },
+    [PooledSampleColumnID.ALIAS]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+    [PooledSampleColumnID.NAME]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+    [PooledSampleColumnID.CONTAINER_BARCODE]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+    [PooledSampleColumnID.COORDINATES]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+    [PooledSampleColumnID.PROJECT]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
+    [PooledSampleColumnID.INDEX]: { type: FILTER_TYPE.INPUT, startsWith: false, exactMatch: true },
 } as const
 
 const ROW_KEY = "id"

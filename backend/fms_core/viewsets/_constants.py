@@ -319,6 +319,7 @@ _dataset_file_filterset_fields: FiltersetFields = {
 _pooled_sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "sample__id": PK_FILTERS,
+    "sample__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
     **_prefix_keys("sample__coordinate__", _coordinate_filterset_fields),
     "sample__fragment_size": SCALAR_FILTERS,

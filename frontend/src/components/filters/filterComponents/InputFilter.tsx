@@ -10,7 +10,7 @@ export interface InputFilterProps {
     description: FilterDescription
     filterKey: FilterDescription['key']
     setFilter: SetFilterFunc
-    setFilterOption: SetFilterOptionFunc
+    setFilterOption?: SetFilterOptionFunc
     confirm: () => boolean
     visible: boolean
     debounceDelay?: number
@@ -59,36 +59,38 @@ const InputFilter = ({ value, options, description, filterKey, setFilter, setFil
                 onKeyDown={onKeyDown}
                 debounceDelay={debounceDelay}
             />
-            <Flex justify={"space-evenly"} style={{ marginTop: 8 }}>
-                <Switch
-                    size={"default"}
-                    checkedChildren="Starts with"
-                    unCheckedChildren="Starts with"
-                    checked={options?.startsWith ?? false}
-                    disabled={(options?.recursiveMatch ?? false) || (options?.exactMatch ?? false)}
-                    onChange={e => onToggleSwitch('startsWith', e)}
-                />
-                <Tooltip title="Match against the entire text.">
+            {setFilterOption &&
+                <Flex justify={"space-evenly"} style={{ marginTop: 8 }}>
                     <Switch
                         size={"default"}
-                        checkedChildren="Exact"
-                        unCheckedChildren="Exact"
-                        checked={options?.exactMatch ?? false}
-                        disabled={(options?.recursiveMatch ?? false) || (options?.startsWith ?? false)}
-                        onChange={e => onToggleSwitch('exactMatch', e)}
+                        checkedChildren="Starts with"
+                        unCheckedChildren="Starts with"
+                        checked={options?.startsWith ?? false}
+                        disabled={(options?.recursiveMatch ?? false) || (options?.exactMatch ?? false)}
+                        onChange={e => onToggleSwitch('startsWith', e)}
                     />
-                </Tooltip>
-                {description.recursive &&
-                    <Tooltip title="Exhaustive">
+                    <Tooltip title="Match against the entire text.">
                         <Switch
-                            checkedChildren="Recursive"
-                            unCheckedChildren="Recursive"
-                            checked={options?.recursiveMatch ?? false}
-                            onChange={onChangeRecursive}
+                            size={"default"}
+                            checkedChildren="Exact"
+                            unCheckedChildren="Exact"
+                            checked={options?.exactMatch ?? false}
+                            disabled={(options?.recursiveMatch ?? false) || (options?.startsWith ?? false)}
+                            onChange={e => onToggleSwitch('exactMatch', e)}
                         />
                     </Tooltip>
-                }
-            </Flex>
+                    {description.recursive &&
+                        <Tooltip title="Exhaustive">
+                            <Switch
+                                checkedChildren="Recursive"
+                                unCheckedChildren="Recursive"
+                                checked={options?.recursiveMatch ?? false}
+                                onChange={onChangeRecursive}
+                            />
+                        </Tooltip>
+                    }
+                </Flex>
+            }
         </div>
     )
 }

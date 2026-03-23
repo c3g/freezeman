@@ -56,10 +56,10 @@ export function getFilterPropsIncludingDescriptions(
  * @returns 
  */
 export function getFilterPropsForDescription(
-  description: FilterDescription, 
-  filterSetting: FilterSetting | undefined, 
-  setFilter: SetFilterFunc, 
-  setFilterOption: SetFilterOptionFunc,
+  description: FilterDescription,
+  filterSetting: FilterSetting | undefined,
+  setFilter: SetFilterFunc,
+  setFilterOption?: SetFilterOptionFunc,
   debounceDelay = 500
 ) {
 	return {

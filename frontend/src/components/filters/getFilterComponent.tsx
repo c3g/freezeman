@@ -27,7 +27,7 @@ export function getFilterComponent(
 	visible = true, // Used by column filters
 	debounceDelay = 500,
 ) {
-	if (!setFilter || !setFilterOption) {
+	if (!setFilter) {
 		return null
 	}
 	switch (description.type) {
@@ -65,7 +65,7 @@ export function getInputFilter(
 	description: FilterDescription,
 	filterSetting: FilterSetting | undefined,
 	setFilter: SetFilterFunc,
-	setFilterOption: SetFilterOptionFunc,
+	setFilterOption?: SetFilterOptionFunc,
 	confirm = () => true, // Used by column filters
 	visible = true, // Used by column filters
 	debounceDelay = 500,
