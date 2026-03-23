@@ -7,6 +7,8 @@ jsonschema # jsonschema
 openpyxl # openpyxl
 pandas # pandas
 pytest # pytest
+pytest-django # pytest-django
+pytest-xdist # --maxprocesses=9 -n=logical
 djangorestframework # rest_framework
 djangorestframework-simplejwt # rest-framework-simplejwt # rest_framework_simplejwt
 django-reversion # reversion
