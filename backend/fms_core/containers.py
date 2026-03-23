@@ -23,6 +23,7 @@ __all__ = [
     "CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL",
     "CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA",
     "CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB",
+    "CONTAINER_SPEC_ULTIMA_WAFER",
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
@@ -304,6 +305,14 @@ CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY = ContainerSpec(
     is_run_container=True,
 )
 
+CONTAINER_SPEC_ULTIMA_WAFER = ContainerSpec(
+     container_kind_id="ultima wafer",
+     coordinate_spec=(alphas(1), ints(1, pad_to=2)), #1 lane
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
 RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_PMRA,
     CONTAINER_SPEC_AXIOM_96_FORMAT_ARRAY_UKBB,
@@ -324,6 +333,7 @@ RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL,
     CONTAINER_SPEC_ILLUMINA_ISEQ_100_FLOWCELL,
     CONTAINER_SPEC_PACBIO_REVIO_CELL_TRAY,
+    CONTAINER_SPEC_ULTIMA_WAFER,
 )
 
 # Containers
