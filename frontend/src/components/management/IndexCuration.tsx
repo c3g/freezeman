@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import PooledSamples, { PooledSampleColumnID } from "./PooledSamples"
 import { FMSTemplateAction, FMSTemplatePrefillOption } from "../../models/fms_api_models"
 import api from "../../utils/api"
@@ -35,6 +35,9 @@ export function IndexCuration() {
         })
     }, [dispatch])
 
+    const filterOptions = useMemo(() => ({
+        derived_sample__library__isnull: false
+    }), [])
 
     return <PooledSamples
         columns={columns}
@@ -43,7 +46,7 @@ export function IndexCuration() {
         actionUrlBase={"/management/index-curations"}
         templateAction={templateAction}
         templatePrefill={templatePrefill}
-        only_library={true}
+        filterOptions={filterOptions}
     />
 }
 export default IndexCuration

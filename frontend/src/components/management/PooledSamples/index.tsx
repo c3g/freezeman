@@ -116,8 +116,9 @@ export interface PooledSamplesProps {
     actionUrlBase: string
     templateAction?: FMSTemplateAction
     templatePrefill?: FMSTemplatePrefillOption
-    only_library?: boolean
+    filterOptions?: { derived_sample__library__isnull?: boolean }
 }
+
 export function PooledSamples({
     columns,
     tableHeight,
@@ -125,25 +126,22 @@ export function PooledSamples({
     actionUrlBase,
     templateAction,
     templatePrefill,
-    only_library = false
+    filterOptions = {}
 }: PooledSamplesProps) {
     const dispatch = useAppDispatch()
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
     const fetchPooledSamples = useCallback<FetchRowData<PooledSampleColumnID, FMSPooledSample>>(async ({
             pageNumber, pageSize, filters, sortBy
     }) => {
-        const options = {
-            ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
-            ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
-            include_pools_of_one: true,
-            offset: (pageNumber - 1) * pageSize,
-            limit: pageSize,
-        }
-        if (only_library) {
-            options['derived_sample__library__isnull'] = false
-        }
         const response = await dispatch(api.pooledSamples.list(
-            options,
+            {
+                ...createQueryParamsFromFilters(FILTER_KEYS, FILTER_DESCRIPTIONS, filters),
+                ...createQueryParamsFromSortBy(SORT_KEYS, sortBy),
+                include_pools_of_one: true,
+                ...filterOptions,
+                offset: (pageNumber - 1) * pageSize,
+                limit: pageSize,
+            },
             {
                 abort: true,
                 requestID: 'IndexCuration.fetchPooledSamples'
