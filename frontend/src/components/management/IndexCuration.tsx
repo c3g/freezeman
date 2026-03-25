@@ -43,7 +43,7 @@ export function IndexCuration() {
         actionUrlBase={"/management/index-curations"}
         templateAction={templateAction}
         templatePrefill={templatePrefill}
+        only_library={true}
     />
 }
 export default IndexCuration
-
