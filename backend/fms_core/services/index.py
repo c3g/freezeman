@@ -1,4 +1,4 @@
-from fms_core.models import Index, IndexBySet, IndexSet, IndexStructure, Sequence, SequenceByIndex3Prime, SequenceByIndex5Prime, InstrumentType
+from fms_core.models import Index, IndexBySet, IndexSet, IndexStructure, Sequence, SequenceByIndex3Prime, SequenceByIndex5Prime
 from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE, STANDARD_SEQUENCE_FIELD_LENGTH
 from django.core.exceptions import ValidationError
 

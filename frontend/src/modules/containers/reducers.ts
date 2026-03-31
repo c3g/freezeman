@@ -2,7 +2,6 @@ import { merge, set } from "object-path-immutable"
 import { indexByID } from "../../utils/objects"
 import { prefillTemplatesReducerFactory } from "../../utils/prefillTemplates"
 import { resetTable } from "../../utils/reducers"
-import { summaryReducerFactory } from "../../utils/summary"
 import { templateActionsReducerFactory } from "../../utils/templateActions"
 import { AnyAction } from "redux"
 import { Container, ContainerKind, ItemsByID } from "../../models/frontend_models"
@@ -47,7 +46,6 @@ export const containerKinds = (
   }
 };
 
-export const containersSummary = summaryReducerFactory(CONTAINERS);
 export const containerTemplateActions = templateActionsReducerFactory(CONTAINERS);
 export const containerPrefillTemplates = prefillTemplatesReducerFactory(CONTAINERS);
 

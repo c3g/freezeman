@@ -174,6 +174,7 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     instrument_type = serializers.SerializerMethodField()
     platform = serializers.SerializerMethodField()
     lanes = serializers.SerializerMethodField()
+    run_processing_end_time = serializers.SerializerMethodField()
 
     class Meta:
         model = ExperimentRun
@@ -195,6 +196,9 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
         for dimension in container_spec.coordinate_spec:
             nb_lanes = nb_lanes * len(dimension)
         return list(range(1, nb_lanes + 1))
+
+    def get_run_processing_end_time(self, obj):
+        return obj.run_processing_completion_time
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
     experiment_run_id = serializers.IntegerField(read_only=True, source="id")
@@ -506,7 +510,7 @@ class SampleSerializer(serializers.Serializer):
 
 class SampleExportSerializer(serializers.Serializer):
     coordinates = serializers.CharField(read_only=True, source="coordinate.name")
-    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
+    derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")
 
     class Meta:
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
@@ -514,15 +518,15 @@ class SampleExportSerializer(serializers.Serializer):
                   'location_barcode', 'location_coord', 'container_full_location', 'site',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
-                  'quality_flag', 'quantity_flag', 'identity_flag', 'project', 'depleted', 'is_library', 'derived_samples_counts', 'comment')
+                  'quality_flag', 'quantity_flag', 'identity_flag', 'project', 'depleted', 'is_library', 'derived_samples_count', 'comment')
 
 
 class LibrarySerializer(serializers.Serializer):
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
-    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
+    derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")
 
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool', 'derived_samples_counts',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinate', 'volume', 'is_pool', 'derived_samples_count',
                   'concentration', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'identity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
@@ -530,10 +534,10 @@ class LibrarySerializer(serializers.Serializer):
 class LibraryExportSerializer(serializers.Serializer):
     coordinates = serializers.CharField(read_only=True, source="coordinate.name")
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="fragment_size")
-    derived_samples_counts = serializers.IntegerField(read_only=True, source="count_derived_samples")
+    derived_samples_count = serializers.IntegerField(read_only=True, source="count_derived_samples")
 
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool', 'derived_samples_counts',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool', 'derived_samples_count',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'identity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
@@ -557,7 +561,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ("id", "name", "preferences")
-    
+
     def get_preferences(self, instance: Profile):
         return instance.final_preferences()
 
@@ -782,6 +786,7 @@ class PooledSampleSerializer(serializers.ModelSerializer):
     # Return the id of the pool containing this sample. This allows api clients to request
     # a list of samples from multiple pools and then group them by pool on the client side.
     pool_id = serializers.IntegerField(read_only=True, source='sample.id')
+    pool_name = serializers.CharField(read_only=True, source='sample.name')
 
     volume_ratio = serializers.DecimalField(max_digits=16, decimal_places=15, read_only=True)
 
@@ -799,6 +804,7 @@ class PooledSampleSerializer(serializers.ModelSerializer):
     parent_sample_name = serializers.CharField(read_only=True)
     container_id = serializers.IntegerField(read_only=True, source='sample.container.id')
     container_barcode = serializers.CharField(read_only=True, source='sample.container.barcode')
+    parent_container_id = serializers.IntegerField(read_only=True, source='sample.container.location.id')
     coordinates = serializers.CharField(read_only=True, source='sample.coordinate.name')
     sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
 
@@ -829,15 +835,17 @@ class PooledSampleSerializer(serializers.ModelSerializer):
             'parent_sample_name',
             'container_id',
             'container_barcode',
+            'parent_container_id',
             'coordinates',
             'platform',
             'pool_id',
+            'pool_name',
             'project_id',
             'project_name',
             'sample_kind',
             'strandedness',
             'volume_ratio',
-            ]
+        ]
 
 class PooledSampleExportSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample, for export to CSV.
@@ -1073,7 +1081,7 @@ class SampleIdentitySerializer(serializers.ModelSerializer):
 
     def get_sex_concordance(self, instance: SampleIdentity):
         return instance.sex_concordance
-    
+
     def get_identity_matches(self, instance: SampleIdentity):
         matches = SampleIdentityMatch.objects.filter(Q(tested=instance)).all()
         return SampleIdentityMatchSerializer(matches, many=True).data

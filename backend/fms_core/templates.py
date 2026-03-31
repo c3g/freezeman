@@ -3,12 +3,15 @@ Contains constants pointing to the paths of templates for template actions for
 various viewsets. Can be used to calculate URIs for the template files too.
 """
 
+from collections.abc import Callable
+from typing import Any, Literal, NotRequired, TypedDict
 from django.templatetags.static import static
 
 from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
                                                    VALID_QC_FLAG_CHOICES,
                                                    STRANDEDNESS_CHOICES,
                                                    LIBRARY_QC_QUALITY_INSTRUMENTS,
+                                                   VALID_NON_INSTRUMENTS,
                                                    LIBRARY_QC_QUANTITY_INSTRUMENTS,
                                                    SAMPLE_QC_QUALITY_INSTRUMENTS,
                                                    SAMPLE_QC_QUANTITY_INSTRUMENTS,
@@ -16,6 +19,7 @@ from fms_core.template_importer._constants import (VALID_ROBOT_CHOICES,
 from fms_core.models._constants import STRANDEDNESS_CHOICES
 from fms_core.containers import SAMPLE_NON_RUN_CONTAINER_KINDS
 from fms_core.prefilling_functions import get_axiom_experiment_barcode_from_comment, custom_prefill_8x12_container_biosample_names
+
 
 __all__ = [
     "EXPERIMENT_AXIOM_TEMPLATE",
@@ -46,9 +50,32 @@ __all__ = [
     "MAX_HEADER_OFFSET"
 ]
 
+SheetInfo = TypedDict('SheetInfo', {
+    'name': str,
+    'headers': list[str],
+    'stitch_column': NotRequired[str],
+    'batch': NotRequired[bool],
+    'custom_prefilling': NotRequired[Callable]
+})
+TemplateIdentity = TypedDict('TemplateIdentity', {
+    'description': str,
+    'file': NotRequired[str],
+    'protocol': NotRequired[str],
+    # name of a static field of fms_core.workbooks.Workbooks at fms_core/workbooks/__init__.py
+    'workbook': NotRequired[Literal['SampleRenameWorkbook']],
+})
+TemplateDefinition = TypedDict('TemplateDefinition', {
+    'identity': TemplateIdentity,
+    'sheets info': list[SheetInfo],
+    'user prefill info': NotRequired[dict[str, Literal['number'] | Literal['text'] | Literal['date'] | Literal['qc-instrument'] | list[str]]],
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+    'prefill info': NotRequired[list[tuple[str, str, str | None, str | None] | tuple[str, str, str | None, str | None, Callable[[Any], Any] | None]]],
+    'placement info': NotRequired[list[tuple]],
+})
+
 MAX_HEADER_OFFSET = 20
 
-AXIOM_PREPARATION_TEMPLATE = {
+AXIOM_PREPARATION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to prepare samples for Axiom genotyping",
                "file": static("submission_templates/Axiom_sample_preparation_v4_9_0.xlsx"),
                "protocol": "Axiom Sample Preparation"},
@@ -72,7 +99,7 @@ AXIOM_PREPARATION_TEMPLATE = {
   "placement info": [],
 }
 
-CONTAINER_CREATION_TEMPLATE = {
+CONTAINER_CREATION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v4_2_0.xlsx")},
   "sheets info": [
       {
@@ -86,7 +113,7 @@ CONTAINER_CREATION_TEMPLATE = {
   "placement info": [],
 }
 
-CONTAINER_MOVE_TEMPLATE = {
+CONTAINER_MOVE_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to move containers", "file": static("submission_templates/Container_move_v3_6_0.xlsx")},
   "sheets info": [
       {
@@ -100,7 +127,7 @@ CONTAINER_MOVE_TEMPLATE = {
   "placement info": [],
 }
 
-CONTAINER_RENAME_TEMPLATE = {
+CONTAINER_RENAME_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to rename containers", "file": static("submission_templates/Container_rename_v3_6_0.xlsx")},
   "sheets info": [
       {
@@ -115,7 +142,7 @@ CONTAINER_RENAME_TEMPLATE = {
 }
 
 # Extracted sheet info for experiment run because it is shared between all templates of this category
-EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
+EXPERIMENT_RUN_TEMPLATE_SHEET_INFO: list[SheetInfo] = [
       {
           'name': 'Experiments',
           'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Name', 'Instrument Name',
@@ -131,7 +158,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
           'batch': False,
       },]
 
-EXPERIMENT_INFINIUM_TEMPLATE = {
+EXPERIMENT_INFINIUM_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to add Infinium experiments",
                "file": static("submission_templates/Experiment_run_Infinium_v5_3_0.xlsx"),
                "protocol": "Illumina Infinium Preparation"},
@@ -152,7 +179,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
   ],
 }
 
-EXPERIMENT_MGI_TEMPLATE = {
+EXPERIMENT_MGI_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to add MGI experiments",
                "file": static("submission_templates/Experiment_run_MGI_v5_3_0.xlsx"),
                "protocol": "DNBSEQ Preparation"},
@@ -173,7 +200,7 @@ EXPERIMENT_MGI_TEMPLATE = {
   ],
 }
 
-EXPERIMENT_ILLUMINA_TEMPLATE = {
+EXPERIMENT_ILLUMINA_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to add Illumina experiments",
                "file": static("submission_templates/Experiment_run_illumina_v5_3_0.xlsx"),
                "protocol": "Illumina Preparation"},
@@ -194,7 +221,7 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
   ],
 }
 
-EXPERIMENT_AXIOM_TEMPLATE = {
+EXPERIMENT_AXIOM_TEMPLATE: TemplateDefinition = {
     "identity" : {"description": "Template to add Axiom experiments",
                   "file": static("submission_templates/Experiment_run_Axiom_v5_3_0.xlsx"),
                   "protocol": "Axiom Experiment Preparation"},
@@ -216,7 +243,7 @@ EXPERIMENT_AXIOM_TEMPLATE = {
     ],
 }
 
-EXPERIMENT_PACBIO_TEMPLATE = {
+EXPERIMENT_PACBIO_TEMPLATE: TemplateDefinition = {
     "identity" : {"description": "Template to add PacBio experiments",
                     "file": static("submission_templates/Experiment_run_Pacbio_v5_3_0.xlsx"),
                     "protocol": "PacBio Preparation"},
@@ -235,7 +262,7 @@ EXPERIMENT_PACBIO_TEMPLATE = {
     ],
 }
 
-INDEX_CREATION_TEMPLATE = {
+INDEX_CREATION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to create indices", "file": static("submission_templates/Index_creation_v5_3_0.xlsx")},
   "sheets info": [
       {
@@ -248,7 +275,7 @@ INDEX_CREATION_TEMPLATE = {
   "placement info": [],
 }
 
-INDEX_UPDATE_TEMPLATE = {
+INDEX_UPDATE_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to replace a library index", "file": static("submission_templates/Library_index_update_v5_4_0.xlsx")},
   "sheets info": [
       {
@@ -266,7 +293,48 @@ INDEX_UPDATE_TEMPLATE = {
   "placement info": [],
 }
 
-LIBRARY_CAPTURE_TEMPLATE = {
+class SampleRenameHeaders:
+    CONTAINER_BARCODE = "Container Barcode"
+    CONTAINER_COORDINATES = "Container Coordinates"
+    INDEX_NAME = "Index Name"
+    OLD_SAMPLE_NAME = "Old Sample Name"
+    OLD_SAMPLE_ALIAS = "Old Sample Alias"
+    NEW_SAMPLE_NAME = "New Sample Name"
+    NEW_SAMPLE_ALIAS = "New Sample Alias"
+
+SAMPLE_RENAME_TEMPLATE: TemplateDefinition = {
+    "identity": {
+        "description": "Template to rename sample (and its alias)",
+        "file": static("submission_templates/Sample_Rename_v5_6_0.xlsx"),
+        "workbook": "SampleRenameWorkbook",
+    },
+    "sheets info": [
+        {
+            'name': 'SampleRename',
+            'headers': [
+                SampleRenameHeaders.CONTAINER_BARCODE,
+                SampleRenameHeaders.CONTAINER_COORDINATES,
+                SampleRenameHeaders.INDEX_NAME,
+                SampleRenameHeaders.OLD_SAMPLE_NAME,
+                SampleRenameHeaders.OLD_SAMPLE_ALIAS,
+                SampleRenameHeaders.NEW_SAMPLE_NAME,
+                SampleRenameHeaders.NEW_SAMPLE_ALIAS,
+            ],
+            'batch': False,
+        },
+    ],
+    # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property", "Extractor Function"), ...]
+    "prefill info": [
+        ("SampleRename", SampleRenameHeaders.CONTAINER_BARCODE, "sample__container__barcode", None, None),
+        ("SampleRename", SampleRenameHeaders.CONTAINER_COORDINATES, "sample__coordinate__name", None, None),
+        ("SampleRename", SampleRenameHeaders.INDEX_NAME, "derived_sample__library__index__name", None, None),
+        ("SampleRename", SampleRenameHeaders.OLD_SAMPLE_NAME, "sample__name", None, None),
+        ("SampleRename", SampleRenameHeaders.OLD_SAMPLE_ALIAS, "derived_sample__biosample__alias", None, None),
+    ],
+    "placement info": [],
+}
+
+LIBRARY_CAPTURE_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to prepare captured libraries",
                "file": static("submission_templates/Library_capture_v4_4_0.xlsx"),
                "protocol": "Library Capture"},
@@ -305,7 +373,7 @@ LIBRARY_CAPTURE_TEMPLATE = {
   ],
 }
 
-LIBRARY_CONVERSION_TEMPLATE = {
+LIBRARY_CONVERSION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to convert libraries",
                "file": static("submission_templates/Library_conversion_v4_4_0.xlsx"),
                "protocol": "Library Conversion"},
@@ -347,7 +415,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
   ],
 }
 
-LIBRARY_PREPARATION_TEMPLATE = {
+LIBRARY_PREPARATION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to prepare libraries",
                "file": static("submission_templates/Library_preparation_v4_4_0.xlsx"),
                "protocol": "Library Preparation"},
@@ -394,7 +462,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
   ],
 }
 
-LIBRARY_QC_TEMPLATE = {
+LIBRARY_QC_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to perform library quality control",
                "file": static("submission_templates/Library_QC_v4_8_0.xlsx"),
                "protocol": "Library Quality Control"},
@@ -412,7 +480,7 @@ LIBRARY_QC_TEMPLATE = {
       "QC Date (YYYY-MM-DD)": "date",
       "Volume Used (uL)": "number",
       "Strandedness": STRANDEDNESS_CHOICES,
-      "Quality Instrument": LIBRARY_QC_QUALITY_INSTRUMENTS,
+      "Quality Instrument": [*LIBRARY_QC_QUALITY_INSTRUMENTS, *VALID_NON_INSTRUMENTS],
       "Quality Flag": VALID_QC_FLAG_CHOICES,
       "Quantity Instrument": LIBRARY_QC_QUANTITY_INSTRUMENTS,
       "Quantity Flag": VALID_QC_FLAG_CHOICES,
@@ -424,12 +492,12 @@ LIBRARY_QC_TEMPLATE = {
     ("LibraryQC", "Library Container Barcode", "container__barcode", "container_barcode", None),
     ("LibraryQC", "Library Container Coord", "coordinate__name", "coordinates", None),
     ("LibraryQC", "Current Volume (uL)", "volume", "volume", None),
-    ("LibraryQC", "Strandedness", "sample_strandedness", "strandedness", None),
+    ("LibraryQC", "Strandedness", "derived_samples__library__strandedness", "strandedness", None),
     ],
   "placement info": [],
 }
 
-NORMALIZATION_TEMPLATE = {
+NORMALIZATION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to perform normalization",
                "file": static("submission_templates/Normalization_v4_5_0.xlsx"),
                "protocol": "Normalization"},
@@ -466,7 +534,7 @@ NORMALIZATION_TEMPLATE = {
   ],
 }
 
-NORMALIZATION_PLANNING_TEMPLATE = {
+NORMALIZATION_PLANNING_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to perform normalization planning",
                "file": static("submission_templates/Normalization_planning_v4_8_0.xlsx"),
                "protocol": "Normalization"},
@@ -509,7 +577,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
   ],
 }
 
-QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE = {
+QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to perform quality control from a Spark instrument result file.",
                "protocol": "Quality Control - Integration"},
   "sheets info": [
@@ -521,7 +589,7 @@ QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE = {
   ]
 }
 
-SAMPLE_METADATA_TEMPLATE = {
+SAMPLE_METADATA_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_14_0.xlsx")},
   "sheets info": [
       {
@@ -539,7 +607,7 @@ SAMPLE_METADATA_TEMPLATE = {
   "placement info": [],
 }
 
-SAMPLE_POOLING_TEMPLATE = {
+SAMPLE_POOLING_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to pool samples and libraries",
                "file": static("submission_templates/Sample_pooling_v4_12_0.xlsx"),
                "protocol": "Sample Pooling"},
@@ -594,7 +662,7 @@ SAMPLE_POOLING_TEMPLATE = {
   ],
 }
 
-SAMPLE_POOLING_PLANNING_TEMPLATE = {
+SAMPLE_POOLING_PLANNING_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to perform pooling planning",
                "file": static("submission_templates/Sample_pooling_planning_v4_9_0.xlsx"),
                "protocol": "Sample Pooling"},
@@ -620,7 +688,7 @@ SAMPLE_POOLING_PLANNING_TEMPLATE = {
   "placement info": [],
 }
 
-SAMPLE_SUBMISSION_TEMPLATE = {
+SAMPLE_SUBMISSION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v5_3_0.xlsx")},
   "sheets info": [
       {
@@ -647,7 +715,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
   "placement info": [],
 }
 
-SAMPLE_UPDATE_TEMPLATE = {
+SAMPLE_UPDATE_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to update samples", "file": static("submission_templates/Sample_update_v3_10_0.xlsx")},
   "sheets info": [
       {
@@ -666,7 +734,7 @@ SAMPLE_UPDATE_TEMPLATE = {
   "placement info": [],
 }
 
-SAMPLE_QC_TEMPLATE = {
+SAMPLE_QC_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to perform sample quality control",
                "file": static("submission_templates/Sample_QC_v4_12_0.xlsx"),
                "protocol": "Sample Quality Control"},
@@ -700,7 +768,7 @@ SAMPLE_QC_TEMPLATE = {
   "placement info": [],
 }
 
-SAMPLE_EXTRACTION_TEMPLATE = {
+SAMPLE_EXTRACTION_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to extract NA from samples",
                "file": static("submission_templates/Sample_extraction_v4_12_0.xlsx"),
                "protocol": "Extraction"},
@@ -743,7 +811,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
   ],
 }
 
-SAMPLE_TRANSFER_TEMPLATE = {
+SAMPLE_TRANSFER_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to transfer samples",
                "file": static("submission_templates/Sample_transfer_v5_3_0.xlsx"),
                "protocol": "Transfer"},
@@ -780,7 +848,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
   ],
 }
 
-SAMPLE_IDENTITY_QC_TEMPLATE = {
+SAMPLE_IDENTITY_QC_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to ascertain sample identity",
                "file": static("submission_templates/Sample_identity_QC_v5_2_0.xlsx"),
                "protocol": "Sample Identity Quality Control"},
@@ -814,7 +882,7 @@ SAMPLE_IDENTITY_QC_TEMPLATE = {
   ],
 }
 
-SAMPLE_SELECTION_QPCR_TEMPLATE = {
+SAMPLE_SELECTION_QPCR_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to select samples using qPCR",
                "file": static("submission_templates/Sample_selection_qpcr_v3_10_0.xlsx"),
                "protocol": "Sample Selection using qPCR"},
@@ -836,7 +904,7 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
   "placement info": [],
 }
 
-PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
+PROJECT_STUDY_LINK_SAMPLES_TEMPLATE: TemplateDefinition = {
   "identity": {"description": "Template to link samples to projects and studies", "file": static("submission_templates/Project_study_link_samples_v4_0_0.xlsx")},
   "sheets info": [
       {

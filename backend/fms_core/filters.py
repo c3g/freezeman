@@ -1,4 +1,4 @@
-from django.db.models import Q, Max, Count, Exists, OuterRef
+from django.db.models import Q, Max, Count, Exists, OuterRef, Case, When, BooleanField
 
 from django.utils import timezone
 import datetime
@@ -144,9 +144,47 @@ class LibraryFilter(GenericFilter):
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
     quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
     is_pooled = django_filters.CharFilter(method="is_pooled_filter")
+    container__barcode__recursive = django_filters.CharFilter(method="recursive_container_filter")
+    container__name__recursive = django_filters.CharFilter(method="recursive_container_filter")
+
+    def recursive_container_filter(self, queryset, name, value):
+        if value:
+            containers = Container.objects.all()
+            if name == "container__barcode__recursive":
+                containers = containers.filter(barcode=value)
+            elif name == "container__barcode__recursive":
+                containers = containers.filter(name=value)
+            else: # Should never happen
+                return queryset
+
+            container_ids = containers.values_list('id', flat=True)
+
+            if container_ids:
+                parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
+                                                                SELECT id, location_id
+                                                                FROM fms_core_container
+                                                                WHERE id IN %s
+                                                                UNION ALL
+                                                                SELECT child.id, child.location_id
+                                                                FROM fms_core_container AS child, parent
+                                                                WHERE child.location_id = parent.id
+                                                            )
+                                                            SELECT * FROM parent''', params=[tuple(container_ids)])
+                queryset = queryset.filter(container__in=parent_containers)
+            else:
+                queryset = queryset.none()
+        return queryset
 
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
+        queryset = queryset.annotate(
+            qc_flag=Case(
+                When(Q(quality_flag=False) | Q(quantity_flag=False) | Q(identity_flag=False), then=False),
+                When(Q(quality_flag=True) | Q(quantity_flag=True), then=True),
+                default=None,
+                output_field=BooleanField()
+            )
+        )
         for value in values.split(','):
             if value == "None":
                 bool_value = None
@@ -164,6 +202,13 @@ class LibraryFilter(GenericFilter):
         return queryset.filter(condition)
 
     def is_pooled_filter(self, queryset, name, values):
+        queryset = queryset.annotate(
+            is_pooled=Case(
+                When(Q(first_volume_ratio__lt=1), then=True),
+                default=False,
+                output_field=BooleanField()
+            )
+        )
         bool_value = (values == 'true')
         return queryset.filter(is_pooled=bool_value)
 
@@ -234,6 +279,9 @@ class DatasetFilter(GenericFilter):
 
 class ExperimentRunFilter(GenericFilter):
     experiment_run_progress_stage = django_filters.CharFilter(method="experiment_run_progress_stage_filter")
+    needs_run_processing = django_filters.BooleanFilter(method="needs_run_processing_filter")
+    is_processing_complete = django_filters.BooleanFilter(method="is_processing_complete_filter")
+    run_processing_completion_time__gte = django_filters.CharFilter(method="run_processing_completion_time__gte_filter")
 
     def experiment_run_progress_stage_filter(self, queryset, name, value):
         queryset = queryset.annotate(
@@ -255,6 +303,28 @@ class ExperimentRunFilter(GenericFilter):
                 filtered_queryset = queryset.filter(unvalidated_count=0, unreleased_count=0, has_readsets=True)
 
         return filtered_queryset
+
+    def is_processing_complete_filter(self, queryset, name, value):
+        filtered_in = []
+        for experiment_run in queryset:
+            if (experiment_run.run_processing_completion_time is not None) == value:
+                filtered_in.append(experiment_run.pk)
+
+        return queryset.filter(id__in=filtered_in)
+
+    def needs_run_processing_filter(self, queryset, name, value):
+        return queryset.filter(run_type__needs_run_processing=value)
+
+    def run_processing_completion_time__gte_filter(self, queryset, name, value):
+        filtered_in = []
+        for experiment_run in queryset:
+            run_processing_completion_time = experiment_run.run_processing_completion_time
+            # the value is expected to follow the the format: 2026-03-02 20:58:37.910344+00:00
+            if run_processing_completion_time and str(run_processing_completion_time) >= value:
+                filtered_in.append(experiment_run.pk)
+
+        return queryset.filter(id__in=filtered_in)
+
     class Meta:
         model = ExperimentRun
         fields = _experiment_run_filterset_fields

@@ -1,25 +1,26 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { ColumnDefinitions, createQueryParamsFromFilters, FetchRowData, FilterDescriptions, Filters, useFilters, usePaginatedDataProps, useTableColumnsProps, useTableSortByProps } from "../../utils/tableHooks";
-import { EXPERIMENT_RUN_COLUMN_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ExperimentRunColumn, ObjectWithExperimentRun } from "./ExperimentRunTableColumns";
+import { EXPERIMENT_RUN_COLUMN_DEFINITIONS, EXPERIMENT_RUN_FILTER_KEYS, ExperimentRunColumn, ObjectWithExperimentRun, ExperimentRunColumnID as OriginalID } from "./ExperimentRunTableColumns";
 import api from "../../utils/api";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { selectExperimentRunLaunches, selectInstrumentsByID, selectRunTypesByID } from "../../selectors";
-import { ConfigProvider, Table } from "antd";
+import { ConfigProvider, Pagination, Table } from "antd";
 import dayjs from "dayjs";
 
+import relativeTime from "dayjs/plugin/relativeTime"
+dayjs.extend(relativeTime)
+
 export enum ExperimentRunColumnID {
-    // Start of ExperimentRunColumnID in ExperimentRunTableColumns.tsx
-    ID = 'ID',
-    NAME = "NAME",
-    RUN_TYPE = "RUN_TYPE",
-    INSTRUMENT = "INSTRUMENT",
-    INSTRUMENT_TYPE = "INSTRUMENT_TYPE",
-    CONTAINER_BARCODE = "CONTAINER_BARCODE",
-    START_DATE = "START_DATE",
-    LAUNCH = "LAUNCH",
-    // End of ExperimentRunColumnID in ExperimentRunTableColumns.tsx
+    ID = OriginalID.ID,
+    NAME = OriginalID.NAME,
+    RUN_TYPE = OriginalID.RUN_TYPE,
+    INSTRUMENT = OriginalID.INSTRUMENT,
+    INSTRUMENT_TYPE = OriginalID.INSTRUMENT_TYPE,
+    CONTAINER_BARCODE = OriginalID.CONTAINER_BARCODE,
+    START_DATE = OriginalID.START_DATE,
+    LAUNCH = OriginalID.LAUNCH,
     LAUNCHED = "LAUNCHED",
-    PROCESSED = "PROCESSED"
+    PROCESSED = "PROCESSED",
 }
 
 const defaultExperimentColumns: ExperimentRunColumnID[] = [
@@ -59,7 +60,7 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
                     ...definitions[key],
                     sorter: false,
                     width: 100,
-                    render: (_, { experimentRun }) => dayjs(experimentRun.run_processing_launch_time).format("YYYY-MM-DD")
+                    render: (_, { experimentRun }) => dayjs(experimentRun.run_processing_launch_time).fromNow()
                 }
             } else if (key === ExperimentRunColumnID.PROCESSED) {
                 definitions[key] = {
@@ -69,12 +70,14 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
                     dataIndex: ['experimentRun', 'run_processing_end_time'],
                     width: 100,
                     render: (_, { experimentRun }) => {
-                        return dayjs(experimentRun.run_processing_end_time).format("YYYY-MM-DD")
+                        return dayjs(experimentRun.run_processing_end_time).fromNow()
                     }
                 }
             } else if (key === ExperimentRunColumnID.START_DATE && definitions[key]) {
                 definitions[key] = {
                     ...definitions[key],
+                    align: 'start',
+                    render: (_, { experimentRun }) => dayjs(experimentRun.start_date).fromNow(),
                     sorter: false,
                     width: 100
                 }
@@ -111,7 +114,7 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
         }
     }, [dispatch, fixedQueryParams, requestIDSuffix])
 
-    const [{ locale, ...paginatedDataProps}, { fetchRowData }] = usePaginatedDataProps({
+    const [tableDataProps, paginationProps, { fetchRowData }] = usePaginatedDataProps({
         defaultPageSize: 25,
         fetchRowData: fetchExperimentRuns,
         bodySpinStyle: useMemo(() => ({ height: tableHeight, alignContent: 'center' }), [tableHeight])
@@ -156,14 +159,16 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
         }}
         >
             <Table<ObjectWithExperimentRun>
-                {...paginatedDataProps}
+                {...tableDataProps}
                 {...tableSortByProps}
                 {...tableColumnsProps}
                 rowKey={ROW_KEY}
                 scroll={{ y: tableHeight }}
                 bordered
                 {...tableProps}
-                {...(locale ? { locale } : undefined)} // Override locale to include loading spinner if needed
+            />
+            <Pagination
+                {...paginationProps}
             />
     </ConfigProvider>)
 }

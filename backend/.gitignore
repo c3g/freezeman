@@ -4,6 +4,9 @@ env/
 __pycache__/
 *.pyc
 
+# pytest
+.pytest_cache
+
 # IDE related (intelliJ, vim files)
 .idea/*
 

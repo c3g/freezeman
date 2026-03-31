@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Button, Steps, Row, Col, notification, Flex } from "antd";
+import { Button, Steps, notification, Flex } from "antd";
 import { downloadFromFile } from "../../utils/download";
 
 import {
@@ -8,12 +8,9 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 
-import { fetchSummariesData } from "../../modules/shared/actions";
-
 import { UploadStep } from "./steps/UploadStep";
 import { ReviewStep } from "./steps/ReviewStep";
 import { ConfirmationStep } from "./steps/ConfirmationStep";
-import { useAppDispatch } from "../../hooks";
 
 
 const STEPS = [
@@ -48,8 +45,6 @@ STEPS.CONFIRM = 2
  * @returns
  */
 const TemplateFlow = (props) => {
-  const dispatch = useAppDispatch()
-
   const { action, actionIndex, checkRequest, submitRequest } = props;
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -117,7 +112,6 @@ const TemplateFlow = (props) => {
           error,
         })
       })
-      .then(() => dispatch(fetchSummariesData()))
       .finally(() => {
         setIsSubmitted(true)
         setIsSubmitting(false)

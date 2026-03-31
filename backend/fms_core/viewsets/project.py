@@ -48,15 +48,3 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def list_export(self, _request):
         serializer = ProjectExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
-
-    @action(detail=False, methods=["get"])
-    def summary(self, _request):
-        """
-        Returns summary statistics about the current set of projects in the
-        database.
-        """
-        return Response({
-            "total_count": Project.objects.count(),
-            "open_count": Project.objects.filter(status="Open").count(),
-            "closed_count": Project.objects.filter(status="Closed").count(),
-        })

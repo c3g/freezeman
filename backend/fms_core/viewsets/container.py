@@ -134,23 +134,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         return context
 
     @action(detail=False, methods=["get"])
-    def summary(self, _request):
-        """
-        Returns summary statistics about the current set of containers in the
-        database. Useful for displaying overview information in dashboard
-        front-ends and getting quick figures without needing to download actual
-        container records.
-        """
-        return Response({
-            "total_count": Container.objects.all().count(),
-            "root_count": Container.objects.filter(location_id__isnull=True).count(),
-            "kind_counts": {
-                c["kind"]: c["kind__count"]
-                for c in Container.objects.values("kind").annotate(Count("kind"))
-            },
-        })
-
-    @action(detail=False, methods=["get"])
     def list_root(self, _request):
         """
         Lists all "root" containers, i.e. containers which are not nested

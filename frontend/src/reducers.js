@@ -10,7 +10,6 @@ import {
     containerPrefillTemplates,
     containerTemplateActions,
     containers,
-    containersSummary,
 } from "./modules/containers/reducers";
 import { coordinates } from "./modules/coordinates/reducers";
 import { datasetFiles } from "./modules/datasetFiles/reducers";
@@ -31,7 +30,6 @@ import {
 import { reducer as groups } from "./modules/groups";
 import {
     indices,
-    indicesSummary,
     indicesTemplateActions
 } from "./modules/indices/reducers";
 import { individualDetails } from "./modules/individualDetails/reducers";
@@ -40,7 +38,6 @@ import { labworkSummary } from "./modules/labwork/reducers";
 import { labworkSteps, labworkStepSummary, sampleNextStepTemplateActions, labworkStepPlacement } from "./modules/labworkSteps/reducers";
 import {
     libraries,
-    librariesSummary,
     libraryPrefillTemplates,
     libraryTemplateActions
 } from "./modules/libraries/reducers";
@@ -58,7 +55,6 @@ import {
 import {
     processMeasurementTemplateActions,
     processMeasurements,
-    processMeasurementsSummary,
 } from "./modules/processMeasurements/reducers";
 import {
     processes
@@ -66,7 +62,6 @@ import {
 import {
     projectTemplateActions,
     projects,
-    projectsSummary
 } from "./modules/projects/reducers";
 import {
     protocols,
@@ -77,7 +72,6 @@ import {
     samplePrefillTemplates,
     sampleTemplateActions,
     samples,
-    samplesSummary,
 } from "./modules/samples/reducers";
 import {
     sequences,
@@ -118,7 +112,6 @@ const allReducers = combineReducers({
     app,
     biosamples,
     containerKinds,
-    containersSummary,
     containerTemplateActions,
     containerPrefillTemplates,
     containers,
@@ -142,7 +135,6 @@ const allReducers = combineReducers({
     instruments,
     instrumentTypes,
     sampleKinds,
-    samplesSummary,
     sampleTemplateActions,
     samplePrefillTemplates,
     samples,
@@ -152,22 +144,18 @@ const allReducers = combineReducers({
     readsetsTable,
     protocols,
     processes,
-    processMeasurementsSummary,
     processMeasurementTemplateActions,
     processMeasurements,
-    projectsSummary,
     projects,
     projectsOfSamples,
     projectsTable,
     projectTemplateActions,
     studies,
-    indicesSummary,
     indices,
     indicesTemplateActions,
     indicesTable,
     propertyValues,
     sequences,
-    librariesSummary,
     libraries,
     librariesTable,
     libraryTemplateActions,

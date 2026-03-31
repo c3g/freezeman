@@ -513,6 +513,11 @@ def ingest_run_validation_report(report_json):
                             return (datasets, dataset_files, errors, warnings)
                         else:
                             dataset_files.append(dataset_file)
+                    elif file.get('final_path') is None and file.get('size') is None:
+                        pass # This is the case for file types that are not deliverable for this readset
+                    else: # if either you just have size or just a final_path something is wrong
+                        errors.append(f"Dataset file for readset [{readset_name}] cannot be created : missing {'final_path' if file.get('final_path') is None else 'size'}.")
+                        return (datasets, dataset_files, errors, warnings)
 
         for run_validation in report_json["run_validation"]:
             readset_obj = readset_by_name[run_validation["sample"]]

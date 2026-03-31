@@ -11,7 +11,6 @@ export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERS
 export const LIST_KINDS            = createNetworkActionTypes("SAMPLES.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
 export const LIST_PREFILL_TEMPLATES = createNetworkActionTypes("SAMPLES.LIST_PREFILL_TEMPLATES");
-export const SUMMARY               = createNetworkActionTypes("SAMPLES.SUMMARY");
 
 export const get = (id: FMSId) => async (dispatch: AppDispatch, getState: () => RootState) => {
     const sample = getState().samples.itemsByID[id];
@@ -76,14 +75,11 @@ export const listVersions = (id) => async (dispatch, getState) => {
     ));
 }
 
-export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.samples.summary()));
-
 export default {
     GET,
     ADD,
     UPDATE,
     LIST,
-    SUMMARY,
     LIST_VERSIONS,
     LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
@@ -96,5 +92,4 @@ export default {
     listKinds,
     listTemplateActions,
     listPrefillTemplates,
-    summary,
 };

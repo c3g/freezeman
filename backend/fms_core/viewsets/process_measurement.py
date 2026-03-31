@@ -87,18 +87,3 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         page = self.paginate_queryset(process_measurement_data)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
-
-    @action(detail=False, methods=["get"])
-    def summary(self, _request):
-        """
-        Returns summary statistics about the current set of ProcessMeasurement in the
-        database.
-        """
-
-        return Response({
-            "total_count": ProcessMeasurement.objects.all().count(),
-            "protocol_counts": {
-                c["process__protocol"]: c["process__protocol__count"]
-                for c in self.queryset.values("process__protocol").annotate(Count("process__protocol"))
-            },
-        })

@@ -3,13 +3,17 @@
 # top-most EditorConfig file
 root = true
 
-# Unix-style newlines with a newline ending every file
+# General settings
 [*]
 end_of_line = lf
 insert_final_newline = true
 charset = utf-8
+trim_trailing_whitespace = true
 
-# 4 space indentation
+# 4 space indentation by default
 [*.{js,ts,jsx,tsx,html,css,scss,json,py}]
 indent_style = space
 indent_size = 4
+
+[package.json]
+indent_size = 2

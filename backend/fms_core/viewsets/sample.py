@@ -12,7 +12,7 @@ from fms_core.models import Sample, Container, Biosample, DerivedSample, Derived
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 from fms_core.services.project import add_sample_to_study
 
-from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, TransferImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
 from fms_core.template_importer.importers import AxiomPreparationImporter
 
@@ -54,6 +54,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "description": "Upload the provided template with up to 384 samples to update.",
             "template": [SAMPLE_UPDATE_TEMPLATE["identity"]],
             "importer": SampleUpdateImporter,
+        },
+        {
+            "name": "Transfer Samples",
+            "description": "Upload the provided template to transfer samples.",
+            "template": [SAMPLE_TRANSFER_TEMPLATE["identity"]],
+            "importer": TransferImporter,
         },
         {
             "name": "Sample Quality Control",
@@ -371,14 +377,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
-
-    @action(detail=False, methods=["get"])
-    def summary(self, _request):
-        """
-        Returns summary statistics about the current set of samples in the
-        database.
-        """
-        return Response({"total_count": Sample.objects.all().count()})
 
     @action(detail=False, methods=["get"])
     def list_collection_sites(self, _request):

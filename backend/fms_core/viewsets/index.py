@@ -114,13 +114,3 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def list_sets(self, _request):
         serializer = IndexSetSerializer(IndexSet.objects.all(), many=True)
         return Response(serializer.data)
-
-    @action(detail=False, methods=["get"])
-    def summary(self, _request):
-        """
-        Returns summary statistics about the current set of projects in the
-        database.
-        """
-        return Response({
-            "total_count": Index.objects.count(),
-        })

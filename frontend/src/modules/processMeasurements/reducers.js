@@ -3,12 +3,10 @@ import {map} from "rambda"
 
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
-import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 
 import PROCESS_MEASUREMENTS from "./actions";
 
-export const processMeasurementsSummary = summaryReducerFactory(PROCESS_MEASUREMENTS);
 export const processMeasurementTemplateActions = templateActionsReducerFactory(PROCESS_MEASUREMENTS);
 
 export const processMeasurements = (

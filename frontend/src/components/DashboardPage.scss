@@ -1,3 +1,29 @@
 .table-in-card .ant-table-body {
-    height: 20em; // Match TABLE_HEIGHT in DashboardPage.tsx
+    height: 17em; // Match TABLE_HEIGHT in DashboardPage.tsx
+}
+
+.card-in-dashboard {
+    .ant-card-head-wrapper {
+        justify-content: center;
+        .ant-card-head-title {
+            flex: unset;
+        }
+    }
+    .ant-card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 27.5em;
+        padding-top: 1em;
+        padding-bottom: 1em;
+    }
+}
+
+// help position the spinner for quick access buttons (e.g. Add Samples)
+.ant-spin .ant-spin-section {
+    position: unset;
+    top: unset;
+    left: unset;
+    transform: unset;
+    z-index: unset;
 }

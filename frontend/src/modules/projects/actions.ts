@@ -9,7 +9,6 @@ export const GET = createNetworkActionTypes('PROJECTS.GET')
 export const ADD = createNetworkActionTypes('PROJECTS.ADD')
 export const UPDATE = createNetworkActionTypes('PROJECTS.UPDATE')
 export const LIST = createNetworkActionTypes('PROJECTS.LIST')
-export const SUMMARY = createNetworkActionTypes('PROJECTS.SUMMARY')
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes('PROJECTS.LIST_TEMPLATE_ACTIONS')
 
 export const get = (id: FMSId): NetworkActionThunk<any> => async (dispatch, getState) => {
@@ -43,8 +42,6 @@ export const list = (options: object) => {
 	}
 }
 
-export const summary = () => (dispatch: AppDispatch) => dispatch(networkAction(SUMMARY, api.projects.summary()))
-
 export const listTemplateActions = (): NetworkActionThunk<any> => (dispatch, getState) => {
 	if (getState().projectTemplateActions.isFetching) return Promise.resolve(undefined)
 	return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.projects.template.actions()))
@@ -55,12 +52,10 @@ export default {
 	ADD,
 	UPDATE,
 	LIST,
-	SUMMARY,
 	LIST_TEMPLATE_ACTIONS,
 	get,
 	add,
 	update,
 	list,
-	summary,
 	listTemplateActions,
 }
