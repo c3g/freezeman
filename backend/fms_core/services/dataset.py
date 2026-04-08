@@ -101,6 +101,8 @@ def reset_dataset_content(dataset: Dataset):
     errors = []
     warnings = []
     try:
+        # reset validation to generate trigger file if needed.
+        _, errors, warnings = set_dataset_validation_status(dataset_obj=dataset, validation_status=ValidationStatus.AVAILABLE)
         for data in ProductionData.objects.filter(readset__dataset=dataset).all():
             data.delete()
         for tracking in ProductionTracking.objects.filter(extracted_readset__dataset=dataset).all():
@@ -180,8 +182,6 @@ def set_experiment_run_lane_validation_status(experiment_run_id: int, lane: int,
     errors = []
     warnings = []
 
-    timestamp = timezone.now()
-
     if not experiment_run_id:
         errors.append(f"Missing run id.")
     if not lane:
@@ -192,27 +192,51 @@ def set_experiment_run_lane_validation_status(experiment_run_id: int, lane: int,
         errors.append(f"Missing validated_by.")
 
     if not errors:
-        for dataset in Dataset.objects.filter(experiment_run_id=experiment_run_id, lane=lane): # May be more than one dataset due to projects
-            for readset in Readset.objects.filter(dataset=dataset).all():
-                previous_status = readset.validation_status
-                readset.validation_status = validation_status
-                if validation_status == ValidationStatus.AVAILABLE:
-                    readset.validation_status_timestamp = None
-                    readset.validated_by = None
-                else:
-                    readset.validation_status_timestamp = timestamp
-                    readset.validated_by = validated_by
-                readset.save()
-                count_status += 1
-            create_archived_comment_for_model(Dataset, dataset.id, AUTOMATED_COMMENT_DATASET_VALIDATED(ValidationStatus.labels[validation_status]))
-            is_status_revocation = validation_status != ValidationStatus.PASSED and previous_status == ValidationStatus.PASSED # identifies dataset that get a passed status invalidation
-            if validation_status == ValidationStatus.PASSED or is_status_revocation:
-                _, errors_file, warnings_file = create_validation_info_file(dataset, is_status_revocation)
-                errors.extend(errors_file)
-                warnings.extend(warnings_file)
+        for dataset_obj in Dataset.objects.filter(experiment_run_id=experiment_run_id, lane=lane): # May be more than one dataset due to projects
+            dataset_count, dataset_errors, dataset_warnings = set_dataset_validation_status(dataset_obj=dataset_obj, validation_status=validation_status, validated_by=validated_by)
+            count_status += dataset_count
+            errors.extend(dataset_errors)
+            warnings.extend(dataset_warnings)
+        
     else: # Error returns None, while a non-existant run name or lane will return 0.
         return None, errors, warnings
 
+    return count_status, errors, warnings
+
+def set_dataset_validation_status(dataset_obj: Dataset, validation_status: ValidationStatus, validated_by: User = None):
+    """
+    Set validation_status for readsets of the given dataset.
+
+    Args:
+        `dataset_obj`: Freezeman Dataset Object.
+        `validation_status`: The validation status of the readset (choices : Available - 0 (default), Passed - 1, Failed - 2).
+        `validated_by`: The user that set the validation status of the readset.
+    
+    Returns:
+        A tuple of the count of validation status set, errors and warnings
+    """
+    count_status = 0
+    errors = []
+    warnings = []
+    timestamp = timezone.now()
+    for readset in Readset.objects.filter(dataset=dataset_obj).all():
+        previous_status = readset.validation_status
+        readset.validation_status = validation_status
+        if validation_status == ValidationStatus.AVAILABLE:
+            readset.validation_status_timestamp = None
+            readset.validated_by = None
+        else:
+            readset.validation_status_timestamp = timestamp
+            readset.validated_by = validated_by
+        readset.save()
+        count_status += 1
+    create_archived_comment_for_model(Dataset, dataset_obj.id, AUTOMATED_COMMENT_DATASET_VALIDATED(ValidationStatus.labels[validation_status]))
+    is_status_revocation = validation_status != ValidationStatus.PASSED and previous_status == ValidationStatus.PASSED # identifies dataset that get a passed status invalidation
+    if validation_status == ValidationStatus.PASSED or is_status_revocation:
+        _, errors_file, warnings_file = create_validation_info_file(dataset_obj, is_status_revocation)
+        errors.extend(errors_file)
+        warnings.extend(warnings_file)
+    
     return count_status, errors, warnings
 
 def get_experiment_run_lane_validation_status(experiment_run_id: int, lane: int):
@@ -354,11 +378,19 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
 
     dataset_id = str(dataset_obj.id)
     external_project_id = dataset_obj.project.external_id
+    project_requestor_email = dataset_obj.project.requestor_email
     lane = str(dataset_obj.lane)
 
     filename, timestamp = make_timestamped_filename(file_prefix[is_validation_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
     file_path = path.join(VALIDATED_FILES_OUTPUT_PATH, filename)
-    validated_data = {"data_release_action": file_prefix[is_validation_revocation], "timestamp": timestamp, "external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_obj.id, "lane": dataset_obj.lane, "files": {}}
+    validated_data = {"data_release_action": file_prefix[is_validation_revocation],
+                      "timestamp": timestamp,
+                      "external_project_id": external_project_id,
+                      "project_requestor_email": project_requestor_email,
+                      "run_id": dataset_obj.experiment_run.id,
+                      "dataset_id": dataset_obj.id,
+                      "lane": dataset_obj.lane,
+                      "files": {}}
     dataset_files = DatasetFile.objects.filter(readset__dataset=dataset_obj)
 
     for dataset_file in dataset_files:
@@ -403,11 +435,19 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
 
     dataset_id = str(dataset_obj.id)
     external_project_id = dataset_obj.project.external_id
+    project_requestor_email = dataset_obj.project.requestor_email
     lane = str(dataset_obj.lane)
 
     filename, timestamp = make_timestamped_filename(file_prefix[is_release_revocation] + "_" + external_project_id + "_" + dataset_id + "_" + lane + ".json")
     file_path = path.join(RELEASED_FILES_OUTPUT_PATH, filename)
-    released_data = {"data_release_action": file_prefix[is_release_revocation], "timestamp": timestamp, "external_project_id": external_project_id, "run_id": dataset_obj.experiment_run.id, "dataset_id": dataset_obj.id, "lane": dataset_obj.lane, "files": {}}
+    released_data = {"data_release_action": file_prefix[is_release_revocation],
+                     "timestamp": timestamp,
+                     "external_project_id": external_project_id,
+                     "project_requestor_email": project_requestor_email,
+                     "run_id": dataset_obj.experiment_run.id,
+                     "dataset_id": dataset_obj.id,
+                     "lane": dataset_obj.lane,
+                     "files": {}}
     dataset_files = DatasetFile.objects.filter(readset__in=readsets_obj)
 
     for dataset_file in dataset_files:
