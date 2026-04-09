@@ -193,8 +193,8 @@ def set_experiment_run_lane_validation_status(experiment_run_id: int, lane: int,
 
     if not errors:
         for dataset_obj in Dataset.objects.filter(experiment_run_id=experiment_run_id, lane=lane): # May be more than one dataset due to projects
-            dataset_count, dataset_errors, dataset_warnings = set_dataset_validation_status(dataset_obj=dataset_obj, validation_status=validation_status, validated_by=validated_by)
-            count_status += dataset_count
+            count_for_current_dataset, dataset_errors, dataset_warnings = set_dataset_validation_status(dataset_obj=dataset_obj, validation_status=validation_status, validated_by=validated_by)
+            count_status += count_for_current_dataset
             errors.extend(dataset_errors)
             warnings.extend(dataset_warnings)
         
