@@ -1,5 +1,15 @@
+from typing import Any, TypedDict
+
 from django.core.exceptions import ValidationError
+import pandas as pd
 from ._utils import data_row_ids_range, panda_values_to_str_list
+
+class RowResult(TypedDict):
+    row_repr: str
+    diff: list[str]
+    errors: list[str | Exception]
+    validation_error: ValidationError
+    warnings: list[str | Exception]
 
 '''
     SheetData objects
@@ -13,8 +23,8 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name, dataframe, headers, shared_data=None):
-        self.base_errors = []
+    def __init__(self, name: str, dataframe: pd.DataFrame, headers: list[str], shared_data: Any =None):
+        self.base_errors = list[str | Exception]()
         self.is_valid = None
         self.header_row_nb = None
         self.name = name
@@ -38,8 +48,8 @@ class SheetData():
 
 
     def prepare_rows(self):
-        self.rows = []
-        self.rows_results = []
+        self.rows = list[pd.Series]()
+        self.rows_results = list[RowResult]()
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):
             row_data = self.dataframe.iloc[row_id]
             self.rows.append(row_data)
@@ -47,7 +57,7 @@ class SheetData():
             row_repr = f"#{row}"
             row_str_data = panda_values_to_str_list(row_data)
 
-            result = {
+            result: RowResult = {
                 'row_repr': row_repr,
                 'diff': [row_repr] + row_str_data,
                 'errors': [],
