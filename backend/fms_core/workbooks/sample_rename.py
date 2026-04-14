@@ -101,4 +101,4 @@ class SampleRenameWorkbook(TemplateWorkbook):
             self.set_column_width(header=header_name, width_cm=6.60, sheet_name=SHEET_NAMES[0])
 
     def headers_row_number(self, sheet_name: str | None = None) -> int:
-        return 7
+        return 8
