@@ -1,18 +1,38 @@
-django-crum # crum
-Django # django
-django-filter # django_filters
-django-rest-passwordreset # django_rest_passwordreset
-drf-yasg # drf_yasg
-jsonschema # jsonschema
-openpyxl # openpyxl
-pandas # pandas
-pytest # pytest
-pytest-django # pytest-django
-pytest-xdist # --maxprocesses=9 -n=logical
-djangorestframework # rest_framework
-djangorestframework-simplejwt # rest-framework-simplejwt # rest_framework_simplejwt
-django-reversion # reversion
-psycopg2
-rfc3339-validator # for date-time json validation (https://python-jsonschema.readthedocs.io/en/stable/validate/#validating-formats)
-djangorestframework-csv # rest_framework_csv.renderers.CSVRenderer
-django-crequest # crequest
+asgiref==3.11.1
+attrs==26.1.0
+Django==6.0.4
+django-crequest==2018.5.11
+django-crum==0.7.9
+django-filter==25.2
+django-rest-passwordreset==1.5.0
+django-reversion==6.1.0
+djangorestframework==3.17.1
+djangorestframework-csv==3.0.2
+djangorestframework_simplejwt==5.5.1
+drf-yasg==1.21.15
+et_xmlfile==2.0.0
+execnet==2.1.2
+inflection==0.5.1
+iniconfig==2.3.0
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+numpy==2.4.4
+openpyxl==3.1.5
+packaging==26.0
+pandas==3.0.2
+pluggy==1.6.0
+Pygments==2.20.0
+PyJWT==2.12.1
+pytest==9.0.3
+pytest-django==4.12.0
+pytest-xdist==3.8.0
+python-dateutil==2.9.0.post0
+pytz==2026.1.post1
+psycopg2==2.9.11
+PyYAML==6.0.3
+referencing==0.37.0
+rfc3339-validator==0.1.4
+rpds-py==0.30.0
+six==1.17.0
+sqlparse==0.5.5
+uritemplate==4.2.0
