@@ -19,7 +19,7 @@ jsonschema-specifications==2025.9.1
 numpy==2.4.4
 openpyxl==3.1.5
 packaging==26.0
-pandas==3.0.2
+pandas==2.3.3
 pluggy==1.6.0
 Pygments==2.20.0
 PyJWT==2.12.1

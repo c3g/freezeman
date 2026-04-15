@@ -92,7 +92,7 @@ class SampleRenameWorkbook(TemplateWorkbook):
 
         center_alignment = Alignment(horizontal="center")
 
-        ws = self.get_sheet_by_name(SHEET_NAMES[0])
+        ws = self[SHEET_NAMES[0]]
         ws['A7'].alignment = center_alignment # barcode
         ws['F7'].alignment = center_alignment # new name
         ws['G7'].alignment = center_alignment # new alias
@@ -101,4 +101,4 @@ class SampleRenameWorkbook(TemplateWorkbook):
             self.set_column_width(header=header_name, width_cm=6.60, sheet_name=SHEET_NAMES[0])
 
     def headers_row_number(self, sheet_name: str | None = None) -> int:
-        return 7
+        return 8
