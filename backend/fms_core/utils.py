@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Q
 import datetime
 from decimal import Decimal
-from typing import Any, Generator, Iterable, NewType, NotRequired, Sequence, TypeVar, TypedDict, Union
+from typing import Any, Generator, Iterable, NewType, NotRequired, TypeVar, TypedDict, Union
 
 __all__ = [
     "RE_SEPARATOR",
@@ -32,8 +32,8 @@ RE_WHITESPACE = re.compile(r"\s+")
 
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
 
-def unique[T: Any](sequence: Sequence[T]) -> list[T]:
-    seen = set[T]()
+def unique(sequence):
+    seen = set()
     return [x for x in sequence if not (x in seen or seen.add(x))]
 
 def comma_separated_string_to_array(s):

@@ -27,7 +27,7 @@ class GenericImporter():
         self.file = None
         self.format = None
         self.imported_file = None
-        self.sheets = dict[str, SheetData]()
+        self.sheets = {}
         self.previews_info = []
         self.dry_run = None
         self.output_file = None
@@ -117,7 +117,7 @@ class GenericImporter():
     def preprocess_file(self, path) -> os.PathLike | StringIO:
         return path
 
-    def create_sheet_data(self, name: str, headers: list[str]) -> SheetData | None:
+    def create_sheet_data(self, name, headers):
         try:
             shared_data = None
             if self.format == ".json":

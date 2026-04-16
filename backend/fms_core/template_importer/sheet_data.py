@@ -1,5 +1,3 @@
-from typing import Any, TypedDict
-
 from django.core.exceptions import ValidationError
 import pandas as pd
 from ._utils import data_row_ids_range, panda_values_to_str_list
@@ -16,8 +14,8 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name: str, dataframe: pd.DataFrame, headers: list[str], shared_data: Any =None):
-        self.base_errors = list[str | Exception]()
+    def __init__(self, name, dataframe, headers, shared_data=None):
+        self.base_errors = []
         self.is_valid = None
         self.header_row_nb = None
         self.name = name
@@ -41,8 +39,8 @@ class SheetData():
 
 
     def prepare_rows(self):
-        self.rows = list[pd.Series]()
-        self.rows_results = list["RowResult"]()
+        self.rows = []
+        self.rows_results = []
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):
             row_data = self.dataframe.iloc[row_id]
             self.rows.append(row_data)
@@ -50,7 +48,7 @@ class SheetData():
             row_repr = f"#{row}"
             row_str_data = panda_values_to_str_list(row_data)
 
-            result: "RowResult" = {
+            result = {
                 'row_repr': row_repr,
                 'diff': [row_repr] + row_str_data,
                 'errors': [],
@@ -59,7 +57,7 @@ class SheetData():
             }
             self.rows_results.append(result)
 
-    def generate_preview_info_from_rows_results(self, rows_results) -> "PreviewInfo":
+    def generate_preview_info_from_rows_results(self, rows_results):
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
@@ -74,17 +72,3 @@ class SheetData():
             "base_errors": self.base_errors,
             "rows": rows_results,
         }
-
-class RowResult(TypedDict):
-    row_repr: str
-    diff: list[str]
-    errors: list[str | Exception]
-    validation_error: ValidationError
-    warnings: list[str | Exception]
-
-class PreviewInfo(TypedDict):
-    name: str
-    headers: list[str]
-    valid: bool
-    base_errors: list[str | Exception]
-    rows: list[RowResult]
