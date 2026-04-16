@@ -17,7 +17,7 @@ class StepServicesTestCase(TestCase):
         sheets = {}
         for sheet in sheet_info:
             pd_sheet = pd.read_excel(file, sheet_name=sheet["name"], header=None)
-            dataframe = pd_sheet.map(blank_and_nan_to_none).map(str_normalize)
+            dataframe = blank_and_nan_to_none(pd_sheet.map(str_normalize, na_action='ignore'))
             sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
 
         protocol = Protocol.objects.get(name="Library Preparation")
@@ -40,7 +40,7 @@ class StepServicesTestCase(TestCase):
         sheets = {}
         for sheet in sheet_info:
             pd_sheet = pd.read_excel(file, sheet_name=sheet["name"], header=None)
-            dataframe = pd_sheet.map(blank_and_nan_to_none).map(str_normalize)
+            dataframe = blank_and_nan_to_none(pd_sheet.map(str_normalize, na_action='ignore'))
             sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
 
         protocol = Protocol.objects.get(name="Axiom Sample Preparation")

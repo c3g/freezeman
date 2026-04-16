@@ -71,7 +71,7 @@ class SheetData():
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
         # Add dynamic columns that might not be part of the hard coded headers
-        extra_columns = [column for column in self.dataframe.columns if (column not in self.headers and column is not None)]
+        extra_columns = [column for column in self.dataframe.columns if (column not in self.headers and not pd.isna(column))]
         headers_for_preview = [''] + self.headers + extra_columns
 
         return {
