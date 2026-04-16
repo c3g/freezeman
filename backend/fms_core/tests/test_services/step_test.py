@@ -7,7 +7,7 @@ from fms_core.template_importer.sheet_data import SheetData
 from fms_core.template_importer._utils import blank_and_nan_to_none
 from fms_core.tests.test_template_importers._utils import APP_DATA_ROOT
 from fms_core.utils import str_normalize
-from pandas import pandas as pd
+import pandas as pd
 
 class StepServicesTestCase(TestCase):
     def test_get_step_from_template(self):

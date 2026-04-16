@@ -1,4 +1,4 @@
-from pandas import pandas as pd
+import pandas as pd
 from typing import Any
 from fms_core.utils import float_to_decimal
 import datetime
