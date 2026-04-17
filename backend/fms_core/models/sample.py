@@ -82,7 +82,7 @@ class Sample(TrackedModel):
 
     @property
     def is_pool(self) -> bool:
-        return DerivedBySample.objects.filter(sample=self).count() > 1 # More than 1 DerivedBySample implies more than 1 DerivedSample
+        return DerivedBySample.objects.filter(sample=self.pk).count() > 1 # More than 1 DerivedBySample implies more than 1 DerivedSample
 
     @property
     def is_library(self) -> bool:
