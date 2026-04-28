@@ -19,6 +19,7 @@ from fms_core.templates import SheetInfo
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
+    logger = logging.getLogger(__name__)
 
     def __init__(self):
         self.base_errors = []
@@ -35,8 +36,6 @@ class GenericImporter():
 
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
-
-        self.logger = logging.getLogger(__name__)
 
     def import_template(self, file: Path | InMemoryUploadedFile, dry_run, user = None):
         self.file = file
