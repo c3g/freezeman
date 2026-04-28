@@ -1,4 +1,5 @@
 from io import StringIO
+import logging
 from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -35,6 +36,8 @@ class GenericImporter():
         # self.SHEETS_INFO is expected to be defined in child classes
         self.SHEETS_INFO: list[SheetInfo] = self.SHEETS_INFO
 
+        self.logger = logging.getLogger(__name__)
+
     def import_template(self, file: Path | InMemoryUploadedFile, dry_run, user = None):
         self.file = file
         self.dry_run = dry_run
@@ -58,25 +61,28 @@ class GenericImporter():
 
         if not self.base_errors:
             with transaction.atomic():
-                if dry_run:
-                    # This ensures that only one reversion is created, and is rollbacked in a dry_run
-                    with reversion.create_revision(manage_manually=True):
-                        self.import_template_inner()
-                        reversion.set_comment("Template import - dry run")
-                    transaction.set_rollback(True)
-                else:
-                    # Save template on disk with modified name (append timestamp and id) and insert path in imported_file
-                    if user is not None:
-                        os.environ["TZ"] = settings.LOCAL_TZ
-                        time.tzset()
-                        new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}_{user.username}{file_format}"
-                        file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, new_file_name)
-                        try:
-                            self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
-                        except Exception as err:
-                            self.base_errors.append(err)
-                    self.import_template_inner()                            
-                    reversion.set_comment("Template import")
+                try:
+                    if dry_run:
+                        # This ensures that only one reversion is created, and is rollbacked in a dry_run
+                        with reversion.create_revision(manage_manually=True):
+                            self.import_template_inner()
+                            reversion.set_comment("Template import - dry run")
+                        transaction.set_rollback(True)
+                    else:
+                        # Save template on disk with modified name (append timestamp and id) and insert path in imported_file
+                        if user is not None:
+                            os.environ["TZ"] = settings.LOCAL_TZ
+                            time.tzset()
+                            new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}_{user.username}{file_format}"
+                            file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, new_file_name)
+                            try:
+                                self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
+                            except Exception as err:
+                                self.base_errors.append(err)
+                        self.import_template_inner()                            
+                        reversion.set_comment("Template import")
+                except:
+                    self.logger.debug("Error during template import. Transaction rolled back.", exc_info=True)
 
             # Add processed rows with errors/warnings/diffs to self.previews_info list
             for sheet in list(self.sheets.values()):
