@@ -81,7 +81,8 @@ class GenericImporter():
                         self.import_template_inner()                            
                         reversion.set_comment("Template import")
                 except:
-                    self.logger.debug("Error during template import. Transaction rolled back.", exc_info=True)
+                    self.logger.error("Error during template import. Transaction rolled back.", exc_info=True)
+                    raise
 
             # Add processed rows with errors/warnings/diffs to self.previews_info list
             for sheet in list(self.sheets.values()):
