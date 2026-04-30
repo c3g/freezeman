@@ -1000,13 +1000,15 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
         return can_edit_referenceGenome(obj.id)
 
 class StudySerializer(serializers.ModelSerializer):
-    removable = serializers.SerializerMethodField(read_only=True)
+    project_id = serializers.IntegerField(read_only=False, required=True) # Read-only false to prevent Django glitch
+    removable = serializers.SerializerMethodField(read_only=True, required=False)
+
     class Meta:
         model = Study
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "description", "removable")
 
     def get_removable(self, instance: Study):
-        is_removable, *_ = can_remove_study(instance.pk)
+        is_removable, _, _ = can_remove_study(instance.pk)
         return is_removable
 
 class SampleNextStepSerializer(serializers.ModelSerializer):
