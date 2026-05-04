@@ -1,4 +1,5 @@
-from pandas import pandas as pd
+import math
+import pandas as pd
 from typing import Any
 from fms_core.utils import float_to_decimal
 import datetime
@@ -46,12 +47,8 @@ def panda_values_to_str_list(row_data):
     return ['' if x is None else str(x) for x in row_data.values.flatten().tolist()]
 
 
-def blank_and_nan_to_none(s: Any):
-    """
-    Returns None if the argument is a nan (pandas) or a blank string, or the argument with no
-    changes otherwise.
-    """
-    return None if (s == "" or pd.isnull(s)) else s
+def blank_and_nan_to_none(d: pd.DataFrame) -> pd.DataFrame:
+    return d.replace({math.nan: None, "": None}) # pyright: ignore [reportArgumentType]
 
 
 def input_string_to_snake_case(s):

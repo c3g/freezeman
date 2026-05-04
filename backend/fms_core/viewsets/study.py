@@ -14,7 +14,7 @@ from collections import defaultdict
 from ._constants import _study_filterset_fields
 
 class StudyViewSet(viewsets.ModelViewSet):
-    queryset = Study.objects.all()
+    queryset = Study.objects.all().distinct()
     serializer_class = StudySerializer
     permission_classes = [IsAuthenticated]
 

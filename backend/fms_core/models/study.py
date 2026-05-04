@@ -28,7 +28,7 @@ class Study(TrackedModel):
         ]
 
     def __str__(self):
-        return "Study_" + self.letter
+        return "Project_" + str(self.project) + "_Study_" + self.letter
 
     def clean(self):
         super().clean()
