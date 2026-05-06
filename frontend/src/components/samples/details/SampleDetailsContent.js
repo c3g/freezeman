@@ -39,7 +39,7 @@ const depletedStyle = {
 
 const pageStyle = {
   padding: 0,
-  overflow: "scroll",
+  overflow: "hidden",
 }
 
 const tabStyle = {
