@@ -30,6 +30,7 @@ __all__ = [
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "EXPERIMENT_ILLUMINA_TEMPLATE",
     "EXPERIMENT_PACBIO_TEMPLATE",
+    "EXPERIMENT_ULTIMA_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_CAPTURE_TEMPLATE",
     "LIBRARY_CONVERSION_TEMPLATE",
@@ -247,6 +248,25 @@ EXPERIMENT_PACBIO_TEMPLATE: TemplateDefinition = {
     "identity" : {"description": "Template to add PacBio experiments",
                     "file": static("submission_templates/Experiment_run_Pacbio_v5_3_0.xlsx"),
                     "protocol": "PacBio Preparation"},
+    "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+    "prefill info": [
+        ("Samples", "Source Sample Name", "name", "name", None),
+        ("Samples", "Source Container Barcode", "container__barcode", "container_barcode", None),
+        ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates", None),
+        ("Samples", "Source Sample Current Volume (uL)", "volume", "volume", None),
+    ],
+    "placement info": [
+        ("Samples", "Experiment Container Coordinates (Lane)", "coordinates"),
+        ("Experiments", "Experiment Container Barcode", "container_barcode"),
+        ("Experiments", "Experiment Container Name", "container_name"),
+        ("Experiments", "Experiment Container Kind", "container_kind"),
+    ],
+}
+
+EXPERIMENT_ULTIMA_TEMPLATE: TemplateDefinition = {
+    "identity" : {"description": "Template to add Ultima experiments",
+                    "file": static("submission_templates/Experiment_run_Ultima_v5_7_0.xlsx"),
+                    "protocol": "Ultima Preparation"},
     "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
     "prefill info": [
         ("Samples", "Source Sample Name", "name", "name", None),

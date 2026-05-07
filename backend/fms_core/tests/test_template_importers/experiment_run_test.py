@@ -504,3 +504,76 @@ class ExperimentRunPacbioTestCase(TestCase):
             self.assertEqual(p3.value, '5')
             self.assertEqual(p4.value, '12h')
             self.assertEqual(p5.value, self.sequencer_position[i])
+
+
+class ExperimentRunUltimaTestCase(TestCase):
+    def setUp(self) -> None:
+        self.importer = ExperimentRunImporter()
+        self.file = APP_DATA_ROOT / "Experiment_run_Ultima_v5_7_0.xlsx"
+        ContentType.objects.clear_cache()
+
+        self.container_barcode = "CONTAINERWITHSAMPLETESTULTIMA"
+        self.sample_names = ["Ultima1"]
+
+        self.prefill_data()
+
+
+    def prefill_data(self):
+        sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
+
+        individual, _, errors, warnings = get_or_create_individual(name='MrTestomax', taxon=taxon)
+
+        project, _, _ = create_project(name='TestUltimaProject')
+
+        for i, sample_name in enumerate(self.sample_names, start=1):
+            container, _, _ = create_container(barcode=self.container_barcode + str(i), kind='Tube', name=self.container_barcode + str(i))
+            create_full_sample(name=sample_name, volume=24, collection_site='site1',
+                              creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
+                              individual=individual, sample_kind=sample_kind_DNA, project=project)
+
+
+    def test_import(self):
+        # Basic test for all templates - checks that template is valid
+        result = load_template(importer=self.importer, file=self.file)
+        self.assertEqual(result['valid'], True)
+
+        # Custom tests for each template
+
+        # Test experiment run Illumina
+        experiment_run_obj = ExperimentRun.objects.get(container__barcode="RunContainerUltima")
+        process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        content_type_process = ContentType.objects.get_for_model(Process)
+        content_type_process_measurement = ContentType.objects.get_for_model(ProcessMeasurement)
+
+        # Experiment Run tests
+        self.assertEqual(experiment_run_obj.run_type.name, 'Ultima')
+        self.assertEqual(experiment_run_obj.instrument.name, 'Ultima UG100')
+
+        # Process Tests
+        self.assertEqual(process_obj.child_process.count(), 0)
+        self.assertEqual(process_obj.protocol.name, 'Ultima Preparation')
+
+        # Process properties Tests (check properties for process)
+        protocol_id = process_obj.protocol.id
+
+        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencing Kit Lot', object_id=protocol_id))
+        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Wafer Lot', object_id=protocol_id))
+
+        # Check property values for Illumina preparation process
+        self.assertEqual(p1.value, 'kitlot101025')
+        self.assertEqual(p2.value, 'CRUNCHY_WAFER_123')      
+
+        # Process measurement properties Tests (check properties for process measurement)
+        for i, sample_name in enumerate(self.sample_names):
+            sample = Sample.objects.get(container__barcode=self.container_barcode + str(i+1))
+            pm_obj = ProcessMeasurement.objects.get(source_sample=sample, process=process_obj)
+            p3 = PropertyValue.objects.get(content_type=content_type_process_measurement, object_id=pm_obj.id,
+                                                property_type=PropertyType.objects.get(name='Loading Concentration (pM)', object_id=protocol_id))
+            p4 = PropertyValue.objects.get(content_type=content_type_process_measurement, object_id=pm_obj.id,
+                                                property_type=PropertyType.objects.get(name='Application', object_id=protocol_id))
+            
+            self.assertEqual(p3.value, '5')
+            self.assertEqual(p4.value, 'ppmSeq')

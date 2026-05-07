@@ -18,7 +18,7 @@ from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSeri
 from fms_core.templates import (EXPERIMENT_PACBIO_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
                                 LIBRARY_PREPARATION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_PLANNING_TEMPLATE, 
                                 SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE,
-                                EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, AXIOM_PREPARATION_TEMPLATE,
+                                EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE, AXIOM_PREPARATION_TEMPLATE, EXPERIMENT_ULTIMA_TEMPLATE,
                                 QUALITY_CONTROL_INTEGRATION_SPARK_TEMPLATE, EXPERIMENT_AXIOM_TEMPLATE, SAMPLE_IDENTITY_QC_TEMPLATE)
 from fms_core.template_importer.importers import (ExtractionImporter, SampleQCImporter, NormalizationPlanningImporter, NormalizationImporter,
                                                   LibraryPreparationImporter, TransferImporter, LibraryQCImporter, SamplePoolingImporter,
@@ -198,7 +198,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {
             "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
-            "template": [EXPERIMENT_ILLUMINA_TEMPLATE['identity'], EXPERIMENT_MGI_TEMPLATE['identity'], EXPERIMENT_INFINIUM_TEMPLATE["identity"], EXPERIMENT_AXIOM_TEMPLATE["identity"], EXPERIMENT_PACBIO_TEMPLATE["identity"]],
+            "template": [EXPERIMENT_ILLUMINA_TEMPLATE['identity'], EXPERIMENT_MGI_TEMPLATE['identity'], EXPERIMENT_INFINIUM_TEMPLATE["identity"], EXPERIMENT_AXIOM_TEMPLATE["identity"], EXPERIMENT_PACBIO_TEMPLATE["identity"], EXPERIMENT_ULTIMA_TEMPLATE["identity"]],
             "importer": ExperimentRunImporter,
         },
     ]
@@ -223,6 +223,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": EXPERIMENT_AXIOM_TEMPLATE},
         {"template": EXPERIMENT_PACBIO_TEMPLATE},
+        {"template": EXPERIMENT_ULTIMA_TEMPLATE},
     ]
 
     def get_queryset(self):
