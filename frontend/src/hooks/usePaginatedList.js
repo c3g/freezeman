@@ -88,7 +88,7 @@ export const usePaginatedList = ({
             loading: loading || isCurrentPageUnloaded,
             childrenColumnName: 'UNEXISTENT_KEY',
             onChange: onChangeTable,
-            scroll: { x: 300 },
+            scroll: { x: '100%', y: '50vh' },
         },
         paginationProps: {
             className: "ant-table-pagination ant-table-pagination-right",
