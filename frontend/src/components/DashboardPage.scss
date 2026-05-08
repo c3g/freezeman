@@ -29,5 +29,8 @@
 }
 
 .ant-select-content-value {
+    // In the Select dropdown in "Last Launched Experiments" card in DashboardPage,
+    // the selected value wouldn't stay invisible despite setting
+    // "visibility: hidden" on the parent Flex container.
     visibility: unset !important;
 }
