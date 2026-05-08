@@ -273,7 +273,7 @@ export function PooledSamples({
             <PageContent>
                 <Space orientation={"vertical"} style={{ width: '100%' }}>
                     <Flex orientation={"horizontal"} justify={"space-between"} align={"center"}>
-                        <Typography.Text style={{ fontSize: '1.2em', color: "var(--ant-color-primary)" }}>Selected: {totalSelectionCount} / {paginationProps?.total}</Typography.Text>
+                        <Typography.Text style={{ fontSize: '1.2em' }}>Selected: {totalSelectionCount}</Typography.Text>
                         <FiltersBar filters={filterSet} clearFilters={() => {
                             setFilters({})
                         }} />
