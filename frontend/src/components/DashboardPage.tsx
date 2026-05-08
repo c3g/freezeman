@@ -122,6 +122,7 @@ function DashboardPage() {
                             onChange={setExperimentsNotLaunchedTimeRange}
                             options={timeRanges}
                             popupMatchSelectWidth={false}
+                            className="truly-invisible-select"
                         />
                     </Flex>
                     <SimpleExperimentRunTable
