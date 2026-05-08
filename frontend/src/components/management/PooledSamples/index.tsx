@@ -7,7 +7,7 @@ import { FILTER_TYPE } from "../../../constants"
 import api from "../../../utils/api"
 import { Link } from "react-router-dom"
 import { smartQuerySetLookup } from "../../../utils/functions"
-import { Button, Pagination, Space, Table } from "antd"
+import { Button, Flex, Pagination, Space, Table, Typography } from "antd"
 import AppPageHeader from "../../AppPageHeader"
 import FiltersBar from "../../filters/filtersBar/FiltersBar"
 import PageContent from "../../PageContent"
@@ -272,9 +272,12 @@ export function PooledSamples({
 			/>
             <PageContent>
                 <Space orientation={"vertical"} style={{ width: '100%' }}>
-                    <FiltersBar filters={filterSet} clearFilters={() => {
-                        setFilters({})
-                    }} />
+                    <Flex orientation={"horizontal"} justify={"space-between"} align={"center"}>
+                        <Typography.Text style={{ fontSize: '1.2em', color: "var(--ant-color-primary)" }}>Selected: {totalSelectionCount} / {paginationProps?.total}</Typography.Text>
+                        <FiltersBar filters={filterSet} clearFilters={() => {
+                            setFilters({})
+                        }} />
+                    </Flex>
                     <Table<FMSPooledSample>
                         {...tableDataProps}
                         {...tableSortByProps}
