@@ -346,7 +346,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 		if (defaultSelection && exceptedItems.length === totalCount) {
 			setDefaultSelection(false)
 			setExceptedItems([])
-		} else if (!defaultSelection && exceptedItems.length === totalCount) {
+		} else if (!defaultSelection && exceptedItems.length === totalCount && totalCount > 0) {
 			setDefaultSelection(true)
 			setExceptedItems([])
 		} else {
@@ -438,6 +438,12 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 
 
     const totalSelectionCount = defaultSelection ? totalCount - exceptedItems.length : exceptedItems.length
+    console.info({
+        defaultSelection,
+        totalCount,
+        exceptedItems,
+        totalSelectionCount,
+    })
 
     return [
         { rowSelection },

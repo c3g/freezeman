@@ -151,7 +151,7 @@ export function PooledSamples({
             total: response.data.count,
             data: response.data.results
         }
-    }, [dispatch])
+    }, [dispatch, filterOptions])
 
     const [tableDataProps, paginationProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
         defaultPageSize,
@@ -214,7 +214,7 @@ export function PooledSamples({
             options,
             template
         ))
-    }, [defaultSelection, dispatch, exceptedItems, filters, sortBy])
+    }, [defaultSelection, dispatch, exceptedItems, filters, sortBy, totalSelectionCount])
 
     const filterSet = useMemo(() => Object.entries(filters).reduce((acc, [columnID, filterValue]) => {
         const filterDescription = FILTER_DESCRIPTIONS[columnID as PooledSampleColumnID]
