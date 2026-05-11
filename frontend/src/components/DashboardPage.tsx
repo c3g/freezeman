@@ -21,7 +21,7 @@ const notLaunchedColumns = [
 const launchedRunsColumns = [
     ExperimentRunColumnID.ID,
     ExperimentRunColumnID.NAME,
-    ExperimentRunColumnID.LAUNCH,
+    ExperimentRunColumnID.LAUNCHED,
 ] as const
 
 const finishedRunsColumns = [
