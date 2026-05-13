@@ -343,7 +343,7 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === totalCount)
 
 	const setDefaultSelectionAndExceptedItems = useCallback((defaultSelection: boolean, exceptedItems: React.Key[]) => {
-		if (defaultSelection && exceptedItems.length === totalCount) {
+		if (defaultSelection && exceptedItems.length === totalCount && totalCount > 0) {
 			setDefaultSelection(false)
 			setExceptedItems([])
 		} else if (!defaultSelection && exceptedItems.length === totalCount && totalCount > 0) {
@@ -438,12 +438,6 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 
 
     const totalSelectionCount = defaultSelection ? totalCount - exceptedItems.length : exceptedItems.length
-    console.info({
-        defaultSelection,
-        totalCount,
-        exceptedItems,
-        totalSelectionCount,
-    })
 
     return [
         { rowSelection },
