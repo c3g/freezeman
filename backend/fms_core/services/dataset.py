@@ -398,7 +398,7 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
         validated_data["files"][dataset_file.id] = file_definition
     try:
         # Create file with .tmp extension if it doesn't already exist
-        tmp_file_path = file_path + ".tmp"
+        tmp_file_path = f"{file_path}.tmp"
         with open(tmp_file_path, "x") as fp:
             fp.write(json.dumps(validated_data, indent=4))    
         # move file to final destination
@@ -458,7 +458,7 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
         released_data["files"][dataset_file.id] = file_definition
     try:
         # Create file with .tmp extension if it doesn't already exist
-        tmp_file_path = file_path + ".tmp"
+        tmp_file_path = f"{file_path}.tmp"
         with open(tmp_file_path, "x") as fp:
             fp.write(json.dumps(released_data, indent=4))
         # move file to final destination
