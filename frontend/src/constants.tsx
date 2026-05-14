@@ -4,6 +4,9 @@
 
 import { Rule } from "antd/lib/form"
 
+export const EMPTY_OBJECT = {} as const
+export const EMPTY_ARRAY = [] as const
+
 export const FILTER_TYPE = {
   RANGE: "RANGE",
   DATE_RANGE: "DATE_RANGE",

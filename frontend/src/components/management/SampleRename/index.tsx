@@ -42,6 +42,7 @@ export function SampleRename() {
         actionUrlBase={"/management/sample-rename"}
         templateAction={templateAction}
         templatePrefill={templatePrefill}
+        requestID={"SampleRename.fetchPooledSamples"}
     />
 }
 export default SampleRename

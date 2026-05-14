@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../../hooks"
 import { selectCurrentPreference } from "../../../modules/profiles/selectors"
 import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, useFilters, usePaginatedDataProps, useSmartSelectionProps, useTableColumnsProps, useTableSortByProps } from "../../../utils/tableHooks"
 import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } from "../../../models/fms_api_models"
-import { FILTER_TYPE } from "../../../constants"
+import { EMPTY_OBJECT, FILTER_TYPE } from "../../../constants"
 import api from "../../../utils/api"
 import { Link } from "react-router-dom"
 import { smartQuerySetLookup } from "../../../utils/functions"
@@ -117,6 +117,7 @@ export interface PooledSamplesProps {
     templateAction?: FMSTemplateAction
     templatePrefill?: FMSTemplatePrefillOption
     filterOptions?: { derived_sample__library__isnull?: boolean }
+    requestID: string
 }
 
 export function PooledSamples({
@@ -126,7 +127,8 @@ export function PooledSamples({
     actionUrlBase,
     templateAction,
     templatePrefill,
-    filterOptions = {}
+    filterOptions = EMPTY_OBJECT,
+    requestID
 }: PooledSamplesProps) {
     const dispatch = useAppDispatch()
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
@@ -144,14 +146,14 @@ export function PooledSamples({
             },
             {
                 abort: true,
-                requestID: 'IndexCuration.fetchPooledSamples'
+                requestID
             }
         ))
         return {
             total: response.data.count,
             data: response.data.results
         }
-    }, [dispatch, filterOptions])
+    }, [dispatch, filterOptions, requestID])
 
     const [tableDataProps, paginationProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
         defaultPageSize,
