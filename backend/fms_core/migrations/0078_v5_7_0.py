@@ -18,7 +18,7 @@ ULTIMA_INSTRUMENT_SERIAL_NUMBER = "V150"
 ULTIMA_EXPERIMENT_RUN_STEP_NAME = "Ultima Experiment Run"
 ULTIMA_RUN_TYPE = "Ultima"
 
-def create_ultima_patform(apps, schema_editor):
+def create_ultima_platform(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
     with reversion.create_revision(manage_manually=True):
         admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
@@ -202,7 +202,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_ultima_patform, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_ultima_platform, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_ultima_instrument, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_ultima_experiment_run_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_ultima_ready_to_sequence_workflow, reverse_code=migrations.RunPython.noop),
