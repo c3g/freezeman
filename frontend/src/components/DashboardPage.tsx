@@ -15,13 +15,14 @@ import { ExperimentOutlined, ProjectOutlined } from "@ant-design/icons";
 const notLaunchedColumns = [
     ExperimentRunColumnID.ID,
     ExperimentRunColumnID.NAME,
-    ExperimentRunColumnID.START_DATE
+    ExperimentRunColumnID.START_DATE,
+    ExperimentRunColumnID.LAUNCH
 ]
 
 const launchedRunsColumns = [
     ExperimentRunColumnID.ID,
     ExperimentRunColumnID.NAME,
-    ExperimentRunColumnID.LAUNCH,
+    ExperimentRunColumnID.LAUNCHED,
 ] as const
 
 const finishedRunsColumns = [

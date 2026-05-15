@@ -55,9 +55,11 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
         for (const key of keys) {
             if (!columnIDs.includes(key)) {
                 delete definitions[key]
-            } else if (key === ExperimentRunColumnID.LAUNCH && definitions[key]) {
+            } else if (key === ExperimentRunColumnID.LAUNCHED) {
                 definitions[key] = {
-                    ...definitions[key],
+                    columnID: ExperimentRunColumnID.LAUNCHED,
+                    title: 'Launched',
+                    dataIndex: ['experimentRun', 'run_processing_launch_time'],
                     sorter: false,
                     width: 100,
                     render: (_, { experimentRun }) => dayjs(experimentRun.run_processing_launch_time).fromNow()
@@ -81,8 +83,7 @@ function SimpleExperimentRunTable({ defaultPageSize, fixedQueryParams, columnIDs
                     sorter: false,
                     width: 100
                 }
-            }
-            if (definitions[key]) {
+            } else if (definitions[key]) {
                 definitions[key] = {
                     ...definitions[key],
                     sorter: false,
