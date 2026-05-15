@@ -117,7 +117,7 @@ export interface PooledSamplesProps {
     templateAction?: FMSTemplateAction
     templatePrefill?: FMSTemplatePrefillOption
     filterOptions?: { derived_sample__library__isnull?: boolean }
-    requestID: string
+    parentComponentID: string
 }
 
 export function PooledSamples({
@@ -128,7 +128,7 @@ export function PooledSamples({
     templateAction,
     templatePrefill,
     filterOptions = EMPTY_OBJECT,
-    requestID
+    parentComponentID,
 }: PooledSamplesProps) {
     const dispatch = useAppDispatch()
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
@@ -146,14 +146,14 @@ export function PooledSamples({
             },
             {
                 abort: true,
-                requestID
+                requestID: `${parentComponentID}.fetchPooledSamples`
             }
         ))
         return {
             total: response.data.count,
             data: response.data.results
         }
-    }, [dispatch, filterOptions, requestID])
+    }, [dispatch, filterOptions, parentComponentID])
 
     const [tableDataProps, paginationProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
         defaultPageSize,
