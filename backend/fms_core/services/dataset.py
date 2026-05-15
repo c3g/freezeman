@@ -1,5 +1,5 @@
 import json
-from os import path
+from os import path, rename
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -397,9 +397,12 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
         file_definition = {"readset_id": dataset_file.readset.id, "filepath": dataset_file.file_path}
         validated_data["files"][dataset_file.id] = file_definition
     try:
-        # Create file if it doesn't already exist
-        with open(file_path, "x") as fp:
-            fp.write(json.dumps(validated_data, indent=4))
+        # Create file with .tmp extension if it doesn't already exist
+        tmp_file_path = f"{file_path}.tmp"
+        with open(tmp_file_path, "x") as fp:
+            fp.write(json.dumps(validated_data, indent=4))    
+        # move file to final destination
+        rename(src=tmp_file_path, dst=file_path)
     except Exception as err:
         file_path = None
         errors.append(f"Failed to create validation file trigger for Dataset {dataset_obj.id}. Error : {str(err)}.")
@@ -454,9 +457,12 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
         file_definition = {"readset_id": dataset_file.readset.id, "filepath": dataset_file.file_path}
         released_data["files"][dataset_file.id] = file_definition
     try:
-        # Create file if it doesn't already exist
-        with open(file_path, "x") as fp:
+        # Create file with .tmp extension if it doesn't already exist
+        tmp_file_path = f"{file_path}.tmp"
+        with open(tmp_file_path, "x") as fp:
             fp.write(json.dumps(released_data, indent=4))
+        # move file to final destination
+        rename(src=tmp_file_path, dst=file_path)
     except Exception as err:
         file_path = None
         errors.append(f"Failed to create release file trigger for Dataset {dataset_obj.id}. Error : {str(err)}.")
