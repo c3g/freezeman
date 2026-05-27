@@ -1,4 +1,5 @@
 from io import StringIO
+import logging
 from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -18,6 +19,7 @@ from fms_core.templates import SheetInfo
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
+    logger = logging.getLogger(__name__)
 
     def __init__(self):
         self.base_errors = []
@@ -58,25 +60,29 @@ class GenericImporter():
 
         if not self.base_errors:
             with transaction.atomic():
-                if dry_run:
-                    # This ensures that only one reversion is created, and is rollbacked in a dry_run
-                    with reversion.create_revision(manage_manually=True):
-                        self.import_template_inner()
-                        reversion.set_comment("Template import - dry run")
-                    transaction.set_rollback(True)
-                else:
-                    # Save template on disk with modified name (append timestamp and id) and insert path in imported_file
-                    if user is not None:
-                        os.environ["TZ"] = settings.LOCAL_TZ
-                        time.tzset()
-                        new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}_{user.username}{file_format}"
-                        file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, new_file_name)
-                        try:
-                            self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
-                        except Exception as err:
-                            self.base_errors.append(err)
-                    self.import_template_inner()                            
-                    reversion.set_comment("Template import")
+                try:
+                    if dry_run:
+                        # This ensures that only one reversion is created, and is rollbacked in a dry_run
+                        with reversion.create_revision(manage_manually=True):
+                            self.import_template_inner()
+                            reversion.set_comment("Template import - dry run")
+                        transaction.set_rollback(True)
+                    else:
+                        # Save template on disk with modified name (append timestamp and id) and insert path in imported_file
+                        if user is not None:
+                            os.environ["TZ"] = settings.LOCAL_TZ
+                            time.tzset()
+                            new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}_{user.username}{file_format}"
+                            file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, new_file_name)
+                            try:
+                                self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
+                            except Exception as err:
+                                self.base_errors.append(err)
+                        self.import_template_inner()                            
+                        reversion.set_comment("Template import")
+                except:
+                    self.logger.error("Error during template import. Transaction rolled back.", exc_info=True)
+                    raise
 
             # Add processed rows with errors/warnings/diffs to self.previews_info list
             for sheet in list(self.sheets.values()):
@@ -137,7 +143,7 @@ class GenericImporter():
                 self.base_errors.append(f"Template file format " + self.format + " not supported.")
                 return None
             # Convert blank and NaN cells to None and Store it in self.sheets
-            dataframe = pd_sheet.map(blank_and_nan_to_none).map(str_normalize)
+            dataframe = blank_and_nan_to_none(pd_sheet.map(str_normalize, na_action='ignore'))
             return SheetData(name=name, dataframe=dataframe, headers=headers, shared_data=shared_data)
 
         except Exception as e:

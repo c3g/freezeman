@@ -149,13 +149,16 @@ export function usePaginationProps(defaultPageSize: number): [
         setPageSize(defaultPageSize)
     }, [defaultPageSize])
 
+    const showTotal = useCallback((total: number, range: [number, number]) => `${range[0]}-${range[1]} of ${total} items`, [])
+
     return [
         {
             current: pageNumber,
             pageSize,
             total: totalCount,
             onChange,
-            align: 'end'
+            align: 'end',
+            showTotal,
         },
         {
             setPagination,
@@ -340,10 +343,10 @@ export function useSmartSelectionProps<RowData extends AntdAnyObject>({
 	const noneIsSelected = (!defaultSelection && exceptedItems.length === 0) || (defaultSelection && exceptedItems.length === totalCount)
 
 	const setDefaultSelectionAndExceptedItems = useCallback((defaultSelection: boolean, exceptedItems: React.Key[]) => {
-		if (defaultSelection && exceptedItems.length === totalCount) {
+		if (defaultSelection && exceptedItems.length === totalCount && totalCount > 0) {
 			setDefaultSelection(false)
 			setExceptedItems([])
-		} else if (!defaultSelection && exceptedItems.length === totalCount) {
+		} else if (!defaultSelection && exceptedItems.length === totalCount && totalCount > 0) {
 			setDefaultSelection(true)
 			setExceptedItems([])
 		} else {

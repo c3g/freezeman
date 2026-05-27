@@ -3,11 +3,11 @@ import { useAppDispatch, useAppSelector } from "../../../hooks"
 import { selectCurrentPreference } from "../../../modules/profiles/selectors"
 import { ColumnDefinitions, createQueryParamsFromFilters, createQueryParamsFromSortBy, FetchRowData, FilterDescriptions, FilterKeys, Filters, newFilterDefinitionsToFilterSet, SearchPropertiesDefinitions, SortKeys, useFilters, usePaginatedDataProps, useSmartSelectionProps, useTableColumnsProps, useTableSortByProps } from "../../../utils/tableHooks"
 import { FMSId, FMSPooledSample, FMSTemplateAction, FMSTemplatePrefillOption } from "../../../models/fms_api_models"
-import { FILTER_TYPE } from "../../../constants"
+import { EMPTY_OBJECT, FILTER_TYPE } from "../../../constants"
 import api from "../../../utils/api"
 import { Link } from "react-router-dom"
 import { smartQuerySetLookup } from "../../../utils/functions"
-import { Button, Pagination, Space, Table } from "antd"
+import { Button, Flex, Pagination, Space, Table, Typography } from "antd"
 import AppPageHeader from "../../AppPageHeader"
 import FiltersBar from "../../filters/filtersBar/FiltersBar"
 import PageContent from "../../PageContent"
@@ -117,6 +117,7 @@ export interface PooledSamplesProps {
     templateAction?: FMSTemplateAction
     templatePrefill?: FMSTemplatePrefillOption
     filterOptions?: { derived_sample__library__isnull?: boolean }
+    parentComponentID: string
 }
 
 export function PooledSamples({
@@ -126,7 +127,8 @@ export function PooledSamples({
     actionUrlBase,
     templateAction,
     templatePrefill,
-    filterOptions = {}
+    filterOptions = EMPTY_OBJECT,
+    parentComponentID,
 }: PooledSamplesProps) {
     const dispatch = useAppDispatch()
     const defaultPageSize = useAppSelector(state => selectCurrentPreference(state, 'table.sample.page-limit'))
@@ -144,14 +146,14 @@ export function PooledSamples({
             },
             {
                 abort: true,
-                requestID: 'IndexCuration.fetchPooledSamples'
+                requestID: `${parentComponentID}.fetchPooledSamples`
             }
         ))
         return {
             total: response.data.count,
             data: response.data.results
         }
-    }, [dispatch])
+    }, [dispatch, filterOptions, parentComponentID])
 
     const [tableDataProps, paginationProps, { fetchRowData, totalCount }] = usePaginatedDataProps({
         defaultPageSize,
@@ -214,7 +216,7 @@ export function PooledSamples({
             options,
             template
         ))
-    }, [defaultSelection, dispatch, exceptedItems, filters, sortBy])
+    }, [defaultSelection, dispatch, exceptedItems, filters, sortBy, totalSelectionCount])
 
     const filterSet = useMemo(() => Object.entries(filters).reduce((acc, [columnID, filterValue]) => {
         const filterDescription = FILTER_DESCRIPTIONS[columnID as PooledSampleColumnID]
@@ -272,9 +274,12 @@ export function PooledSamples({
 			/>
             <PageContent>
                 <Space orientation={"vertical"} style={{ width: '100%' }}>
-                    <FiltersBar filters={filterSet} clearFilters={() => {
-                        setFilters({})
-                    }} />
+                    <Flex orientation={"horizontal"} justify={"space-between"} align={"center"}>
+                        <Typography.Text style={{ fontSize: '1.2em' }}>Selected: {totalSelectionCount}</Typography.Text>
+                        <FiltersBar filters={filterSet} clearFilters={() => {
+                            setFilters({})
+                        }} />
+                    </Flex>
                     <Table<FMSPooledSample>
                         {...tableDataProps}
                         {...tableSortByProps}

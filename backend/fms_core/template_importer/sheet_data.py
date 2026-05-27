@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+import pandas as pd
 from ._utils import data_row_ids_range, panda_values_to_str_list
 
 '''
@@ -61,7 +62,7 @@ class SheetData():
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
         # Add dynamic columns that might not be part of the hard coded headers
-        extra_columns = [column for column in self.dataframe.columns if (column not in self.headers and column is not None)]
+        extra_columns = [column for column in self.dataframe.columns if (column not in self.headers and not pd.isna(column))]
         headers_for_preview = [''] + self.headers + extra_columns
 
         return {
@@ -71,4 +72,4 @@ class SheetData():
             "base_errors": self.base_errors,
             "rows": rows_results,
         }
-        
+

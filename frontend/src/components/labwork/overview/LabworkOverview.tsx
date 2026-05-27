@@ -18,9 +18,9 @@ const LabworkOverview = ({state} : LabworkOverviewProps) => {
 		<>
 			<AppPageHeader title="Lab Work" />
 
-			<PageContent loading={loading} style={{maxWidth: '50rem'} as any}>
+			<PageContent loading={loading} >
 				{state.summary && 
-          <div>
+          <div style={{maxWidth: '50rem'} as any}>
 					  <LabworkOverviewProtocols summary={state.summary} hideEmptySections={state.hideEmptySections} refreshing={refreshing}/>
             <div style={{ padding: '1rem' }}></div>
             <LabworkOverviewAutomations summary={state.summary} hideEmptySections={state.hideEmptySections}/>

@@ -245,6 +245,10 @@ else:
             "maxBytes": MAX_SIZE_LOG,
             "backupCount": LOG_BACKUP_COUNT
         },
+        "console": {
+            "formatter": "fms",
+            "class": "logging.StreamHandler",
+        }
     }
     logger = {
         "handlers": ["file"],

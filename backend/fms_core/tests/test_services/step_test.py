@@ -7,7 +7,7 @@ from fms_core.template_importer.sheet_data import SheetData
 from fms_core.template_importer._utils import blank_and_nan_to_none
 from fms_core.tests.test_template_importers._utils import APP_DATA_ROOT
 from fms_core.utils import str_normalize
-from pandas import pandas as pd
+import pandas as pd
 
 class StepServicesTestCase(TestCase):
     def test_get_step_from_template(self):
@@ -17,7 +17,7 @@ class StepServicesTestCase(TestCase):
         sheets = {}
         for sheet in sheet_info:
             pd_sheet = pd.read_excel(file, sheet_name=sheet["name"], header=None)
-            dataframe = pd_sheet.map(blank_and_nan_to_none).map(str_normalize)
+            dataframe = blank_and_nan_to_none(pd_sheet.map(str_normalize, na_action='ignore'))
             sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
 
         protocol = Protocol.objects.get(name="Library Preparation")
@@ -40,7 +40,7 @@ class StepServicesTestCase(TestCase):
         sheets = {}
         for sheet in sheet_info:
             pd_sheet = pd.read_excel(file, sheet_name=sheet["name"], header=None)
-            dataframe = pd_sheet.map(blank_and_nan_to_none).map(str_normalize)
+            dataframe = blank_and_nan_to_none(pd_sheet.map(str_normalize, na_action='ignore'))
             sheets[sheet["name"]] = SheetData(name=sheet["name"], dataframe=dataframe, headers=sheet["headers"])
 
         protocol = Protocol.objects.get(name="Axiom Sample Preparation")

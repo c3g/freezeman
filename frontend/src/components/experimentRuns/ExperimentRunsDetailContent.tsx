@@ -26,7 +26,7 @@ const { TabPane } = Tabs
 
 const pageStyle = {
 	padding: 0,
-	overflow: 'hidden',
+	overflow: 'scroll',
 }
 
 /*

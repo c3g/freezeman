@@ -47,6 +47,7 @@ export function IndexCuration() {
         templateAction={templateAction}
         templatePrefill={templatePrefill}
         filterOptions={filterOptions}
+        parentComponentID={"IndexCuration"}
     />
 }
 export default IndexCuration
