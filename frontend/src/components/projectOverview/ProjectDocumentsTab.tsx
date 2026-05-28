@@ -5,7 +5,7 @@ interface ProjectDocumentsTabProps {
 }
 
 const ProjectDocumentsTab = ({ projectID }: ProjectDocumentsTabProps) => {
-	return <>"Documents Tab to build later"</>
+	return <>{'Documents Tab to build later'}</>
 }
 
 export default ProjectDocumentsTab

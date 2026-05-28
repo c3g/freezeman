@@ -5,7 +5,7 @@ interface ProjectAnalysisTabProps {
 }
 
 const ProjectAnalysisTab = ({ projectID }: ProjectAnalysisTabProps) => {
-	return <>"Analysis Tab to build later"</>
+	return <>{'Analysis Tab to build later'}</>
 }
 
 export default ProjectAnalysisTab

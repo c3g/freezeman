@@ -1,4 +1,3 @@
-
 import { Empty, Select, Spin, Tabs, Typography } from 'antd'
 import React, { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -33,28 +32,11 @@ const ProjectOverviewPage = () => {
 
 	const [activeKey, setActiveKey] = useHashURL('details')
 
-	const projectOptions = useMemo(() => {
-		return getAllItems(projectsByID)
-			.sort((a, b) => a.name.localeCompare(b.name))
-			.map((project) => ({
-				label: project.external_id ? `${project.name} (${project.external_id})` : project.name, // As the project ID  is not sometimes human readable and as the external ID is set to be optional, it is missing for some project
-				value: project.id,
-			}))
-	}, [projectsByID])
-
 	useEffect(() => {
 		if (projectID && !project) {
 			dispatch(getProject(projectID))
 		}
 	}, [projectID, project, dispatch])
-
-	const handleProjectChange = (nextProjectID?: FMSId) => {
-		if (nextProjectID) {
-			navigate(`/project-overview/${nextProjectID}`)
-		} else {
-			navigate('/project-overview')
-		}
-	}
 
 	if (!projectID) {
 		return <ProjectOverviewSearch />

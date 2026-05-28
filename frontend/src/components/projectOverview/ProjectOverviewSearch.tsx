@@ -1,12 +1,10 @@
-
 import { Input, Typography } from 'antd'
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import api from '../../utils/api'
 import ExportButton from '../ExportButton'
 import useListExportCallback from '../pagedItemsTable/useListExportCallback'
-
 
 import { useAppSelector } from '../../hooks'
 import { Project } from '../../models/frontend_models'
@@ -26,6 +24,8 @@ import {
 	PROJECT_FILTER_KEYS,
 	ProjectColumnID,
 } from '../projects/ProjectsTableColumns'
+import ExternalIDProjectsDashboard from './ExternalIDProjectDashboard'
+import { render } from '../../utils/options'
 
 function wrapProject(project: Project) {
 	return { project }
@@ -43,38 +43,44 @@ const PROJECT_OVERVIEW_NAME_COLUMN: IdentifiedTableColumnType<ObjectWithProject>
 
 const ProjectOverviewSearch = () => {
 	const projectsTableState = useAppSelector(selectProjectsTable)
-	const { filters,sortByList,totalCount } = projectsTableState
+	const { filters, sortByList, totalCount } = projectsTableState
 
 	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
-    const listExport = useListExportCallback(api.projects.listExport, filters, sortByList)
+	const listExport = useListExportCallback(api.projects.listExport, filters, sortByList)
 
 	const [externalID, setExternalID] = useState('')
 	const [hasSearched, setHasSearched] = useState(false)
 
-	const CREATED_AT_COLUMN: IdentifiedTableColumnType<ObjectWithProject> = {
-		columnID: 'CREATED_AT',
-		title: 'Created At',
-		dataIndex: ['project', 'created_at'],
-		width: 40,
-		sorter: { multiple: 1 },
-		render: (createdAt?: string) =>
-			createdAt
-				? new Date(createdAt).toLocaleDateString('en-US', {
-						month: 'short',
-						day: 'numeric',
-						year: 'numeric',
-					})
-				: '',
-	}
+	const CREATED_AT_COLUMN = useMemo<IdentifiedTableColumnType<ObjectWithProject>>(
+		() => ({
+			columnID: 'CREATED_AT',
+			title: 'Created At',
+			dataIndex: ['project', 'created_at'],
+			width: 40,
+			sorter: { multiple: 1 },
+			render: (createdAt?: string) =>
+				createdAt
+					? new Date(createdAt).toLocaleDateString('en-US', {
+							month: 'short',
+							day: 'numeric',
+							year: 'numeric',
+						})
+					: '',
+		}),
+		[],
+	)
 
-	const PROJECT_OVERVIEW_ID_COLUMN: IdentifiedTableColumnType<ObjectWithProject> = {
-		...PROJECT_COLUMN_DEFINITIONS.ID,
-		render: (id, { project }) => (
-			<Link to={`/project-overview/${project.id}`}>
-				<div>{id}</div>
-			</Link>
-		),
-	}
+	const PROJECT_OVERVIEW_ID_COLUMN = useMemo<IdentifiedTableColumnType<ObjectWithProject>>(
+		() => ({
+			...PROJECT_COLUMN_DEFINITIONS.ID,
+			render: (id, { project }) => (
+				<Link to={`/project-overview/${project.id}`}>
+					<div>{id}</div>
+				</Link>
+			),
+		}),
+		[],
+	)
 
 	const externalIDFilter = useMemo(
 		() => ({
@@ -94,42 +100,56 @@ const ProjectOverviewSearch = () => {
 			PROJECT_COLUMN_DEFINITIONS.STATUS,
 			CREATED_AT_COLUMN,
 		],
-		[],
+		[CREATED_AT_COLUMN, PROJECT_OVERVIEW_ID_COLUMN],
 	)
 
 	const columns = projectOverviewColumns
 
 	const mapProjectIDs = useItemsByIDToDataObjects(selectProjectsByID, wrapProject)
 
-	const handleSearch = async (value: string) => {
-		const trimmedValue = value.trim()
-		setExternalID(trimmedValue)
+	const projectsByID = useAppSelector(selectProjectsByID)
 
-		await projectsTableCallbacks.resetPagedItemsCallback()
+	const dashboardProjects = useMemo(
+		() => projectsTableState.items.map((projectID) => projectsByID[projectID]).filter(Boolean),
+		[projectsTableState.items, projectsByID],
+	)
 
-		if (!trimmedValue) {
-			setHasSearched(false)
-			return
-		}
+	const handleSearch = useCallback(
+		async (value: string) => {
+			const trimmedValue = value.trim()
+			setExternalID(trimmedValue)
 
-		setHasSearched(true)
-		await projectsTableCallbacks.setFilterCallback(trimmedValue, externalIDFilter)
-	}
+			await projectsTableCallbacks.resetPagedItemsCallback()
+
+			if (!trimmedValue) {
+				setHasSearched(false)
+				return
+			}
+
+			setHasSearched(true)
+			await projectsTableCallbacks.setFilterCallback(trimmedValue, externalIDFilter)
+		},
+		[projectsTableCallbacks, externalIDFilter],
+	)
 
 	return (
 		<>
 			<AppPageHeader
-	title="My Projects"
-	extra={hasSearched ? [
-		<ExportButton
-			key="export"
-			exportType={undefined}
-			exportFunction={listExport}
-			filename="project-overview-projects"
-			itemsCount={totalCount}
-		/>,
-	] : []}
-/>
+				title="My Projects"
+				extra={
+					hasSearched
+						? [
+								<ExportButton
+									key="export"
+									exportType={undefined}
+									exportFunction={listExport}
+									filename="project-overview-projects"
+									itemsCount={totalCount}
+								/>,
+							]
+						: []
+				}
+			/>
 
 			<PageContent>
 				<FlexBar style={{ alignItems: 'center', justifyContent: 'flex-start', gap: 8, marginBottom: 16 }}>
@@ -144,6 +164,8 @@ const ProjectOverviewSearch = () => {
 						style={{ maxWidth: 420 }}
 					/>
 				</FlexBar>
+
+				{hasSearched && totalCount > 0 && <ExternalIDProjectsDashboard data={dashboardProjects} />}
 
 				{hasSearched && (
 					<PagedItemsTable<ObjectWithProject>

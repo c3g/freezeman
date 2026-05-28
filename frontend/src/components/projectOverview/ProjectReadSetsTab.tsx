@@ -1,4 +1,3 @@
-
 import React from 'react'
 
 interface ProjectReadSetsTabProps {
@@ -6,7 +5,7 @@ interface ProjectReadSetsTabProps {
 }
 
 function ProjectReadSetsTab({ projectID }: ProjectReadSetsTabProps) {
-	return <>"Read Sets Tab"</>
+	return <>{'Read Sets Tab'}</>
 }
 
 export default ProjectReadSetsTab
