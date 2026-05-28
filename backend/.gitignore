@@ -9,6 +9,7 @@ __pycache__/
 
 # IDE related (intelliJ, vim files)
 .idea/*
+.vscode/*
 
 # static files
 staticfiles/
