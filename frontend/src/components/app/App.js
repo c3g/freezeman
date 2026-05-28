@@ -65,6 +65,7 @@ import { useNavigateToWorkflowAssignment, WorkflowAssignmentPage } from "../mana
 import { getProfile } from "../../modules/profiles";
 import api from "../../utils/api";
 import store from "../../store";
+import ProjectOverviewPage from "../projectOverview/ProjectOverviewPage";
 
 
 const { Title } = Typography;
@@ -162,6 +163,12 @@ const App = ({userID, usersByID, logOut }) => {
    * @type {import("../../utils/menus").BadMenuItem[]}
    */
   const MENU_ITEMS = useMemo(() => [
+     {
+        url: "/project-overview",  
+        icon: <ProjectOutlined />,
+        text: "Project Overview",  
+        key: "project-overview",
+      },
       {
         url: "/dashboard",
         icon: <DashboardOutlined />,
@@ -358,6 +365,17 @@ const App = ({userID, usersByID, logOut }) => {
         <Layout.Content style={{ position: "relative" }}>
           <Routes>
             <Route path="/login/*" element={<LoginPage />} />
+              <Route path="/project-overview" element={
+  <PrivateNavigate>
+    <ProjectOverviewPage />
+  </PrivateNavigate>
+} />
+
+<Route path="/project-overview/:id" element={
+  <PrivateNavigate>
+    <ProjectOverviewPage />
+  </PrivateNavigate>
+} />
             <Route path="/dashboard/*" element={
               <PrivateNavigate>
                 <DashboardPage />
