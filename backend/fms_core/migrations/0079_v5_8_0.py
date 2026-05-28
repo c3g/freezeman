@@ -14,6 +14,7 @@ ILLUMINA_EXPERIMENT_RUN_STEP_NAME = "Experiment Run Illumina"
 SAMPLE_QC_BIOSPECIMEN_STEP = "Sample QC (Biospecimen)"
 NORMALIZATION_BIOSPECIMEN_STEP = "Normalization (Biospecimen)"
 LIBRARY_PREPARATION_WITH_SELECTION_STEP  = "Library Preparation (PCR-enriched, Phage Display, Illumina)"
+SAMPLE_POOLING_PHAGE_DISPLAY_STEP = "Normalization and Pooling (Phage Display)"
 
 def create_biospecimen_sample_QC_step(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
@@ -135,6 +136,39 @@ def create_library_preparation_with_selection_step(apps, schema_editor):
                                                                 updated_by_id=admin_user_id)
         reversion.add_to_revision(step_specification_3)
 
+def create_phage_display_normalization_and_pooling_step(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    StepSpecification = apps.get_model("fms_core", "StepSpecification")
+    Protocol = apps.get_model("fms_core", "Protocol")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create a sample pooling for phage display.")
+        reversion.set_user(admin_user)
+
+        protocol = Protocol.objects.get(name="Sample Pooling")
+        
+        step = Step.objects.create(
+            name=SAMPLE_POOLING_PHAGE_DISPLAY_STEP,
+            protocol=protocol,
+            type=StepType.PROTOCOL,
+            expected_sample_type=SampleType.LIBRARY,
+            needs_placement=False,
+            needs_planning=True,
+            created_by_id=admin_user_id, updated_by_id=admin_user_id
+        )
+        reversion.add_to_revision(step)
+
+        step_specification = StepSpecification.objects.create(name="PoolingType",
+                                                              step_id=step.id,
+                                                              sheet_name="SamplesToPool",
+                                                              column_name="Type",
+                                                              value="Phage Display",
+                                                              created_by_id=admin_user_id,
+                                                              updated_by_id=admin_user_id)
+        reversion.add_to_revision(step_specification)
 
 def create_phage_display_workflow(apps, schema_editor):
     Workflow = apps.get_model("fms_core", "Workflow")
@@ -208,6 +242,7 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_biospecimen_sample_QC_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_biospecimen_normalization_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_library_preparation_with_selection_step, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(create_phage_display_normalization_and_pooling_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_phage_display_workflow, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_phage_library_selections, reverse_code=migrations.RunPython.noop),
     ]
