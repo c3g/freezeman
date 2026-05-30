@@ -1,96 +1,155 @@
-import { Empty, Select, Spin, Tabs, Typography } from 'antd'
-import React, { useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Input, Tabs, Typography } from 'antd'
+import FlexBar from '../shared/Flexbar'
 
-import { useAppDispatch, useAppSelector } from '../../hooks'
+import React, { useCallback, useMemo, useState } from 'react'
+
 import useHashURL from '../../hooks/useHashURL'
-import { useIDParam } from '../../hooks/useIDParams'
-import { FMSId } from '../../models/fms_api_models'
-import { getAllItems } from '../../models/frontend_models'
-import { get as getProject } from '../../modules/projects/actions'
-import { selectProjectsByID } from '../../selectors'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import FlexBar from '../shared/Flexbar'
-import ProjectOverview from '../projects/ProjectOverview'
-import ProjectAnalysisTab from './ProjectAnalysisTab'
-import ProjectDocumentsTab from './ProjectDocumentsTab'
+
+import ProjectSubmissionsTab from './ProjectSubmissionsTab'
+import ProjectSamplesTab from './ProjectSamplesTab'
 import ProjectLibrariesTab from './ProjectLibrariesTab'
 import ProjectReadSetsTab from './ProjectReadSetsTab'
-import ProjectSamplesTab from './ProjectSamplesTab'
+import ProjectAnalysisTab from './ProjectAnalysisTab'
+import ProjectDocumentsTab from './ProjectDocumentsTab'
 
-import { list as listProjects } from '../../modules/projects/actions'
-import ProjectOverviewSearch from './ProjectOverviewSearch'
+import { useAppSelector } from '../../hooks'
+import ProjectsTableActions from '../../modules/projectsTable/actions'
+import { selectProjectsTable } from '../../selectors'
+import { usePagedItemsActionsCallbacks } from '../pagedItemsTable/usePagedItemsActionCallbacks'
+import { PROJECT_FILTERS, PROJECT_FILTER_KEYS, ProjectColumnID } from '../projects/ProjectsTableColumns'
+
+/*
+ProjectOverview fetch tous les projets a partir du stotre Redux , puis applique le filtre External ID pour 
+correspondre au External ID que lutilisateur saisie.
+Then, il en extrait les ids de projets (soumissions) Freezeman correspondant. 
+Et ce sont ces id de soumissions freezeman qui sont passees aux enfant , 
+Eux qui les utilise,pour fetcher duatres informations selon leurs besoins et transmettent les infos fecther a leurs afficheurs pour affichage
+
+*/
 
 const ProjectOverviewPage = () => {
-	const navigate = useNavigate()
-	const dispatch = useAppDispatch()
+	const [activeKey, setActiveKey] = useHashURL('submissions')
+	const [externalID, setExternalID] = useState('')
+	const [searchedExternalID, setSearchedExternalID] = useState('')
+	const [hasSearched, setHasSearched] = useState(false)
 
-	const projectID = useIDParam('id')
-	const projectsByID = useAppSelector(selectProjectsByID)
-	const project = projectID ? projectsByID[projectID] : undefined
+	const projectsTableState = useAppSelector(selectProjectsTable)
+	const projectsTableCallbacks = usePagedItemsActionsCallbacks(ProjectsTableActions)
 
-	const [activeKey, setActiveKey] = useHashURL('details')
+	const externalIDFilter = useMemo(
+		() => ({
+			...PROJECT_FILTERS[ProjectColumnID.EXTERNAL_ID],
+			key: PROJECT_FILTER_KEYS[ProjectColumnID.EXTERNAL_ID],
+		}),
+		[],
+	)
 
-	useEffect(() => {
-		if (projectID && !project) {
-			dispatch(getProject(projectID))
-		}
-	}, [projectID, project, dispatch])
+	const handleSearch = useCallback(
+		async (value: string) => {
+			const trimmedValue = value.trim()
 
-	if (!projectID) {
-		return <ProjectOverviewSearch />
-	}
+			setExternalID(trimmedValue)
+			setSearchedExternalID(trimmedValue)
+			setHasSearched(Boolean(trimmedValue))
+			setActiveKey('submissions')
+
+			await projectsTableCallbacks.resetPagedItemsCallback()
+
+			if (!trimmedValue) {
+				return
+			}
+
+			await projectsTableCallbacks.setFilterCallback(trimmedValue, externalIDFilter)
+		},
+		[projectsTableCallbacks, externalIDFilter, setActiveKey],
+	)
+
+	const projectIds = projectsTableState.items
 
 	return (
 		<>
-			<AppPageHeader title={project ? `Project Data : ${project.name}` : 'Project Data'} />
+			<AppPageHeader title={!externalID ? 'Project Overview' : `Project Overview : (External ID ${externalID})`} />
 
-			<PageContent tabs={Boolean(project)}>
-				{!projectID && <Empty description="Select a project to view project data" />}
-
-				{projectID && !project && <Spin />}
-
-				{project && (
-					<Tabs
-						activeKey={activeKey}
-						onChange={setActiveKey}
-						size="large"
-						type="card"
-						items={[
-							{
-								label: 'Project Details',
-								key: 'details',
-								children: <ProjectOverview project={project} />,
-							},
-							{
-								label: 'Samples',
-								key: 'samples',
-								children: <ProjectSamplesTab projectID={project.id} />,
-							},
-							{
-								label: 'Libraries',
-								key: 'libraries',
-								children: <ProjectLibrariesTab projectID={project.id} />,
-							},
-							{
-								label: 'NextSeq Read Sets',
-								key: 'readsets',
-								children: <ProjectReadSetsTab projectID={project.id} />,
-							},
-							{
-								label: 'Analysis',
-								key: 'analysis',
-								children: <ProjectAnalysisTab projectID={project.id} />,
-							},
-							{
-								label: 'Documents',
-								key: 'documents',
-								children: <ProjectDocumentsTab projectID={project.id} />,
-							},
-						]}
+			<PageContent tabs>
+				<FlexBar style={{ alignItems: 'center', justifyContent: 'flex-start', gap: 8, marginBottom: 16 }}>
+					<Typography.Text strong>Project External ID</Typography.Text>
+					<Input.Search
+						allowClear
+						enterButton="Search"
+						placeholder="Enter a project external ID"
+						value={externalID}
+						onChange={(event) => setExternalID(event.target.value)}
+						onSearch={handleSearch}
+						style={{ maxWidth: 420 }}
 					/>
-				)}
+					<span>{!hasSearched && '(Ex : P000123)'}</span>
+				</FlexBar>
+
+				<Tabs
+					activeKey={activeKey}
+					onChange={setActiveKey}
+					size="large"
+					type="card"
+					items={[
+						{
+							label: 'Project Submissions',
+							key: 'submissions',
+							children: (
+								<ProjectSubmissionsTab
+									projectIds={projectIds}
+									hasSearched={hasSearched}
+									searchedExternalID={searchedExternalID}
+								/>
+							),
+						},
+						{
+							label: 'Samples',
+							key: 'samples',
+							children: (
+								<ProjectSamplesTab projectIds={projectIds} hasSearched={hasSearched} isActive={activeKey === 'samples'} />
+							),
+						},
+						{
+							label: 'Libraries',
+							key: 'libraries',
+							children: (
+								<ProjectLibrariesTab
+									projectIds={projectIds}
+									hasSearched={hasSearched}
+									isActive={activeKey === 'libraries'}
+								/>
+							),
+						},
+						{
+							label: 'NextSeq Read Sets',
+							key: 'readsets',
+							children: (
+								<ProjectReadSetsTab projectIds={projectIds} hasSearched={hasSearched} isActive={activeKey === 'readsets'} />
+							),
+						},
+						{
+							label: 'Analysis',
+							key: 'analysis',
+							children: (
+								<ProjectAnalysisTab projectIds={projectIds} hasSearched={hasSearched} isActive={activeKey === 'analysis'} />
+							),
+						},
+						{
+							label: 'Documents',
+							key: 'documents',
+
+							children: (
+								<ProjectDocumentsTab
+									projectIds={projectIds}
+									hasSearched={hasSearched}
+									isActive={activeKey === 'documents'}
+								/>
+							),
+						},
+					]}
+				/>
 			</PageContent>
 		</>
 	)
