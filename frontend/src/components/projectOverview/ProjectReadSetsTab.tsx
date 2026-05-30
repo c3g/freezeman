@@ -1,10 +1,17 @@
 import React from 'react'
-
+import { useState } from 'react'
 interface ProjectReadSetsTabProps {
-	projectID: number
+	projectIds: readonly number[]
+	hasSearched: boolean
+	isActive: boolean
 }
 
-function ProjectReadSetsTab({ projectID }: ProjectReadSetsTabProps) {
+interface ReadSet {}
+
+function ProjectReadSetsTab({ projectIds, hasSearched, isActive }: ProjectReadSetsTabProps) {
+	const [readSets, setReadSets] = useState<ReadSet[]>([])
+	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 	return <>{'Read Sets Tab'}</>
 }
 
