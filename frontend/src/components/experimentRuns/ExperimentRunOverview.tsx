@@ -1,11 +1,12 @@
 import React from 'react'
 import { Container, ExperimentRun, Process } from '../../models/frontend_models'
-import { Descriptions, Tag } from 'antd'
+import { Button, Descriptions, Tag } from 'antd'
 import { Link } from 'react-router-dom'
 import { useAppSelector } from '../../hooks'
-import { selectInstrumentsByID, selectRunTypesByID } from '../../selectors'
+import { selectExperimentRunLaunches, selectInstrumentsByID, selectRunTypesByID } from '../../selectors'
 import TrackingFieldsContent from '../TrackingFieldsContent'
 import dayjs from 'dayjs'
+import ExperimentRunLaunchCard from './ExperimentRunLaunchCard'
 
 interface ExperimentRunOverviewProps {
 	experimentRun: ExperimentRun
@@ -24,6 +25,7 @@ function formatDate(dateString : string | undefined) {
 function ExperimentRunOverview({ experimentRun, container, process }: ExperimentRunOverviewProps) {
 	const instrumentsByID = useAppSelector(selectInstrumentsByID)
 	const runTypesByID = useAppSelector(selectRunTypesByID)
+	const launchesByID = useAppSelector(selectExperimentRunLaunches).launchesById
 
 	return (
 		<>
@@ -58,7 +60,8 @@ function ExperimentRunOverview({ experimentRun, container, process }: Experiment
 				<Descriptions.Item label="Comment" span={3}>
 					{process.comment}
 				</Descriptions.Item>
-				<Descriptions.Item label="Launch Date" span={3}>{formatDate(experimentRun.run_processing_launch_time)}</Descriptions.Item>
+				<Descriptions.Item label="Launch Date" span={3}>{launchesByID && <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesByID[experimentRun.id]} />}</Descriptions.Item>
+				{/* <Descriptions.Item label="Launch Date" span={3}>{formatDate(experimentRun.run_processing_launch_time)}</Descriptions.Item> */}
 				<Descriptions.Item  label="Processing Start Date" span={3}>{formatDate(experimentRun.run_processing_start_time)}</Descriptions.Item>
 				<Descriptions.Item  label="Processing End Date" span={3}>{formatDate(experimentRun.run_processing_end_time)}</Descriptions.Item>
 			</Descriptions>
