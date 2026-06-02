@@ -123,7 +123,7 @@ const ProjectOverviewPage = () => {
 							),
 						},
 						{
-							label: 'NextSeq Read Sets',
+							label: 'Read Sets',
 							key: 'readsets',
 							children: (
 								<ProjectReadSetsTab projectIds={projectIds} hasSearched={hasSearched} isActive={activeKey === 'readsets'} />

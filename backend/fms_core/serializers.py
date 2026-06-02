@@ -102,6 +102,7 @@ __all__ = [
     "UserSerializer",
     "GroupSerializer",
     "ProjectSerializer",
+    "ProjectOverviewReadsetMetricSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
@@ -124,6 +125,7 @@ __all__ = [
     "ProfileSerializer",
     "DerivedSampleSerializer"
     "FreezemanPermissionSerializer",
+   
 ]
 
 class BiosampleSerializer(serializers.ModelSerializer):
@@ -599,6 +601,31 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+
+class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
+    submission_id = serializers.IntegerField()
+    submission_name = serializers.CharField()
+    external_id = serializers.CharField()
+    platform_name = serializers.CharField()
+    dataset_id = serializers.IntegerField()
+    dataset_lane = serializers.IntegerField()
+    metric_report_url = serializers.CharField(allow_null=True, allow_blank=True)
+    readset_id = serializers.IntegerField()
+    readset_name = serializers.CharField()
+    readset_sample_name = serializers.CharField()
+    readset_validation_status = serializers.IntegerField()
+    readset_release_status = serializers.IntegerField()
+    metric_id = serializers.IntegerField()
+    metric_name = serializers.CharField()
+    metric_group = serializers.CharField()
+    value_numeric = serializers.DecimalField(max_digits=40, decimal_places=20, allow_null=True)
+    value_string = serializers.CharField(allow_null=True, allow_blank=True)
+
+
+
+
+
+
 
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
