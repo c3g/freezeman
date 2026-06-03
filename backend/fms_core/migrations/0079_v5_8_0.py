@@ -13,8 +13,80 @@ ILLUMINA_PLATFORM = "ILLUMINA"
 ILLUMINA_EXPERIMENT_RUN_STEP_NAME = "Experiment Run Illumina"
 SAMPLE_QC_BIOSPECIMEN_STEP = "Sample QC (Biospecimen)"
 NORMALIZATION_BIOSPECIMEN_STEP = "Normalization (Biospecimen)"
-LIBRARY_PREPARATION_WITH_SELECTION_STEP  = "Library Preparation (PCR-enriched, Phage Display, Illumina)"
+LIBRARY_PREPARATION_WITH_SELECTION_PROTOCOL = "Library Preparation with Selection"
+LIBRARY_PREPARATION_WITH_SELECTION_STEP  = "Library Preparation with Selection (PCR-enriched, Phage Display, Illumina)"
 SAMPLE_POOLING_PHAGE_DISPLAY_STEP = "Normalization and Pooling (Phage Display)"
+
+def create_library_preparation_with_selection_protocol(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+    PropertyType = apps.get_model("fms_core", "PropertyType")
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create a library preparation with selection protocol.")
+        reversion.set_user(admin_user)
+
+        protocol = Protocol.objects.create(name=LIBRARY_PREPARATION_WITH_SELECTION_PROTOCOL,
+                                           created_by_id=admin_user_id,
+                                           updated_by_id=admin_user_id)
+        reversion.add_to_revision(protocol)
+
+        PROPERTY_TYPES = [("Library Technician Name", False),
+                          ("Library Diversity", True),
+                          ("Peptides Size", True),
+                          ("Overlaps Size", True),
+                          ("Library Kit Used", False),
+                          ("Library Kit Lot", False), 
+                          ("Thermocycler Used", True),
+                          ("PCR Cycles", True),
+                          ("PCR Enzyme Used", True), 
+                          ("PCR Enzyme Lot", True)]
+
+        value_type = "str"
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+        for property_type_name, is_optional in PROPERTY_TYPES:
+            pt = PropertyType.objects.create(name=property_type_name,
+                                             object_id=protocol.id,
+                                             content_type=protocol_content_type,
+                                             value_type=value_type,
+                                             is_optional=is_optional,
+                                             created_by_id=admin_user_id,
+                                             updated_by_id=admin_user_id)
+            reversion.add_to_revision(pt)
+
+def set_new_protocol_fields(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+
+    LIBRARY_PREPARATION_PROTOCOLS = ["Library Preparation",
+                                     "Library Preparation with Selection"]
+    EXPERIMENT_RUN_PROTOCOLS = ["Illumina Infinium Preparation",
+                                "DNBSEQ Preparation",
+                                "Illumina Preparation",
+                                "Axiom Experiment Preparation",
+                                "PacBio Preparation",
+                                "Ultima Preparation"]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"initialize fields indicating library preparation and experiment run protocols.")
+        reversion.set_user(admin_user)
+
+        for protocol_name in LIBRARY_PREPARATION_PROTOCOLS:
+            protocol = Protocol.object.get(name=protocol_name)
+            protocol.is_library_preparation = True
+            protocol.save()
+            reversion.add_to_revision(protocol)
+        
+        for protocol_name in EXPERIMENT_RUN_PROTOCOLS:
+            protocol = Protocol.object.get(name=protocol_name)
+            protocol.is_experiment_run = True
+            protocol.save()
+            reversion.add_to_revision(protocol)
 
 def create_biospecimen_sample_QC_step(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
@@ -96,7 +168,7 @@ def create_library_preparation_with_selection_step(apps, schema_editor):
         reversion.set_comment(f"Create a library preparation step including a phage display selection.")
         reversion.set_user(admin_user)
 
-        protocol = Protocol.objects.get(name="Library Preparation")
+        protocol = Protocol.objects.get(name=LIBRARY_PREPARATION_WITH_SELECTION_PROTOCOL)
         
         step = Step.objects.create(
             name=LIBRARY_PREPARATION_WITH_SELECTION_STEP,
@@ -239,6 +311,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(create_library_preparation_with_selection_protocol, reverse_code=migrations.RunPython.noop),
+        migrations.AddField(
+            model_name='protocol',
+            name='is_experiment_run',
+            field=models.BooleanField(default=False, help_text='Indicator that the current protocol is an experiment run.'),
+        ),
+        migrations.AddField(
+            model_name='protocol',
+            name='is_library_preparation',
+            field=models.BooleanField(default=False, help_text='Indicator that the current protocol generates a library.'),
+        ),
+        migrations.RunPython(set_new_protocol_fields, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_biospecimen_sample_QC_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_biospecimen_normalization_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_library_preparation_with_selection_step, reverse_code=migrations.RunPython.noop),

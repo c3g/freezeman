@@ -15,6 +15,8 @@ __all__ = ["Protocol"]
 @reversion.register()
 class Protocol(TrackedModel):
     name = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the protocol.")
+    is_library_preparation = models.BooleanField(default=False, help_text="Indicator that the current protocol generates a library.")
+    is_experiment_run = models.BooleanField(default=False, help_text="Indicator that the current protocol is an experiment run.")
 
     child_of = models.ManyToManyField("self", blank=True, through="ProtocolBySubprotocol",
                                       symmetrical=False, related_name="parent_of")
