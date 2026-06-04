@@ -10,12 +10,28 @@ from fms_core.models._constants import SampleType, StepType
 ADMIN_USERNAME = 'biobankadmin'
 
 ILLUMINA_PLATFORM = "ILLUMINA"
+PHIPSEQ_LIBRARY_TYPE = "PhIP-Seq"
 ILLUMINA_EXPERIMENT_RUN_STEP_NAME = "Experiment Run Illumina"
 SAMPLE_QC_BIOSPECIMEN_STEP = "Sample QC (Biospecimen)"
 NORMALIZATION_BIOSPECIMEN_STEP = "Normalization (Biospecimen)"
 LIBRARY_PREPARATION_WITH_SELECTION_PROTOCOL = "Library Preparation with Selection"
 LIBRARY_PREPARATION_WITH_SELECTION_STEP  = "Library Preparation with Selection (PCR-enriched, Phage Display, Illumina)"
 SAMPLE_POOLING_PHAGE_DISPLAY_STEP = "Normalization and Pooling (Phage Display)"
+
+def add_phip_seq_library_type(apps, schema_editor):
+    LibraryType = apps.get_model("fms_core", "LibraryType")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create PhIP-Seq library type.")
+        reversion.set_user(admin_user)
+    
+        library_type = LibraryType.objects.create(name=PHIPSEQ_LIBRARY_TYPE,
+                                                  created_by_id=admin_user_id,
+                                                  updated_by_id=admin_user_id)
+        reversion.add_to_revision(library_type)
 
 def create_library_preparation_with_selection_protocol(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "Protocol")
