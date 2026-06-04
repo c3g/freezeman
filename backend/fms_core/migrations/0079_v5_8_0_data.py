@@ -15,7 +15,7 @@ ILLUMINA_EXPERIMENT_RUN_STEP_NAME = "Experiment Run Illumina"
 SAMPLE_QC_BIOSPECIMEN_STEP = "Sample QC (Biospecimen)"
 NORMALIZATION_BIOSPECIMEN_STEP = "Normalization (Biospecimen)"
 LIBRARY_PREPARATION_WITH_SELECTION_PROTOCOL = "Library Preparation with Selection"
-LIBRARY_PREPARATION_WITH_SELECTION_STEP  = "Library Preparation with Selection (PCR-enriched, Phage Display, Illumina)"
+LIBRARY_PREPARATION_WITH_SELECTION_STEP  = "Library Preparation with Selection (PhIP-Seq, Phage Display, Illumina)"
 SAMPLE_POOLING_PHAGE_DISPLAY_STEP = "Normalization and Pooling (Phage Display)"
 
 def add_phip_seq_library_type(apps, schema_editor):
@@ -170,7 +170,7 @@ def create_library_preparation_with_selection_step(apps, schema_editor):
                                                                 step_id=step.id,
                                                                 sheet_name="Library Batch",
                                                                 column_name="Library Type",
-                                                                value="PCR-enriched",
+                                                                value=PHIPSEQ_LIBRARY_TYPE,
                                                                 created_by_id=admin_user_id,
                                                                 updated_by_id=admin_user_id)
         reversion.add_to_revision(step_specification_1)
@@ -234,7 +234,7 @@ def create_phage_display_workflow(apps, schema_editor):
 
     WORKFLOWS = [
         # (name, structure, step_names)
-        ("Phage Display Illumina", "Phage Display Illumina", ["Sample QC (Biospecimen)", "Normalization (Biospecimen)", "Library Preparation with Selection (PCR-enriched, Phage Display, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Phage Display)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),   
+        ("Phage Display Illumina", "Phage Display Illumina", [SAMPLE_QC_BIOSPECIMEN_STEP, NORMALIZATION_BIOSPECIMEN_STEP, LIBRARY_PREPARATION_WITH_SELECTION_STEP, "Transfer for library QC", "Library QC", SAMPLE_POOLING_PHAGE_DISPLAY_STEP, "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),   
     ]
 
     with reversion.create_revision(manage_manually=True):
