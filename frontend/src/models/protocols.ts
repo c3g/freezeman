@@ -9,6 +9,7 @@ export enum ProtocolNames {
 	Sample_Identity_Quality_Control = 'Sample Identity Quality Control',
 	Sample_Selection_using_qPCR = 'Sample Selection using qPCR',
 	Library_Preparation = 'Library Preparation',
+	Library_Preparation_with_Selection = 'Library Preparation with Selection',
 	Library_Conversion = 'Library Conversion',
 	Library_Quality_Control = 'Library Quality Control',
 	Normalization = 'Normalization',
