@@ -57,37 +57,6 @@ def create_library_preparation_with_selection_protocol(apps, schema_editor):
                                              updated_by_id=admin_user_id)
             reversion.add_to_revision(pt)
 
-def set_new_protocol_fields(apps, schema_editor):
-    Protocol = apps.get_model("fms_core", "Protocol")
-
-    LIBRARY_PREPARATION_PROTOCOLS = ["Library Preparation",
-                                     "Library Preparation with Selection"]
-    EXPERIMENT_RUN_PROTOCOLS = ["Illumina Infinium Preparation",
-                                "DNBSEQ Preparation",
-                                "Illumina Preparation",
-                                "Axiom Experiment Preparation",
-                                "PacBio Preparation",
-                                "Ultima Preparation"]
-
-    with reversion.create_revision(manage_manually=True):
-        admin_user = get_user_model().objects.get(username=ADMIN_USERNAME)
-        admin_user_id = admin_user.id
-
-        reversion.set_comment(f"initialize fields indicating library preparation and experiment run protocols.")
-        reversion.set_user(admin_user)
-
-        for protocol_name in LIBRARY_PREPARATION_PROTOCOLS:
-            protocol = Protocol.object.get(name=protocol_name)
-            protocol.is_library_preparation = True
-            protocol.save()
-            reversion.add_to_revision(protocol)
-        
-        for protocol_name in EXPERIMENT_RUN_PROTOCOLS:
-            protocol = Protocol.object.get(name=protocol_name)
-            protocol.is_experiment_run = True
-            protocol.save()
-            reversion.add_to_revision(protocol)
-
 def create_biospecimen_sample_QC_step(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     StepSpecification = apps.get_model("fms_core", "StepSpecification")
@@ -249,7 +218,7 @@ def create_phage_display_workflow(apps, schema_editor):
 
     WORKFLOWS = [
         # (name, structure, step_names)
-        ("Phage Display Illumina", "Phage Display Illumina", ["Sample QC (Biospecimen)", "Normalization (Biospecimen)", "Library Preparation (PCR-enriched, Phage Display, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Phage Display)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),   
+        ("Phage Display Illumina", "Phage Display Illumina", ["Sample QC (Biospecimen)", "Normalization (Biospecimen)", "Library Preparation with Selection (PCR-enriched, Phage Display, Illumina)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Phage Display)", "Transfer for library QC", "Library QC", "Normalization and Pooling (Experiment Run)", "Experiment Run Illumina"]),   
     ]
 
     with reversion.create_revision(manage_manually=True):
@@ -312,17 +281,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(create_library_preparation_with_selection_protocol, reverse_code=migrations.RunPython.noop),
-        migrations.AddField(
-            model_name='protocol',
-            name='is_experiment_run',
-            field=models.BooleanField(default=False, help_text='Indicator that the current protocol is an experiment run.'),
-        ),
-        migrations.AddField(
-            model_name='protocol',
-            name='is_library_preparation',
-            field=models.BooleanField(default=False, help_text='Indicator that the current protocol generates a library.'),
-        ),
-        migrations.RunPython(set_new_protocol_fields, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_biospecimen_sample_QC_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_biospecimen_normalization_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_library_preparation_with_selection_step, reverse_code=migrations.RunPython.noop),
