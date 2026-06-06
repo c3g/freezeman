@@ -603,24 +603,41 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
-    submission_id = serializers.IntegerField()
-    submission_name = serializers.CharField()
-    external_id = serializers.CharField()
-    platform_name = serializers.CharField()
-    dataset_id = serializers.IntegerField()
-    dataset_lane = serializers.IntegerField()
-    metric_report_url = serializers.CharField(allow_null=True, allow_blank=True)
-    readset_id = serializers.IntegerField()
-    readset_name = serializers.CharField()
+    id = serializers.IntegerField()
+    name = serializers.CharField()
     readset_sample_name = serializers.CharField()
-    readset_validation_status = serializers.IntegerField()
-    readset_release_status = serializers.IntegerField()
-    metric_id = serializers.IntegerField()
-    metric_name = serializers.CharField()
-    metric_group = serializers.CharField()
-    value_numeric = serializers.DecimalField(max_digits=40, decimal_places=20, allow_null=True)
-    value_string = serializers.CharField(allow_null=True, allow_blank=True)
+    external_id = serializers.CharField()
+    run_name = serializers.CharField()
+    run_start_date = serializers.DateField()
 
+    alias = serializers.CharField(allow_null=True)
+    cohort = serializers.CharField(allow_blank=True, allow_null=True)
+    library_type = serializers.CharField(allow_null=True)
+    barcodes = serializers.ListField(
+    child=serializers.CharField(allow_null=True),
+    allow_empty=True,
+)
+
+
+    number_of_reads = serializers.IntegerField(allow_null=True)
+
+    average_quality = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    pf_reads_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+    duplicate_aligned = serializers.DecimalField(
+        max_digits=40,
+        decimal_places=20,
+        allow_null=True,
+    )
+   
+    
 
 
 
