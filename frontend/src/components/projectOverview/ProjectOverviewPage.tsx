@@ -126,7 +126,11 @@ const ProjectOverviewPage = () => {
 							label: 'Read Sets',
 							key: 'readsets',
 							children: (
-								<ProjectReadSetsTab projectIds={projectIds} hasSearched={hasSearched} isActive={activeKey === 'readsets'} />
+								<ProjectReadSetsTab
+									externalID={searchedExternalID}
+									hasSearched={hasSearched}
+									isActive={activeKey === 'readsets'}
+								/>
 							),
 						},
 						{

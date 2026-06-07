@@ -46,3 +46,24 @@ export type ExternalIDProjectSamplesResponse = {
 	summary: ExternalIDProjectSamplesSummary
 	samples: ExternalIDProjectSample[]
 }
+
+export type ProjectOverviewReadset = {
+	id: number
+	name: string
+	readset_sample_name: string
+	external_id: string
+	run_name: string
+	run_start_date: string // YYYY-MM-DD
+
+	alias: string | null
+	cohort: string | null
+	library_type: string | null
+
+	barcodes: string[]
+
+	number_of_reads: number | null
+
+	average_quality: string | null
+	pf_reads_aligned: string | null
+	duplicate_aligned: string | null
+}
