@@ -141,6 +141,11 @@ function ExternalIDReadSetDashboard({ readsets }: { readsets: ProjectOverviewRea
 										color="#3578ff"
 										label={{
 											position: 'top',
+											style: {
+												fill: '#ffffff',
+												fontWeight: 'bold',
+												fontSize: 12,
+											},
 										}}
 										xAxis={{
 											title: null,

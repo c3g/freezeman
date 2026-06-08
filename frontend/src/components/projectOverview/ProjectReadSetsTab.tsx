@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useState } from 'react'
 import { ProjectOverviewReadset } from './types'
 import ExternalIDReadSetDashboard from './ExternalIDReadSetDashboard'
@@ -6,7 +6,8 @@ import api from '../../utils/api'
 import { useAppDispatch } from '../../hooks'
 
 import type { ColumnsType } from 'antd/es/table'
-import { Table, Tag, Typography } from 'antd'
+import { Space, Spin, Table, Tag, Typography } from 'antd'
+import ExportButton from '../ExportButton'
 
 const { Text } = Typography
 
@@ -18,118 +19,133 @@ interface ProjectReadSetsTabProps {
 const compactHeaderCell = () => ({
 	style: {
 		padding: '4px 8px',
-		lineHeight: '8px',
-		height: 16,
+		lineHeight: '16px',
+		height: 20,
 	},
 })
+
+const nowrapCell = {
+	style: {
+		whiteSpace: 'nowrap',
+	},
+}
 
 const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 	{
 		title: 'ID',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'id',
 		key: 'id',
 		fixed: 'left',
-		width: 90,
+		width: 70,
+		onHeaderCell: compactHeaderCell,
+		onCell: () => nowrapCell,
 		render: (id: number) => <Text code>{id}</Text>,
 	},
 	{
 		title: 'Readset',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'name',
 		key: 'name',
 		fixed: 'left',
-		width: 300,
+		width: 240,
+		onHeaderCell: compactHeaderCell,
 		render: (name: string) => <Text strong>{name}</Text>,
 	},
 	{
 		title: 'Sample',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'readset_sample_name',
 		key: 'readset_sample_name',
-		width: 250,
+		width: 240,
+		onHeaderCell: compactHeaderCell,
 	},
-	// {
-	// 	title: 'Alias',
-	// 	onHeaderCell: compactHeaderCell,
-	// 	dataIndex: 'alias',
-	// 	key: 'alias',
-	// 	width: 220,
-	// 	render: (alias: string | null) => alias || <Text type="secondary">N/A</Text>,
-	// },
-	// {
-	// 	title: 'Cohort',
-	//	onHeaderCell: compactHeaderCell,
-	// 	dataIndex: 'cohort',
-	// 	key: 'cohort',
-	// 	width: 80,
-	// 	render: (cohort: string | null) => cohort || <Text type="secondary">N/A</Text>,
-	// },
+	{
+		title: 'Alias',
+		dataIndex: 'alias',
+		key: 'alias',
+		width: 220,
+		onHeaderCell: compactHeaderCell,
+		render: (alias: string | null) => alias || <Text type="secondary">N/A</Text>,
+	},
+	{
+		title: 'Cohort',
+		dataIndex: 'cohort',
+		key: 'cohort',
+		width: 120,
+		onHeaderCell: compactHeaderCell,
+		render: (cohort: string | null) => cohort || <Text type="secondary">N/A</Text>,
+	},
 	{
 		title: 'Library Type',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'library_type',
 		key: 'library_type',
-		width: 120,
+		width: 140,
+		onHeaderCell: compactHeaderCell,
 		render: (libraryType: string | null) => (libraryType ? <Tag>{libraryType}</Tag> : <Text type="secondary">N/A</Text>),
 	},
 	{
 		title: 'Run',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'run_name',
 		key: 'run_name',
-		width: 220,
+		width: 260,
+		onHeaderCell: compactHeaderCell,
 	},
 	{
 		title: 'Run Start',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'run_start_date',
 		key: 'run_start_date',
-		width: 100,
+		width: 120,
+		onHeaderCell: compactHeaderCell,
 	},
 	// {
 	// 	title: 'Barcodes',
-	//	onHeaderCell: compactHeaderCell,
 	// 	dataIndex: 'barcodes',
 	// 	key: 'barcodes',
-	// 	width: 260,
+	// 	width: 280,
+	// 	onHeaderCell: compactHeaderCell,
 	// 	render: (barcodes: string[]) =>
-	// 		barcodes.length ? barcodes.map((barcode) => <Tag key={barcode}>{barcode}</Tag>) : <Text type="secondary">N/A</Text>,
+	// 		barcodes?.length ? (
+	// 			<Space size={[0, 4]} wrap>
+	// 				{barcodes.map((barcode) => (
+	// 					<Tag key={barcode}>{barcode}</Tag>
+	// 				))}
+	// 			</Space>
+	// 		) : (
+	// 			<Text type="secondary">N/A</Text>
+	// 		),
 	// },
 	{
 		title: 'Reads',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'number_of_reads',
 		key: 'number_of_reads',
 		align: 'right',
 		width: 100,
+		onHeaderCell: compactHeaderCell,
 		render: (reads: number | null) => (reads !== null ? reads.toLocaleString() : <Text type="secondary">N/A</Text>),
 	},
 	{
 		title: 'Avg Quality',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'average_quality',
 		key: 'average_quality',
 		align: 'right',
 		width: 100,
+		onHeaderCell: compactHeaderCell,
 		render: (value: string | null) => (value !== null ? Number(value).toFixed(2) : <Text type="secondary">N/A</Text>),
 	},
 	{
 		title: '% PF Aligned',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'pf_reads_aligned',
 		key: 'pf_reads_aligned',
 		align: 'right',
-		width: 120,
+		width: 100,
+		onHeaderCell: compactHeaderCell,
 		render: (value: string | null) => (value !== null ? `${(Number(value) * 100).toFixed(2)}%` : <Text type="secondary">N/A</Text>),
 	},
 	{
 		title: '% Duplicate',
-		onHeaderCell: compactHeaderCell,
 		dataIndex: 'duplicate_aligned',
 		key: 'duplicate_aligned',
 		align: 'right',
 		width: 100,
+		onHeaderCell: compactHeaderCell,
 		render: (value: string | null) => (value !== null ? `${(Number(value) * 100).toFixed(2)}%` : <Text type="secondary">N/A</Text>),
 	},
 ]
@@ -169,14 +185,26 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 	console.log('Current read sets state:', projectOverviewReadsets)
 
 	if (isLoading) {
-		return <div>Loading read sets...</div>
+		return <Spin />
 	}
 
 	if (error) {
 		return <div>Error: {error}</div>
 	}
+
 	return (
 		<>
+			{!isLoading && projectOverviewReadsets.length > 0 && (
+				<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+					<ExportButton
+						exportType={'Project Readsets'}
+						exportFunction={null}
+						filename={null}
+						itemsCount={null}
+						disabled={projectOverviewReadsets.length === 0}
+					/>
+				</div>
+			)}
 			{!isLoading && hasSearched && isActive && <ExternalIDReadSetDashboard readsets={projectOverviewReadsets} />}
 
 			{projectOverviewReadsets.length > 0 ? (
@@ -186,9 +214,9 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 					rowKey="id"
 					size="small"
 					bordered
-					// scroll={{ x: 1800 }}
+					scroll={{ x: 'max-content', y: 400 }}
 					pagination={{
-						pageSize: 3,
+						pageSize: 20,
 						showSizeChanger: true,
 					}}
 				/>

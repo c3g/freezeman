@@ -133,25 +133,6 @@ const ProjectOverviewPage = () => {
 								/>
 							),
 						},
-						{
-							label: 'Analysis',
-							key: 'analysis',
-							children: (
-								<ProjectAnalysisTab projectIds={projectIds} hasSearched={hasSearched} isActive={activeKey === 'analysis'} />
-							),
-						},
-						{
-							label: 'Documents',
-							key: 'documents',
-
-							children: (
-								<ProjectDocumentsTab
-									projectIds={projectIds}
-									hasSearched={hasSearched}
-									isActive={activeKey === 'documents'}
-								/>
-							),
-						},
 					]}
 				/>
 			</PageContent>
