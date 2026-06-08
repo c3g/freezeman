@@ -269,10 +269,8 @@ def create_phage_library_selections(apps, schema_editor):
 
     LIBRARY_SELECTION = [
         # (name, target),
-        ("Phage_Display_M13", "MPOX"),
-        ("Phage_Display_M13", "Human Proteome"),
-        ("Phage_Display_T7", "MPOX"),
-        ("Phage_Display_T7", "Human Proteome"),
+        ("Phage_Display", "MPOX"),
+        ("Phage_Display", "Human Proteome"),
     ]
 
     with reversion.create_revision(manage_manually=True):
