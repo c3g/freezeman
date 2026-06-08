@@ -484,9 +484,9 @@ LIBRARY_PREPARATION_TEMPLATE: TemplateDefinition = {
 }
 
 LIBRARY_PREPARATION_WITH_SELECTION_TEMPLATE: TemplateDefinition = {
-  "identity": {"description": "Template to prepare libraries",
+  "identity": {"description": "Template to prepare libraries with selection",
                "file": static("submission_templates/Library_preparation_with_selection_v5_8_0.xlsx"),
-               "protocol": "Library Preparation with selection"},
+               "protocol": "Library Preparation with Selection"},
   "sheets info": [
       {
           'name': 'Library Batch',
@@ -499,7 +499,7 @@ LIBRARY_PREPARATION_WITH_SELECTION_TEMPLATE: TemplateDefinition = {
       {
           'name': 'Library',
           'headers': ['Library Batch ID', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
-                      'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
+                      'Library Container Coordinates', 'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
                       'Library Parent Container Coordinates', 'Sample Current Volume (uL)', 'Sample Volume Used (uL)', 'Library Volume (uL)',
                       'Index Set', 'Index', 'Strandedness', 'Comment', 'Workflow Action'],
           'stitch_column': 'Library Batch ID',
