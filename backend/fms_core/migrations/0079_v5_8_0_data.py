@@ -51,6 +51,7 @@ def create_library_preparation_with_selection_protocol(apps, schema_editor):
         reversion.add_to_revision(protocol)
 
         PROPERTY_TYPES = [("Library Technician Name", False),
+                          ("Bacteriophage", True),
                           ("Library Diversity", True),
                           ("Peptides Size", True),
                           ("Overlaps Size", True),
