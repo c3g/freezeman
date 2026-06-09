@@ -4,6 +4,7 @@ from fms_core.services.sample import get_sample_from_container, prepare_library
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.index import get_index
 from fms_core.services.library import create_library
+from fms_core.models import SampleKind
 
 
 
@@ -84,6 +85,11 @@ class LibraryRowHandler(GenericRowHandler):
                                                                                                library_selection=library_info['library_selection'])
                 libraries_by_derived_sample[derived_sample_source.id] = library_obj
 
+            
+            extract_into_sample_kind_obj = None    
+            if not source_sample_obj.is_kind_extracted:
+                extract_into_sample_kind_obj = SampleKind.objects.get(name="DNA")
+
             sample_destination, self.errors['library_preparation'], self.warnings['library_preparation'] = \
                 prepare_library(process=process_obj,
                                 sample_source=source_sample_obj,
@@ -94,6 +100,7 @@ class LibraryRowHandler(GenericRowHandler):
                                 coordinates_destination=container_coordinates,
                                 volume_destination=volume,
                                 comment=comment,
-                                workflow=workflow)
+                                workflow=workflow,
+                                extract_into=extract_into_sample_kind_obj)
         else:
             self.errors['sample_source'] = 'Sample source is needed to prepare a library.'

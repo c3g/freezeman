@@ -4,7 +4,7 @@ from datetime import datetime, date
 from django.db import Error
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, ProcessMeasurement, SampleLineage,
+from fms_core.models import (Biosample, DerivedSample, DerivedBySample, Sample, SampleKind, ProcessMeasurement, SampleLineage,
                              Container, Process, SampleMetadata, Coordinate)
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
@@ -678,10 +678,11 @@ def prepare_library(process: Process,
                     libraries_by_derived_sample,
                     volume_used,
                     execution_date: datetime.date,
-                    coordinates_destination=None,
-                    volume_destination=None,
-                    comment=None,
-                    workflow=None):
+                    coordinates_destination = None,
+                    volume_destination = None,
+                    comment = None,
+                    workflow = None,
+                    extract_into: SampleKind = None):
     """
     Converts a sample into a library or a pool of samples into a pool of libraries.
 
@@ -697,6 +698,7 @@ def prepare_library(process: Process,
         `volume_destination`: The final volume of the sample (uL).
         `comment`: Extra comments to attach to the process.
         `workflow`: Information about the workflow step and action. Default to None when no action related to workflow is needed.
+        `extract_into`: Library preparation is from unextracted material. extract_into if not None indicate the library Sample Kind. Also set tissue_source. 
 
     Returns:
         The resulting sample or None if errors were encountered. Errors and warnings.
@@ -750,9 +752,11 @@ def prepare_library(process: Process,
             # For pools of samples (a library for each derived sample)
             for derived_sample_source in sample_source.derived_samples.all():
                 library_obj = libraries_by_derived_sample[derived_sample_source.id]
-                new_derived_sample_data = {
-                    "library_id": library_obj.id
-                }
+                new_derived_sample_data = dict(
+                    library_id=library_obj.id,
+                    **(dict(sample_kind_id=extract_into.id) if extract_into is not None else dict()),
+                    **(dict(tissue_source_id=derived_sample_source.sample_kind_id) if extract_into is not None else dict()),
+                )
                 new_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample_source,
                                                                                               new_derived_sample_data)
                 errors.extend(errors_inherit)
