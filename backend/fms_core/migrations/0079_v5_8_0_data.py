@@ -93,7 +93,7 @@ def create_biospecimen_sample_QC_step(apps, schema_editor):
             protocol=protocol,
             type=StepType.PROTOCOL,
             expected_sample_type=SampleType.UNEXTRACTED_SAMPLE,
-            needs_placement=True,
+            needs_placement=False,
             needs_planning=False,
             created_by_id=admin_user_id, updated_by_id=admin_user_id
         )
