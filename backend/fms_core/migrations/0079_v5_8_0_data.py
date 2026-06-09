@@ -223,7 +223,7 @@ def create_phage_display_normalization_and_pooling_step(apps, schema_editor):
                                                               step_id=step.id,
                                                               sheet_name="SamplesToPool",
                                                               column_name="Type",
-                                                              value="Phage_Display",
+                                                              value="Phage Display",
                                                               created_by_id=admin_user_id,
                                                               updated_by_id=admin_user_id)
         reversion.add_to_revision(step_specification)
