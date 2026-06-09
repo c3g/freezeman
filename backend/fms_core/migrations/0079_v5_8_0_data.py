@@ -180,7 +180,7 @@ def create_library_preparation_with_selection_step(apps, schema_editor):
                                                                 step_id=step.id,
                                                                 sheet_name="Library Batch",
                                                                 column_name="Library Selection",
-                                                                value="Phage Display",
+                                                                value="Phage_Display",
                                                                 created_by_id=admin_user_id,
                                                                 updated_by_id=admin_user_id)
         reversion.add_to_revision(step_specification_2)
@@ -223,7 +223,7 @@ def create_phage_display_normalization_and_pooling_step(apps, schema_editor):
                                                               step_id=step.id,
                                                               sheet_name="SamplesToPool",
                                                               column_name="Type",
-                                                              value="Phage Display",
+                                                              value="Phage_Display",
                                                               created_by_id=admin_user_id,
                                                               updated_by_id=admin_user_id)
         reversion.add_to_revision(step_specification)
@@ -295,6 +295,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(add_phip_seq_library_type, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_library_preparation_with_selection_protocol, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_biospecimen_sample_QC_step, reverse_code=migrations.RunPython.noop),
         migrations.RunPython(create_biospecimen_normalization_step, reverse_code=migrations.RunPython.noop),
