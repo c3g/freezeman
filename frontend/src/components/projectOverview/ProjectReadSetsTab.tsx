@@ -46,7 +46,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		dataIndex: 'name',
 		key: 'name',
 		fixed: 'left',
-		width: 240,
+		width: 450,
 		onHeaderCell: compactHeaderCell,
 		render: (name: string) => <Text strong>{name}</Text>,
 	},
@@ -54,14 +54,14 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		title: 'Sample',
 		dataIndex: 'readset_sample_name',
 		key: 'readset_sample_name',
-		width: 240,
+		width: 450,
 		onHeaderCell: compactHeaderCell,
 	},
 	{
 		title: 'Alias',
 		dataIndex: 'alias',
 		key: 'alias',
-		width: 220,
+		width: 450,
 		onHeaderCell: compactHeaderCell,
 		render: (alias: string | null) => alias || <Text type="secondary">N/A</Text>,
 	},
@@ -117,7 +117,7 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		dataIndex: 'number_of_reads',
 		key: 'number_of_reads',
 		align: 'right',
-		width: 100,
+		width: 180,
 		onHeaderCell: compactHeaderCell,
 		render: (reads: number | null) => (reads !== null ? reads.toLocaleString() : <Text type="secondary">N/A</Text>),
 	},
@@ -147,6 +147,36 @@ const projectOverviewReadsetColumns: ColumnsType<ProjectOverviewReadset> = [
 		width: 100,
 		onHeaderCell: compactHeaderCell,
 		render: (value: string | null) => (value !== null ? `${(Number(value) * 100).toFixed(2)}%` : <Text type="secondary">N/A</Text>),
+	},
+	{
+		title: 'Readset Files',
+		dataIndex: 'readset_file_paths',
+		key: 'readset_file_paths',
+		onHeaderCell: compactHeaderCell,
+		render: (files?: string[] | null) =>
+			files?.length ? (
+				<div style={{ whiteSpace: 'nowrap' }}>
+					{files.map((file, index) => (
+						<div key={`${file}-${index}`}>{file}</div>
+					))}
+				</div>
+			) : (
+				<Text type="secondary">N/A</Text>
+			),
+	},
+	{
+		title: 'Readset File Sizes',
+		dataIndex: 'readset_file_sizes',
+		key: 'readset_file_sizes',
+		align: 'right',
+		width: 120,
+		onHeaderCell: compactHeaderCell,
+		render: (sizes?: number[] | null) =>
+			sizes?.length ? (
+				sizes.map((size) => `${(Number(size) / 1024 / 1024).toFixed(2)} MB`).join(', ')
+			) : (
+				<Text type="secondary">N/A</Text>
+			),
 	},
 ]
 
@@ -216,7 +246,7 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 					bordered
 					scroll={{ x: 'max-content', y: 400 }}
 					pagination={{
-						pageSize: 20,
+						pageSize: 2,
 						showSizeChanger: true,
 					}}
 				/>

@@ -45,6 +45,8 @@ PROJECT_OVERVIEW_VALUE_FIELDS = [
     "average_quality",
     "pf_reads_aligned",
     "duplicate_aligned",
+    "readset_file_paths",
+    "readset_file_sizes",
 ]
 
 PROJECT_OVERVIEW_VALUE_ALIASES = {
@@ -56,6 +58,8 @@ PROJECT_OVERVIEW_VALUE_ALIASES = {
     "cohort": F("derived_sample__biosample__individual__cohort"),
     "library_type": F("derived_sample__library__library_type__name"),
     "number_of_reads": F("production_data__reads"),
+  
+
 }
 
 
@@ -87,6 +91,14 @@ class ProjectOverviewViewSet(viewsets.GenericViewSet):
                 duplicate_aligned=Max(
                     "metrics__value_numeric",
                     filter=Q(metrics__name="duplicate_rate"),
+                ),
+                readset_file_paths=ArrayAgg(
+                    "files__file_path",
+                    distinct=True,
+                ),
+                readset_file_sizes=ArrayAgg(
+                    "files__size",
+                    distinct=True,
                 ),
             )
             .order_by(*PROJECT_OVERVIEW_ORDERING)

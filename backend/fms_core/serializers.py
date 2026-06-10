@@ -636,6 +636,8 @@ class ProjectOverviewReadsetMetricSerializer(serializers.Serializer):
         decimal_places=20,
         allow_null=True,
     )
+    readset_file_paths = serializers.ListField(required=False)
+    readset_file_sizes = serializers.ListField(required=False)
    
     
 
