@@ -246,7 +246,7 @@ function ProjectReadSetsTab({ externalID, hasSearched, isActive }: ProjectReadSe
 					bordered
 					scroll={{ x: 'max-content', y: 400 }}
 					pagination={{
-						pageSize: 2,
+						pageSize: 5,
 						showSizeChanger: true,
 					}}
 				/>
