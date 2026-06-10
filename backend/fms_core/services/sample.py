@@ -682,7 +682,7 @@ def prepare_library(process: Process,
                     volume_destination = None,
                     comment = None,
                     workflow = None,
-                    extract_into: SampleKind = None):
+                    extract_into: SampleKind | None = None):
     """
     Converts a sample into a library or a pool of samples into a pool of libraries.
 

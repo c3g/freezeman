@@ -18,7 +18,6 @@ class LibraryRowHandler(GenericRowHandler):
         if not library_batch_info:
             self.errors['library_preparation'] = 'No batch is associated with this library.'
 
-        # Calling the service creator for Samples in LibraryPreparation
         source_sample_obj, self.errors['container'], self.warnings['container'] = \
             get_sample_from_container(barcode=source_sample['barcode'], coordinates=source_sample['coordinates'])
 
@@ -86,7 +85,7 @@ class LibraryRowHandler(GenericRowHandler):
                 libraries_by_derived_sample[derived_sample_source.id] = library_obj
 
             
-            extract_into_sample_kind_obj = None    
+            extract_into_sample_kind_obj = None
             if not source_sample_obj.is_kind_extracted:
                 extract_into_sample_kind_obj = SampleKind.objects.get(name="DNA")
 

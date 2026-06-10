@@ -33,9 +33,9 @@ class LibraryPreparationWithSelectionImporter(GenericImporter):
             self.base_errors.append(f"Property Type could not be found. {e}")
 
     def import_template_inner(self):
-        """
-            LIBRARY BATCH SHEET
-        """
+
+        ###   LIBRARY BATCH SHEET
+
         library_batch_sheet = self.sheets['Library Batch']
 
         # Identify for each row of the matching workflow step
@@ -78,9 +78,8 @@ class LibraryPreparationWithSelectionImporter(GenericImporter):
 
                 library_batch_rows_data[library_batch_dict['Library Batch ID']] = library_batch_info
 
-        """
-            LIBRARIES SHEET
-        """
+        ###   LIBRARIES SHEET
+
         libraries_sheet = self.sheets['Library']
         for i, row_data in enumerate(libraries_sheet.rows):
             library_preparation_kwargs = {
