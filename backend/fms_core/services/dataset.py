@@ -219,6 +219,11 @@ def set_dataset_validation_status(dataset_obj: Dataset, validation_status: Valid
     errors = []
     warnings = []
     timestamp = timezone.now()
+
+    if not dataset_obj.project.external_id:
+        errors.append(f"Cannot set validation status for Lane {dataset_obj.lane} of Experiment Run {dataset_obj.experiment_run.name} because project {dataset_obj.project.name} is missing an external project id.")
+        return count_status, errors, warnings
+
     for readset in Readset.objects.filter(dataset=dataset_obj).all():
         previous_status = readset.validation_status
         readset.validation_status = validation_status
@@ -231,7 +236,7 @@ def set_dataset_validation_status(dataset_obj: Dataset, validation_status: Valid
         readset.save()
         count_status += 1
     create_archived_comment_for_model(Dataset, dataset_obj.id, AUTOMATED_COMMENT_DATASET_VALIDATED(ValidationStatus.labels[validation_status]))
-    is_status_revocation = validation_status != ValidationStatus.PASSED and previous_status == ValidationStatus.PASSED # identifies dataset that get a passed status invalidation
+    is_status_revocation = validation_status != ValidationStatus.PASSED and previous_status == ValidationStatus
     if validation_status == ValidationStatus.PASSED or is_status_revocation:
         _, errors_file, warnings_file = create_validation_info_file(dataset_obj, is_status_revocation)
         errors.extend(errors_file)
@@ -301,7 +306,11 @@ def set_dataset_release_status(dataset_id: int, readsets_release_status: dict[st
             errors.append(f"Failed to get Dataset {dataset_id}.")
             return None, errors, warnings # no good outcome to be expected.
         readset_ids = [int(i) for i in readsets_release_status.keys()]
-        readsets = Readset.objects.filter(dataset=dataset_id, id__in=readset_ids)
+        readsets = list(Readset.objects.filter(dataset=dataset_id, id__in=readset_ids))
+
+        if not dataset_obj.project.external_id:
+            errors.append(f"Cannot set release status for Dataset {dataset_id} because project {dataset_obj.project.name} is missing an external project id.")
+            return None, errors, warnings
 
         try:
             release_status_timestamp = timezone.now()
@@ -378,6 +387,9 @@ def create_validation_info_file(dataset_obj: Dataset, is_validation_revocation: 
 
     dataset_id = str(dataset_obj.id)
     external_project_id = dataset_obj.project.external_id
+    if not external_project_id:
+        errors.append(f"Cannot create validation info file for Dataset {dataset_obj.id} because its project is missing an external project id.")
+        return None, errors, warnings
     project_requestor_email = dataset_obj.project.requestor_email
     lane = str(dataset_obj.lane)
 
@@ -438,6 +450,9 @@ def create_release_info_file(dataset_obj: Dataset, readsets_obj: List[Readset], 
 
     dataset_id = str(dataset_obj.id)
     external_project_id = dataset_obj.project.external_id
+    if not external_project_id:
+        errors.append(f"Cannot create release info file for Dataset {dataset_obj.id} because its project is missing an external project id.")
+        return None, errors, warnings
     project_requestor_email = dataset_obj.project.requestor_email
     lane = str(dataset_obj.lane)
 
