@@ -236,7 +236,7 @@ def set_dataset_validation_status(dataset_obj: Dataset, validation_status: Valid
         readset.save()
         count_status += 1
     create_archived_comment_for_model(Dataset, dataset_obj.id, AUTOMATED_COMMENT_DATASET_VALIDATED(ValidationStatus.labels[validation_status]))
-    is_status_revocation = validation_status != ValidationStatus.PASSED and previous_status == ValidationStatus
+    is_status_revocation = validation_status != ValidationStatus.PASSED and previous_status == ValidationStatus.PASSED # identifies dataset that get a passed status invalidation
     if validation_status == ValidationStatus.PASSED or is_status_revocation:
         _, errors_file, warnings_file = create_validation_info_file(dataset_obj, is_status_revocation)
         errors.extend(errors_file)
